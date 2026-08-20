@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import type { Env } from "./google";
 import {
+  addPlanRow,
+  deletePlanRow,
+  reorderPlanDay,
   addExercise,
   appendLog,
   bootstrap,
@@ -48,6 +51,31 @@ app.post("/api/groups/:tab/reorder", async (c) => {
   return c.json(await reorderExercises(c.env, tab, orderedIds));
 });
 
+
+// ---- Week plan -------------------------------------------------------------
+
+app.post("/api/plan/:day", async (c) => {
+  const day = Number(c.req.param("day"));
+  if (!Number.isInteger(day) || day < 0 || day > 6) return c.json({ error: "bad day" }, 400);
+  const { exerciseId } = await c.req.json<{ exerciseId: string }>();
+  if (!exerciseId) return c.json({ error: "exerciseId required" }, 400);
+  return c.json(await addPlanRow(c.env, day, exerciseId));
+});
+
+app.post("/api/plan/:day/reorder", async (c) => {
+  const day = Number(c.req.param("day"));
+  if (!Number.isInteger(day) || day < 0 || day > 6) return c.json({ error: "bad day" }, 400);
+  const { orderedIds } = await c.req.json<{ orderedIds: string[] }>();
+  return c.json(await reorderPlanDay(c.env, day, orderedIds));
+});
+
+app.delete("/api/plan/:day/:exerciseId", async (c) => {
+  const day = Number(c.req.param("day"));
+  if (!Number.isInteger(day) || day < 0 || day > 6) return c.json({ error: "bad day" }, 400);
+  await deletePlanRow(c.env, day, decodeURIComponent(c.req.param("exerciseId")));
+  return c.json({ ok: true });
+});
+
 // ---- Workout log -----------------------------------------------------------
 
 app.get("/api/log", async (c) => {
@@ -79,4 +107,11 @@ app.onError((err, c) => {
   return c.json({ error: String(err?.message ?? err) }, 500);
 });
 
-export default app;
+import { mirrorToSheet } from "./mirror";
+
+export default {
+  fetch: app.fetch,
+  scheduled: async (_c: ScheduledController, env: Env) => {
+    await mirrorToSheet(env);
+  },
+};

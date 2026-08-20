@@ -3,16 +3,21 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
 } from "react";
 import { api } from "./api";
-import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, LogPatch } from "../shared";
+import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, LogPatch, PlanRow } from "../shared";
 import { RECENT_LOG_DAYS } from "../shared";
 import { useToast } from "./ui";
+import { publishPlan } from "./plan";
 
-const CACHE_KEY = "gym.cache.v3";
+const CACHE_KEY = "gym.cache.v4";
+
+
+
 const recentCutoff = () => new Date(Date.now() - RECENT_LOG_DAYS * 86400000).toISOString();
 
 interface Meta {
@@ -21,12 +26,13 @@ interface Meta {
   isMixed: boolean;
 }
 interface Snapshot {
+  plan: PlanRow[];
   meta: Meta[];
   byTab: Record<string, Exercise[]>;
   log: LogEntry[];
 }
 
-const EMPTY: Snapshot = { meta: [], byTab: {}, log: [] };
+const EMPTY: Snapshot = { plan: [], meta: [], byTab: {}, log: [] };
 
 function loadCache(): Snapshot | null {
   try {
@@ -38,12 +44,19 @@ function loadCache(): Snapshot | null {
 }
 
 interface Gym {
+  plan: PlanRow[];
+  addPlanRow: (day: number, exerciseId: string) => void;
+  deletePlanRow: (day: number, exerciseId: string) => void;
+  reorderPlanDay: (day: number, orderedIds: string[]) => void;
   ready: boolean;
   syncing: boolean;
   logComplete: boolean;
   groups: Group[];
   log: LogEntry[];
   exercisesFor: (tab: string) => Exercise[];
+  /** Every exercise across every tab, in tab order. */
+  allExercises: Exercise[];
+  exerciseById: (id: string) => Exercise | undefined;
   logFor: (exerciseId: string) => LogEntry[];
   setsTodayFor: (exerciseId: string) => number;
   refresh: () => Promise<void>;
@@ -95,6 +108,7 @@ export function GymProvider({ children }: { children: ReactNode }) {
         // we'd already loaded this session so full history isn't lost on refresh.
         const older = s.log.filter((l) => l.date < data.logCutoff);
         return {
+          plan: data.plan,
           meta: data.groups.map((g) => ({ tab: g.tab, label: g.label, isMixed: g.isMixed })),
           byTab: data.exercises,
           log: [...data.log, ...older].sort((a, b) => (a.date < b.date ? 1 : -1)),
@@ -135,6 +149,13 @@ export function GymProvider({ children }: { children: ReactNode }) {
   }));
 
   const exercisesFor = useCallback((tab: string) => snap.byTab[tab] ?? [], [snap]);
+  const allExercises = useMemo(
+    () => snap.meta.flatMap((m) => exercisesFor(m.tab)),
+    [snap.meta, exercisesFor],
+  );
+  const byId = useMemo(() => new Map(allExercises.map((e) => [e.id, e])), [allExercises]);
+  const exerciseById = useCallback((id: string) => byId.get(id), [byId]);
+
   const logFor = useCallback(
     (id: string) => snap.log.filter((l) => l.exerciseId === id),
     [snap],
@@ -148,6 +169,54 @@ export function GymProvider({ children }: { children: ReactNode }) {
   );
 
   // ---- optimistic mutations ----
+  const addToPlan = useCallback(
+    (day: number, exerciseId: string) => {
+      const before = snapRef.current.plan;
+      if (before.some((r) => r.day === day && r.exerciseId === exerciseId)) return;
+      const position = before.filter((r) => r.day === day).length;
+      setSnap((s) => ({ ...s, plan: [...s.plan, { day, exerciseId, position }] }));
+      api.addPlanRow(day, exerciseId).catch((e) => {
+        toast(String((e as Error).message), true);
+        setSnap((s) => ({ ...s, plan: before }));
+      });
+    },
+    [toast],
+  );
+
+  const removeFromPlan = useCallback(
+    (day: number, exerciseId: string) => {
+      const before = snapRef.current.plan;
+      setSnap((s) => ({ ...s, plan: s.plan.filter((r) => !(r.day === day && r.exerciseId === exerciseId)) }));
+      api.deletePlanRow(day, exerciseId).catch((e) => {
+        toast(String((e as Error).message), true);
+        setSnap((s) => ({ ...s, plan: before }));
+      });
+    },
+    [toast],
+  );
+
+  const reorderPlanDay = useCallback(
+    (day: number, orderedIds: string[]) => {
+      const before = snapRef.current.plan;
+      const currentDay = before.filter((r) => r.day === day).sort((a, b) => a.position - b.position);
+      const otherDays = before.filter((r) => r.day !== day);
+      const byId: any = { };
+      for (const r of currentDay) byId[r.exerciseId] = r;
+      const nextDay = orderedIds.map((id, i) => {
+        const r = byId[id];
+        if (!r) return null;
+        return { ...r, position: i };
+      }).filter(Boolean) as PlanRow[];
+      setSnap((s) => ({ ...s, plan: [...otherDays, ...nextDay] }));
+      api.reorderPlanDay(day, orderedIds).catch((e) => {
+        toast(String((e as Error).message), true);
+        setSnap((s) => ({ ...s, plan: before }));
+      });
+    },
+    [toast],
+  );
+
+
 
   const addExercise = useCallback(
     async (tab: string, input: ExerciseInput): Promise<Exercise | null> => {
@@ -263,13 +332,22 @@ export function GymProvider({ children }: { children: ReactNode }) {
     [toast],
   );
 
+  publishPlan(snap.plan, { add: addToPlan, remove: removeFromPlan, reorder: reorderPlanDay });
+
   const value: Gym = {
+    plan: snap.plan,
+    addPlanRow: addToPlan,
+    deletePlanRow: removeFromPlan,
+    reorderPlanDay,
+
     ready,
     syncing,
     logComplete,
     groups,
     log: snap.log,
     exercisesFor,
+    allExercises,
+    exerciseById,
     logFor,
     setsTodayFor,
     refresh,

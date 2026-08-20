@@ -1,6 +1,7 @@
-import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, LogPatch } from "../shared";
+import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, LogPatch, PlanRow } from "../shared";
 
 export interface BootstrapData {
+  plan: PlanRow[];
   groups: Group[];
   exercises: Record<string, Exercise[]>;
   log: LogEntry[];
@@ -38,6 +39,12 @@ export const api = {
     req<{ ok: true }>("DELETE", `/groups/${E(tab)}/exercises/${E(id)}`),
   reorder: (tab: string, orderedIds: string[]) =>
     req<Exercise[]>("POST", `/groups/${E(tab)}/reorder`, { orderedIds }),
+  addPlanRow: (day: number, exerciseId: string) =>
+    req<PlanRow>("POST", `/plan/${day}`, { exerciseId }),
+  deletePlanRow: (day: number, exerciseId: string) =>
+    req<{ ok: true }>("DELETE", `/plan/${day}/${E(exerciseId)}`),
+  reorderPlanDay: (day: number, orderedIds: string[]) =>
+    req<PlanRow[]>("POST", `/plan/${day}/reorder`, { orderedIds }),
   addLog: (input: LogInput) => req<LogEntry>("POST", "/log", input),
   updateLog: (date: string, patch: LogPatch) =>
     req<{ ok: true }>("PUT", `/log/${E(date)}`, patch),

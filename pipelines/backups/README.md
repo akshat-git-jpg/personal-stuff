@@ -16,8 +16,8 @@ python3 pipelines/backups/d1_export.py /tmp/d1-dumps
 - **Auth:** `CF_API_TOKEN` + `CF_ACCOUNT_ID`. Read from `pipelines/.env` on the Mac, or
   straight from the process env on the VPS (its `load_dotenv` no-ops when the file is
   absent), so the VPS cron carries only those two keys — see the deploy note below.
-- **Databases:** the 5 live D1s are pinned by UUID in `DATABASES` (verified 2026-07-06:
-  clicks-db, tracker-db, lists-db, founders-db, yt-rankings). Add a row when a new D1 is
+- **Databases:** the 6 live D1s are pinned by UUID in `DATABASES` (verified 2026-07-06:
+  clicks-db, tracker-db, lists-db, founders-db, yt-rankings, gym-db). Add a row when a new D1 is
   created — the [inventory-drift check] backlog item is meant to catch a missed one.
 - **Exit code:** 0 only if all databases export; non-zero if any fail (one bad DB doesn't
   abort the others — they're all attempted, then it reports).

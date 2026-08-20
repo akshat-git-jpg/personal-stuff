@@ -396,3 +396,4 @@ would have broken silently at runtime rather than at review.
 **Not touched.** `decisions.md` entries above this one, `plans/200-shared-video-registry.md`,
 and `docs/superpowers/specs/2026-08-18-yt-script-2-write-surface-design.md` — historical
 records that were accurate when written.
+- **2026-08-20**: Gym app week plan: Sets/Reps is shared with the catalogue, one shared weekly plan across all gyms, three fixed gyms (main, anu, home). Do not litigate these.

@@ -4,7 +4,7 @@ import { accentFor, IconBack, useToast } from "./ui";
 import { useGym } from "./store";
 import { buildSessions, fmtDuration, fmtSessionDate } from "./session";
 import { LogEditSheet } from "./LogEditSheet";
-import { gymLabel, gymOfId, type Gym } from "./gym";
+import { gymLabel, type Gym } from "./gym";
 
 export function WorkoutHistory({
   gym,
@@ -15,9 +15,9 @@ export function WorkoutHistory({
   onBack: () => void;
   onOpenDay: (day: string) => void;
 }) {
-  const { log, loadFullLog, logComplete } = useGym();
+  const { log, loadFullLog, logComplete, exerciseById } = useGym();
   const sessions = useMemo(
-    () => buildSessions(log.filter((l) => gymOfId(l.exerciseId) === gym)),
+    () => buildSessions(log.filter((l) => exerciseById(l.exerciseId)?.gym === gym)),
     [log, gym],
   );
 
@@ -87,9 +87,9 @@ export function SessionView({
   gym: Gym;
   onBack: () => void;
 }) {
-  const { log, updateLog, deleteLog } = useGym();
+  const { log, updateLog, deleteLog, exerciseById } = useGym();
   const sessions = useMemo(
-    () => buildSessions(log.filter((l) => gymOfId(l.exerciseId) === gym)),
+    () => buildSessions(log.filter((l) => exerciseById(l.exerciseId)?.gym === gym)),
     [log, gym],
   );
   const session = sessions.find((s) => s.day === day);

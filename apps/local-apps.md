@@ -71,5 +71,22 @@ bash scripts/smoke.sh   # full API smoke against a throwaway local D1 + R2
 Local password is in the dev vars file (`APP_PASSWORD`). Deploy: `npm run deploy` →
 closet.agrolloo.com. See the app README for first-time remote provisioning.
 
+## gym (apps/gym-app)
+
+Mobile gym PWA — exercise catalogue by muscle group, inline editing, drag-reorder, set logging, history. No auth (single user, obscure URL).
+
+```bash
+cd /Users/kbtg/codebase/personal-stuff/apps/gym-app
+npm install
+npm run db:local && npm run seed:local
+npm run dev             # Vite :5173 — the Cloudflare vite plugin runs the Worker in-process, so ONE port (no separate wrangler)
+```
+
+Local dev runs on local D1. `npm run db:local && npm run seed:local` then `npm run dev`.
+
+The **week plan** (This Week strip → day screen) is a review prototype: the plan lives in `localStorage` with a seeded demo split, and no backend exists yet. Wipe it with `localStorage.removeItem("gym.plan.v1")` plus `gym.plan.seeded`.
+
+From the local-apps dashboard it runs on **:5473** (`WEB_PORT` injected). Deploy: `npm run deploy` → https://kushal-gym.agrolloo.com.
+
 ## amul-watch (apps/amul-watch)
 Self-hosted Amul stock notifier with Telegram alerts.

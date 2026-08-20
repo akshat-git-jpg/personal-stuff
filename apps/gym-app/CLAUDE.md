@@ -4,14 +4,16 @@ Mobile gym PWA. Vite + React + Hono on a Cloudflare Worker. Full detail: `README
 
 ## Guardrails
 
-- **Writes hit a LIVE production Google Sheet** ("Exercises - AppSheet") that the user's real AppSheet app also reads/writes. There is no test sheet. Be deliberate with any write/delete path — a bug corrupts real workout data.
+- The plan lives in the `plan` table, `gym` is a column on `exercise`, and Sets/Reps is deliberately shared with the catalogue.
+
+- **Writes hit a Cloudflare D1 database** (`gym-db`). The original Google Sheet is now a frozen rollback copy, plus `Mirror: *` tabs updated weekly by a cron. Use `DB` binding, `schema.sql`, and `npm run db:local`/`npm run seed:local` to test locally.
 - **No auth** — single user, security is just the obscure URL. Don't add a login flow without asking.
 - The client store (`src/client/store.tsx`) is the session source of truth: hydrate from localStorage, one batched `GET /api/bootstrap`, optimistic writes. **Don't add per-navigation refetch** — it breaks the snappy/consistent model on purpose.
 
 ## Run / deploy
 
 ```bash
-npm run dev                 # vite (local UI)
+npm run dev                 # vite (local UI + Worker in-process) on :5173, or WEB_PORT=<n> npm run dev
 npm run deploy              # build + scripts/patch-routes.mjs + wrangler deploy
 ```
 

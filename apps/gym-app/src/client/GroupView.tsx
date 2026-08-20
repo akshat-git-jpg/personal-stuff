@@ -19,7 +19,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../shared";
 import { accentFor, IconBack, IconGrip, IconPlus, useToast } from "./ui";
 import { useGym } from "./store";
-import { gymLabel, gymOfTab, rebuildSliceOrder, type GroupSpec } from "./gym";
+import { gymLabel, rebuildSliceOrder, specGym, type GroupSpec } from "./gym";
 
 function summarise(ex: Exercise): string {
   return (
@@ -121,7 +121,7 @@ export function GroupView({
   const [adding, setAdding] = useState(false);
   const toast = useToast();
   const accent = accentFor(spec.muscle || spec.tab);
-  const gym = gymOfTab(spec.tab);
+  const gym = specGym(spec);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),

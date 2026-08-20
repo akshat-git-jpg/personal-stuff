@@ -1,128 +1,122 @@
-// Domain operations over the spreadsheet: muscle-group tabs (the "library")
-// and the append-only Workout Log tab.
+// Domain operations over the D1 database (replaces the Google Sheet backend).
 //
-// Strategy for the library: each mutation reads the whole tab, mutates the
-// in-memory list, and writes the whole tab back. Data volumes are tiny
-// (tens of rows) and this makes add / edit / delete / reorder uniform and
-// reliable. Row order in the sheet IS the exercise order.
+// The /api surface this serves is FROZEN — it must stay byte-identical to the
+// sheet-backed version, so `tab` remains the group key and Exercise.order
+// remains the zero-based position inside a tab.
 
 import type { Env } from "./google";
-import { addTab, getTabs, valuesAppend, valuesBatchGet, valuesClear, valuesGet, valuesUpdate } from "./google";
-import type { Exercise, ExerciseInput, Group, LogEntry, LogInput } from "../shared";
-import { RECENT_LOG_DAYS, WORKOUT_LOG_HEADER, WORKOUT_LOG_TAB } from "../shared";
+import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, Gym, PlanRow } from "../shared";
+import { RECENT_LOG_DAYS } from "../shared";
 
-const MIXED_TAB = "Anu Gym";
-
-/** Tabs that are not exercise libraries. */
-const NON_LIBRARY = new Set([WORKOUT_LOG_TAB]);
+/** Tabs that carry a per-row Muscle Group column (one tab, many muscle groups). */
+const MIXED_TABS = new Map<string, Gym>([["Anu Gym", "anu"], ["Home Gym", "home"]]);
 
 function isMixed(tab: string): boolean {
-  return tab === MIXED_TAB;
+  return MIXED_TABS.has(tab);
 }
 
-const q = (tab: string) => `'${tab.replace(/'/g, "''")}'`;
+interface ExRow {
+  id: string;
+  tab: string;
+  name: string;
+  setting: string;
+  sets_reps: string;
+  notes: string;
+  muscle_group: string | null;
+  position: number;
+  gym: Gym;
+}
 
-// ---- Bootstrap: all groups + all exercises + full log in one batched read ---
+function toExercise(r: ExRow): Exercise {
+  const ex: Exercise = {
+    id: r.id,
+    name: r.name,
+    setting: r.setting,
+    setsReps: r.sets_reps,
+    notes: r.notes,
+    tab: r.tab,
+    order: r.position,
+    gym: r.gym,
+  };
+  // muscleGroup stays undefined for single-group tabs — the client relies on it.
+  if (isMixed(r.tab)) ex.muscleGroup = r.muscle_group ?? "";
+  return ex;
+}
+
+interface LogRow {
+  ts: string;
+  exercise_id: string;
+  exercise: string;
+  muscle_group: string;
+  set_no: number;
+  weight: number;
+  reps: number;
+  notes: string;
+}
+
+const toLogEntry = (r: LogRow): LogEntry => ({
+  date: r.ts,
+  exerciseId: r.exercise_id,
+  exercise: r.exercise,
+  muscleGroup: r.muscle_group,
+  setNo: r.set_no,
+  weight: r.weight,
+  reps: r.reps,
+  notes: r.notes,
+});
+
+// ---- Bootstrap -------------------------------------------------------------
 
 export interface Bootstrap {
+  plan: PlanRow[];
   groups: Group[];
   exercises: Record<string, Exercise[]>;
-  log: LogEntry[]; // recent only (>= logCutoff)
-  logCutoff: string; // ISO; entries older than this load lazily
+  log: LogEntry[];
+  logCutoff: string;
 }
 
 export async function bootstrap(env: Env): Promise<Bootstrap> {
-  const tabs = await getTabs(env);
-  const libTabs = tabs.filter((t) => !NON_LIBRARY.has(t.title));
-  const hasLog = tabs.some((t) => t.title === WORKOUT_LOG_TAB);
-
-  const ranges = [
-    ...libTabs.map((t) => `${q(t.title)}!${isMixed(t.title) ? "A2:F" : "A2:E"}`),
-    ...(hasLog ? [`${q(WORKOUT_LOG_TAB)}!A2:H`] : []),
-  ];
-  const batches = await valuesBatchGet(env, ranges);
+  const cutoff = new Date(Date.now() - RECENT_LOG_DAYS * 86400000).toISOString();
+  const [tabs, exs, logs, planRows] = await env.DB.batch<any>([
+    env.DB.prepare("SELECT name, is_mixed FROM tab ORDER BY position, name"),
+    env.DB.prepare("SELECT * FROM exercise ORDER BY tab, position"),
+    env.DB.prepare("SELECT * FROM log WHERE ts >= ? ORDER BY ts DESC").bind(cutoff),
+    env.DB.prepare("SELECT day, exercise_id, position FROM plan ORDER BY day, position"),
+  ]);
 
   const exercises: Record<string, Exercise[]> = {};
   const groups: Group[] = [];
-  libTabs.forEach((t, i) => {
-    const rows = batches[i] ?? [];
-    const list = rows
-      .map((r, idx) => rowToExercise(t.title, r, idx))
-      .filter((ex) => ex.id.trim() !== "" || ex.name.trim() !== "");
-    exercises[t.title] = list;
-    groups.push({ tab: t.title, label: t.title, count: list.length, isMixed: isMixed(t.title) });
-  });
+  for (const t of tabs.results as { name: string; is_mixed: number }[]) {
+    exercises[t.name] = [];
+    groups.push({ tab: t.name, label: t.name, count: 0, isMixed: !!t.is_mixed });
+  }
+  for (const r of exs.results as ExRow[]) {
+    (exercises[r.tab] ??= []).push(toExercise(r));
+  }
+  for (const g of groups) g.count = (exercises[g.tab] ?? []).length;
 
-  const cutoff = new Date(Date.now() - RECENT_LOG_DAYS * 86400000).toISOString();
-  const fullLog = hasLog
-    ? (batches[libTabs.length] ?? [])
-        .filter((r) => (r[0] ?? "").trim() !== "")
-        .map(parseLogRow)
-        .sort((a, b) => (a.date < b.date ? 1 : -1))
-    : [];
-  const log = fullLog.filter((e) => e.date >= cutoff);
-
-  return { groups, exercises, log, logCutoff: cutoff };
+  return {
+    plan: (planRows.results as { day: number; exercise_id: string; position: number }[]).map((r) => ({ day: r.day, exerciseId: r.exercise_id, position: r.position })),
+    groups,
+    exercises,
+    log: (logs.results as LogRow[]).map(toLogEntry),
+    logCutoff: cutoff,
+  };
 }
 
 // ---- Library ---------------------------------------------------------------
 
-function rowToExercise(tab: string, row: string[], order: number): Exercise {
-  if (isMixed(tab)) {
-    // ID, Muscle Group, Name, Setting, Sets/Reps, Notes
-    return {
-      id: row[0] ?? "",
-      muscleGroup: row[1] ?? "",
-      name: row[2] ?? "",
-      setting: row[3] ?? "",
-      setsReps: row[4] ?? "",
-      notes: row[5] ?? "",
-      tab,
-      order,
-    };
-  }
-  // ID, Name, Setting, Sets/Reps, Notes
-  return {
-    id: row[0] ?? "",
-    name: row[1] ?? "",
-    setting: row[2] ?? "",
-    setsReps: row[3] ?? "",
-    notes: row[4] ?? "",
-    tab,
-    order,
-  };
-}
-
-function exerciseToRow(ex: Exercise): string[] {
-  if (isMixed(ex.tab)) {
-    return [ex.id, ex.muscleGroup ?? "", ex.name, ex.setting, ex.setsReps, ex.notes];
-  }
-  return [ex.id, ex.name, ex.setting, ex.setsReps, ex.notes];
-}
-
-const dataRange = (tab: string) => (isMixed(tab) ? `${tab}!A2:F` : `${tab}!A2:E`);
-
 export async function readExercises(env: Env, tab: string): Promise<Exercise[]> {
-  const rows = await valuesGet(env, dataRange(tab));
-  return rows
-    .map((r, i) => rowToExercise(tab, r, i))
-    .filter((ex) => ex.id.trim() !== "" || ex.name.trim() !== "");
+  const { results } = await env.DB.prepare(
+    "SELECT * FROM exercise WHERE tab = ? ORDER BY position",
+  )
+    .bind(tab)
+    .all<ExRow>();
+  return results.map(toExercise);
 }
 
-/** Persist the full ordered list back to the tab, clearing any trailing rows. */
-async function writeExercises(env: Env, tab: string, list: Exercise[]): Promise<void> {
-  const reindexed = list.map((ex, i) => ({ ...ex, order: i }));
-  const values = reindexed.map(exerciseToRow);
-  if (values.length > 0) {
-    const lastCol = isMixed(tab) ? "F" : "E";
-    await valuesUpdate(env, `${tab}!A2:${lastCol}${1 + values.length}`, values);
-  }
-  // Clear any rows that used to exist beyond the new end.
-  const lastCol = isMixed(tab) ? "F" : "E";
-  await valuesClear(env, `${tab}!A${2 + values.length}:${lastCol}`);
-}
-
-/** Next ID for a tab: reuse the alpha prefix of existing IDs, bump the max number. */
+/** Next ID for a tab: reuse the alpha prefix of existing IDs, bump the max number.
+ *  Behaviour preserved verbatim from the sheet implementation. */
 function nextId(tab: string, existing: Exercise[]): string {
   let prefix = "";
   let maxNum = 0;
@@ -136,11 +130,12 @@ function nextId(tab: string, existing: Exercise[]): string {
   }
   if (!prefix) {
     prefix = isMixed(tab)
-      ? "ANU"
+      ? tab === "Home Gym"
+        ? "HOME"
+        : "ANU"
       : tab.replace(/[^A-Za-z]/g, "").slice(0, 1).toUpperCase() || "X";
   }
-  const width = isMixed(tab) ? 2 : 2;
-  return `${prefix}${String(maxNum + 1).padStart(width, "0")}`;
+  return `${prefix}${String(maxNum + 1).padStart(2, "0")}`;
 }
 
 export async function addExercise(
@@ -158,9 +153,24 @@ export async function addExercise(
     muscleGroup: isMixed(tab) ? input.muscleGroup?.trim() ?? "" : undefined,
     tab,
     order: list.length,
+    gym: MIXED_TABS.get(tab) ?? "main",
   };
-  list.push(ex);
-  await writeExercises(env, tab, list);
+  await env.DB.prepare(
+    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+  )
+    .bind(
+      ex.id,
+      tab,
+      ex.name,
+      ex.setting,
+      ex.setsReps,
+      ex.notes,
+      ex.muscleGroup ?? null,
+      ex.order,
+      ex.gym,
+    )
+    .run();
   return ex;
 }
 
@@ -170,10 +180,12 @@ export async function updateExercise(
   id: string,
   input: ExerciseInput,
 ): Promise<Exercise> {
-  const list = await readExercises(env, tab);
-  const idx = list.findIndex((e) => e.id === id);
-  if (idx === -1) throw new Error(`exercise ${id} not found in ${tab}`);
-  const ex = list[idx];
+  const row = await env.DB.prepare("SELECT * FROM exercise WHERE id = ? AND tab = ?")
+    .bind(id, tab)
+    .first<ExRow>();
+  if (!row) throw new Error(`exercise ${id} not found in ${tab}`);
+  const ex = toExercise(row);
+  // Only provided fields are patched — same as the sheet implementation.
   ex.name = input.name?.trim() ?? ex.name;
   ex.setting = input.setting?.trim() ?? ex.setting;
   ex.setsReps = input.setsReps?.trim() ?? ex.setsReps;
@@ -181,49 +193,50 @@ export async function updateExercise(
   if (isMixed(tab) && input.muscleGroup !== undefined) {
     ex.muscleGroup = input.muscleGroup.trim();
   }
-  await writeExercises(env, tab, list);
+  await env.DB.prepare(
+    "UPDATE exercise SET name = ?, setting = ?, sets_reps = ?, notes = ?, muscle_group = ?" +
+      " WHERE id = ? AND tab = ?",
+  )
+    .bind(ex.name, ex.setting, ex.setsReps, ex.notes, ex.muscleGroup ?? null, id, tab)
+    .run();
   return ex;
 }
 
 export async function deleteExercise(env: Env, tab: string, id: string): Promise<void> {
+  await env.DB.prepare("DELETE FROM exercise WHERE id = ? AND tab = ?").bind(id, tab).run();
+  // Close the gap so positions stay 0..n-1.
   const list = await readExercises(env, tab);
-  const next = list.filter((e) => e.id !== id);
-  await writeExercises(env, tab, next);
+  await reindex(env, tab, list.map((e) => e.id));
 }
 
-/** Reorder by supplying the full list of ids in their new order. */
+async function reindex(env: Env, tab: string, orderedIds: string[]): Promise<void> {
+  if (orderedIds.length === 0) return;
+  await env.DB.batch(
+    orderedIds.map((id, i) =>
+      env.DB.prepare("UPDATE exercise SET position = ? WHERE id = ? AND tab = ?").bind(i, id, tab),
+    ),
+  );
+}
+
+/** Reorder by supplying the full list of ids in their new order. Ids not
+ *  mentioned keep their relative order at the end. */
 export async function reorderExercises(
   env: Env,
   tab: string,
   orderedIds: string[],
 ): Promise<Exercise[]> {
   const list = await readExercises(env, tab);
-  const byId = new Map(list.map((e) => [e.id, e]));
-  const next: Exercise[] = [];
-  for (const id of orderedIds) {
-    const e = byId.get(id);
-    if (e) {
-      next.push(e);
-      byId.delete(id);
-    }
-  }
-  // Any ids not mentioned keep their relative order at the end.
-  for (const e of list) if (byId.has(e.id)) next.push(e);
-  await writeExercises(env, tab, next);
-  return next.map((e, i) => ({ ...e, order: i }));
+  const known = new Set(list.map((e) => e.id));
+  const next = orderedIds.filter((id) => known.has(id));
+  const seen = new Set(next);
+  for (const e of list) if (!seen.has(e.id)) next.push(e.id);
+  await reindex(env, tab, next);
+  return readExercises(env, tab);
 }
 
-// ---- Workout Log -----------------------------------------------------------
-
-async function ensureLogTab(env: Env): Promise<void> {
-  const tabs = await getTabs(env);
-  if (tabs.some((t) => t.title === WORKOUT_LOG_TAB)) return;
-  await addTab(env, WORKOUT_LOG_TAB);
-  await valuesUpdate(env, `${WORKOUT_LOG_TAB}!A1:H1`, [WORKOUT_LOG_HEADER]);
-}
+// ---- Workout log -----------------------------------------------------------
 
 export async function appendLog(env: Env, input: LogInput, dateIso: string): Promise<LogEntry> {
-  await ensureLogTab(env);
   const entry: LogEntry = {
     date: input.date || dateIso,
     exerciseId: input.exerciseId,
@@ -234,8 +247,11 @@ export async function appendLog(env: Env, input: LogInput, dateIso: string): Pro
     reps: input.reps,
     notes: input.notes?.trim() ?? "",
   };
-  await valuesAppend(env, `${WORKOUT_LOG_TAB}!A:H`, [
-    [
+  await env.DB.prepare(
+    "INSERT INTO log (ts, exercise_id, exercise, muscle_group, set_no, weight, reps, notes)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+  )
+    .bind(
       entry.date,
       entry.exerciseId,
       entry.exercise,
@@ -244,67 +260,122 @@ export async function appendLog(env: Env, input: LogInput, dateIso: string): Pro
       entry.weight,
       entry.reps,
       entry.notes,
-    ],
-  ]);
+    )
+    .run();
   return entry;
 }
 
-function parseLogRow(row: string[]): LogEntry {
-  return {
-    date: row[0] ?? "",
-    exerciseId: row[1] ?? "",
-    exercise: row[2] ?? "",
-    muscleGroup: row[3] ?? "",
-    setNo: Number(row[4] ?? 0),
-    weight: Number(row[5] ?? 0),
-    reps: Number(row[6] ?? 0),
-    notes: row[7] ?? "",
-  };
-}
-
 export async function readLog(env: Env, exerciseId?: string): Promise<LogEntry[]> {
-  const tabs = await getTabs(env);
-  if (!tabs.some((t) => t.title === WORKOUT_LOG_TAB)) return [];
-  const rows = await valuesGet(env, `${WORKOUT_LOG_TAB}!A2:H`);
-  let entries = rows.filter((r) => (r[0] ?? "").trim() !== "").map(parseLogRow);
-  if (exerciseId) entries = entries.filter((e) => e.exerciseId === exerciseId);
-  // Most recent first.
-  entries.sort((a, b) => (a.date < b.date ? 1 : -1));
-  return entries;
+  const stmt = exerciseId
+    ? env.DB.prepare("SELECT * FROM log WHERE exercise_id = ? ORDER BY ts DESC").bind(exerciseId)
+    : env.DB.prepare("SELECT * FROM log ORDER BY ts DESC");
+  const { results } = await stmt.all<LogRow>();
+  return results.map(toLogEntry);
 }
 
-/** Rewrite the whole log tab from rows, clearing any trailing leftover rows. */
-async function writeLogRows(env: Env, rows: string[][]): Promise<void> {
-  if (rows.length > 0) {
-    await valuesUpdate(env, `${WORKOUT_LOG_TAB}!A2:H${1 + rows.length}`, rows);
-  }
-  await valuesClear(env, `${WORKOUT_LOG_TAB}!A${2 + rows.length}:H`);
-}
-
-/** Edit a logged set, keyed by its ISO date. */
+/** Edit a logged set, keyed by its ISO timestamp (the client's row key).
+ *  Scoped through `id` so a duplicate timestamp can only ever touch ONE row —
+ *  the sheet version rewrote every matching row. */
 export async function updateLog(
   env: Env,
   date: string,
   patch: { weight?: number; reps?: number; notes?: string },
 ): Promise<void> {
-  const rows = (await valuesGet(env, `${WORKOUT_LOG_TAB}!A2:H`)).filter(
-    (r) => (r[0] ?? "").trim() !== "",
-  );
-  const next = rows.map((r) => {
-    if (r[0] !== date) return r;
-    const row = [...r];
-    if (patch.weight !== undefined) row[5] = String(patch.weight);
-    if (patch.reps !== undefined) row[6] = String(patch.reps);
-    if (patch.notes !== undefined) row[7] = patch.notes;
-    return row;
-  });
-  await writeLogRows(env, next);
+  await env.DB.prepare(
+    "UPDATE log SET weight = COALESCE(?, weight), reps = COALESCE(?, reps)," +
+      " notes = COALESCE(?, notes)" +
+      " WHERE id = (SELECT id FROM log WHERE ts = ? ORDER BY id LIMIT 1)",
+  )
+    .bind(patch.weight ?? null, patch.reps ?? null, patch.notes ?? null, date)
+    .run();
 }
 
-/** Delete a logged set, keyed by its ISO date. */
 export async function deleteLog(env: Env, date: string): Promise<void> {
-  const rows = (await valuesGet(env, `${WORKOUT_LOG_TAB}!A2:H`)).filter(
-    (r) => (r[0] ?? "").trim() !== "" && r[0] !== date,
+  await env.DB.prepare(
+    "DELETE FROM log WHERE id = (SELECT id FROM log WHERE ts = ? ORDER BY id LIMIT 1)",
+  )
+    .bind(date)
+    .run();
+}
+
+
+// ---- Week plan -------------------------------------------------------------
+
+/** Append an exercise to a day. Idempotent: a day holds an exercise at most
+ *  once, which is the constraint the UI assumes when it greys out a picker row. */
+export async function addPlanRow(env: Env, day: number, exerciseId: string): Promise<PlanRow> {
+  const next = await env.DB.prepare(
+    "SELECT COALESCE(MAX(position) + 1, 0) AS pos FROM plan WHERE day = ?",
+  )
+    .bind(day)
+    .first<{ pos: number }>();
+  const position = next?.pos ?? 0;
+  await env.DB.prepare(
+    "INSERT INTO plan (day, exercise_id, position) VALUES (?, ?, ?)" +
+      " ON CONFLICT (day, exercise_id) DO NOTHING",
+  )
+    .bind(day, exerciseId, position)
+    .run();
+  const row = await env.DB.prepare(
+    "SELECT day, exercise_id, position FROM plan WHERE day = ? AND exercise_id = ?",
+  )
+    .bind(day, exerciseId)
+    .first<{ day: number; exercise_id: string; position: number }>();
+  if (!row) throw new Error(`plan row ${day}/${exerciseId} not found after insert`);
+  return { day: row.day, exerciseId: row.exercise_id, position: row.position };
+}
+
+export async function deletePlanRow(env: Env, day: number, exerciseId: string): Promise<void> {
+  await env.DB.prepare("DELETE FROM plan WHERE day = ? AND exercise_id = ?")
+    .bind(day, exerciseId)
+    .run();
+  await reindexDay(env, day);
+}
+
+/** Reorder one day. Ids not mentioned keep their relative order at the end —
+ *  same contract as reorderExercises. */
+export async function reorderPlanDay(
+  env: Env,
+  day: number,
+  orderedIds: string[],
+): Promise<PlanRow[]> {
+  const { results } = await env.DB.prepare(
+    "SELECT exercise_id FROM plan WHERE day = ? ORDER BY position",
+  )
+    .bind(day)
+    .all<{ exercise_id: string }>();
+  const known = new Set(results.map((r) => r.exercise_id));
+  const next = orderedIds.filter((id) => known.has(id));
+  const seen = new Set(next);
+  for (const r of results) if (!seen.has(r.exercise_id)) next.push(r.exercise_id);
+  if (next.length > 0) {
+    await env.DB.batch(
+      next.map((id, i) =>
+        env.DB.prepare("UPDATE plan SET position = ? WHERE day = ? AND exercise_id = ?").bind(
+          i,
+          day,
+          id,
+        ),
+      ),
+    );
+  }
+  return next.map((exerciseId, position) => ({ day, exerciseId, position }));
+}
+
+async function reindexDay(env: Env, day: number): Promise<void> {
+  const { results } = await env.DB.prepare(
+    "SELECT exercise_id FROM plan WHERE day = ? ORDER BY position",
+  )
+    .bind(day)
+    .all<{ exercise_id: string }>();
+  if (results.length === 0) return;
+  await env.DB.batch(
+    results.map((r, i) =>
+      env.DB.prepare("UPDATE plan SET position = ? WHERE day = ? AND exercise_id = ?").bind(
+        i,
+        day,
+        r.exercise_id,
+      ),
+    ),
   );
-  await writeLogRows(env, rows);
 }
