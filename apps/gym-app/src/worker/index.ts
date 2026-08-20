@@ -79,4 +79,11 @@ app.onError((err, c) => {
   return c.json({ error: String(err?.message ?? err) }, 500);
 });
 
-export default app;
+import { mirrorToSheet } from "./mirror";
+
+export default {
+  fetch: app.fetch,
+  scheduled: async (_c: ScheduledController, env: Env) => {
+    await mirrorToSheet(env);
+  },
+};

@@ -4,7 +4,7 @@ Mobile gym PWA. Vite + React + Hono on a Cloudflare Worker. Full detail: `README
 
 ## Guardrails
 
-- **Writes hit a LIVE production Google Sheet** ("Exercises - AppSheet"). There is no test sheet and no local DB. Be deliberate with any write/delete path — a bug corrupts real workout data. (Despite the file name, **no AppSheet app is in the loop** — this Worker is the only reader/writer. A migration to Cloudflare D1 is planned.)
+- **Writes hit a Cloudflare D1 database** (`gym-db`). The original Google Sheet is now a frozen rollback copy, plus `Mirror: *` tabs updated weekly by a cron. Use `DB` binding, `schema.sql`, and `npm run db:local`/`npm run seed:local` to test locally.
 - **REVIEW MODE** — `REVIEW_MODE` in `src/client/store.tsx` is on whenever `import.meta.env.DEV` is true. Reads stay live so exercise names are real; every write stays in the browser instead of reaching the sheet. `Sets/Reps` edits persist to `localStorage` (`gym.review.overrides`) and are re-applied after each bootstrap, so you can see them reflect in the catalogue. Delete that block when the backend moves to D1.
 - **The week plan is a REVIEW PROTOTYPE.** `src/client/plan.ts` + `WeekStrip.tsx` + `DayPlan.tsx` + `ExercisePicker.tsx`. The plan lives in `localStorage` (`gym.plan.v1`) with a seeded demo split; there is no backend, no API route, and nothing in the sheet. `plan.ts` is the seam that gets swapped for a `plan` table in D1.
 - **No auth** — single user, security is just the obscure URL. Don't add a login flow without asking.

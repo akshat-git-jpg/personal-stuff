@@ -1,9 +1,9 @@
 # Gym — on-the-go workout PWA
 
-Mobile-first PWA over the **"Exercises - AppSheet"** Google Sheet. Browse exercises by
+Mobile-first PWA over a Cloudflare D1 database. Browse exercises by
 muscle group, edit settings/notes/working-sets inline, drag to reorder, swipe to delete,
-and log sets per session with progression history. The sheet is the source of truth. The
-name is historical — no AppSheet app reads or writes it; this Worker is the only client.
+and log sets per session with progression history. The database is the source of truth,
+mirrored weekly to Google Sheets.
 
 **Live:** https://kushal-gym.agrolloo.com (no auth — single user, obscure URL)
 
@@ -21,11 +21,8 @@ name is historical — no AppSheet app reads or writes it; this Worker is the on
 
 ## Data model
 
-- **Library** = the existing muscle-group tabs, untouched (`ID, Name, Setting, Sets/Reps,
-  Notes`; the `Anu Gym` tab adds a `Muscle Group` column). Every mutation reads the tab,
-  edits the list, writes it back — row order = exercise order.
-- **Workout Log** = a tab this app created. One row per logged set:
-  `Date, ExerciseID, Exercise, MuscleGroup, SetNo, Weight, Reps, Notes`. Powers history/charts.
+- **Library** = `exercise` and `tab` tables. Row order = `position` column.
+- **Workout Log** = `log` table. One row per logged set. Powers history/charts.
 
 ## Develop
 
