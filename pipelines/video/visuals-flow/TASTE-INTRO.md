@@ -283,10 +283,22 @@ So:
   it**, not against an empty stage. `#rule` sat at y352 inside a sub band of
   330-392 and struck the subtitle out.
 
-**Enforced by:** the device-overlap + clearance audit in the film composition —
-`MIN_CLEARANCE` there is the same 40px this rule states, and the two are meant to
-stay identical. It reports any visible pair closer than that at each beat
-midpoint, and `run.sh <slug> intro-review` surfaces it as a runtime error.
+**Enforced by:** `lib/intro-film/check-clearance.mjs`, run as part of
+`run.sh <slug> intro-review`. It measures every visible element box at each beat
+sample and reports two codes, both as errors: `low_clearance` when an aligned
+pair is closer than `MIN_CLEARANCE_PX` and one of them is text, and
+`text_intersect` when a pair partially intersects with text involved **in either
+z-order** — the b11 case, where the measuring rule painted BEHIND the subtitle
+and hyperframes' `text_occluded` could never fire because it only looks for text
+covered BY something. `MIN_CLEARANCE_PX` is the same 40px this rule states and
+the two are meant to stay identical. Text is measured by its INK (a Range over
+the text node, clamped to the element box), because a 1600px nowrap block holding
+800px of glyphs would otherwise report a gap that is not the one the eye reads.
+
+Until 2026-08-20 this was enforced by an audit hand-copied into individual film
+compositions, which is why it protected `consistent-ai-influencer` and did not
+protect `best-no-code-automation-tool`. Before that it was
+*"author judgement, and that is currently a gap"*.
 
 This was *"author judgement, and that is currently a gap"* until 2026-08-16.
 `check` had sampled this film 464 times — including every one of the six defect
@@ -336,8 +348,18 @@ So:
 - **Verify a redrawn device in the frame where it is used**, not on its own. A
   shape review that never composites against the moving element proves nothing.
 
-**Enforced by:** author judgement. The same clearance check that would catch T13
-would catch this if it sampled across the tween rather than at beat midpoints.
+**Enforced by:** `lib/intro-film/check-clearance.mjs` reports
+`corridor_conflict` at **warning** severity. It unions each element's box across
+every sample; an element whose union is much larger than its own box is a
+traveller, and a static box inside that union is flagged. Containment is
+suppressed in one direction only — scenery enclosing a corridor is not a defect,
+a device parked inside one is.
+
+The residual judgement is deliberate and stays with the author: the checker can
+say the device sits in the path, but not which of the two fixes this rule wants.
+T14 says cap the traveller rather than nudge the device, because moving the
+device only relocates the collision to a different frame of the same tween — and
+nothing mechanical can tell which object is the one that must hold its position.
 
 ## T15 — A hero captions the clause being spoken, not the metaphor.
 

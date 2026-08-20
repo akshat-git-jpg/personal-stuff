@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { margin: 0; background: #000; overflow: hidden; }
+    /* The render canvas comes from #root's data-width/data-height. Hyperframes
+       does NOT read body CSS — sizing only in CSS renders portrait 1080x1920. */
+    #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+    #bg { position: absolute; inset: 0; background: #111; }
+
+    /* The text band. Real content, because the checker measures text by its INK
+       (a Range over the text node) rather than by the element box.
+       top:328px is chosen so the ink band ends at y=380, which puts the mutated
+       device (top:388px) exactly 8px away — the gap size T13 was written from.
+       The plan said top:300px, but at 52px/1.0 that ends the band at y=352 and
+       leaves the mutation a 36px gap: still under the 40px threshold, so the
+       gate fires, but with only 4px of margin. Font metrics differ between
+       macOS and Windows, and 4px is inside that variance — a gate that fires
+       here and not on the other machine is the exact failure this plan exists
+       to prevent, so the margin is widened deliberately. */
+    .sub {
+      position: absolute; top: 328px; left: 120px;
+      font: 52px/1.0 system-ui, sans-serif; color: #fff; white-space: nowrap;
+    }
+
+    /* The device whose clearance to .sub is what this fixture asserts.
+       At top:600px the vertical gap to the sub's ink band is far above
+       MIN_CLEARANCE_PX (40px), so the fixture is CLEAN.
+       The mutation gate rewrites 600px -> 388px, which parks the device ~8px
+       under the sub band and must produce `low_clearance`. Keep the anchor
+       comment verbatim: the mutation recipe matches on this exact string. */
+    #device { position: absolute; left: 120px; width: 600px; height: 200px;
+              top: 600px; /* CLEARANCE-ANCHOR */ background: #444; }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="clearance-clean" data-duration="3" data-fps="30" data-width="1920" data-height="1080">
+    <div id="bg" class="clip" data-start="0" data-duration="3" data-track-index="0"></div>
+    <div id="sub" class="sub clip" data-start="0" data-duration="3" data-track-index="1">Clearance fixture subtitle</div>
+    <div id="device" class="clip" data-start="0" data-duration="3" data-track-index="2"></div>
+  </div>
+  <script>
+    // Nothing here animates — the fixture asserts static clearance. But capture
+    // readiness polls window.__timelines[<data-composition-id>] and stalls 45s
+    // per worker when the key is absent, so register a no-op timeline that
+    // reports the real duration. cdp.mjs's goto() waits on this same key.
+    window.__timelines = window.__timelines || {};
+    window.__timelines['clearance-clean'] = {
+      duration: () => 3,
+      pause() { return this; },
+      play() { return this; },
+      seek() { return this; },
+      totalTime() { return this; },
+      kill() {},
+    };
+  </script>
+</body>
+</html>

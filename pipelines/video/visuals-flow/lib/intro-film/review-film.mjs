@@ -28,6 +28,10 @@ import { resolveWorkdir } from './workdir.mjs';
 import { linkFilmMedia, STAND_IN_IMAGE } from './film-assets.mjs';
 import { checkFilmSync } from './check-film-sync.mjs';
 import { FILM_RENDERER } from '../renderer-constants.mjs';
+// The third pass. `check` is mechanical but tests for OVERLAP only; clearance is
+// the half of T13/T14 it cannot state. See check-clearance.mjs for why nothing
+// existing could be reused.
+import { runClearance, MIN_CLEARANCE_PX, severityOf } from './check-clearance.mjs';
 import { pathToFileURL } from 'node:url';
 
 const HYPERFRAMES = FILM_RENDERER;
@@ -142,7 +146,7 @@ export function beatAt(screenplay, t) {
   return beats.find((b) => t >= b.t_start && t < b.t_end) ?? beats[beats.length - 1] ?? null;
 }
 
-export function renderReport({ slug, samples, findings, screenplay, sheetFiles }) {
+export function renderReport({ slug, samples, findings, screenplay, sheetFiles, clearance = null }) {
   const lines = [];
   lines.push(`# Review — ${slug}`, '');
   lines.push(`${findings.length} mechanical finding(s), ${samples.length} beat frame(s).`, '');
@@ -158,6 +162,24 @@ export function renderReport({ slug, samples, findings, screenplay, sheetFiles }
     lines.push(`  - ${f.message}`);
   }
   lines.push('');
+
+  // Clearance is reported as its own section, not merged into the list above:
+  // these findings are about the GAP between two elements, so they name a pair
+  // rather than one offending element, and reading them mixed in loses that.
+  if (clearance) {
+    lines.push('## Clearance — T13/T14', '');
+    lines.push(`Threshold ${clearance.threshold}px at 1080p. `
+      + `${clearance.errorCount} error(s), ${clearance.warningCount} warning(s) `
+      + `over ${clearance.samples.length} sample(s).`, '');
+    if (!clearance.findings.length) lines.push('None.', '');
+    for (const f of clearance.findings) {
+      const b = f.t == null ? null : beatAt(screenplay, f.t);
+      const at = f.t == null ? 'across the whole span' : `@ ${f.t}s`;
+      lines.push(`- **${severityOf(f.code)}** \`${f.code}\` ${f.a} ↔ ${f.b} `
+        + `gap=${f.gap}px ${at}${b ? ` (${b.id} ${b.intent})` : ''}`);
+    }
+    lines.push('');
+  }
 
   lines.push('## Beat frames — does the picture do what the beat says?', '');
   for (const sheet of sheetFiles) lines.push(`Contact sheet: \`${sheet}\``);
@@ -178,7 +200,9 @@ export function renderReport({ slug, samples, findings, screenplay, sheetFiles }
   return lines.join('\n');
 }
 
-export function runReview(slug, { check = true, snapshot = true } = {}) {
+// Async because the clearance pass drives a browser over CDP. The only caller is
+// this file's own CLI; the tests exercise the pure helpers above.
+export async function runReview(slug, { check = true, snapshot = true, clearance = true } = {}) {
   const workdir = resolveWorkdir(slug);
   const filmDir = path.join(workdir, 'film');
   if (!fs.existsSync(path.join(filmDir, 'index.html'))) {
@@ -213,12 +237,39 @@ export function runReview(slug, { check = true, snapshot = true } = {}) {
   const samples = beatSampleTimes(screenplay);
 
   let findings = [];
+  let report = null;
   if (check) {
     const r = spawnSync('npx', npxArgs(checkArgs(filmDir)), { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, shell: NPX_NEEDS_SHELL });
     const raw = `${r.stdout ?? ''}${r.stderr ?? ''}`;
-    const report = parseCheckJson(raw);
-    fs.writeFileSync(path.join(reviewDir, 'check.json'), JSON.stringify(report, null, 2));
+    report = parseCheckJson(raw);
     findings = summariseFindings(report);
+  }
+
+  // Clearance runs over the SAME film dir and the SAME sample times `check`
+  // covered, so the two passes can never disagree about what was inspected.
+  // A clearance error must NOT abort the run: the snapshot pass below is how the
+  // owner actually reviews the film, and withholding the frames because a gap is
+  // 8px too tight would cost the review to report the defect.
+  let clearanceReport = null;
+  if (clearance) {
+    try {
+      clearanceReport = await runClearance(filmDir, { times: samples.map((s) => s.t) });
+    } catch (e) {
+      // Record the failure instead of throwing: an unmeasurable film is a
+      // reportable state, and a silent skip would read as a pass.
+      clearanceReport = {
+        ok: false, errorCount: 1, warningCount: 0, threshold: MIN_CLEARANCE_PX,
+        samples: samples.map((s) => s.t),
+        findings: [{ code: 'clearance_unavailable', a: '-', b: '-', gap: 0, t: null, message: e.message }],
+      };
+    }
+  }
+
+  // One check.json carrying both passes. Written after clearance so the file is
+  // never half-populated on disk.
+  if (report || clearanceReport) {
+    fs.writeFileSync(path.join(reviewDir, 'check.json'),
+      JSON.stringify({ ...(report ?? {}), clearance: clearanceReport }, null, 2));
   }
 
   let sheetFiles = [];
@@ -228,11 +279,11 @@ export function runReview(slug, { check = true, snapshot = true } = {}) {
     sheetFiles = fs.readdirSync(reviewDir).filter((f) => f.startsWith('contact-sheet')).sort();
   }
 
-  const md = renderReport({ slug, samples, findings, screenplay, sheetFiles });
+  const md = renderReport({ slug, samples, findings, screenplay, sheetFiles, clearance: clearanceReport });
   const reportFile = path.join(reviewDir, 'REVIEW.md');
   fs.writeFileSync(reportFile, md);
 
-  return { reportFile, reviewDir, findings, samples, media, sheetFiles };
+  return { reportFile, reviewDir, findings, samples, media, sheetFiles, clearance: clearanceReport };
 }
 
 // pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
@@ -244,16 +295,27 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     process.exit(1);
   }
   try {
-    const r = runReview(slug);
+    const r = await runReview(slug);
     const errors = r.findings.filter((f) => f.severity === 'error');
     for (const f of r.findings) {
       console.error(`${f.severity.toUpperCase()} ${f.code} ${f.selector ?? ''} ${f.message ?? ''}`.trim());
     }
+    const c = r.clearance;
+    if (c) {
+      for (const f of c.findings) {
+        console.error(`${severityOf(f.code).toUpperCase()} ${f.code} ${f.a} <-> ${f.b} `
+          + `gap=${f.gap}px${f.t == null ? '' : ` @ ${f.t}s`}`.trim());
+      }
+    }
     console.log(`review: ${r.samples.length} frames, ${r.findings.length} findings (${errors.length} errors) -> ${r.reportFile}`);
+    if (c) console.log(`clearance: ${c.errorCount} error(s), ${c.warningCount} warning(s) at ${c.threshold}px over ${c.samples.length} sample(s)`);
     // A lint error makes hyperframes skip the layout and contrast passes
     // entirely — they then report ok against ZERO samples. Exiting non-zero is
     // what stops a session reading that vacuous green as a real pass.
-    process.exit(errors.length ? 1 : 0);
+    // A clearance error counts the same way: T13 says intro-review surfaces it
+    // as a runtime error, and the snapshot pass has already run by this point,
+    // so failing here withholds nothing the owner needs.
+    process.exit(errors.length || (c && c.errorCount) ? 1 : 0);
   } catch (e) {
     console.error(e.message);
     process.exit(1);
