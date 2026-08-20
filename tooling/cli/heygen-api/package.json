@@ -1,0 +1,11 @@
+{
+  "name": "heygen-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Official HeyGen API (api.heygen.com) CLI — metered sibling of the free heygen-web session CLI",
+  "bin": { "heygen-api": "./heygen-api.mjs" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

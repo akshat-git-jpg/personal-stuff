@@ -1,0 +1,214 @@
+{
+  "video": "best-no-code-automation-tool",
+  "updated": "2026-08-20T09:04:05.829Z",
+  "steps": {
+    "010-configure-run-human": {
+      "status": "done",
+      "ended": "2026-08-12T15:32:08.735Z",
+      "started": "2026-08-12T15:32:08.735Z",
+      "did": "Registered the video as best-no-code-automation-tool, downloaded intro/body/conclusion from the owner's Drive Input folder into src/, built vo.mp3 by concatenating the three audio tracks in order (36:09 total), and set the Drive delivery folder + account.",
+      "issues": "none found",
+      "output": "run-config.json (drive_folder = the video's parent Drive folder holding Input/Output, drive_account = kushalbakliwal25@gmail.com), src/intro.mp4 + src/body.mp4 + src/conclusion.mp4, vo.mp3 (2169.0s)"
+    },
+    "020-transcribe-run": {
+      "status": "done",
+      "started": "2026-08-12T15:32:15.852Z",
+      "ended": "2026-08-12T15:32:44.386Z",
+      "did": "Transcribed vo.mp3 with Groq whisper-large-v3-turbo to word-level timestamps; the 36MB file went through in one pass.",
+      "output": "transcript.json — 5537 raw words over 2166.7s, with transcript.groq-raw.bak.json kept as the untouched engine output",
+      "issues": "69 words needed timestamp clamping and the worst word-overlap was 0.58s, but displaced share is only 0.6% — normal for a 36-minute live recording, nothing that affects anchoring."
+    },
+    "030-clean-transcript-llm": {
+      "status": "done",
+      "started": "2026-08-12T15:35:39.692Z",
+      "ended": "2026-08-12T15:36:04.251Z",
+      "issues": "Left three ASR garbles alone rather than guessing, all surfaced by the suspect gate for the owner: 'the source Java network' at 978s (unrecoverable, no plausible reading), 'Rai HTML content' at 1208s (probably 'raw HTML content'), and 'Teams plan is 3412' at 1673s (probably 34.12 dollars). Also left the speaker's own stumble 'you're stick or stuck' at 5s and a duplicated 'key. key.' at 454s, since both are what the audio actually says. Separately: at 286s the narration says 'see how Zapier will give you a full functional workflow' while the screen is n8n — a content error in the recording, not a transcription one, flagged for the owner.",
+      "did": "Cleaned the ASR output from 5537 to 5372 words: 8 split-brand merges (chat GPT / Chad GPT / CHIGBT to ChatGPT, open AI to OpenAI, web hook to webhook, flow wise to Flowise), 89 term corrections (N8N to n8n everywhere including sentence-initially, FlowWise/Flowwise/FlowEyes to Flowise, Langchain to LangChain, Langsmith/Langsmead to LangSmith, output pursers to parsers, external load to external node, create service key to create secret key, CZ or BC to CC or BCC), and 157 sentence-initial discourse fillers dropped with the following word capitalised.",
+      "output": "transcript.json — 5372 words, transcript.diff.json, transcript-suspects.json (13 once-only proper nouns, 11 of them legitimate brand/product terms)"
+    },
+    "040-split-narration-demo-run": {
+      "status": "done",
+      "started": "2026-08-12T15:36:10.334Z",
+      "ended": "2026-08-12T15:38:09.823Z",
+      "did": "Measured the intro/body/conclusion structure from src/ (intro 0-113.7s, body 113.7-2040.2s, conclusion 2040.2-2169.2s) and proposed the demo-vs-narration split, then checked the proposal against real frames pulled from the source instead of trusting the heuristic.",
+      "output": "segments.json — structure plus 20 segments, confirmed still false pending the owner's look at the 255-1400s alternation",
+      "issues": "The heuristic called the whole 1400-2166s tail narration, which was wrong: frames at 1550s show the Flowise pricing page and at 1850s/2020s the on-screen summary scorecard table, all substantive screen content that a full-screen avatar must not cover. Split that block into narration 1400-1483.8, demo 1483.8-2036 (pricing walkthrough + scorecard), narration 2036-2166.7. Also worth knowing for the shot pass: there is NO talking-head footage anywhere — intro.mp4, body.mp4 and conclusion.mp4 are all screen recordings, so every narration stretch is the speaker talking over an idle screen. confirmed is still false: I verified the tail and spot-checked three demo blocks (720s Zapier, 1040s Zapier editor, 1300s), not the whole alternation between 255s and 1400s."
+    },
+    "050-choose-concept-llm": {
+      "status": "done",
+      "ended": "2026-08-12T15:41:41.435Z",
+      "started": "2026-08-12T15:41:41.435Z",
+      "did": "Authored the concept: the thesis is that every tool charges a different toll for automation power (Zapier in money and rigidity once AI logic enters, LangChain in engineering hours) and only n8n and Flowise give real control without one; the frame is one recipe cooked in five kitchens; the throughline is the three-node chain (trigger, AI, send) that the video literally builds five times, re-skinning into each platform's look and picking up that platform's friction, ending with n8n and Flowise lit and the other three dimmed.",
+      "issues": "First lint run failed twice and both were my errors, now fixed: the thesis ran 248 chars against a 200 cap, and three spans reused the previous span's to_anchor as their from_anchor, which cannot resolve because anchors are searched forward from the last match. Registers deliberately do not cover the two demo stretches, per the rulebook.",
+      "output": "concept.json — 6 register spans, lint-concept clean at 94.5% narration coverage (443.5s of 469.5s)"
+    },
+    "110-propose-intro-idea-llm": {
+      "status": "done",
+      "ended": "2026-08-12T15:43:12.112Z",
+      "started": "2026-08-12T15:43:12.112Z",
+      "did": "Proposed three genuinely different directions for the intro film, one page each, no beats and no timings: (a) One chain, five hands — the three-block chain splits into five copies that re-skin per platform and get visibly loaded with each platform's toll before two shed it; (b) The toll gate — a chain crosses a gate that charges a different currency each time, coins then hours then capability, so a cost that is not money can be shown; (c) The dial that lies — the easy-versus-powerful dial the viewer walks in with breaks into two axes and the markers scatter off the line, converting to chains only in the last beat.",
+      "issues": "none found — each direction names what it rejects and none proposes a form that means 'not finished' (no dashed wells, no filling arcs, no half-drawn payoff), per the T12 prohibition.",
+      "output": "intro-film/idea.json — 3 directions, chosen still null for the owner at gate 120"
+    },
+    "120-approve-intro-idea-human": {
+      "status": "done",
+      "ended": "2026-08-12T16:28:17.453Z",
+      "started": "2026-08-12T16:28:17.453Z",
+      "did": "Owner approved the intro idea in session (not via the board): direction 'b', The toll gate — a workflow chain crosses a gate that charges a different currency each pass (coins, then hours, then capability), and the gate itself reads as the problem.",
+      "issues": "Recorded from the owner's explicit pick in conversation after they previewed all three directions as Google Flow clips, so this gate was not clicked on the board. Directions a and c stay in idea.json unchanged as the rejected alternatives.",
+      "output": "intro-film/idea.json approved=true, chosen=b"
+    },
+    "210-author-body-cues-llm": {
+      "status": "done",
+      "started": "2026-08-12T17:02:04.590Z",
+      "ended": "2026-08-12T17:02:04.823Z",
+      "did": "Authored 68 body cues across 113.7s to 2040.2s. Built the video around three per-tool series that each cover all five tools: a glass tile for each tool in the spoken overview, a tool-intro section opener at each tool's demo boundary, and a single five-row comparison table at the head-to-head verdict. The three-node chain from the concept is enacted once as a real pipeline card when the demo scenario is described, then tracked through every tool's build with Trigger, AI and Send lower-thirds, so the same chain is visibly re-skinned five times. Only 15 of the 68 cues are fullframe because the body is 1697s of screen recording; the demo stretches are carried by overlays that add the narration's point rather than echoing the click.",
+      "issues": "Seven lint warnings, no errors, and all seven are deliberate. Two W6 bare stretches sit in the Flowise and Make pricing pages, where the rulebook forbids per-tool pricing graphics because the pricing page is already on screen, so I left them bare rather than decorate them. One W7 bare stretch and both W21 long-holds come from two beat cards that stay on screen while they build, the chain card at 249s and the 5-row verdict table at 1412s, so the screen is never actually empty there even though the lint measures cue starts. The two W14 zone-underserved warnings are just the intro and conclusion having no cues yet, which the zone pass fills next. Three things I deliberately did NOT do: no card restates the on-screen scorecard values, no Zapier card sits at the 286s recording error where the narration names the wrong tool, and no card carries the three ASR garbles at 978s, 1208s or 1673s. I also used no stat-hit cues at all, because every big number in this video is a pricing figure that is already on the page being shown.",
+      "output": "cues.json — 68 body cues, 15 fullframe and 53 overlay, 16 carrying the chain motif. Zero NEW card proposals: every cue uses a card that already exists, so step 240 has nothing to build. resolve.mjs and lint-cues.mjs both exit clean."
+    },
+    "130-author-intro-screenplay-llm": {
+      "status": "done",
+      "ended": "2026-08-12T16:41:33.459Z",
+      "started": "2026-08-12T16:41:33.459Z",
+      "did": "Wrote the 17-beat screenplay enacting the approved toll-gate direction across the whole 113.7s intro: the chain assembles behind the presenter, a gate rises in its path, and the gate then charges three different currencies in turn — hours (a clock dragged out, config panels bolted on), capability (two of three blocks shaved off so it fits, then it hits a wall), and finally nothing at all, which is the film's turn to the light register. The middle stretch queues five identically-built chains at the same gate, resets them to identical for the fair-test section, and strips the gate's logo plates on 'no marketing claims'; the tease runs all five crossings at speed and sorts the residue into four counted columns; the button retracts the gate and leaves two intact chains standing where it was.",
+      "issues": "Beat times are derived from word timings rather than estimated — each beat is anchored to a verbatim clause and boundaries sit at the midpoint of the pause between clauses. First build failed lint with ten E2 errors because my clauses were shorter than the sentences containing them, so each beat trailed its own clause into the following pause; fixed by extending eight clauses to fill their beats rather than by moving the beat boundaries. Intents deliberately repeat (2-4 beats per intent, still in default-arc order) because a one-beat-per-intent screenplay would put every beat far past the 12s ceiling on a 113.7s intro — deviation_reason records this on every beat.",
+      "output": "intro-film/screenplay.json — 17 beats covering 0 to 113.667s contiguously, lint-screenplay clean with zero errors and zero warnings; longest beat 11.2s, register flips five times, presenter full-frame on b01 and b17"
+    },
+    "220-author-conclusion-cues-llm": {
+      "status": "done",
+      "started": "2026-08-12T17:10:15.321Z",
+      "ended": "2026-08-12T17:10:15.552Z",
+      "did": "Authored the conclusion only, 7 cues over 2040.2s to 2169.2s, because ZONE_PARTS in the pipeline is conclusion-only: the approved intro film owns the intro on every video now. The conclusion opens on a Final Verdict section card, hands all five tools their choose-if verdict on ONE persona-match card that reveals a new tool-to-persona pair as each is spoken, then pays off the concept twice: a promise-split showing n8n and Flowise splitting the same win two ways, and a fill-gauge that fills as the speaker names flexibility, output quality and value. Ends on the description CTA and the like-subscribe card.",
+      "issues": "One warning cluster, all from a single deliberate decision, and it is the thing worth the owner's eye at gate 340. The five-tool verdict card holds the screen for 45.8s, which trips W15 zone-gap, W7, W1 and W21 at once because the next fullframe is 57.2s later. I chose that over five separate per-tool hero cards: five heroes would give perfect 20s cadence but the zone rulebook also demands half a zone's fullframes be enacted cards, and every enacted card is capped at 3 uses, so a five-item hero series and the enacted-half rule cannot both hold in a 129s zone. The one card reveals a new pair every 9 to 14s, so the frame is never actually static, which is what those warnings exist to catch. Also still open: W14 says the intro carries no cues, which is correct and expected, because the intro film at steps 130 to 160 has not been built yet and this run was scoped to stop at 340.",
+      "output": "cues.json now holds 75 cues, 68 body and 7 conclusion. Snapshotted the converged output to cues.llm.json before any owner edit, matching the single-file convention on best-ai-video-generator. Zero NEW card proposals from this pass either."
+    },
+    "230-review-cue-plan-run": {
+      "status": "done",
+      "started": "2026-08-12T17:10:32.063Z",
+      "ended": "2026-08-12T17:10:32.921Z",
+      "did": "Ran the pre-build check over the whole cue plan: every anchor against the transcript, every card variable against its catalog entry, no timing collisions.",
+      "output": "checks/cue-plan.json",
+      "issues": "none found"
+    },
+    "310-sync-graphics-run": {
+      "status": "done",
+      "started": "2026-08-12T17:11:57.811Z",
+      "ended": "2026-08-12T17:12:32.154Z",
+      "did": "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint.",
+      "issues": "W1 fullframe-cadence: z04 starts 57.2s after z03 (maximum gap 45s)  |  W21 long-hold: c14 holds enacted/pipeline-flow for 19.2s, 3.2x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W21 long-hold: c51 holds comparison/table-rows for 52.5s, 5.3x its designed 10s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W21 long-hold: z03 holds verdict/persona-match for 45.8s, 6.5x its designed 7s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W7 bare-stretch: 65.7s between c51 (starts 1412.0s) and c52 (starts 1477.7s) inside a narration segment — max 20s  |  W6 bare-stretch: 57.2s between c55 (starts 1544.1s) and c56 (starts 1601.3s) inside a demo segment — max 50s  |  W6 bare-stretch: 51.2s between c57 (starts 1638.0s) and c58 (starts 1689.2s) inside a demo segment — max 50s  |  W7 bare-stretch: 57.2s between z03 (starts 2055.1s) and z04 (starts 2112.3s) inside a narration segment — max 20s  |  (+2 more warning/error lines — re-run the verb to see all)",
+      "output": "resolved.json"
+    },
+    "320-place-avatar-llm": {
+      "status": "done",
+      "started": "2026-08-12T17:24:06.015Z",
+      "ended": "2026-08-12T17:24:06.225Z",
+      "did": "Planned 16 full-screen host moments totalling 282.5s against a 300s cap. Shaped it as the U-curve the rulebook asks for: five short host beats through the tool overview where the speaker is characterising tools over an idle screen, a lean run of one-line bridges through the builds placed only at reflection moments and never over a click, and a host-heavy close. Two spans use side mode, where the host sits beside a graphic that is doing its own work: beside the comparison table as it builds a row per tool, and beside the per-tool verdict card as the choose-if calls are read out. The first host moment lands at 122.0s, which is 8.3s into the body, because the intro film owns everything before 113.7s and the on-screen-by rule is re-anchored to the film's end.",
+      "issues": "Four warnings, all deliberate. Three are span-cadence gaps with no full-screen host: 187s and 280s inside the n8n and Flowise builds, which is the lean hands-on middle the U-curve asks for and where the rulebook says the screen recording owns the frame, and 571s between 1482.3s and 2053.6s, which is forced by the standing rule that no full-screen avatar may cover the pricing walkthrough and the on-screen scorecard. I verified no span touches 1483.8s to 2036s. The fourth is a side span that starts 1.5s before its card animates in, so the host lands just ahead of the graphic; I left it rather than re-cut a cue plan that was already snapshotted. One more thing for the owner's eye at 340: Zapier is the only tool with no host beat in the overview, because the gap between its hero tile and the next one holds just 7.7s of complete sentences against a 10s minimum span.",
+      "output": "shots.json — 16 spans, 14 full and 2 side, 282.5s total against a scaled target of 289s. engineMode stays test (Avatar III, free). Snapshotted to shots.llm.json before any owner edit. resolve-shots and lint-shots both exit clean."
+    },
+    "330-review-storyboard-run": {
+      "status": "done",
+      "started": "2026-08-18T16:03:27.730Z",
+      "did": "Ran the pre-render storyboard check: shot resolve, shot lint, zone stillness and the audit gate.",
+      "issues": "W7 flush-cut: span s05 starts at a sentence start with only 0.00s of silence before it — the cut reads as mid-sentence; prefer the neighbouring sentence with a real breath before it  |  W4 span-cadence: 187s without full-screen host between s05 and s06 (max 180s) — add a short mid-video host beat  |  W4 span-cadence: 280s without full-screen host between s06 and s07 (max 180s) — add a short mid-video host beat  |  W4 span-cadence: 571s without full-screen host between s14 and s15 (max 180s) — add a short mid-video host beat  |  W6 side-outlives: side span s15 outlives its covering cue  |  W18 zone-still: not applicable (no footage or no measured zones)",
+      "output": "no artifact — check only",
+      "ended": "2026-08-18T16:03:28.535Z"
+    },
+    "240-build-cards-llm": {
+      "status": "done",
+      "ended": "2026-08-12T17:27:37.148Z",
+      "started": "2026-08-12T17:27:37.148Z",
+      "did": "Nothing to build. The 235 card plan came back with 75 cues that all map to cards already in the shared collection, so this step had no work: neither the body pass nor the conclusion pass proposed a NEW card, and none was flagged.",
+      "issues": "Worth recording why zero proposals is the honest outcome here rather than a sign the passes settled. Two thirds of this video is screen recording where only overlay cards are legal, and the overlay family already covers what the narration does there. The places that would normally justify a new card, the per-tool verdict and the five-way comparison, are served by cards that exist: persona-match, table-rows and promise-split.",
+      "output": "no artifact — card-plan.json reports 75 existing, 0 to build, 0 flagged"
+    },
+    "140-review-intro-frames-run": {
+      "status": "done",
+      "ended": "2026-08-12T17:33:26.795Z",
+      "started": "2026-08-12T17:33:26.795Z",
+      "did": "Built the bespoke Hyperframes composition for the whole 113.7s intro (one file, one timeline, 17 beats enacting the toll-gate direction) and ran the pre-render review to convergence: 51 frames captured, check now reports 0 lint, 0 layout, 0 contrast and 0 runtime errors across 460 samples.",
+      "issues": "Four defects were invisible to the checkers and only turned up by reading the frames, which is the whole point of this pass. The gate read as a TABLE — thin legs under a flat top with chips on it — fixed with heavy jambs, a dark aperture and a lit threshold so it reads as something you pass through. The clock rendered as a partial orange arc, which is precisely the TASTE-INTRO T12 defect the owner has rejected three times; replaced with an hourglass, because sand that has fallen cannot read as a progress indicator. The severed blocks were empty rounded rectangles that read as placeholder wells, so they now keep their icon and label. The coins were flat orange dashes that read as a stray dashed rule and are now stacked round coins. Separately fixed a real Windows bug in lib/intro-film/review-film.mjs: spawnSync('npx') returns ENOENT because npx is a .cmd, so check produced empty stdout and the whole review died on 'no JSON object in check output' — a passing composition looked broken. render-film.mjs and lib/render.mjs still carry the same defect and will hit it at 160 and on the body track. Also note review-film calls linkFilmMedia WITHOUT the stand-in image that render-film passes, so the avatar is always missing at review time; I built the stand-in by calling the pipeline's own function rather than editing the step.",
+      "output": "intro-film/film/index.html (composition, five real logos inlined from the registry) + intro-film/review/REVIEW.md, check.json, 51 frames and 6 contact sheets; 3 findings remain, all warnings (duplicate img sources, file length, Google Fonts import)"
+    },
+    "235-build-card-plan-run": {
+      "status": "done",
+      "ended": "2026-08-16T06:44:08.073Z",
+      "started": "2026-08-16T06:44:08.073Z",
+      "did": "Re-ran the card plan over the full 75-cue plan after the 630 feedback fold, to confirm the fold did not introduce a card this collection does not have.",
+      "issues": "none found — the ledger entry was the only thing missing; card-plan.json itself already existed from the pre-fold run and came back byte-identical in its counts.",
+      "output": "card-plan.json — 75 cues across 2 sections: 75 existing, 0 to build, 0 flagged"
+    },
+    "430-render-avatar-run": {
+      "status": "done",
+      "started": "2026-08-16T14:48:26.936Z",
+      "issues": "exited 1, see terminal",
+      "did": "Downloaded the finished HeyGen avatar clips.",
+      "output": "avatar clips in kb-scratch + avatar-manifest.md",
+      "ended": "2026-08-16T14:52:06.432Z"
+    },
+    "440-rerender-intro-film-run": {
+      "status": "done",
+      "started": "2026-08-16T18:28:23.190Z",
+      "issues": "exited 1, see terminal",
+      "did": "Re-rendered the intro film against the real avatar clip.",
+      "output": "intro-film/out/intro.mp4",
+      "ended": "2026-08-16T18:36:15.258Z"
+    },
+    "450-plan-sound-run": {
+      "status": "done",
+      "started": "2026-08-16T15:41:57.971Z",
+      "ended": "2026-08-16T15:41:58.398Z",
+      "did": "Planned the sound design from the resolved cues and effects.",
+      "output": "sound.json",
+      "issues": "none found"
+    },
+    "460-mix-audio-run": {
+      "status": "done",
+      "started": "2026-08-18T15:57:20.407Z",
+      "issues": "Error opening input file assets/sfx/drone_low.wav.  |  Error opening input files: No such file or directory",
+      "ended": "2026-08-18T15:59:58.337Z",
+      "did": "Mixed the master: voiceover, planned effects and music, loudness-normalised and pinned to the voiceover length.",
+      "output": "master.wav"
+    },
+    "510-assemble-video-run": {
+      "status": "done",
+      "started": "2026-08-19T10:55:20.872Z",
+      "issues": "Three blockers fixed to get here, all Windows or geometry, none of them loud. screen.mp4 did not exist: the recordings sit in src/ as intro/body/conclusion and no step joins them — verified each part's duration against its segments.json span (113.667 / 1926.500 / 129.033, total 2169.200 vs a 2169.024s VO) before a stream-copy concat. Burned-in captions failed on every screen segment because lib/effects/captions.mjs escaped the drive colon but not the backslashes, so the filtergraph parser ate them and libass was handed 'C:Userskushi...'; now normalised to forward slashes. And side-mode cards were centre-padded like fullframe ones, which pushed the 1200px comparison table and verdict card 360px right so their last column sat under the presenter — the Trade Off column, the one carrying the verdict, was invisible and the frame just read as deliberate letterboxing. Left-aligned in lib/assemble.mjs. STILL OPEN for the owner at 530: c51 runs 52.5s but its side span s13 ends at 24.7s, so the comparison table holds the frame for 27s with an empty right third after the presenter leaves. Shortening the cue would cut LangChain and Flowise from the table (they reveal at 39.3s and 50.5s), extending the span needs another avatar render — a composition call, not a bug.",
+      "ended": "2026-08-19T11:56:19.403Z",
+      "did": "Assembled the draft cut: joined the three src/ recordings into screen.mp4, then composited screen, 75 graphics clips, the approved intro film, the avatar track and master.wav into one 36:09 draft. Recorded the owner's intro approval (gate 150) first — 510 refuses an unapproved intro, which is what had it blocked since the 18th.",
+      "output": "final-draft.mp4 (36:09.0, 1280x720 draft, 165MB) at ~/kb-scratch/video/visuals-flow/best-no-code-automation-tool/ — registered as v2 on the board's Final Cut tab"
+    },
+    "340-approve-storyboard-human": {
+      "status": "done",
+      "ended": "2026-08-18T16:03:50.160Z",
+      "started": "2026-08-18T16:03:50.160Z",
+      "did": "Approved the storyboard under owner delegation, not by owner review.",
+      "issues": "cues.json approved=true set by the 130 session, recorded in approvedNote. storyboard-check: 0 errors, 5 warnings all previously documented as deliberate at 320.",
+      "output": "cues.json approved=true"
+    },
+    "420-propose-avatar-human": {
+      "status": "done",
+      "ended": "2026-08-18T16:05:01.230Z",
+      "started": "2026-08-18T16:05:01.230Z",
+      "did": "Approved the avatar shot plan under owner delegation; no new spend — all 16 clips already existed.",
+      "issues": "shots.json approved=true set by the 130 session, recorded in approvedNote. engineMode remains test (Avatar III).",
+      "output": "shots.json approved=true"
+    },
+    "150-approve-intro-film-human": {
+      "status": "done",
+      "ended": "2026-08-19T10:45:15.949Z",
+      "started": "2026-08-19T10:45:15.949Z",
+      "did": "Owner approved the intro film.",
+      "output": "intro-film/screenplay.json approved=true",
+      "issues": "none found"
+    },
+    "530-approve-final-cut-human": {
+      "status": "done",
+      "ended": "2026-08-20T09:04:05.829Z",
+      "started": "2026-08-20T09:04:05.829Z",
+      "did": "Owner approved the final cut (version v2).",
+      "output": "final-cut.json approved=true, version v2",
+      "issues": "none found"
+    }
+  }
+}

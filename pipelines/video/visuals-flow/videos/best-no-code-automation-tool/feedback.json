@@ -1,0 +1,408 @@
+{
+  "video": "best-no-code-automation-tool",
+  "updated": "2026-08-20",
+  "items": {
+    "intro-b03": {
+      "text": "whats the significance of nothing in this context, also the text of every tool charges for the same workflow is overlapping the other graphic , its needs to be little up, pls take care of all these things in future too",
+      "added": "2026-08-13",
+      "context": {
+        "beat": "b03",
+        "start": 12.24,
+        "clause": "this video will save you hours of trial and error"
+      },
+      "image": "feedback-images/intro-b03.png",
+      "applied": "2026-08-15 — hero h03 NOTHING IS FREE -> NO GUESSWORK (owner picked option A) and sub rewritten to track the clause; .sub moved 330->288 so the sub band clears the gate lintel by 60px instead of 8px; 2026-08-16 corrected — that 60px was arithmetic on the stylesheet and the measured gap was 22px, because b03 scales the gate 1.045 about 50%/100% and its top rises 400->375. .sub moved 288->268, now 42px measured on the composed frame",
+      "folded": "2026-08-15 — TASTE-INTRO T13 + T15 + T17 (position against tweened geometry, not resting geometry)"
+    },
+    "intro-b06": {
+      "text": "why there are 4 ovels at the bottom of send",
+      "added": "2026-08-15",
+      "context": {
+        "beat": "b06",
+        "start": 22.34,
+        "clause": "and a few actually give you real flexibility without locking you into crazy pricing"
+      },
+      "applied": "2026-08-15 — coins reshaped 150x34 -> 120x46 with a rim and seated shadow, moved into the reserved residue lane at x>=1640, and the b06 chain travel capped x:600 -> x:430 so the stack is never jammed against the SEND block",
+      "folded": "2026-08-15 — TASTE-INTRO T14"
+    },
+    "intro-b09": {
+      "text": "there is no proper gap between langchain and the rectrangular box like the above one, pls fix all , take care it for future as well",
+      "added": "2026-08-15",
+      "context": {
+        "beat": "b09",
+        "start": 47.97,
+        "clause": "All five tools here solve automations or AI workflow problems, but they do it in a very different way"
+      },
+      "applied": "2026-08-15 — .qc .qname widened 186px -> 250px, sized against the longest label; LangChain rendered 188px and overflowed, collapsing its gap to 16px while other rows had 113-140px",
+      "folded": "2026-08-15 — TASTE-INTRO T13"
+    },
+    "intro-b10": {
+      "text": "there is no proper gap between langchain and the rectrangular box like the above one, pls fix all , take care it for future as well",
+      "added": "2026-08-15",
+      "context": {
+        "beat": "b10",
+        "start": 54.7,
+        "clause": "Some are no code, some are extremely low code, some are developer first, and some are frankly overpriced for what they offer"
+      },
+      "image": "feedback-images/intro-b10.png",
+      "applied": "2026-08-15 — .qc .qname widened 186px -> 250px, sized against the longest label; LangChain rendered 188px and overflowed, collapsing its gap to 16px while other rows had 113-140px",
+      "folded": "2026-08-15 — TASTE-INTRO T13"
+    },
+    "intro-b11": {
+      "text": "there is no proper gap between langchain and the rectrangular box like the above one, pls fix all , take care it for future as well, aslo the words in the last slide is cutted by the line above it , fix it, takecare of thsi too in all the futre things",
+      "added": "2026-08-15",
+      "context": {
+        "beat": "b11",
+        "start": 62.62,
+        "clause": "To keep this fair, I'm testing all tools using the same automation use case, the same AI prompt logic, and the same evaluation criteria"
+      },
+      "image": "feedback-images/intro-b11.png",
+      "applied": "2026-08-15 — .qname widened 186->250 for the LangChain gap; separately #rule moved 352 -> 424 and #rlabs 392 -> 462 so the measuring rule no longer runs through the subtitle band (330-392), and the b11 queue drop went y:66 -> y:116 to clear the relocated labels",
+      "folded": "2026-08-15 — TASTE-INTRO T13; 2026-08-16 — T13 is now machine-enforced by the clearance audit in the composition, not author judgement"
+    },
+    "intro-b12": {
+      "text": "there is no proper gap between langchain and the rectrangular box like the above one, pls fix all , take care it for future as well",
+      "added": "2026-08-15",
+      "context": {
+        "beat": "b12",
+        "start": 72.24,
+        "clause": "including ease of use, flexibility, output quality, and value for money"
+      },
+      "applied": "2026-08-15 — .qc .qname widened 186px -> 250px, sized against the longest label; LangChain rendered 188px and overflowed, collapsing its gap to 16px while other rows had 113-140px",
+      "folded": "2026-08-15 — TASTE-INTRO T13"
+    },
+    "intro-b08": {
+      "text": "there is no proper gap between langchain and the rectrangular box like the above one, pls fix all , take care it for future as well",
+      "added": "2026-08-15",
+      "context": {
+        "beat": "b08",
+        "start": 36.86,
+        "clause": "This video is for all you creators, developers, automation builders, and anyone experimenting with AI workflows who wants control without unnecessary complexity"
+      },
+      "applied": "2026-08-15 — .qc .qname widened 186px -> 250px, sized against the longest label; LangChain rendered 188px and overflowed, collapsing its gap to 16px while other rows had 113-140px",
+      "folded": "2026-08-15 — TASTE-INTRO T13"
+    },
+    "intro-b14": {
+      "text": "whats the icon on above the send, whats the signiface of it here",
+      "added": "2026-08-15",
+      "context": {
+        "beat": "b14",
+        "start": 81.87,
+        "clause": "In this video, again, I'll be covering a quick overview of all of these five tools, a live demo using the same workflow idea"
+      },
+      "applied": "2026-08-15 — hourglass redrawn as an SVG with a pinched waist (was border-left/right + caps = a rectangle with a triangle in it), moved to the residue lane at left:1656, and the b14 crossing travel capped x:720 -> x:480 so it no longer renders on top of the SEND block and its label",
+      "folded": "2026-08-15 — TASTE-INTRO T14"
+    },
+    "c09": {
+      "text": "wrong langchain icon, take the offical icon, take care of theseking of things in futre al well",
+      "added": "2026-08-15",
+      "context": {
+        "card": "tool-icon/tool-glass-tile",
+        "anchor": "And then finally, we move over to LangChain",
+        "start": 198.84
+      },
+      "applied": "2026-08-15 — Replaced card-library/logos/langchain.png. The shipped mark was not stale: fetch-logo.mjs had correctly saved what langchain.com serves today (the post-rebrand pale-blue pinwheel). Owner chose the parrot-and-chain identity instead, on audience recognition over brand currency. New tile authored as SVG, rasterised, run through normalize-logo.mjs to the registry spec (256x256, #12151c ground, mark_ratio 0.72), and pinned source:manual so fetch-logo.mjs refuses to overwrite it. Registry now carries mark and verified fields recording who chose it and why. One file fixes all four cards plus the intro film, because every surface reads the same registry — but the film needed its baked base64 patched by hand as well (see the rule below).",
+      "folded": "2026-08-15 — card-library/logos/registry.json — new mark + verified fields; a logo is now a recorded decision, not whatever a favicon service returned. NOT folded to a T-rule: this is brand surface, shared by every video, not intro taste."
+    },
+    "c44": {
+      "text": "wrong langchain icon , fix it",
+      "added": "2026-08-15",
+      "context": {
+        "card": "section/tool-intro",
+        "anchor": "Finally, let's move over to LangSmith",
+        "start": 1222.23
+      },
+      "applied": "2026-08-15 — Replaced card-library/logos/langchain.png. The shipped mark was not stale: fetch-logo.mjs had correctly saved what langchain.com serves today (the post-rebrand pale-blue pinwheel). Owner chose the parrot-and-chain identity instead, on audience recognition over brand currency. New tile authored as SVG, rasterised, run through normalize-logo.mjs to the registry spec (256x256, #12151c ground, mark_ratio 0.72), and pinned source:manual so fetch-logo.mjs refuses to overwrite it. Registry now carries mark and verified fields recording who chose it and why. One file fixes all four cards plus the intro film, because every surface reads the same registry — but the film needed its baked base64 patched by hand as well (see the rule below).",
+      "folded": "2026-08-15 — card-library/logos/registry.json — new mark + verified fields; a logo is now a recorded decision, not whatever a favicon service returned. NOT folded to a T-rule: this is brand surface, shared by every video, not intro taste."
+    },
+    "c51": {
+      "text": "wrong langchain icon",
+      "added": "2026-08-15",
+      "context": {
+        "card": "comparison/table-rows",
+        "anchor": "the executions were successful",
+        "start": 1411.99
+      },
+      "applied": "2026-08-15 — Replaced card-library/logos/langchain.png. The shipped mark was not stale: fetch-logo.mjs had correctly saved what langchain.com serves today (the post-rebrand pale-blue pinwheel). Owner chose the parrot-and-chain identity instead, on audience recognition over brand currency. New tile authored as SVG, rasterised, run through normalize-logo.mjs to the registry spec (256x256, #12151c ground, mark_ratio 0.72), and pinned source:manual so fetch-logo.mjs refuses to overwrite it. Registry now carries mark and verified fields recording who chose it and why. One file fixes all four cards plus the intro film, because every surface reads the same registry — but the film needed its baked base64 patched by hand as well (see the rule below).",
+      "folded": "2026-08-15 — card-library/logos/registry.json — new mark + verified fields; a logo is now a recorded decision, not whatever a favicon service returned. NOT folded to a T-rule: this is brand surface, shared by every video, not intro taste."
+    },
+    "z03": {
+      "text": "wrong langchain icon",
+      "added": "2026-08-15",
+      "context": {
+        "card": "verdict/persona-match",
+        "anchor": "First of all, choose n8n",
+        "start": 2055.07
+      },
+      "applied": "2026-08-15 — Replaced card-library/logos/langchain.png. The shipped mark was not stale: fetch-logo.mjs had correctly saved what langchain.com serves today (the post-rebrand pale-blue pinwheel). Owner chose the parrot-and-chain identity instead, on audience recognition over brand currency. New tile authored as SVG, rasterised, run through normalize-logo.mjs to the registry spec (256x256, #12151c ground, mark_ratio 0.72), and pinned source:manual so fetch-logo.mjs refuses to overwrite it. Registry now carries mark and verified fields recording who chose it and why. One file fixes all four cards plus the intro film, because every surface reads the same registry — but the film needed its baked base64 patched by hand as well (see the rule below).",
+      "folded": "2026-08-15 — card-library/logos/registry.json — new mark + verified fields; a logo is now a recorded decision, not whatever a favicon service returned. NOT folded to a T-rule: this is brand surface, shared by every video, not intro taste."
+    },
+    "intro:0": {
+      "text": "Starting section: The graphics look super complicated and are difficult to understand. Please keep the graphic design as simple and easy to follow as possible throughout.\nUntil 0:36: The visuals are difficult to understand. Please simplify them so the viewer can immediately understand what is being shown.\n0:43: I don't understand the significance of the three boxes/chains. Please either explain their purpose visually or simplify/remove them if they aren't necessary.\n1:07: I don't understand why LangChain moves forward at this point. The visual transition doesn't feel clear, so please make the progression easier to follow.\n1:24: The graphics become complicated again. Please simplify this section as well and avoid showing too many elements at once.\n1:30: The Trainer and AI boxes appear twice on the screen, as shown in the attached reference. Please remove the duplicate elements.\n“What We’ll Cover” section: Please show the points as clear bullet points on screen rather than using the current graphic treatment. This will make the section much easier to scan and understand. the links below , only have n8n and flowise icon , either incloe all or nothing , its unfair fro other looks",
+      "t": 105.957359,
+      "context": "intro@01:45",
+      "x": 13.6,
+      "y": 36.2,
+      "images": [
+        "feedback-images/intro-0-0.png"
+      ],
+      "applied": "2026-08-16 — owner chose 'keep beats, simplify visuals'. b14: #shards no longer shown (the duplicate Trigger/AI in the screenshot — correct at b05 where the blocks drop away first, a duplicate at b14 where the chain is whole); b16: tool logos removed, winners named in type only, and the pop tween moved off the now-dead img selector so the 4.8s freeze fix survives; b15: #cols scorecard replaced by #cover, a plain bullet list matching card-library checklist/bullet-points, wording taken verbatim from the clause, revealed on a 1.95s cadence so it carries the 11.2s beat without a freeze; b15 hero WHAT IT COST -> WHAT WE'LL COVER (caught by looking at the frame, not by the gate, which passed with the wrong words on screen); b08 sub now names the chain — it had been explained once at 0.0-4.3s and never again; b10: LangChain's 66px sideways slide removed, the long load bar plus a dim/recede says the one thing the beat means.",
+      "folded": "2026-08-16 — TASTE-INTRO T18 (cap three non-stage devices per beat; add one, retire one), T19 (a stand-in must not be made of its source object's art), T20 (naming a recurring object once is not naming it)."
+    },
+    "intro-b01": {
+      "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b01",
+        "start": 0,
+        "clause": "If you're trying to automate workflows or build AI agents"
+      }
+    },
+    "intro-b02": {
+      "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b02",
+        "start": 4.32,
+        "clause": "and you're stick or stuck between tools like n8n, Make, Zapier, LangChain or Flowise"
+      }
+    },
+    "intro-b03#2": {
+      "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b03",
+        "start": 12.24,
+        "clause": "this video will save you hours of trial and error"
+      }
+    },
+    "intro-b04": {
+      "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b04",
+        "start": 15.68,
+        "clause": "Some of these tools are pretty powerful but painfully complex"
+      }
+    },
+    "intro-b05": {
+      "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b05",
+        "start": 19.48,
+        "clause": "Others are easy but hit a wall fast"
+      }
+    },
+    "intro-b06#2": {
+      "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b06",
+        "start": 22.34,
+        "clause": "and a few actually give you real flexibility without locking you into crazy pricing"
+      }
+    },
+    "intro-b07": {
+      "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand. One more thing. Why you chose the size this much only for the avatar",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b07",
+        "start": 28.84,
+        "clause": "By the end of this video, you will know exactly which tool makes sense for your use case and which ones you should avoid"
+      }
+    },
+    "intro-b08#2": {
+      "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b08",
+        "start": 36.86,
+        "clause": "This video is for all you creators, developers, automation builders, and anyone experimenting with AI workflows who wants control without unnecessary complexity"
+      }
+    },
+    "intro-b11#2": {
+      "text": "why there is the orange line after same use case, same prompt, same criteria",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b11",
+        "start": 62.62,
+        "clause": "To keep this fair, I'm testing all tools using the same automation use case, the same AI prompt logic, and the same evaluation criteria"
+      }
+    },
+    "intro-b12#2": {
+      "text": "uneven gap, look at the left  Side of the ease and the right ide of the value, their gaps are very uneven",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b12",
+        "start": 72.24,
+        "clause": "including ease of use, flexibility, output quality, and value for money"
+      }
+    },
+    "intro-b13": {
+      "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand at a glance.",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b13",
+        "start": 77.65,
+        "clause": "No marketing claims, just real workflows and real outputs"
+      }
+    },
+    "intro-b14#2": {
+      "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand at a glance.",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b14",
+        "start": 81.87,
+        "clause": "In this video, again, I'll be covering a quick overview of all of these five tools, a live demo using the same workflow idea"
+      }
+    },
+    "intro-b15": {
+      "text": "In the “What We’ll Cover” section, two points are already covered in the sentence above, that points are missing. Also, please use my template  \"Bullet Points  for the format\".",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b15",
+        "start": 91.68,
+        "clause": "a breakdown of ease of use, customization, AI flexibility, and pricing, and finally, my honest verdict on which tools are worth your time and which ones actually fall short"
+      }
+    },
+    "intro-b16": {
+      "text": "Why there is \"every link\" above the \"links below\"? Also, you have just shown two icons N8n and FlowWise. It's better to don't show any icon when links below kind things are appeared on the audio. Remember this for the future lessons also",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b16",
+        "start": 102.86,
+        "clause": "And if you actually want to go ahead and try any of these tools yourself, you will find the relevant links in the description"
+      }
+    },
+    "intro-b17": {
+      "text": "Hi, you showed n8n and flowise only. It's better not to show anything. Because of this our video looks biased. It feels like we only promote these two tools.",
+      "added": "2026-08-18",
+      "context": {
+        "beat": "b17",
+        "start": 109.54,
+        "clause": "Without further ado, let's jump straight in"
+      }
+    },
+    "final-v2:0": {
+      "text": "These icons doesn't sync with the audioThese icons appear on the screen earlier than the audio Could you please let me know why this is done Like this",
+      "t": 10.780872,
+      "context": "final@00:10",
+      "images": [
+        "feedback-images/final-v2-0-0.png"
+      ]
+    },
+    "final-v2:1": {
+      "text": "I have noticed that whenever the graphics are shown on the screen, even though there is no autad shown at the right or anywhere, the graphic is not in the center. What's the reason behind itNot only these graphic but all the graphics that shown on the screen that does not contain the avatar video are not in the center",
+      "t": 24.325223,
+      "context": "final@00:24",
+      "images": [
+        "feedback-images/final-v2-1-0.png"
+      ]
+    },
+    "final-v2:2": {
+      "text": "Why there is no graphic or anything when he said you should avoid, when you said We should make more sense. There you had shown the tick mark, but when he said about avoid it, you had said nothing. What's the reason behind it",
+      "t": 43.193363,
+      "context": "final@00:43",
+      "images": [
+        "feedback-images/final-v2-2-0.png"
+      ]
+    },
+    "final-v2:3": {
+      "text": "These things are not synced with the audio. What's the reason behind it? This is not the first time this happened many times. Either the graphics appeared before and audio later or vice versa",
+      "t": 43.193363,
+      "context": "final@00:43",
+      "images": [
+        "feedback-images/final-v2-3-0.png"
+      ]
+    },
+    "final-v2:4": {
+      "text": "why The tube of the langchain is bigger than the other tools",
+      "t": 61.151662,
+      "context": "final@01:01",
+      "images": [
+        "feedback-images/final-v2-4-0.png"
+      ]
+    },
+    "final-v2:5": {
+      "text": "Again, these are not syncing with the audio",
+      "t": 96.143585,
+      "context": "final@01:36",
+      "images": [
+        "feedback-images/final-v2-5-0.png"
+      ]
+    },
+    "final-v2:6": {
+      "text": "I want you to know that it's not necessary to show the avar of the same size. You can sometimes show the avatar on big screen, sometimes on small circle, sometimes the thing like you are showing now, or anything else, what is best suited on screen and looks good on screen. I am leaving this completely upon you",
+      "t": 112.872149,
+      "context": "final@01:52",
+      "images": [
+        "feedback-images/final-v2-6-0.png"
+      ]
+    },
+    "final-v2:7": {
+      "text": "Could you please let me know that  why these texts are this much above from the bottom of the screen",
+      "t": 178.186078,
+      "context": "final@02:58",
+      "images": [
+        "feedback-images/final-v2-7-0.png"
+      ]
+    },
+    "final-v2:8": {
+      "text": "Why is Avatar missing on this black screen? Earlier, the avatar was clearly showing, but here it’s not appearing.",
+      "t": 2099.353273,
+      "context": "final@34:59",
+      "images": [
+        "feedback-images/final-v2-8-0.png"
+      ]
+    },
+    "final-v2:9": {
+      "text": "You’re talking about the Lang Chang section, but why the graphic isn’t staying on screen long enough. It disappears too quickly, and then the video starts playing.",
+      "t": 2101.29529,
+      "context": "final@35:01",
+      "images": [
+        "feedback-images/final-v2-9-0.png"
+      ]
+    },
+    "final-v2:10": {
+      "text": "You’re talking about the flowise section, but why the graphic isn’t staying on screen long enough. It disappears too quickly, and then the video starts playing.",
+      "t": 2125.929798,
+      "context": "final@35:25",
+      "images": [
+        "feedback-images/final-v2-10-0.png"
+      ]
+    },
+    "final-v2:11": {
+      "text": "Why the words\" why they win\"  are overlapping on the graphic? I have given similar kind of feedback before also. Why this is happening again",
+      "t": 2140.577475,
+      "context": "final@35:40",
+      "images": [
+        "feedback-images/final-v2-11-0.png"
+      ]
+    },
+    "final-v2:12": {
+      "text": "I have changed the intro toll graphic thing. Then why this toll thing is appearing here",
+      "t": 2116.861459,
+      "context": "final@35:16",
+      "images": [
+        "feedback-images/final-v2-12-0.png"
+      ]
+    },
+    "final-v2:13": {
+      "text": "again, You’re talking about the flowise section, but why the graphic isn’t staying on screen long enough. It disappears too quickly, and then the video starts playing.",
+      "t": 2126.919755,
+      "context": "final@35:26",
+      "images": [
+        "feedback-images/final-v2-13-0.png"
+      ]
+    },
+    "final-v2:14": {
+      "text": "why the  end screen is like this",
+      "t": 2169.024,
+      "context": "final@36:09",
+      "images": [
+        "feedback-images/final-v2-14-0.png"
+      ]
+    }
+  }
+}

@@ -2110,7 +2110,8 @@
           "required": true,
           "type": "string",
           "role": "heading",
-          "example": "System Load"
+          "example": "System Load",
+          "max_words": 4
         },
         "unit": {
           "required": false,
@@ -2124,15 +2125,17 @@
         "label": {
           "type": "string",
           "role": "label",
-          "example": "App"
+          "example": "App",
+          "max_words": 3
         },
         "value": {
           "type": "string",
           "role": "value",
-          "example": "40"
+          "example": "40",
+          "max_chars": 4
         }
       },
-      "max_beats": 6,
+      "max_beats": 4,
       "default_duration": 6,
       "register": [
         "dark",

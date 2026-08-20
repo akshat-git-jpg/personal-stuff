@@ -3,6 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawnSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { npxArgs, npxSpawnOpts } from './intro-film/npx.mjs';
 import { enrichLogos } from './logos-inline.mjs';
 import { enrichImages } from './images-inline.mjs';
 import { pathToFileURL } from 'node:url';
@@ -314,7 +315,11 @@ async function main() {
         cacheHits++;
       } else {
         const result = await new Promise((resolve) => {
-          const child = spawn('npx', spawnArgs, { cwd: stagedDir, stdio: ['ignore', 'pipe', 'pipe'] });
+          // npxArgs + shell: see lib/intro-film/npx.mjs. Without them every card
+          // render ENOENTs on Windows — and because the error arrives as a spawn
+          // 'error' event rather than a non-zero exit, it reads as "hyperframes
+          // produced nothing" rather than "npx was never found".
+          const child = spawn('npx', npxArgs(spawnArgs), npxSpawnOpts({ cwd: stagedDir, stdio: ['ignore', 'pipe', 'pipe'] }));
           let out = ''; let err = '';
           child.stdout.setEncoding('utf8');
           child.stderr.setEncoding('utf8');
@@ -358,7 +363,18 @@ async function main() {
       // A card deleted from the catalog is the common cause.
       errors.push(`${cue.id}: ${e.code === 'ENOENT' ? `card "${cue.card}" is not in the card library` : e.message}`);
     } finally {
-      fs.rmSync(stagedDir, { recursive: true, force: true });
+      // Windows holds the staged dir open for a beat after the render child
+      // exits, so a plain rmSync throws EPERM — and `force` does not cover it,
+      // it only swallows ENOENT. Left unhandled that kills the whole run from
+      // the finally block AFTER the mp4 is already on disk, which reads as
+      // "render crashed" when the render actually succeeded. Retry the unlock
+      // race, then give up quietly: a leaked temp dir under the OS temp root
+      // costs nothing next to losing the run.
+      try {
+        fs.rmSync(stagedDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+      } catch {
+        /* the OS reaps its own temp dir */
+      }
     }
   }
 

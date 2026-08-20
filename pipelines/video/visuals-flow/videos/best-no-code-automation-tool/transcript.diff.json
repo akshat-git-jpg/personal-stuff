@@ -1,0 +1,2430 @@
+{
+  "total": 378,
+  "changes": [
+    {
+      "i": 18,
+      "start": 7.58,
+      "before": "N8N,",
+      "after": "n8n,"
+    },
+    {
+      "i": 21,
+      "start": 10.66,
+      "before": "Langchain",
+      "after": "LangChain"
+    },
+    {
+      "i": 23,
+      "start": 11.4,
+      "before": "FlowWise,",
+      "after": "Flowise,"
+    },
+    {
+      "i": 33,
+      "start": 14.98,
+      "before": "error. Now",
+      "after": "error.",
+      "merged": 2
+    },
+    {
+      "i": 34,
+      "start": 16.06,
+      "before": "some",
+      "after": "Some"
+    },
+    {
+      "i": 65,
+      "start": 27.7,
+      "before": "pricing. Now,",
+      "after": "pricing.",
+      "merged": 2
+    },
+    {
+      "i": 66,
+      "start": 29.38,
+      "before": "by",
+      "after": "By"
+    },
+    {
+      "i": 89,
+      "start": 35.98,
+      "before": "avoid. Now,",
+      "after": "avoid.",
+      "merged": 2
+    },
+    {
+      "i": 90,
+      "start": 37.24,
+      "before": "this",
+      "after": "This"
+    },
+    {
+      "i": 111,
+      "start": 46.5,
+      "before": "complexity. Now,",
+      "after": "complexity.",
+      "merged": 2
+    },
+    {
+      "i": 112,
+      "start": 48.42,
+      "before": "all",
+      "after": "All"
+    },
+    {
+      "i": 152,
+      "start": 61.76,
+      "before": "offer. So",
+      "after": "offer.",
+      "merged": 2
+    },
+    {
+      "i": 153,
+      "start": 62.96,
+      "before": "to",
+      "after": "To"
+    },
+    {
+      "i": 196,
+      "start": 80.92,
+      "before": "outputs. Now",
+      "after": "outputs.",
+      "merged": 2
+    },
+    {
+      "i": 197,
+      "start": 82.34,
+      "before": "in",
+      "after": "In"
+    },
+    {
+      "i": 273,
+      "start": 108.8,
+      "before": "description. So",
+      "after": "description.",
+      "merged": 2
+    },
+    {
+      "i": 274,
+      "start": 109.94,
+      "before": "without",
+      "after": "Without"
+    },
+    {
+      "i": 280,
+      "start": 112.1,
+      "before": "in. Now",
+      "after": "in.",
+      "merged": 2
+    },
+    {
+      "i": 281,
+      "start": 114.16,
+      "before": "first",
+      "after": "First"
+    },
+    {
+      "i": 286,
+      "start": 115.28,
+      "before": "N8N. Now",
+      "after": "n8n.",
+      "merged": 2
+    },
+    {
+      "i": 287,
+      "start": 116.86,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 320,
+      "start": 135.46,
+      "before": "FlowWise,",
+      "after": "Flowise,"
+    },
+    {
+      "i": 335,
+      "start": 142.06,
+      "before": "Langchain's",
+      "after": "LangChain's"
+    },
+    {
+      "i": 336,
+      "start": 142.48,
+      "before": "concepts. Now,",
+      "after": "concepts.",
+      "merged": 2
+    },
+    {
+      "i": 337,
+      "start": 144.7,
+      "before": "it",
+      "after": "It"
+    },
+    {
+      "i": 366,
+      "start": 158.62,
+      "before": "automation. Now,",
+      "after": "automation.",
+      "merged": 2
+    },
+    {
+      "i": 457,
+      "start": 201.14,
+      "before": "Langchain. Now,",
+      "after": "LangChain.",
+      "merged": 2
+    },
+    {
+      "i": 458,
+      "start": 202.72,
+      "before": "Langchain,",
+      "after": "LangChain,"
+    },
+    {
+      "i": 460,
+      "start": 203.66,
+      "before": "Langsmith,",
+      "after": "LangSmith,"
+    },
+    {
+      "i": 486,
+      "start": 214.94,
+      "before": "its",
+      "after": "Its"
+    },
+    {
+      "i": 498,
+      "start": 219.58,
+      "before": "effort. Now",
+      "after": "effort.",
+      "merged": 2
+    },
+    {
+      "i": 499,
+      "start": 221.5,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 521,
+      "start": 226.6,
+      "before": "demo. Now",
+      "after": "demo.",
+      "merged": 2
+    },
+    {
+      "i": 522,
+      "start": 227.28,
+      "before": "before",
+      "after": "Before"
+    },
+    {
+      "i": 560,
+      "start": 239.64,
+      "before": "clearer. Now",
+      "after": "clearer.",
+      "merged": 2
+    },
+    {
+      "i": 561,
+      "start": 241.9,
+      "before": "for",
+      "after": "For"
+    },
+    {
+      "i": 579,
+      "start": 248.34,
+      "before": "them. Okay, so",
+      "after": "them.",
+      "merged": 3
+    },
+    {
+      "i": 580,
+      "start": 249.12,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 595,
+      "start": 253.64,
+      "before": "myself. Okay, so",
+      "after": "myself.",
+      "merged": 3
+    },
+    {
+      "i": 596,
+      "start": 254.96,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 643,
+      "start": 269.28,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 654,
+      "start": 273.14,
+      "before": "scratch. Now",
+      "after": "scratch.",
+      "merged": 2
+    },
+    {
+      "i": 655,
+      "start": 274.8,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 687,
+      "start": 286.08,
+      "before": "right. So",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 688,
+      "start": 287.18,
+      "before": "for",
+      "after": "For"
+    },
+    {
+      "i": 689,
+      "start": 287.88,
+      "before": "N8N,",
+      "after": "n8n,"
+    },
+    {
+      "i": 703,
+      "start": 291.72,
+      "before": "step. Now",
+      "after": "step.",
+      "merged": 2
+    },
+    {
+      "i": 704,
+      "start": 292.82,
+      "before": "that",
+      "after": "That"
+    },
+    {
+      "i": 716,
+      "start": 296.68,
+      "before": "web hook",
+      "after": "webhook",
+      "merged": 2
+    },
+    {
+      "i": 720,
+      "start": 297.86,
+      "before": "to. So",
+      "after": "to.",
+      "merged": 2
+    },
+    {
+      "i": 721,
+      "start": 299.02,
+      "before": "basically,",
+      "after": "Basically,"
+    },
+    {
+      "i": 752,
+      "start": 311.4,
+      "before": "event. So",
+      "after": "event.",
+      "merged": 2
+    },
+    {
+      "i": 753,
+      "start": 312.26,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 791,
+      "start": 325.06,
+      "before": "right. So",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 792,
+      "start": 326.1,
+      "before": "this",
+      "after": "This"
+    },
+    {
+      "i": 796,
+      "start": 326.9,
+      "before": "is. Now,",
+      "after": "is.",
+      "merged": 2
+    },
+    {
+      "i": 797,
+      "start": 328.24,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 815,
+      "start": 333.8,
+      "before": "yourself. So,",
+      "after": "yourself.",
+      "merged": 2
+    },
+    {
+      "i": 816,
+      "start": 335.46,
+      "before": "in",
+      "after": "In"
+    },
+    {
+      "i": 831,
+      "start": 338.86,
+      "before": "here. Now",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 832,
+      "start": 340.34,
+      "before": "what",
+      "after": "What"
+    },
+    {
+      "i": 847,
+      "start": 344.96,
+      "before": "node. Okay, so",
+      "after": "node.",
+      "merged": 3
+    },
+    {
+      "i": 848,
+      "start": 345.98,
+      "before": "we're",
+      "after": "We're"
+    },
+    {
+      "i": 862,
+      "start": 349.3,
+      "before": "OpenAI. Now",
+      "after": "OpenAI.",
+      "merged": 2
+    },
+    {
+      "i": 863,
+      "start": 350.88,
+      "before": "in",
+      "after": "In"
+    },
+    {
+      "i": 873,
+      "start": 356.44,
+      "before": "ourselves. So",
+      "after": "ourselves.",
+      "merged": 2
+    },
+    {
+      "i": 874,
+      "start": 358.16,
+      "before": "to",
+      "after": "To"
+    },
+    {
+      "i": 887,
+      "start": 363.56,
+      "before": "transcribing. Now",
+      "after": "transcribing.",
+      "merged": 2
+    },
+    {
+      "i": 888,
+      "start": 366.4,
+      "before": "that",
+      "after": "That"
+    },
+    {
+      "i": 912,
+      "start": 374.14,
+      "before": "you. Okay, so",
+      "after": "you.",
+      "merged": 3
+    },
+    {
+      "i": 913,
+      "start": 375.62,
+      "before": "that",
+      "after": "That"
+    },
+    {
+      "i": 932,
+      "start": 383.3,
+      "before": "basically. So",
+      "after": "basically.",
+      "merged": 2
+    },
+    {
+      "i": 933,
+      "start": 384.82,
+      "before": "from",
+      "after": "From"
+    },
+    {
+      "i": 957,
+      "start": 391.28,
+      "before": "conversation. Now,",
+      "after": "conversation.",
+      "merged": 2
+    },
+    {
+      "i": 958,
+      "start": 392.96,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 970,
+      "start": 397.9,
+      "before": "yourself. So",
+      "after": "yourself.",
+      "merged": 2
+    },
+    {
+      "i": 971,
+      "start": 398.86,
+      "before": "obviously",
+      "after": "Obviously"
+    },
+    {
+      "i": 980,
+      "start": 400.98,
+      "before": "chat GPT",
+      "after": "ChatGPT",
+      "merged": 2
+    },
+    {
+      "i": 992,
+      "start": 405.62,
+      "before": "it. Now",
+      "after": "it.",
+      "merged": 2
+    },
+    {
+      "i": 993,
+      "start": 406.56,
+      "before": "getting",
+      "after": "Getting"
+    },
+    {
+      "i": 1006,
+      "start": 410.56,
+      "before": "chat GPT",
+      "after": "ChatGPT",
+      "merged": 2
+    },
+    {
+      "i": 1030,
+      "start": 418.24,
+      "before": "chat GPT",
+      "after": "ChatGPT",
+      "merged": 2
+    },
+    {
+      "i": 1032,
+      "start": 420.96,
+      "before": "key. Okay",
+      "after": "key.",
+      "merged": 2
+    },
+    {
+      "i": 1033,
+      "start": 422.16,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 1045,
+      "start": 424.96,
+      "before": "chat GPT",
+      "after": "ChatGPT",
+      "merged": 2
+    },
+    {
+      "i": 1049,
+      "start": 427.18,
+      "before": "platform. Now,",
+      "after": "platform.",
+      "merged": 2
+    },
+    {
+      "i": 1050,
+      "start": 429.22,
+      "before": "over",
+      "after": "Over"
+    },
+    {
+      "i": 1094,
+      "start": 443.9,
+      "before": "platforms. So,",
+      "after": "platforms.",
+      "merged": 2
+    },
+    {
+      "i": 1095,
+      "start": 445.14,
+      "before": "if",
+      "after": "If"
+    },
+    {
+      "i": 1113,
+      "start": 450.32,
+      "before": "this. Now,",
+      "after": "this.",
+      "merged": 2
+    },
+    {
+      "i": 1114,
+      "start": 451.44,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 1131,
+      "start": 455.3,
+      "before": "key.",
+      "after": "Key."
+    },
+    {
+      "i": 1148,
+      "start": 460.14,
+      "before": "service",
+      "after": "secret"
+    },
+    {
+      "i": 1149,
+      "start": 460.7,
+      "before": "key. Now",
+      "after": "key.",
+      "merged": 2
+    },
+    {
+      "i": 1150,
+      "start": 461.9,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 1208,
+      "start": 477.72,
+      "before": "on. So",
+      "after": "on.",
+      "merged": 2
+    },
+    {
+      "i": 1209,
+      "start": 479.36,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 1239,
+      "start": 491.08,
+      "before": "chat",
+      "after": "ChatGPT"
+    },
+    {
+      "i": 1262,
+      "start": 508.74,
+      "before": "weather. Okay,",
+      "after": "weather.",
+      "merged": 2
+    },
+    {
+      "i": 1263,
+      "start": 511.66,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 1291,
+      "start": 520.34,
+      "before": "are. Now",
+      "after": "are.",
+      "merged": 2
+    },
+    {
+      "i": 1292,
+      "start": 521.26,
+      "before": "we",
+      "after": "We"
+    },
+    {
+      "i": 1304,
+      "start": 524.3,
+      "before": "well. Now",
+      "after": "well.",
+      "merged": 2
+    },
+    {
+      "i": 1305,
+      "start": 525.02,
+      "before": "we're",
+      "after": "We're"
+    },
+    {
+      "i": 1312,
+      "start": 526.48,
+      "before": "load. So",
+      "after": "node.",
+      "merged": 2
+    },
+    {
+      "i": 1313,
+      "start": 527.66,
+      "before": "that",
+      "after": "That"
+    },
+    {
+      "i": 1315,
+      "start": 528.26,
+      "before": "load",
+      "after": "node"
+    },
+    {
+      "i": 1320,
+      "start": 529.76,
+      "before": "Gmail. Okay,",
+      "after": "Gmail.",
+      "merged": 2
+    },
+    {
+      "i": 1321,
+      "start": 531.38,
+      "before": "we're",
+      "after": "We're"
+    },
+    {
+      "i": 1345,
+      "start": 539.4,
+      "before": "Gmail. So",
+      "after": "Gmail.",
+      "merged": 2
+    },
+    {
+      "i": 1346,
+      "start": 541.36,
+      "before": "again,",
+      "after": "Again,"
+    },
+    {
+      "i": 1375,
+      "start": 552.12,
+      "before": "well. So",
+      "after": "well.",
+      "merged": 2
+    },
+    {
+      "i": 1400,
+      "start": 561.46,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 1443,
+      "start": 577.24,
+      "before": "yourself. So",
+      "after": "yourself.",
+      "merged": 2
+    },
+    {
+      "i": 1470,
+      "start": 586.02,
+      "before": "done. Okay,",
+      "after": "done.",
+      "merged": 2
+    },
+    {
+      "i": 1471,
+      "start": 587.62,
+      "before": "we're",
+      "after": "We're"
+    },
+    {
+      "i": 1479,
+      "start": 589.28,
+      "before": "that. Now,",
+      "after": "that.",
+      "merged": 2
+    },
+    {
+      "i": 1480,
+      "start": 590.56,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 1508,
+      "start": 598.04,
+      "before": "here. So",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 1509,
+      "start": 598.88,
+      "before": "this",
+      "after": "This"
+    },
+    {
+      "i": 1523,
+      "start": 605.54,
+      "before": "go. Now,",
+      "after": "go.",
+      "merged": 2
+    },
+    {
+      "i": 1524,
+      "start": 606.94,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 1530,
+      "start": 609.3,
+      "before": "N8N,",
+      "after": "n8n,"
+    },
+    {
+      "i": 1535,
+      "start": 611.14,
+      "before": "FlowWise. Now,",
+      "after": "Flowise.",
+      "merged": 2
+    },
+    {
+      "i": 1536,
+      "start": 612.64,
+      "before": "don't",
+      "after": "Don't"
+    },
+    {
+      "i": 1562,
+      "start": 618.12,
+      "before": "demos. So",
+      "after": "demos.",
+      "merged": 2
+    },
+    {
+      "i": 1563,
+      "start": 618.88,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 1567,
+      "start": 620.42,
+      "before": "FlowWise,",
+      "after": "Flowise,"
+    },
+    {
+      "i": 1607,
+      "start": 632.32,
+      "before": "you. So",
+      "after": "you.",
+      "merged": 2
+    },
+    {
+      "i": 1608,
+      "start": 633.28,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 1618,
+      "start": 635.92,
+      "before": "open AI",
+      "after": "OpenAI",
+      "merged": 2
+    },
+    {
+      "i": 1623,
+      "start": 637.84,
+      "before": "here. Now,",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 1624,
+      "start": 639.72,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 1652,
+      "start": 650.54,
+      "before": "So to",
+      "after": "To",
+      "merged": 2
+    },
+    {
+      "i": 1666,
+      "start": 655.54,
+      "before": "yourself. So",
+      "after": "yourself.",
+      "merged": 2
+    },
+    {
+      "i": 1667,
+      "start": 656.24,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 1695,
+      "start": 665.6,
+      "before": "CHIGBT",
+      "after": "ChatGPT"
+    },
+    {
+      "i": 1724,
+      "start": 674.02,
+      "before": "here. Now,",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 1725,
+      "start": 675.84,
+      "before": "in",
+      "after": "In"
+    },
+    {
+      "i": 1739,
+      "start": 681.22,
+      "before": "you. So",
+      "after": "you.",
+      "merged": 2
+    },
+    {
+      "i": 1740,
+      "start": 681.68,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 1755,
+      "start": 686.96,
+      "before": "Chad GPT. Now,",
+      "after": "ChatGPT.",
+      "merged": 3
+    },
+    {
+      "i": 1756,
+      "start": 687.84,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 1767,
+      "start": 691.68,
+      "before": "want. Okay,",
+      "after": "want.",
+      "merged": 2
+    },
+    {
+      "i": 1768,
+      "start": 693.2,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1798,
+      "start": 704,
+      "before": "utilities. So",
+      "after": "utilities.",
+      "merged": 2
+    },
+    {
+      "i": 1799,
+      "start": 706.38,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 1823,
+      "start": 715.28,
+      "before": "here. Now",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 1824,
+      "start": 716.42,
+      "before": "in",
+      "after": "In"
+    },
+    {
+      "i": 1848,
+      "start": 725.92,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1860,
+      "start": 732.68,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 1928,
+      "start": 754.52,
+      "before": "right? So,",
+      "after": "right?",
+      "merged": 2
+    },
+    {
+      "i": 1929,
+      "start": 756.26,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 1958,
+      "start": 764.82,
+      "before": "you. So",
+      "after": "you.",
+      "merged": 2
+    },
+    {
+      "i": 1959,
+      "start": 766.28,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 1970,
+      "start": 769.16,
+      "before": "prompts. So",
+      "after": "prompts.",
+      "merged": 2
+    },
+    {
+      "i": 1971,
+      "start": 770.42,
+      "before": "chat",
+      "after": "Chat"
+    },
+    {
+      "i": 1986,
+      "start": 777.96,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 2055,
+      "start": 808.76,
+      "before": "moderation. So now",
+      "after": "moderation.",
+      "merged": 3
+    },
+    {
+      "i": 2056,
+      "start": 810.3,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 2095,
+      "start": 823.66,
+      "before": "pursers.",
+      "after": "parsers."
+    },
+    {
+      "i": 2123,
+      "start": 833.56,
+      "before": "it. So",
+      "after": "it.",
+      "merged": 2
+    },
+    {
+      "i": 2124,
+      "start": 834.66,
+      "before": "this",
+      "after": "This"
+    },
+    {
+      "i": 2135,
+      "start": 837.42,
+      "before": "yourself. Now,",
+      "after": "yourself.",
+      "merged": 2
+    },
+    {
+      "i": 2136,
+      "start": 838.74,
+      "before": "moving",
+      "after": "Moving"
+    },
+    {
+      "i": 2142,
+      "start": 840.42,
+      "before": "Zapier. Now,",
+      "after": "Zapier.",
+      "merged": 2
+    },
+    {
+      "i": 2143,
+      "start": 842,
+      "before": "again,",
+      "after": "Again,"
+    },
+    {
+      "i": 2170,
+      "start": 852.12,
+      "before": "triggers. So",
+      "after": "triggers.",
+      "merged": 2
+    },
+    {
+      "i": 2171,
+      "start": 853.5,
+      "before": "first",
+      "after": "First"
+    },
+    {
+      "i": 2183,
+      "start": 856.02,
+      "before": "myself. So",
+      "after": "myself.",
+      "merged": 2
+    },
+    {
+      "i": 2184,
+      "start": 857.74,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 2189,
+      "start": 860.82,
+      "before": "right. Now",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 2190,
+      "start": 862.3,
+      "before": "on",
+      "after": "On"
+    },
+    {
+      "i": 2253,
+      "start": 888.28,
+      "before": "click",
+      "after": "Click"
+    },
+    {
+      "i": 2267,
+      "start": 892.42,
+      "before": "go. Now",
+      "after": "go.",
+      "merged": 2
+    },
+    {
+      "i": 2268,
+      "start": 893.54,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 2284,
+      "start": 901.38,
+      "before": "sent. So",
+      "after": "sent.",
+      "merged": 2
+    },
+    {
+      "i": 2285,
+      "start": 901.86,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 2288,
+      "start": 902.2,
+      "before": "inbox. So",
+      "after": "inbox.",
+      "merged": 2
+    },
+    {
+      "i": 2289,
+      "start": 903.84,
+      "before": "if",
+      "after": "If"
+    },
+    {
+      "i": 2300,
+      "start": 906.74,
+      "before": "here. Now",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 2301,
+      "start": 907.78,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 2312,
+      "start": 911.96,
+      "before": "course. So",
+      "after": "course.",
+      "merged": 2
+    },
+    {
+      "i": 2331,
+      "start": 920.2,
+      "before": "Right? So",
+      "after": "Right?",
+      "merged": 2
+    },
+    {
+      "i": 2332,
+      "start": 922.14,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 2352,
+      "start": 927.2,
+      "before": "value. So",
+      "after": "value.",
+      "merged": 2
+    },
+    {
+      "i": 2419,
+      "start": 955.88,
+      "before": "ourselves. So",
+      "after": "ourselves.",
+      "merged": 2
+    },
+    {
+      "i": 2420,
+      "start": 957.88,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 2492,
+      "start": 983.2,
+      "before": "go. So",
+      "after": "go.",
+      "merged": 2
+    },
+    {
+      "i": 2493,
+      "start": 984.04,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 2527,
+      "start": 996.08,
+      "before": "optimization. So",
+      "after": "optimization.",
+      "merged": 2
+    },
+    {
+      "i": 2528,
+      "start": 997.8,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 2582,
+      "start": 1020.5,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 2626,
+      "start": 1034.08,
+      "before": "CZ",
+      "after": "CC"
+    },
+    {
+      "i": 2628,
+      "start": 1034.7,
+      "before": "BC.",
+      "after": "BCC."
+    },
+    {
+      "i": 2661,
+      "start": 1048.48,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 2723,
+      "start": 1066.94,
+      "before": "you. So",
+      "after": "you.",
+      "merged": 2
+    },
+    {
+      "i": 2724,
+      "start": 1068.2,
+      "before": "our",
+      "after": "Our"
+    },
+    {
+      "i": 2731,
+      "start": 1069.92,
+      "before": "go. Now",
+      "after": "go.",
+      "merged": 2
+    },
+    {
+      "i": 2732,
+      "start": 1071.02,
+      "before": "moving",
+      "after": "Moving"
+    },
+    {
+      "i": 2747,
+      "start": 1075.88,
+      "before": "make. Now",
+      "after": "make.",
+      "merged": 2
+    },
+    {
+      "i": 2748,
+      "start": 1077.1,
+      "before": "on",
+      "after": "On"
+    },
+    {
+      "i": 2830,
+      "start": 1107.69,
+      "before": "sign",
+      "after": "Sign"
+    },
+    {
+      "i": 2891,
+      "start": 1129.01,
+      "before": "want. So",
+      "after": "want.",
+      "merged": 2
+    },
+    {
+      "i": 2892,
+      "start": 1130.15,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 2910,
+      "start": 1134.69,
+      "before": "module. Now",
+      "after": "module.",
+      "merged": 2
+    },
+    {
+      "i": 2911,
+      "start": 1136.03,
+      "before": "that",
+      "after": "That"
+    },
+    {
+      "i": 2917,
+      "start": 1137.67,
+      "before": "AI. So",
+      "after": "AI.",
+      "merged": 2
+    },
+    {
+      "i": 2918,
+      "start": 1139.81,
+      "before": "for",
+      "after": "For"
+    },
+    {
+      "i": 2940,
+      "start": 1149.21,
+      "before": "text. Okay, so",
+      "after": "text.",
+      "merged": 3
+    },
+    {
+      "i": 2941,
+      "start": 1151.15,
+      "before": "a",
+      "after": "A"
+    },
+    {
+      "i": 2965,
+      "start": 1163.13,
+      "before": "subject. Now",
+      "after": "subject.",
+      "merged": 2
+    },
+    {
+      "i": 2966,
+      "start": 1164.61,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 3019,
+      "start": 1183.79,
+      "before": "recipient. So",
+      "after": "recipient.",
+      "merged": 2
+    },
+    {
+      "i": 3051,
+      "start": 1198.83,
+      "before": "email. So",
+      "after": "email.",
+      "merged": 2
+    },
+    {
+      "i": 3104,
+      "start": 1221.37,
+      "before": "well. Now,",
+      "after": "well.",
+      "merged": 2
+    },
+    {
+      "i": 3105,
+      "start": 1222.53,
+      "before": "finally,",
+      "after": "Finally,"
+    },
+    {
+      "i": 3110,
+      "start": 1223.57,
+      "before": "Langsmith. Now,",
+      "after": "LangSmith.",
+      "merged": 2
+    },
+    {
+      "i": 3111,
+      "start": 1225.15,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 3138,
+      "start": 1237.13,
+      "before": "right. Now,",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 3139,
+      "start": 1238.19,
+      "before": "Langchain,",
+      "after": "LangChain,"
+    },
+    {
+      "i": 3144,
+      "start": 1239.77,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 3176,
+      "start": 1252.27,
+      "before": "to. So",
+      "after": "to.",
+      "merged": 2
+    },
+    {
+      "i": 3177,
+      "start": 1253.25,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 3240,
+      "start": 1277.39,
+      "before": "playground. Okay,",
+      "after": "playground.",
+      "merged": 2
+    },
+    {
+      "i": 3241,
+      "start": 1278.65,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 3253,
+      "start": 1282.79,
+      "before": "prompts. So",
+      "after": "prompts.",
+      "merged": 2
+    },
+    {
+      "i": 3254,
+      "start": 1283.97,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 3281,
+      "start": 1290.77,
+      "before": "now. So",
+      "after": "now.",
+      "merged": 2
+    },
+    {
+      "i": 3282,
+      "start": 1291.87,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 3320,
+      "start": 1309.09,
+      "before": "answer. Now,",
+      "after": "answer.",
+      "merged": 2
+    },
+    {
+      "i": 3321,
+      "start": 1310.65,
+      "before": "obviously,",
+      "after": "Obviously,"
+    },
+    {
+      "i": 3346,
+      "start": 1320.45,
+      "before": "Langsmead",
+      "after": "LangSmith"
+    },
+    {
+      "i": 3361,
+      "start": 1326.21,
+      "before": "programmatically. Okay,",
+      "after": "programmatically.",
+      "merged": 2
+    },
+    {
+      "i": 3362,
+      "start": 1328.61,
+      "before": "it's",
+      "after": "It's"
+    },
+    {
+      "i": 3367,
+      "start": 1330.25,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 3372,
+      "start": 1332.05,
+      "before": "contrast. Okay, now",
+      "after": "contrast.",
+      "merged": 3
+    },
+    {
+      "i": 3373,
+      "start": 1334.33,
+      "before": "basically",
+      "after": "Basically"
+    },
+    {
+      "i": 3386,
+      "start": 1339.91,
+      "before": "outputs. Okay, so",
+      "after": "outputs.",
+      "merged": 3
+    },
+    {
+      "i": 3387,
+      "start": 1341.41,
+      "before": "we're",
+      "after": "We're"
+    },
+    {
+      "i": 3398,
+      "start": 1345.25,
+      "before": "FlowWise.",
+      "after": "Flowise."
+    },
+    {
+      "i": 3399,
+      "start": 1346.45,
+      "before": "that",
+      "after": "That"
+    },
+    {
+      "i": 3438,
+      "start": 1358.15,
+      "before": "Langsmith,",
+      "after": "LangSmith,"
+    },
+    {
+      "i": 3470,
+      "start": 1368.57,
+      "before": "later. Now,",
+      "after": "later.",
+      "merged": 2
+    },
+    {
+      "i": 3471,
+      "start": 1370.67,
+      "before": "here",
+      "after": "Here"
+    },
+    {
+      "i": 3488,
+      "start": 1375.17,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 3490,
+      "start": 1376.31,
+      "before": "Langsmith,",
+      "after": "LangSmith,"
+    },
+    {
+      "i": 3501,
+      "start": 1380.57,
+      "before": "N8N,",
+      "after": "n8n,"
+    },
+    {
+      "i": 3511,
+      "start": 1385.37,
+      "before": "ongoing. So",
+      "after": "ongoing.",
+      "merged": 2
+    },
+    {
+      "i": 3512,
+      "start": 1386.21,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 3518,
+      "start": 1387.21,
+      "before": "emails. So",
+      "after": "emails.",
+      "merged": 2
+    },
+    {
+      "i": 3519,
+      "start": 1388.09,
+      "before": "obviously",
+      "after": "Obviously"
+    },
+    {
+      "i": 3530,
+      "start": 1392.41,
+      "before": "N8N. Okay,",
+      "after": "n8n.",
+      "merged": 2
+    },
+    {
+      "i": 3531,
+      "start": 1394.15,
+      "before": "then",
+      "after": "Then"
+    },
+    {
+      "i": 3545,
+      "start": 1399.65,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 3548,
+      "start": 1402.73,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 3558,
+      "start": 1407.21,
+      "before": "Make. So",
+      "after": "Make.",
+      "merged": 2
+    },
+    {
+      "i": 3559,
+      "start": 1408.63,
+      "before": "as",
+      "after": "As"
+    },
+    {
+      "i": 3566,
+      "start": 1411.11,
+      "before": "successful. Now",
+      "after": "successful.",
+      "merged": 2
+    },
+    {
+      "i": 3629,
+      "start": 1438.03,
+      "before": "N8n,",
+      "after": "n8n,"
+    },
+    {
+      "i": 3662,
+      "start": 1451.27,
+      "before": "Langsmith",
+      "after": "LangSmith"
+    },
+    {
+      "i": 3664,
+      "start": 1451.93,
+      "before": "Langchain",
+      "after": "LangChain"
+    },
+    {
+      "i": 3688,
+      "start": 1462.49,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 3717,
+      "start": 1473.19,
+      "before": "scratch. Now,",
+      "after": "scratch.",
+      "merged": 2
+    },
+    {
+      "i": 3718,
+      "start": 1474.93,
+      "before": "this",
+      "after": "This"
+    },
+    {
+      "i": 3722,
+      "start": 1475.89,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 3724,
+      "start": 1477.39,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 3730,
+      "start": 1480.83,
+      "before": "retrofitted. Now",
+      "after": "retrofitted.",
+      "merged": 2
+    },
+    {
+      "i": 3731,
+      "start": 1483.03,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 3743,
+      "start": 1487.05,
+      "before": "softwares. So",
+      "after": "softwares.",
+      "merged": 2
+    },
+    {
+      "i": 3744,
+      "start": 1488.85,
+      "before": "firstly,",
+      "after": "Firstly,"
+    },
+    {
+      "i": 3747,
+      "start": 1490.47,
+      "before": "N8N. Now",
+      "after": "n8n.",
+      "merged": 2
+    },
+    {
+      "i": 3748,
+      "start": 1492.93,
+      "before": "on",
+      "after": "On"
+    },
+    {
+      "i": 3753,
+      "start": 1494.17,
+      "before": "N8N,",
+      "after": "n8n,"
+    },
+    {
+      "i": 3779,
+      "start": 1504.55,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 3849,
+      "start": 1536.85,
+      "before": "plan. Now,",
+      "after": "plan.",
+      "merged": 2
+    },
+    {
+      "i": 3850,
+      "start": 1539.27,
+      "before": "moving",
+      "after": "Moving"
+    },
+    {
+      "i": 3856,
+      "start": 1540.91,
+      "before": "FlowWise's",
+      "after": "Flowise's"
+    },
+    {
+      "i": 3859,
+      "start": 1543.21,
+      "before": "right? So",
+      "after": "right?",
+      "merged": 2
+    },
+    {
+      "i": 3860,
+      "start": 1544.43,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 3882,
+      "start": 1553.61,
+      "before": "enterprise. Now,",
+      "after": "enterprise.",
+      "merged": 2
+    },
+    {
+      "i": 3883,
+      "start": 1555.27,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 3923,
+      "start": 1569.29,
+      "before": "plans. So",
+      "after": "plans.",
+      "merged": 2
+    },
+    {
+      "i": 3924,
+      "start": 1570.41,
+      "before": "starter,",
+      "after": "Starter,"
+    },
+    {
+      "i": 3930,
+      "start": 1572.35,
+      "before": "assistance,",
+      "after": "assistants,"
+    },
+    {
+      "i": 3959,
+      "start": 1583.69,
+      "before": "storage. Now,",
+      "after": "storage.",
+      "merged": 2
+    },
+    {
+      "i": 3972,
+      "start": 1592.03,
+      "before": "FlowWise.",
+      "after": "Flowise."
+    },
+    {
+      "i": 3973,
+      "start": 1592.49,
+      "before": "because",
+      "after": "Because"
+    },
+    {
+      "i": 3974,
+      "start": 1592.77,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 3983,
+      "start": 1597.47,
+      "before": "Langchain",
+      "after": "LangChain"
+    },
+    {
+      "i": 3985,
+      "start": 1598.35,
+      "before": "Langsmith-level",
+      "after": "LangSmith-level"
+    },
+    {
+      "i": 3988,
+      "start": 1600.35,
+      "before": "Langsmith-level",
+      "after": "LangSmith-level"
+    },
+    {
+      "i": 4006,
+      "start": 1608.87,
+      "before": "fast. Now,",
+      "after": "fast.",
+      "merged": 2
+    },
+    {
+      "i": 4007,
+      "start": 1611.17,
+      "before": "we",
+      "after": "We"
+    },
+    {
+      "i": 4022,
+      "start": 1616.81,
+      "before": "right. Now,",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 4092,
+      "start": 1648.01,
+      "before": "you. Now,",
+      "after": "you.",
+      "merged": 2
+    },
+    {
+      "i": 4093,
+      "start": 1649.69,
+      "before": "moving",
+      "after": "Moving"
+    },
+    {
+      "i": 4096,
+      "start": 1651.09,
+      "before": "make.com. Now,",
+      "after": "make.com.",
+      "merged": 2
+    },
+    {
+      "i": 4097,
+      "start": 1654.59,
+      "before": "make.com",
+      "after": "Make.com"
+    },
+    {
+      "i": 4135,
+      "start": 1668.25,
+      "before": "enterprise. Now,",
+      "after": "enterprise.",
+      "merged": 2
+    },
+    {
+      "i": 4136,
+      "start": 1669.47,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 4144,
+      "start": 1673.03,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 4162,
+      "start": 1679.73,
+      "before": "yourself. Now,",
+      "after": "yourself.",
+      "merged": 2
+    },
+    {
+      "i": 4194,
+      "start": 1697.85,
+      "before": "Langsmith.",
+      "after": "LangSmith."
+    },
+    {
+      "i": 4196,
+      "start": 1699.23,
+      "before": "right. Now,",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 4197,
+      "start": 1700.17,
+      "before": "Langsmith",
+      "after": "LangSmith"
+    },
+    {
+      "i": 4216,
+      "start": 1707.29,
+      "before": "right. Now,",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 4217,
+      "start": 1708.33,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 4247,
+      "start": 1719.75,
+      "before": "plan. Now,",
+      "after": "plan.",
+      "merged": 2
+    },
+    {
+      "i": 4248,
+      "start": 1721.69,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 4265,
+      "start": 1728.43,
+      "before": "Langchain",
+      "after": "LangChain"
+    },
+    {
+      "i": 4268,
+      "start": 1729.47,
+      "before": "Langchain",
+      "after": "LangChain"
+    },
+    {
+      "i": 4315,
+      "start": 1749.21,
+      "before": "right. So",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 4316,
+      "start": 1750.67,
+      "before": "that",
+      "after": "That"
+    },
+    {
+      "i": 4353,
+      "start": 1764.63,
+      "before": "right. Now,",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 4354,
+      "start": 1765.91,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 4377,
+      "start": 1774.25,
+      "before": "below. So",
+      "after": "below.",
+      "merged": 2
+    },
+    {
+      "i": 4378,
+      "start": 1774.97,
+      "before": "do",
+      "after": "Do"
+    },
+    {
+      "i": 4386,
+      "start": 1777.53,
+      "before": "yourself. Now,",
+      "after": "yourself.",
+      "merged": 2
+    },
+    {
+      "i": 4387,
+      "start": 1779.09,
+      "before": "before",
+      "after": "Before"
+    },
+    {
+      "i": 4423,
+      "start": 1789.01,
+      "before": "right. Now,",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 4424,
+      "start": 1790.59,
+      "before": "here's",
+      "after": "Here's"
+    },
+    {
+      "i": 4455,
+      "start": 1801.11,
+      "before": "value. Now,",
+      "after": "value.",
+      "merged": 2
+    },
+    {
+      "i": 4456,
+      "start": 1802.87,
+      "before": "when",
+      "after": "When"
+    },
+    {
+      "i": 4469,
+      "start": 1808.43,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 4482,
+      "start": 1812.13,
+      "before": "use. Now,",
+      "after": "use.",
+      "merged": 2
+    },
+    {
+      "i": 4483,
+      "start": 1813.21,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 4535,
+      "start": 1834.19,
+      "before": "FlowWise.",
+      "after": "Flowise."
+    },
+    {
+      "i": 4556,
+      "start": 1844.67,
+      "before": "features. Now,",
+      "after": "features.",
+      "merged": 2
+    },
+    {
+      "i": 4557,
+      "start": 1846.01,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 4564,
+      "start": 1849.09,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 4571,
+      "start": 1852.99,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 4578,
+      "start": 1855.31,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 4646,
+      "start": 1881.25,
+      "before": "add. Okay,",
+      "after": "add.",
+      "merged": 2
+    },
+    {
+      "i": 4647,
+      "start": 1882.63,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 4663,
+      "start": 1887.75,
+      "before": "FlowWise.",
+      "after": "Flowise."
+    },
+    {
+      "i": 4693,
+      "start": 1897.49,
+      "before": "FlowWise,",
+      "after": "Flowise,"
+    },
+    {
+      "i": 4706,
+      "start": 1901.93,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 4737,
+      "start": 1917.37,
+      "before": "N8N,",
+      "after": "n8n,"
+    },
+    {
+      "i": 4738,
+      "start": 1918.39,
+      "before": "Langchain,",
+      "after": "LangChain,"
+    },
+    {
+      "i": 4740,
+      "start": 1919.01,
+      "before": "FlowWise.",
+      "after": "Flowise."
+    },
+    {
+      "i": 4764,
+      "start": 1927.41,
+      "before": "right. So",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 4765,
+      "start": 1928.19,
+      "before": "obviously",
+      "after": "Obviously"
+    },
+    {
+      "i": 4777,
+      "start": 1932.69,
+      "before": "result. Now",
+      "after": "result.",
+      "merged": 2
+    },
+    {
+      "i": 4778,
+      "start": 1934.27,
+      "before": "time",
+      "after": "Time"
+    },
+    {
+      "i": 4816,
+      "start": 1947.81,
+      "before": "Langchain. So",
+      "after": "LangChain.",
+      "merged": 2
+    },
+    {
+      "i": 4827,
+      "start": 1952.67,
+      "before": "N8N,",
+      "after": "n8n,"
+    },
+    {
+      "i": 4832,
+      "start": 1954.75,
+      "before": "Langchain,",
+      "after": "LangChain,"
+    },
+    {
+      "i": 4839,
+      "start": 1956.11,
+      "before": "Flowwise,",
+      "after": "Flowise,"
+    },
+    {
+      "i": 4843,
+      "start": 1957.85,
+      "before": "five. So",
+      "after": "five.",
+      "merged": 2
+    },
+    {
+      "i": 4844,
+      "start": 1959.29,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 4850,
+      "start": 1961.13,
+      "before": "Langchain",
+      "after": "LangChain"
+    },
+    {
+      "i": 4895,
+      "start": 1975.55,
+      "before": "flow wise",
+      "after": "Flowise",
+      "merged": 2
+    },
+    {
+      "i": 4940,
+      "start": 1993.81,
+      "before": "Flowwise",
+      "after": "Flowise"
+    },
+    {
+      "i": 4960,
+      "start": 2002.49,
+      "before": "N8N.",
+      "after": "n8n."
+    },
+    {
+      "i": 4962,
+      "start": 2003.99,
+      "before": "right. So",
+      "after": "right.",
+      "merged": 2
+    },
+    {
+      "i": 4963,
+      "start": 2004.91,
+      "before": "that's",
+      "after": "That's"
+    },
+    {
+      "i": 4982,
+      "start": 2011.27,
+      "before": "Flowwise",
+      "after": "Flowise"
+    },
+    {
+      "i": 4993,
+      "start": 2016.01,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 5013,
+      "start": 2023.03,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 5015,
+      "start": 2023.81,
+      "before": "FlowEyes",
+      "after": "Flowise"
+    },
+    {
+      "i": 5043,
+      "start": 2034.77,
+      "before": "well. So now",
+      "after": "well.",
+      "merged": 3
+    },
+    {
+      "i": 5044,
+      "start": 2035.91,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 5050,
+      "start": 2037.91,
+      "before": "conclusions. Now,",
+      "after": "conclusions.",
+      "merged": 2
+    },
+    {
+      "i": 5051,
+      "start": 2040.95,
+      "before": "if",
+      "after": "If"
+    },
+    {
+      "i": 5091,
+      "start": 2052.35,
+      "before": "you. Now,",
+      "after": "you.",
+      "merged": 2
+    },
+    {
+      "i": 5092,
+      "start": 2053.59,
+      "before": "first",
+      "after": "First"
+    },
+    {
+      "i": 5096,
+      "start": 2055.03,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 5122,
+      "start": 2067.07,
+      "before": "FlowWise.",
+      "after": "Flowise."
+    },
+    {
+      "i": 5124,
+      "start": 2068.91,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 5191,
+      "start": 2100.09,
+      "before": "Langchain",
+      "after": "LangChain"
+    },
+    {
+      "i": 5222,
+      "start": 2113.95,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 5224,
+      "start": 2115.45,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 5226,
+      "start": 2116.53,
+      "before": "N8N",
+      "after": "n8n"
+    },
+    {
+      "i": 5240,
+      "start": 2123.09,
+      "before": "FlowWise",
+      "after": "Flowise"
+    },
+    {
+      "i": 5250,
+      "start": 2126.85,
+      "before": "Langchain",
+      "after": "LangChain"
+    },
+    {
+      "i": 5285,
+      "start": 2139.95,
+      "before": "seen. So",
+      "after": "seen.",
+      "merged": 2
+    },
+    {
+      "i": 5286,
+      "start": 2141.19,
+      "before": "if",
+      "after": "If"
+    }
+  ],
+  "suspects": [],
+  "note": "changes[] is what the cleanup altered; suspects[] is what a second pass still doubts, including words it did not touch"
+}

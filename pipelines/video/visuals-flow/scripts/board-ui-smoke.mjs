@@ -2,6 +2,7 @@ import { spawnSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const CHROME = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const HASHES = ['', '#intro', '#storyboard', '#avatar', '#final-cut', '#calibrate'];
@@ -41,7 +42,10 @@ fs.writeFileSync(path.join(workdir, 'card-plan.json'), JSON.stringify({
 }));
 
 // 2. createServer
-const boardMod = await import(path.resolve(process.cwd(), 'lib/board.mjs'));
+// pathToFileURL, not the bare path: on Windows an absolute path starts `C:\`,
+// which the ESM loader reads as a `c:` URL scheme and refuses — the whole gate
+// died before its first check with ERR_UNSUPPORTED_ESM_URL_SCHEME.
+const boardMod = await import(pathToFileURL(path.resolve(process.cwd(), 'lib/board.mjs')).href);
 const server = boardMod.createServer(workdir);
 const port = await new Promise((resolve) => {
   server.listen(0, '127.0.0.1', () => resolve(server.address().port));
@@ -469,6 +473,17 @@ try {
       { id: 'b02', intent: 'stakes', register: 'dark', face: 'panel', t_start: 4, t_end: 7, clause: 'c', stage: 'd' },
     ],
   }));
+  // One review frame per beat. introData attaches frames to a beat by the `at-
+  // <t>s` in the filename, so these times must fall inside the spans above.
+  // Without them the beat sheet renders no <img> at all and the per-frame zoom
+  // control below has nothing to hang on.
+  const PNG_1PX = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64');
+  fs.mkdirSync(path.join(introWorkdir, 'intro-film', 'review'), { recursive: true });
+  for (const f of ['frame-00-at-1.5s.png', 'frame-01-at-5.5s.png']) {
+    fs.writeFileSync(path.join(introWorkdir, 'intro-film', 'review', f), PNG_1PX);
+  }
   // 7s so the rendered duration is unambiguous — and +faststart, because a moov
   // atom at the tail is its own way to make duration never arrive.
   const introMp4 = path.join(introWorkdir, 'intro-film', 'out', 'intro.mp4');
@@ -602,6 +617,28 @@ try {
           }
         }
       }
+      // The autosaved feedback boxes (owner report 2026-08-13). The shared
+      // composer above is timestamped, so it is disabled until out/intro.mp4
+      // exists — which is most of gate 027, and left the tab taking no feedback
+      // at all. These boxes are the storyboard's, they need no player, and they
+      // must be present for the film as a whole AND for each beat.
+      for (const ref of ['intro-global', 'intro-b01', 'intro-b02']) {
+        if (!domIntro.includes(`data-ref="${ref}"`)) {
+          throw new Error(
+            `intro review: no autosaved feedback box for "${ref}" — with the film unrendered `
+            + 'the timestamped composer is disabled, so this is the only way to file a note');
+        }
+      }
+
+      // Per-frame zoom (owner ask 2026-08-13). A review frame sits in a third
+      // of a column, so 1× is too small to judge a glyph or a seam by — and the
+      // beat sheet is the whole review while the film is unrendered.
+      for (const needle of ['class="intro-frame"', 'title="zoom in"', 'title="zoom out"']) {
+        if (!domIntro.includes(needle)) {
+          throw new Error(`intro beat sheet: review frames render without zoom controls ("${needle}" missing)`);
+        }
+      }
+
       // Per-comment controls need a comment to exist, which only the intro
       // fixture has.
       for (const [needle, what] of [['✎ Edit', 'edit a comment'], ['✕ Delete', 'delete a comment']]) {

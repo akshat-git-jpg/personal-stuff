@@ -1,0 +1,93 @@
+[
+  {
+    "kind": "once-only-proper-noun",
+    "at": 142.06,
+    "text": "LangChain's",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 264.76,
+    "text": "Slack.",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 425.92,
+    "text": "OpenAI's",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 454.22,
+    "text": "Create",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 454.86,
+    "text": "Secret",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 667.88,
+    "text": "Turbo",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 679.76,
+    "text": "Model",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 748.58,
+    "text": "CRMs,",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 978.48,
+    "text": "Java",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 1031,
+    "text": "Contacts.",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 1208.21,
+    "text": "HTML",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 1540.91,
+    "text": "Flowise's",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 1673.45,
+    "text": "Teams",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  }
+]

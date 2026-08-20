@@ -18,8 +18,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+
+// Moved to lib/intro-film/npx.mjs so render-film.mjs shares the fix rather than
+// carrying the same Windows ENOENT bug independently. Re-exported because tests
+// and callers already import these names from here.
+import { NPX_NEEDS_SHELL, npxArgs } from './npx.mjs';
+export { NPX_NEEDS_SHELL, npxArgs };
 import { resolveWorkdir } from './workdir.mjs';
-import { linkFilmMedia } from './film-assets.mjs';
+import { linkFilmMedia, STAND_IN_IMAGE } from './film-assets.mjs';
 import { checkFilmSync } from './check-film-sync.mjs';
 import { FILM_RENDERER } from '../renderer-constants.mjs';
 import { pathToFileURL } from 'node:url';
@@ -193,7 +199,12 @@ export function runReview(slug, { check = true, snapshot = true } = {}) {
 
   // Without this the composition lints with "../" errors and check's layout
   // pass silently samples nothing.
-  const media = linkFilmMedia(slug);
+  // The stand-in matters at review time specifically. Without it every
+  // face:full and face:panel beat renders with an empty right panel, so the
+  // reviewer reads composition against a frame the film will never produce —
+  // and the space the presenter occupies looks free for a device to move into.
+  // The real avatar.mp4 wins whenever it exists; this only fills the hole.
+  const media = linkFilmMedia(slug, { standInImage: STAND_IN_IMAGE });
 
   const reviewDir = path.join(workdir, 'review');
   fs.rmSync(reviewDir, { recursive: true, force: true });
@@ -203,7 +214,7 @@ export function runReview(slug, { check = true, snapshot = true } = {}) {
 
   let findings = [];
   if (check) {
-    const r = spawnSync('npx', checkArgs(filmDir), { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    const r = spawnSync('npx', npxArgs(checkArgs(filmDir)), { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, shell: NPX_NEEDS_SHELL });
     const raw = `${r.stdout ?? ''}${r.stderr ?? ''}`;
     const report = parseCheckJson(raw);
     fs.writeFileSync(path.join(reviewDir, 'check.json'), JSON.stringify(report, null, 2));
@@ -212,7 +223,7 @@ export function runReview(slug, { check = true, snapshot = true } = {}) {
 
   let sheetFiles = [];
   if (snapshot) {
-    const r = spawnSync('npx', snapshotArgs(filmDir, samples.map((s) => s.t), reviewDir), { stdio: 'inherit' });
+    const r = spawnSync('npx', npxArgs(snapshotArgs(filmDir, samples.map((s) => s.t), reviewDir)), { stdio: 'inherit', shell: NPX_NEEDS_SHELL });
     if (r.status !== 0) throw new Error(`hyperframes snapshot failed (exit ${r.status})`);
     sheetFiles = fs.readdirSync(reviewDir).filter((f) => f.startsWith('contact-sheet')).sort();
   }

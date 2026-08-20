@@ -1,0 +1,151 @@
+{
+  "video": "best-no-code-automation-tool",
+  "approved": false,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "It offers self-hosting, advanced logic",
+      "to_anchor": "a slightly higher learning curve",
+      "note": "First host moment, and the one that satisfies the on-screen-by rule now that the intro film owns 0 to 113.7s. The speaker is characterising n8n rather than showing anything, so the idle screen has nothing to protect.",
+      "flagged": false
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "It simplifies AI agent creation",
+      "to_anchor": "not general automation",
+      "note": "Flowise positioning, spoken over an idle screen. Sits in the gap between the Flowise and Zapier hero tiles.",
+      "flagged": false
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "It's well-suited for advanced workflows",
+      "to_anchor": "debugging can become quite messy",
+      "note": "Make positioning, same shape as the other overview beats.",
+      "flagged": false
+    },
+    {
+      "id": "s04",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "It's extremely powerful for custom AI systems",
+      "to_anchor": "requires real programming effort",
+      "note": "LangChain positioning, closing the overview roll-call on the host.",
+      "flagged": false
+    },
+    {
+      "id": "s05",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Seeing this hands-on makes the differences",
+      "to_anchor": "the same output logic for all of them",
+      "note": "The fair-test promise. This is the host setting the terms of the comparison, which is the last thing they say before the screen takes over for the builds.",
+      "flagged": false
+    },
+    {
+      "id": "s06",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "I'm making you go through this process",
+      "to_anchor": "do make sure to go ahead with this",
+      "note": "Direct address to the viewer explaining why the API key matters for all five builds. Nothing is being clicked here.",
+      "flagged": false
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "But the general workflow on Flowise",
+      "to_anchor": "how you want to manage an assistant",
+      "note": "The Flowise verdict, spoken as reflection rather than walkthrough. The strongest host beat in the demo half.",
+      "flagged": false
+    },
+    {
+      "id": "s08",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Obviously, do make sure to go ahead and connect your account",
+      "to_anchor": "allow it the permissions that it needs",
+      "note": "A warning aimed at the viewer, not a description of a click.",
+      "flagged": false
+    },
+    {
+      "id": "s09",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "And once it is done and it says that it is good to go",
+      "to_anchor": "Our Zap is live and good to go",
+      "note": "Zapier build completes. A short host beat to close the section before Make.",
+      "flagged": false
+    },
+    {
+      "id": "s10",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "We're going to do pretty much all the same things",
+      "to_anchor": "let's go with this and get an email",
+      "note": "The speaker naming the repetition out loud, which is the throughline: the same chain being built a fourth time.",
+      "flagged": false
+    },
+    {
+      "id": "s11",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "LangChain, again, a lot like Flowise",
+      "to_anchor": "for yourself if you want to",
+      "note": "Framing LangChain against Flowise before the playground demo starts.",
+      "flagged": false
+    },
+    {
+      "id": "s12",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "But yeah, generally LangSmith gives you an input handler",
+      "to_anchor": "makes Flowise look even better by contrast",
+      "note": "The raw-power verdict and the last host beat before the results check.",
+      "flagged": false
+    },
+    {
+      "id": "s13",
+      "purpose": "avatar-full",
+      "mode": "side",
+      "from_anchor": "Zapier on the first hand handles",
+      "to_anchor": "harder to maintain as the scenario grows",
+      "note": "Side mode over the five-row comparison table: the table is building a row per tool while the host delivers the verdicts, so both halves are load-bearing. Held to the first two rows to stay inside the mid-video span length.",
+      "flagged": false
+    },
+    {
+      "id": "s14",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "You visually build an agent or chains",
+      "to_anchor": "more purpose-built, not retrofitted",
+      "note": "The purpose-built payoff line, the last full-screen host moment before the pricing walkthrough takes the screen back.",
+      "flagged": false
+    },
+    {
+      "id": "s15",
+      "purpose": "avatar-full",
+      "mode": "side",
+      "from_anchor": "First of all, choose n8n",
+      "to_anchor": "expected to grow significantly over time",
+      "note": "Side mode over the per-tool verdict card. The host reads the choose-if calls while the card reveals each pair, which is the moment side mode exists for. Ends inside the card so the split never outlives the graphic.",
+      "flagged": false
+    },
+    {
+      "id": "s17",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "If you want to try any of these platforms",
+      "to_anchor": "in the very next video",
+      "note": "The sign-off. The video lands on the host, per the U-curve.",
+      "flagged": false
+    }
+  ]
+}

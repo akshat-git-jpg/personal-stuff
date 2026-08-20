@@ -2,7 +2,23 @@
   --bg:#0f0b07; --panel:#181210; --line:rgba(255,255,255,0.10);
   --text:#f5ede2; --dim:rgba(245,237,226,0.55); --accent:#fb923c; --accent-light:#fdba74; --ok:#34d399; --err:#ff6b6b; --shot:#a78bfa; --overlay-seg:#38bdf8;
   --font:"Inter",-apple-system,system-ui,sans-serif;
+  /* --hover and --fg were used by ReviewSurface.css but never defined here, so
+     both rules were inert — the transport buttons had no hover state at all.
+     --fg is now spelled --text at its call sites; --hover gets a real value. */
+  --hover:rgba(255,255,255,0.07);
+
+  /* Native controls are painted by the PLATFORM, not by this stylesheet. With
+     no color-scheme declared, Chrome paints a <select>'s popup WHITE while the
+     options inherit this page's near-white --text, so every option reads as
+     blank — the playback-speed picker looked empty (owner report 2026-08-20).
+     Declared here rather than on that one select: the video picker and the
+     version picker are the same native control with the same failure. */
+  color-scheme: dark;
 }
+
+/* Belt and braces for the options themselves — a few platforms still paint the
+   popup from the page's own colors rather than from color-scheme. */
+select option { background: var(--panel); color: var(--text); }
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:var(--font); background:var(--bg); color:var(--text); }
 

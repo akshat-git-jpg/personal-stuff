@@ -12,14 +12,17 @@ import puppeteer from 'puppeteer-core';
 const visualsFlowDir = path.join(process.cwd(), '../visuals-flow');
 const sharedModulePath = path.join(visualsFlowDir, 'lib/overflow-measure.mjs');
 let MEASURE_OVERFLOW_SRC;
+let MEASURE_CLEARANCE_SRC;
 try {
-  const { MEASURE_OVERFLOW_SRC: src } = await import(pathToFileURL(path.resolve(sharedModulePath)).href);
-  MEASURE_OVERFLOW_SRC = src;
+  const mod = await import(pathToFileURL(path.resolve(sharedModulePath)).href);
+  MEASURE_OVERFLOW_SRC = mod.MEASURE_OVERFLOW_SRC;
+  MEASURE_CLEARANCE_SRC = mod.MEASURE_CLEARANCE_SRC;
 } catch (e) {
   // If run from a different CWD (e.g., test vs root), try a different path resolution
   const altPath = path.resolve(import.meta.dirname, '../../visuals-flow/lib/overflow-measure.mjs');
-  const { MEASURE_OVERFLOW_SRC: src } = await import(pathToFileURL(altPath).href);
-  MEASURE_OVERFLOW_SRC = src;
+  const mod = await import(pathToFileURL(altPath).href);
+  MEASURE_OVERFLOW_SRC = mod.MEASURE_OVERFLOW_SRC;
+  MEASURE_CLEARANCE_SRC = mod.MEASURE_CLEARANCE_SRC;
 }
 
 const FILLER = ['publish', 'workflow', 'captions', 'rendering', 'automation', 'timeline', 'export', 'quality'];
@@ -199,6 +202,15 @@ export async function probeCardVariant(cardSlug, variant, variables, times) {
         await page.close();
         return { broken: true, t, offenders: res.offenders };
       }
+      /* Text sitting on artwork. Checked at the same sampled times as overflow,
+         because a collision is usually transient -- it appears while one element
+         is still animating in and is gone a beat later, which is exactly why an
+         eye on a contact sheet keeps missing it. */
+      const clr = await page.evaluate(MEASURE_CLEARANCE_SRC + '; __measureClearance()');
+      if (clr.broken) {
+        await page.close();
+        return { broken: true, t, offenders: clr.hits, kind: 'clearance' };
+      }
     }
 
     await page.close();
@@ -319,7 +331,7 @@ async function main() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main()
     .catch(async (err) => {
       console.error(err);

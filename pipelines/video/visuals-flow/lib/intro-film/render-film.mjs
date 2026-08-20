@@ -11,6 +11,7 @@ import { resolveWorkdir } from './workdir.mjs';
 import { linkFilmMedia, STAND_IN_IMAGE } from './film-assets.mjs';
 import { runGate } from './film-gate.mjs';
 import { FILM_RENDERER } from '../renderer-constants.mjs';
+import { npxArgs, npxSpawnOpts } from './npx.mjs';
 
 // Same pin as review-film.mjs, now enforced rather than remembered: both import
 // FILM_RENDERER from lib/renderer-constants.mjs, so they cannot drift apart.
@@ -48,7 +49,9 @@ export function renderFilm(slug) {
   const abs = path.join(workdir, rel);
   fs.rmSync(abs, { force: true });
 
-  const r = spawnSync('npx', renderArgs(rel), { cwd: workdir, stdio: 'inherit' });
+  // npxArgs + shell: see lib/intro-film/npx.mjs. Without them this spawn returns
+  // ENOENT on Windows and intro-render fails before hyperframes ever starts.
+  const r = spawnSync('npx', npxArgs(renderArgs(rel)), npxSpawnOpts({ cwd: workdir, stdio: 'inherit' }));
   if (r.status !== 0) throw new Error(`hyperframes render failed (exit ${r.status})`);
   if (!fs.existsSync(abs)) throw new Error(`render reported success but ${abs} does not exist`);
 

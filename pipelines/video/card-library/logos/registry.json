@@ -29,11 +29,12 @@
   "heygen": {
     "domain": "heygen.com",
     "file": "heygen.png",
-    "source": "favicon",
+    "source": "manual",
     "normalized": true,
     "bg": "#12151c",
     "dark": true,
-    "mark_ratio": 0.72
+    "mark_ratio": 0.72,
+    "verified": "2026-08-19 - flagged by the new sharpness gate in check-logos.mjs (scored 67, under 70): built from a 128px google favicon and upscaled. Replaced with app.heygen.com/apple-touch-icon.png, a 180px transparent mark that normalizes ~1:1. Not used in best-no-code-automation-tool; fixed because the gate is only worth having if it is green."
   },
   "arcads": {
     "domain": "arcads.ai",
@@ -47,11 +48,13 @@
   "n8n": {
     "domain": "n8n.io",
     "file": "n8n.png",
-    "source": "favicon",
+    "source": "manual",
     "normalized": true,
     "bg": "#12151c",
     "dark": true,
-    "mark_ratio": 0.72
+    "mark_ratio": 0.72,
+    "mark": "node-graph-pink",
+    "verified": "2026-08-19 owner - same defect as flowise: fetch-logo.mjs pulls a 128px google s2 favicon and normalize upscales it to a 184px mark, so the tile is a blur. Replaced with the 460px n8n org avatar (white mark on #ea4b71), the pink ground keyed off by luma floor and the mark filled #ea4b71 to keep the pink-on-dark presentation the film already used."
   },
   "make": {
     "domain": "make.com",
@@ -74,20 +77,24 @@
   "langchain": {
     "domain": "langchain.com",
     "file": "langchain.png",
-    "source": "favicon",
+    "source": "manual",
     "normalized": true,
     "bg": "#12151c",
     "dark": true,
-    "mark_ratio": 0.72
+    "mark_ratio": 0.72,
+    "mark": "parrot-and-chain",
+    "verified": "2026-08-15 owner — chose the parrot-and-chain identity over the current langchain.com pinwheel favicon; audience recognition beats brand currency"
   },
   "flowise": {
     "domain": "flowiseai.com",
     "file": "flowise.png",
-    "source": "favicon",
+    "source": "manual",
     "normalized": true,
-    "bg": "#341d51",
+    "bg": "#12151c",
     "dark": true,
-    "mark_ratio": 0.72
+    "mark_ratio": 0.72,
+    "mark": "node-graph",
+    "verified": "2026-08-19 owner - the 128px google-favicon render was blurry on a #341d51 purple ground while every other mark in this video sits on #12151c; owner: \"the blue frame around it looks really old\". Replaced with the 512px mark from FlowiseAI/Flowise packages/ui/public/logo512.png, its gradient ground keyed off by luma floor, then normalized."
   },
   "submagic": {
     "domain": "submagic.co",

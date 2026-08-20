@@ -5,7 +5,7 @@
 import http from 'node:http';
 import { execFile } from 'node:child_process';
 import { homedir } from 'node:os';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 
@@ -15,18 +15,90 @@ import { WORKSPACE_CSS, WORKSPACE_JS } from './workspace-view.mjs';
 const execFileP = promisify(execFile);
 
 const PORT = process.env.PORT || 4319;
-const CCUSAGE = process.env.CCUSAGE_BIN || `${homedir()}/.npm-global/bin/ccusage`;
 const CACHE_TTL_MS = 8000;
+const WIN = process.platform === 'win32';
 
-const SCOPES = [
-  { id: 'work', label: 'Work', dir: `${homedir()}/.claude-work`, accent: '#5aa0e8' },
-  { id: 'personal', label: 'Personal', dir: `${homedir()}/.claude-personal`, accent: '#5fd08a' },
-  { id: 'all', label: 'Total', dir: `${homedir()}/.claude-work,${homedir()}/.claude-personal`, accent: '#cbb46a' },
-];
+// ---- Account discovery ------------------------------------------------------
+// The dual-account layout (~/.claude-work + ~/.claude-personal) only exists on a
+// machine that actually runs two Claude logins. A single-account machine has just
+// the default ~/.claude, and hardcoding the dual dirs there yields empty cards for
+// accounts that don't exist. Rule: if ANY dual dir is present, use only those
+// (preserves the dual-account machine exactly); otherwise fall back to the default
+// config dir as the sole "Personal" account. `Total` is added only when there are
+// 2+ real accounts to total up.
+const WORK = { id: 'work', label: 'Work', accent: '#5aa0e8' };
+const PERSONAL = { id: 'personal', label: 'Personal', accent: '#5fd08a' };
+
+function discoverScopes() {
+  const home = homedir();
+  const dual = [
+    { ...WORK, dir: `${home}/.claude-work` },
+    { ...PERSONAL, dir: `${home}/.claude-personal` },
+  ].filter((s) => existsSync(s.dir));
+
+  let accounts = dual;
+  if (!accounts.length) {
+    const def = process.env.CLAUDE_CONFIG_DIR || `${home}/.claude`;
+    accounts = existsSync(def) ? [{ ...PERSONAL, dir: def }] : [];
+  }
+  if (accounts.length > 1) {
+    accounts = [...accounts, { id: 'all', label: 'Total', dir: accounts.map((a) => a.dir).join(','), accent: '#cbb46a' }];
+  }
+  return accounts;
+}
+
+const SCOPES = discoverScopes();
+// id the front-end should treat as "everything" — 'all' when it exists, else the lone account
+const TOTAL_ID = SCOPES.some((s) => s.id === 'all') ? 'all' : SCOPES[0]?.id || 'personal';
 
 // ---- ccusage + helpers ------------------------------------------------------
+// ccusage lands in a different place on every install (npm prefix, nvm, Windows
+// AppData) and on Windows it is a `.cmd` shim, which Node refuses to spawn
+// directly since the CVE-2024-27980 fix. Probe the known locations, then fall
+// back to `npx`, and route `.cmd` shims through cmd.exe with args passed as an
+// array (no `shell:true`, so nothing needs manual escaping).
+let ccusageCmdP = null;
+
+async function npmPrefix() {
+  try {
+    // via cmd.exe with an args array on Windows — `shell:true` would concatenate
+    // (and not escape) the args, which Node deprecated in DEP0190
+    const [file, pre] = WIN ? ['cmd.exe', ['/c', 'npm']] : ['npm', []];
+    const { stdout } = await execFileP(file, [...pre, 'prefix', '-g'], { timeout: 15000 });
+    return stdout.trim();
+  } catch { return null; }
+}
+
+async function resolveCcusage() {
+  const home = homedir();
+  if (process.env.CCUSAGE_BIN) return toCommand(process.env.CCUSAGE_BIN);
+
+  const names = WIN ? ['ccusage.cmd', 'ccusage.exe', 'ccusage'] : ['ccusage'];
+  const dirs = [`${home}/.npm-global/bin`];
+  if (WIN) dirs.push(`${home}/AppData/Roaming/npm`);
+  else dirs.push('/usr/local/bin', '/opt/homebrew/bin', `${home}/.local/bin`);
+  const prefix = await npmPrefix();
+  if (prefix) dirs.push(WIN ? prefix : `${prefix}/bin`);
+
+  for (const d of dirs) for (const n of names) {
+    const p = `${d}/${n}`;
+    if (existsSync(p)) return toCommand(p);
+  }
+  // not installed anywhere we know — let npx fetch it rather than hard-failing
+  return WIN
+    ? { file: 'cmd.exe', pre: ['/c', 'npx', '-y', 'ccusage'], via: 'npx' }
+    : { file: 'npx', pre: ['-y', 'ccusage'], via: 'npx' };
+}
+
+const toCommand = (p) => (WIN && /\.(cmd|bat)$/i.test(p))
+  ? { file: 'cmd.exe', pre: ['/c', p], via: p }
+  : { file: p, pre: [], via: p };
+
+const ccusageCmd = () => (ccusageCmdP ??= resolveCcusage());
+
 async function runCcusage(args, dir) {
-  const { stdout } = await execFileP(CCUSAGE, [...args, '--json'], {
+  const cmd = await ccusageCmd();
+  const { stdout } = await execFileP(cmd.file, [...cmd.pre, ...args, '--json'], {
     env: { ...process.env, CLAUDE_CONFIG_DIR: dir, FORCE_COLOR: '0', NO_COLOR: '1' },
     maxBuffer: 64 * 1024 * 1024,
   });
@@ -34,21 +106,37 @@ async function runCcusage(args, dir) {
 }
 
 // ---- Plan limits (account-wide, server-side `/usage` data) -------------------
-// Claude Code stores OAuth creds in the macOS Keychain under
-// `Claude Code-credentials-<sha256(configDir)[:8]>`. The same token can read the
-// live subscription rate-limit state — the 5-hour + weekly windows that `/usage`
-// shows. This is account-level (every device/surface), unlike the local ccusage
-// cost data below which only sees this machine's transcripts. Read-only: on a
-// 401/expired token we surface a message rather than refreshing (refreshing from
-// outside Claude Code would rotate the refresh token and desync its own copy).
+// Claude Code stores its OAuth creds per platform: macOS uses the Keychain under
+// `Claude Code-credentials[-<sha256(configDir)[:8]>]`, while Windows and Linux
+// write `<configDir>/.credentials.json`. Read the file first (a cheap miss on
+// macOS) and fall back to the Keychain, so one code path serves both machines.
+// The same token reads the live subscription rate-limit state — the 5-hour +
+// weekly windows that `/usage` shows. This is account-level (every
+// device/surface), unlike the local ccusage cost data below which only sees this
+// machine's transcripts. Read-only: on a 401/expired token we surface a message
+// rather than refreshing (refreshing from outside Claude Code would rotate the
+// refresh token and desync its own copy).
 const credSuffix = (dir) => createHash('sha256').update(dir).digest('hex').slice(0, 8);
 
+async function readCredentials(dir) {
+  const file = `${dir}/.credentials.json`;
+  if (existsSync(file)) {
+    try { return readFileSync(file, 'utf8'); } catch { /* fall through to keychain */ }
+  }
+  if (process.platform !== 'darwin') return null;
+  // macOS: the service name is suffixed only when the config dir is non-default
+  for (const svc of [`Claude Code-credentials-${credSuffix(dir)}`, 'Claude Code-credentials']) {
+    try {
+      const { stdout } = await execFileP('security', ['find-generic-password', '-s', svc, '-w'], { timeout: 4000 });
+      return stdout;
+    } catch { /* try next service name */ }
+  }
+  return null;
+}
+
 async function fetchUsage(dir) {
-  let raw;
-  try {
-    ({ stdout: raw } = await execFileP('security',
-      ['find-generic-password', '-s', `Claude Code-credentials-${credSuffix(dir)}`, '-w'], { timeout: 4000 }));
-  } catch { return { error: 'no credentials in keychain' }; }
+  const raw = await readCredentials(dir);
+  if (!raw) return { error: process.platform === 'darwin' ? 'no credentials in keychain' : 'no credentials file — log in with Claude Code' };
   let oa;
   try { const t = JSON.parse(raw.trim()); oa = t.claudeAiOauth || t; } catch { return { error: 'unreadable credentials' }; }
   const token = oa.accessToken;
@@ -128,8 +216,17 @@ function modelBreakdown(daily) {
 
 // scan project dirs: uuid -> short project label, and uuid -> transcript path
 function scanProjects(dirs) {
-  const encHome = homedir().replace(/\//g, '-');
-  const label = (n) => (n.startsWith(encHome) ? n.slice(encHome.length) : n).replace(/^-/, '').replace(/^codebase-/, '') || n;
+  // Claude encodes a project path into a dir name by replacing separators with
+  // '-'. On Windows that includes the drive colon and backslashes
+  // (C:\Users\me -> C--Users-me), so strip all three, not just '/'.
+  const encHome = homedir().replace(/[\\/:]/g, '-');
+  // Windows drive letters vary in case between dir names (C-- vs c--), so match
+  // the home prefix case-insensitively or the same project shows up twice.
+  const label = (n) => {
+    const hit = n.toLowerCase().startsWith(encHome.toLowerCase());
+    const rest = (hit ? n.slice(encHome.length) : n).replace(/^-/, '').replace(/^codebase-/, '');
+    return rest || (hit ? 'home' : n);
+  };
   const project = {}, path = {};
   for (const base of dirs) {
     const root = `${base}/projects`;
@@ -198,25 +295,51 @@ async function rtkGain() {
 
 const z = () => ({ cost: 0, tokens: 0 });
 
+// ccusage prices tokens from an online pricing table, and that fetch fails often
+// enough that a model can silently come back with real tokens and $0 cost —
+// under-reporting the total by ~40% at random between refreshes. Retry while any
+// model is unpriced, and if it never resolves, report which models so the UI can
+// say the number is low instead of quietly lying.
+function unpricedModels(report) {
+  const bad = new Set();
+  for (const e of report?.daily || [])
+    for (const b of e.modelBreakdowns || []) {
+      const tok = (b.inputTokens || 0) + (b.outputTokens || 0) + (b.cacheCreationTokens || 0) + (b.cacheReadTokens || 0);
+      if (tok > 0 && !(b.cost > 0)) bad.add(shortModel(b.modelName));
+    }
+  return [...bad];
+}
+
+async function loadPricedReport(dir, attempts = 4) {
+  let report, unpriced = [];
+  for (let i = 0; i < attempts; i++) {
+    report = await runCcusage(['daily', '--sections', 'daily,session'], dir);
+    unpriced = unpricedModels(report);
+    if (!unpriced.length) return { report, unpriced };
+  }
+  return { report, unpriced };
+}
+
 async function scopeData(scope) {
   try {
-    const [daily, blocks, session] = await Promise.all([
-      runCcusage(['daily'], scope.dir),
-      runCcusage(['blocks', '--active'], scope.dir).catch(() => ({ blocks: [] })),
-      runCcusage(['session'], scope.dir).catch(() => ({ session: [] })),
-    ]);
+    // one load for daily+session (halves the pricing fetches), blocks separately
+    const { report, unpriced } = await loadPricedReport(scope.dir);
+    const blocks = await runCcusage(['blocks', '--active'], scope.dir).catch(() => ({ blocks: [] }));
     const scan = scanProjects(scope.dir.split(','));
-    const sess = session?.session || [];
+    const sess = report?.session || [];
     const avgSession = sess.length ? sess.reduce((a, s) => a + (s.totalCost || 0), 0) / sess.length : 0;
     return {
-      ...scope, ...summarize(daily), cache: cacheStats(daily),
-      models: modelBreakdown(daily), projects: projectBreakdown(session, scan.project),
-      sessions: recentSessions(session, scan), avgSession, sessionCount: sess.length,
-      active: activeBlock(blocks), error: null,
+      ...scope, ...summarize(report), cache: cacheStats(report),
+      models: modelBreakdown(report), projects: projectBreakdown(report, scan.project),
+      sessions: recentSessions(report, scan), avgSession, sessionCount: sess.length,
+      active: activeBlock(blocks), unpriced, error: null,
     };
   } catch (err) {
+    const missing = err.code === 'ENOENT' || /ENOENT|not recognized|command not found/i.test(err.message || '');
     return {
-      ...scope, error: err.message?.slice(0, 200) || 'failed', today: z(), week: z(), month: z(), total: z(),
+      ...scope,
+      error: missing ? 'ccusage not found — run: npm i -g ccusage' : (err.message?.slice(0, 200) || 'failed'),
+      today: z(), week: z(), month: z(), total: z(), unpriced: [],
       trend: [], cache: null, models: [], projects: [], sessions: [], avgSession: 0, sessionCount: 0, active: null,
     };
   }
@@ -243,7 +366,7 @@ async function getUsage() {
 }
 
 function buildInsights(scopes, rtk) {
-  const t = scopes.find((s) => s.id === 'all') || {};
+  const t = scopes.find((s) => s.id === TOTAL_ID) || {};
   const out = [];
   if (t.models?.length) {
     const top = t.models[0], fable = t.models.find((m) => m.model.includes('fable'));
@@ -264,7 +387,7 @@ async function getData() {
   if (cache.data && Date.now() - cache.at < CACHE_TTL_MS) return cache.data;
   if (cache.inflight) return cache.inflight;
   cache.inflight = Promise.all([Promise.all(SCOPES.map(scopeData)), rtkGain()]).then(([scopes, rtk]) => {
-    const data = { generatedAt: new Date().toISOString(), scopes, rtk, insights: buildInsights(scopes, rtk) };
+    const data = { generatedAt: new Date().toISOString(), totalId: TOTAL_ID, scopes, rtk, insights: buildInsights(scopes, rtk) };
     cache = { at: Date.now(), data, inflight: null };
     return data;
   }).catch((e) => { cache.inflight = null; throw e; });
@@ -308,9 +431,13 @@ const server = http.createServer(async (req, res) => {
   res.end(HTML);
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`\n  local-stats → http://localhost:${PORT}`);
-  console.log(`  reads: work (~/.claude-work) · personal (~/.claude-personal)`);
+  const accts = SCOPES.filter((s) => s.id !== 'all');
+  console.log(accts.length
+    ? `  reads: ${accts.map((s) => `${s.label} (${s.dir})`).join(' · ')}`
+    : `  no Claude config dir found — looked for ~/.claude-work, ~/.claude-personal, ~/.claude`);
+  console.log(`  ccusage: ${(await ccusageCmd()).via}`);
   console.log(`  Ctrl-C to stop.\n`);
 });
 
@@ -385,6 +512,8 @@ const HTML = `<!doctype html><html lang="en"><head>
   .lreset { font-size:10.5px; color:#7b828c; margin-top:3px; }
   .lextra { font-size:11px; color:#9aa2ad; padding-top:9px; border-top:1px dashed #262b33; }
   .lnote { font-size:10.5px; color:#6b7280; margin:-4px 2px 0; }
+  .warnnote { font-size:11.5px; color:#e0b24a; background:rgba(224,178,74,.09); border:1px solid rgba(224,178,74,.3);
+              border-radius:9px; padding:7px 11px; margin:9px 0 2px; }
   .refreshbtn { margin-left:auto; background:#1c2027; color:#cfd3da; border:1px solid #2c323b; border-radius:7px; font:inherit; font-size:11px; padding:3px 11px; cursor:pointer; text-transform:none; letter-spacing:0; }
   .refreshbtn:hover { background:#2a2f37; }
   .refreshbtn:disabled { opacity:.6; cursor:default; }
@@ -451,13 +580,26 @@ function planLimitsSection(d){
     + '<div class="accts limits">'+accts.map(s=>limitCard(s, usageData?.usage?.[s.id])).join('')+'</div>';
 }
 
-let lastData=null, selScope='all', trendDays=14, usageData=null, usageLoading=false;
+// selScope starts unset: the first render pins it to whatever the server says is
+// the "everything" scope ('all' on a dual-account machine, the lone account on a
+// single-account one).
+let lastData=null, selScope=null, trendDays=14, usageData=null, usageLoading=false;
+const totalId = () => lastData?.totalId || 'all';
 const getScope = id => lastData.scopes.find(s=>s.id===id) || {};
 function setScope(id){ selScope=id; render(); }
 function setTrend(n){ trendDays=n; render(); }
 
+// ccusage's pricing lookup can come back empty for a model; say so rather than
+// letting a silently-low total read as fact
+function unpricedNote(d){
+  const all=[...new Set(d.scopes.flatMap(s=>s.unpriced||[]))];
+  if(!all.length) return '';
+  return '<div class="warnnote">⚠ ccusage returned no price for '+all.join(', ')
+    +' — the costs below exclude that usage and are lower than reality. Usually transient; hit refresh.</div>';
+}
+
 function kpiStrip(d){
-  const t=getScope('all'), a=t.active, c=t.cache, rtk=d.rtk;
+  const t=getScope(totalId()), a=t.active, c=t.cache, rtk=d.rtk;
   const kpi=(k,v,s)=>\`<div class="kpi"><div class="k">\${k}</div><div class="v">\${v}</div><div class="s">\${s||''}</div></div>\`;
   return '<div class="kpis">'
     + kpi('This month', fmtC0(t.month?.cost), 'today '+fmtC(t.today?.cost))
@@ -516,7 +658,10 @@ function sessionsList(items){
 }
 
 function detailPanel(d){
-  const tog = '<span class="toggle">'+d.scopes.map(s=>\`<button class="\${s.id===selScope?'on':''}" onclick="setScope('\${s.id}')">\${s.label}</button>\`).join('')+'</span>';
+  // one account = nothing to switch between, so the toggle is just noise
+  const tog = d.scopes.length>1
+    ? '<span class="toggle">'+d.scopes.map(s=>\`<button class="\${s.id===selScope?'on':''}" onclick="setScope('\${s.id}')">\${s.label}</button>\`).join('')+'</span>'
+    : '';
   const s=getScope(selScope), ac=s.accent;
   const ttog='<span class="toggle">'+[14,30,90].map(n=>\`<button class="\${n===trendDays?'on':''}" onclick="setTrend(\${n})">\${n}d</button>\`).join('')+'</span>';
   return '<div class="sec-h">🔍 Detail '+tog+'</div><div class="detail">'
@@ -529,12 +674,16 @@ function detailPanel(d){
 
 function render(){
   if(!lastData) return;
+  if(!selScope || !lastData.scopes.some(s=>s.id===selScope)) selScope=totalId();
   document.getElementById('app').innerHTML =
     planLimitsSection(lastData)
     + '<div class="sec-h">💻 Cost &amp; tokens <span class="scopetag local">this laptop only · local Claude Code sessions</span></div>'
-    + '<div class="lnote">Dollar estimates from transcripts on this Mac — does not include the VPS, mobile, or claude.ai.</div>'
+    + '<div class="lnote">Dollar estimates from transcripts on this machine — does not include the VPS, mobile, or claude.ai.</div>'
+    + unpricedNote(lastData)
     + kpiStrip(lastData)
-    + '<div class="sec-h">Accounts</div><div class="accts">'+lastData.scopes.map(acctCard).join('')+'</div>'
+    + (lastData.scopes.length>1
+        ? '<div class="sec-h">Accounts</div><div class="accts">'+lastData.scopes.map(acctCard).join('')+'</div>'
+        : '<div class="sec-h">Account</div><div class="accts">'+lastData.scopes.map(acctCard).join('')+'</div>')
     + insightsPanel(lastData)
     + detailPanel(lastData);
 }

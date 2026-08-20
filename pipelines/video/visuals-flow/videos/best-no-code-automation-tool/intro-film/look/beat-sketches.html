@@ -1,0 +1,379 @@
+<title>Intro Beat Sketches</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;600;800&display=swap">
+<style>
+  :root{
+    --paper:#f6f3ee;
+    --card:#ffffff;
+    --ink:#1b1713;
+    --ink-2:#5d5348;
+    --ink-3:#8b8073;
+    --rule:#e2dbd1;
+    --mark:#b4470d;
+    --mark-soft:#f3e3d6;
+    --kill:#8d1f1f;
+    --kill-soft:#f6e0dd;
+
+    /* film-locked: the actual composition colours, never themed */
+    --film-bg-a:#3a1f08;
+    --film-bg-b:#0a0805;
+    --film-accent:#fb923c;
+    --film-text:#ffffff;
+    --film-dim:#a8a09a;
+
+    --shell:min(1400px,100%);
+    --step:clamp(.82rem,.78rem + .2vw,.95rem);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#141110;--card:#1d1a17;--ink:#f2ece4;--ink-2:#b3a89b;--ink-3:#877c6f;
+      --rule:#2e2924;--mark:#f0873a;--mark-soft:#33241a;--kill:#e08b7f;--kill-soft:#331d1a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#141110;--card:#1d1a17;--ink:#f2ece4;--ink-2:#b3a89b;--ink-3:#877c6f;
+    --rule:#2e2924;--mark:#f0873a;--mark-soft:#33241a;--kill:#e08b7f;--kill-soft:#331d1a;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Archivo','Helvetica Neue',Arial,system-ui,sans-serif;
+    font-size:var(--step);line-height:1.55;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{width:var(--shell);margin:0 auto;padding:clamp(1.75rem,4vw,3.5rem) clamp(1rem,3vw,2rem) 5rem}
+
+  .mast{display:flex;flex-direction:column;gap:1.15rem;padding-bottom:1.5rem;border-bottom:2px solid var(--ink)}
+  .kicker{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--mark);font-weight:500}
+  h1{margin:0;font-size:clamp(2rem,1.3rem + 3.2vw,3.6rem);font-weight:800;letter-spacing:-.035em;line-height:.98;text-wrap:balance}
+  .standfirst{margin:0;max-width:64ch;color:var(--ink-2);font-size:clamp(.95rem,.9rem + .3vw,1.1rem);line-height:1.6}
+  .facts{display:flex;flex-wrap:wrap;gap:.5rem 2.25rem;margin-top:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;color:var(--ink-3)}
+  .facts b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+
+  /* diagnosis strip */
+  .diag{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin:2.25rem 0}
+  .box{padding:1.15rem 1.35rem;border-radius:0 6px 6px 0}
+  .box p{margin:0;max-width:60ch}
+  .box h3{margin:0 0 .45rem;font-size:.74rem;font-family:'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.15em;text-transform:uppercase;font-weight:500}
+  .box.no{background:var(--kill-soft);border-left:3px solid var(--kill)}
+  .box.no h3{color:var(--kill)}
+  .box.yes{background:var(--mark-soft);border-left:3px solid var(--mark)}
+  .box.yes h3{color:var(--mark)}
+  .box ul{margin:.5rem 0 0;padding-left:1.1rem}
+  .box li{margin:.15rem 0}
+
+  h2{margin:2.5rem 0 .35rem;font-size:1.5rem;font-weight:700;letter-spacing:-.02em}
+  .sectnote{margin:0 0 1.75rem;color:var(--ink-2);max-width:66ch}
+
+  .sheet{display:grid;gap:2.5rem 1.75rem;grid-template-columns:repeat(auto-fill,minmax(370px,1fr))}
+  .beat{display:flex;flex-direction:column}
+  .slug{display:flex;align-items:baseline;gap:.7rem;padding-bottom:.5rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .bid{font-size:.9rem;font-weight:600;color:var(--mark);letter-spacing:.04em}
+  .btime,.bdur{font-size:.74rem;color:var(--ink-3)}
+  .bdur{margin-left:auto}
+
+  /* ---- the frame ---- */
+  .frame{
+    position:relative;aspect-ratio:16/9;width:100%;overflow:hidden;
+    border-radius:5px;border:1px solid var(--rule);
+    background:radial-gradient(ellipse at 26% 18%,var(--film-bg-a) 0%,var(--film-bg-b) 62%);
+    font-family:'Inter','Helvetica Neue',Arial,sans-serif;container-type:inline-size;
+  }
+  .hl{position:absolute;left:6.4%;top:9%;font-size:9cqw;font-weight:800;letter-spacing:-.035em;line-height:1;color:var(--film-text);white-space:nowrap}
+  .hl em{font-style:normal;color:var(--film-accent)}
+  .lines{position:absolute;left:6.4%;top:30%;right:36%;display:flex;flex-direction:column;gap:1.6cqw}
+  .ln{font-size:4.4cqw;font-weight:600;letter-spacing:-.015em;line-height:1.15;color:var(--film-text)}
+  .ln.q{color:var(--film-accent)}
+  .ln small{display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:2.1cqw;font-weight:400;letter-spacing:.1em;color:#7d7169;margin-top:.35cqw}
+
+  /* logo row for b02 */
+  .logos{position:absolute;left:6.4%;top:36%;right:36%;display:flex;gap:2.4cqw;align-items:flex-start}
+  .lg{display:flex;flex-direction:column;align-items:center;gap:1cqw}
+  .lg i{display:block;width:8.2cqw;height:8.2cqw;border-radius:1.8cqw}
+  .lg span{font-size:2.3cqw;font-weight:600;color:var(--film-dim);white-space:nowrap}
+
+  .pres{position:absolute;right:-1.5%;bottom:0;width:31%;height:76%;border-radius:3px;
+    background:linear-gradient(168deg,#4a2c14 0%,#25150a 55%,#150c05 100%);
+    display:flex;align-items:flex-end;justify-content:center;padding-bottom:6%}
+  .pres span{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:2.6cqw;letter-spacing:.14em;text-transform:uppercase;color:#8a7767}
+  .pres::before{content:"";position:absolute;top:16%;left:50%;transform:translateX(-50%);width:34%;aspect-ratio:1;border-radius:50%;background:#6b4526;opacity:.55}
+  .pres::after{content:"";position:absolute;top:52%;left:50%;transform:translateX(-50%);width:62%;height:48%;border-radius:44% 44% 0 0;background:#6b4526;opacity:.4}
+
+  /* ---- timing strip ---- */
+  .track{margin-top:.85rem;padding-top:.85rem;border-top:1px solid var(--rule)}
+  .tlab{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.63rem;letter-spacing:.16em;color:var(--ink-3);margin-bottom:.5rem}
+  .bar{position:relative;height:26px;background:var(--mark-soft);border-radius:3px;overflow:hidden}
+  .tick{position:absolute;top:0;bottom:0;width:2px;background:var(--mark)}
+  .tick::after{
+    content:attr(data-w);position:absolute;left:5px;top:50%;transform:translateY(-50%);
+    font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.6rem;white-space:nowrap;color:var(--ink);
+  }
+
+  .cap{padding-top:.85rem;display:flex;flex-direction:column;gap:.6rem}
+  .said{margin:0;font-size:.92rem;line-height:1.5;color:var(--ink)}
+  .said::before,.seen::before{
+    display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.63rem;
+    letter-spacing:.16em;color:var(--ink-3);margin-bottom:.2rem;
+  }
+  .said::before{content:"HEARD"}
+  .seen{margin:0;font-size:.88rem;line-height:1.5;color:var(--ink-2)}
+  .seen::before{content:"SEEN"}
+
+  .tail{margin-top:3.5rem;padding-top:1.5rem;border-top:2px solid var(--ink);display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .tail h3{margin:0 0 .4rem;font-size:.78rem;font-family:'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mark);font-weight:500}
+  .tail p{margin:0;color:var(--ink-2);font-size:.88rem}
+  .tail code{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.82em;background:var(--mark-soft);padding:.1em .35em;border-radius:3px;color:var(--ink)}
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="kicker">visuals-flow · best-no-code-automation-tool · intro film · v2</div>
+    <h1>Intro Beat Sketches</h1>
+    <p class="standfirst">Version&nbsp;2. The pictures are gone. Every beat now shows <em>the words being said</em>, arriving on the word they belong to — so there is nothing left to decode and the screen moves with your voice.</p>
+    <div class="facts">
+      <span>Beats <b>10</b></span>
+      <span>Things to decode <b>0</b></span>
+      <span>Invented objects <b>0</b></span>
+      <span>Generations needed <b>0</b></span>
+    </div>
+  </header>
+
+  <div class="diag">
+    <div class="box no">
+      <h3>Why v1 failed</h3>
+      <p>Every version so far, including yesterday&rsquo;s sketches, was a <strong>metaphor</strong> — a gate, a chain of boxes, a queue, a maze, an engine in cables, a peeled poster. A metaphor has to be worked out, and the viewer gets three seconds. Making a metaphor smaller doesn&rsquo;t help; it is still a metaphor. That is why &ldquo;simplify it&rdquo; kept not landing.</p>
+    </div>
+    <div class="box yes">
+      <h3>The rule from now on</h3>
+      <p>A visual is allowed only if it needs <strong>zero interpretation</strong>. Two things qualify:</p>
+      <ul>
+        <li>The words being spoken, appearing as they are spoken</li>
+        <li>The real thing named — an actual tool logo, an actual screen</li>
+      </ul>
+      <p style="margin-top:.5rem">Nothing else goes on screen without asking you first.</p>
+    </div>
+  </div>
+
+  <h2>The ten frames</h2>
+  <p class="sectnote">Each frame shows its <em>end</em> state, with everything revealed. The orange strip underneath is the timing: where each line arrives inside the beat. Read the HEARD line, then look — there should be no gap between the two.</p>
+
+  <div class="sheet">
+
+    <!-- b01 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b01</span><span class="btime">00:00.0</span><span class="bdur">4.3s</span></div>
+      <div class="frame">
+        <div class="hl">ONE <em>WORKFLOW</em></div>
+        <div class="lines"><div class="ln">Automate workflows</div><div class="ln q">Build AI agents</div></div>
+        <div class="pres"><span>you</span></div>
+      </div>
+      <div class="track"><div class="tlab">REVEAL TIMING</div><div class="bar">
+        <div class="tick" style="left:14%" data-w="automate workflows"></div>
+        <div class="tick" style="left:56%" data-w="AI agents"></div>
+      </div></div>
+      <div class="cap">
+        <p class="said">&ldquo;If you&rsquo;re trying to automate workflows or build AI agents&rdquo;</p>
+        <p class="seen">Those two phrases, one after the other, exactly as he says them.</p>
+      </div>
+    </article>
+
+    <!-- b02 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b02</span><span class="btime">00:04.3</span><span class="bdur">7.9s</span></div>
+      <div class="frame">
+        <div class="hl">FIVE WAYS IN</div>
+        <div class="logos">
+          <div class="lg"><i style="background:#ea4b71"></i><span>n8n</span></div>
+          <div class="lg"><i style="background:#6d00cc"></i><span>Make</span></div>
+          <div class="lg"><i style="background:#ff4f00"></i><span>Zapier</span></div>
+          <div class="lg"><i style="background:#1c9c7c"></i><span>LangChain</span></div>
+          <div class="lg"><i style="background:#3b82f6"></i><span>Flowise</span></div>
+        </div>
+        <div class="pres"><span>you</span></div>
+      </div>
+      <div class="track"><div class="tlab">REVEAL TIMING — one logo per name</div><div class="bar">
+        <div class="tick" style="left:16%" data-w="n8n"></div>
+        <div class="tick" style="left:32%" data-w="Make"></div>
+        <div class="tick" style="left:48%" data-w="Zapier"></div>
+        <div class="tick" style="left:64%" data-w="LangChain"></div>
+        <div class="tick" style="left:80%" data-w="Flowise"></div>
+      </div></div>
+      <div class="cap">
+        <p class="said">&ldquo;and you&rsquo;re stuck between tools like n8n, Make, Zapier, LangChain or Flowise&rdquo;</p>
+        <p class="seen">The five real logos, each appearing the moment its name is said. Coloured squares here stand in for the real marks.</p>
+      </div>
+    </article>
+
+    <!-- b03 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b03</span><span class="btime">00:12.2</span><span class="bdur">3.4s</span></div>
+      <div class="frame">
+        <div class="hl">NO <em>GUESSWORK</em></div>
+        <div class="lines"><div class="ln">Saves you hours</div><div class="ln q">Of trial and error</div></div>
+        <div class="pres"><span>you</span></div>
+      </div>
+      <div class="track"><div class="tlab">REVEAL TIMING</div><div class="bar">
+        <div class="tick" style="left:16%" data-w="saves you hours"></div>
+        <div class="tick" style="left:58%" data-w="trial and error"></div>
+      </div></div>
+      <div class="cap">
+        <p class="said">&ldquo;this video will save you hours of trial and error&rdquo;</p>
+        <p class="seen">The promise, in his own words, in two beats.</p>
+      </div>
+    </article>
+
+    <!-- b04 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b04</span><span class="btime">00:15.7</span><span class="bdur">3.8s</span></div>
+      <div class="frame">
+        <div class="hl">POWER, THEN <em>PAIN</em></div>
+        <div class="lines"><div class="ln">Pretty powerful</div><div class="ln q">Painfully complex</div></div>
+        <div class="pres"><span>you</span></div>
+      </div>
+      <div class="track"><div class="tlab">REVEAL TIMING</div><div class="bar">
+        <div class="tick" style="left:16%" data-w="powerful"></div>
+        <div class="tick" style="left:60%" data-w="painfully complex"></div>
+      </div></div>
+      <div class="cap">
+        <p class="said">&ldquo;Some of these tools are pretty powerful but painfully complex&rdquo;</p>
+        <p class="seen">Two words on screen, the two words he stresses. Nothing to work out.</p>
+      </div>
+    </article>
+
+    <!-- b05 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b05</span><span class="btime">00:19.5</span><span class="bdur">2.9s</span></div>
+      <div class="frame">
+        <div class="hl">EASY, THEN <em>STUCK</em></div>
+        <div class="lines"><div class="ln">Easy to start</div><div class="ln q">Hits a wall fast</div></div>
+        <div class="pres"><span>you</span></div>
+      </div>
+      <div class="track"><div class="tlab">REVEAL TIMING</div><div class="bar">
+        <div class="tick" style="left:15%" data-w="easy"></div>
+        <div class="tick" style="left:55%" data-w="hits a wall fast"></div>
+      </div></div>
+      <div class="cap">
+        <p class="said">&ldquo;Others are easy but hit a wall fast&rdquo;</p>
+        <p class="seen">The two halves of the sentence, in order.</p>
+      </div>
+    </article>
+
+    <!-- b06 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b06</span><span class="btime">00:22.3</span><span class="bdur">6.5s</span></div>
+      <div class="frame">
+        <div class="hl">ACTUALLY <em>FLEXIBLE</em></div>
+        <div class="lines"><div class="ln">Real flexibility</div><div class="ln">No lock-in</div><div class="ln q">No crazy pricing</div></div>
+        <div class="pres"><span>you</span></div>
+      </div>
+      <div class="track"><div class="tlab">REVEAL TIMING</div><div class="bar">
+        <div class="tick" style="left:14%" data-w="real flexibility"></div>
+        <div class="tick" style="left:48%" data-w="no lock-in"></div>
+        <div class="tick" style="left:72%" data-w="no crazy pricing"></div>
+      </div></div>
+      <div class="cap">
+        <p class="said">&ldquo;and a few actually give you real flexibility without locking you into crazy pricing&rdquo;</p>
+        <p class="seen">Three short lines stacking up as he lists them.</p>
+      </div>
+    </article>
+
+    <!-- b07 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b07</span><span class="btime">00:28.8</span><span class="bdur">8.0s</span></div>
+      <div class="frame">
+        <div class="hl">YOUR CALL</div>
+        <div class="lines"><div class="ln">Which tool fits you</div><div class="ln q">Which ones to avoid</div></div>
+        <div class="pres"><span>you</span></div>
+      </div>
+      <div class="track"><div class="tlab">REVEAL TIMING</div><div class="bar">
+        <div class="tick" style="left:17%" data-w="which tool fits you"></div>
+        <div class="tick" style="left:64%" data-w="which to avoid"></div>
+      </div></div>
+      <div class="cap">
+        <p class="said">&ldquo;you will know exactly which tool makes sense for your use case and which ones you should avoid&rdquo;</p>
+        <p class="seen">The two things he promises you&rsquo;ll know, as he promises them.</p>
+      </div>
+    </article>
+
+    <!-- b08 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b08</span><span class="btime">00:36.9</span><span class="bdur">11.1s</span></div>
+      <div class="frame">
+        <div class="hl">FOR BUILDERS</div>
+        <div class="lines" style="top:26%">
+          <div class="ln">Creators</div><div class="ln">Developers</div>
+          <div class="ln">Automation builders</div><div class="ln q">Anyone building AI workflows</div>
+        </div>
+        <div class="pres"><span>you</span></div>
+      </div>
+      <div class="track"><div class="tlab">REVEAL TIMING — one line per group named</div><div class="bar">
+        <div class="tick" style="left:10%" data-w="creators"></div>
+        <div class="tick" style="left:25%" data-w="developers"></div>
+        <div class="tick" style="left:40%" data-w="automation builders"></div>
+        <div class="tick" style="left:60%" data-w="AI workflows"></div>
+      </div></div>
+      <div class="cap">
+        <p class="said">&ldquo;This video is for all you creators, developers, automation builders, and anyone experimenting with AI workflows&rdquo;</p>
+        <p class="seen">The list he reads out, written down as he reads it.</p>
+      </div>
+    </article>
+
+    <!-- b13 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b13</span><span class="btime">01:17.7</span><span class="bdur">4.2s</span></div>
+      <div class="frame">
+        <div class="hl">NO CLAIMS</div>
+        <div class="lines"><div class="ln">Real workflows</div><div class="ln q">Real outputs</div></div>
+        <div class="pres"><span>you</span></div>
+      </div>
+      <div class="track"><div class="tlab">REVEAL TIMING</div><div class="bar">
+        <div class="tick" style="left:20%" data-w="real workflows"></div>
+        <div class="tick" style="left:62%" data-w="real outputs"></div>
+      </div></div>
+      <div class="cap">
+        <p class="said">&ldquo;No marketing claims, just real workflows and real outputs&rdquo;</p>
+        <p class="seen">The two words he repeats, on screen as he repeats them.</p>
+      </div>
+    </article>
+
+    <!-- b14 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b14</span><span class="btime">01:21.9</span><span class="bdur">9.8s</span></div>
+      <div class="frame">
+        <div class="hl">WHAT&rsquo;S COMING</div>
+        <div class="lines">
+          <div class="ln">Overview of all five tools</div>
+          <div class="ln">A live demo</div>
+          <div class="ln q">Same workflow, every tool</div>
+        </div>
+        <div class="pres"><span>you</span></div>
+      </div>
+      <div class="track"><div class="tlab">REVEAL TIMING</div><div class="bar">
+        <div class="tick" style="left:16%" data-w="overview of five tools"></div>
+        <div class="tick" style="left:52%" data-w="live demo"></div>
+        <div class="tick" style="left:76%" data-w="same workflow"></div>
+      </div></div>
+      <div class="cap">
+        <p class="said">&ldquo;a quick overview of all of these five tools, a live demo using the same workflow idea&rdquo;</p>
+        <p class="seen">What&rsquo;s coming, as a plain list. Headline changed from FIVE&nbsp;CROSSINGS — &ldquo;crossings&rdquo; was itself a puzzle word.</p>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="tail">
+    <div>
+      <h3>What this costs</h3>
+      <p>About an hour. No image generation at all — it is type and timing, so there is nothing to render externally and nothing to approve twice.</p>
+    </div>
+    <div>
+      <h3>What gets deleted</h3>
+      <p>The gate, the chain of boxes, the tool tab panel, the queue, the measuring rule. Every invented object leaves the film.</p>
+    </div>
+    <div>
+      <h3>If a line is wrong</h3>
+      <p>Say the beat and the words you want instead. The words are the whole design now, so changing them is a one-line edit.</p>
+    </div>
+  </div>
+
+</div>

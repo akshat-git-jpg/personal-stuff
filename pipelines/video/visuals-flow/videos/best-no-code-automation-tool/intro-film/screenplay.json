@@ -1,0 +1,292 @@
+{
+  "video": "best-no-code-automation-tool",
+  "beats": [
+    {
+      "id": "b01",
+      "intent": "hook",
+      "clause": "If you're trying to automate workflows or build AI agents",
+      "t_start": 0,
+      "t_end": 4.32,
+      "register": "dark",
+      "face": "full",
+      "stage": "Black void, one hard key light. The presenter is full frame, composed left of centre. Behind them and softly out of focus, three matte blocks slide in and lock together into a single horizontal chain — trigger, AI, send — the object this whole video builds five times over. Nothing else on stage.",
+      "carries": null,
+      "transition_out": "cut",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b02",
+      "intent": "hook",
+      "clause": "and you're stick or stuck between tools like n8n, Make, Zapier, LangChain or Flowise",
+      "t_start": 4.32,
+      "t_end": 12.24,
+      "register": "dark",
+      "face": "none",
+      "stage": "The presenter leaves and the stage is the chain's alone: it comes into focus and starts moving left to right. A tall steel gate rises out of the floor directly in its path and stops it. Five real product logos ride the gate's lintel as its toll plates, above the opening the chain has to cross.",
+      "carries": {
+        "from": "b01",
+        "object": "the three-block chain",
+        "as": "now in focus and moving, with a gate in its way"
+      },
+      "transition_out": "push",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b03",
+      "intent": "turn",
+      "clause": "this video will save you hours of trial and error",
+      "t_start": 12.24,
+      "t_end": 15.68,
+      "register": "dark",
+      "face": "none",
+      "stage": "Full frame on the gate plane, chain waiting at it. The gate does not open. Camera holds long enough that the viewer reads the gate, not the chain, as the thing in the way.",
+      "carries": {
+        "from": "b02",
+        "object": "the gate",
+        "as": "now the subject of the frame rather than an obstacle in it"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b04",
+      "intent": "turn",
+      "clause": "Some of these tools are pretty powerful but painfully complex",
+      "t_start": 15.68,
+      "t_end": 19.48,
+      "register": "dark",
+      "face": "none",
+      "stage": "First crossing. The chain passes through the gate and the gate charges it in TIME: a brass clock face is dragged sideways out of the chain, hands spinning down, and extra config panels bolt themselves onto every block on the way through. The chain emerges complete but bristling and slow, dragging its own weight.",
+      "carries": {
+        "from": "b03",
+        "object": "the gate",
+        "as": "taking its first toll"
+      },
+      "transition_out": "crossfade",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b05",
+      "intent": "turn",
+      "clause": "Others are easy but hit a wall fast",
+      "t_start": 19.48,
+      "t_end": 22.34,
+      "register": "dark",
+      "face": "none",
+      "stage": "Second crossing, same gate. This chain is too big for the opening, so the gate shaves two of its three blocks off to make it fit. The single surviving block shoots through fast and clean — then hits a flat wall just past the gate and stops dead. The two severed blocks lie behind on the floor.",
+      "carries": {
+        "from": "b04",
+        "object": "the gate",
+        "as": "taking a different currency — capability instead of hours"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b06",
+      "intent": "turn",
+      "clause": "and a few actually give you real flexibility without locking you into crazy pricing",
+      "t_start": 22.34,
+      "t_end": 28.84,
+      "register": "light",
+      "face": "none",
+      "stage": "The register lifts to light for the first time. A third chain crosses and NOTHING is taken from it — it passes whole, all three blocks intact, and keeps travelling past where the wall stood. The stack of coins beside the gate goes untouched. This is the film's turn: the chains were never the problem.",
+      "carries": {
+        "from": "b05",
+        "object": "the gate",
+        "as": "letting a whole chain through for the first time"
+      },
+      "transition_out": "flash",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b07",
+      "intent": "scope",
+      "clause": "By the end of this video, you will know exactly which tool makes sense for your use case and which ones you should avoid",
+      "t_start": 28.84,
+      "t_end": 36.86,
+      "register": "light",
+      "face": "panel",
+      "stage": "Presenter returns to the right panel. The gate stands at left in the light register, all five logo plates readable at once. The intact chain rests beyond it. The stage is now the film's whole vocabulary in one frame: gate, chain, toll.",
+      "carries": {
+        "from": "b06",
+        "object": "the intact chain",
+        "as": "parked past the gate as the thing being aimed for"
+      },
+      "transition_out": "dock",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b08",
+      "intent": "scope",
+      "clause": "This video is for all you creators, developers, automation builders, and anyone experimenting with AI workflows who wants control without unnecessary complexity",
+      "t_start": 36.86,
+      "t_end": 47.97,
+      "register": "light",
+      "face": "panel",
+      "stage": "Presenter holds the panel. Beside the gate, three faint chains queue up at different distances, waiting their turn — the audience's own workflows lining up to be charged.",
+      "carries": {
+        "from": "b07",
+        "object": "the gate",
+        "as": "with a queue forming at it"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b09",
+      "intent": "mech",
+      "clause": "All five tools here solve automations or AI workflow problems, but they do it in a very different way",
+      "t_start": 47.97,
+      "t_end": 54.7,
+      "register": "dark",
+      "face": "none",
+      "stage": "Register drops back to dark. Five identical chains now sit in the queue, each carrying one platform's surface but exactly the same geometry — same trigger, same AI, same send. The gate is unchanged. Same job, five approaches.",
+      "carries": {
+        "from": "b08",
+        "object": "the queue",
+        "as": "resolved into five distinct, individually skinned chains"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b10",
+      "intent": "mech",
+      "clause": "Some are no code, some are extremely low code, some are developer first, and some are frankly overpriced for what they offer",
+      "t_start": 54.7,
+      "t_end": 62.62,
+      "register": "dark",
+      "face": "none",
+      "stage": "The five queued chains separate along the floor by how much machinery each carries: one bare, one lightly panelled, one half-buried in code slabs. The gate waits at the head of the line, unmoved by any of it.",
+      "carries": {
+        "from": "b09",
+        "object": "the five chains",
+        "as": "spread out by how much weight each one drags"
+      },
+      "transition_out": "crossfade",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b11",
+      "intent": "mech",
+      "clause": "To keep this fair, I'm testing all tools using the same automation use case, the same AI prompt logic, and the same evaluation criteria",
+      "t_start": 62.62,
+      "t_end": 72.24,
+      "register": "light",
+      "face": "none",
+      "stage": "Light register. The five chains snap back to identical: same three blocks, same spacing, same load. One measuring rule drops across all five at once. The gate is the only variable left in the frame.",
+      "carries": {
+        "from": "b10",
+        "object": "the five chains",
+        "as": "reset to identical so only the gate differs"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b12",
+      "intent": "mech",
+      "clause": "including ease of use, flexibility, output quality, and value for money",
+      "t_start": 72.24,
+      "t_end": 77.65,
+      "register": "light",
+      "face": "none",
+      "stage": "Four measuring marks travel down the rule and stop at four fixed positions along it. Each mark is a place where a toll will be counted. The chains stay untouched underneath.",
+      "carries": {
+        "from": "b11",
+        "object": "the measuring rule",
+        "as": "marked into the four things being counted"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b13",
+      "intent": "stakes",
+      "clause": "No marketing claims, just real workflows and real outputs",
+      "t_start": 77.65,
+      "t_end": 81.87,
+      "register": "light",
+      "face": "panel",
+      "stage": "Presenter back in panel. The five logo plates on the gate's face flip over and go blank — the brand claims removed. What is left is the bare steel gate and five real chains waiting to cross it.",
+      "carries": {
+        "from": "b12",
+        "object": "the gate",
+        "as": "stripped of its logo plates"
+      },
+      "transition_out": "flash",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b14",
+      "intent": "tease",
+      "clause": "In this video, again, I'll be covering a quick overview of all of these five tools, a live demo using the same workflow idea",
+      "t_start": 81.87,
+      "t_end": 91.68,
+      "register": "dark",
+      "face": "none",
+      "stage": "Dark register, fast. The five chains cross the gate one after another in quick succession, each crossing costing something different and each leaving a different residue on the floor: coins, a dropped clock, two severed blocks.",
+      "carries": {
+        "from": "b13",
+        "object": "the five chains",
+        "as": "running the gate one after another at speed"
+      },
+      "transition_out": "push",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b15",
+      "intent": "tease",
+      "clause": "a breakdown of ease of use, customization, AI flexibility, and pricing, and finally, my honest verdict on which tools are worth your time and which ones actually fall short",
+      "t_start": 91.68,
+      "t_end": 102.86,
+      "register": "dark",
+      "face": "none",
+      "stage": "The residue left by each crossing sorts itself into four columns on the floor beneath the four marks from the rule — the cost of each chain, counted where it was spent.",
+      "carries": {
+        "from": "b14",
+        "object": "the residue from the crossings",
+        "as": "sorted under the four measuring marks"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b16",
+      "intent": "tease",
+      "clause": "And if you actually want to go ahead and try any of these tools yourself, you will find the relevant links in the description",
+      "t_start": 102.86,
+      "t_end": 109.54,
+      "register": "light",
+      "face": "none",
+      "stage": "Light register. The columns settle and two chains stand clear beyond the gate with nothing taken from them, while three sit behind it, poorer. A single downward pull of the whole stage points below frame without a badge or an arrow drawn on screen.",
+      "carries": {
+        "from": "b15",
+        "object": "the counted columns",
+        "as": "resolved into two intact chains and three charged ones"
+      },
+      "transition_out": "dock",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    },
+    {
+      "id": "b17",
+      "intent": "button",
+      "clause": "Without further ado, let's jump straight in",
+      "t_start": 109.54,
+      "t_end": 113.667,
+      "register": "light",
+      "face": "full",
+      "stage": "The gate's steel panels retract down into the floor and it is gone. The two intact chains hold in warm light in the empty space where it stood. Presenter returns full frame, composed into that space rather than in front of it, and the film hands off to the body on a clean stage.",
+      "carries": {
+        "from": "b16",
+        "object": "the two intact chains",
+        "as": "left standing where the gate used to be"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "Intents repeat rather than running the default arc once. The intro is 113.7s — roughly three times the length the seven-beat arc assumes — and a one-beat-per-intent screenplay would put every beat far past the 12s ceiling. Each intent is therefore carried by two to four beats, in default-arc order throughout: hook, turn, scope, mech, stakes, tease, button."
+    }
+  ],
+  "approved": true,
+  "approved_at": "2026-08-19T10:45:15.921Z"
+}

@@ -14,9 +14,31 @@ test.before(() => {
 
 test('sideModeCueIds: a side span covering one fullframe cue returns that cue id', () => {
   const cues = [{ id: 'c1', placement: 'fullframe', start: 10, duration: 20 }];
-  const spans = [{ id: 's1', mode: 'side', start: 12, end: 25 }];
+  const spans = [{ id: 's1', mode: 'side', start: 10, end: 30 }];
   const ids = sideModeCueIds(cues, spans);
   assert.deepEqual([...ids], ['c1']);
+});
+
+test('sideModeCueIds: a side span that only partly covers its cue throws with both durations', () => {
+  // The card is laid out at side width for its whole duration, so the part the
+  // span does not reach renders as an empty reserved third (owner, 2026-08-20).
+  const cues = [{ id: 'c1', placement: 'fullframe', start: 10, duration: 20 }];
+  for (const spans of [
+    [{ id: 's1', mode: 'side', start: 12, end: 30 }], // starts late
+    [{ id: 's1', mode: 'side', start: 10, end: 25 }], // ends early
+  ]) {
+    assert.throws(() => sideModeCueIds(cues, spans), (err) => {
+      assert.match(err.message, /s1/);
+      assert.match(err.message, /c1/);
+      return true;
+    });
+  }
+});
+
+test('sideModeCueIds: coverage within the 0.05s snapping slack is accepted', () => {
+  const cues = [{ id: 'c1', placement: 'fullframe', start: 10, duration: 20 }];
+  const spans = [{ id: 's1', mode: 'side', start: 10.04, end: 29.96 }];
+  assert.deepEqual([...sideModeCueIds(cues, spans)], ['c1']);
 });
 
 test('sideModeCueIds: a full span contributes nothing', () => {
@@ -56,7 +78,7 @@ test('staged HTML: a side-covered cue stages at data-width="1200"', () => {
   const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'side-covered-'));
   const html = '<div id="root" data-width="1920" data-duration="6"></div>';
   const resolved = [{ id: 'c1', placement: 'fullframe', start: 10, duration: 20 }];
-  const spans = [{ id: 's1', mode: 'side', start: 12, end: 25 }];
+  const spans = [{ id: 's1', mode: 'side', start: 10, end: 30 }];
   
   fs.writeFileSync(path.join(workdir, 'shots.resolved.json'), JSON.stringify({ spans }));
   

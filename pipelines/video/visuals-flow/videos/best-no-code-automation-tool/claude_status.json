@@ -1,0 +1,41 @@
+{
+  "updated": "2026-08-16T17:46:50.070Z",
+  "items": {
+    "intro-b03": {
+      "status": "fixed",
+      "message": "hero -> NO GUESSWORK (owner option A); sub moved 330->268 in two passes — the first was measured against the gate at rest and left only 22px, the audit caught it"
+    },
+    "intro-b06": {
+      "status": "fixed",
+      "message": "coins reshaped to 2.6:1 with a rim and moved into the reserved residue lane; b06 chain travel capped so they never sit on SEND"
+    },
+    "intro-b08": {
+      "status": "fixed",
+      "message": "label column 186px -> 250px, sized against LangChain (the longest label)"
+    },
+    "intro-b09": {
+      "status": "fixed",
+      "message": "label column 186px -> 250px, sized against LangChain (the longest label)"
+    },
+    "intro-b10": {
+      "status": "fixed",
+      "message": "label column 186px -> 250px, sized against LangChain (the longest label)"
+    },
+    "intro-b11": {
+      "status": "fixed",
+      "message": "label column widened; measuring rule moved off the subtitle band; T13 clearance now machine-checked at every beat midpoint"
+    },
+    "intro-b12": {
+      "status": "fixed",
+      "message": "label column 186px -> 250px, sized against LangChain (the longest label)"
+    },
+    "intro-b14": {
+      "status": "fixed",
+      "message": "hourglass redrawn with a pinched waist as SVG and moved to the residue lane; b14 crossing travel capped so it no longer covers SEND"
+    },
+    "intro:0": {
+      "status": "fixed",
+      "message": "intro simplified per owner: shards duplicate removed at b14, logos dropped at b16, scorecard replaced by a plain bullet list, chain named at b08, LangChain slide removed. T18/T19/T20 written to TASTE-INTRO."
+    }
+  }
+}

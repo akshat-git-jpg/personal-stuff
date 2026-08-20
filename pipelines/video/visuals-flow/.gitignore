@@ -51,3 +51,16 @@ videos/*/intro-film/out/
 # anything and both reappear on the next run (gap found 2026-08-07).
 videos/*/.posters/
 videos/*/checks/
+
+# Archived review/film snapshots. The TEXT record inside (REVIEW.md, check.json)
+# is the point of an archive and stays committed; the frames and cuts beside it
+# are the same generated media as review/ and out/, just moved aside — a 36MB
+# intro mp4 and 59 frame PNGs turned up untracked on 2026-08-20 because the
+# archive path matched none of the rules above.
+videos/*/intro-film/archive/**/*.png
+videos/*/intro-film/archive/**/*.jpg
+videos/*/intro-film/archive/*.mp4
+
+# The intro-only VO cut the film previews against — same generated audio as
+# vo.mp3 and intro-vo.mp3 above, just written under the film folder.
+videos/*/intro-film/film/preview-vo.mp3

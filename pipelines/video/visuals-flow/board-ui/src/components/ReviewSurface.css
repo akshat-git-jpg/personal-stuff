@@ -50,7 +50,7 @@
 .rs-transport button {
   background: transparent;
   border: 1px solid var(--line);
-  color: var(--fg);
+  color: var(--text);
   border-radius: 4px;
   padding: 2px 8px;
   cursor: pointer;
@@ -60,9 +60,11 @@
 .rs-transport button:hover { background: var(--hover); }
 
 .rs-transport select {
-  background: transparent;
+  /* Solid, not transparent: this control opens a platform popup and needs a
+     colour of its own on both surfaces. See color-scheme in theme.css. */
+  background: var(--panel);
   border: 1px solid var(--line);
-  color: var(--fg);
+  color: var(--text);
   border-radius: 4px;
   padding: 2px;
 }
@@ -111,6 +113,23 @@
   font-size: 13px;
 }
 
+.rs-stall {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.rs-decode-dead {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--err);
+  border-radius: 6px;
+  color: var(--text);
+  background: rgba(255, 107, 107, 0.12);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .rs-empty {
   padding: 24px;
   text-align: center;
@@ -143,7 +162,7 @@
 
 .rs-comment-jump {
   font-weight: bold;
-  color: var(--fg);
+  color: var(--text);
   text-decoration: none;
 }
 
@@ -179,7 +198,7 @@
   background: transparent;
   border: 1px solid var(--line);
   border-radius: 4px;
-  color: var(--fg);
+  color: var(--text);
   padding: 8px;
   resize: vertical;
 }
@@ -224,7 +243,7 @@
   background: transparent;
   border: 1px solid var(--line);
   border-radius: 4px;
-  color: var(--fg);
+  color: var(--text);
   padding: 4px 8px;
   cursor: pointer;
   font-size: 13px;

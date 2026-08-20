@@ -1,0 +1,49 @@
+{
+  "video": "best-no-code-automation-tool",
+  "thesis": "Every one of these tools charges a toll for automation power — Zapier in money and rigidity, LangChain in engineering hours — and only n8n and Flowise hand you real control without the bill.",
+  "frame": "Building the same three-step workflow five times over is like cooking one recipe in five different kitchens: one is a vending machine that only makes what it already knows, one is raw ingredients and a note telling you to build the stove yourself, and only a couple are real kitchens you can actually work in.",
+  "throughline": {
+    "name": "the-three-node-chain",
+    "description": "The one workflow the video builds in every tool, drawn as a linked chain of blocks: a trigger block, an AI block, and a send block.",
+    "evolution": "It is drawn clean and abstract when the demo scenario is set up, then re-skins into each platform's own look as that tool is visited — n8n's canvas, Flowise's chatflow, Zapier's numbered Zap steps, Make's scenario modules, LangSmith's playground — accumulating the friction each tool adds along the way: extra config panels, a red error toast, a code block where a block used to be. In the scorecard stretch the five chains stack as rows of one table. At the verdict, the n8n and Flowise chains stay whole and lit while the other three dim.",
+    "items": [
+      "n8n",
+      "Flowise",
+      "Zapier",
+      "Make",
+      "LangChain"
+    ]
+  },
+  "registers": [
+    {
+      "from_anchor": "If you're trying to automate",
+      "to_anchor": "and a few actually give",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "real flexibility without locking you",
+      "to_anchor": "First of all, we have",
+      "register": "light"
+    },
+    {
+      "from_anchor": "n8n is a low-code automation",
+      "to_anchor": "The demo scenario is going",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "Zapier on the first hand handles",
+      "to_anchor": "n8n, on the other hand, handles",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "the full workflow cleanly",
+      "to_anchor": "talk about the actual pricing",
+      "register": "light"
+    },
+    {
+      "from_anchor": "move over to the final conclusions",
+      "to_anchor": "Thank you for watching till the",
+      "register": "light"
+    }
+  ]
+}

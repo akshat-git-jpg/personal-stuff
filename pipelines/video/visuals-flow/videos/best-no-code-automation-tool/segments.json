@@ -1,0 +1,52 @@
+{
+  "video": "best-no-code-automation-tool",
+  "confirmed": false,
+  "structure": [
+    {
+      "part": "intro",
+      "start": 0,
+      "end": 113.667
+    },
+    {
+      "part": "body",
+      "start": 113.667,
+      "end": 2040.167
+    },
+    {
+      "part": "conclusion",
+      "start": 2040.167,
+      "end": 2169.2
+    }
+  ],
+  "segments": [
+    {
+      "kind": "narration",
+      "start": 0,
+      "end": 255
+    },
+    {
+      "kind": "demo",
+      "start": 255,
+      "end": 1400,
+      "note": "continuous screen recording of all five builds — verified on frames at 720s (Flowise assistant config), 1040s (Zapier editor) and 1300s (LangSmith playground)"
+    },
+    {
+      "kind": "narration",
+      "start": 1400,
+      "end": 1483.79,
+      "note": "comparison verdicts spoken over an idle n8n canvas — verified at 1450s"
+    },
+    {
+      "kind": "demo",
+      "start": 1483.79,
+      "end": 2036,
+      "note": "pricing pages + on-screen summary scorecard — verified at 1550s, 1850s, 2020s; do NOT cover with a full-screen avatar"
+    },
+    {
+      "kind": "narration",
+      "start": 2036,
+      "end": 2166.69,
+      "note": "final verdicts spoken over an idle LangSmith dashboard"
+    }
+  ]
+}
