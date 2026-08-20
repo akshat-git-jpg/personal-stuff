@@ -185,4 +185,72 @@ describe('repo', () => {
     expect(data.filter(r => r.reps === 5)).toHaveLength(1);
     expect(data.filter(r => r.reps === 10)).toHaveLength(1);
   });
+
+  it('addPlanRow on an empty day returns position: 0; a second call for a different exercise returns position: 1', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, name) VALUES ('C01', 'Chest', 'c1'), ('C02', 'Chest', 'c2');");
+    const r1 = await repo.addPlanRow(env, 1, 'C01');
+    expect(r1.position).toBe(0);
+    const r2 = await repo.addPlanRow(env, 1, 'C02');
+    expect(r2.position).toBe(1);
+  });
+
+  it('addPlanRow is idempotent for the same day and exercise', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, name) VALUES ('C01', 'Chest', 'c1');");
+    const r1 = await repo.addPlanRow(env, 2, 'C01');
+    expect(r1.position).toBe(0);
+    const r2 = await repo.addPlanRow(env, 2, 'C01');
+    expect(r2.position).toBe(0);
+    const rows = await env.DB.prepare("SELECT * FROM plan WHERE day = 2").all();
+    expect(rows.results.length).toBe(1);
+  });
+
+  it('deletePlanRow re-indexes the day so remaining positions are 0..n-2 with order preserved', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, name) VALUES ('C01', 'Chest', 'c1'), ('C02', 'Chest', 'c2'), ('B01', 'Chest', 'b1');");
+    await repo.addPlanRow(env, 3, 'C01');
+    await repo.addPlanRow(env, 3, 'C02');
+    await repo.addPlanRow(env, 3, 'B01');
+    await repo.deletePlanRow(env, 3, 'C02');
+    const rows = await env.DB.prepare("SELECT exercise_id, position FROM plan WHERE day = 3 ORDER BY position").all();
+    expect(rows.results).toEqual([
+      { exercise_id: 'C01', position: 0 },
+      { exercise_id: 'B01', position: 1 }
+    ]);
+  });
+
+  it('reorderPlanDay with a partial id list puts the unmentioned ids last in their previous relative order', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, name) VALUES ('C01', 'Chest', 'c1'), ('C02', 'Chest', 'c2'), ('B01', 'Chest', 'b1');");
+    await repo.addPlanRow(env, 4, 'C01');
+    await repo.addPlanRow(env, 4, 'C02');
+    await repo.addPlanRow(env, 4, 'B01');
+    const res = await repo.reorderPlanDay(env, 4, ['B01']);
+    expect(res).toEqual([
+      { day: 4, exerciseId: 'B01', position: 0 },
+      { day: 4, exerciseId: 'C01', position: 1 },
+      { day: 4, exerciseId: 'C02', position: 2 }
+    ]);
+  });
+
+  it('bootstrap returns plan sorted by day then position, and exercise.gym reflects the gym column', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, name, gym) VALUES ('C01', 'Chest', 'c1', 'main'), ('C02', 'Chest', 'c2', 'main'), ('B01', 'Chest', 'b1', 'main');");
+    await repo.addPlanRow(env, 1, 'C02');
+    await repo.addPlanRow(env, 1, 'C01');
+    await repo.addPlanRow(env, 0, 'B01');
+    const data = await repo.bootstrap(env);
+    expect(data.plan).toEqual([
+      { day: 0, exerciseId: 'B01', position: 0 },
+      { day: 1, exerciseId: 'C02', position: 0 },
+      { day: 1, exerciseId: 'C01', position: 1 }
+    ]);
+    const anuTab = data.exercises['Anu Gym'] || [];
+    const mainEx = data.exercises['Chest']?.find(e => e.id === 'C01');
+    if (mainEx) expect(mainEx.gym).toBe('main');
+  });
+
+  it('Deleting an exercise via deleteExercise removes its plan rows (the ON DELETE CASCADE claim)', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, name) VALUES ('C01', 'Chest', 'c1');");
+    await repo.addPlanRow(env, 5, 'C01');
+    await repo.deleteExercise(env, 'Chest', 'C01');
+    const res = await env.DB.prepare("SELECT COUNT(*) as c FROM plan WHERE exercise_id = 'C01'").first();
+    expect(res.c).toBe(0);
+  });
 });

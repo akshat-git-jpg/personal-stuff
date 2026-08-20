@@ -24,7 +24,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../shared";
 import { accentFor, IconBack, IconGrip, IconPlus, useToast } from "./ui";
 import { useGym } from "./store";
-import { gymBadge, gymOfTab } from "./gym";
+import { gymBadge } from "./gym";
 import { ExercisePicker } from "./ExercisePicker";
 import {
   DAY_LONG,
@@ -122,7 +122,7 @@ function Row({
               {muscle}
             </span>
             {/* Always shown, both gyms — an absent tag reads as "no idea". */}
-            <span className={`tag tag-${gymOfTab(ex.tab)}`}>{gymBadge(gymOfTab(ex.tab))}</span>
+            <span className={`tag tag-${ex.gym}`}>{gymBadge(ex.gym)}</span>
             {editing ? (
               <input
                 className="plan-sr-input num"
