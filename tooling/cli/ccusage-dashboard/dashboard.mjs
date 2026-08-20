@@ -18,6 +18,14 @@ const PORT = process.env.PORT || 4319;
 const CACHE_TTL_MS = 8000;
 const WIN = process.platform === 'win32';
 
+// Minimum ccusage this dashboard can talk to. `loadPricedReport` fetches daily and
+// session in ONE call via `--sections`, which halves the online pricing lookups but
+// only exists from 20.0.20. An older ccusage rejects the flag, every scope errors, and
+// the cards read $0 — which looks like "no usage" rather than "wrong version", so the
+// version is asserted loudly at startup and named in the per-scope error. Bump this
+// only alongside a flag this file actually depends on.
+const MIN_CCUSAGE = '20.0.20';
+
 // ---- Account discovery ------------------------------------------------------
 // The dual-account layout (~/.claude-work + ~/.claude-personal) only exists on a
 // machine that actually runs two Claude logins. A single-account machine has just
@@ -66,6 +74,25 @@ async function npmPrefix() {
     const [file, pre] = WIN ? ['cmd.exe', ['/c', 'npm']] : ['npm', []];
     const { stdout } = await execFileP(file, [...pre, 'prefix', '-g'], { timeout: 15000 });
     return stdout.trim();
+  } catch { return null; }
+}
+
+// numeric, not lexical: '20.0.9' vs '20.0.10' compares wrong as strings.
+const cmpSemver = (a, b) => {
+  const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number);
+  for (let i = 0; i < 3; i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0);
+  return 0;
+};
+
+// Returns the installed version, or null when it can't be determined (missing binary,
+// unparseable output). null means "don't warn" — a real call will surface the problem.
+async function ccusageVersion() {
+  try {
+    const cmd = await ccusageCmd();
+    const { stdout } = await execFileP(cmd.file, [...cmd.pre, '--version'], {
+      env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
+    });
+    return stdout.match(/(\d+\.\d+\.\d+)/)?.[1] || null;
   } catch { return null; }
 }
 
@@ -336,9 +363,14 @@ async function scopeData(scope) {
     };
   } catch (err) {
     const missing = err.code === 'ENOENT' || /ENOENT|not recognized|command not found/i.test(err.message || '');
+    // An old ccusage rejects `--sections` and the raw "Unknown option" text tells the
+    // owner nothing about the fix, so translate it into the command that resolves it.
+    const outdated = /unknown option|unknown argument|unrecognized option|--sections/i.test(err.message || '');
     return {
       ...scope,
-      error: missing ? 'ccusage not found — run: npm i -g ccusage' : (err.message?.slice(0, 200) || 'failed'),
+      error: missing ? 'ccusage not found — run: npm i -g ccusage'
+        : outdated ? `ccusage too old (needs >= ${MIN_CCUSAGE}) — run: npm i -g ccusage@latest`
+        : (err.message?.slice(0, 200) || 'failed'),
       today: z(), week: z(), month: z(), total: z(), unpriced: [],
       trend: [], cache: null, models: [], projects: [], sessions: [], avgSession: 0, sessionCount: 0, active: null,
     };
@@ -437,7 +469,10 @@ server.listen(PORT, async () => {
   console.log(accts.length
     ? `  reads: ${accts.map((s) => `${s.label} (${s.dir})`).join(' · ')}`
     : `  no Claude config dir found — looked for ~/.claude-work, ~/.claude-personal, ~/.claude`);
-  console.log(`  ccusage: ${(await ccusageCmd()).via}`);
+  const ver = await ccusageVersion();
+  console.log(`  ccusage: ${(await ccusageCmd()).via}${ver ? ` (v${ver})` : ''}`);
+  if (ver && cmpSemver(ver, MIN_CCUSAGE) < 0)
+    console.log(`\n  !! ccusage v${ver} is too old — this dashboard needs >= v${MIN_CCUSAGE}.\n     Every card will read $0 until you run:  npm i -g ccusage@latest`);
   console.log(`  Ctrl-C to stop.\n`);
 });
 
