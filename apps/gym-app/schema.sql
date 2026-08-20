@@ -37,3 +37,19 @@ CREATE TABLE IF NOT EXISTS log (
 );
 CREATE INDEX IF NOT EXISTS idx_log_ts ON log(ts DESC);
 CREATE INDEX IF NOT EXISTS idx_log_exercise ON log(exercise_id, ts DESC);
+
+-- Which gym an exercise belongs to. Previously inferred from the tab NAME and
+-- the ID prefix in two different client helpers; now stated by the data.
+ALTER TABLE exercise ADD COLUMN gym TEXT NOT NULL DEFAULT 'main';
+
+-- The week plan. One row per (day, exercise). `day` is Sunday-based to match
+-- JS Date.getDay(); the UI displays Monday first.
+-- No sets/reps column on purpose: the value is shared with the catalogue
+-- (exercise.sets_reps), which is the behaviour the owner approved.
+CREATE TABLE IF NOT EXISTS plan (
+  day         INTEGER NOT NULL CHECK (day BETWEEN 0 AND 6),
+  exercise_id TEXT NOT NULL REFERENCES exercise(id) ON DELETE CASCADE,
+  position    INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, exercise_id)
+);
+CREATE INDEX IF NOT EXISTS idx_plan_day_pos ON plan(day, position);

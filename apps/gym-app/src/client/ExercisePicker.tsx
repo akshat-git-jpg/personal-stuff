@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import { accentFor } from "./ui";
 import { useGym } from "./store";
-import { gymBadge, gymOfTab } from "./gym";
+import { gymBadge } from "./gym";
 import { muscleOf } from "./plan";
 
 export function ExercisePicker({
@@ -61,8 +61,8 @@ export function ExercisePicker({
                     onClick={() => onPick(ex.id)}
                   >
                     <span className="picker-name">{ex.name || "Untitled"}</span>
-                    <span className={`tag tag-${gymOfTab(ex.tab)}`}>
-                      {gymBadge(gymOfTab(ex.tab))}
+                    <span className={`tag tag-${ex.gym}`}>
+                      {gymBadge(ex.gym)}
                     </span>
                     <span className="picker-add num">{added ? "in plan" : "+"}</span>
                   </button>

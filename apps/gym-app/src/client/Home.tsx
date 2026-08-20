@@ -1,21 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { accentFor, IconHistory } from "./ui";
 import { useGym } from "./store";
 import { buildSessions, fmtDuration, todayKey } from "./session";
 import {
   GYMS,
+  specGym,
   gymBadge,
   gymLabel,
-  gymOfId,
-  gymOfTab,
-  mixedMuscles,
+    mixedMuscles,
   tabOfGym,
   type Gym,
   type GroupSpec,
 } from "./gym";
 import { WeekStrip } from "./WeekStrip";
-import { DAY_SHORT, dayIds, seedOnce, todayIdx, usePlan, type DayIdx } from "./plan";
-import { REVIEW_MODE } from "./store";
+import { DAY_SHORT, dayIds, todayIdx, usePlan, type DayIdx } from "./plan";
 
 const DOW = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -32,7 +30,7 @@ export function Home({
   onOpenDay: (day: string, gym: Gym) => void;
   onOpenPlanDay: (day: DayIdx, gym: Gym) => void;
 }) {
-  const { groups, ready, syncing, log, exercisesFor, allExercises, exerciseById, setsTodayFor } =
+  const { groups, ready, syncing, log, exercisesFor, exerciseById, setsTodayFor } =
     useGym();
   const [gym, setGymState] = useState<Gym>(
     () => (localStorage.getItem(GYM_KEY) as Gym) || "main",
@@ -57,7 +55,7 @@ export function Home({
       }));
     }
     return groups
-      .filter((g) => gymOfTab(g.tab) === "main")
+      .filter((g) => specGym({ tab: g.tab, label: g.label }) === "main")
       .map((g) => ({
         spec: { tab: g.tab, label: g.label } as GroupSpec,
         count: g.count,
@@ -67,17 +65,12 @@ export function Home({
 
   // Today's session scoped to this gym.
   const today = useMemo(() => {
-    const scoped = log.filter((l) => gymOfId(l.exerciseId) === gym);
+    const scoped = log.filter((l) => exerciseById(l.exerciseId)?.gym === gym);
     return buildSessions(scoped).find((x) => x.day === todayKey()) ?? null;
   }, [log, gym]);
 
-  // Seed a plausible split the first time there is catalogue data to seed from,
-  // so the week is worth looking at immediately (review prototype only).
-  usePlan();
-  useEffect(() => {
-    if (ready) seedOnce(allExercises);
-  }, [ready, allExercises]);
 
+  usePlan();
   const todayPlanIds = dayIds(todayIdx());
   const plannedToday = useMemo(
     () => todayPlanIds.map((id) => exerciseById(id)).filter((e): e is NonNullable<typeof e> => !!e),
@@ -86,18 +79,14 @@ export function Home({
   const doneCount = plannedToday.filter((ex) => setsTodayFor(ex.id) > 0).length;
   // If the whole day is one gym, say it once in the header instead of tagging
   // every row — the tag is only worth a row's width when a day is mixed.
-  const planGyms = [...new Set(plannedToday.map((ex) => gymOfTab(ex.tab)))];
+  const planGyms = [...new Set(plannedToday.map((ex) => ex.gym))];
   const mixedGyms = planGyms.length > 1;
   // Anything logged today that the plan does not mention.
   const extras = (today?.exercises ?? []).filter((e) => !todayPlanIds.includes(e.exerciseId));
 
   return (
     <div className="screen">
-      {REVIEW_MODE && (
-        <div className="review-banner">
-          REVIEW MODE — local only. Nothing is written to the Google Sheet.
-        </div>
-      )}
+      
       <div className="topbar">
         <div style={{ flex: 1 }}>
           <div className="kicker">
@@ -150,8 +139,8 @@ export function Home({
                   <i className="tickbox">{n > 0 ? "✓" : ""}</i>
                   <span className="plan-tick-name">{ex.name}</span>
                   {mixedGyms && (
-                    <span className={`tag tag-${gymOfTab(ex.tab)}`}>
-                      {gymBadge(gymOfTab(ex.tab))}
+                    <span className={`tag tag-${ex.gym}`}>
+                      {gymBadge(ex.gym)}
                     </span>
                   )}
                   {ex.setsReps && <em className="num">{ex.setsReps}</em>}
@@ -163,8 +152,8 @@ export function Home({
                 <i className="tickbox">+</i>
                 <span className="plan-tick-name">{e.exercise}</span>
                 {mixedGyms && (
-                  <span className={`tag tag-${gymOfId(e.exerciseId)}`}>
-                    {gymBadge(gymOfId(e.exerciseId))}
+                  <span className={`tag tag-${exerciseById(e.exerciseId)?.gym ?? "main"}`}>
+                    {gymBadge(exerciseById(e.exerciseId)?.gym ?? "main")}
                   </span>
                 )}
               </span>

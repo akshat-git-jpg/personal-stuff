@@ -14,7 +14,16 @@ export interface Group {
 }
 
 /** A single exercise row from a muscle-group tab. */
+export type Gym = "main" | "anu" | "home";
+
+export interface PlanRow {
+  day: number;
+  exerciseId: string;
+  position: number;
+}
+
 export interface Exercise {
+  gym: Gym;
   id: string;
   name: string;
   /** Machine setup / positioning notes. */

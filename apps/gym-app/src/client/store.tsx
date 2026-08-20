@@ -9,81 +9,15 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "./api";
-import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, LogPatch } from "../shared";
+import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, LogPatch, PlanRow } from "../shared";
 import { RECENT_LOG_DAYS } from "../shared";
 import { useToast } from "./ui";
-import { HOME_TAB } from "./gym";
+import { publishPlan } from "./plan";
 
-const CACHE_KEY = "gym.cache.v3";
-const OVERRIDE_KEY = "gym.review.overrides";
+const CACHE_KEY = "gym.cache.v4";
 
-/** REVIEW MODE — on in local dev only.
- *
- *  Local dev talks to the LIVE production Google Sheet, so while the week-plan
- *  design is under review every write is kept in the browser instead of being
- *  sent to the sheet. Reads stay live, so the exercise names you see are real.
- *  Edits to Sets/Reps are persisted separately (see below) so they survive a
- *  reload and you can see them reflect in the catalogue; everything else is
- *  session-only. Delete this block when the backend moves to D1. */
-export const REVIEW_MODE = import.meta.env.DEV;
 
-type Overrides = Record<string, Partial<Exercise>>;
 
-/** The sheet has no "Home Gym" tab yet — the third gym lands with the D1
- *  migration. In review mode, stand it up from demo rows so the Home tab is
- *  worth looking at. Delete alongside REVIEW_MODE. */
-const HOME_DEMO: Array<[string, string, string, string]> = [
-  ["HOME01", "Chest", "Push-up", "3 x 15"],
-  ["HOME02", "Chest", "Incline push-up (sofa)", "3 x 12"],
-  ["HOME03", "Chest", "DB floor press", "4 x 10"],
-  ["HOME04", "Shoulders", "Pike push-up", "3 x 8"],
-  ["HOME05", "Back", "Bent-over DB row", "4 x 10"],
-  ["HOME06", "Biceps", "DB curl", "3 x 12"],
-  ["HOME07", "Triceps", "Overhead DB extension", "3 x 12"],
-  ["HOME08", "Legs", "Bodyweight squat", "4 x 20"],
-  ["HOME09", "Legs", "Bulgarian split squat", "3 x 10 each"],
-  ["HOME10", "Core", "Plank", "3 x 60s"],
-];
-
-function withHomeDemo(snapshot: Snapshot): Snapshot {
-  if (!REVIEW_MODE || snapshot.byTab[HOME_TAB]) return snapshot;
-  return {
-    ...snapshot,
-    meta: [...snapshot.meta, { tab: HOME_TAB, label: HOME_TAB, isMixed: true }],
-    byTab: {
-      ...snapshot.byTab,
-      [HOME_TAB]: HOME_DEMO.map(([id, muscleGroup, name, setsReps], order) => ({
-        id,
-        name,
-        muscleGroup,
-        setsReps,
-        setting: "",
-        notes: "",
-        tab: HOME_TAB,
-        order,
-      })),
-    },
-  };
-}
-
-function loadOverrides(): Overrides {
-  try {
-    const raw = localStorage.getItem(OVERRIDE_KEY);
-    return raw ? (JSON.parse(raw) as Overrides) : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveOverride(id: string, patch: Partial<Exercise>): void {
-  const all = loadOverrides();
-  all[id] = { ...all[id], ...patch };
-  try {
-    localStorage.setItem(OVERRIDE_KEY, JSON.stringify(all));
-  } catch {
-    /* quota — ignore */
-  }
-}
 const recentCutoff = () => new Date(Date.now() - RECENT_LOG_DAYS * 86400000).toISOString();
 
 interface Meta {
@@ -92,12 +26,13 @@ interface Meta {
   isMixed: boolean;
 }
 interface Snapshot {
+  plan: PlanRow[];
   meta: Meta[];
   byTab: Record<string, Exercise[]>;
   log: LogEntry[];
 }
 
-const EMPTY: Snapshot = { meta: [], byTab: {}, log: [] };
+const EMPTY: Snapshot = { plan: [], meta: [], byTab: {}, log: [] };
 
 function loadCache(): Snapshot | null {
   try {
@@ -109,6 +44,10 @@ function loadCache(): Snapshot | null {
 }
 
 interface Gym {
+  plan: PlanRow[];
+  addPlanRow: (day: number, exerciseId: string) => void;
+  deletePlanRow: (day: number, exerciseId: string) => void;
+  reorderPlanDay: (day: number, orderedIds: string[]) => void;
   ready: boolean;
   syncing: boolean;
   logComplete: boolean;
@@ -168,11 +107,12 @@ export function GymProvider({ children }: { children: ReactNode }) {
         // Server is authoritative for the recent window; keep any older entries
         // we'd already loaded this session so full history isn't lost on refresh.
         const older = s.log.filter((l) => l.date < data.logCutoff);
-        return withHomeDemo({
+        return {
+          plan: data.plan,
           meta: data.groups.map((g) => ({ tab: g.tab, label: g.label, isMixed: g.isMixed })),
           byTab: data.exercises,
           log: [...data.log, ...older].sort((a, b) => (a.date < b.date ? 1 : -1)),
-        });
+        };
       });
       setReady(true);
     } catch (e) {
@@ -208,17 +148,7 @@ export function GymProvider({ children }: { children: ReactNode }) {
     count: (snap.byTab[m.tab] ?? []).length,
   }));
 
-  const exercisesFor = useCallback(
-    (tab: string) => {
-      const list = snap.byTab[tab] ?? [];
-      if (!REVIEW_MODE) return list;
-      // Re-apply review edits after every bootstrap, which is authoritative
-      // for the sheet and would otherwise wipe them.
-      const ov = loadOverrides();
-      return list.map((e) => (ov[e.id] ? { ...e, ...ov[e.id] } : e));
-    },
-    [snap],
-  );
+  const exercisesFor = useCallback((tab: string) => snap.byTab[tab] ?? [], [snap]);
   const allExercises = useMemo(
     () => snap.meta.flatMap((m) => exercisesFor(m.tab)),
     [snap.meta, exercisesFor],
@@ -239,21 +169,59 @@ export function GymProvider({ children }: { children: ReactNode }) {
   );
 
   // ---- optimistic mutations ----
+  const addToPlan = useCallback(
+    (day: number, exerciseId: string) => {
+      const before = snapRef.current.plan;
+      if (before.some((r) => r.day === day && r.exerciseId === exerciseId)) return;
+      const position = before.filter((r) => r.day === day).length;
+      setSnap((s) => ({ ...s, plan: [...s.plan, { day, exerciseId, position }] }));
+      api.addPlanRow(day, exerciseId).catch((e) => {
+        toast(String((e as Error).message), true);
+        setSnap((s) => ({ ...s, plan: before }));
+      });
+    },
+    [toast],
+  );
+
+  const removeFromPlan = useCallback(
+    (day: number, exerciseId: string) => {
+      const before = snapRef.current.plan;
+      setSnap((s) => ({ ...s, plan: s.plan.filter((r) => !(r.day === day && r.exerciseId === exerciseId)) }));
+      api.deletePlanRow(day, exerciseId).catch((e) => {
+        toast(String((e as Error).message), true);
+        setSnap((s) => ({ ...s, plan: before }));
+      });
+    },
+    [toast],
+  );
+
+  const reorderPlanDay = useCallback(
+    (day: number, orderedIds: string[]) => {
+      const before = snapRef.current.plan;
+      const currentDay = before.filter((r) => r.day === day).sort((a, b) => a.position - b.position);
+      const otherDays = before.filter((r) => r.day !== day);
+      const byId: any = { };
+      for (const r of currentDay) byId[r.exerciseId] = r;
+      const nextDay = orderedIds.map((id, i) => {
+        const r = byId[id];
+        if (!r) return null;
+        return { ...r, position: i };
+      }).filter(Boolean) as PlanRow[];
+      setSnap((s) => ({ ...s, plan: [...otherDays, ...nextDay] }));
+      api.reorderPlanDay(day, orderedIds).catch((e) => {
+        toast(String((e as Error).message), true);
+        setSnap((s) => ({ ...s, plan: before }));
+      });
+    },
+    [toast],
+  );
+
+
 
   const addExercise = useCallback(
     async (tab: string, input: ExerciseInput): Promise<Exercise | null> => {
       try {
-        const created = REVIEW_MODE
-          ? ({
-              ...input,
-              id: `REVIEW${Date.now().toString().slice(-5)}`,
-              setting: input.setting ?? "",
-              setsReps: input.setsReps ?? "",
-              notes: input.notes ?? "",
-              tab,
-              order: (snapRef.current.byTab[tab] ?? []).length,
-            } as Exercise)
-          : await api.addExercise(tab, input);
+        const created = await api.addExercise(tab, input);
         setSnap((s) => ({ ...s, byTab: { ...s.byTab, [tab]: [...(s.byTab[tab] ?? []), created] } }));
         return created;
       } catch (e) {
@@ -274,10 +242,6 @@ export function GymProvider({ children }: { children: ReactNode }) {
           [tab]: (s.byTab[tab] ?? []).map((e) => (e.id === id ? { ...e, ...patch } : e)),
         },
       }));
-      if (REVIEW_MODE) {
-        saveOverride(id, patch as Partial<Exercise>);
-        return;
-      }
       api.updateExercise(tab, id, patch).catch((e) => {
         toast(String((e as Error).message), true);
         setSnap((s) => ({ ...s, byTab: { ...s.byTab, [tab]: before } }));
@@ -294,7 +258,6 @@ export function GymProvider({ children }: { children: ReactNode }) {
         byTab: { ...s.byTab, [tab]: (s.byTab[tab] ?? []).filter((e) => e.id !== id) },
       }));
       try {
-        if (REVIEW_MODE) return;
         await api.deleteExercise(tab, id);
       } catch (e) {
         toast(String((e as Error).message), true);
@@ -310,7 +273,6 @@ export function GymProvider({ children }: { children: ReactNode }) {
       const byId = new Map(before.map((e) => [e.id, e]));
       const next = orderedIds.map((i) => byId.get(i)).filter(Boolean) as Exercise[];
       setSnap((s) => ({ ...s, byTab: { ...s.byTab, [tab]: next } }));
-      if (REVIEW_MODE) return;
       api.reorder(tab, orderedIds).catch((e) => {
         toast(String((e as Error).message), true);
         setSnap((s) => ({ ...s, byTab: { ...s.byTab, [tab]: before } }));
@@ -335,7 +297,6 @@ export function GymProvider({ children }: { children: ReactNode }) {
         notes: input.notes ?? "",
       };
       setSnap((s) => ({ ...s, log: [entry, ...s.log] }));
-      if (REVIEW_MODE) return;
       api.addLog({ ...input, date }).catch((e) => {
         toast(String((e as Error).message), true);
         setSnap((s) => ({ ...s, log: s.log.filter((l) => l !== entry) }));
@@ -351,7 +312,6 @@ export function GymProvider({ children }: { children: ReactNode }) {
         ...s,
         log: s.log.map((l) => (l.date === date ? { ...l, ...patch } : l)),
       }));
-      if (REVIEW_MODE) return;
       api.updateLog(date, patch).catch((e) => {
         toast(String((e as Error).message), true);
         setSnap((s) => ({ ...s, log: before }));
@@ -364,7 +324,6 @@ export function GymProvider({ children }: { children: ReactNode }) {
     (date: string) => {
       const before = snapRef.current.log;
       setSnap((s) => ({ ...s, log: s.log.filter((l) => l.date !== date) }));
-      if (REVIEW_MODE) return;
       api.deleteLog(date).catch((e) => {
         toast(String((e as Error).message), true);
         setSnap((s) => ({ ...s, log: before }));
@@ -373,7 +332,14 @@ export function GymProvider({ children }: { children: ReactNode }) {
     [toast],
   );
 
+  publishPlan(snap.plan, { add: addToPlan, remove: removeFromPlan, reorder: reorderPlanDay });
+
   const value: Gym = {
+    plan: snap.plan,
+    addPlanRow: addToPlan,
+    deletePlanRow: removeFromPlan,
+    reorderPlanDay,
+
     ready,
     syncing,
     logComplete,

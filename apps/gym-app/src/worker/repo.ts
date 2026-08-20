@@ -5,11 +5,11 @@
 // remains the zero-based position inside a tab.
 
 import type { Env } from "./google";
-import type { Exercise, ExerciseInput, Group, LogEntry, LogInput } from "../shared";
+import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, Gym, PlanRow } from "../shared";
 import { RECENT_LOG_DAYS } from "../shared";
 
 /** Tabs that carry a per-row Muscle Group column (one tab, many muscle groups). */
-const MIXED_TABS = new Set(["Anu Gym", "Home Gym"]);
+const MIXED_TABS = new Map<string, Gym>([["Anu Gym", "anu"], ["Home Gym", "home"]]);
 
 function isMixed(tab: string): boolean {
   return MIXED_TABS.has(tab);
@@ -24,6 +24,7 @@ interface ExRow {
   notes: string;
   muscle_group: string | null;
   position: number;
+  gym: Gym;
 }
 
 function toExercise(r: ExRow): Exercise {
@@ -35,6 +36,7 @@ function toExercise(r: ExRow): Exercise {
     notes: r.notes,
     tab: r.tab,
     order: r.position,
+    gym: r.gym,
   };
   // muscleGroup stays undefined for single-group tabs — the client relies on it.
   if (isMixed(r.tab)) ex.muscleGroup = r.muscle_group ?? "";
@@ -66,6 +68,7 @@ const toLogEntry = (r: LogRow): LogEntry => ({
 // ---- Bootstrap -------------------------------------------------------------
 
 export interface Bootstrap {
+  plan: PlanRow[];
   groups: Group[];
   exercises: Record<string, Exercise[]>;
   log: LogEntry[];
@@ -74,10 +77,11 @@ export interface Bootstrap {
 
 export async function bootstrap(env: Env): Promise<Bootstrap> {
   const cutoff = new Date(Date.now() - RECENT_LOG_DAYS * 86400000).toISOString();
-  const [tabs, exs, logs] = await env.DB.batch<any>([
+  const [tabs, exs, logs, planRows] = await env.DB.batch<any>([
     env.DB.prepare("SELECT name, is_mixed FROM tab ORDER BY position, name"),
     env.DB.prepare("SELECT * FROM exercise ORDER BY tab, position"),
     env.DB.prepare("SELECT * FROM log WHERE ts >= ? ORDER BY ts DESC").bind(cutoff),
+    env.DB.prepare("SELECT day, exercise_id, position FROM plan ORDER BY day, position"),
   ]);
 
   const exercises: Record<string, Exercise[]> = {};
@@ -92,6 +96,7 @@ export async function bootstrap(env: Env): Promise<Bootstrap> {
   for (const g of groups) g.count = (exercises[g.tab] ?? []).length;
 
   return {
+    plan: (planRows.results as { day: number; exercise_id: string; position: number }[]).map((r) => ({ day: r.day, exerciseId: r.exercise_id, position: r.position })),
     groups,
     exercises,
     log: (logs.results as LogRow[]).map(toLogEntry),
@@ -148,10 +153,11 @@ export async function addExercise(
     muscleGroup: isMixed(tab) ? input.muscleGroup?.trim() ?? "" : undefined,
     tab,
     order: list.length,
+    gym: MIXED_TABS.get(tab) ?? "main",
   };
   await env.DB.prepare(
-    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position)" +
-      " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
   )
     .bind(
       ex.id,
@@ -162,6 +168,7 @@ export async function addExercise(
       ex.notes,
       ex.muscleGroup ?? null,
       ex.order,
+      ex.gym,
     )
     .run();
   return ex;
@@ -289,4 +296,86 @@ export async function deleteLog(env: Env, date: string): Promise<void> {
   )
     .bind(date)
     .run();
+}
+
+
+// ---- Week plan -------------------------------------------------------------
+
+/** Append an exercise to a day. Idempotent: a day holds an exercise at most
+ *  once, which is the constraint the UI assumes when it greys out a picker row. */
+export async function addPlanRow(env: Env, day: number, exerciseId: string): Promise<PlanRow> {
+  const next = await env.DB.prepare(
+    "SELECT COALESCE(MAX(position) + 1, 0) AS pos FROM plan WHERE day = ?",
+  )
+    .bind(day)
+    .first<{ pos: number }>();
+  const position = next?.pos ?? 0;
+  await env.DB.prepare(
+    "INSERT INTO plan (day, exercise_id, position) VALUES (?, ?, ?)" +
+      " ON CONFLICT (day, exercise_id) DO NOTHING",
+  )
+    .bind(day, exerciseId, position)
+    .run();
+  const row = await env.DB.prepare(
+    "SELECT day, exercise_id, position FROM plan WHERE day = ? AND exercise_id = ?",
+  )
+    .bind(day, exerciseId)
+    .first<{ day: number; exercise_id: string; position: number }>();
+  if (!row) throw new Error(`plan row ${day}/${exerciseId} not found after insert`);
+  return { day: row.day, exerciseId: row.exercise_id, position: row.position };
+}
+
+export async function deletePlanRow(env: Env, day: number, exerciseId: string): Promise<void> {
+  await env.DB.prepare("DELETE FROM plan WHERE day = ? AND exercise_id = ?")
+    .bind(day, exerciseId)
+    .run();
+  await reindexDay(env, day);
+}
+
+/** Reorder one day. Ids not mentioned keep their relative order at the end —
+ *  same contract as reorderExercises. */
+export async function reorderPlanDay(
+  env: Env,
+  day: number,
+  orderedIds: string[],
+): Promise<PlanRow[]> {
+  const { results } = await env.DB.prepare(
+    "SELECT exercise_id FROM plan WHERE day = ? ORDER BY position",
+  )
+    .bind(day)
+    .all<{ exercise_id: string }>();
+  const known = new Set(results.map((r) => r.exercise_id));
+  const next = orderedIds.filter((id) => known.has(id));
+  const seen = new Set(next);
+  for (const r of results) if (!seen.has(r.exercise_id)) next.push(r.exercise_id);
+  if (next.length > 0) {
+    await env.DB.batch(
+      next.map((id, i) =>
+        env.DB.prepare("UPDATE plan SET position = ? WHERE day = ? AND exercise_id = ?").bind(
+          i,
+          day,
+          id,
+        ),
+      ),
+    );
+  }
+  return next.map((exerciseId, position) => ({ day, exerciseId, position }));
+}
+
+async function reindexDay(env: Env, day: number): Promise<void> {
+  const { results } = await env.DB.prepare(
+    "SELECT exercise_id FROM plan WHERE day = ? ORDER BY position",
+  )
+    .bind(day)
+    .all<{ exercise_id: string }>();
+  if (results.length === 0) return;
+  await env.DB.batch(
+    results.map((r, i) =>
+      env.DB.prepare("UPDATE plan SET position = ? WHERE day = ? AND exercise_id = ?").bind(
+        i,
+        day,
+        r.exercise_id,
+      ),
+    ),
+  );
 }
