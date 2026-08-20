@@ -1,4 +1,14 @@
-import Database from 'better-sqlite3';
+// node:sqlite is built into Node, so the test suite needs no native build.
+// better-sqlite3 was used here first and cannot compile against Node 26's V8
+// (GetPrototype / PropertyCallbackInfo::This were removed), with no prebuilt
+// binary available. Both enable foreign keys by default, which test 6 relies on.
+//
+// Loaded through createRequire, not a static import: this vite version's
+// builtin-module list predates node:sqlite, so it rewrites the specifier to a
+// bare "sqlite" and fails to resolve it. A runtime require leaves resolution
+// to Node. Switch back to a plain import once vite/vitest are upgraded.
+import { createRequire } from 'node:module';
+const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite');
 import { readFileSync } from 'fs';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as repo from '../src/worker/repo';
@@ -43,7 +53,7 @@ describe('repo', () => {
   let env: Env;
 
   beforeEach(() => {
-    db = new Database(':memory:');
+    db = new DatabaseSync(':memory:');
     const schema = readFileSync(path.join(__dirname, '../schema.sql'), 'utf8');
     db.exec(schema);
     env = { DB: createD1Fake(db) } as unknown as Env;
