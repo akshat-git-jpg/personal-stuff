@@ -1,22 +1,44 @@
 import type { Exercise } from "../shared";
 
-export type Gym = "main" | "anu";
+export type Gym = "main" | "anu" | "home";
 
 export const ANU_TAB = "Anu Gym";
+export const HOME_TAB = "Home Gym";
+
+/** Tabs that carry their own per-row Muscle Group column, i.e. one tab holding
+ *  every muscle group. The main gym instead uses one tab PER muscle group. */
+export const MIXED_TABS: Record<string, Gym> = { [ANU_TAB]: "anu", [HOME_TAB]: "home" };
 
 export const GYMS: { id: Gym; label: string; short: string }[] = [
-  { id: "main", label: "Main Gym", short: "Main" },
-  { id: "anu", label: "Anu Gym", short: "Anu" },
+  { id: "main", label: "Main", short: "Main" },
+  { id: "anu", label: "Anu", short: "Anu" },
+  { id: "home", label: "Home", short: "Home" },
 ];
 
-export const gymLabel = (g: Gym) => (g === "anu" ? "Anu Gym" : "Main Gym");
+const LABELS: Record<Gym, string> = {
+  main: "Main Gym",
+  anu: "Anu Gym",
+  home: "Home",
+};
+export const gymLabel = (g: Gym) => LABELS[g];
+
+/** Short uppercase badge for a gym — used on plan rows and picker rows. */
+export const gymBadge = (g: Gym) => g.toUpperCase();
+
+/** The tab a mixed gym lives in. Undefined for the main gym, which spans many. */
+export const tabOfGym = (g: Gym): string | undefined =>
+  g === "anu" ? ANU_TAB : g === "home" ? HOME_TAB : undefined;
 
 /** Which gym a tab belongs to. */
-export const gymOfTab = (tab: string): Gym => (tab === ANU_TAB ? "anu" : "main");
+export const gymOfTab = (tab: string): Gym => MIXED_TABS[tab] ?? "main";
 
-/** Which gym a log entry / exercise belongs to, by its ID prefix (ANU* = Anu). */
-export const gymOfId = (id: string): Gym =>
-  id.toUpperCase().startsWith("ANU") ? "anu" : "main";
+/** Which gym a log entry / exercise belongs to, by its ID prefix. */
+export const gymOfId = (id: string): Gym => {
+  const u = id.toUpperCase();
+  if (u.startsWith("ANU")) return "anu";
+  if (u.startsWith("HOME")) return "home";
+  return "main";
+};
 
 /** A tappable group on a gym's home: a real tab (main) or a muscle slice of the
  *  Anu tab (anu). */
@@ -28,10 +50,10 @@ export interface GroupSpec {
 
 export const specGym = (s: GroupSpec): Gym => gymOfTab(s.tab);
 
-/** Distinct muscle groups in the Anu tab, in first-seen order. */
-export function anuMuscles(anu: Exercise[]): string[] {
+/** Distinct muscle groups in a mixed tab, in first-seen order. */
+export function mixedMuscles(list: Exercise[]): string[] {
   const seen: string[] = [];
-  for (const e of anu) {
+  for (const e of list) {
     const m = e.muscleGroup || "Other";
     if (!seen.includes(m)) seen.push(m);
   }

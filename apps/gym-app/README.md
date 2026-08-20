@@ -2,8 +2,8 @@
 
 Mobile-first PWA over the **"Exercises - AppSheet"** Google Sheet. Browse exercises by
 muscle group, edit settings/notes/working-sets inline, drag to reorder, swipe to delete,
-and log sets per session with progression history. The sheet stays the source of truth, so
-the existing AppSheet app keeps working.
+and log sets per session with progression history. The sheet is the source of truth. The
+name is historical — no AppSheet app reads or writes it; this Worker is the only client.
 
 **Live:** https://kushal-gym.agrolloo.com (no auth — single user, obscure URL)
 

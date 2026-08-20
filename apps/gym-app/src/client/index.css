@@ -1079,3 +1079,313 @@ textarea {
   font-weight: 700;
   margin: 22px 2px 10px;
 }
+
+/* ============ Week plan ============ */
+
+/* Local-dev-only reminder that writes stay in the browser. */
+.review-banner {
+  margin: 0 0 12px;
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(255, 90, 31, 0.12);
+  border: 1px solid var(--heat-dim);
+  color: var(--heat);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.section-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.section-sub {
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+/* Seven columns, Monday first. Reads as a pattern, not a list. */
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.week-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 9px 2px 8px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  color: var(--text);
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease;
+}
+.week-col:active {
+  transform: scale(0.95);
+}
+.week-col.today {
+  border-color: var(--lime);
+  background: linear-gradient(170deg, rgba(204, 255, 0, 0.14), var(--surface) 70%);
+}
+.week-col.rest {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--line);
+}
+.week-dow {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--text-faint);
+}
+.week-col.today .week-dow {
+  color: var(--lime);
+}
+.week-n {
+  font-family: "Anton", sans-serif;
+  font-size: 19px;
+  line-height: 1;
+}
+.week-rest {
+  font-size: 10px;
+  color: var(--text-faint);
+  padding: 4px 0 3px;
+}
+.week-dots {
+  display: flex;
+  gap: 3px;
+  height: 5px;
+  align-items: center;
+}
+.week-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.week-dot.more {
+  width: 3px;
+  height: 3px;
+  background: var(--text-faint);
+}
+
+/* Today's planned exercises, ticked off from the workout log. */
+.today-gym {
+  margin-left: 6px;
+  color: var(--text-faint);
+  letter-spacing: 0.16em;
+}
+
+.plan-ticks {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 12px;
+}
+.plan-tick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.plan-tick.done {
+  color: var(--text);
+}
+.plan-tick-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plan-tick em {
+  margin-left: 0;
+  font-style: normal;
+  font-size: 12px;
+  color: var(--text-faint);
+  /* Catalogue Sets/Reps is free text and can be long — keep it to one line so
+     it never pushes the exercise name around. */
+  flex: 0 1 auto;
+  max-width: 42%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+.tickbox {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 6px;
+  border: 1.5px solid var(--line);
+  display: inline-grid;
+  place-items: center;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--bg);
+}
+.plan-tick.done .tickbox {
+  background: var(--lime);
+  border-color: var(--lime);
+}
+.plan-tick.extra .tickbox {
+  border-style: dashed;
+  color: var(--text-faint);
+  background: transparent;
+}
+
+/* Muscle-group / gym tags. --accent is set per tag by the caller. */
+.tag {
+  --accent: var(--text-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 6px;
+  color: var(--accent);
+  border: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+  white-space: nowrap;
+}
+/* Which gym an exercise belongs to. Deliberately NOT colour-coded: muscle
+   groups own the colour, so a coloured gym tag would collide with them (an
+   orange ANU beside an orange TRICEPS reads as one blob). With three gyms the
+   word itself does the work, so all three share one quiet neutral. */
+.tag-main,
+.tag-anu,
+.tag-home {
+  --accent: var(--text-dim);
+}
+.tag-day {
+  --accent: var(--lime);
+}
+.day-muscles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 2px 16px;
+}
+
+.inplan {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 2px 14px;
+}
+.inplan-label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-faint);
+}
+
+/* A day-plan row's second line: tags + the shared Sets/Reps value. */
+.plan-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+}
+.plan-sr {
+  margin-left: auto;
+  /* Catalogue Sets/Reps is long free text — one line, tap to see it all. */
+  max-width: 52%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--elevated);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+}
+.plan-sr.unset {
+  color: var(--text-faint);
+  font-weight: 600;
+  background: transparent;
+  border-style: dashed;
+}
+.plan-sr-input {
+  margin-left: auto;
+  width: 96px;
+  text-align: center;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--lime);
+  border-radius: 7px;
+  padding: 4px 8px;
+}
+
+/* Exercise picker */
+.sheet-tall {
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+}
+.picker {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 6px;
+}
+.picker-h {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 14px 2px 6px;
+}
+.picker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  min-height: 48px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+.picker-row:active {
+  background: var(--elevated);
+}
+.picker-row.added {
+  opacity: 0.45;
+}
+.picker-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.picker-add {
+  flex: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--lime);
+}
+.picker-row.added .picker-add {
+  color: var(--text-faint);
+}

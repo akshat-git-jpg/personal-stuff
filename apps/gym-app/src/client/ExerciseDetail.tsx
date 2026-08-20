@@ -3,6 +3,7 @@ import type { Exercise, LogEntry } from "../shared";
 import { accentFor, IconBack, IconCheck, IconHistory, IconRepeat, useToast } from "./ui";
 import { useGym } from "./store";
 import { LogEditSheet, Stepper } from "./LogEditSheet";
+import { DAY_SHORT, daysFor, usePlan, type DayIdx } from "./plan";
 
 /* ---- auto-saving multiline field ---- */
 function Field({
@@ -87,10 +88,12 @@ export function ExerciseDetail({
   tab,
   id,
   onBack,
+  onOpenPlanDay,
 }: {
   tab: string;
   id: string;
   onBack: () => void;
+  onOpenPlanDay: (day: DayIdx) => void;
 }) {
   const { exercisesFor, logFor, updateExercise, addLog, updateLog, deleteLog, loadFullLog } =
     useGym();
@@ -130,6 +133,8 @@ export function ExerciseDetail({
   if (!ex) return null;
 
   const accent = accentFor(ex.muscleGroup || ex.tab);
+  usePlan(); // re-render if the plan changes while this screen is open
+  const planDays = daysFor(id);
   const todayKey = new Date().toISOString().slice(0, 10);
   const todaySets = log
     .filter((e) => e.date.slice(0, 10) === todayKey)
@@ -160,6 +165,17 @@ export function ExerciseDetail({
           </div>
         </div>
       </div>
+
+      {planDays.length > 0 && (
+        <div className="inplan">
+          <span className="inplan-label">In plan</span>
+          {planDays.map((d) => (
+            <button key={d} className="tag tag-day" onClick={() => onOpenPlanDay(d)}>
+              {DAY_SHORT[d]}
+            </button>
+          ))}
+        </div>
+      )}
 
       <input
         className="detail-name"

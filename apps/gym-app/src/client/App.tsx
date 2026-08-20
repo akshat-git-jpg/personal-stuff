@@ -5,12 +5,19 @@ import { Home } from "./Home";
 import { GroupView } from "./GroupView";
 import { ExerciseDetail } from "./ExerciseDetail";
 import { WorkoutHistory, SessionView } from "./History";
+import { DayPlan } from "./DayPlan";
+import type { DayIdx } from "./plan";
 import type { Gym, GroupSpec } from "./gym";
+
+/** Where an exercise screen returns to — a muscle group, or a day of the week
+ *  plan (both can open the same exercise). */
+type ExerciseBack = { kind: "group"; spec: GroupSpec } | { kind: "day"; day: DayIdx };
 
 type View =
   | { name: "home" }
   | { name: "group"; spec: GroupSpec; gym: Gym }
-  | { name: "exercise"; tab: string; id: string; back: GroupSpec; gym: Gym }
+  | { name: "exercise"; tab: string; id: string; back: ExerciseBack; gym: Gym }
+  | { name: "planday"; day: DayIdx; gym: Gym }
   | { name: "history"; gym: Gym }
   | { name: "session"; day: string; gym: Gym; from: "home" | "history" };
 
@@ -23,7 +30,11 @@ function parentOf(view: View): View | null {
     case "group":
       return { name: "home" };
     case "exercise":
-      return { name: "group", spec: view.back, gym: view.gym };
+      return view.back.kind === "day"
+        ? { name: "planday", day: view.back.day, gym: view.gym }
+        : { name: "group", spec: view.back.spec, gym: view.gym };
+    case "planday":
+      return { name: "home" };
     case "history":
       return { name: "home" };
     case "session":
@@ -220,6 +231,7 @@ function Router() {
             onOpen={(spec, gym) => setView({ name: "group", spec, gym })}
             onOpenHistory={(gym) => setView({ name: "history", gym })}
             onOpenDay={(day, gym) => setView({ name: "session", day, gym, from: "home" })}
+            onOpenPlanDay={(day, gym) => setView({ name: "planday", day, gym })}
           />
         );
       case "group":
@@ -228,7 +240,13 @@ function Router() {
             spec={v.spec}
             onBack={() => setView({ name: "home" })}
             onOpenExercise={(id) =>
-              setView({ name: "exercise", tab: v.spec.tab, id, back: v.spec, gym: v.gym })
+              setView({
+                name: "exercise",
+                tab: v.spec.tab,
+                id,
+                back: { kind: "group", spec: v.spec },
+                gym: v.gym,
+              })
             }
           />
         );
@@ -237,7 +255,24 @@ function Router() {
           <ExerciseDetail
             tab={v.tab}
             id={v.id}
-            onBack={() => setView({ name: "group", spec: v.back, gym: v.gym })}
+            onBack={() => setView(parentOf(v)!)}
+            onOpenPlanDay={(day) => setView({ name: "planday", day, gym: v.gym })}
+          />
+        );
+      case "planday":
+        return (
+          <DayPlan
+            day={v.day}
+            onBack={() => setView({ name: "home" })}
+            onOpenExercise={(ex) =>
+              setView({
+                name: "exercise",
+                tab: ex.tab,
+                id: ex.id,
+                back: { kind: "day", day: v.day },
+                gym: v.gym,
+              })
+            }
           />
         );
       case "history":
