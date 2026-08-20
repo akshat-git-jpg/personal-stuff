@@ -8,7 +8,13 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "deploy": "npm run build && node scripts/patch-routes.mjs && wrangler deploy",
-    "shoot": "node scripts/shoot.mjs"
+    "shoot": "node scripts/shoot.mjs",
+    "test": "vitest run",
+    "db:local": "wrangler d1 execute gym-db --local --file=./schema.sql",
+    "db:remote": "wrangler d1 execute gym-db --remote --file=./schema.sql",
+    "seed:local": "wrangler d1 execute gym-db --local --file=./seed.sql",
+    "seed:remote": "wrangler d1 execute gym-db --remote --file=./seed.sql",
+    "export:sheet": "node scripts/export-sheet-to-sql.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -25,9 +31,11 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "better-sqlite3": "^11.10.0",
     "puppeteer-core": "^25.1.0",
     "typescript": "^5.7.3",
     "vite": "^6.0.7",
+    "vitest": "^2.1.9",
     "wrangler": "^3.99.0"
   }
 }

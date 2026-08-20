@@ -40,6 +40,7 @@ DATABASES = {
     "lists-db": "cab71291-9aa6-4e10-9946-fca15bf860cd",
     "founders-db": "ccd722c2-4911-4337-aaa7-60c1e5cd273b",
     "yt-rankings": "e44e2c68-937c-4915-bf7e-7490213ed3cf",
+    "gym-db": "ceb05b83-8813-4dd2-bd23-e3b37c018e1c",        # gym: exercises + workout log
 }
 
 

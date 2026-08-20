@@ -10,6 +10,10 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   },
+  "triggers": { "crons": ["0 4 * * 1"] },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "gym-db", "database_id": "ceb05b83-8813-4dd2-bd23-e3b37c018e1c" }
+  ],
   "observability": {
     "enabled": true
   }

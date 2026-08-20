@@ -78,10 +78,11 @@ Mobile gym PWA — exercise catalogue by muscle group, inline editing, drag-reor
 ```bash
 cd /Users/kbtg/codebase/personal-stuff/apps/gym-app
 npm install
+npm run db:local && npm run seed:local
 npm run dev             # Vite :5173 — the Cloudflare vite plugin runs the Worker in-process, so ONE port (no separate wrangler)
 ```
 
-Local dev runs in **REVIEW MODE** (`REVIEW_MODE` in `src/client/store.tsx`, on whenever vite is in dev): it READS the live "Exercises - AppSheet" Google Sheet so exercise names are real, but every write stays in the browser — nothing reaches the sheet. An orange banner on Home says so. Sets/Reps edits persist in `localStorage` so they survive a reload; everything else is session-only.
+Local dev runs on local D1.
 
 The **week plan** (This Week strip → day screen) is a review prototype: the plan lives in `localStorage` with a seeded demo split, and no backend exists yet. Wipe it with `localStorage.removeItem("gym.plan.v1")` plus `gym.plan.seeded`.
 
