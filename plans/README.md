@@ -1252,3 +1252,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 208-amul-watch-stock-notifier — PR#167 208-amul-watch-stock-notifier: amul-watch — self-hosted Amul stock notifier — DONE
 - 209-amul-watch-approve-to-cart — PR#168 209-amul-watch-approve-to-cart: amul-watch — approve-to-cart checkout assist — DONE
 - 210-gym-app-sheets-to-d1 — PR#169 210-gym-app-sheets-to-d1: gym-app — move the backend from Google Sheets to Cloudflare D1 — DONE
+- 211-gym-app-week-plan-backend — PR#171 211-gym-app-week-plan-backend: put the week plan on D1 and retire the review scaffolding — DONE
