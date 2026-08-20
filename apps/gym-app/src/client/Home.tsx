@@ -1,8 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { accentFor, IconHistory } from "./ui";
 import { useGym } from "./store";
 import { buildSessions, fmtDuration, todayKey } from "./session";
-import { ANU_TAB, anuMuscles, GYMS, gymOfId, type Gym, type GroupSpec } from "./gym";
+import {
+  GYMS,
+  gymBadge,
+  gymLabel,
+  gymOfId,
+  gymOfTab,
+  mixedMuscles,
+  tabOfGym,
+  type Gym,
+  type GroupSpec,
+} from "./gym";
+import { WeekStrip } from "./WeekStrip";
+import { DAY_SHORT, dayIds, seedOnce, todayIdx, usePlan, type DayIdx } from "./plan";
+import { REVIEW_MODE } from "./store";
 
 const DOW = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -12,12 +25,15 @@ export function Home({
   onOpen,
   onOpenHistory,
   onOpenDay,
+  onOpenPlanDay,
 }: {
   onOpen: (spec: GroupSpec, gym: Gym) => void;
   onOpenHistory: (gym: Gym) => void;
   onOpenDay: (day: string, gym: Gym) => void;
+  onOpenPlanDay: (day: DayIdx, gym: Gym) => void;
 }) {
-  const { groups, ready, syncing, log, exercisesFor } = useGym();
+  const { groups, ready, syncing, log, exercisesFor, allExercises, exerciseById, setsTodayFor } =
+    useGym();
   const [gym, setGymState] = useState<Gym>(
     () => (localStorage.getItem(GYM_KEY) as Gym) || "main",
   );
@@ -31,16 +47,17 @@ export function Home({
 
   // Tiles for the selected gym.
   const tiles = useMemo(() => {
-    if (gym === "anu") {
-      const anu = exercisesFor(ANU_TAB);
-      return anuMuscles(anu).map((m) => ({
-        spec: { tab: ANU_TAB, label: m, muscle: m } as GroupSpec,
-        count: anu.filter((e) => (e.muscleGroup || "Other") === m).length,
+    const mixedTab = tabOfGym(gym);
+    if (mixedTab) {
+      const list = exercisesFor(mixedTab);
+      return mixedMuscles(list).map((m) => ({
+        spec: { tab: mixedTab, label: m, muscle: m } as GroupSpec,
+        count: list.filter((e) => (e.muscleGroup || "Other") === m).length,
         accentKey: m,
       }));
     }
     return groups
-      .filter((g) => g.tab !== ANU_TAB)
+      .filter((g) => gymOfTab(g.tab) === "main")
       .map((g) => ({
         spec: { tab: g.tab, label: g.label } as GroupSpec,
         count: g.count,
@@ -54,8 +71,33 @@ export function Home({
     return buildSessions(scoped).find((x) => x.day === todayKey()) ?? null;
   }, [log, gym]);
 
+  // Seed a plausible split the first time there is catalogue data to seed from,
+  // so the week is worth looking at immediately (review prototype only).
+  usePlan();
+  useEffect(() => {
+    if (ready) seedOnce(allExercises);
+  }, [ready, allExercises]);
+
+  const todayPlanIds = dayIds(todayIdx());
+  const plannedToday = useMemo(
+    () => todayPlanIds.map((id) => exerciseById(id)).filter((e): e is NonNullable<typeof e> => !!e),
+    [todayPlanIds, exerciseById],
+  );
+  const doneCount = plannedToday.filter((ex) => setsTodayFor(ex.id) > 0).length;
+  // If the whole day is one gym, say it once in the header instead of tagging
+  // every row — the tag is only worth a row's width when a day is mixed.
+  const planGyms = [...new Set(plannedToday.map((ex) => gymOfTab(ex.tab)))];
+  const mixedGyms = planGyms.length > 1;
+  // Anything logged today that the plan does not mention.
+  const extras = (today?.exercises ?? []).filter((e) => !todayPlanIds.includes(e.exerciseId));
+
   return (
     <div className="screen">
+      {REVIEW_MODE && (
+        <div className="review-banner">
+          REVIEW MODE — local only. Nothing is written to the Google Sheet.
+        </div>
+      )}
       <div className="topbar">
         <div style={{ flex: 1 }}>
           <div className="kicker">
@@ -86,7 +128,52 @@ export function Home({
 
       {!ready && <div className="spinner" />}
 
-      {ready && today && (
+      {ready && plannedToday.length > 0 && (
+        <button className="today-card" onClick={() => onOpenPlanDay(todayIdx(), gym)}>
+          <div className="today-head">
+            <span className="today-live">
+              <span className="pulse" /> TODAY · {DAY_SHORT[todayIdx()]}
+              {planGyms.length === 1 && (
+                <span className="today-gym">· {gymBadge(planGyms[0])}</span>
+              )}
+            </span>
+            <span className="today-meta num">
+              {doneCount}/{plannedToday.length} done
+              {today ? ` · ${today.setCount} sets · ${fmtDuration(today.durationMin)}` : ""}
+            </span>
+          </div>
+          <div className="plan-ticks">
+            {plannedToday.map((ex) => {
+              const n = setsTodayFor(ex.id);
+              return (
+                <span key={ex.id} className={`plan-tick${n > 0 ? " done" : ""}`}>
+                  <i className="tickbox">{n > 0 ? "✓" : ""}</i>
+                  <span className="plan-tick-name">{ex.name}</span>
+                  {mixedGyms && (
+                    <span className={`tag tag-${gymOfTab(ex.tab)}`}>
+                      {gymBadge(gymOfTab(ex.tab))}
+                    </span>
+                  )}
+                  {ex.setsReps && <em className="num">{ex.setsReps}</em>}
+                </span>
+              );
+            })}
+            {extras.map((e) => (
+              <span key={e.exerciseId} className="plan-tick extra">
+                <i className="tickbox">+</i>
+                <span className="plan-tick-name">{e.exercise}</span>
+                {mixedGyms && (
+                  <span className={`tag tag-${gymOfId(e.exerciseId)}`}>
+                    {gymBadge(gymOfId(e.exerciseId))}
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
+        </button>
+      )}
+
+      {ready && plannedToday.length === 0 && today && (
         <button className="today-card" onClick={() => onOpenDay(today.day, gym)}>
           <div className="today-head">
             <span className="today-live">
@@ -105,6 +192,12 @@ export function Home({
             ))}
           </div>
         </button>
+      )}
+
+      {ready && <WeekStrip onOpenDay={(d) => onOpenPlanDay(d, gym)} />}
+
+      {ready && (
+        <div className="section-h">Muscle groups</div>
       )}
 
       {ready && (
@@ -132,7 +225,9 @@ export function Home({
           {tiles.length === 0 && (
             <div className="empty" style={{ gridColumn: "1 / -1" }}>
               <div className="big">Nothing here yet</div>
-              {gym === "anu" ? "Add an Anu Gym exercise to get started." : "No exercises."}
+              {gym === "main"
+                ? "No exercises."
+                : `Add a ${gymLabel(gym)} exercise to get started.`}
             </div>
           )}
         </div>

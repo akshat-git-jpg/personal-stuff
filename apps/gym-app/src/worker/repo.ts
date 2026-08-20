@@ -11,13 +11,14 @@ import { addTab, getTabs, valuesAppend, valuesBatchGet, valuesClear, valuesGet, 
 import type { Exercise, ExerciseInput, Group, LogEntry, LogInput } from "../shared";
 import { RECENT_LOG_DAYS, WORKOUT_LOG_HEADER, WORKOUT_LOG_TAB } from "../shared";
 
-const MIXED_TAB = "Anu Gym";
+/** Tabs holding every muscle group in one sheet, with a Muscle Group column. */
+const MIXED_TABS = new Set(["Anu Gym", "Home Gym"]);
 
 /** Tabs that are not exercise libraries. */
 const NON_LIBRARY = new Set([WORKOUT_LOG_TAB]);
 
 function isMixed(tab: string): boolean {
-  return tab === MIXED_TAB;
+  return MIXED_TABS.has(tab);
 }
 
 const q = (tab: string) => `'${tab.replace(/'/g, "''")}'`;
@@ -135,7 +136,9 @@ function nextId(tab: string, existing: Exercise[]): string {
     }
   }
   if (!prefix) {
-    prefix = isMixed(tab)
+    prefix = tab === "Home Gym"
+      ? "HOME"
+      : isMixed(tab)
       ? "ANU"
       : tab.replace(/[^A-Za-z]/g, "").slice(0, 1).toUpperCase() || "X";
   }
