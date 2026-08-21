@@ -199,6 +199,9 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
       defaultPipeline={matrixPipeline}
       categoryOptions={categoryOptions}
       subcategoryOptions={subcategoryOptions}
+      names={names}
+      memberRoles={memberRoles}
+      memberships={memberships}
       onCreated={handleCreated}
     />
   );

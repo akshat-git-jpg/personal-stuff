@@ -300,3 +300,10 @@ export async function getCardEvents(row_id: string): Promise<{ events: CardEvent
   const data = await res.json();
   return data as { events: CardEvent[] };
 }
+export async function resolveDefaults(pipeline: string, category: string, subcategory: string) {
+  const params = new URLSearchParams();
+  if (pipeline) params.set("pipeline", pipeline);
+  if (category) params.set("category", category);
+  if (subcategory) params.set("subcategory", subcategory);
+  return (await fetch(`/api/defaults/resolve?${params.toString()}`).then((r) => r.json())) as Record<string, string>;
+}

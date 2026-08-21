@@ -142,3 +142,13 @@ const DEFAULT_CREATE_FIELDS: CreateField[] = [
 export function createFieldsOf(p: PipelineDef): CreateField[] {
   return p.stages[0]?.createFields ?? DEFAULT_CREATE_FIELDS;
 }
+
+/** Columns a video must carry before it may enter anyone's board. The brief
+ *  fields of stage 0, plus one assignee for every stage that has a doer.
+ *  Reviewer columns are deliberately NOT required — blank reviewer means
+ *  "auto-approve on submit", which is a real, supported setup. */
+export function requiredToCreate(p: PipelineDef): string[] {
+  const briefFields = createFieldsOf(p).map((f) => f.col);
+  const doerStages = p.stages.slice(1);
+  return [...briefFields, ...doerStages.map((s) => colOf(s, "assignee"))];
+}
