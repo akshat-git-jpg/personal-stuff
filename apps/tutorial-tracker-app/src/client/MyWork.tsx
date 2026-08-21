@@ -3,7 +3,7 @@ import type { Transition } from "../shared/rbac";
 import { ReviewQueue } from "./ReviewQueue";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { pipeOf, stageByStatusColIn, stageByIdIn, normalizeStatusIn, holderOf, sinceOf, colOf } from "./stages";
+import { pipeOf, stageByStatusColIn, normalizeStatusIn, holderOf, sinceOf } from "./stages";
 import type { StageDef, PipelineDef } from "./stages";
 import { Card } from "./Card";
 import { displayName } from "./api";
@@ -124,18 +124,23 @@ export function MyWork({
     return etaA.localeCompare(etaB);
   });
 
-  // How many actionable cards a doer sees at once. One, so the screen asks for
-  // work instead of reporting status. The rest collapse into a count below.
-  const FOCUS_COUNT = 1;
+  // Everything in needsAction is genuinely this person's turn — none of it is
+  // blocked on anyone else. So none of it is ever hidden. The top job renders as
+  // the full card that carries the action; the rest sit under it as quiet rows.
+  // They used to fold behind a "4 more after this" disclosure, which made the
+  // section header ("5") disagree with the screen ("1") and read as a bug — and
+  // hiding real work does not make the work smaller, it just adds a click.
+  const LEAD_COUNT = 1;
 
-  const focus = needsAction.slice(0, FOCUS_COUNT);
-  const behind = needsAction.slice(FOCUS_COUNT);
+  const focus = needsAction.slice(0, LEAD_COUNT);
+  const behind = needsAction.slice(LEAD_COUNT);
 
   // A person who owns two stages on the same video (e.g. Video Editor AND
-  // Thumbnail Maker) used to see that video twice — once as live work and again,
-  // title-only, under "Up next" — which reads as a duplicate. The later stage is
-  // now folded into the live card as a "then …" line, and "Up next" keeps only
-  // videos that need nothing from this person right now.
+  // Thumbnail Maker) would otherwise see that video twice. The later stage is
+  // folded into the live card as a "then …" line instead. A stage that is ONLY
+  // locked behind someone else's unfinished work is dropped from this screen
+  // altogether — there is nothing the person can do about it, and naming it
+  // invited them to wait on work that had been stalled for weeks.
   const activeRowIds = new Set([...needsAction, ...waitingOnReview].map((i) => i.row.row_id));
   const laterStages = new Map<string, string[]>();
   for (const item of upNext) {
@@ -148,13 +153,10 @@ export function MyWork({
     const labels = laterStages.get(rowId);
     return labels?.length ? `Then yours: ${labels.join(" · ")}` : undefined;
   };
-  const pendingUpNext = upNext.filter((i) => !activeRowIds.has(i.row.row_id));
 
   const isEmpty = queueItems.length === 0 && allItems.length === 0;
 
   const [showDone, setShowDone] = useState(false);
-  const [showBehind, setShowBehind] = useState(false);
-  const [showLaterUpNext, setShowLaterUpNext] = useState(false);
 
   if (isEmpty) {
     return (
@@ -180,12 +182,12 @@ export function MyWork({
         </section>
       )}
 
-      {/* 2. Needs your action */}
+      {/* 2. Your turn */}
       {needsAction.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
             <div className="size-1.5 shrink-0 rounded-full bg-orange-500" />
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-400">Needs your action</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-400">Your turn</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{needsAction.length}</span>
           </div>
           <div className="flex flex-col gap-3">
@@ -209,34 +211,25 @@ export function MyWork({
                 onSaveField={(col, value, prev) => onSaveField(item.row, col, value, prev)}
               />
             ))}
-            {behind.length > 0 && (
-              <>
-                <button type="button" onClick={() => setShowBehind(o => !o)} className="mt-1 flex items-center gap-2 text-left hover:opacity-80">
-                  <span className="text-xs font-medium text-muted-foreground">{behind.length === 1 ? "1 more after this" : `${behind.length} more after this`}</span>
-                  {showBehind ? <ChevronDown className="size-3.5 text-muted-foreground" /> : <ChevronRight className="size-3.5 text-muted-foreground" />}
-                </button>
-                {showBehind && (
-                  <div className="flex flex-col gap-3">
-                    {behind.map((item) => (
-                      <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-[10px] border border-border bg-card p-4 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
-                        <div className="text-[15px] font-semibold leading-snug tracking-tight text-balance">{item.row.video_title || "(no title)"}</div>
-                        <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
-                      </div>
-                    ))}
-                  </div>
+            {behind.map((item) => (
+              <div data-testid="quiet-job" key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-[10px] border border-border bg-card p-4 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                <div className="text-[15px] font-semibold leading-snug tracking-tight text-balance">{item.row.video_title || "(no title)"}</div>
+                <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
+                {item.status === "Need Changes" && (
+                  <div className="text-xs font-medium text-red-700 dark:text-red-300">Sent back for changes</div>
                 )}
-              </>
-            )}
+              </div>
+            ))}
           </div>
         </section>
       )}
 
-      {/* 3. Waiting on review */}
+      {/* 3. Waiting on reviewer */}
       {waitingOnReview.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
             <div className="size-1.5 shrink-0 rounded-full bg-blue-500" />
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">Waiting on review</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">Waiting on reviewer</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{waitingOnReview.length}</span>
           </div>
           <div className="flex flex-col gap-3">
@@ -259,61 +252,7 @@ export function MyWork({
         </section>
       )}
 
-      {/* 4. Up next */}
-      {pendingUpNext.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center gap-2">
-            <div className="size-1.5 shrink-0 rounded-full bg-muted-foreground/40" />
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Up next</h2>
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{pendingUpNext.length}</span>
-          </div>
-          <div className="flex flex-col gap-3">
-            {pendingUpNext.slice(0, 1).map((item) => {
-              const gateStage = item.stage.gate ? stageByIdIn(item.pipeline, item.stage.gate) : undefined;
-              const gateLabel = gateStage?.label ?? "previous stage";
-              const gateStatusCol = gateStage ? colOf(gateStage, "status") : undefined;
-              const gateStatus = gateStage && gateStatusCol ? normalizeStatusIn(gateStage, (item.row as Record<string, unknown>)[gateStatusCol] as string) : undefined;
-              const gateDays = gateStatusCol ? daysSince(sinceOf(item.row as Record<string, unknown>, gateStatusCol)) : null;
-              // "in In Progress for 8d" read as a typo. Say it the way a person would.
-              const waitLabel = gateStatus === "To Do" ? "not started yet"
-                : gateStatus === "In Progress" ? "being worked on"
-                : gateStatus === "In Review" ? "with a reviewer"
-                : gateStatus === "Need Changes" ? "sent back for changes"
-                : gateStatus?.toLowerCase();
-              const waitText = gateStatus
-                ? `opens after ${gateLabel} — ${waitLabel}${gateDays ? `, ${gateDays}d now` : ""}`
-                : `Opens after ${gateLabel} is approved`;
-              return (
-                <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-[10px] border border-dashed border-border bg-muted/30 p-4 text-left transition-all hover:border-foreground/15" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
-                  <div className="text-[15px] font-semibold leading-snug tracking-tight text-balance">{item.row.video_title || "(no title)"}</div>
-                  <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
-                  <div className="text-xs text-muted-foreground">{waitText}</div>
-                </div>
-              );
-            })}
-            {pendingUpNext.length > 1 && (
-              <>
-                <button type="button" onClick={() => setShowLaterUpNext(o => !o)} className="mt-1 flex items-center gap-2 text-left hover:opacity-80">
-                  <span className="text-xs font-medium text-muted-foreground">{pendingUpNext.length - 1 === 1 ? "1 more after this" : `${pendingUpNext.length - 1} more after this`}</span>
-                  {showLaterUpNext ? <ChevronDown className="size-3.5 text-muted-foreground" /> : <ChevronRight className="size-3.5 text-muted-foreground" />}
-                </button>
-                {showLaterUpNext && (
-                  <div className="flex flex-col gap-3">
-                    {pendingUpNext.slice(1).map((item) => (
-                      <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-[10px] border border-dashed border-border bg-muted/30 p-4 text-left transition-all hover:border-foreground/15" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
-                        <div className="text-[15px] font-semibold leading-snug tracking-tight text-balance">{item.row.video_title || "(no title)"}</div>
-                        <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* 5. Done */}
+      {/* 4. Done */}
       {done.length > 0 && (
         <section>
           <button type="button" onClick={() => setShowDone(o => !o)} className="mb-3 flex items-center gap-2 text-left hover:opacity-80">

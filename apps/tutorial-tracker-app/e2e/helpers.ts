@@ -17,17 +17,3 @@ export async function loginAs(page: Page, email: string) {
   await page.waitForURL("**/");
   await page.waitForLoadState("networkidle");
 }
-
-/**
- * Reveal the cards that plan 213 (one-task screen) folded behind the
- * "N more after this" expander. MyWork now renders only FOCUS_COUNT cards in
- * full; the rest are collapsed until asked for. Specs that assert on a specific
- * seeded card must open the fold first, or the card is simply not in the DOM.
- * Safe to call when nothing is collapsed.
- */
-export async function revealFoldedCards(page: Page) {
-  const folds = page.getByRole("button", { name: /more after this/ });
-  const n = await folds.count();
-  for (let i = 0; i < n; i++) await folds.nth(i).click();
-  if (n) await page.waitForTimeout(150);
-}
