@@ -17,7 +17,6 @@ import { useEffect, useState, useMemo } from "react";
 import {
   getTeam, getRoleOptions, saveTeamMember, deleteTeamMember, type TeamMember, type PipelineSummary,
 } from "./api";
-import { PROTECTED_ADMIN_EMAIL } from "../shared/engine/registry";
 import { AssignmentDefaults } from "./AssignmentDefaults";
 import { Lock, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -206,37 +205,43 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
       ) : (
         <div className="flex flex-col gap-2">
           {editing === "__new__" && renderForm(true)}
-          {roster.map((m) =>
-            editing === m.email ? (
+          {roster.map((m) => {
+            const isAdmin = isAdminMember(m);
+            return editing === m.email ? (
               <div key={m.email}>{renderForm(false)}</div>
             ) : (
-              <div key={m.email} className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5">
-                <div className="flex min-w-0 flex-col">
-                  <span className="text-sm font-medium text-foreground">{m.name}</span>
-                  <span className="text-xs text-muted-foreground">{m.email}</span>
+              <div key={m.email} className="flex flex-col gap-2 rounded-[10px] border border-border bg-card p-4 shadow-xs">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[16px] font-semibold leading-snug tracking-tight text-foreground">{m.name}</span>
+                    <span className="text-xs text-muted-foreground">{m.email}</span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isAdmin ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                        <Lock className="size-3" /> System Admin
+                      </span>
+                    ) : (
+                      <>
+                        <Button size="sm" variant="secondary" onClick={() => startEdit(m)} disabled={busy}>Edit</Button>
+                        <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => void removeFromSystem(m)} disabled={busy}>Remove</Button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1">
-                  {rolesIn(m, activeSystem).map((r) => (
-                    <span key={r} className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/80">{r}</span>
-                  ))}
-                  {systemCount(m) > 1 && (
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary" title="Also in other systems">multi-system</span>
-                  )}
-                </div>
-                <div className="ml-auto flex items-center gap-1">
-                  {m.email.toLowerCase() === PROTECTED_ADMIN_EMAIL && (
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground" title="The founding admin's access is fixed">
-                      <Lock className="size-3" /> Founder
-                    </span>
-                  )}
-                  <Button size="sm" variant="ghost" onClick={() => startEdit(m)} disabled={busy}>Edit</Button>
-                  {m.email.toLowerCase() !== PROTECTED_ADMIN_EMAIL && (
-                    <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => void removeFromSystem(m)} disabled={busy}>Remove</Button>
+                <div className="text-sm text-muted-foreground">
+                  {isAdmin ? (
+                    "Has full access across all systems. This membership cannot be edited here."
+                  ) : (
+                    Object.entries(m.memberships ?? {})
+                      .filter(([sys]) => sys !== "*")
+                      .map(([sys, roles]) => `${systemName(sys)}: ${roles.join(", ")}`)
+                      .join(" · ")
                   )}
                 </div>
               </div>
-            ),
-          )}
+            );
+          })}
           {roster.length === 0 && editing !== "__new__" && (
             <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">No one in {systemName(activeSystem)} yet — add someone to grant access.</div>
           )}
