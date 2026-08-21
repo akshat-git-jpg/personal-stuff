@@ -208,6 +208,7 @@ function main() {
   subcategory TEXT NOT NULL DEFAULT '', col TEXT NOT NULL, email TEXT NOT NULL,
   PRIMARY KEY (pipeline_id, category, subcategory, col)
 );`);
+  out.push(`INSERT INTO assignment_defaults (pipeline_id, category, subcategory, col, email) VALUES ('standard', 'Editing', 'Color', 'script_writer_email', 'kushalbakliwal25@gmail.com'), ('standard', 'Editing', 'Color', 'tutorial_maker_email', 'khushibakliwal125@gmail.com'), ('standard', 'Editing', 'Color', 'video_editor_email', 'akshatpatidar17@gmail.com'), ('standard', 'Editing', 'Color', 'thumbnail_maker_email', 'tara@dev.local'), ('standard', 'Editing', 'Color', 'uploader_email', 'uma@dev.local');`);
 
   out.push("DROP TABLE IF EXISTS card_events;");
   out.push(`CREATE TABLE card_events (
