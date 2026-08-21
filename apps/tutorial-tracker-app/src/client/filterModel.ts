@@ -1,18 +1,9 @@
-/**
- * filterModel.ts — the admin filter shape and the pure predicates over it.
- *
- * Split out of Filters.tsx so that file exports only its component (React Fast
- * Refresh needs that), and so PipelineBoard can ask "does this row match?"
- * without importing the bar's UI.
- */
 import type { Row } from "../shared/rbac";
 import { activeStage, daysSince } from "./pipeline";
-import { stagesOf, assigneeColOf, statusOf, statusColOf, sinceOf } from "./stages";
+import { stagesOf, assigneeColOf, statusOf, statusColOf, sinceOf, reviewerColOf, etaColOf } from "./stages";
+import { etaBadge } from "./labels";
 
-/** How long a stage may sit untouched before it counts as needing a nudge. */
-const NUDGE_AFTER_DAYS = { "Need Changes": 2, "In Review": 2, "To Do": 3 } as const;
-
-export type Bucket = "" | "nudge" | "review" | "moving" | "published";
+export type Bucket = "needsyou" | "late" | "idle" | "moving" | "published" | "";
 
 export interface AdminFilters {
   q: string;          // title search
@@ -20,39 +11,60 @@ export interface AdminFilters {
   assignee: string;   // email (lowercase) or ""
   category: string;   // raw category value or ""
   stage: string;      // stage id or ""
+  showPublished: boolean;
 }
 
-export const EMPTY_FILTERS: AdminFilters = { q: "", bucket: "", assignee: "", category: "", stage: "" };
+export const EMPTY_FILTERS: AdminFilters = { q: "", bucket: "", assignee: "", category: "", stage: "", showPublished: false };
 
-export const BUCKETS: { key: Bucket; label: string }[] = [
-  { key: "", label: "Everything" },
-  { key: "nudge", label: "Needs a nudge" },
-  { key: "review", label: "With reviewers" },
-  { key: "moving", label: "Being worked on" },
-  { key: "published", label: "Published" },
+export const BUCKETS: { key: Bucket; label: string; rule: string }[] = [
+  { key: "needsyou", label: "Waiting on you", rule: "Submitted and needs your approval" },
+  { key: "late",     label: "Late",           rule: "Past the date the doer promised" },
+  { key: "idle",     label: "Not moving",     rule: "Nobody has touched it for 3+ days" },
+  { key: "moving",   label: "Moving fine",    rule: "On time and being worked on" },
 ];
 
 /**
  * Which bucket a card falls in. Every card lands in exactly one, so the chip
  * counts always add up to the total — no card can hide from all of them.
  */
-export function bucketOf(row: Row): Exclude<Bucket, ""> {
+export function bucketOf(row: Row, viewerEmail?: string): Exclude<Bucket, ""> {
   const r = row as Record<string, string>;
   const stage = activeStage(r);
   if (!stage) return "published";
+
   const status = statusOf(stage, r);
+  
+  // Rule 1: needsyou
+  const reviewer = reviewerColOf(stage);
+  if (status === "In Review" && reviewer && viewerEmail && (r[reviewer] ?? "").trim().toLowerCase() === viewerEmail.trim().toLowerCase()) {
+    return "needsyou";
+  }
+
+  // Rule 2: late
+  const etaCol = etaColOf(stage);
+  const badge = etaCol && r[etaCol] ? etaBadge(r[etaCol]) : null;
+  if (badge?.tone === "eta-late") {
+    return "late";
+  }
+
+  // Rule 3: idle
   const age = daysSince(sinceOf(r as Record<string, unknown>, statusColOf(stage))) ?? 0;
-  const limit = NUDGE_AFTER_DAYS[status as keyof typeof NUDGE_AFTER_DAYS];
-  if (status === "Need Changes") return age >= limit ? "nudge" : "moving";
-  if (status === "In Review") return age >= limit ? "nudge" : "review";
-  if (status === "To Do" && age >= (limit ?? 3)) return "nudge";
+  if (age >= 3) {
+    return "idle";
+  }
+
+  // Rule 4: moving
   return "moving";
 }
 
-export function rowMatchesFilters(row: Row, filters: AdminFilters): boolean {
+export function rowMatchesFilters(row: Row, filters: AdminFilters, viewerEmail?: string): boolean {
   const r = row as Record<string, string>;
+  const bucket = bucketOf(row, viewerEmail);
+  
+  if (!filters.showPublished && bucket === "published") return false;
+
   if (filters.q && !(r.video_title ?? "").toLowerCase().includes(filters.q.toLowerCase())) return false;
-  if (filters.bucket && bucketOf(row) !== filters.bucket) return false;
+  if (filters.bucket && bucket !== filters.bucket) return false;
   if (filters.stage && (activeStage(r)?.id ?? "done") !== filters.stage) return false;
   if (filters.assignee) {
     const cols = stagesOf(r).map(assigneeColOf);

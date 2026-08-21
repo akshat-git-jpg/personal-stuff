@@ -11,7 +11,6 @@ import { PipelineBoard } from "./PipelineBoard";
 import { TeamPanel } from "./TeamPanel";
 import { NewVideoDialog } from "./NewVideoDialog";
 import { MyWork } from "./MyWork";
-import { AttentionPanel } from "./AttentionPanel";
 import { LinkDriftPanel } from "./LinkDrift";
 import { Filters } from "./Filters";
 import { EMPTY_FILTERS, type AdminFilters } from "./filterModel";
@@ -104,6 +103,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
     setQueueItems(data.items);
   }, [canReview]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void refreshQueue(); }, [refreshQueue, rows]);
 
   // Category/subcategory options come from existing cards AND the assignment
@@ -183,7 +183,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
 
   // ── New-video modal (admin) ──
   const [showNewVideo, setShowNewVideo] = useState(false);
-  const handleCreated = (_pipelineId: string) => {
+  const handleCreated = () => {
     setShowNewVideo(false);
     // jump to the Topic work board for the chosen system (admin owns every Topic) 
     // now we just jump to my-work or pipeline, which we are already doing
@@ -248,7 +248,6 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
       )}
       {activeTab === "pipeline" && (
         <>
-          {isAdmin && !readOnly && <AttentionPanel rows={rows} pipelines={pipelines} names={names} onOpen={(r, sid) => openDetail(r, sid, "all")} />}
           {pipelines.length > 1 && (
             <div className="mb-3 flex items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground">Video type</span>
@@ -264,8 +263,8 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
               </div>
             </div>
           )}
-          <Filters rows={rows} pipeline={getPipeline(matrixPipeline)} names={names} memberRoles={memberRoles} filters={adminFilters} onChange={setAdminFilters} />
-          <PipelineBoard rows={rows} pipeline={getPipeline(matrixPipeline)} names={names} filters={adminFilters}
+          <Filters rows={rows} pipeline={getPipeline(matrixPipeline)} names={names} memberRoles={memberRoles} filters={adminFilters} onChange={setAdminFilters} viewerEmail={viewerEmail} />
+          <PipelineBoard rows={rows} pipeline={getPipeline(matrixPipeline)} names={names} filters={adminFilters} viewerEmail={viewerEmail}
             onOpen={(r) => openDetail(r as BoardRow, activeStage(r as Record<string, string>)?.id, "all")}
             canDelete={isAdmin}
             onDelete={(rowId, title) => void handleDelete(rowId, title)} />
