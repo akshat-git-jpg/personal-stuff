@@ -1288,3 +1288,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 213-tracker-one-task-screen — PR#172 213-tracker-one-task-screen: Tracker — one task on screen, not a list — DONE
 - 214-tracker-control-room — PR#173 214-tracker-control-room: Tracker — one control room, one set of attention rules — DONE
 - 217-tracker-team-and-defaults — PR#176 217-tracker-team-and-defaults: Tracker — bring Team and Assignment defaults up to the new design — DONE
+- 215-tracker-setup-before-list — PR#174 215-tracker-setup-before-list: Tracker — a video is set up before it reaches anyone's list — DONE
