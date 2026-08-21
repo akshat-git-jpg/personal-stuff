@@ -8,7 +8,7 @@ needs: Dispatch AFTER 214 — both edit Board.tsx. Dispatch BEFORE 216, which al
 needs_prs: []
 touches: [apps/tutorial-tracker-app/src/client/NewVideoDialog.tsx, apps/tutorial-tracker-app/src/client/Board.tsx, apps/tutorial-tracker-app/src/worker/index.ts, apps/tutorial-tracker-app/test/setup-gate.test.ts, apps/tutorial-tracker-app/e2e/new-video-setup.spec.ts]
 
-mutation_apply: sed -i '' 's/if (missing.length) return jsonError(400/if (false) return jsonError(400/' apps/tutorial-tracker-app/src/worker/index.ts
+mutation_apply: sed -i '' 's/if (missing.length) return c.json({ error/if (false) return c.json({ error/' apps/tutorial-tracker-app/src/worker/index.ts
 mutation_command: cd apps/tutorial-tracker-app && npm test -- test/setup-gate.test.ts
 mutation_expect: incomplete video was accepted
 mutation_cwd:
@@ -158,7 +158,7 @@ Create `e2e/new-video-setup.spec.ts`:
 ### Step 6: Prove the gate can fail
 
 ```bash
-sed -i '' 's/if (missing.length) return jsonError(400/if (false) return jsonError(400/' apps/tutorial-tracker-app/src/worker/index.ts
+sed -i '' 's/if (missing.length) return c.json({ error/if (false) return c.json({ error/' apps/tutorial-tracker-app/src/worker/index.ts
 cd apps/tutorial-tracker-app && npm test -- test/setup-gate.test.ts   # MUST fail printing "incomplete video was accepted"
 ```
 

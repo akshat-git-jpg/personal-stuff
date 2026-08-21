@@ -44,7 +44,7 @@ import {
   rolesForSystem, WILDCARD_SYSTEM, ADMIN_ROLE,
 } from "../shared/engine/registry";
 import { derive, statusOf } from "../shared/engine/derive";
-import { colOf, stageHasReviewerSlot, createFieldsOf } from "../shared/engine/types";
+import { colOf, stageHasReviewerSlot, createFieldsOf, requiredToCreate } from "../shared/engine/types";
 import { lifecycle } from "../shared/engine/lifecycle";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
@@ -658,6 +658,15 @@ app.post("/api/video", async (c) => {
   // Which system this video runs on (defaults to standard).
   const pipe = getPipeline((body.pipeline ?? DEFAULT_PIPELINE_ID).trim());
 
+  const fieldLabel = (col: string) => {
+    const f = createFieldsOf(pipe).find((x) => x.col === col);
+    if (f) return f.label;
+    for (const s of pipe.stages) if (colOf(s, "assignee") === col) return s.role;
+    return col;
+  };
+  const missing = requiredToCreate(pipe).filter((col) => !String(body[col] ?? "").trim());
+  if (missing.length) return c.json({ error: `Missing: ${missing.map(fieldLabel).join(", ")}` }, 400);
+
   // Validate + collect the creation fields from the shared config (control.ts),
   // so the required set can't drift from the client modal.
   const values: Record<string, string> = {};
@@ -674,8 +683,16 @@ app.post("/api/video", async (c) => {
   const defaults = await resolveDefaults(c.env.TRACKER_DB, pipe.id, values.category ?? "", values.subcategory ?? "");
   const cardCols = new Set(assignableColsFor(pipe));
   const filteredDefaults = Object.fromEntries(Object.entries(defaults).filter(([col]) => cardCols.has(col)));
+  
+  // The client also sends explicitly chosen assignees/reviewers in the body.
+  const explicitAssignees: Record<string, string> = {};
+  for (const col of cardCols) {
+    if (body[col] !== undefined) explicitAssignees[col] = body[col].trim();
+  }
+
   const rowId = await getStore(c.env).appendRow({
     ...filteredDefaults,                          // default assignees/reviewers for the combo
+    ...explicitAssignees,                         // explicit assignees from the create screen
     ...values,                                    // the brief fields (win on any overlap)
     pipeline: pipe.id,                            // stamp the system
     [colOf(firstStage, "status")]: "To Do",       // explicit — never blank
