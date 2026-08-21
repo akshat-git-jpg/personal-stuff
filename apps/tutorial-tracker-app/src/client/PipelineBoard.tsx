@@ -88,9 +88,10 @@ interface PipelineBoardProps {
   onOpen: (row: Row) => void;
   canDelete?: boolean;
   onDelete?: (rowId: string, title: string) => void;
+  viewerEmail?: string;
 }
 
-export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelete, onDelete }: PipelineBoardProps) {
+export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelete, onDelete, viewerEmail }: PipelineBoardProps) {
   const [sort, setSort] = useState<SortState | null>(null);
 
   function toggleSort(col: SortCol) {
@@ -99,7 +100,7 @@ export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelet
       : { col, dir: col === "title" ? "asc" : "desc" });
   }
 
-  const filtered = rows.filter((r) => (r as Record<string, string>).pipeline === pipeline.id && rowMatchesFilters(r, filters));
+  const filtered = rows.filter((r) => (r as Record<string, string>).pipeline === pipeline.id && rowMatchesFilters(r, filters, viewerEmail));
   if (filtered.length === 0) {
     return <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">No videos match these filters.</div>;
   }
@@ -149,7 +150,8 @@ export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelet
           const catLabel = cat && sub ? `${cat} · ${sub}` : cat || sub;
           const { who, note } = whereItIs(row, names);
           const age = ageOf(row);
-          const stuck = bucketOf(row) === "nudge";
+          const bucket = bucketOf(row, viewerEmail);
+          const stuck = bucket === "idle" || bucket === "late" || bucket === "needsyou";
           return (
             <div key={id || title}
               role="button" tabIndex={0} aria-label={`Open ${title || "video"}`}

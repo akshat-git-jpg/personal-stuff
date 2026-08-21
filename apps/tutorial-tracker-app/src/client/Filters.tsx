@@ -26,9 +26,10 @@ interface FiltersProps {
   memberRoles?: Record<string, string>;
   filters: AdminFilters;
   onChange: (f: AdminFilters) => void;
+  viewerEmail?: string;
 }
 
-export function Filters({ rows, pipeline, names, memberRoles = {}, filters, onChange }: FiltersProps) {
+export function Filters({ rows, pipeline, names, memberRoles = {}, filters, onChange, viewerEmail }: FiltersProps) {
   // Scope everything to the selected video type (the board shows one system).
   const pRows = rows.filter((r) => (r as Record<string, string>).pipeline === pipeline.id);
   const assigneeSet = new Map<string, string>();
@@ -46,13 +47,12 @@ export function Filters({ rows, pipeline, names, memberRoles = {}, filters, onCh
 
   const hasPrecise = filters.assignee !== "" || filters.category !== "" || filters.stage !== "";
   const hasFilters = filters.q !== "" || filters.bucket !== "" || hasPrecise;
-  const filteredCount = pRows.filter((r) => rowMatchesFilters(r, filters)).length;
-  const totalCount = pRows.length;
+  const filteredCount = pRows.filter((r) => rowMatchesFilters(r, filters, viewerEmail)).length;
 
   // Chip counts ignore the bucket itself, so they keep showing what you'd get
   // by clicking — not zero for every bucket you are not currently in.
   const bucketCount = (key: Bucket) =>
-    pRows.filter((r) => rowMatchesFilters(r, { ...filters, bucket: key })).length;
+    pRows.filter((r) => rowMatchesFilters(r, { ...filters, bucket: key }, viewerEmail)).length;
 
   // The box keeps its own text so typing stays smooth, and re-syncs during
   // render when the filter is cleared from outside (adjust-on-prop-change).
@@ -70,41 +70,54 @@ export function Filters({ rows, pipeline, names, memberRoles = {}, filters, onCh
   const [showMore, setShowMore] = useState(false);
 
   return (
-    <div className="mb-4 flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="mb-4 flex flex-col gap-4">
+      <h2 className="text-sm font-semibold tracking-tight text-foreground">Needs your attention</h2>
+      
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {BUCKETS.map((b) => {
+          const on = filters.bucket === b.key;
+          return (
+            <button key={b.key} type="button" aria-pressed={on}
+              onClick={() => onChange({ ...filters, bucket: on ? "" : b.key })}
+              className={cn(
+                "group flex flex-col items-start gap-1 rounded-xl border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                on
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-card hover:bg-muted/50"
+              )}>
+              <div className="flex w-full items-center justify-between">
+                <span className={cn("text-xs font-semibold uppercase tracking-wider", on ? "text-background" : "text-muted-foreground group-hover:text-foreground")}>
+                  {b.label}
+                </span>
+                <span className={cn("text-2xl font-bold tabular-nums tracking-tight", on ? "text-background" : "text-foreground")}>
+                  {bucketCount(b.key)}
+                </span>
+              </div>
+              <span className={cn("text-[11.5px] leading-snug", on ? "text-background/80" : "text-muted-foreground")}>
+                {b.rule}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-2">
         <Input id="f-q" type="search" placeholder="Search title…" aria-label="Search title"
           className="h-8 w-[240px] bg-transparent text-xs" value={localQ} onChange={(e) => setLocalQ(e.target.value)} />
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          {BUCKETS.map((b) => {
-            const on = filters.bucket === b.key;
-            return (
-              <button key={b.key || "all"} type="button" aria-pressed={on}
-                onClick={() => onChange({ ...filters, bucket: b.key })}
-                className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors",
-                  on
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-card text-muted-foreground hover:text-foreground",
-                )}>
-                {b.label}
-                <span className={cn("tabular-nums", on ? "text-background/60" : "text-muted-foreground/70")}>
-                  {bucketCount(b.key)}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs tabular-nums text-muted-foreground">{filteredCount} / {totalCount}</span>
+          <Button variant="ghost" size="sm" className={cn("h-8 gap-1.5", filters.showPublished && "text-foreground")}
+            type="button" aria-pressed={filters.showPublished} onClick={() => onChange({ ...filters, showPublished: !filters.showPublished })}>
+            {filters.showPublished ? "Hide published" : "Show published"}
+          </Button>
+          <span className="text-xs tabular-nums text-muted-foreground" data-testid="row-count">{filteredCount} shown</span>
           <Button variant="ghost" size="sm" className={cn("h-8 gap-1.5", hasPrecise && "text-foreground")}
             type="button" aria-expanded={showMore} onClick={() => setShowMore((o) => !o)}>
             <SlidersHorizontal className="size-3.5" /> More filters
           </Button>
           {hasFilters && (
             <Button variant="ghost" size="sm" className="h-8" type="button"
-              onClick={() => { onChange(EMPTY_FILTERS); setLocalQ(""); }}>Clear</Button>
+              onClick={() => { onChange({ ...EMPTY_FILTERS, showPublished: filters.showPublished }); setLocalQ(""); }}>Clear</Button>
           )}
         </div>
       </div>
