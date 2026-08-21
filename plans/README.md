@@ -1263,10 +1263,20 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
   `span.n[0]`, and since `sweepFindings` keys by selector, distinct elements collapsed into one enormous union and reported a
   phantom traveller. Both are pinned by regression tests. Also added, from the prior in-composition audit: ink measurement for text
   (a Range clamped to the element box) and the text-block-vs-device distinction, without which a film's own type rhythm reads as 24 defects.
-  **NOT CALIBRATED — owner decision needed before this gate is trustworthy.** On `consistent-ai-influencer`, a film the owner already
-  approved, it reports 68 DISTINCT errors (178 raw over 36 beat samples). Per the plan's STOP condition nothing was tuned:
-  `MIN_CLEARANCE_PX` is still 40. The cause is SCOPE, not threshold — the plan measures EVERY visible element, so it compares SVG
-  internals against their own labels (`#m2 > svg[0] > path[0]` vs `#m2 > div.wm[1]`) and a full-frame `#sweep` transition against
-  everything it crosses. The audit this replaces avoided that with an explicit device allow-list; the plan deliberately chose
-  whole-tree measurement instead, and that is the choice that needs revisiting. Consequence until then: `run.sh <slug> intro-review`
-  exits non-zero on existing films. — LANDED, CALIBRATION PENDING
+  CALIBRATED on the owner's call (2026-08-20). First run reported 68 distinct errors on `consistent-ai-influencer`, a film already
+  approved — the cause was SCOPE, not the threshold, so `MIN_CLEARANCE_PX` stayed 40 and the fix narrowed what counts as a device.
+  Five exclusions, each justified and each pinned by a test in both directions (suppresses its own case, does NOT suppress a real
+  device): inside an `<svg>` (paths are strokes of one drawing); two parts of one UNIT, keyed on the nearest id-bearing ancestor
+  (an icon and its caption — this replaces the per-film device list the old audit hand-wrote, by reading objects off the ids the
+  author already gave them); near-full-frame backdrops; blurred elements and gradients fading to `transparent` (a wash has no edge,
+  and the ambient glow and legibility scrim exist SO THAT text can sit on them — these two were the entire error list on
+  best-no-code-automation-tool); and anything a TRAVELLER is involved in is demoted to a warning, which T14 already accepts.
+  The one thing not derivable from the page is authorial intent, so a film may declare deliberate pairs in
+  `<filmDir>/clearance.json` — exactly one entry exists, `#rule|#rlabs`, carried over with its original reason.
+  Result at full beat sampling: `best-no-code-automation-tool` 0 errors over 51 samples; `consistent-ai-influencer` **1 distinct
+  error** over 36 samples — `#avatar` (the presenter video) 31px from `#u1`, the subtitle "the one thing that breaks", against a
+  40px minimum. That one is NOT suppressed, because it is exactly the shape T13 describes and the old audit deliberately treated the
+  docked avatar as a device for this reason ("he is the thing most likely to be collided with"). So the gate's first act is to find a
+  real clearance defect on a film that shipped before the rule was machine-enforced — which is the outcome that says the narrowing
+  removed noise rather than sight. Note it appears only under dense sampling: a 3-sample sweep of the same film reports 0, so trust
+  `intro-review`'s beat sampling and not a quick `--film` spot check. Mutation gate still fires on the fixture. 43 tests green. — DONE

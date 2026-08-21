@@ -295,6 +295,27 @@ the two are meant to stay identical. Text is measured by its INK (a Range over
 the text node, clamped to the element box), because a 1600px nowrap block holding
 800px of glyphs would otherwise report a gap that is not the one the eye reads.
 
+**What counts as a device** is the other half of this rule, and getting it wrong
+costs the gate its value in either direction. Measuring the whole element tree
+reported 68 errors on a film already approved; the following are excluded on
+principle, not to reach quiet:
+
+- **Inside an `<svg>`** — paths and circles are strokes of one drawing.
+- **Two parts of one unit** (same nearest id-bearing ancestor) — an icon and its
+  caption, a logo and its wordmark. This replaces the per-film device list the
+  old audit hand-wrote, by reading objects off the ids the author already gave them.
+- **Near-full-frame elements** — a backdrop; everything sits on it.
+- **Blurred elements, and gradients that fade to `transparent`** — a wash has no
+  readable edge, and a clearance is a gap between two edges. The ambient glow and
+  the legibility scrim exist *so that* text can sit on them.
+- **Anything a TRAVELLER is involved in is demoted to a warning** — a wipe crosses
+  what is on its path by design, which T14 already accepts.
+
+A film may declare genuinely deliberate pairs in `<filmDir>/clearance.json`
+(`{"allowedPairs": ["#rule|#rlabs"]}`). Keep it short and give each entry a
+reason: `#rule|#rlabs` is there because the measuring labels are the rule's own
+annotation and read as one object — the same single exception the old audit held.
+
 Until 2026-08-20 this was enforced by an audit hand-copied into individual film
 compositions, which is why it protected `consistent-ai-influencer` and did not
 protect `best-no-code-automation-tool`. Before that it was

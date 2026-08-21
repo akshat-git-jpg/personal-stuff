@@ -1,0 +1,9 @@
+{
+  "_why": "Pairs that are deliberate in THIS film. Every entry needs a reason. Widening this list to quiet a finding is how the gate stops being worth running — fix the layout instead.",
+  "allowedPairs": [
+    "#rule|#rlabs"
+  ],
+  "_reasons": {
+    "#rule|#rlabs": "The measuring labels are the rule's own annotation and read as one object, so their 18px gap (and the 2px between an individual tick and its own label) is the annotation's typography, not a clearance failure. Carried over verbatim from the in-composition audit's AUDIT_ALLOWED, which held this same single entry with the same reason."
+  }
+}

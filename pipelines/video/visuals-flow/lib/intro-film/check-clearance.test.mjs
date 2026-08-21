@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   MIN_CLEARANCE_PX, separation, pairFinding, frameFindings, sweepFindings,
-  severityOf, runClearance,
+  severityOf, runClearance, pairKey, isAllowedPair, travellerSels,
 } from './check-clearance.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -149,6 +149,86 @@ test('frameFindings walks every pair once', () => {
   const found = frameFindings(boxes);
   assert.equal(found.length, 1);
   assert.equal(found[0].code, 'low_clearance');
+});
+
+// ---- scope narrowing: what is NOT a device ---------------------------------
+//
+// Each rule below exists because it removed a whole class of false positives
+// from a REAL film. They are the difference between 68 reported errors on a film
+// the owner had approved and 0. Every one of them can also blind the gate if
+// widened, so each is pinned in both directions: it suppresses its own case, and
+// it does NOT suppress a genuine device.
+
+const dev = (over) => ({ sel: '#device', unit: '#device', x: 100, y: 152, w: 400, h: 40,
+  text: false, textish: false, fullBleed: false, blurred: false, wash: false, ...over });
+const txt = (over) => ({ sel: '#sub', unit: '#sub', x: 100, y: 100, w: 400, h: 50,
+  text: true, textish: true, fullBleed: false, blurred: false, wash: false, ...over });
+
+test('a full-bleed backdrop is not a device', () => {
+  assert.equal(pairFinding(txt({}), dev({ fullBleed: true })), null);
+  assert.equal(pairFinding(txt({ fullBleed: true }), dev({})), null);
+  assert.ok(pairFinding(txt({}), dev({})), 'control: the same pair without the flag DOES report');
+});
+
+test('a blurred element has no edge, so no clearance relationship', () => {
+  // The ambient glow: filter:blur(38px). Text sits on it by design.
+  assert.equal(pairFinding(txt({}), dev({ blurred: true })), null);
+});
+
+test('a gradient fading to transparent is a wash, not a device', () => {
+  // The legibility scrim. Its box is a bounding box, not an edge.
+  assert.equal(pairFinding(txt({}), dev({ wash: true })), null);
+});
+
+test('two parts of ONE unit are one object', () => {
+  // An icon and its caption inside the same card. This replaced the old audit's
+  // hand-written per-film device list.
+  const icon = dev({ sel: '#m1 > svg[0]', unit: '#m1' });
+  const label = txt({ sel: '#m1 > div.wm[1]', unit: '#m1' });
+  assert.equal(pairFinding(icon, label), null);
+  // Same two boxes in DIFFERENT units must still report.
+  assert.ok(pairFinding(dev({ sel: '#a', unit: '#a' }), txt({ sel: '#b', unit: '#b' })));
+});
+
+test('a declared allowed pair is suppressed, including its internals', () => {
+  const allowed = new Set([pairKey('#rule', '#rlabs')]);
+  const rule = dev({ sel: '#rule', unit: '#rule' });
+  const labs = txt({ sel: '#rlabs', unit: '#rlabs' });
+  assert.ok(pairFinding(rule, labs), 'control: reported without the declaration');
+  assert.equal(pairFinding(rule, labs, allowed), null);
+
+  // Naming the pair must also cover a tick against its own label.
+  const tick = dev({ sel: '#rule > i.mark[2]', unit: '#rule' });
+  const mlab = txt({ sel: '#rlabs > span.mlab[2]', unit: '#rlabs' });
+  assert.equal(pairFinding(tick, mlab, allowed), null);
+
+  // And must NOT leak to an undeclared pair.
+  assert.ok(pairFinding(dev({ sel: '#other', unit: '#other' }), labs, allowed));
+});
+
+test('readAllowedPairs is order-insensitive and defaults to empty', () => {
+  assert.equal(isAllowedPair('#a', '#b', new Set([pairKey('#b', '#a')])), true);
+  assert.equal(isAllowedPair('#a', '#b', new Set()), false);
+  assert.equal(isAllowedPair('#a', '#b', null), false);
+});
+
+test('anything a traveller is involved in is advisory, not an error', () => {
+  // A wipe crosses everything on its path by design. Left as an error, one
+  // full-frame sweep produced ~20 of the 68 findings on an approved film.
+  assert.equal(severityOf({ code: 'low_clearance' }), 'error');
+  assert.equal(severityOf({ code: 'low_clearance', advisory: true }), 'warning');
+  assert.equal(severityOf({ code: 'text_intersect', advisory: true }), 'warning');
+  assert.equal(severityOf('low_clearance'), 'error', 'bare code string still works');
+});
+
+test('travellerSels finds the thing that moves and not the thing that does not', () => {
+  const perSample = [
+    [{ sel: '#trav', x: 0, y: 500, w: 100, h: 100 }, { sel: '#park', x: 400, y: 900, w: 80, h: 60 }],
+    [{ sel: '#trav', x: 900, y: 500, w: 100, h: 100 }, { sel: '#park', x: 400, y: 900, w: 80, h: 60 }],
+  ];
+  const t = travellerSels(perSample);
+  assert.ok(t.has('#trav'));
+  assert.ok(!t.has('#park'));
 });
 
 // ---- 7. sweep / corridor (T14) ---------------------------------------------

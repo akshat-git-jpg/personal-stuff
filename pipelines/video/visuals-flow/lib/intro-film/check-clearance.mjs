@@ -100,6 +100,22 @@ export const MEASURE_JS = `(() => {
       return { x: t.left, y: top, w: t.width, h: bottom - top };
     } catch (e) { return null; }
   };
+  // The UNIT an element belongs to: its nearest id-bearing ancestor-or-self,
+  // ignoring #root. Authors give ids to the things they think of as objects, so
+  // this is the closest available reading of "which object is this part of".
+  // Two parts of the SAME object are not competing for space — an icon and its
+  // caption, a logo and its wordmark — so pairs inside one unit are skipped.
+  const unitOf = (el) => {
+    let cur = el;
+    while (cur && cur.id !== 'root') {
+      if (cur.id) return '#' + cur.id;
+      cur = cur.parentElement;
+    }
+    return '#root';
+  };
+  const root = document.getElementById('root') || document.body;
+  const rootRect = root.getBoundingClientRect();
+
   const out = [];
   const walk = (el, depth) => {
     const cs = getComputedStyle(el);
@@ -120,12 +136,44 @@ export const MEASURE_JS = `(() => {
       //             are one list on one rhythm. Without this the pass reported a
       //             container against its sibling's child span and restated the
       //             same 28px rhythm 24 times.
-      out.push({ sel: sel(el), depth, x: b.x, y: b.y, w: b.w, h: b.h, text,
-        textish: el.textContent.trim().length > 0 });
+      // A near-full-frame element is a BACKDROP, not a device competing for
+      // space: everything necessarily sits on it. The old in-composition audit
+      // used the same rule (width>=1900 && height>=1060 on a 1920x1080 canvas)
+      // because the full-bleed presenter beats otherwise reported every device
+      // on screen and drowned the real findings.
+      const fullBleed = r.width >= rootRect.width * 0.95
+        && r.height >= rootRect.height * 0.95;
+      // A BLURRED element has no readable edge, so it cannot form a clearance
+      // relationship: T13 is about two things reading as one broken OBJECT, and
+      // that needs two edges. The ambient glow in best-no-code-automation-tool
+      // is the case that proves it — a 20%-alpha radial gradient under
+      // filter:blur(38px), fading to transparent, drifting behind the whole
+      // film. Text sitting on it is the design. Measured as a device it produced
+      // every single error on that film, all of them false.
+      const blurred = /blur\\(/.test(cs.filter || '');
+      // A WASH: a gradient that fades to transparent. Its box is a bounding box,
+      // not an edge — on the fading side there is nothing for a gap to be
+      // measured to. Two of these were the entire error list on
+      // best-no-code-automation-tool: the ambient glow (radial, to transparent)
+      // and the legibility scrim behind the right-hand text column (linear, to
+      // transparent). Both exist SO THAT text can sit on them.
+      // A real device — a plate, a bar, a card — has a solid fill, so this does
+      // not soften the cases T13 was written from.
+      const bgi = cs.backgroundImage || '';
+      const wash = /gradient\\(/.test(bgi)
+        && (/transparent/.test(bgi) || /rgba\\([^)]*,\\s*0\\s*\\)/.test(bgi));
+      out.push({ sel: sel(el), unit: unitOf(el), depth,
+        x: b.x, y: b.y, w: b.w, h: b.h, text,
+        textish: el.textContent.trim().length > 0, fullBleed, blurred, wash });
     }
+    // Do NOT descend into an <svg>. Its paths and circles are strokes of one
+    // drawing, not objects on the stage — measuring them compared an icon's own
+    // outline against that icon's label and reported the drawing as a defect.
+    // The <svg> element itself is already measured above, as one object.
+    if (el.tagName.toLowerCase() === 'svg') return;
     for (const c of el.children) walk(c, depth + 1);
   };
-  walk(document.getElementById('root') || document.body, 0);
+  walk(root, 0);
   return out;
 })()`;
 
@@ -141,7 +189,55 @@ export function separation(a, b) {
   return { dx, dy };
 }
 
-export function pairFinding(a, b) {
+// Pairs the AUTHOR has declared to be one object. This is the only input that
+// cannot be derived from the page, because "these two things read as one" is a
+// composition decision. The audit this module replaces carried exactly one such
+// entry inline — `'#rule|#rlabs'`, commented "the labels are the rule's own
+// annotation, read as one object" — which is the proof that a structural rule
+// alone cannot cover it: the two have separate ids and separate boxes and are
+// still one object.
+//
+// Declared per film in `<filmDir>/clearance.json`:
+//   { "allowedPairs": ["#rule|#rlabs"] }
+//
+// Keep this list SHORT and give every entry a reason. Widening it to quiet a
+// finding is how the gate stops being worth running.
+export const pairKey = (a, b) => [a, b].sort().join('|');
+
+export function isAllowedPair(a, b, allowed) {
+  if (!allowed || !allowed.size) return false;
+  if (allowed.has(pairKey(a, b))) return true;
+  // A declared pair covers the two objects' internals too: naming #rule|#rlabs
+  // should not leave `#rule > i.mark[2]` vs `#rlabs > span.mlab[2]` reported.
+  const unitPart = (s) => String(s).split(' > ')[0];
+  return allowed.has(pairKey(unitPart(a), unitPart(b)));
+}
+
+export function pairFinding(a, b, allowed = null) {
+  // A backdrop is not competing for space. Everything sits on it by definition.
+  if (a.fullBleed || b.fullBleed) return null;
+
+  // No edge, no clearance relationship. See `blurred` / `wash` in MEASURE_JS.
+  if (a.blurred || b.blurred) return null;
+  if (a.wash || b.wash) return null;
+
+  if (isAllowedPair(a.sel, b.sel, allowed)) return null;
+
+  // Two parts of ONE object. An icon and its caption, a logo and its wordmark,
+  // a plate and the number on it — these are drawn as a single thing and their
+  // internal spacing is the author's composition, not a clearance failure. This
+  // is the narrowing that replaces the old audit's hand-written per-film device
+  // list: instead of naming the objects for every film, read the objects off the
+  // ids the author already wrote.
+  //
+  // KNOWN COST, accepted deliberately: T13's LangChain case ("its gap to the bar
+  // collapsed to 16px while every other row had 113-140px") lives INSIDE one
+  // unit, so it is no longer reported. That case is about the INCONSISTENCY
+  // across rows — the owner "reads the inconsistency, not the absolute" — which a
+  // fixed 40px threshold could never express anyway. Catching it needs a
+  // per-column variance check, which is a different gate.
+  if (a.unit && b.unit && a.unit === b.unit) return null;
+
   // An ancestor's box always encloses its child's; a full-bleed background
   // always encloses the text on it. Containment is normal composition, never a
   // defect — and without this suppression every film drowns in
@@ -187,21 +283,42 @@ export function pairFinding(a, b) {
 }
 
 // Every pair within one sampled frame.
-export function frameFindings(boxes) {
+export function frameFindings(boxes, allowed = null) {
   const out = [];
   for (let i = 0; i < boxes.length; i++)
     for (let j = i + 1; j < boxes.length; j++) {
-      const f = pairFinding(boxes[i], boxes[j]);
+      const f = pairFinding(boxes[i], boxes[j], allowed);
       if (f) out.push(f);
     }
   return out;
 }
 
+// Reads `<filmDir>/clearance.json` if present. Absent means no exceptions, which
+// is the correct default: a film earns an exception by declaring one.
+export function readAllowedPairs(filmDir) {
+  const f = path.join(filmDir, 'clearance.json');
+  if (!fs.existsSync(f)) return new Set();
+  try {
+    const cfg = JSON.parse(fs.readFileSync(f, 'utf8'));
+    return new Set((cfg.allowedPairs ?? []).map((p) => {
+      const [x, y] = String(p).split('|');
+      return pairKey(x, y);
+    }));
+  } catch (e) {
+    throw new Error(`${f} is not readable JSON: ${e.message}`);
+  }
+}
+
 // T14 — a device parked in a traveller's corridor gets crossed. Union each
 // element's boxes across samples; an element whose union is much larger than its
 // own box is a TRAVELLER, and a static box inside that union is a conflict.
-export function sweepFindings(perSample) {
-  const unions = new Map(), last = new Map(), areaOf = (r) => r.w * r.h;
+const areaOf = (r) => r.w * r.h;
+
+// Union every element's box across samples, and split into things that MOVE and
+// things that stay put. Shared by the sweep check and by traveller demotion, so
+// the two can never disagree about which elements travel.
+export function classifyMotion(perSample) {
+  const unions = new Map(), last = new Map();
   for (const boxes of perSample) {
     for (const b of boxes) {
       last.set(b.sel, b);
@@ -217,6 +334,14 @@ export function sweepFindings(perSample) {
     const own = last.get(sel);
     (areaOf(u) > areaOf(own) * 1.5 ? travellers : statics).push({ sel, u, own });
   }
+  return { travellers, statics };
+}
+
+export const travellerSels = (perSample) =>
+  new Set(classifyMotion(perSample).travellers.map((t) => t.sel));
+
+export function sweepFindings(perSample) {
+  const { travellers, statics } = classifyMotion(perSample);
   const out = [];
   for (const t of travellers) {
     for (const s of statics) {
@@ -241,7 +366,20 @@ export function sweepFindings(perSample) {
 
 // corridor_conflict is ADVISORY: a traveller may legitimately pass behind
 // scenery, so it is a warning. low_clearance and text_intersect are errors.
-export const severityOf = (code) => (code === 'corridor_conflict' ? 'warning' : 'error');
+//
+// A finding carrying `advisory` is demoted for the same reason. Anything a
+// TRAVELLER is involved in is advisory: a wipe or sweep crosses everything on
+// its path by design, and T14 already accepts that a traveller "may legitimately
+// pass behind scenery". Left as errors, one full-frame `#sweep` produced ~20 of
+// the 68 findings on an approved film — reporting the transition as a defect
+// every time it did its job.
+//
+// Accepts a finding object, or a bare code string for callers that only have one.
+export const severityOf = (f) => {
+  const code = typeof f === 'string' ? f : f?.code;
+  if (typeof f === 'object' && f?.advisory) return 'warning';
+  return code === 'corridor_conflict' ? 'warning' : 'error';
+};
 
 // ---- the driver -------------------------------------------------------------
 
@@ -264,6 +402,7 @@ export async function runClearance(filmDir, { times, browser: given } = {}) {
   const html = path.join(filmDir, 'index.html');
   if (!fs.existsSync(html)) throw new Error(`missing ${html}`);
 
+  const allowed = readAllowedPairs(filmDir);
   const browser = given ?? await launch();
   try {
     await browser.goto(html);
@@ -273,17 +412,27 @@ export async function runClearance(filmDir, { times, browser: given } = {}) {
       ts = dur ? DEFAULT_PHASES.map((p) => Number((dur * p).toFixed(2))) : [0];
     }
 
-    const findings = [], perSample = [];
+    const perSample = [], perFrame = [];
     for (const t of ts) {
       await browser.eval(SEEK_JS(t));
       const boxes = await browser.eval(MEASURE_JS);
       perSample.push(boxes);
-      for (const f of frameFindings(boxes)) findings.push({ ...f, t });
+      for (const f of frameFindings(boxes, allowed)) perFrame.push({ ...f, t });
     }
+
+    // Motion is only knowable ACROSS samples, so demotion happens after the
+    // whole sweep is measured rather than per frame.
+    const travelling = travellerSels(perSample);
+    const findings = perFrame.map((f) => (
+      travelling.has(f.a) || travelling.has(f.b)
+        ? { ...f, advisory: true, moving: travelling.has(f.a) ? f.a : f.b }
+        : f
+    ));
+
     // Sweep is cross-sample by nature, so it carries the whole span, not one t.
     for (const f of sweepFindings(perSample)) findings.push({ ...f, t: null });
 
-    const errorCount = findings.filter((f) => severityOf(f.code) === 'error').length;
+    const errorCount = findings.filter((f) => severityOf(f) === 'error').length;
     const warningCount = findings.length - errorCount;
     return {
       ok: errorCount === 0, errorCount, warningCount, findings,
@@ -327,7 +476,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 
     const r = await runClearance(dir);
     for (const f of r.findings) {
-      console.error(`${severityOf(f.code).toUpperCase()} ${formatFinding(f)}`);
+      console.error(`${severityOf(f).toUpperCase()} ${formatFinding(f)}`);
     }
     if (r.ok && !r.findings.length) console.log(`clearance ok — 0 findings`);
     else console.log(`clearance: ${r.errorCount} error(s), ${r.warningCount} warning(s) over ${r.samples.length} sample(s)`);

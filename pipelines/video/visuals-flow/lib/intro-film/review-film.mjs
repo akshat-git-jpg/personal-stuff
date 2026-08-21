@@ -175,7 +175,7 @@ export function renderReport({ slug, samples, findings, screenplay, sheetFiles, 
     for (const f of clearance.findings) {
       const b = f.t == null ? null : beatAt(screenplay, f.t);
       const at = f.t == null ? 'across the whole span' : `@ ${f.t}s`;
-      lines.push(`- **${severityOf(f.code)}** \`${f.code}\` ${f.a} ↔ ${f.b} `
+      lines.push(`- **${severityOf(f)}** \`${f.code}\` ${f.a} ↔ ${f.b} `
         + `gap=${f.gap}px ${at}${b ? ` (${b.id} ${b.intent})` : ''}`);
     }
     lines.push('');
@@ -303,7 +303,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     const c = r.clearance;
     if (c) {
       for (const f of c.findings) {
-        console.error(`${severityOf(f.code).toUpperCase()} ${f.code} ${f.a} <-> ${f.b} `
+        console.error(`${severityOf(f).toUpperCase()} ${f.code} ${f.a} <-> ${f.b} `
           + `gap=${f.gap}px${f.t == null ? '' : ` @ ${f.t}s`}`.trim());
       }
     }
