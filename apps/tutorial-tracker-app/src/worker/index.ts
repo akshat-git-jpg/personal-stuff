@@ -248,6 +248,15 @@ app.get("/api/defaults", async (c) => {
   return c.json(await loadDefaults(c.env.TRACKER_DB, pipeline));
 });
 
+app.get("/api/defaults/resolve", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({}, 200);
+  const pipe = getPipeline(c.req.query("pipeline")).id;
+  const category = (c.req.query("category") ?? "").trim();
+  const subcategory = (c.req.query("subcategory") ?? "").trim();
+  return c.json(await resolveDefaults(c.env.TRACKER_DB, pipe, category, subcategory));
+});
+
 // The columns a default set can fill (doers + per-stage reviewers) for a pipeline.
 app.get("/api/defaults/cols", (c) => c.json(assignableColsFor(getPipeline(c.req.query("pipeline")))));
 
