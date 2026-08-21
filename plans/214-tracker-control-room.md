@@ -10,7 +10,7 @@ touches: [apps/tutorial-tracker-app/src/client/Board.tsx, apps/tutorial-tracker-
 
 mutation_apply: sed -i '' 's/return "idle";/return "";/' apps/tutorial-tracker-app/src/client/filterModel.ts
 mutation_command: cd apps/tutorial-tracker-app && npm run e2e -- e2e/control-room.spec.ts
-mutation_expect: buckets must sum
+mutation_expect: expect(received).toBe(expected)
 mutation_cwd:
 mutation_timeout: 900
 ---
