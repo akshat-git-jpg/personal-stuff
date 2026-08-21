@@ -1,0 +1,39 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 844, "title": "Freelancer — one task (phone)" },
+    { "file": "Setup.dc.html", "x": 510, "y": 0, "w": 940, "h": 840, "title": "New video — set up first" },
+    { "file": "ControlRoom.dc.html", "x": 0, "y": 1120, "w": 1240, "h": 900, "title": "Control room (admin)" },
+    { "file": "VideoDetail.dc.html", "x": 1400, "y": 1120, "w": 560, "h": 920, "title": "One video" }
+  ],
+  "annotations": [
+    {
+      "id": "note-freelancer",
+      "x": 0,
+      "y": -250,
+      "w": 420,
+      "text": "FREELANCER — one task, not a list\nYour screenshot showed 9 cards and only 1 you could act on. This shows exactly one.\nThe 8 UP NEXT cards become one line: \"2 more after this\".\nPhone first, because they are not at a desk.\nTry it: pick a date, paste a link, submit. The next task slides in."
+    },
+    {
+      "id": "note-setup",
+      "x": 510,
+      "y": -250,
+      "w": 470,
+      "text": "NEW VIDEO — the fix you picked\nNothing enters anyone's list half-finished, so a dead \"Submit for review\" button stops existing.\nThe 4 people are pre-filled from the category defaults you already have. Change the category and watch them refill.\nThe footer names what is still missing instead of blocking silently.\nTry it: clear a person, or type in the description."
+    },
+    {
+      "id": "note-control",
+      "x": 0,
+      "y": 920,
+      "w": 470,
+      "text": "CONTROL ROOM — one rule set, numbers that add up\nYour two systems disagreed (Overdue 5 / Ready Idle 4 vs Needs a nudge 5). These four buckets are mutually exclusive, so they always sum to the unfinished total.\nThe 65 published videos are hidden by default — that was 88% of your scroll.\nEvery stage column sorts again.\nTry it: click a tile, click a stage header, show published."
+    },
+    {
+      "id": "note-detail",
+      "x": 1400,
+      "y": 920,
+      "w": 470,
+      "text": "ONE VIDEO — approve in two clicks\nOnly the stage that needs a human opens. Finished stages are one line.\nThe affiliate-link generator moves out to the Links tab, which cuts the 844-line panel roughly in half.\nTry it: Approve, or Ask for changes."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

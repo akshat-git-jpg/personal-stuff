@@ -1,0 +1,262 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background: oklch(0.18 0.01 60); color: oklch(0.97 0 0); }
+    * { box-sizing: border-box; }
+    a { color: #fb923c; text-decoration: none; }
+    a:hover { color: oklch(0.85 0.15 54); }
+    input { font-family: inherit; color-scheme: dark; }
+    input:focus { outline: none; }
+    input::placeholder { color: oklch(0.5 0 0); }
+    button:not(:disabled) { cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="min-height: 100%; background: oklch(0.18 0.01 60)">
+
+  <header style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 24px; border-bottom: 1px solid oklch(1 0 0 / 12%)">
+    <div style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; background: {{accent}}; color: oklch(0.18 0.01 60); font-size: 12px; font-weight: 700">T</div>
+    <div style="font-size: 14px; font-weight: 600; letter-spacing: -0.011em">Tutorials Tracker</div>
+    <div style="display: flex; align-items: center; gap: 4px; padding-left: 18px">
+      <span style="border-radius: 8px; background: oklch(0.27 0.01 60); padding: 6px 11px; font-size: 12.5px; font-weight: 600; color: oklch(0.97 0 0)">Control room</span>
+      <span style="padding: 6px 11px; font-size: 12.5px; font-weight: 500; color: oklch(0.65 0 0)">My work</span>
+      <span style="padding: 6px 11px; font-size: 12.5px; font-weight: 500; color: oklch(0.65 0 0)">Team</span>
+      <span style="padding: 6px 11px; font-size: 12.5px; font-weight: 500; color: oklch(0.65 0 0)">Links</span>
+    </div>
+    <div style="flex-grow: 1"></div>
+    <button style="display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 13px; border: 0; border-radius: 8px; background: {{accent}}; font: inherit; font-size: 12.5px; font-weight: 600; color: oklch(0.18 0.01 60)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      New video
+    </button>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 20px; padding: 26px 24px 44px">
+
+    <div style="display: flex; align-items: baseline; gap: 10px">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.019em">Control room</h1>
+      <span style="font-size: 13px; color: oklch(0.65 0 0)">{{headline}}</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{tiles}}" as="tile" hint-placeholder-count="4">
+        <button onClick="{{tile.pick}}" style="{{tile.style}}">
+          <div style="display: flex; align-items: baseline; gap: 9px">
+            <span style="font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: {{tile.color}}">{{tile.count}}</span>
+            <span style="font-size: 13px; font-weight: 600; color: oklch(0.92 0 0)">{{tile.label}}</span>
+          </div>
+          <div style="font-size: 11.5px; line-height: 1.5; color: oklch(0.62 0 0)">{{tile.rule}}</div>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 9px; width: 260px; height: 34px; padding: 0 11px; border: 1px solid oklch(1 0 0 / 15%); border-radius: 8px; background: oklch(0.205 0.01 60)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.6 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+        <input type="text" value="{{query}}" onChange="{{setQuery}}" placeholder="Search a title" style="flex-grow: 1; border: 0; background: transparent; font-size: 13px; color: oklch(0.97 0 0); padding: 0" />
+      </div>
+      <div style="flex-grow: 1"></div>
+      <span style="font-size: 12px; font-variant-numeric: tabular-nums; color: oklch(0.6 0 0)">{{resultLine}}</span>
+      <button onClick="{{togglePublished}}" style="{{publishedStyle}}">{{publishedLabel}}</button>
+    </div>
+
+    <div style="border: 1px solid oklch(1 0 0 / 12%); border-radius: 12px; background: oklch(0.205 0.01 60); overflow: hidden">
+
+      <div style="display: flex; align-items: center; gap: 16px; padding: 10px 18px; border-bottom: 1px solid oklch(1 0 0 / 10%); background: oklch(0.225 0.01 60)">
+        <button onClick="{{sortTitle}}" style="{{headStyle}} width: 250px; flex-shrink: 0; text-align: left">Video {{caretTitle}}</button>
+        <div style="display: flex; gap: 6px; flex-grow: 1">
+          <sc-for list="{{stageCols}}" as="col" hint-placeholder-count="6">
+            <button onClick="{{col.sort}}" style="{{col.style}}">{{col.label}} {{col.caret}}</button>
+          </sc-for>
+        </div>
+        <div style="{{headStyle}} width: 150px; flex-shrink: 0">Now with</div>
+        <button onClick="{{sortAge}}" style="{{headStyle}} width: 60px; flex-shrink: 0; text-align: right">Age {{caretAge}}</button>
+      </div>
+
+      <sc-for list="{{rows}}" as="row" hint-placeholder-count="6">
+        <div style="display: flex; align-items: center; gap: 16px; padding: 13px 18px; border-bottom: 1px solid oklch(1 0 0 / 7%)">
+          <div style="display: flex; flex-direction: column; gap: 3px; width: 250px; flex-shrink: 0">
+            <div style="font-size: 13.5px; font-weight: 600; line-height: 1.35; letter-spacing: -0.009em; color: oklch(0.95 0 0)">{{row.title}}</div>
+            <div style="font-size: 11px; color: oklch(0.58 0 0)">{{row.cat}}</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-grow: 1">
+            <sc-for list="{{row.segments}}" as="seg" hint-placeholder-count="6">
+              <div style="{{seg.style}}"></div>
+            </sc-for>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px; width: 150px; flex-shrink: 0">
+            <div style="font-size: 12.5px; font-weight: 500; color: oklch(0.88 0 0)">{{row.owner}}</div>
+            <div style="font-size: 11px; color: oklch(0.58 0 0)">{{row.note}}</div>
+          </div>
+          <div style="width: 60px; flex-shrink: 0; text-align: right"><span style="{{row.ageStyle}}">{{row.age}}</span></div>
+        </div>
+      </sc-for>
+
+      <sc-if value="{{isEmpty}}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 44px 18px; text-align: center; font-size: 13px; color: oklch(0.58 0 0)">Nothing matches that.</div>
+      </sc-if>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#fb923c","options":["#fb923c","#60a5fa","#34d399","#a78bfa"],"tsType":"string"},"$preview":{"width":1240,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      query: '',
+      bucket: 'all',
+      showPublished: false,
+      sort: null,
+      videos: [
+        { id: 'a', title: 'Best realistic AI avatar generator for YouTube', cat: 'Software tutorials · Big comparison', step: 0, owner: 'Sean', note: 'Topic · in progress', age: 21, bucket: 'idle' },
+        { id: 'b', title: 'higgsfield vs openart vs synthesia vs heygen', cat: 'Software tutorials · Small comparison', step: 3, owner: 'kb - video editor', note: 'Editing · in progress', age: 8, bucket: 'late' },
+        { id: 'c', title: 'egypt — how to create a realistic AI talking avatar', cat: 'Software tutorials · How to', step: 3, owner: 'seema', note: 'Editing · to do', age: 42, bucket: 'idle' },
+        { id: 'd', title: 'How to create a consistent AI influencer', cat: 'Software tutorials · Full course', step: 4, owner: 'kb - video editor', note: 'Thumbnail · to do', age: 9, bucket: 'late' },
+        { id: 'e', title: 'Exporting for YouTube without quality loss', cat: 'Software tutorials · How to', step: 1, owner: 'you', note: 'Script · waiting on your approval', age: 2, bucket: 'needsyou' },
+        { id: 'f', title: 'Thumbnail psychology that gets clicks', cat: 'Growth · Packaging', step: 4, owner: 'you', note: 'Thumbnail · waiting on your approval', age: 1, bucket: 'needsyou' },
+        { id: 'g', title: 'Lighting on a budget', cat: 'Production · Lighting', step: 2, owner: 'Anusha', note: 'Recording · in progress', age: 1, bucket: 'moving' },
+        { id: 'h', title: 'Faceless channel setup, start to finish', cat: 'Growth · Strategy', step: 1, owner: 'Sam', note: 'Script · in progress', age: 2, bucket: 'moving' },
+        { id: 'i', title: 'Five keyboard shortcuts that save hours', cat: 'Software tutorials · How to', step: 1, owner: 'Sam', note: 'Script · in progress', age: 1, bucket: 'moving' },
+        { id: 'j', title: 'Channel trailer breakdown', cat: 'Growth · Strategy', step: 6, owner: 'Uma', note: 'Published', age: 34, bucket: 'published' },
+        { id: 'k', title: 'Three-point lighting in 60 seconds', cat: 'Production · Lighting', step: 6, owner: 'Uma', note: 'Published', age: 51, bucket: 'published' }
+      ]
+    };
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#fb923c';
+    var st = this.state;
+    var q = (st.query || '').trim().toLowerCase();
+
+    var STAGES = ['Topic', 'Script', 'Recording', 'Editing', 'Thumbnail', 'Upload'];
+
+    var seg = function (kind) {
+      var bg = kind === 'done' ? '#10b981' : (kind === 'now' ? accent : 'oklch(1 0 0 / 11%)');
+      return 'flex-grow:1;height:6px;border-radius:3px;background:' + bg + ';';
+    };
+
+    var unpublished = st.videos.filter(function (v) { return v.bucket !== 'published'; });
+    var pool = st.showPublished ? st.videos : unpublished;
+
+    var visible = pool.filter(function (v) {
+      if (q && v.title.toLowerCase().indexOf(q) === -1) return false;
+      if (st.bucket !== 'all' && v.bucket !== st.bucket) return false;
+      return true;
+    });
+
+    var rank = function (v, key) {
+      if (key === 'age') return v.age;
+      if (key === 'title') return v.title.toLowerCase();
+      var idx = STAGES.indexOf(key);
+      return v.step > idx ? 2 : (v.step === idx ? 1 : 0);
+    };
+
+    if (st.sort) {
+      var s = st.sort;
+      visible = visible.slice().sort(function (a, b) {
+        var va = rank(a, s.col), vb = rank(b, s.col);
+        var cmp = typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb));
+        if (cmp === 0) cmp = a.title.toLowerCase().localeCompare(b.title.toLowerCase());
+        return s.dir === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    var rows = visible.map(function (v) {
+      var segments = [];
+      for (var i = 0; i < 6; i = i + 1) {
+        segments.push({ style: seg(i < v.step ? 'done' : (i === v.step ? 'now' : 'later')) });
+      }
+      var hot = v.bucket === 'late' || v.bucket === 'idle';
+      return {
+        title: v.title, cat: v.cat, owner: v.owner, note: v.note,
+        segments: segments,
+        age: v.age + 'd',
+        ageStyle: hot
+          ? 'display:inline-block;border-radius:999px;background:oklch(0.32 0.09 54);padding:3px 8px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;color:#fbbf24;'
+          : 'font-size:11.5px;font-variant-numeric:tabular-nums;color:oklch(0.6 0 0);'
+      };
+    });
+
+    var count = function (b) {
+      return unpublished.filter(function (v) { return b === 'all' ? true : v.bucket === b; }).length;
+    };
+
+    var tileDefs = [
+      { key: 'needsyou', label: 'Waiting on you', rule: 'Submitted and needs your approval', color: accent },
+      { key: 'late', label: 'Late', rule: 'Past the date the doer promised', color: '#f87171' },
+      { key: 'idle', label: 'Not moving', rule: 'Nobody has touched it for 3+ days', color: '#fbbf24' },
+      { key: 'moving', label: 'Moving fine', rule: 'On time and being worked on', color: '#34d399' }
+    ];
+
+    var tiles = tileDefs.map(function (t) {
+      var on = st.bucket === t.key;
+      return {
+        label: t.label, rule: t.rule, count: count(t.key), color: t.color,
+        style: 'display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:11px;font-family:inherit;text-align:left;'
+          + (on
+            ? 'border:1px solid ' + t.color + ';background:oklch(0.24 0.01 60);'
+            : 'border:1px solid oklch(1 0 0 / 12%);background:oklch(0.205 0.01 60);'),
+        pick: function () { self.setState({ bucket: on ? 'all' : t.key }); }
+      };
+    });
+
+    var headStyle = 'border:0;background:transparent;font-family:inherit;font-size:10.5px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:oklch(0.58 0 0);padding:0;';
+    var caretFor = function (col) {
+      if (!st.sort || st.sort.col !== col) return '';
+      return st.sort.dir === 'asc' ? '↑' : '↓';
+    };
+    var toggle = function (col) {
+      return function () {
+        var prev = self.state.sort;
+        self.setState({
+          sort: prev && prev.col === col
+            ? { col: col, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+            : { col: col, dir: col === 'title' ? 'asc' : 'desc' }
+        });
+      };
+    };
+
+    return {
+      accent: accent,
+      headline: unpublished.length + ' still moving · ' + (st.videos.length - unpublished.length) + ' published',
+      tiles: tiles,
+      query: st.query,
+      setQuery: function (e) { self.setState({ query: e.target.value }); },
+      rows: rows,
+      isEmpty: rows.length === 0,
+      resultLine: rows.length + ' shown',
+      headStyle: headStyle,
+      stageCols: STAGES.map(function (label) {
+        return {
+          label: label,
+          caret: caretFor(label),
+          sort: toggle(label),
+          style: headStyle + 'flex-grow:1;text-align:center;'
+        };
+      }),
+      caretTitle: caretFor('title'),
+      caretAge: caretFor('age'),
+      sortTitle: toggle('title'),
+      sortAge: toggle('age'),
+      publishedLabel: st.showPublished ? 'Hide published' : 'Show published',
+      publishedStyle: 'height:30px;padding:0 12px;border-radius:999px;font-family:inherit;font-size:12px;font-weight:500;'
+        + (st.showPublished
+          ? 'border:1px solid oklch(1 0 0 / 25%);background:oklch(0.27 0.01 60);color:oklch(0.9 0 0);'
+          : 'border:1px solid oklch(1 0 0 / 12%);background:transparent;color:oklch(0.62 0 0);'),
+      togglePublished: function () { self.setState({ showPublished: !self.state.showPublished }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

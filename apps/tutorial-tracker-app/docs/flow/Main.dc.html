@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background: oklch(0.18 0.01 60); color: oklch(0.97 0 0); }
+    * { box-sizing: border-box; }
+    a { color: #fb923c; text-decoration: none; }
+    a:hover { color: oklch(0.85 0.15 54); }
+    input { font-family: inherit; }
+    input:focus { outline: none; }
+    input::placeholder { color: oklch(0.55 0 0); }
+    button:not(:disabled) { cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="min-height: 100%; background: oklch(0.18 0.01 60)">
+
+  <header style="display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 18px; border-bottom: 1px solid oklch(1 0 0 / 12%)">
+    <div style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; background: {{accent}}; color: oklch(0.18 0.01 60); font-size: 12px; font-weight: 700">T</div>
+    <div style="font-size: 14px; font-weight: 600; letter-spacing: -0.011em">Tutorials Tracker</div>
+    <div style="flex-grow: 1"></div>
+    <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; background: oklch(0.27 0.01 60); font-size: 12px; font-weight: 600; color: oklch(0.85 0 0)">S</div>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 20px; padding: 22px 18px 40px">
+
+    <div style="display: flex; align-items: baseline; gap: 8px">
+      <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.62 0 0)">Your task</span>
+      <div style="flex-grow: 1"></div>
+      <span style="font-size: 11.5px; color: oklch(0.62 0 0)">{{position}}</span>
+    </div>
+
+    <sc-if value="{{hasTask}}" hint-placeholder-val="{{ true }}">
+    <article style="display: flex; flex-direction: column; gap: 18px; padding: 20px; border: 1px solid oklch(1 0 0 / 12%); border-radius: 14px; background: oklch(0.22 0.01 60)">
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: {{accent}}">{{task.verb}}</div>
+        <h1 style="margin: 0; font-size: 22px; font-weight: 600; line-height: 1.28; letter-spacing: -0.019em; text-wrap: pretty">{{task.title}}</h1>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: oklch(0.708 0 0)">{{task.how}}</p>
+      </div>
+
+      <sc-if value="{{task.hasFeedback}}" hint-placeholder-val="{{ true }}">
+        <div style="border-left: 3px solid #f87171; border-radius: 0 8px 8px 0; background: oklch(0.28 0.06 25); padding: 12px 14px">
+          <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #fca5a5; padding-bottom: 5px">Fix this first</div>
+          <div style="font-size: 13.5px; line-height: 1.6; color: oklch(0.92 0 0)">{{task.feedback}}</div>
+        </div>
+      </sc-if>
+
+      <a href="#" style="display: flex; align-items: center; gap: 9px; padding: 12px 14px; border: 1px solid oklch(1 0 0 / 10%); border-radius: 10px; background: oklch(0.25 0.01 60); font-size: 13.5px; font-weight: 500">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 4.5h9l4.5 4.5v10.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1z"></path><path d="M13.5 4.5V9h4.5"></path></svg>
+        Read the brief
+        <div style="flex-grow: 1"></div>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(0.6 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+      </a>
+
+      <div style="display: flex; flex-direction: column; gap: 11px">
+        <label style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border: 1px solid oklch(1 0 0 / 15%); border-radius: 10px; background: oklch(0.19 0.01 60)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.62 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 10h17M8.5 3v4M15.5 3v4"></path></svg>
+          <span style="font-size: 12.5px; color: oklch(0.65 0 0)">Finish by</span>
+          <input type="date" value="{{task.eta}}" onChange="{{setEta}}" style="flex-grow: 1; border: 0; background: transparent; font-size: 14px; font-weight: 500; color: oklch(0.97 0 0); padding: 0; color-scheme: dark" />
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border: 1px solid {{linkBorder}}; border-radius: 10px; background: oklch(0.19 0.01 60)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.62 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 13.8a4.2 4.2 0 0 0 6.1.4l2.6-2.6a4.3 4.3 0 0 0-6.1-6.1l-1.5 1.5"></path><path d="M14 10.2a4.2 4.2 0 0 0-6.1-.4L5.3 12.4a4.3 4.3 0 0 0 6.1 6.1l1.5-1.5"></path></svg>
+          <input type="text" value="{{task.link}}" onChange="{{setLink}}" placeholder="{{task.linkHint}}" style="flex-grow: 1; border: 0; background: transparent; font-size: 14px; color: oklch(0.97 0 0); padding: 0" />
+        </label>
+      </div>
+
+      <button onClick="{{submit}}" style="{{submitStyle}}">{{submitLabel}}</button>
+
+    </article>
+    </sc-if>
+
+    <sc-if value="{{allDone}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 20px; border: 1px dashed oklch(1 0 0 / 14%); border-radius: 14px">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"></circle><path d="M7.8 12.4l3 3 5.4-6"></path></svg>
+        <div style="font-size: 16px; font-weight: 600">You are all caught up</div>
+        <div style="font-size: 13px; line-height: 1.55; color: oklch(0.65 0 0); text-align: center">Nothing needs you. You will get an email the moment something does.</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{hasLater}}" hint-placeholder-val="{{ true }}">
+      <div style="border: 1px solid oklch(1 0 0 / 10%); border-radius: 12px; background: oklch(0.205 0.01 60)">
+        <button onClick="{{toggleLater}}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 14px 16px; border: 0; background: transparent; font: inherit; text-align: left">
+          <span style="font-size: 13px; font-weight: 500; color: oklch(0.78 0 0)">{{laterLabel}}</span>
+          <div style="flex-grow: 1"></div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.6 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="{{laterCaret}}"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <sc-if value="{{laterOpen}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; border-top: 1px solid oklch(1 0 0 / 10%)">
+            <sc-for list="{{later}}" as="row" hint-placeholder-count="2">
+              <div style="display: flex; flex-direction: column; gap: 3px; padding: 13px 16px; border-bottom: 1px solid oklch(1 0 0 / 7%)">
+                <div style="font-size: 14px; font-weight: 500; line-height: 1.4; color: oklch(0.88 0 0)">{{row.title}}</div>
+                <div style="font-size: 11.5px; color: oklch(0.6 0 0)">{{row.verb}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <p style="margin: 0; font-size: 11.5px; line-height: 1.6; color: oklch(0.52 0 0); text-align: center">Work that is not open to you yet is not shown. You will see it when it is your turn.</p>
+
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#fb923c","options":["#fb923c","#60a5fa","#34d399","#a78bfa"],"tsType":"string"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      laterOpen: false,
+      index: 0,
+      queue: [
+        { id: 'a', title: 'Masking explained in 4 minutes', verb: 'Fix your script', eta: '2026-08-25',
+          link: 'docs.google.com/document/d/masking-script', hasFeedback: true,
+          feedback: 'The intro runs too long. Cut it to about 15 seconds and lead with the payoff shot.',
+          how: 'Read the note below, change the script, then send it back.', linkHint: 'Paste your script link' },
+        { id: 'b', title: 'How to color grade in DaVinci Resolve', verb: 'Write the script', eta: '2026-08-26',
+          link: '', hasFeedback: false, feedback: '',
+          how: 'Work from the brief. Paste the link when the draft is ready.', linkHint: 'Paste your script link' },
+        { id: 'c', title: 'Lighting on a budget', verb: 'Record the tutorial', eta: '2026-08-28',
+          link: '', hasFeedback: false, feedback: '',
+          how: 'Screen-record from the approved script. Keep it under eight minutes.', linkHint: 'Paste your recording link' }
+      ]
+    };
+  }
+
+  patch(changes) {
+    var q = this.state.queue.slice();
+    q[this.state.index] = Object.assign({}, q[this.state.index], changes);
+    this.setState({ queue: q });
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#fb923c';
+    var i = this.state.index;
+    var queue = this.state.queue;
+    var task = queue[i];
+    var later = queue.slice(i + 1);
+    var filled = task ? (task.link || '').trim().length > 0 : false;
+
+    var btn = 'display:flex;align-items:center;justify-content:center;width:100%;height:52px;border:0;border-radius:11px;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:-0.006em;';
+
+    return {
+      accent: accent,
+      task: task || { title: '', verb: '', how: '', eta: '', link: '', linkHint: '', hasFeedback: false, feedback: '' },
+      hasTask: !!task,
+      allDone: !task,
+      position: task ? (i + 1) + ' of ' + queue.length : '',
+      linkBorder: filled ? 'oklch(1 0 0 / 15%)' : accent,
+      submitLabel: task && task.hasFeedback ? 'Send it back for review' : 'Submit for review',
+      submitStyle: filled
+        ? btn + 'background:' + accent + ';color:oklch(0.18 0.01 60);'
+        : btn + 'background:oklch(0.27 0.01 60);color:oklch(0.55 0 0);cursor:not-allowed;',
+      setEta: function (e) { self.patch({ eta: e.target.value }); },
+      setLink: function (e) { self.patch({ link: e.target.value }); },
+      submit: function () { if (filled) self.setState({ index: i + 1, laterOpen: false }); },
+      hasLater: later.length > 0,
+      later: later,
+      laterLabel: later.length === 1 ? '1 more after this' : later.length + ' more after this',
+      laterOpen: this.state.laterOpen,
+      laterCaret: this.state.laterOpen ? 'transform:rotate(180deg)' : '',
+      toggleLater: function () { self.setState({ laterOpen: !self.state.laterOpen }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

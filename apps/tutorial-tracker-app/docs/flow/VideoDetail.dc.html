@@ -1,0 +1,234 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background: oklch(0.205 0.01 60); color: oklch(0.97 0 0); }
+    * { box-sizing: border-box; }
+    a { color: #fb923c; text-decoration: none; }
+    a:hover { color: oklch(0.85 0.15 54); }
+    textarea { font-family: inherit; color-scheme: dark; }
+    textarea:focus { outline: none; }
+    textarea::placeholder { color: oklch(0.5 0 0); }
+    button:not(:disabled) { cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="display: flex; flex-direction: column; min-height: 100%; background: oklch(0.205 0.01 60); border-left: 1px solid oklch(1 0 0 / 12%)">
+
+  <div style="display: flex; align-items: flex-start; gap: 14px; padding: 20px 22px 16px; border-bottom: 1px solid oklch(1 0 0 / 10%)">
+    <div style="display: flex; flex-direction: column; gap: 5px; flex-grow: 1">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 600; line-height: 1.32; letter-spacing: -0.015em; text-wrap: pretty">Exporting for YouTube without quality loss</h2>
+      <div style="font-size: 12px; color: oklch(0.65 0 0)">Software tutorials › How to &nbsp;·&nbsp; Standard</div>
+    </div>
+    <button style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 0; border-radius: 8px; background: oklch(0.27 0.01 60); color: oklch(0.7 0 0); flex-shrink: 0">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 7px; padding: 16px 22px 18px; border-bottom: 1px solid oklch(1 0 0 / 10%)">
+    <div style="display: flex; align-items: center; gap: 5px">
+      <sc-for list="{{segments}}" as="seg" hint-placeholder-count="6">
+        <div style="{{seg.style}}"></div>
+      </sc-for>
+    </div>
+    <div style="font-size: 12px; color: oklch(0.68 0 0)">{{whereLine}}</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; padding: 4px 22px 0">
+    <sc-for list="{{stages}}" as="stage" hint-placeholder-count="6">
+      <div style="display: flex; flex-direction: column; border-bottom: 1px solid oklch(1 0 0 / 7%)">
+        <div onClick="{{stage.toggle}}" style="{{stage.headStyle}}">
+          <div style="{{stage.markStyle}}">
+            <sc-if value="{{stage.isDone}}" hint-placeholder-val="{{ true }}">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="oklch(0.18 0.01 60)" stroke-width="3.6" stroke-linecap="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"></path></svg>
+            </sc-if>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
+            <div style="{{stage.labelStyle}}">{{stage.label}}</div>
+            <div style="font-size: 11.5px; color: oklch(0.58 0 0)">{{stage.sub}}</div>
+          </div>
+          <sc-if value="{{stage.isLive}}" hint-placeholder-val="{{ true }}">
+            <span style="{{stage.tagStyle}}">{{stage.tag}}</span>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{stage.showReview}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 12px; margin: 2px 0 14px 32px; padding: 14px 15px; border: 1px solid oklch(1 0 0 / 12%); border-radius: 10px; background: oklch(0.185 0.01 60)">
+            <div style="font-size: 12.5px; line-height: 1.6; color: oklch(0.78 0 0)">Sam submitted this 2 days ago.</div>
+            <a href="#" style="display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; height: 34px; padding: 0 13px; border: 1px solid oklch(1 0 0 / 15%); border-radius: 8px; background: oklch(0.23 0.01 60); font-size: 12.5px; font-weight: 500; color: oklch(0.92 0 0)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6"></path><path d="M20 4l-8.5 8.5"></path><path d="M18 14.5V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V7.5A1.5 1.5 0 0 1 5 6h4.5"></path></svg>
+              Open the script
+            </a>
+            <sc-if value="{{asking}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <textarea value="{{note}}" onChange="{{setNote}}" rows="3" placeholder="What needs to change? This is the only thing they will see." style="padding: 10px 12px; border: 1px solid oklch(1 0 0 / 15%); border-radius: 8px; background: oklch(0.205 0.01 60); font-size: 12.5px; line-height: 1.6; color: oklch(0.97 0 0); resize: vertical"></textarea>
+                <div style="display: flex; align-items: center; gap: 9px">
+                  <button onClick="{{cancel}}" style="height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 12.5px; font-weight: 500; color: oklch(0.6 0 0)">Cancel</button>
+                  <div style="flex-grow: 1"></div>
+                  <button onClick="{{send}}" style="{{sendStyle}}">Send back to Sam</button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{choosing}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; align-items: center; gap: 9px">
+                <button onClick="{{ask}}" style="height: 36px; padding: 0 13px; border: 1px solid oklch(1 0 0 / 15%); border-radius: 8px; background: transparent; font: inherit; font-size: 12.5px; font-weight: 500; color: oklch(0.8 0 0)">Ask for changes</button>
+                <div style="flex-grow: 1"></div>
+                <button onClick="{{approve}}" style="{{approveStyle}}">Approve</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{settled}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500; color: {{settledColor}}">{{settledLine}}</div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{stage.showDone}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; align-items: center; gap: 10px; margin: 2px 0 14px 32px; padding: 11px 14px; border: 1px solid oklch(1 0 0 / 10%); border-radius: 10px; background: oklch(0.19 0.01 60)">
+            <a href="#" style="display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6"></path><path d="M20 4l-8.5 8.5"></path><path d="M18 14.5V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V7.5A1.5 1.5 0 0 1 5 6h4.5"></path></svg>
+              {{stage.linkLabel}}
+            </a>
+            <div style="flex-grow: 1"></div>
+            <span style="font-size: 11px; color: oklch(0.58 0 0)">{{stage.by}}</span>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; padding: 18px 22px 24px">
+    <button onClick="{{toggleHistory}}" style="display: flex; align-items: center; gap: 8px; padding: 0; border: 0; background: transparent; font: inherit; text-align: left">
+      <span style="font-size: 12px; font-weight: 600; color: oklch(0.8 0 0)">History</span>
+      <span style="font-size: 11.5px; color: oklch(0.55 0 0)">{{historyCount}}</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.55 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="{{historyCaret}}"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <sc-if value="{{historyOpen}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <sc-for list="{{history}}" as="ev" hint-placeholder-count="3">
+          <div style="display: flex; gap: 10px; font-size: 12px; line-height: 1.5">
+            <span style="width: 62px; flex-shrink: 0; color: oklch(0.55 0 0)">{{ev.when}}</span>
+            <span style="color: oklch(0.82 0 0)">{{ev.what}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <div style="border-top: 1px solid oklch(1 0 0 / 8%); padding-top: 14px">
+      <p style="margin: 0; font-size: 11.5px; line-height: 1.6; color: oklch(0.52 0 0)">Affiliate links and the YouTube description now live in the <a href="#">Links</a> tab, not on this panel.</p>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#fb923c","options":["#fb923c","#60a5fa","#34d399","#a78bfa"],"tsType":"string"},"$preview":{"width":560,"height":920}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: 'script', phase: 'choosing', note: '', historyOpen: false };
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#fb923c';
+    var st = this.state;
+    var current = 1;
+
+    var defs = [
+      { id: 'topic', label: 'Topic', sub: 'Set up by Sean · 12 Aug', linkLabel: 'Open the brief', by: 'Sean' },
+      { id: 'script', label: 'Script', sub: 'Sam · submitted 2 days ago', linkLabel: 'Open the script', by: '' },
+      { id: 'recording', label: 'Recording', sub: 'Anusha · opens once the script is approved', linkLabel: '', by: '' },
+      { id: 'editing', label: 'Editing', sub: 'John · not open yet', linkLabel: '', by: '' },
+      { id: 'thumbnail', label: 'Thumbnail', sub: 'Tara · not open yet', linkLabel: '', by: '' },
+      { id: 'upload', label: 'Upload', sub: 'Uma · not open yet', linkLabel: '', by: '' }
+    ];
+
+    var settled = st.phase === 'approved' || st.phase === 'sent';
+
+    var segments = [];
+    for (var i = 0; i < 6; i = i + 1) {
+      var done = i < current || (i === current && st.phase === 'approved');
+      var live = i === current && !done;
+      var bg = done ? '#10b981' : (live ? accent : 'oklch(1 0 0 / 11%)');
+      segments.push({ style: 'flex-grow:1;height:6px;border-radius:3px;background:' + bg + ';' });
+    }
+
+    var stages = defs.map(function (d, i) {
+      var isDone = i < current || (i === current && st.phase === 'approved');
+      var isLive = i === current && !isDone;
+      var later = i > current || (i === current + 1 && st.phase === 'approved' ? false : i > current);
+      var open = st.open === d.id;
+      var sub = d.sub;
+      if (i === current && st.phase === 'approved') sub = 'Sam · approved by you just now';
+      if (i === current && st.phase === 'sent') sub = 'Sam · sent back by you just now';
+      if (i === current + 1 && st.phase === 'approved') sub = 'Anusha · their turn now';
+
+      var mark = isDone
+        ? 'display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:#10b981;flex-shrink:0;'
+        : isLive
+          ? 'display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:' + accent + ';box-shadow:0 0 0 4px oklch(0.77 0.165 54 / 0.18);flex-shrink:0;'
+          : 'display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:transparent;border:1.5px solid oklch(1 0 0 / 18%);flex-shrink:0;';
+
+      return {
+        label: d.label,
+        sub: sub,
+        linkLabel: d.linkLabel,
+        by: d.by ? 'set by ' + d.by : 'approved',
+        isDone: isDone,
+        isLive: isLive,
+        tag: st.phase === 'choosing' || st.phase === 'asking' ? 'Needs you' : '',
+        tagStyle: 'border-radius:999px;background:oklch(0.32 0.09 54);padding:3px 9px;font-size:10px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;color:' + accent + ';',
+        showReview: isLive && open,
+        showDone: isDone && open && !!d.linkLabel,
+        markStyle: mark,
+        labelStyle: 'font-size:13.5px;font-weight:600;letter-spacing:-0.009em;color:' + (later ? 'oklch(0.6 0 0)' : 'oklch(0.95 0 0)') + ';',
+        headStyle: 'display:flex;align-items:center;gap:12px;padding:12px 2px;' + (later ? '' : 'cursor:pointer;'),
+        toggle: function () { if (later) return; self.setState({ open: open ? '' : d.id }); }
+      };
+    });
+
+    var filled = (st.note || '').trim().length > 0;
+    var btn = 'display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 15px;border:0;border-radius:8px;font-family:inherit;font-size:12.5px;font-weight:600;';
+
+    return {
+      accent: accent,
+      segments: segments,
+      stages: stages,
+      whereLine: st.phase === 'approved' ? 'Script approved. Now with Anusha for recording.'
+        : st.phase === 'sent' ? 'Sent back to Sam. Waiting on their fix.'
+        : 'Script submitted 2 days ago. Waiting on your approval.',
+      choosing: st.phase === 'choosing',
+      asking: st.phase === 'asking',
+      settled: settled,
+      settledLine: st.phase === 'approved' ? 'Approved. Anusha can start recording.' : 'Sent back to Sam with your note.',
+      settledColor: st.phase === 'approved' ? '#34d399' : '#fca5a5',
+      note: st.note,
+      setNote: function (e) { self.setState({ note: e.target.value }); },
+      ask: function () { self.setState({ phase: 'asking' }); },
+      cancel: function () { self.setState({ phase: 'choosing', note: '' }); },
+      send: function () { if (filled) self.setState({ phase: 'sent' }); },
+      approve: function () { self.setState({ phase: 'approved' }); },
+      approveStyle: btn + 'background:' + accent + ';color:oklch(0.18 0.01 60);',
+      sendStyle: filled ? btn + 'background:#dc2626;color:#ffffff;' : btn + 'background:oklch(0.27 0.01 60);color:oklch(0.5 0 0);cursor:not-allowed;',
+      historyOpen: st.historyOpen,
+      historyCaret: st.historyOpen ? 'transform:rotate(180deg)' : '',
+      historyCount: '4 events',
+      history: [
+        { when: '2d ago', what: 'Sam submitted the script for review' },
+        { when: '5d ago', what: 'Sam started work on the script' },
+        { when: '6d ago', what: 'Riya approved the topic' },
+        { when: '12 Aug', what: 'Sean set the video up' }
+      ],
+      toggleHistory: function () { self.setState({ historyOpen: !self.state.historyOpen }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

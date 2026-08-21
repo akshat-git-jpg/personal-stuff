@@ -1,0 +1,231 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background: oklch(0.18 0.01 60); color: oklch(0.97 0 0); }
+    * { box-sizing: border-box; }
+    a { color: #fb923c; text-decoration: none; }
+    a:hover { color: oklch(0.85 0.15 54); }
+    input, select, textarea { font-family: inherit; color-scheme: dark; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: oklch(1 0 0 / 30%); }
+    input::placeholder, textarea::placeholder { color: oklch(0.5 0 0); }
+    button:not(:disabled) { cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="display: flex; flex-direction: column; min-height: 100%; background: oklch(0.18 0.01 60)">
+
+  <header style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 22px; border-bottom: 1px solid oklch(1 0 0 / 12%)">
+    <div style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; background: {{accent}}; color: oklch(0.18 0.01 60); font-size: 12px; font-weight: 700">T</div>
+    <div style="font-size: 14px; font-weight: 600; letter-spacing: -0.011em">Tutorials Tracker</div>
+    <div style="flex-grow: 1"></div>
+    <button style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 0; border-radius: 8px; background: oklch(0.27 0.01 60); color: oklch(0.7 0 0)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 24px; flex-grow: 1; padding: 26px 26px 0">
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.021em">New video</h1>
+      <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: oklch(0.7 0 0)">Set it up fully here. Nothing reaches anyone&#39;s list half-finished, so no one opens a card they cannot act on.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px">
+
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.6 0 0)">The video</div>
+
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: oklch(0.8 0 0)">Title</span>
+          <input type="text" value="{{title}}" onChange="{{setTitle}}" placeholder="What the video is called on YouTube" style="height: 38px; padding: 0 11px; border: 1px solid oklch(1 0 0 / 15%); border-radius: 8px; background: oklch(0.205 0.01 60); font-size: 13.5px; color: oklch(0.97 0 0)" />
+        </label>
+
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: oklch(0.8 0 0)">Category</span>
+            <select value="{{category}}" onChange="{{setCategory}}" style="height: 38px; padding: 0 9px; border: 1px solid oklch(1 0 0 / 15%); border-radius: 8px; background: oklch(0.205 0.01 60); font-size: 13.5px; color: oklch(0.97 0 0)">
+              <sc-for list="{{categories}}" as="c" hint-placeholder-count="3">
+                <option value="{{c}}">{{c}}</option>
+              </sc-for>
+            </select>
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 500; color: oklch(0.8 0 0)">Subcategory</span>
+            <select value="{{subcategory}}" onChange="{{setSub}}" style="height: 38px; padding: 0 9px; border: 1px solid oklch(1 0 0 / 15%); border-radius: 8px; background: oklch(0.205 0.01 60); font-size: 13.5px; color: oklch(0.97 0 0)">
+              <sc-for list="{{subcategories}}" as="sc" hint-placeholder-count="3">
+                <option value="{{sc}}">{{sc}}</option>
+              </sc-for>
+            </select>
+          </label>
+        </div>
+
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: oklch(0.8 0 0)">Brief for the team</span>
+          <textarea value="{{brief}}" onChange="{{setBrief}}" rows="4" placeholder="What this video must cover, and anything the writer needs to know." style="padding: 10px 11px; border: 1px solid oklch(1 0 0 / 15%); border-radius: 8px; background: oklch(0.205 0.01 60); font-size: 13.5px; line-height: 1.6; color: oklch(0.97 0 0); resize: vertical"></textarea>
+        </label>
+
+        <label style="display: flex; flex-direction: column; gap: 6px">
+          <span style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: oklch(0.8 0 0)">YouTube description <span style="{{descFlag}}">needed to publish</span></span>
+          <textarea value="{{description}}" onChange="{{setDescription}}" rows="4" placeholder="Goes straight into YouTube. Affiliate links get added later." style="padding: 10px 11px; border: 1px solid {{descBorder}}; border-radius: 8px; background: oklch(0.205 0.01 60); font-size: 13.5px; line-height: 1.6; color: oklch(0.97 0 0); resize: vertical"></textarea>
+        </label>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.6 0 0)">The people</span>
+          <div style="flex-grow: 1"></div>
+          <span style="font-size: 11.5px; color: oklch(0.62 0 0)">{{defaultsNote}}</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <sc-for list="{{roles}}" as="role" hint-placeholder-count="6">
+            <label style="display: flex; align-items: center; gap: 12px">
+              <span style="width: 118px; flex-shrink: 0; font-size: 12.5px; color: oklch(0.78 0 0)">{{role.label}}</span>
+              <select value="{{role.value}}" onChange="{{role.set}}" style="flex-grow: 1; height: 38px; padding: 0 9px; border: 1px solid {{role.border}}; border-radius: 8px; background: oklch(0.205 0.01 60); font-size: 13.5px; color: oklch(0.97 0 0)">
+                <option value="">— pick someone —</option>
+                <sc-for list="{{role.options}}" as="person" hint-placeholder-count="3">
+                  <option value="{{person}}">{{person}}</option>
+                </sc-for>
+              </select>
+            </label>
+          </sc-for>
+        </div>
+
+        <p style="margin: 4px 0 0; font-size: 11.5px; line-height: 1.6; color: oklch(0.55 0 0)">Leaving the reviewer empty means that stage is approved the moment it is submitted.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 16px; padding: 16px 26px; border-top: 1px solid oklch(1 0 0 / 12%); background: oklch(0.205 0.01 60)">
+    <div style="display: flex; align-items: center; gap: 9px">
+      <div style="{{readyDot}}"></div>
+      <span style="font-size: 13px; color: {{readyColor}}">{{readyLine}}</span>
+    </div>
+    <div style="flex-grow: 1"></div>
+    <button style="display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 13.5px; font-weight: 500; color: oklch(0.65 0 0)">Cancel</button>
+    <button onClick="{{create}}" style="{{createStyle}}">{{createLabel}}</button>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#fb923c","options":["#fb923c","#60a5fa","#34d399","#a78bfa"],"tsType":"string"},"$preview":{"width":940,"height":840}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      title: 'Best realistic AI avatar generator for YouTube',
+      category: 'Software tutorials',
+      subcategory: 'Big comparison',
+      brief: 'Compare HeyGen, Synthesia, Google Flow and Colossyan. Pick two winners and say why.',
+      description: '',
+      created: false,
+      people: {}
+    };
+    this.state.people = this.defaultsFor(this.state.category);
+  }
+
+  defaultsFor(category) {
+    var table = {
+      'Software tutorials': { script: 'Sam', recording: 'Anusha', editing: 'John', thumbnail: 'Tara', upload: 'Uma', reviewer: 'Riya' },
+      'Production': { script: 'Nina', recording: 'Anusha', editing: 'John', thumbnail: 'Tara', upload: 'Uma', reviewer: 'Sean' },
+      'Growth': { script: 'Sam', recording: '', editing: 'John', thumbnail: 'Tara', upload: 'Uma', reviewer: 'Riya' }
+    };
+    var d = table[category] || table['Software tutorials'];
+    return Object.assign({}, d);
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#fb923c';
+    var st = this.state;
+
+    var roleDefs = [
+      { key: 'script', label: 'Script writer', options: ['Sam', 'Nina'] },
+      { key: 'recording', label: 'Recorder', options: ['Anusha', 'Sam'] },
+      { key: 'editing', label: 'Video editor', options: ['John', 'kb - video editor'] },
+      { key: 'thumbnail', label: 'Thumbnail maker', options: ['Tara'] },
+      { key: 'upload', label: 'Uploader', options: ['Uma', 'Sean'] },
+      { key: 'reviewer', label: 'Reviewer', options: ['Riya', 'Sean'] }
+    ];
+
+    var missing = [];
+    if (!(st.title || '').trim()) missing.push('title');
+    if (!(st.brief || '').trim()) missing.push('brief');
+    if (!(st.description || '').trim()) missing.push('description');
+    roleDefs.forEach(function (r) {
+      if (r.key === 'reviewer') return;
+      if (!(st.people[r.key] || '').trim()) missing.push(r.label.toLowerCase());
+    });
+
+    var ready = missing.length === 0;
+    var roles = roleDefs.map(function (r) {
+      var v = st.people[r.key] || '';
+      var needed = r.key !== 'reviewer' && !v;
+      return {
+        label: r.label,
+        value: v,
+        options: r.options,
+        border: needed ? accent : 'oklch(1 0 0 / 15%)',
+        set: function (e) {
+          var p = Object.assign({}, self.state.people);
+          p[r.key] = e.target.value;
+          self.setState({ people: p });
+        }
+      };
+    });
+
+    var btn = 'display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 18px;border:0;border-radius:9px;font-family:inherit;font-size:13.5px;font-weight:600;';
+
+    var readyLine = st.created
+      ? "Created. It is now on Sam's list."
+      : ready ? 'Everything is set. This can go straight to the script writer.'
+      : missing.length === 1 ? 'One thing left: ' + missing[0]
+      : missing.length + ' things left: ' + missing.join(', ');
+
+    return {
+      accent: accent,
+      title: st.title,
+      category: st.category,
+      subcategory: st.subcategory,
+      brief: st.brief,
+      description: st.description,
+      categories: ['Software tutorials', 'Production', 'Growth'],
+      subcategories: ['Big comparison', 'Small comparison', 'How to', 'Full course'],
+      roles: roles,
+      defaultsNote: 'pre-filled from your ' + st.category + ' defaults',
+      descFlag: (st.description || '').trim()
+        ? 'display:none'
+        : 'border-radius:999px;background:oklch(0.3 0.09 54);padding:2px 8px;font-size:10px;font-weight:600;letter-spacing:0.02em;color:' + accent + ';text-transform:none;',
+      descBorder: (st.description || '').trim() ? 'oklch(1 0 0 / 15%)' : accent,
+      readyLine: readyLine,
+      readyColor: ready ? '#34d399' : 'oklch(0.72 0 0)',
+      readyDot: 'width:7px;height:7px;border-radius:999px;background:' + (ready ? '#34d399' : accent) + ';',
+      createLabel: st.created ? 'Created' : 'Create video',
+      createStyle: st.created
+        ? btn + 'background:oklch(0.27 0.01 60);color:#34d399;'
+        : ready ? btn + 'background:' + accent + ';color:oklch(0.18 0.01 60);'
+        : btn + 'background:oklch(0.27 0.01 60);color:oklch(0.5 0 0);cursor:not-allowed;',
+      create: function () { if (ready) self.setState({ created: true }); },
+      setTitle: function (e) { self.setState({ title: e.target.value }); },
+      setBrief: function (e) { self.setState({ brief: e.target.value }); },
+      setDescription: function (e) { self.setState({ description: e.target.value }); },
+      setSub: function (e) { self.setState({ subcategory: e.target.value }); },
+      setCategory: function (e) {
+        var c = e.target.value;
+        self.setState({ category: c, people: self.defaultsFor(c) });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
