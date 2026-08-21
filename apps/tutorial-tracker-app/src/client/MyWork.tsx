@@ -247,8 +247,14 @@ export function MyWork({
               const gateStatusCol = gateStage ? colOf(gateStage, "status") : undefined;
               const gateStatus = gateStage && gateStatusCol ? normalizeStatusIn(gateStage, (item.row as Record<string, unknown>)[gateStatusCol] as string) : undefined;
               const gateDays = gateStatusCol ? daysSince(sinceOf(item.row as Record<string, unknown>, gateStatusCol)) : null;
+              // "in In Progress for 8d" read as a typo. Say it the way a person would.
+              const waitLabel = gateStatus === "To Do" ? "not started yet"
+                : gateStatus === "In Progress" ? "being worked on"
+                : gateStatus === "In Review" ? "with a reviewer"
+                : gateStatus === "Need Changes" ? "sent back for changes"
+                : gateStatus?.toLowerCase();
               const waitText = gateStatus
-                ? `opens after ${gateLabel} — in ${gateStatus} for ${gateDays ?? 0}d`
+                ? `opens after ${gateLabel} — ${waitLabel}${gateDays ? `, ${gateDays}d now` : ""}`
                 : `Opens after ${gateLabel} is approved`;
               return (
                 <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-[10px] border border-dashed border-border bg-muted/30 p-4 text-left transition-all hover:border-foreground/15" onClick={() => openDetail(item.row, item.stage.id, "doer")}>

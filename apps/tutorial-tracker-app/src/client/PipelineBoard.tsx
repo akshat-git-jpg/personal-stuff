@@ -58,14 +58,24 @@ function ageOf(row: Row): number | null {
   return daysSince(sinceOf(r as Record<string, unknown>, statusColOf(stage)));
 }
 
-type SortCol = "title" | "age";
+// "title" / "age", or a stage id — sorting by a stage ranks its progress
+// (done > happening now > not open), which is what the old matrix columns did.
+type SortCol = string;
 type SortState = { col: SortCol; dir: "asc" | "desc" };
 
-function compareRows(a: Row, b: Row, sort: SortState): number {
+function stageRank(row: Row, pipeline: PipelineDef, stageId: string): number {
+  const stage = pipeline.stages.find((s) => s.id === stageId);
+  if (!stage) return -1;
+  const state = stageStepState(pipeline, stage, row as Record<string, string>);
+  return state === "done" ? 2 : state === "active" ? 1 : 0;
+}
+
+function compareRows(a: Row, b: Row, sort: SortState, pipeline: PipelineDef): number {
   const titleOf = (r: Row) => ((r as Record<string, string>).video_title ?? "").toLowerCase();
   let cmp: number;
   if (sort.col === "age") cmp = (ageOf(a) ?? -1) - (ageOf(b) ?? -1);
-  else cmp = titleOf(a).localeCompare(titleOf(b));
+  else if (sort.col === "title") cmp = titleOf(a).localeCompare(titleOf(b));
+  else cmp = stageRank(a, pipeline, sort.col) - stageRank(b, pipeline, sort.col);
   if (cmp === 0) cmp = titleOf(a).localeCompare(titleOf(b));
   return sort.dir === "asc" ? cmp : -cmp;
 }
@@ -93,7 +103,7 @@ export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelet
   if (filtered.length === 0) {
     return <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">No videos match these filters.</div>;
   }
-  const sorted = sort ? [...filtered].sort((a, b) => compareRows(a, b, sort)) : filtered;
+  const sorted = sort ? [...filtered].sort((a, b) => compareRows(a, b, sort, pipeline)) : filtered;
 
   const caret = (col: SortCol) => sort?.col === col
     ? (sort.dir === "asc" ? <ArrowUp className="inline size-3" /> : <ArrowDown className="inline size-3" />)
@@ -104,7 +114,10 @@ export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelet
   const headCls = "text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground";
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card">
+    // overflow-x-auto makes THIS div the sticky scrollport, which un-pins the
+    // header from the page and parks it over the first row. So the scroll is
+    // only switched on below the width where the row actually fits.
+    <div className="overflow-x-auto rounded-xl border border-border bg-card min-[920px]:overflow-x-visible">
       <div className="min-w-[860px]">
 
         <div className="sticky top-[var(--app-header-h)] z-20 flex items-center gap-4 border-b border-border bg-[color-mix(in_oklab,var(--muted)_50%,var(--background))] px-4 py-2.5">
@@ -114,7 +127,9 @@ export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelet
           </button>
           <div className="flex min-w-[240px] flex-1 items-center gap-1.5">
             {pipeline.stages.map((s) => (
-              <div key={s.id} className={cn(headCls, "flex-1 truncate text-center")} title={s.label}>{s.label}</div>
+              <button key={s.id} type="button" onClick={() => toggleSort(s.id)} aria-sort={ariaSort(s.id)}
+                className={cn(headCls, "flex-1 truncate text-center hover:text-foreground")}
+                title={`Sort by ${s.label}`}>{s.label} {caret(s.id)}</button>
             ))}
           </div>
           <div className={cn(headCls, "w-[150px] shrink-0")}>Now with</div>
