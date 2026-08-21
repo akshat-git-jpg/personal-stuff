@@ -150,7 +150,7 @@ export function AssignmentDefaults({ categoryOptions, subcategoryOptions, system
               );
             })}
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground" data-testid="defaults-draft-preview">
             A new video here starts with: {cols.map((col) => {
               const email = draft.assignments[col];
               const label = fieldLabel(col).toLowerCase();
@@ -187,7 +187,7 @@ export function AssignmentDefaults({ categoryOptions, subcategoryOptions, system
                   <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => void remove(s)} disabled={busy}>Delete</Button>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground" data-testid="defaults-set-preview">
                 A new video here starts with: {cols.map((col) => {
                   const email = s.assignments[col];
                   const label = fieldLabel(col).toLowerCase();
