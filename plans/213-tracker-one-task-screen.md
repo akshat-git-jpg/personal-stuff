@@ -10,7 +10,7 @@ touches: [apps/tutorial-tracker-app/src/client/MyWork.tsx, apps/tutorial-tracker
 
 mutation_apply: sed -i '' 's/const FOCUS_COUNT = 1;/const FOCUS_COUNT = 99;/' apps/tutorial-tracker-app/src/client/MyWork.tsx
 mutation_command: cd apps/tutorial-tracker-app && npm run e2e -- e2e/one-task.spec.ts
-mutation_expect: one-task
+mutation_expect: toHaveCount(expected) failed
 mutation_cwd:
 mutation_timeout: 900
 ---
