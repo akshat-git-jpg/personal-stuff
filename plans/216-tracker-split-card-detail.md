@@ -25,7 +25,7 @@ mutation_timeout:
 - **Done criteria** (terse): `CardDetail.tsx` under ~500 lines, no affiliate code in it, the generator reachable and working from the Links tab, all pre-existing specs green.
 - **Stop conditions** (terse): the link generator needs per-card state that only `CardDetail` holds, or the `persistField` write-queue would have to change.
 - **Test / verification for success**: `e2e/card-detail.spec.ts` asserts the panel no longer offers link generation and that the Links tab does.
-- **Open points for plan readiness**: `mutation_apply` is deliberately blank — this plan adds no new gate, it moves code. The gate is the pre-existing spec suite plus the new placement assertions.
+- **Open points for plan readiness**: none. (`mutation_apply` is blank on purpose — see Maintenance notes.)
 
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving on. If

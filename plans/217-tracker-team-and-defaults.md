@@ -25,7 +25,7 @@ mutation_timeout:
 - **Done criteria** (terse): both screens match the shipped card/typography/spacing vocabulary, readable in dark mode, defaults screen previews the inherited people, new e2e spec green.
 - **Stop conditions** (terse): the membership write path (`saveTeamMember`) would need to change.
 - **Test / verification for success**: `e2e/team.spec.ts` drives both screens and asserts the defaults preview reflects a change.
-- **Open points for plan readiness**: `mutation_apply` blank — presentation plan, no new gate logic. The e2e spec plus the existing suite is the gate.
+- **Open points for plan readiness**: none. (`mutation_apply` is blank on purpose — see Maintenance notes.)
 
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving on. If
@@ -150,5 +150,6 @@ The shot script lands on the default tab; extend it with an optional selector to
 
 ## Maintenance notes
 
+- No mutation gate: this plan adds no gate logic, it restyles two screens. The new e2e spec plus the existing suite is the safety net.
 - Membership is per `(email, system_id)`. A person legitimately appears once per system they work in; that is not duplication and the UI should not collapse it away.
 - The defaults preview is the same lookup plan 215's create screen uses. If one changes, check the other.
