@@ -1,0 +1,247 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background: oklch(0.975 0.005 80); color: oklch(0.205 0 0); }
+    * { box-sizing: border-box; }
+    a { color: oklch(0.52 0.14 54); text-decoration: none; }
+    a:hover { color: oklch(0.42 0.13 54); }
+    input { font-family: inherit; }
+    input:focus { outline: none; }
+    button:not(:disabled) { cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="min-height: 100%; background: oklch(0.975 0.005 80)">
+
+  <header style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 20px; border-bottom: 1px solid oklch(0.905 0.006 80); background: oklch(0.995 0.002 80)">
+    <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: {{accent}}; color: oklch(0.205 0 0); font-size: 13px; font-weight: 700">T</div>
+    <div style="font-size: 15px; font-weight: 600; letter-spacing: -0.012em">Tutorials Tracker</div>
+    <div style="flex-grow: 1"></div>
+    <div style="font-size: 13px; font-weight: 500; color: oklch(0.42 0 0)">Sam</div>
+    <div style="border-radius: 999px; background: oklch(0.945 0.006 80); padding: 4px 10px; font-size: 11px; font-weight: 500; color: oklch(0.48 0 0)">Script &middot; Recording</div>
+    <button style="height: 30px; padding: 0 12px; border: 1px solid oklch(0.905 0.006 80); border-radius: 8px; background: oklch(0.995 0.002 80); font: inherit; font-size: 12.5px; font-weight: 500; color: oklch(0.42 0 0)">Sign out</button>
+  </header>
+
+  <div style="display: flex; justify-content: center; padding: 36px 20px 56px">
+    <div style="display: flex; flex-direction: column; gap: 34px; width: 100%; max-width: 760px">
+
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.022em; line-height: 1.2">Your work</h1>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5; color: oklch(0.556 0 0)">{{summary}}</p>
+      </div>
+
+      <sc-if value="{{hasDoNow}}" hint-placeholder-val="{{ true }}">
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="width: 6px; height: 6px; border-radius: 999px; background: {{accent}}"></span>
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: oklch(0.42 0 0)">Do now</span>
+          <span style="border-radius: 999px; background: oklch(0.93 0.006 80); padding: 2px 8px; font-size: 10.5px; font-weight: 700; color: oklch(0.5 0 0)">{{doNowCount}}</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <sc-for list="{{doNow}}" as="item" hint-placeholder-count="3">
+            <article style="display: flex; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid oklch(0.905 0.006 80); border-radius: 10px; background: oklch(0.995 0.002 80); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05)">
+
+              <div style="display: flex; align-items: flex-start; gap: 16px">
+                <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1">
+                  <h3 style="margin: 0; font-size: 17px; font-weight: 600; line-height: 1.32; letter-spacing: -0.013em; text-wrap: pretty">{{item.title}}</h3>
+                  <div style="font-size: 12.5px; color: oklch(0.556 0 0)">{{item.meta}}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px; font-size: 11.5px; font-variant-numeric: tabular-nums; color: oklch(0.65 0 0); white-space: nowrap; padding-top: 3px">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5l3 1.8"></path></svg>
+                  {{item.days}}
+                </div>
+              </div>
+
+              <sc-if value="{{item.isChanges}}" hint-placeholder-val="{{ true }}">
+                <div style="border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; padding: 11px 13px; font-size: 12.5px; line-height: 1.6; color: #991b1b">
+                  <span style="font-weight: 600">Changes asked for &nbsp;</span>{{item.feedback}}
+                </div>
+              </sc-if>
+
+              <sc-if value="{{item.isTodo}}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                  <label style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 11px; border: 1px solid oklch(0.905 0.006 80); border-radius: 8px; background: oklch(0.975 0.005 80)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.62 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 10h17M8.5 3v4M15.5 3v4"></path></svg>
+                    <span style="font-size: 11.5px; color: oklch(0.556 0 0)">Finish by</span>
+                    <input type="date" value="{{item.eta}}" onChange="{{item.setEta}}" style="border: 0; background: transparent; font-size: 12.5px; font-weight: 500; color: oklch(0.205 0 0); padding: 0" />
+                  </label>
+                  <button onClick="{{item.start}}" style="{{item.primaryStyle}}">{{item.startLabel}}</button>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{item.isProgress}}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <div style="display: flex; align-items: center; gap: 9px; flex-grow: 1; height: 36px; padding: 0 11px; border: 1px solid oklch(0.905 0.006 80); border-radius: 8px; background: oklch(0.975 0.005 80)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.62 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 13.8a4.2 4.2 0 0 0 6.1.4l2.6-2.6a4.3 4.3 0 0 0-6.1-6.1l-1.5 1.5"></path><path d="M14 10.2a4.2 4.2 0 0 0-6.1-.4L5.3 12.4a4.3 4.3 0 0 0 6.1 6.1l1.5-1.5"></path></svg>
+                    <input type="text" value="{{item.link}}" onChange="{{item.setLink}}" placeholder="{{item.linkPlaceholder}}" style="flex-grow: 1; border: 0; background: transparent; font-size: 13px; color: oklch(0.205 0 0); padding: 0" />
+                  </div>
+                  <button onClick="{{item.submit}}" style="{{item.submitStyle}}">{{item.submitLabel}}</button>
+                </div>
+              </sc-if>
+
+            </article>
+          </sc-for>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{hasWaiting}}" hint-placeholder-val="{{ true }}">
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="width: 6px; height: 6px; border-radius: 999px; background: #a3a3a3"></span>
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: oklch(0.556 0 0)">With a reviewer</span>
+          <span style="border-radius: 999px; background: oklch(0.93 0.006 80); padding: 2px 8px; font-size: 10.5px; font-weight: 700; color: oklch(0.5 0 0)">{{waitingCount}}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <sc-for list="{{waiting}}" as="item" hint-placeholder-count="1">
+            <div style="display: flex; align-items: center; gap: 16px; padding: 14px 18px; border: 1px solid oklch(0.905 0.006 80); border-radius: 10px; background: oklch(0.995 0.002 80)">
+              <div style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1">
+                <div style="font-size: 15px; font-weight: 600; line-height: 1.35; letter-spacing: -0.011em">{{item.title}}</div>
+                <div style="font-size: 12.5px; color: oklch(0.556 0 0)">{{item.waitLine}}</div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.72 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      </sc-if>
+
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="width: 6px; height: 6px; border-radius: 999px; background: oklch(0.86 0 0)"></span>
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: oklch(0.62 0 0)">Not open yet</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px; padding: 14px 18px; border: 1px dashed oklch(0.885 0.006 80); border-radius: 10px; background: oklch(0.962 0.005 80)">
+          <div style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1">
+            <div style="font-size: 15px; font-weight: 600; line-height: 1.35; letter-spacing: -0.011em; color: oklch(0.4 0 0)">Faceless channel setup, start to finish</div>
+            <div style="font-size: 12.5px; color: oklch(0.62 0 0)">Your Recording turn opens once the Script is approved</div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <button onClick="{{toggleDone}}" style="display: flex; align-items: center; gap: 8px; padding: 0; border: 0; background: transparent; font: inherit">
+          <span style="width: 6px; height: 6px; border-radius: 999px; background: #10b981"></span>
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: oklch(0.556 0 0)">Finished</span>
+          <span style="border-radius: 999px; background: oklch(0.93 0.006 80); padding: 2px 8px; font-size: 10.5px; font-weight: 700; color: oklch(0.5 0 0)">{{doneCount}}</span>
+          <span style="font-size: 11.5px; color: oklch(0.65 0 0)">{{doneToggleLabel}}</span>
+        </button>
+        <sc-if value="{{doneOpen}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 12px">
+            <sc-for list="{{done}}" as="item" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 11px 18px; border: 1px solid oklch(0.915 0.006 80); border-radius: 10px; background: oklch(0.985 0.004 80)">
+                <span style="font-size: 14px; font-weight: 500; color: oklch(0.42 0 0); flex-grow: 1">{{item.title}}</span>
+                <span style="font-size: 11.5px; color: oklch(0.65 0 0)">{{item.stage}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </section>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#fb923c","options":["#fb923c","#4f7cff","#10b981","#6366f1"],"tsType":"string"},"$preview":{"width":940,"height":1160}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      doneOpen: false,
+      items: [
+        { id: 'a', title: 'Masking explained in 4 minutes', stage: 'Script', cat: 'Editing › Effects',
+          days: '2d', phase: 'changes', eta: '2026-08-25', link: 'docs.google.com/document/d/masking-script',
+          feedback: 'Intro runs too long. Cut it to about 15 seconds and lead with the payoff shot.', reviewer: 'Riya' },
+        { id: 'b', title: 'How to color grade in DaVinci Resolve', stage: 'Script', cat: 'Editing › Color',
+          days: '3d', phase: 'todo', eta: '2026-08-26', link: '', feedback: '', reviewer: 'Riya' },
+        { id: 'c', title: 'Lighting on a budget', stage: 'Recording', cat: 'Production › Lighting',
+          days: '4d', phase: 'todo', eta: '2026-08-28', link: '', feedback: '', reviewer: 'Sean' },
+        { id: 'd', title: '5 keyboard shortcuts that save hours', stage: 'Script', cat: 'Editing › Workflow',
+          days: '1d', phase: 'progress', eta: '2026-08-24', link: '', feedback: '', reviewer: 'Riya' },
+        { id: 'e', title: 'Exporting for YouTube without quality loss', stage: 'Script', cat: 'Editing › Export',
+          days: '2d', phase: 'review', eta: '2026-08-22', link: 'docs.google.com/document/d/export-script', feedback: '', reviewer: 'Riya' }
+      ]
+    };
+  }
+
+  patch(id, changes) {
+    this.setState({ items: this.state.items.map(function (i) { return i.id === id ? Object.assign({}, i, changes) : i; }) });
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#fb923c';
+    var base = 'display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 15px;border:0;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:-0.005em;white-space:nowrap;';
+    var primary = base + 'background:' + accent + ';color:oklch(0.205 0 0);box-shadow:0 1px 2px 0 rgb(0 0 0 / 0.06);';
+    var quiet = base + 'background:oklch(0.93 0.006 80);color:oklch(0.66 0 0);cursor:not-allowed;';
+
+    var items = this.state.items;
+    var doNow = [];
+    var waiting = [];
+
+    items.forEach(function (i) {
+      if (i.phase === 'review') {
+        waiting.push(Object.assign({}, i, { waitLine: 'Submitted, now with ' + i.reviewer + ' · ' + i.days }));
+        return;
+      }
+      var isChanges = i.phase === 'changes';
+      var isProgress = i.phase === 'progress' || isChanges;
+      var filled = (i.link || '').trim().length > 0;
+      doNow.push(Object.assign({}, i, {
+        meta: i.stage + ' · ' + i.cat,
+        isTodo: i.phase === 'todo',
+        isProgress: isProgress,
+        isChanges: isChanges,
+        startLabel: i.stage === 'Recording' ? 'Start recording' : 'Start writing',
+        linkPlaceholder: i.stage === 'Recording' ? 'Paste your recording link' : 'Paste your script link',
+        submitLabel: isChanges ? 'Resubmit for review' : 'Submit for review',
+        primaryStyle: primary,
+        submitStyle: filled ? primary : quiet,
+        setEta: function (e) { self.patch(i.id, { eta: e.target.value }); },
+        setLink: function (e) { self.patch(i.id, { link: e.target.value }); },
+        start: function () { self.patch(i.id, { phase: 'progress' }); },
+        submit: function () {
+          if (!(i.link || '').trim()) return;
+          self.patch(i.id, { phase: 'review', days: 'today' });
+        }
+      }));
+    });
+
+    var n = doNow.length;
+    var w = waiting.length;
+    var summary = (n === 0 ? 'Nothing needs you right now.' : (n === 1 ? '1 thing needs you.' : n + ' things need you.'))
+      + (w === 0 ? '' : ' ' + (w === 1 ? '1 more is' : w + ' more are') + ' with a reviewer.');
+
+    return {
+      accent: accent,
+      summary: summary,
+      doNow: doNow,
+      doNowCount: n,
+      hasDoNow: n > 0,
+      waiting: waiting,
+      waitingCount: w,
+      hasWaiting: w > 0,
+      doneCount: 7,
+      doneOpen: this.state.doneOpen,
+      doneToggleLabel: this.state.doneOpen ? 'Hide' : 'Show',
+      done: [
+        { title: 'Best budget mics for creators', stage: 'Script' },
+        { title: 'Channel trailer breakdown', stage: 'Script' },
+        { title: 'Three-point lighting in 60 seconds', stage: 'Recording' }
+      ],
+      toggleDone: function () { self.setState({ doneOpen: !self.state.doneOpen }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

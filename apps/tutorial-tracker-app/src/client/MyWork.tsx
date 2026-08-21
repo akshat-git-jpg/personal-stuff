@@ -1,8 +1,7 @@
 import type { ReviewItem, BoardRow } from "./api";
 import type { Transition } from "../shared/rbac";
 import { ReviewQueue } from "./ReviewQueue";
-import { REVIEWER_GUIDE } from "./guidance";
-import { Info, ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { pipeOf, stageByStatusColIn, stageByIdIn, normalizeStatusIn, holderOf, sinceOf, colOf } from "./stages";
 import type { StageDef, PipelineDef } from "./stages";
@@ -11,27 +10,14 @@ import { displayName } from "./api";
 import { daysSince } from "./pipeline";
 
 
-function HelpBanner({ text }: { text: string }) {
-  const [open, setOpen] = useState(true);
-  return (
-    <div className="mb-3 overflow-hidden rounded-lg border border-border bg-muted/40">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        className="flex w-full items-center gap-1.5 px-3 py-2 text-xs font-medium text-foreground/80 hover:text-foreground">
-        <Info className="size-3.5 text-primary" /> What you do here
-        {open ? <ChevronDown className="ml-auto size-3.5 text-muted-foreground" /> : <ChevronRight className="ml-auto size-3.5 text-muted-foreground" />}
-      </button>
-      {open && <p className="border-t border-border px-3 py-2 text-xs leading-relaxed text-muted-foreground">{text}</p>}
-    </div>
-  );
-}
-
 /** Which stage of the video this row is about. Without it, two stages of the
- *  same video render as two identical titles and read as a duplicate. */
+ *  same video render as two identical titles and read as a duplicate. It sits
+ *  UNDER the title now — the title is what you scan for. */
 function StageChip({ stage, pipeline, showSystem }: { stage: StageDef; pipeline: PipelineDef; showSystem?: boolean }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{stage.label}</span>
-      {showSystem && <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{pipeline.name}</span>}
+    <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+      <span>{stage.label}</span>
+      {showSystem && <><span aria-hidden="true">·</span><span>{pipeline.name}</span></>}
     </div>
   );
 }
@@ -48,6 +34,7 @@ interface WorkItem {
 export interface MyWorkProps {
   queueItems: ReviewItem[];
   onOpenQueueItem: (item: ReviewItem) => void;
+  onQueueAction: (item: ReviewItem, t: Transition) => void;
   rows: BoardRow[];
   names?: Record<string, string>;
   readOnly?: boolean;
@@ -57,11 +44,12 @@ export interface MyWorkProps {
   openDetail: (row: BoardRow, stageId?: string, as?: "doer" | "reviewer") => void;
   doAction: (row: BoardRow, t: Transition) => void;
   transitionsForStageCol: (row: BoardRow, statusCol: string) => Transition[];
+  onSaveField: (row: BoardRow, col: string, value: string, prev: string) => void;
 }
 
 export function MyWork({ 
-  queueItems, onOpenQueueItem, rows, names, readOnly, isAdmin, showDwell, 
-  handleDelete, openDetail, doAction, transitionsForStageCol 
+  queueItems, onOpenQueueItem, onQueueAction, rows, names, readOnly, isAdmin, showDwell, 
+  handleDelete, openDetail, doAction, transitionsForStageCol, onSaveField
 }: MyWorkProps) {
   
   const allItems: WorkItem[] = [];
@@ -75,7 +63,7 @@ export function MyWork({
       const stage = stageByStatusColIn(pipeline, statusCol);
       if (stage) {
         pipelines.add(pipeline.id);
-        const status = normalizeStatusIn(stage, (row as any)[statusCol]);
+        const status = normalizeStatusIn(stage, (row as Record<string, unknown>)[statusCol] as string);
         allItems.push({ row, statusCol, stage, pipeline, status });
       }
     }
@@ -85,7 +73,7 @@ export function MyWork({
       const stage = stageByStatusColIn(pipeline, statusCol);
       if (stage) {
         pipelines.add(pipeline.id);
-        const status = normalizeStatusIn(stage, (row as any)[statusCol]);
+        const status = normalizeStatusIn(stage, (row as Record<string, unknown>)[statusCol] as string);
         allItems.push({ row, statusCol, stage, pipeline, status, upcoming: true });
       }
     }
@@ -129,8 +117,8 @@ export function MyWork({
     const rankA = statusRank(a.status);
     const rankB = statusRank(b.status);
     if (rankA !== rankB) return rankA - rankB;
-    const etaA = ((a.row as any)[`${a.stage.id}_eta`]) || "";
-    const etaB = ((b.row as any)[`${b.stage.id}_eta`]) || "";
+    const etaA = String((a.row as Record<string, unknown>)[`${a.stage.id}_eta`] ?? "");
+    const etaB = String((b.row as Record<string, unknown>)[`${b.stage.id}_eta`] ?? "");
     if (etaA && !etaB) return -1;
     if (!etaA && etaB) return 1;
     return etaA.localeCompare(etaB);
@@ -179,8 +167,7 @@ export function MyWork({
             <h2 className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">Needs your review</h2>
             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{queueItems.length}</span>
           </div>
-          <HelpBanner text={REVIEWER_GUIDE} />
-          <ReviewQueue items={queueItems} onOpen={onOpenQueueItem} />
+          <ReviewQueue items={queueItems} onOpen={onOpenQueueItem} onAction={onQueueAction} multiSystem={multiSystem} />
         </section>
       )}
 
@@ -209,7 +196,8 @@ export function MyWork({
                 onDelete={() => handleDelete(item.row.row_id, item.row.video_title ?? "")}
                 transitions={transitionsForStageCol(item.row, item.statusCol).filter((t) => t.by === "doer")}
                 onOpen={() => openDetail(item.row, item.stage.id, "doer")}
-                onAction={(t) => doAction(item.row, t)} 
+                onAction={(t) => doAction(item.row, t)}
+                onSaveField={(col, value, prev) => onSaveField(item.row, col, value, prev)}
               />
             ))}
           </div>
@@ -232,9 +220,9 @@ export function MyWork({
               const dayLabel = days === null ? "" : ` · ${days}d`;
               const note = thenNote(item.row.row_id);
               return (
-                <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-card p-3 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-[10px] border border-border bg-card p-4 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                  <div className="text-[15px] font-semibold leading-snug tracking-tight text-balance">{item.row.video_title || "(no title)"}</div>
                   <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
-                  <div className="text-sm font-semibold">{item.row.video_title || "(no title)"}</div>
                   <div className="text-xs text-muted-foreground">With {who}{dayLabel}</div>
                   {note && <div className="text-[11px] text-muted-foreground/70">{note}</div>}
                 </div>
@@ -263,9 +251,9 @@ export function MyWork({
                 ? `opens after ${gateLabel} — in ${gateStatus} for ${gateDays ?? 0}d`
                 : `Opens after ${gateLabel} is approved`;
               return (
-                <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-muted/30 p-3 text-left shadow-xs transition-all hover:border-foreground/15 opacity-70" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-[10px] border border-dashed border-border bg-muted/30 p-4 text-left transition-all hover:border-foreground/15" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                  <div className="text-[15px] font-semibold leading-snug tracking-tight text-balance">{item.row.video_title || "(no title)"}</div>
                   <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
-                  <div className="text-sm font-semibold">{item.row.video_title || "(no title)"}</div>
                   <div className="text-xs text-muted-foreground">{waitText}</div>
                 </div>
               );
@@ -286,9 +274,9 @@ export function MyWork({
           {showDone && (
             <div className="flex flex-col gap-3">
               {done.map((item) => (
-                <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-card p-3 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-[10px] border border-border bg-card p-4 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                  <div className="text-[15px] font-semibold leading-snug tracking-tight text-balance">{item.row.video_title || "(no title)"}</div>
                   <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
-                  <div className="text-sm font-semibold">{item.row.video_title || "(no title)"}</div>
                   <div className="text-xs text-muted-foreground">Completed</div>
                 </div>
               ))}

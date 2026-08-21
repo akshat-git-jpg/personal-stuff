@@ -21,7 +21,9 @@ test("reviewer has a populated review queue", async ({ page }) => {
 
 test("admin sees the pipeline matrix", async ({ page }) => {
   await loginAs(page, PERSONAS.sean);
-  await expect(page.getByRole("button", { name: "Board", exact: true })).toBeVisible();
+  // Tab renamed "Board" → "All videos": "Board" named neither what it listed
+  // nor how it differed from "My work".
+  await expect(page.getByRole("button", { name: "All videos", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Team", exact: true })).toBeVisible();
 });
 

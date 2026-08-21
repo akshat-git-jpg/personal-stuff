@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background: oklch(0.995 0.002 80); color: oklch(0.205 0 0); }
+    * { box-sizing: border-box; }
+    a { color: oklch(0.52 0.14 54); text-decoration: none; }
+    a:hover { color: oklch(0.42 0.13 54); }
+    input { font-family: inherit; }
+    input:focus { outline: none; }
+    button:not(:disabled) { cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="display: flex; flex-direction: column; min-height: 100%; background: oklch(0.995 0.002 80); border-left: 1px solid oklch(0.905 0.006 80)">
+
+  <div style="display: flex; align-items: flex-start; gap: 14px; padding: 20px 22px 16px; border-bottom: 1px solid oklch(0.915 0.006 80)">
+    <div style="display: flex; flex-direction: column; gap: 5px; flex-grow: 1">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600; line-height: 1.3; letter-spacing: -0.016em; text-wrap: pretty">Lighting on a budget</h2>
+      <div style="font-size: 12.5px; color: oklch(0.556 0 0)">Production › Lighting &nbsp;·&nbsp; Standard</div>
+    </div>
+    <button style="display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 0; border-radius: 8px; background: oklch(0.955 0.005 80); color: oklch(0.5 0 0); flex-shrink: 0">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 5px; padding: 16px 22px 18px">
+    <sc-for list="{{segments}}" as="seg" hint-placeholder-count="6">
+      <div style="{{seg.style}}"></div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; padding: 0 22px 28px">
+    <sc-for list="{{stages}}" as="stage" hint-placeholder-count="6">
+      <div style="{{stage.wrapStyle}}">
+
+        <div onClick="{{stage.toggle}}" style="{{stage.headStyle}}">
+          <div style="{{stage.markStyle}}">
+            <sc-if value="{{stage.isDone}}" hint-placeholder-val="{{ true }}">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"></path></svg>
+            </sc-if>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
+            <div style="{{stage.labelStyle}}">{{stage.label}}</div>
+            <div style="font-size: 12px; color: oklch(0.62 0 0)">{{stage.sub}}</div>
+          </div>
+          <sc-if value="{{stage.isNow}}" hint-placeholder-val="{{ true }}">
+            <span style="border-radius: 999px; background: #fef3c7; padding: 3px 9px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: #92400e">Your turn</span>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{stage.showWork}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 13px; margin: 4px 0 6px 34px; padding: 15px 16px; border: 1px solid oklch(0.905 0.006 80); border-radius: 10px; background: oklch(0.972 0.005 80)">
+            <p style="margin: 0; font-size: 13px; line-height: 1.65; color: oklch(0.35 0 0)">{{instruction}}</p>
+            <div style="display: flex; align-items: center; gap: 9px">
+              <label style="display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 11px; border: 1px solid oklch(0.9 0.006 80); border-radius: 8px; background: oklch(0.995 0.002 80)">
+                <span style="font-size: 11.5px; color: oklch(0.556 0 0)">Finish by</span>
+                <input type="date" value="{{eta}}" onChange="{{setEta}}" style="border: 0; background: transparent; font-size: 12.5px; font-weight: 500; color: oklch(0.205 0 0); padding: 0" />
+              </label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 9px; height: 36px; padding: 0 11px; border: 1px solid oklch(0.9 0.006 80); border-radius: 8px; background: oklch(0.995 0.002 80)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.62 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 13.8a4.2 4.2 0 0 0 6.1.4l2.6-2.6a4.3 4.3 0 0 0-6.1-6.1l-1.5 1.5"></path><path d="M14 10.2a4.2 4.2 0 0 0-6.1-.4L5.3 12.4a4.3 4.3 0 0 0 6.1 6.1l1.5-1.5"></path></svg>
+              <input type="text" value="{{link}}" onChange="{{setLink}}" placeholder="Paste your recording link" style="flex-grow: 1; border: 0; background: transparent; font-size: 13px; color: oklch(0.205 0 0); padding: 0" />
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <button onClick="{{submit}}" style="{{submitStyle}}">Submit for review</button>
+              <span style="font-size: 11.5px; color: oklch(0.62 0 0)">{{submitHint}}</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{stage.showWaiting}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; align-items: center; gap: 9px; margin: 4px 0 6px 34px; padding: 12px 14px; border: 1px solid oklch(0.905 0.006 80); border-radius: 10px; background: oklch(0.972 0.005 80); font-size: 12.5px; color: oklch(0.42 0 0)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.6 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5l3 1.8"></path></svg>
+            Sent to Anusha. Nothing more to do here until she replies.
+          </div>
+        </sc-if>
+
+        <sc-if value="{{stage.showDone}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; align-items: center; gap: 10px; margin: 4px 0 6px 34px; padding: 12px 14px; border: 1px solid oklch(0.915 0.006 80); border-radius: 10px; background: oklch(0.975 0.004 80)">
+            <a href="#" style="display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 500">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6"></path><path d="M20 4l-8.5 8.5"></path><path d="M18 14.5V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V7.5A1.5 1.5 0 0 1 5 6h4.5"></path></svg>
+              {{stage.linkLabel}}
+            </a>
+            <div style="flex-grow: 1"></div>
+            <span style="font-size: 11.5px; color: oklch(0.62 0 0)">{{stage.approvedBy}}</span>
+          </div>
+        </sc-if>
+
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#fb923c","options":["#fb923c","#4f7cff","#10b981","#6366f1"],"tsType":"string"},"$preview":{"width":560,"height":920}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: 'recording', eta: '2026-08-28', link: '', submitted: false };
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#fb923c';
+    var current = 2;
+
+    var defs = [
+      { id: 'topic', label: 'Topic', sub: 'Brief written by Sean · 12 Aug', linkLabel: 'Open the brief', approvedBy: 'Sean' },
+      { id: 'script', label: 'Script', sub: 'Sam · approved 18 Aug', linkLabel: 'Open the script', approvedBy: 'approved by Riya' },
+      { id: 'recording', label: 'Recording', sub: 'Assigned to you · Anusha reviews it', linkLabel: 'Open the recording', approvedBy: '' },
+      { id: 'editing', label: 'Editing', sub: 'Opens once Recording is approved', linkLabel: '', approvedBy: '' },
+      { id: 'thumbnail', label: 'Thumbnail', sub: 'Opens once Editing is approved', linkLabel: '', approvedBy: '' },
+      { id: 'upload', label: 'Upload', sub: 'Opens once the Thumbnail is approved', linkLabel: '', approvedBy: '' }
+    ];
+
+    var segments = [];
+    for (var s = 0; s < 6; s = s + 1) {
+      var bg = s < current ? '#10b981' : (s === current ? accent : 'oklch(0.915 0.006 80)');
+      var ring = s === current ? 'box-shadow:0 0 0 3px rgb(251 146 60 / 0.18);' : '';
+      segments.push({ style: 'flex-grow:1;height:7px;border-radius:4px;background:' + bg + ';' + ring });
+    }
+
+    var stages = defs.map(function (d, i) {
+      var isDone = i < current;
+      var isNow = i === current;
+      var isLater = i > current;
+      var open = self.state.open === d.id;
+      var mark = isDone
+        ? 'display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#10b981;flex-shrink:0;'
+        : (isNow
+          ? 'display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:' + accent + ';box-shadow:0 0 0 4px rgb(251 146 60 / 0.16);flex-shrink:0;'
+          : 'display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:oklch(0.995 0.002 80);border:1.5px solid oklch(0.885 0.006 80);flex-shrink:0;');
+      var sub = isNow && self.state.submitted ? 'Submitted, now with Anusha' : d.sub;
+      return {
+        label: d.label,
+        sub: sub,
+        linkLabel: d.linkLabel,
+        approvedBy: d.approvedBy,
+        isDone: isDone,
+        isNow: isNow && !self.state.submitted,
+        showWork: isNow && open && !self.state.submitted,
+        showDone: isDone && open,
+        showWaiting: isNow && self.state.submitted,
+        markStyle: mark,
+        labelStyle: 'font-size:14.5px;font-weight:600;letter-spacing:-0.011em;color:'
+          + (isLater ? 'oklch(0.6 0 0)' : 'oklch(0.205 0 0)') + ';',
+        headStyle: 'display:flex;align-items:center;gap:12px;padding:11px 2px;'
+          + (isLater ? '' : 'cursor:pointer;'),
+        wrapStyle: 'display:flex;flex-direction:column;border-bottom:1px solid oklch(0.935 0.006 80);',
+        toggle: function () { if (isLater) return; self.setState({ open: open ? '' : d.id }); }
+      };
+    });
+
+    var filled = (this.state.link || '').trim().length > 0;
+    var base = 'display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 15px;border:0;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:-0.005em;white-space:nowrap;';
+
+    return {
+      accent: accent,
+      segments: segments,
+      stages: stages,
+      instruction: 'Screen-record the three-point setup with the cheap lights from the brief. Keep it under eight minutes and leave room for the voiceover.',
+      eta: this.state.eta,
+      link: this.state.link,
+      setEta: function (e) { self.setState({ eta: e.target.value }); },
+      setLink: function (e) { self.setState({ link: e.target.value }); },
+      submit: function () { if (!filled) return; self.setState({ submitted: true, open: 'recording' }); },
+      submitStyle: filled
+        ? base + 'background:' + accent + ';color:oklch(0.205 0 0);box-shadow:0 1px 2px 0 rgb(0 0 0 / 0.06);'
+        : base + 'background:oklch(0.93 0.006 80);color:oklch(0.66 0 0);cursor:not-allowed;',
+      submitHint: filled ? '' : 'Paste the link first'
+    };
+  }
+}
+</script>
+</body>
+</html>

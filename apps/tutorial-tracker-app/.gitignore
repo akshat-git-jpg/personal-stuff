@@ -22,7 +22,11 @@ dist-ssr
 /blob-report
 /playwright/.cache
 /docs/shots
+/docs/redesign/*.png
 /e2e/__screenshots__
+
+# Generated design-canvas bundle (rebuilt from the .dc.html sources)
+/docs/redesign/tutorial-tracker-redesign.html
 
 # Editor directories and files
 .vscode/*

@@ -3,11 +3,9 @@ import type { Column } from "../shared/columns";
 import type { Transition } from "../shared/rbac";
 import { pipeOf, stageByStatusColIn } from "./stages";
 import {
-  applyTransition, getReviewQueue, deleteVideo, applyDefaults, getDefaults,
+  applyTransition, getReviewQueue, deleteVideo, applyDefaults, getDefaults, updateCell,
   type BoardRow, type ReviewItem, type AssignmentDefaultRow,
 } from "./api";
-import { STATUS_LEGEND } from "./status";
-import { StatusPill } from "./Card";
 import { CardDetail } from "./CardDetail";
 import { PipelineBoard } from "./PipelineBoard";
 import { TeamPanel } from "./TeamPanel";
@@ -15,7 +13,8 @@ import { NewVideoDialog } from "./NewVideoDialog";
 import { MyWork } from "./MyWork";
 import { AttentionPanel } from "./AttentionPanel";
 import { LinkDriftPanel } from "./LinkDrift";
-import { Filters, EMPTY_FILTERS, type AdminFilters } from "./Filters";
+import { Filters } from "./Filters";
+import { EMPTY_FILTERS, type AdminFilters } from "./filterModel";
 import { activeStage } from "./pipeline";
 import { getPipeline } from "./stages";
 import { Plus } from "lucide-react";
@@ -55,14 +54,6 @@ function Toast({ message }: { message: string }) {
   );
 }
 
-export function StatusLegend() {
-  return (
-    <div className="mb-3 flex flex-wrap items-center gap-1.5">
-      {STATUS_LEGEND.map((s) => <StatusPill key={s} status={s} />)}
-    </div>
-  );
-}
-
 export function Board({ roles, stages, pipelines, columns, rows, names, memberRoles = {}, memberships = {}, readOnly, viewerEmail, reload }: BoardProps) {
   const isAdmin = roles.includes("Admin");
   // Reviewing is an explicit role, not an Admin default.
@@ -86,7 +77,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
   const tabs: { key: TabKey; label: string }[] = [];
   if (hasMyWork) tabs.push({ key: "my-work", label: "My work" });
   if (isAdmin) {
-    tabs.push({ key: "pipeline", label: "Board" });
+    tabs.push({ key: "pipeline", label: "All videos" });
     tabs.push({ key: "team", label: "Team" });
     tabs.push({ key: "links", label: "Links" });
   }
@@ -163,6 +154,18 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
     }
   }
 
+  // A card can now write one field itself (ETA, work link) instead of sending the
+  // doer into the detail modal just to unblock its own action button.
+  async function handleSaveField(row: BoardRow, col: string, value: string, prev: string) {
+    if (!row.row_id) return;
+    try {
+      await updateCell(row.row_id, col as Column, value, prev);
+      reload();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Couldn't save that");
+    }
+  }
+
   async function doAction(row: BoardRow, t: Transition) {
     if (!row.row_id) return;
     if (t.requiresFeedback) { openDetail(row, stageByStatusColIn(pipeOf(row), t.statusCol)?.id, "reviewer"); return; }
@@ -226,10 +229,10 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
 
       {activeTab === "my-work" && (
         <>
-          <StatusLegend />
           <MyWork
             queueItems={queueItems}
             onOpenQueueItem={(item) => openDetail(item.row, item.stageId, "reviewer")}
+            onQueueAction={(item, t) => void doAction(item.row, t)}
             rows={rows}
             names={names}
             readOnly={readOnly}
@@ -239,6 +242,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
             openDetail={(r, sid, as) => openDetail(r, sid, as)}
             doAction={(r, t) => void doAction(r, t)}
             transitionsForStageCol={transitionsForStageCol}
+            onSaveField={(r, col, value, prev) => void handleSaveField(r, col, value, prev)}
           />
         </>
       )}

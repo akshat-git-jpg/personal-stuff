@@ -1,69 +1,72 @@
 /**
- * PipelineBoard.tsx — admin row-per-topic matrix. One column per pipeline stage
- * (derived from STAGES); each cell shows done ✓ / an active status pill / pending ✕.
+ * PipelineBoard.tsx — admin "All videos" list, one row per video.
+ *
+ * Redesign note: this used to be a tick/cross matrix — one cell per stage,
+ * each holding ✓ / ✗ / a status pill. Scanning it meant decoding 6 glyphs per
+ * row before you knew where the video actually was. It is now a six-part
+ * progress strip per row (green = done, amber = happening now, grey = not
+ * open), with the stage names printed once in the header. Per-stage column
+ * sorting went away with the cells; the "Stuck at stage" filter answers the
+ * same question ("show me everything sitting at Editing") more directly.
  */
 import { useState } from "react";
-import { Check, X, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import type { Row } from "../shared/rbac";
-import { statusOf, type StageDef, type PipelineDef } from "./stages";
+import { statusOf, statusColOf, sinceOf, holderOf, type StageDef, type PipelineDef } from "./stages";
 import { displayName } from "./api";
-import { stageStepState, activeAssigneeEmail } from "./pipeline";
-import { rowMatchesFilters, type AdminFilters } from "./Filters";
-import { StatusPill } from "./Card";
+import { stageStepState, activeStage, daysSince } from "./pipeline";
+import { rowMatchesFilters, bucketOf, type AdminFilters } from "./filterModel";
 import { cn } from "@/lib/utils";
 
-function StageCell({ row, pipeline, stage }: { row: Row; pipeline: PipelineDef; stage: StageDef }) {
+const SEGMENT_TONE: Record<string, string> = {
+  done: "bg-emerald-500",
+  active: "bg-primary ring-4 ring-primary/20",
+  pending: "bg-border",
+};
+
+function ProgressStrip({ row, pipeline }: { row: Row; pipeline: PipelineDef }) {
   const r = row as Record<string, string>;
-  const state = stageStepState(pipeline, stage, r);
-  if (state === "done") {
-    return <td className="px-3 py-2 text-center"><Check className="mx-auto size-4 text-emerald-600" aria-label={`${stage.label}: done`} /></td>;
-  }
-  if (state === "pending") {
-    return <td className="px-3 py-2 text-center"><X className="mx-auto size-3.5 text-muted-foreground/30" aria-label={`${stage.label}: not started`} /></td>;
-  }
   return (
-    <td className="px-3 py-2 text-center">
-      <div className="flex justify-center"><StatusPill status={statusOf(stage, r)} /></div>
-    </td>
+    <div className="flex min-w-[240px] flex-1 items-center gap-1.5">
+      {pipeline.stages.map((stage: StageDef) => {
+        const state = stageStepState(pipeline, stage, r);
+        return (
+          <div key={stage.id} className="flex-1" title={`${stage.label}: ${state === "active" ? statusOf(stage, r) : state === "done" ? "done" : "not open yet"}`}>
+            <div className={cn("h-1.5 w-full rounded-full", SEGMENT_TONE[state])} />
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
-function TopicCell({ row, names }: { row: Row; names: Record<string, string> }) {
+/** Where the video is right now, in one line: the stage, the state, and who holds it. */
+function whereItIs(row: Row, names: Record<string, string>): { who: string; note: string } {
   const r = row as Record<string, string>;
-  const title = r.video_title || "(no title)";
-  const cat = r.category ?? "";
-  const sub = r.subcategory ?? "";
-  const catLabel = cat && sub ? `${cat} · ${sub}` : cat || sub;
-  const email = activeAssigneeEmail(r);
-  const name = email ? displayName(email, names) : "";
-  return (
-    <td className="px-3 py-2">
-      <div className="font-medium leading-snug text-foreground">{title}</div>
-      {catLabel && <div className="text-xs text-muted-foreground">{catLabel}</div>}
-      {name && <div className="text-xs text-muted-foreground/80">{name}</div>}
-    </td>
-  );
+  const stage = activeStage(r);
+  if (!stage) return { who: "—", note: "Published" };
+  const status = statusOf(stage, r);
+  const holder = holderOf(stage, r as Record<string, unknown>, status);
+  const who = holder.email ? displayName(holder.email, names) : "unassigned";
+  return { who, note: `${stage.label} · ${status.toLowerCase()}` };
 }
 
-const TOPIC_COL = "__topic__";
-type SortState = { col: string; dir: "asc" | "desc" };
-
-function sortValue(row: Row, col: string, pipeline: PipelineDef): string | number {
+function ageOf(row: Row): number | null {
   const r = row as Record<string, string>;
-  if (col === TOPIC_COL) return (r.video_title ?? "").toLowerCase();
-  const stage = pipeline.stages.find((s) => s.id === col);
-  if (!stage) return "";
-  const s = stageStepState(pipeline, stage, r);
-  return s === "done" ? 2 : s === "active" ? 1 : 0;
+  const stage = activeStage(r);
+  if (!stage) return null;
+  return daysSince(sinceOf(r as Record<string, unknown>, statusColOf(stage)));
 }
 
-function compareRows(a: Row, b: Row, sort: SortState, pipeline: PipelineDef): number {
-  const va = sortValue(a, sort.col, pipeline), vb = sortValue(b, sort.col, pipeline);
-  let cmp = typeof va === "number" && typeof vb === "number" ? va - vb : String(va).localeCompare(String(vb));
-  if (cmp === 0) {
-    cmp = ((a as Record<string, string>).video_title ?? "").toLowerCase()
-      .localeCompare(((b as Record<string, string>).video_title ?? "").toLowerCase());
-  }
+type SortCol = "title" | "age";
+type SortState = { col: SortCol; dir: "asc" | "desc" };
+
+function compareRows(a: Row, b: Row, sort: SortState): number {
+  const titleOf = (r: Row) => ((r as Record<string, string>).video_title ?? "").toLowerCase();
+  let cmp: number;
+  if (sort.col === "age") cmp = (ageOf(a) ?? -1) - (ageOf(b) ?? -1);
+  else cmp = titleOf(a).localeCompare(titleOf(b));
+  if (cmp === 0) cmp = titleOf(a).localeCompare(titleOf(b));
   return sort.dir === "asc" ? cmp : -cmp;
 }
 
@@ -80,84 +83,94 @@ interface PipelineBoardProps {
 export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelete, onDelete }: PipelineBoardProps) {
   const [sort, setSort] = useState<SortState | null>(null);
 
-  function toggleSort(col: string) {
+  function toggleSort(col: SortCol) {
     setSort((prev) => prev?.col === col
       ? { col, dir: prev.dir === "asc" ? "desc" : "asc" }
-      : { col, dir: col === TOPIC_COL ? "asc" : "desc" });
+      : { col, dir: col === "title" ? "asc" : "desc" });
   }
 
   const filtered = rows.filter((r) => (r as Record<string, string>).pipeline === pipeline.id && rowMatchesFilters(r, filters));
   if (filtered.length === 0) {
     return <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">No videos match these filters.</div>;
   }
-  const sorted = sort ? [...filtered].sort((a, b) => compareRows(a, b, sort, pipeline)) : filtered;
+  const sorted = sort ? [...filtered].sort((a, b) => compareRows(a, b, sort)) : filtered;
 
-  const caret = (col: string) => sort?.col === col
+  const caret = (col: SortCol) => sort?.col === col
     ? (sort.dir === "asc" ? <ArrowUp className="inline size-3" /> : <ArrowDown className="inline size-3" />)
     : null;
-  const ariaSort = (col: string): "ascending" | "descending" | "none" =>
+  const ariaSort = (col: SortCol): "ascending" | "descending" | "none" =>
     sort?.col === col ? (sort.dir === "asc" ? "ascending" : "descending") : "none";
 
-  // Column headers pin under the app header while the page scrolls.
-  // Sticky lives on the <th> (Safari ignores it on <thead>/<tr>); the bottom rule
-  // is an inset shadow because border-collapse drops borders off a stuck cell;
-  // and the background must be opaque — the flat blend of the old bg-muted/50 —
-  // so rows don't show through as they pass underneath.
-  const thCls = cn(
-    "sticky top-[var(--app-header-h)] z-20 select-none whitespace-nowrap px-3 py-2",
-    "bg-[color-mix(in_oklab,var(--muted)_50%,var(--background))]",
-    "shadow-[inset_0_-1px_0_var(--border)]",
-    "text-left text-xs font-semibold text-muted-foreground hover:text-foreground",
-  );
+  const headCls = "text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground";
 
   return (
-    // overflow-x-auto would make THIS div the sticky scrollport and un-pin the
-    // header, so it's dropped once the table fits: min-content is 732px + the
-    // board's padding/border, hence 790px. Below that, narrow screens keep the
-    // horizontal scroll and the header doesn't pin.
-    <div className="overflow-x-auto rounded-xl border border-border min-[790px]:overflow-x-visible">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="[&>th:first-child]:rounded-tl-xl [&>th:last-child]:rounded-tr-xl">
-            <th className={cn(thCls, "cursor-pointer")} role="columnheader"
-              aria-sort={ariaSort(TOPIC_COL)} tabIndex={0} onClick={() => toggleSort(TOPIC_COL)}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleSort(TOPIC_COL); } }}>
-              Topic {caret(TOPIC_COL)}
-            </th>
-            {pipeline.stages.map((stage) => (
-              <th key={stage.id} className={cn(thCls, "cursor-pointer text-center")} role="columnheader"
-                aria-sort={ariaSort(stage.id)} tabIndex={0} onClick={() => toggleSort(stage.id)}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleSort(stage.id); } }}>
-                {stage.label} {caret(stage.id)}
-              </th>
+    <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="min-w-[860px]">
+
+        <div className="sticky top-[var(--app-header-h)] z-20 flex items-center gap-4 border-b border-border bg-[color-mix(in_oklab,var(--muted)_50%,var(--background))] px-4 py-2.5">
+          <button type="button" onClick={() => toggleSort("title")} aria-sort={ariaSort("title")}
+            className={cn(headCls, "w-[260px] shrink-0 text-left hover:text-foreground")}>
+            Video {caret("title")}
+          </button>
+          <div className="flex min-w-[240px] flex-1 items-center gap-1.5">
+            {pipeline.stages.map((s) => (
+              <div key={s.id} className={cn(headCls, "flex-1 truncate text-center")} title={s.label}>{s.label}</div>
             ))}
-            {canDelete && <th className={cn(thCls, "w-10")} aria-label="Actions" />}
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((row) => {
-            const id = (row as Record<string, string>).row_id ?? "";
-            const title = (row as Record<string, string>).video_title ?? "";
-            return (
-              <tr key={id || title} className="group cursor-pointer border-b border-border last:border-0 hover:bg-muted/40" role="button" tabIndex={0}
-                aria-label={`Open ${title || "topic"}`} onClick={() => onOpen(row)}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onOpen(row); }}>
-                <TopicCell row={row} names={names} />
-                {pipeline.stages.map((stage) => <StageCell key={stage.id} row={row} pipeline={pipeline} stage={stage} />)}
-                {canDelete && (
-                  <td className="px-2 py-2 text-center">
-                    <button type="button" title="Delete this video" aria-label={`Delete ${title || id}`}
-                      onClick={(e) => { e.stopPropagation(); onDelete?.(id, title); }}
-                      className="rounded-md p-1 text-muted-foreground/40 opacity-0 transition group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100">
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </td>
+          </div>
+          <div className={cn(headCls, "w-[150px] shrink-0")}>Now with</div>
+          <button type="button" onClick={() => toggleSort("age")} aria-sort={ariaSort("age")}
+            className={cn(headCls, "w-[56px] shrink-0 text-right hover:text-foreground")}>
+            Age {caret("age")}
+          </button>
+          {canDelete && <div className="w-6 shrink-0" aria-hidden="true" />}
+        </div>
+
+        {sorted.map((row) => {
+          const r = row as Record<string, string>;
+          const id = r.row_id ?? "";
+          const title = r.video_title ?? "";
+          const cat = r.category ?? "";
+          const sub = r.subcategory ?? "";
+          const catLabel = cat && sub ? `${cat} · ${sub}` : cat || sub;
+          const { who, note } = whereItIs(row, names);
+          const age = ageOf(row);
+          const stuck = bucketOf(row) === "nudge";
+          return (
+            <div key={id || title}
+              role="button" tabIndex={0} aria-label={`Open ${title || "video"}`}
+              onClick={() => onOpen(row)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(row); } }}
+              className="group flex cursor-pointer items-center gap-4 border-b border-border px-4 py-3.5 transition-colors last:border-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+              <div className="w-[260px] shrink-0 space-y-0.5">
+                <div className="text-[14.5px] font-semibold leading-snug tracking-tight text-foreground">{title || "(no title)"}</div>
+                {catLabel && <div className="text-[11.5px] text-muted-foreground">{catLabel}</div>}
+              </div>
+              <ProgressStrip row={row} pipeline={pipeline} />
+              <div className="w-[150px] shrink-0 space-y-0.5">
+                <div className="truncate text-[13px] font-medium text-foreground/85">{who}</div>
+                <div className="truncate text-[11.5px] text-muted-foreground">{note}</div>
+              </div>
+              <div className="w-[56px] shrink-0 text-right">
+                {age === null ? (
+                  <span className="text-xs text-muted-foreground/60">—</span>
+                ) : stuck ? (
+                  <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11.5px] font-semibold tabular-nums text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                    title="Sitting longer than it should">{age}d</span>
+                ) : (
+                  <span className="text-xs tabular-nums text-muted-foreground">{age}d</span>
                 )}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+              </div>
+              {canDelete && (
+                <button type="button" title="Delete this video" aria-label={`Delete ${title || id}`}
+                  onClick={(e) => { e.stopPropagation(); onDelete?.(id, title); }}
+                  className="w-6 shrink-0 rounded-md p-1 text-muted-foreground/40 opacity-0 transition group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100">
+                  <Trash2 className="size-3.5" />
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

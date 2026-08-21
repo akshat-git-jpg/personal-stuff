@@ -1,0 +1,197 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background: oklch(0.975 0.005 80); color: oklch(0.205 0 0); }
+    * { box-sizing: border-box; }
+    a { color: oklch(0.52 0.14 54); text-decoration: none; }
+    a:hover { color: oklch(0.42 0.13 54); }
+    input { font-family: inherit; }
+    input:focus { outline: none; }
+    button:not(:disabled) { cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="min-height: 100%; background: oklch(0.975 0.005 80)">
+
+  <header style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 20px; border-bottom: 1px solid oklch(0.905 0.006 80); background: oklch(0.995 0.002 80)">
+    <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: {{accent}}; color: oklch(0.205 0 0); font-size: 13px; font-weight: 700">T</div>
+    <div style="font-size: 15px; font-weight: 600; letter-spacing: -0.012em">Tutorials Tracker</div>
+    <div style="flex-grow: 1"></div>
+    <div style="font-size: 13px; font-weight: 500; color: oklch(0.42 0 0)">Sean</div>
+    <div style="border-radius: 999px; background: oklch(0.945 0.006 80); padding: 4px 10px; font-size: 11px; font-weight: 500; color: oklch(0.48 0 0)">Admin</div>
+    <button style="height: 30px; padding: 0 12px; border: 1px solid oklch(0.905 0.006 80); border-radius: 8px; background: oklch(0.995 0.002 80); font: inherit; font-size: 12.5px; font-weight: 500; color: oklch(0.42 0 0)">Sign out</button>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 22px; padding: 26px 28px 48px">
+
+    <div style="display: flex; align-items: center; gap: 22px; border-bottom: 1px solid oklch(0.905 0.006 80)">
+      <div style="padding: 0 0 11px; font-size: 13.5px; font-weight: 500; color: oklch(0.556 0 0)">My work</div>
+      <div style="padding: 0 0 11px; border-bottom: 2px solid {{accent}}; margin-bottom: -1px; font-size: 13.5px; font-weight: 600; color: oklch(0.205 0 0)">All videos</div>
+      <div style="padding: 0 0 11px; font-size: 13.5px; font-weight: 500; color: oklch(0.556 0 0)">Team</div>
+      <div style="flex-grow: 1"></div>
+      <button style="display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px; margin-bottom: 7px; border: 0; border-radius: 8px; background: {{accent}}; font: inherit; font-size: 13px; font-weight: 600; color: oklch(0.205 0 0); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        New video
+      </button>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+      <div style="display: flex; align-items: center; gap: 9px; width: 280px; height: 34px; padding: 0 11px; border: 1px solid oklch(0.905 0.006 80); border-radius: 8px; background: oklch(0.995 0.002 80)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.62 0 0)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+        <input type="text" value="{{query}}" onChange="{{setQuery}}" placeholder="Search a title" style="flex-grow: 1; border: 0; background: transparent; font-size: 13px; color: oklch(0.205 0 0); padding: 0" />
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px">
+        <sc-for list="{{chips}}" as="chip" hint-placeholder-count="4">
+          <button onClick="{{chip.pick}}" style="{{chip.style}}">{{chip.label}} <span style="{{chip.countStyle}}">{{chip.count}}</span></button>
+        </sc-for>
+      </div>
+      <div style="flex-grow: 1"></div>
+      <span style="font-size: 12px; font-variant-numeric: tabular-nums; color: oklch(0.62 0 0)">{{resultLine}}</span>
+    </div>
+
+    <div style="border: 1px solid oklch(0.905 0.006 80); border-radius: 12px; background: oklch(0.995 0.002 80); overflow: hidden">
+
+      <div style="display: flex; align-items: center; gap: 16px; padding: 11px 18px; border-bottom: 1px solid oklch(0.915 0.006 80); background: oklch(0.968 0.005 80)">
+        <div style="width: 300px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: oklch(0.6 0 0)">Video</div>
+        <div style="display: flex; gap: 6px; flex-grow: 1">
+          <sc-for list="{{stageNames}}" as="name" hint-placeholder-count="6">
+            <div style="flex-grow: 1; text-align: center; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: oklch(0.6 0 0)">{{name}}</div>
+          </sc-for>
+        </div>
+        <div style="width: 150px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: oklch(0.6 0 0)">Now with</div>
+        <div style="width: 54px; text-align: right; font-size: 10.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: oklch(0.6 0 0)">Age</div>
+      </div>
+
+      <sc-for list="{{rows}}" as="row" hint-placeholder-count="6">
+        <div onClick="{{row.pick}}" style="{{row.rowStyle}}">
+          <div style="display: flex; flex-direction: column; gap: 3px; width: 300px">
+            <div style="font-size: 14.5px; font-weight: 600; line-height: 1.35; letter-spacing: -0.011em">{{row.title}}</div>
+            <div style="font-size: 11.5px; color: oklch(0.6 0 0)">{{row.cat}}</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-grow: 1">
+            <sc-for list="{{row.segments}}" as="seg" hint-placeholder-count="6">
+              <div style="{{seg.style}}"></div>
+            </sc-for>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px; width: 150px">
+            <div style="font-size: 13px; font-weight: 500; color: oklch(0.28 0 0)">{{row.owner}}</div>
+            <div style="font-size: 11.5px; color: oklch(0.6 0 0)">{{row.ownerNote}}</div>
+          </div>
+          <div style="width: 54px; text-align: right"><span style="{{row.ageStyle}}">{{row.age}}</span></div>
+        </div>
+      </sc-for>
+
+      <sc-if value="{{isEmpty}}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 46px 18px; text-align: center; font-size: 13px; color: oklch(0.62 0 0)">Nothing matches that.</div>
+      </sc-if>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#fb923c","options":["#fb923c","#4f7cff","#10b981","#6366f1"],"tsType":"string"},"$preview":{"width":1240,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      query: '',
+      filter: 'all',
+      selected: 'c',
+      videos: [
+        { id: 'a', title: 'Masking explained in 4 minutes', cat: 'Editing › Effects', step: 1, owner: 'Sam', ownerNote: 'Script · changes asked', age: '2d', stuck: true, bucket: 'nudge' },
+        { id: 'b', title: 'How to color grade in DaVinci Resolve', cat: 'Editing › Color', step: 1, owner: 'Sam', ownerNote: 'Script · not started', age: '3d', stuck: true, bucket: 'nudge' },
+        { id: 'c', title: 'Exporting for YouTube without quality loss', cat: 'Editing › Export', step: 1, owner: 'Riya', ownerNote: 'Script · reviewing', age: '2d', stuck: false, bucket: 'review' },
+        { id: 'd', title: 'Best budget mics for creators', cat: 'Gear › Audio', step: 3, owner: 'Riya', ownerNote: 'Editing · reviewing', age: '4d', stuck: true, bucket: 'review' },
+        { id: 'e', title: 'Thumbnail psychology that gets clicks', cat: 'Growth › Packaging', step: 4, owner: 'Riya', ownerNote: 'Thumbnail · reviewing', age: '1d', stuck: false, bucket: 'review' },
+        { id: 'f', title: 'Lighting on a budget', cat: 'Production › Lighting', step: 2, owner: 'Anusha', ownerNote: 'Recording · not started', age: '4d', stuck: true, bucket: 'nudge' },
+        { id: 'g', title: 'Channel trailer breakdown', cat: 'Growth › Strategy', step: 6, owner: 'Uma', ownerNote: 'Published', age: '9d', stuck: false, bucket: 'done' },
+        { id: 'h', title: 'Three-point lighting in 60 seconds', cat: 'Production › Lighting', step: 6, owner: 'Uma', ownerNote: 'Published', age: '12d', stuck: false, bucket: 'done' }
+      ]
+    };
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#fb923c';
+    var q = (this.state.query || '').trim().toLowerCase();
+    var filter = this.state.filter;
+    var all = this.state.videos;
+
+    var segStyle = function (kind) {
+      var bg = kind === 'done' ? '#10b981' : (kind === 'now' ? accent : 'oklch(0.915 0.006 80)');
+      var extra = kind === 'now' ? 'box-shadow:0 0 0 3px rgb(251 146 60 / 0.18);' : '';
+      return 'flex-grow:1;height:7px;border-radius:4px;background:' + bg + ';' + extra;
+    };
+
+    var matches = function (v) {
+      if (q && v.title.toLowerCase().indexOf(q) === -1) return false;
+      if (filter === 'all') return true;
+      return v.bucket === filter;
+    };
+
+    var rows = all.filter(matches).map(function (v) {
+      var segments = [];
+      for (var s = 0; s < 6; s = s + 1) {
+        segments.push({ style: segStyle(s < v.step ? 'done' : (s === v.step ? 'now' : 'later')) });
+      }
+      var isSel = self.state.selected === v.id;
+      var rowStyle = 'display:flex;align-items:center;gap:16px;padding:14px 18px;border-bottom:1px solid oklch(0.925 0.006 80);'
+        + (isSel ? 'background:oklch(0.968 0.006 80);box-shadow:inset 3px 0 0 0 ' + accent + ';' : 'background:transparent;');
+      var ageStyle = v.stuck
+        ? 'display:inline-block;border-radius:999px;background:#fef3c7;padding:3px 9px;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;color:#92400e;'
+        : 'font-size:12px;font-variant-numeric:tabular-nums;color:oklch(0.62 0 0);';
+      return Object.assign({}, v, {
+        segments: segments,
+        rowStyle: rowStyle,
+        ageStyle: ageStyle,
+        pick: function () { self.setState({ selected: v.id }); }
+      });
+    });
+
+    var count = function (b) { return all.filter(function (v) { return b === 'all' ? true : v.bucket === b; }).length; };
+
+    var chipDefs = [
+      { key: 'all', label: 'Everything' },
+      { key: 'nudge', label: 'Needs a nudge' },
+      { key: 'review', label: 'With reviewers' },
+      { key: 'done', label: 'Published' }
+    ];
+
+    var chips = chipDefs.map(function (c) {
+      var on = filter === c.key;
+      return {
+        label: c.label,
+        count: count(c.key),
+        style: 'display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px;border-radius:999px;font-family:inherit;font-size:12.5px;font-weight:500;white-space:nowrap;'
+          + (on
+            ? 'border:1px solid oklch(0.205 0 0);background:oklch(0.205 0 0);color:oklch(0.985 0 0);'
+            : 'border:1px solid oklch(0.905 0.006 80);background:oklch(0.995 0.002 80);color:oklch(0.42 0 0);'),
+        countStyle: 'font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;'
+          + (on ? 'color:oklch(0.75 0 0);' : 'color:oklch(0.66 0 0);'),
+        pick: function () { self.setState({ filter: c.key }); }
+      };
+    });
+
+    return {
+      accent: accent,
+      query: this.state.query,
+      setQuery: function (e) { self.setState({ query: e.target.value }); },
+      chips: chips,
+      rows: rows,
+      isEmpty: rows.length === 0,
+      resultLine: rows.length + ' of ' + all.length + ' videos',
+      stageNames: ['Topic', 'Script', 'Recording', 'Editing', 'Thumbnail', 'Upload']
+    };
+  }
+}
+</script>
+</body>
+</html>

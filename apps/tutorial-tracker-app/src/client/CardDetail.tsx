@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, Sparkles, ChevronDown, CheckCircle2 } from "lucide-react";
+import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, Sparkles, ChevronDown } from "lucide-react";
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
 import { canEditForRoles, isAdminRoles } from "../shared/engine/rbac";
@@ -273,6 +273,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     }
   }
 
+  const [showTools, setShowTools] = useState(false);
   const [showActivity, setShowActivity] = useState(false);
   const [events, setEvents] = useState<CardEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
@@ -564,6 +565,19 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
 
   const actions = renderStageActions(contextStage.id);
 
+  // Where the video is right now, for the progress strip above.
+  const railStages = pipeline.stages.filter((s) => colSet.has(colOf(s, "status")) || isAdmin);
+  const liveStage = railStages.find((s) => !isStageComplete(s, row as Row) && isGateOpen(pipeline, s, row as Row));
+  const whereLine = (() => {
+    if (!liveStage) return "Every stage done";
+    const st = statusOf(liveStage, row as Row);
+    const holder = holderOf(liveStage, row as Record<string, unknown>, st);
+    const who = holder.kind !== "none" && holder.email ? displayName(holder.email, names) : "";
+    const days = daysSince(sinceOf(row as Record<string, unknown>, colOf(liveStage, "status")));
+    return [liveStage.label, st.toLowerCase(), who && `with ${who}`, days === null ? "" : `${days}d`]
+      .filter(Boolean).join(" · ");
+  })();
+
   return (
     <Dialog open onOpenChange={(o) => { if (!o) closeCard(); }}>
       <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
@@ -577,45 +591,38 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
         {/* min-h-0 so this flex child can actually shrink and scroll; without it a
             tall footer pushes the body past the dialog instead of scrolling it. */}
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
-          {/* Stage status overview - Journey Rail */}
-          <div className="flex flex-col gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{perspective === "doer" ? "Your part in this video" : "Pipeline progress"}</h3>
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-5 px-5 hide-scrollbar">
-              {pipeline.stages.filter((s) => colSet.has(colOf(s, "status")) || isAdmin).map((s, i, arr) => {
-                const status = statusOf(s, row as Row);
+          {/* Where this video is. The old rail stacked six bordered boxes, each
+              carrying a lock/tick icon, the stage name, a "You" tag, a status
+              pill and a timing line — roughly two dozen things to read before
+              you reached your own field. One strip says the same. */}
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{perspective === "doer" ? "Your part in this video" : "Progress"}</h3>
+              <span className="text-xs text-muted-foreground">{whereLine}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {railStages.map((s) => {
                 const done = isStageComplete(s, row as Row);
-                const isYou = !!viewerEmail && (row as any)[colOf(s, "assignee")] === viewerEmail;
-                const open = isGateOpen(pipeline, s, row as Row);
-                const isLast = i === arr.length - 1;
-                const since = sinceOf(row as Record<string, unknown>, colOf(s, "status"));
-                const days = daysSince(since);
-                const holder = holderOf(s, row as Record<string, unknown>, status);
-                const holderName = holder.kind !== "none" && holder.email ? displayName(holder.email, names) : undefined;
-                const timing =
-                  done ? (since ? new Date(since).toLocaleDateString() : undefined)
-                  : open && days !== null ? `${days}d in ${status}${holderName ? ` · with ${holderName}` : ""}`
-                  : undefined;
-
+                const live = s.id === liveStage?.id;
                 return (
-                  <div key={s.id} className="flex items-center shrink-0">
-                    <div className={cn(
-                      "flex flex-col gap-1.5 rounded-lg border px-3 py-2 transition-all",
-                      done ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/30 dark:bg-emerald-900/10" :
-                      open ? "border-primary/20 bg-muted/40 shadow-xs" :
-                      "border-transparent bg-transparent opacity-50"
-                    )}
-                    title={!open && s.gate ? `Opens after ${stageByIdIn(pipeline, s.gate)?.label || s.gate} is approved` : undefined}
-                    >
-                      <div className="flex items-center gap-2">
-                        {!open && <Lock className="size-3 text-muted-foreground" />}
-                        {done && <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />}
-                        <span className={cn("text-[11px] font-semibold", done ? "text-emerald-700 dark:text-emerald-300" : "text-foreground")}>{s.label}</span>
-                        {isYou && <span className="rounded bg-primary/10 px-1 text-[9px] font-bold uppercase tracking-wider text-primary">You</span>}
-                      </div>
-                      <StatusPill status={status} />
-                      {timing && <span className="text-[11px] text-muted-foreground">{timing}</span>}
-                    </div>
-                    {!isLast && <div className={cn("h-px w-6 mx-1", done ? "bg-emerald-200 dark:bg-emerald-800" : "bg-border")} />}
+                  <div key={s.id} className="flex-1"
+                    title={`${s.label}: ${done ? "done" : live ? statusOf(s, row as Row) : !isGateOpen(pipeline, s, row as Row) && s.gate ? `opens after ${stageByIdIn(pipeline, s.gate)?.label ?? s.gate} is approved` : "not open yet"}`}>
+                    <div className={cn("h-1.5 w-full rounded-full", done ? "bg-emerald-500" : live ? "bg-primary ring-4 ring-primary/20" : "bg-border")} />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-1.5">
+              {railStages.map((s) => {
+                const isYou = !!viewerEmail && (row as Record<string, unknown>)[colOf(s, "assignee")] === viewerEmail;
+                const live = s.id === liveStage?.id;
+                return (
+                  <div key={s.id} className={cn(
+                    "flex-1 truncate text-center text-[10px] tracking-wide",
+                    live ? "font-semibold text-foreground" : "text-muted-foreground",
+                    isYou && !live && "text-foreground/70",
+                  )} title={isYou ? `${s.label} — yours` : s.label}>
+                    {s.label}{isYou && <span className="text-primary"> ·</span>}
                   </div>
                 );
               })}
@@ -630,18 +637,22 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
           ))}
 
           {isAdmin && !readOnly && onApplyDefaults && (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-              <Button type="button" variant="outline" size="sm" onClick={onApplyDefaults}><RotateCcw className="size-3.5" /> Apply assignment defaults</Button>
-              <span className="text-[11px] text-muted-foreground">Fills blank assignees/reviewers from this card&rsquo;s category × subcategory.</span>
-            </div>
+            <Button type="button" variant="ghost" size="sm" className="h-8 text-muted-foreground hover:text-foreground"
+              title="Fills blank assignees and reviewers from this card's category × subcategory."
+              onClick={onApplyDefaults}><RotateCcw className="size-3.5" /> Apply assignment defaults</Button>
           )}
 
+          {/* Folded away by default: it is a whole sub-app, and most visits to a
+              card have nothing to do with affiliate links. */}
           {isAdmin && !readOnly && (
-            <div className="space-y-4 rounded-lg border border-border bg-card p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Video tools</h3>
+            <div className="rounded-lg border border-border bg-card shadow-sm">
+              <button type="button" onClick={() => setShowTools((v) => !v)} aria-expanded={showTools}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Video tools &amp; links</span>
                 <span className="text-xs text-muted-foreground">{toolsDraft.length} selected</span>
-              </div>
+                <ChevronDown className={cn("ml-auto size-4 text-muted-foreground transition-transform", showTools && "rotate-180")} />
+              </button>
+              {showTools && (<div className="space-y-4 border-t border-border p-4">
               <div className="flex flex-wrap gap-2">
                 {toolsDraft.map((t, i) => (
                   <div key={i} className={cn("flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium", t.kind === "catalog" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300")}>
@@ -733,6 +744,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
                 </Button>
                 {previewError && <p className="mt-2 text-xs font-medium text-destructive">{previewError}</p>}
               </div>
+              </div>)}
             </div>
           )}
           {previewData && (

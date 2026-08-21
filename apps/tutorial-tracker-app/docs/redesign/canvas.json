@@ -1,0 +1,39 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 940, "h": 1400, "title": "Your work (doer)" },
+    { "file": "Review.dc.html", "x": 1060, "y": 0, "w": 940, "h": 920, "title": "To review" },
+    { "file": "AdminBoard.dc.html", "x": 0, "y": 1480, "w": 1240, "h": 900, "title": "All videos (admin)" },
+    { "file": "Detail.dc.html", "x": 1400, "y": 1480, "w": 560, "h": 920, "title": "One video, side panel" }
+  ],
+  "annotations": [
+    {
+      "id": "note-your-work",
+      "x": 0,
+      "y": -230,
+      "w": 460,
+      "text": "YOUR WORK — what changed\nOne question per card: what do I do next.\nGone: the status legend, the What-you-do-here banner, the stage/system/clock/assignee chip row above every title.\nThe date and the link now sit ON the card, pre-filled, so nothing is blocked behind a modal.\nTry it: pick a date, hit Start, paste a link, Submit."
+    },
+    {
+      "id": "note-review",
+      "x": 1060,
+      "y": -230,
+      "w": 460,
+      "text": "TO REVIEW — two clicks\nOpen the work, then Approve or Ask for changes.\nAsk for changes opens one box right here — no modal, no separate reject flow, and the Send button only wakes up once you have written the reason.\nTry it: Approve one, Ask for changes on another."
+    },
+    {
+      "id": "note-all-videos",
+      "x": 0,
+      "y": 1270,
+      "w": 460,
+      "text": "ALL VIDEOS — one shape, not a grid\nThe old tick/cross matrix is now a six-part progress bar per video: green = done, amber = happening now, grey = not open.\nFour dropdown filters collapsed into search plus four chips.\nTry it: click the chips, type in the search box."
+    },
+    {
+      "id": "note-detail",
+      "x": 1400,
+      "y": 1270,
+      "w": 460,
+      "text": "ONE VIDEO — only the open stage\nSix stages down the side. Finished ones are a single line. The stage that is yours is the only one that opens with fields.\nNo more label-and-dash rows for fields that are empty.\nTry it: click Recording, paste a link, Submit. Then click Script."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

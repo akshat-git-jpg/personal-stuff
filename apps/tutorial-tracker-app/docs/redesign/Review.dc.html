@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background: oklch(0.975 0.005 80); color: oklch(0.205 0 0); }
+    * { box-sizing: border-box; }
+    a { color: oklch(0.52 0.14 54); text-decoration: none; }
+    a:hover { color: oklch(0.42 0.13 54); }
+    textarea { font-family: inherit; }
+    textarea:focus { outline: none; }
+    button:not(:disabled) { cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="min-height: 100%; background: oklch(0.975 0.005 80)">
+
+  <header style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 20px; border-bottom: 1px solid oklch(0.905 0.006 80); background: oklch(0.995 0.002 80)">
+    <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: {{accent}}; color: oklch(0.205 0 0); font-size: 13px; font-weight: 700">T</div>
+    <div style="font-size: 15px; font-weight: 600; letter-spacing: -0.012em">Tutorials Tracker</div>
+    <div style="flex-grow: 1"></div>
+    <div style="font-size: 13px; font-weight: 500; color: oklch(0.42 0 0)">Riya</div>
+    <div style="border-radius: 999px; background: oklch(0.945 0.006 80); padding: 4px 10px; font-size: 11px; font-weight: 500; color: oklch(0.48 0 0)">Reviewer</div>
+    <button style="height: 30px; padding: 0 12px; border: 1px solid oklch(0.905 0.006 80); border-radius: 8px; background: oklch(0.995 0.002 80); font: inherit; font-size: 12.5px; font-weight: 500; color: oklch(0.42 0 0)">Sign out</button>
+  </header>
+
+  <div style="display: flex; justify-content: center; padding: 36px 20px 56px">
+    <div style="display: flex; flex-direction: column; gap: 30px; width: 100%; max-width: 760px">
+
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.022em; line-height: 1.2">To review</h1>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5; color: oklch(0.556 0 0)">{{summary}}</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <sc-for list="{{items}}" as="item" hint-placeholder-count="3">
+          <article style="display: flex; flex-direction: column; gap: 14px; padding: 18px; border: 1px solid oklch(0.905 0.006 80); border-radius: 10px; background: oklch(0.995 0.002 80); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05)">
+
+            <div style="display: flex; align-items: flex-start; gap: 16px">
+              <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1">
+                <h3 style="margin: 0; font-size: 17px; font-weight: 600; line-height: 1.32; letter-spacing: -0.013em; text-wrap: pretty">{{item.title}}</h3>
+                <div style="font-size: 12.5px; color: oklch(0.556 0 0)">{{item.meta}}</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 5px; font-size: 11.5px; font-variant-numeric: tabular-nums; color: oklch(0.65 0 0); white-space: nowrap; padding-top: 3px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5l3 1.8"></path></svg>
+                {{item.days}}
+              </div>
+            </div>
+
+            <sc-if value="{{item.isPending}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                <a href="#" style="display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border: 1px solid oklch(0.88 0.006 80); border-radius: 8px; background: oklch(0.975 0.005 80); font-size: 13px; font-weight: 500; color: oklch(0.32 0 0)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6"></path><path d="M20 4l-8.5 8.5"></path><path d="M18 14.5V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V7.5A1.5 1.5 0 0 1 5 6h4.5"></path></svg>
+                  {{item.openLabel}}
+                </a>
+                <div style="flex-grow: 1"></div>
+                <button onClick="{{item.ask}}" style="display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 14px; border: 1px solid oklch(0.88 0.006 80); border-radius: 8px; background: oklch(0.995 0.002 80); font: inherit; font-size: 13px; font-weight: 500; color: oklch(0.42 0 0); white-space: nowrap">Ask for changes</button>
+                <button onClick="{{item.approve}}" style="{{item.primaryStyle}}">Approve</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{item.isAsking}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <div style="font-size: 12.5px; font-weight: 500; color: oklch(0.42 0 0)">What needs to change?</div>
+                <textarea value="{{item.note}}" onChange="{{item.setNote}}" placeholder="Say it in one or two sentences. This is the only thing they will see." rows="3" style="width: 100%; padding: 11px 13px; border: 1px solid oklch(0.885 0.006 80); border-radius: 8px; background: oklch(0.975 0.005 80); font-size: 13px; line-height: 1.6; color: oklch(0.205 0 0); resize: vertical"></textarea>
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <div style="flex-grow: 1"></div>
+                  <button onClick="{{item.cancel}}" style="display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 14px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 13px; font-weight: 500; color: oklch(0.556 0 0)">Cancel</button>
+                  <button onClick="{{item.send}}" style="{{item.sendStyle}}">Send back to {{item.who}}</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{item.isApproved}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; align-items: center; gap: 9px; padding: 11px 13px; border: 1px solid #a7f3d0; border-radius: 8px; background: #ecfdf5; font-size: 13px; font-weight: 500; color: #065f46">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"></path></svg>
+                {{item.doneLine}}
+              </div>
+            </sc-if>
+
+            <sc-if value="{{item.isSent}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; align-items: flex-start; gap: 9px; padding: 11px 13px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; font-size: 13px; line-height: 1.6; color: #991b1b">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="margin-top: 2px; flex-shrink: 0"><path d="M9.5 5.5L3 12l6.5 6.5"></path><path d="M3 12h11.5a6 6 0 0 1 0 0"></path></svg>
+                <span>{{item.doneLine}}</span>
+              </div>
+            </sc-if>
+
+          </article>
+        </sc-for>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#fb923c","options":["#fb923c","#4f7cff","#10b981","#6366f1"],"tsType":"string"},"$preview":{"width":940,"height":920}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      items: [
+        { id: 'a', title: 'Exporting for YouTube without quality loss', stage: 'Script', who: 'Sam',
+          days: '2d', phase: 'pending', note: '', next: 'Anusha for Recording' },
+        { id: 'b', title: 'Thumbnail psychology that gets clicks', stage: 'Thumbnail', who: 'Tara',
+          days: '1d', phase: 'pending', note: '', next: 'Uma for Upload' },
+        { id: 'c', title: 'Best budget mics for creators', stage: 'Editing', who: 'John',
+          days: '4d', phase: 'pending', note: '', next: 'Tara for Thumbnail' }
+      ]
+    };
+  }
+
+  patch(id, changes) {
+    this.setState({ items: this.state.items.map(function (i) { return i.id === id ? Object.assign({}, i, changes) : i; }) });
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#fb923c';
+    var base = 'display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 15px;border:0;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:-0.005em;white-space:nowrap;';
+    var primary = base + 'background:' + accent + ';color:oklch(0.205 0 0);box-shadow:0 1px 2px 0 rgb(0 0 0 / 0.06);';
+    var danger = base + 'background:#dc2626;color:#ffffff;';
+    var quiet = base + 'background:oklch(0.93 0.006 80);color:oklch(0.66 0 0);cursor:not-allowed;';
+
+    var pending = 0;
+    var items = this.state.items.map(function (i) {
+      if (i.phase === 'pending') pending = pending + 1;
+      var filled = (i.note || '').trim().length > 0;
+      var doneLine = i.phase === 'approved'
+        ? 'Approved. Now with ' + i.next + '.'
+        : 'Sent back to ' + i.who + ' with your note.';
+      return Object.assign({}, i, {
+        meta: i.stage + ' · submitted by ' + i.who,
+        openLabel: 'Open the ' + i.stage.toLowerCase(),
+        isPending: i.phase === 'pending',
+        isAsking: i.phase === 'asking',
+        isApproved: i.phase === 'approved',
+        isSent: i.phase === 'sent',
+        doneLine: doneLine,
+        primaryStyle: primary,
+        sendStyle: filled ? danger : quiet,
+        approve: function () { self.patch(i.id, { phase: 'approved' }); },
+        ask: function () { self.patch(i.id, { phase: 'asking' }); },
+        cancel: function () { self.patch(i.id, { phase: 'pending', note: '' }); },
+        setNote: function (e) { self.patch(i.id, { note: e.target.value }); },
+        send: function () { if (!(i.note || '').trim()) return; self.patch(i.id, { phase: 'sent' }); }
+      });
+    });
+
+    var summary = pending === 0
+      ? 'All clear. Nothing is waiting on you.'
+      : (pending === 1 ? '1 submission is waiting on you.' : pending + ' submissions are waiting on you.')
+        + ' Open the work, then approve or say what to fix.';
+
+    return { accent: accent, items: items, summary: summary };
+  }
+}
+</script>
+</body>
+</html>
