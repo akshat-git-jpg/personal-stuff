@@ -124,6 +124,13 @@ export function MyWork({
     return etaA.localeCompare(etaB);
   });
 
+  // How many actionable cards a doer sees at once. One, so the screen asks for
+  // work instead of reporting status. The rest collapse into a count below.
+  const FOCUS_COUNT = 1;
+
+  const focus = needsAction.slice(0, FOCUS_COUNT);
+  const behind = needsAction.slice(FOCUS_COUNT);
+
   // A person who owns two stages on the same video (e.g. Video Editor AND
   // Thumbnail Maker) used to see that video twice — once as live work and again,
   // title-only, under "Up next" — which reads as a duplicate. The later stage is
@@ -146,6 +153,8 @@ export function MyWork({
   const isEmpty = queueItems.length === 0 && allItems.length === 0;
 
   const [showDone, setShowDone] = useState(false);
+  const [showBehind, setShowBehind] = useState(false);
+  const [showLaterUpNext, setShowLaterUpNext] = useState(false);
 
   if (isEmpty) {
     return (
@@ -180,7 +189,7 @@ export function MyWork({
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{needsAction.length}</span>
           </div>
           <div className="flex flex-col gap-3">
-            {needsAction.map((item) => (
+            {focus.map((item) => (
               <Card 
                 key={`${item.row.row_id}-${item.statusCol}`} 
                 row={item.row} 
@@ -200,6 +209,24 @@ export function MyWork({
                 onSaveField={(col, value, prev) => onSaveField(item.row, col, value, prev)}
               />
             ))}
+            {behind.length > 0 && (
+              <>
+                <button type="button" onClick={() => setShowBehind(o => !o)} className="mt-1 flex items-center gap-2 text-left hover:opacity-80">
+                  <span className="text-xs font-medium text-muted-foreground">{behind.length === 1 ? "1 more after this" : `${behind.length} more after this`}</span>
+                  {showBehind ? <ChevronDown className="size-3.5 text-muted-foreground" /> : <ChevronRight className="size-3.5 text-muted-foreground" />}
+                </button>
+                {showBehind && (
+                  <div className="flex flex-col gap-3">
+                    {behind.map((item) => (
+                      <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-[10px] border border-border bg-card p-4 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                        <div className="text-[15px] font-semibold leading-snug tracking-tight text-balance">{item.row.video_title || "(no title)"}</div>
+                        <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </section>
       )}
@@ -241,7 +268,7 @@ export function MyWork({
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{pendingUpNext.length}</span>
           </div>
           <div className="flex flex-col gap-3">
-            {pendingUpNext.map((item) => {
+            {pendingUpNext.slice(0, 1).map((item) => {
               const gateStage = item.stage.gate ? stageByIdIn(item.pipeline, item.stage.gate) : undefined;
               const gateLabel = gateStage?.label ?? "previous stage";
               const gateStatusCol = gateStage ? colOf(gateStage, "status") : undefined;
@@ -264,6 +291,24 @@ export function MyWork({
                 </div>
               );
             })}
+            {pendingUpNext.length > 1 && (
+              <>
+                <button type="button" onClick={() => setShowLaterUpNext(o => !o)} className="mt-1 flex items-center gap-2 text-left hover:opacity-80">
+                  <span className="text-xs font-medium text-muted-foreground">{pendingUpNext.length - 1 === 1 ? "1 more after this" : `${pendingUpNext.length - 1} more after this`}</span>
+                  {showLaterUpNext ? <ChevronDown className="size-3.5 text-muted-foreground" /> : <ChevronRight className="size-3.5 text-muted-foreground" />}
+                </button>
+                {showLaterUpNext && (
+                  <div className="flex flex-col gap-3">
+                    {pendingUpNext.slice(1).map((item) => (
+                      <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-1.5 rounded-[10px] border border-dashed border-border bg-muted/30 p-4 text-left transition-all hover:border-foreground/15" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                        <div className="text-[15px] font-semibold leading-snug tracking-tight text-balance">{item.row.video_title || "(no title)"}</div>
+                        <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </section>
       )}

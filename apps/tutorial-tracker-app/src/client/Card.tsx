@@ -232,7 +232,7 @@ export function Card({
                 variant={primary ? "default" : reject ? "outline" : "ghost"}
                 disabled={!!t.disabledReason}
                 title={t.disabledReason ?? ""}
-                className={cn("h-9 px-3.5 text-[13px]", reject && "border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive")}
+                className={cn("h-11 sm:h-9 px-3.5 text-[13px]", reject && "border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive")}
                 onClick={() => { if (t.disabledReason) return; if (t.requiresFeedback) onOpen(); else onAction?.(t); }}
               >
                 {t.label}
