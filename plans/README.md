@@ -1286,3 +1286,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
   removed noise rather than sight. Note it appears only under dense sampling: a 3-sample sweep of the same film reports 0, so trust
   `intro-review`'s beat sampling and not a quick `--film` spot check. Mutation gate still fires on the fixture. 43 tests green. — DONE
 - 213-tracker-one-task-screen — PR#172 213-tracker-one-task-screen: Tracker — one task on screen, not a list — DONE
+- 214-tracker-control-room — PR#173 214-tracker-control-room: Tracker — one control room, one set of attention rules — DONE
