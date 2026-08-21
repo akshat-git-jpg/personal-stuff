@@ -8,7 +8,7 @@ needs: Dispatch before 215 and 216 — all three edit Board.tsx and this one res
 needs_prs: []
 touches: [apps/tutorial-tracker-app/src/client/Board.tsx, apps/tutorial-tracker-app/src/client/AttentionPanel.tsx, apps/tutorial-tracker-app/src/client/Filters.tsx, apps/tutorial-tracker-app/src/client/filterModel.ts, apps/tutorial-tracker-app/e2e/control-room.spec.ts]
 
-mutation_apply: sed -i '' 's/if (status === "In Review") return age >= limit ? "nudge" : "review";/if (status === "In Review") return "review";/' apps/tutorial-tracker-app/src/client/filterModel.ts
+mutation_apply: sed -i '' 's/return "idle";/return "";/' apps/tutorial-tracker-app/src/client/filterModel.ts
 mutation_command: cd apps/tutorial-tracker-app && npm run e2e -- e2e/control-room.spec.ts
 mutation_expect: buckets must sum
 mutation_cwd:
