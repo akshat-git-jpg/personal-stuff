@@ -104,3 +104,18 @@ dashed sponsor wells and the grey silhouettes ("they look like placeholder",
 2026-08-07).
 
 **Enforced by:** nothing automatic, and that is the point — read this file.
+
+## S-T8 — A truncation notice is information, not a defect to design around.
+
+Body cards were built for 4-15s and an intro beat runs 1.5-4.0s, so almost
+every card raises `NOTICE truncation`. Do not pick a card because it notices
+less, and do not stretch a beat past its spoken line to silence one. Pick the
+card that says the right thing; the notice tells the owner where to look in the
+render.
+
+**From:** owner decision, 2026-08-23 — swap the intro onto the body catalogue
+first and fix the cards that actually look wrong, rather than retrofitting all
+68 up front.
+
+**Enforced by:** author judgement (the notice itself is non-blocking by
+design).
