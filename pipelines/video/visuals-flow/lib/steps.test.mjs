@@ -258,7 +258,7 @@ function probes(present = [], approved = []) {
 }
 
 test('a fresh workdir parks on the first step of each track', () => {
-  const next = nextStep({ ...probes() });
+  const next = nextStep({ ...probes(), mode: 'complex' });
   assert.equal(next.main.number, '010');
   assert.equal(next.intro.number, '110');
 });
@@ -266,23 +266,24 @@ test('a fresh workdir parks on the first step of each track', () => {
 test('the intro track walks 110 (idea) -> 120 (idea gate) -> 130 (screenplay) -> 140 (review) -> 150 (film gate) -> 160 (render), independent of main', () => {
   const mainDone = ['run-config.json', 'vo.mp3', 'transcript.json', 'transcript.diff.json', 'segments.json', 'concept.json'];
 
-  const idea = nextStep({ ...probes(mainDone) });
+  const idea = nextStep({ ...probes(mainDone), mode: 'complex' });
   assert.equal(idea.intro.number, '110', 'without an idea proposal, the video parks on the idea pass');
 
-  const ideaGate = nextStep({ ...probes([...mainDone, 'intro-film/idea.json']) });
+  const ideaGate = nextStep({ ...probes([...mainDone, 'intro-film/idea.json']), mode: 'complex' });
   assert.equal(ideaGate.intro.number, '120', 'an unapproved idea parks on its own gate');
 
   const ideaApproved = [...mainDone, 'intro-film/idea.json'];
   const ideaApprovals = ['intro-film/idea.json:approved'];
 
-  const authoring = nextStep({ ...probes(ideaApproved, ideaApprovals) });
+  const authoring = nextStep({ ...probes(ideaApproved, ideaApprovals), mode: 'complex' });
   assert.equal(authoring.intro.number, '130', 'an approved idea moves on to authoring the screenplay');
 
-  const review = nextStep({ ...probes([...ideaApproved, 'intro-film/screenplay.json'], ideaApprovals) });
+  const review = nextStep({ ...probes([...ideaApproved, 'intro-film/screenplay.json'], ideaApprovals), mode: 'complex' });
   assert.equal(review.intro.number, '140', 'a screenplay with no review moves to the review pass');
 
   const filmGate = nextStep({
     ...probes([...ideaApproved, 'intro-film/screenplay.json', 'intro-film/review/REVIEW.md'], ideaApprovals),
+    mode: 'complex'
   });
   assert.equal(filmGate.intro.number, '150', 'a reviewed screenplay parks on the film gate');
   assert.equal(filmGate.intro.gate.label, 'Intro Film');
@@ -292,6 +293,7 @@ test('the intro track walks 110 (idea) -> 120 (idea gate) -> 130 (screenplay) ->
       [...ideaApproved, 'intro-film/screenplay.json', 'intro-film/review/REVIEW.md'],
       [...ideaApprovals, 'intro-film/screenplay.json:approved'],
     ),
+    mode: 'complex'
   });
   assert.equal(render.intro.number, '160', 'an approved film moves on to the render');
 });
@@ -304,7 +306,7 @@ test('TRACKS-SERIALISED: an intro gate must not block the card track', () => {
     'run-config.json', 'vo.mp3', 'transcript.json', 'transcript.diff.json', 'segments.json', 'concept.json',
     'intro-film/idea.json',
   ];
-  const next = nextStep({ ...probes(present) });
+  const next = nextStep({ ...probes(present), mode: 'complex' });
   assert.equal(next.intro.number, '120', 'TRACKS-SERIALISED: the intro track should park on its own gate');
   assert.equal(next.main.number, '210', 'TRACKS-SERIALISED: an intro gate must not block the card track');
 });
