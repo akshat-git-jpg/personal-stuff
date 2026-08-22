@@ -108,7 +108,7 @@ describe('IntroTab — simple-flow gate (125)', () => {
       pacing: { avatarShare: 0.4, cuts: cutlist.beats.length, longestAvatarHold: 3 },
     });
     const rows = el.querySelectorAll('.intro-simple-beat-row');
-    expect(rows.length).toBe(cutlist.beats.length);
+    expect(rows.length, 'SIMPLE-INTRO: beat table did not render one row per beat').toBe(cutlist.beats.length);
     // The overlay row is visually distinct — the presenter is still on
     // screen underneath the card, which is exactly what the owner judges.
     expect(el.querySelector('.intro-simple-beat-overlay')).toBeTruthy();
@@ -121,8 +121,8 @@ describe('IntroTab — simple-flow gate (125)', () => {
       { videoStatus: 404 },
     );
     const btn = el.querySelector('.intro-simple-approve-btn') as HTMLButtonElement | null;
-    expect(btn).toBeTruthy();
-    expect(btn!.disabled).toBe(true);
+    expect(btn, 'SIMPLE-INTRO: no Approve control found in the gate branch').toBeTruthy();
+    expect(btn!.disabled, 'SIMPLE-INTRO: Approve must be disabled while the video is missing').toBe(true);
     expect(el.textContent).toContain('intro-simple-render');
     // The degraded state must not render an enabled button anywhere else in
     // this branch either — there is exactly one Approve control.
@@ -145,7 +145,7 @@ describe('IntroTab — simple-flow gate (125)', () => {
       pacing: { avatarShare: 0.482, cuts: 1, longestAvatarHold: 4.2 },
     });
     const value = el.querySelector('.intro-simple-pacing-value');
-    expect(value?.textContent).toBe('48%');
+    expect(value?.textContent, 'SIMPLE-INTRO: pacing strip avatar-share figure not found').toBe('48%');
     expect(el.textContent).toContain('≤ 55%');
     expect(el.textContent).toContain('≤ 5.0s');
   });
