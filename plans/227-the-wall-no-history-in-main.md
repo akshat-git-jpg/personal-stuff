@@ -6,7 +6,7 @@ test_cmd: bash .claude/hooks/test-no-history-in-main.sh
 ui:
 deploy:
 needs: []
-needs_prs: [226]
+needs_prs: [187]
 touches: [.claude/hooks/no-history-in-main.sh, .claude/hooks/test-no-history-in-main.sh, .claude/settings.json, .claude/hooks/branch-guard.sh, CLAUDE.md, decisions.md]
 
 mutation_apply: |
