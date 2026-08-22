@@ -6,7 +6,7 @@ test_cmd: bash tooling/boss/test-boss.sh
 ui:
 deploy:
 needs: []
-needs_prs: [223, 228]
+needs_prs: [184, 189]
 touches: [tooling/boss/bin/boss-land-sweep.sh, tooling/boss/bin/boss-session-start.sh, tooling/boss/bin/boss-lib.sh, tooling/boss/test-boss.sh, tooling/boss/CLAUDE.md, tooling/cli/pp-land/pp-land]
 
 mutation_apply: |
