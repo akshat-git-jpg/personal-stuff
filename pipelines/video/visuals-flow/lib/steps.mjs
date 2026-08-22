@@ -12,6 +12,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { pathToFileURL } from 'node:url';
+import { INTRO_MODES, DEFAULT_INTRO_MODE } from './run-config.mjs';
+import { introMode } from './intro-modes.mjs';
 
 export const STEPS_DIR = path.resolve(import.meta.dirname, '..', 'steps');
 
@@ -108,6 +110,16 @@ export function validateStep(s, folderName) {
   if (s.tab !== null && (typeof s.tab !== 'string' || !s.tab)) die('tab must be null or a string');
   for (const k of ['external', 'optional']) {
     if (typeof s[k] !== 'boolean') die(`${k} must be a boolean`);
+  }
+  // `modes` — which intro flows this step belongs to. ABSENT means "every mode",
+  // which is what almost every step is; only the two intro lanes declare it.
+  // A step out of the video's mode is skipped by firstUnsatisfied(), so a simple
+  // video does not park forever waiting for intro-film/idea.json.
+  if ('modes' in s) {
+    if (!Array.isArray(s.modes) || s.modes.length === 0
+        || !s.modes.every((m) => INTRO_MODES.includes(m))) {
+      die(`modes, when present, must be a non-empty array of: ${INTRO_MODES.join(' | ')}`);
+    }
   }
   if (!TRACKS.includes(s.track)) die(`track must be one of ${TRACKS.join('|')}`);
   for (const k of OPTIONAL_STRINGS) {
@@ -241,17 +253,24 @@ export function suggestVerbs(input, { dir = STEPS_DIR, verbs = null } = {}) {
 // the hint: nothing under videos/<slug>/ proves them either way.
 //
 // Returns { intro: stepOrNull, main: stepOrNull } — one entry per TRACKS.
-export function nextStep({ steps = null, exists, readFlag } = {}) {
+// A step with no `modes` runs in every mode. This default is what keeps the
+// registry quiet: only the intro lanes declare a mode.
+export function stepInMode(step, mode) {
+  return !step.modes || step.modes.includes(mode);
+}
+
+export function nextStep({ steps = null, exists, readFlag, mode = DEFAULT_INTRO_MODE } = {}) {
   const all = steps ?? loadSteps();
   const out = {};
   for (const track of TRACKS) {
-    out[track] = firstUnsatisfied(all.filter((s) => s.track === track), exists, readFlag);
+    out[track] = firstUnsatisfied(all.filter((s) => s.track === track), exists, readFlag, mode);
   }
   return out;
 }
 
-function firstUnsatisfied(steps, exists, readFlag) {
+function firstUnsatisfied(steps, exists, readFlag, mode) {
   for (const s of steps) {
+    if (!stepInMode(s, mode)) continue;
     if (s.optional) continue;
     if (!s.external && s.produces.length && !s.produces.every((f) => exists(f))) return s;
     if (s.gate && !readFlag(s.gate.file, s.gate.field)) return s;
@@ -329,7 +348,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
       console.log(
         nextHintLine(
           slugArg,
-          nextStep({ ...workdirProbes(workdir) }),
+          nextStep({ ...workdirProbes(workdir), mode: introMode(workdir) }),
           { track },
         ),
       );

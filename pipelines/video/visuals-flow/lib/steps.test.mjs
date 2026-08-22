@@ -178,6 +178,9 @@ test('a malformed field value is refused too', () => {
     ['summary', ''],
     ['track', 'side'],
     ['track', ''],
+    ['modes', []],
+    ['modes', ['banana']],
+    ['modes', 'simple'],
   ];
   for (const [field, value] of bad) {
     assert.throws(
@@ -189,6 +192,8 @@ test('a malformed field value is refused too', () => {
   // Blanking `produces` is the single easiest way to make a step invisible to
   // every consumer, so it is refused rather than accepted as "produces nothing".
   assert.throws(() => validateStep({ ...good, produces: [] }, good.slug), /E-REG/);
+  assert.doesNotThrow(() => validateStep({ ...good, modes: ['simple'] }, good.slug), 'a valid modes array passes');
+  assert.doesNotThrow(() => validateStep({ ...good, modes: ['simple', 'complex'] }, good.slug), 'a valid modes array passes');
 });
 
 
