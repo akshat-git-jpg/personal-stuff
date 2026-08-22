@@ -20,5 +20,6 @@
   "optional": false,
   "nextHint": "run.sh <slug> intro-review, then approve on the board's Intro tab  (HUMAN GATE — 150 intro film)",
   "summary": "`intro-film/screenplay.json` + `intro-film/review/` → `approved: true` in `screenplay.json` (HUMAN GATE: Intro Film). Reviewed on the Intro tab of the board. Rendering (160) is a separate step so nothing renders a film nobody reviewed.",
-  "track": "intro"
+  "track": "intro",
+  "modes": ["complex"]
 }

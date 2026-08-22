@@ -197,6 +197,12 @@ case "$step" in
     echo "shots.json        $shots_present ($shots_approved)"
     echo "avatar-plan.json  $avatar_plan_present ($avatar_plan_approved)"
 
+    intro_mode=$(node -e "import('./lib/intro-modes.mjs').then(m => console.log(m.introMode('videos/$slug')))")
+    other_mode="complex"
+    [[ "$intro_mode" == "complex" ]] && other_mode="simple"
+    echo
+    echo "intro flow: $intro_mode   (run.sh $slug configure --intro $other_mode to switch)"
+
     # The next-hint walks the registry (consumes/produces/gate/requires.intro)
     # rather than a fixed if/elif chain, and returns one step per track (the
     # intro film and the card plan share no artifact, so a gate on one must

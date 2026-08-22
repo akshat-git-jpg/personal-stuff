@@ -19,5 +19,6 @@
   "optional": false,
   "nextHint": "read intro-film/idea.json, then approve a direction on the board's Intro tab  (HUMAN GATE — 120 intro idea)",
   "summary": "`intro-film/idea.json` -> `approved: true` plus `chosen: \"<id>\"` (HUMAN GATE: Intro Idea). Reject all three and the idea pass runs again. A page of prose is the cheapest rejection in the pipeline.",
-  "track": "intro"
+  "track": "intro",
+  "modes": ["complex"]
 }

@@ -46,3 +46,29 @@ test('a stale engine/review/intro key on disk is stripped, not passed through', 
   assert.equal(cfg.drive_folder, 'abc');
   fs.rmSync(w, { recursive: true, force: true });
 });
+
+test('introMode defaults to simple', () => {
+  const w = tmpWorkdir();
+  const cfg = loadRunConfig(w);
+  assert.equal(cfg.introMode, 'simple');
+  fs.rmSync(w, { recursive: true, force: true });
+});
+
+test('introMode overrides correctly', () => {
+  const w = tmpWorkdir();
+  fs.writeFileSync(path.join(w, 'run-config.json'), JSON.stringify({
+    introMode: 'complex',
+  }));
+  const cfg = loadRunConfig(w);
+  assert.equal(cfg.introMode, 'complex');
+  fs.rmSync(w, { recursive: true, force: true });
+});
+
+test('introMode typo throws', () => {
+  const w = tmpWorkdir();
+  fs.writeFileSync(path.join(w, 'run-config.json'), JSON.stringify({
+    introMode: 'simpel',
+  }));
+  assert.throws(() => loadRunConfig(w), /introMode "simpel"/);
+  fs.rmSync(w, { recursive: true, force: true });
+});

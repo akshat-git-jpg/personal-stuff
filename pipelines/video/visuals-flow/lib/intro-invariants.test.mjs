@@ -7,10 +7,11 @@ import { lintCues } from './lint-cues.mjs';
 import { ZONE_PARTS } from './zone-constants.mjs';
 import { introSpan } from './intro-modes.mjs';
 
-// Replaces lib/regression-cards.test.mjs, which asserted the intro:"cards" path
-// stayed untouched. That path is gone (plan 194): the intro is ALWAYS the
-// bespoke film. These are the invariants that replace it — every assertion
-// message carries INTRO-ALWAYS-FILM so a failure names the decision it broke.
+// The invariants that survive the introMode switch (plan 218). The intro span is
+// owned by the intro flow — EITHER flow — so the cue passes still author the
+// conclusion only and E13 open-cover still never fires. What changed on
+// 2026-08-22 is only WHICH flow builds the intro; that nothing else in the
+// pipeline touches the intro span is exactly what these tests hold.
 
 function tmpWorkdir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'intro-invariants-'));
@@ -72,14 +73,14 @@ test('INTRO-ALWAYS-FILM: introSpan is null before segments.json exists', () => {
   fs.rmSync(w, { recursive: true, force: true });
 });
 
-test('INTRO-ALWAYS-FILM: no run-config knob can turn the film off', async () => {
+test('INTRO-MODE: the legacy intro/review knobs stay dead', async () => {
   const w = tmpWorkdir();
   fs.writeFileSync(path.join(w, 'run-config.json'), JSON.stringify({ intro: 'cards', review: 'express' }));
   const m = await import('./run-config.mjs');
   const cfg = m.loadRunConfig(w);
   assert.equal(cfg.intro, undefined,
-    'INTRO-ALWAYS-FILM: run-config must not resolve an `intro` mode — stale keys in old videos are ignored, never honoured');
+    'INTRO-MODE: the plan-194 `intro` key named a card flow that no longer exists — stale keys stay ignored. The live switch is `introMode` (simple|complex), see lib/run-config.mjs.');
   assert.equal('gateWaived' in m, false,
-    'INTRO-ALWAYS-FILM: express review is gone — gateWaived must not exist');
+    'INTRO-MODE: express review is gone — gateWaived must not exist');
   fs.rmSync(w, { recursive: true, force: true });
 });

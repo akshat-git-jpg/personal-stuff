@@ -692,7 +692,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       if (cue) src = path.join(renderDir, planRender(cue).outFile);
       else {
         const job = avatarJobs.find(j => j.id === seg.from);
-        if (job) src = job.file;
+        if (job) src = job.placeholder ? job.placeholderFile : job.file;
       }
       const fromIdx = segments.findIndex(s => s.id === seg.from);
       const isHead = fromIdx > i;
