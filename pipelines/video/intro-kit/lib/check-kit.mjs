@@ -321,9 +321,41 @@ async function checkCard(browser, cardCfg) {
         const failDom = await domSnapshot(page2, slug);
         const failHex = rgbToHexIfPossible(failDom.borderColor);
         if (failHex !== '#ef4444') fail('E-KIT-DEVICE', `${slug}: "fail" state border resolved to ${failDom.borderColor}, want #ef4444`);
-        const crossDiff = diffPct(grids[3], grids2[3]); // index 3 == 75%
-        if (crossDiff <= 0.005) {
-          fail('E-KIT-DEVICE', `${slug}: ok vs fail 75% frames differ by only ${(crossDiff * 100).toFixed(3)}% of pixels, want > 0.5%`);
+        // Sample at 95%, NOT 75%, and gate at 0.05% — both deliberate, both
+        // measured (2026-08-22). This check used to read grids[3] (75%) against
+        // a 0.5% threshold and was FLAKY: it passed 3 runs in 4.
+        //
+        // Why. `fail` fires a one-off horizontal shake (x: ±6) at T(0.55). At
+        // 75% that shake has sometimes settled and sometimes not. Unsettled, the
+        // whole window sits ~6px off — at GRID_COLS=192 that is ~0.6 of a cell,
+        // so every edge cell in the frame changes and the diff jumps well past
+        // 0.5%. Settled, the ONLY difference between the two states is the
+        // recoloured stroke/button/title, which measures 0.140%. So the old gate
+        // was really asserting "the shake happened to still be running", and it
+        // failed whenever the animation was on time.
+        //
+        // 95% is after the shake in both states, so the diff is purely the
+        // recolour and is deterministic. Both sides of the threshold were then
+        // measured (2026-08-22), which is what makes 0.05% a calibration rather
+        // than a guess:
+        //
+        //   working card, state honoured .......... 0.140%   (passes)
+        //   ---- gate at 0.05% ----
+        //   mutated card, state ignored ........... 0.019%   (fails)
+        //
+        // So 0.05% sits with ~2.8x margin under the working value and ~2.6x over
+        // the broken one. The mutation used to measure the lower bound sets
+        // STATE_STROKE.fail = ACCENT and disables the shake branch, i.e. it makes
+        // `fail` render identically to `ok` — the exact defect this asserts on.
+        //
+        // Note diffPct compares LUMINANCE. #fb923c (luma ~168) vs #ef4444
+        // (luma ~119) differ by ~49, comfortably over diffPct's own threshold of
+        // 15, which is why a hue swap registers here at all. Do not re-tighten
+        // this number without re-measuring; the exact border colours are already
+        // asserted above, and those are the precise state-token test.
+        const crossDiff = diffPct(grids[4], grids2[4]); // index 4 == 95%, after the shake
+        if (crossDiff <= 0.0005) {
+          fail('E-KIT-DEVICE', `${slug}: ok vs fail 95% frames differ by only ${(crossDiff * 100).toFixed(3)}% of pixels, want > 0.05% — the state token did not reach the pixels`);
         }
       } finally {
         await page2.close();
