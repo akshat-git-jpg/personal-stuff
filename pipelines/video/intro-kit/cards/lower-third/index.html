@@ -52,7 +52,7 @@
   </head>
   <body>
     <div id="root" data-composition-id="lowerthird" data-start="0" data-duration="0" data-width="1920" data-height="1080"
-      data-composition-variables='{"text":"Alex Rivera, Senior Data Scientist","accent":"Data Scientist","beats":[{"text":"Alex","accent":false,"at":0.0},{"text":"Rivera,","accent":false,"at":0.28},{"text":"Senior","accent":false,"at":0.62},{"text":"Data","accent":true,"at":0.95},{"text":"Scientist","accent":true,"at":1.2}],"duration":3.5}'>
+      data-composition-variables='{"text":"Alex Rivera, Senior Machine Learning Engineer at Vantage Analytics","accent":"Machine Learning Engineer","beats":[{"text":"Alex","accent":false,"at":0.0},{"text":"Rivera,","accent":false,"at":0.22},{"text":"Senior","accent":false,"at":0.5},{"text":"Machine","accent":true,"at":0.75},{"text":"Learning","accent":true,"at":0.98},{"text":"Engineer","accent":true,"at":1.22},{"text":"at","accent":false,"at":1.5},{"text":"Vantage","accent":false,"at":1.65},{"text":"Analytics","accent":false,"at":1.9}],"duration":3.5}'>
       <div id="frame" class="clip" data-start="0" data-duration="0" data-track-index="0">
         <div id="scrim"></div>
         <div id="sentence"></div>
@@ -63,14 +63,18 @@
       /* ===== CONTENT ===== */
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
-        text: VARS.text ?? "Alex Rivera, Senior Data Scientist",
-        accent: VARS.accent ?? "Data Scientist",
+        text: VARS.text ?? "Alex Rivera, Senior Machine Learning Engineer at Vantage Analytics",
+        accent: VARS.accent ?? "Machine Learning Engineer",
         beats: VARS.beats ?? [
           { text: "Alex", accent: false, at: 0.0 },
-          { text: "Rivera,", accent: false, at: 0.28 },
-          { text: "Senior", accent: false, at: 0.62 },
-          { text: "Data", accent: true, at: 0.95 },
-          { text: "Scientist", accent: true, at: 1.2 }
+          { text: "Rivera,", accent: false, at: 0.22 },
+          { text: "Senior", accent: false, at: 0.5 },
+          { text: "Machine", accent: true, at: 0.75 },
+          { text: "Learning", accent: true, at: 0.98 },
+          { text: "Engineer", accent: true, at: 1.22 },
+          { text: "at", accent: false, at: 1.5 },
+          { text: "Vantage", accent: false, at: 1.65 },
+          { text: "Analytics", accent: false, at: 1.9 }
         ]
       };
 
