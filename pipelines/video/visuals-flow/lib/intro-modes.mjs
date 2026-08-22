@@ -1,17 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-// The intro is ALWAYS the bespoke intro film (owner decision 2026-08-07:
-// "i want film only.., basically intro is bespook"). There is no mode to pick,
-// so there is no capability query any more — this module answers the one
-// question that survives the choice: WHERE is the intro?
+// Two questions about a video's intro, and nothing else:
+//   introSpan(workdir) — WHERE is the intro? (measured, from segments.json)
+//   introMode(workdir) — WHICH flow builds it? (simple | complex, from run-config)
 //
-// This replaced lib/intro-mode-table.mjs + ownsIntroSpan(). That table existed
-// so a third intro flow would be one row instead of a hunt through consumers,
-// which was right while `cards` and `film` both existed. With `cards` gone the
-// table had a single row and every `if (ownsIntroSpan(...))` had a dead false
-// branch — untested code that reads as coverage. The realistic next bespoke
-// part (a conclusion film) would need its own span helper, not this one.
+// History: between 2026-08-07 (plan 194) and 2026-08-22 there was only one flow,
+// the bespoke film, so this module held introSpan() alone. The owner restored the
+// choice on 2026-08-22 — see decisions.md. The legacy `intro: "cards" | "film"`
+// key is NOT what came back; `introMode: simple | complex` is a new vocabulary
+// over two flows that both exist. See lib/run-config.mjs.
 //
 // Returns null when segments.json has not been written yet, or carries no
 // intro part. Callers treat null as "not measured yet", never as "no film".
@@ -22,4 +20,15 @@ export function introSpan(workdir) {
   const introPart = segData.structure?.find((p) => p.part === 'intro');
   if (!introPart) return null;
   return { start: introPart.start, end: introPart.end };
+}
+
+
+import { loadRunConfig } from './run-config.mjs';
+
+// WHICH intro flow this video runs. `introSpan()` above answers WHERE the intro is;
+// this answers HOW it gets built. Both flows own the same span and both produce
+// intro-film/out/intro.mp4, so every consumer downstream of the render is
+// mode-blind by construction.
+export function introMode(workdir) {
+  return loadRunConfig(workdir).introMode;
 }
