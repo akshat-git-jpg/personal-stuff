@@ -30,17 +30,26 @@ function BeatFrame({ file, zoom, onZoom }: { file: string; zoom: number; onZoom:
   );
 }
 
-// Gate 125 (the simple flow, plan 220/221). A locked-kit beat carries its
-// on-screen words in one of three shapes depending on which card it fills —
-// this is the ONE thing the owner reads per row, so it has to work for all
-// three or a row renders blank.
+// Gate 125. A cut-list beat now fills ANY card in the body catalogue (plan
+// 229), so there is no fixed set of variable shapes to enumerate — this walks
+// the ones body cards actually put words in, most specific first, and falls
+// back to the beat word list. This is the ONE thing the owner reads per row,
+// so a blank cell here means a row they cannot review.
 function simpleBeatText(b: any): string {
   const vars = b?.vars || {};
-  if (typeof vars.text === 'string') return vars.text;
+  for (const k of ['text', 'title', 'name', 'question', 'prompt', 'appName', 'headline', 'label']) {
+    if (typeof vars[k] === 'string' && vars[k].trim()) return vars[k];
+  }
+  if (Array.isArray(vars.beats)) {
+    const words = vars.beats.map((x: any) => (typeof x?.text === 'string' ? x.text : '')).filter(Boolean);
+    if (words.length) return words.join(' ');
+  }
   if (Array.isArray(vars.rows)) {
     return vars.rows.map((r: any) => r?.label ?? r?.text ?? '').filter(Boolean).join(', ');
   }
-  if (typeof vars.appName === 'string') return vars.appName;
+  if (Array.isArray(vars.items)) {
+    return vars.items.map((r: any) => r?.label ?? r?.text ?? '').filter(Boolean).join(', ');
+  }
   return '';
 }
 
@@ -139,7 +148,7 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
 
   // Gate 125 — the simple intro. One surface: watch the cut, read the beat table,
   // approve. There is no idea gate and no frame contact sheet in this flow, because
-  // there is no bespoke composition to review — the cards are locked (plan 219).
+  // there is no bespoke composition to review — the cards come from the shared body catalogue (plan 229).
   // Taken FIRST and by `data.mode`, never by guessing from which files exist: a
   // half-built complex video and a simple video both lack a screenplay.json.
   if (data.mode === 'simple' && data.cutlist && !data.cutlist.approved) {

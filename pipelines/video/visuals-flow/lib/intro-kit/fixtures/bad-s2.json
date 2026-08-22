@@ -1,70 +1,232 @@
 {
   "video": "fixture-bad-s2",
   "mode": "simple",
-  "span": { "start": 0.0, "end": 34.2 },
+  "span": {
+    "start": 0,
+    "end": 34.2
+  },
   "approved": false,
   "beats": [
-    { "id": "b01", "kind": "avatar", "t_start": 0.0, "t_end": 7.5 },
-    { "id": "b02", "kind": "card", "card": "statement", "t_start": 3.2, "t_end": 6.4,
+    {
+      "id": "b01",
+      "kind": "avatar",
+      "t_start": 0,
+      "t_end": 7.5
+    },
+    {
+      "id": "b02",
+      "kind": "card",
+      "card": "slate/kinetic-sentence",
+      "t_start": 3.2,
+      "t_end": 6.4,
       "vars": {
         "text": "Quietly making people thousands of dollars a month",
         "accent": "thousands of dollars",
         "beats": [
-          { "text": "Quietly", "accent": false, "at": 0.0 },
-          { "text": "making", "accent": false, "at": 0.4 },
-          { "text": "people", "accent": false, "at": 0.8 },
-          { "text": "thousands", "accent": true, "at": 1.2 },
-          { "text": "of", "accent": true, "at": 1.6 },
-          { "text": "dollars", "accent": true, "at": 1.9 },
-          { "text": "a", "accent": false, "at": 2.3 },
-          { "text": "month", "accent": false, "at": 2.6 }
+          {
+            "text": "Quietly",
+            "accent": false,
+            "at": 0
+          },
+          {
+            "text": "making",
+            "accent": false,
+            "at": 0.4
+          },
+          {
+            "text": "people",
+            "accent": false,
+            "at": 0.8
+          },
+          {
+            "text": "thousands",
+            "accent": true,
+            "at": 1.2
+          },
+          {
+            "text": "of",
+            "accent": true,
+            "at": 1.6
+          },
+          {
+            "text": "dollars",
+            "accent": true,
+            "at": 1.9
+          },
+          {
+            "text": "a",
+            "accent": false,
+            "at": 2.3
+          },
+          {
+            "text": "month",
+            "accent": false,
+            "at": 2.6
+          }
         ]
-      } },
-    { "id": "b03", "kind": "avatar", "t_start": 6.4, "t_end": 9.4 },
-    { "id": "b04", "kind": "overlay", "card": "lower-third", "t_start": 9.4, "t_end": 11.8,
-      "vars": { "text": "Hi, my name is Mira", "beats": [] } },
-    { "id": "b05", "kind": "card", "card": "checklist", "t_start": 11.8, "t_end": 15.0,
+      }
+    },
+    {
+      "id": "b03",
+      "kind": "avatar",
+      "t_start": 6.4,
+      "t_end": 9.4
+    },
+    {
+      "id": "b04",
+      "kind": "overlay",
+      "card": "overlay/lower-third",
+      "t_start": 9.4,
+      "t_end": 11.8,
       "vars": {
-        "icon": "circle-check",
-        "rows": [
-          { "label": "Fast", "ok": true },
-          { "label": "Cheap", "ok": true },
-          { "label": "Reliable", "ok": false }
-        ]
-      } },
-    { "id": "b06", "kind": "avatar", "t_start": 15.0, "t_end": 18.2 },
-    { "id": "b07", "kind": "card", "card": "logo-grid", "t_start": 18.2, "t_end": 21.4,
+        "name": "Mira",
+        "subtitle": "Founder and host"
+      }
+    },
+    {
+      "id": "b05",
+      "kind": "card",
+      "card": "checklist/checklist",
+      "t_start": 11.8,
+      "t_end": 15,
+      "vars": {
+        "title": "What you get"
+      }
+    },
+    {
+      "id": "b06",
+      "kind": "avatar",
+      "t_start": 15,
+      "t_end": 18.2
+    },
+    {
+      "id": "b07",
+      "kind": "card",
+      "card": "tool-icon/logo-grid",
+      "t_start": 18.2,
+      "t_end": 21.4,
       "vars": {
         "text": "Too many tools one workflow",
-        "logos": ["notion", "slack", "zapier"],
         "beats": [
-          { "text": "Too", "accent": false, "at": 0.0 },
-          { "text": "many", "accent": false, "at": 0.3 },
-          { "text": "tools", "accent": false, "at": 0.6 },
-          { "text": "one", "accent": false, "at": 1.0 },
-          { "text": "workflow", "accent": true, "at": 1.4 }
+          {
+            "text": "Too",
+            "accent": false,
+            "at": 0
+          },
+          {
+            "text": "many",
+            "accent": false,
+            "at": 0.3
+          },
+          {
+            "text": "tools",
+            "accent": false,
+            "at": 0.6
+          },
+          {
+            "text": "one",
+            "accent": false,
+            "at": 1
+          },
+          {
+            "text": "workflow",
+            "accent": true,
+            "at": 1.4
+          }
+        ],
+        "productLogos": [
+          "notion",
+          "slack",
+          "zapier"
         ]
-      } },
-    { "id": "b08", "kind": "avatar", "t_start": 21.4, "t_end": 24.6 },
-    { "id": "b09", "kind": "card", "card": "shot-float", "t_start": 24.6, "t_end": 27.8,
+      }
+    },
+    {
+      "id": "b08",
+      "kind": "avatar",
+      "t_start": 21.4,
+      "t_end": 24.6
+    },
+    {
+      "id": "b09",
+      "kind": "card",
+      "card": "enacted/shot-float",
+      "t_start": 24.6,
+      "t_end": 27.8,
       "vars": {
         "text": "See it before you build it",
-        "shots": ["shot1.png", "shot2.png"],
+        "shots": [
+          "shot1.png",
+          "shot2.png"
+        ],
         "beats": [
-          { "text": "See", "accent": false, "at": 0.0 },
-          { "text": "it", "accent": false, "at": 0.3 },
-          { "text": "before", "accent": false, "at": 0.6 },
-          { "text": "you", "accent": false, "at": 0.9 },
-          { "text": "build", "accent": true, "at": 1.3 },
-          { "text": "it", "accent": false, "at": 1.6 }
+          {
+            "text": "See",
+            "accent": false,
+            "at": 0
+          },
+          {
+            "text": "it",
+            "accent": false,
+            "at": 0.3
+          },
+          {
+            "text": "before",
+            "accent": false,
+            "at": 0.6
+          },
+          {
+            "text": "you",
+            "accent": false,
+            "at": 0.9
+          },
+          {
+            "text": "build",
+            "accent": true,
+            "at": 1.3
+          },
+          {
+            "text": "it",
+            "accent": false,
+            "at": 1.6
+          }
         ]
-      } },
-    { "id": "b10", "kind": "card", "card": "ui-mock", "t_start": 27.8, "t_end": 31.0,
-      "vars": { "appName": "Flowly", "shot": "dashboard", "state": "ok" } },
-    { "id": "b11", "kind": "card", "card": "chain", "t_start": 31.0, "t_end": 34.2,
+      }
+    },
+    {
+      "id": "b10",
+      "kind": "card",
+      "card": "enacted/ui-mock",
+      "t_start": 27.8,
+      "t_end": 31,
       "vars": {
-        "items": [ { "label": "Data" }, { "label": "Model" }, { "label": "Insight" } ],
-        "target": "Decision"
-      } }
+        "appName": "Flowly",
+        "shot": "shots/ui.png",
+        "state": "ok"
+      }
+    },
+    {
+      "id": "b11",
+      "kind": "card",
+      "card": "process/chain",
+      "t_start": 31,
+      "t_end": 34.2,
+      "vars": {
+        "items": [
+          {
+            "label": "Data"
+          },
+          {
+            "label": "Model"
+          },
+          {
+            "label": "Insight"
+          }
+        ],
+        "target": {
+          "label": "Decision"
+        }
+      }
+    }
   ]
 }

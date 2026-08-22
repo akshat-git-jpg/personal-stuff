@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { lintCutlist, AVATAR_MAX_SHARE, AVATAR_MAX_HOLD, CUT_MIN, CUT_MAX } from './lint-cutlist.mjs';
+import { lintCutlist, truncationNotices, AVATAR_MAX_SHARE, AVATAR_MAX_HOLD, CUT_MIN, CUT_MAX } from './lint-cutlist.mjs';
 import { loadKit } from './inputs.mjs';
 
 const FIXTURES = path.join(import.meta.dirname, 'fixtures');
@@ -21,7 +21,9 @@ function hasCode(result, code) {
   return result.errors.some((e) => e.startsWith(code));
 }
 
-const CODES = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7'];
+// S6 was retired by plan 229 (its per-card duration range lived only in the
+// deleted intro-kit/kit.json; S3's [CUT_MIN, CUT_MAX] is a tighter bound).
+const CODES = ['S1', 'S2', 'S3', 'S4', 'S5', 'S7'];
 
 test('the module exports the three tunable thresholds the mutation recipe targets', () => {
   assert.equal(AVATAR_MAX_SHARE, 0.55);
@@ -81,4 +83,53 @@ test('S7 accepts a phrase word list spread across multiple transcript words', ()
   // have missed this.
   const result = lint('good');
   assert.ok(!result.errors.some((e) => e.startsWith('S7') && e.includes('b07')));
+});
+
+function oneCardCutlist(card, vars, { start = 0, end = 3 } = {}) {
+  return {
+    video: 'x', mode: 'simple', approved: false,
+    span: { start, end },
+    beats: [{ id: 'c1', kind: 'card', card, t_start: start, t_end: end, vars }],
+  };
+}
+
+test('S4 refuses a duration var — the renderer owns it', () => {
+  const result = lintCutlist({
+    cutlist: oneCardCutlist('checklist/checklist', { title: 'What you get', duration: 3 }),
+    kit, words: [],
+  });
+  assert.ok(
+    result.errors.some((e) => e.startsWith('S4 renderer-owned-var')),
+    `expected S4 renderer-owned-var, got:\n${result.errors.join('\n')}`,
+  );
+});
+
+test('S4 refuses a beats element carrying a key outside the card beat_shape', () => {
+  const result = lintCutlist({
+    cutlist: oneCardCutlist('checklist/checklist', { title: 'What you get', beats: [{ text: 'Fast', bogus: 1 }] }),
+    kit, words: [],
+  });
+  assert.ok(
+    result.errors.some((e) => e.startsWith('S4 bad-beat')),
+    `expected S4 bad-beat, got:\n${result.errors.join('\n')}`,
+  );
+});
+
+test('S4 allows `at` on a beats element — the cut list authors reveal times directly', () => {
+  const result = lintCutlist({
+    cutlist: oneCardCutlist('checklist/checklist', { title: 'What you get', beats: [{ text: 'Fast', at: 0.4 }] }),
+    kit, words: [],
+  });
+  assert.ok(
+    !result.errors.some((e) => e.startsWith('S4')),
+    `expected no S4 error, got:\n${result.errors.join('\n')}`,
+  );
+});
+
+test('a body card far shorter than its designed length raises a truncation NOTICE, not an error', () => {
+  const cutlist = oneCardCutlist('checklist/checklist', { title: 'What you get' }, { start: 0, end: 2 });
+  const result = lintCutlist({ cutlist, kit, words: [] });
+  assert.deepEqual(result.errors, [], `expected no errors, got:\n${result.errors.join('\n')}`);
+  const notices = truncationNotices({ cutlist, kit });
+  assert.ok(notices.some((n) => n.startsWith('NOTICE truncation')), `expected a truncation notice, got:\n${notices.join('\n')}`);
 });
