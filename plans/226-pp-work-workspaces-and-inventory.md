@@ -6,7 +6,7 @@ test_cmd: bash tooling/cli/pp-work/test-pp-work.sh
 ui:
 deploy:
 needs: []
-needs_prs: [222]
+needs_prs: [183]
 touches: [tooling/cli/pp-work/pp-work, tooling/cli/pp-work/test-pp-work.sh, tooling/cli/pp-work/README.md, scripts/link-clis.sh]
 
 mutation_apply: |
