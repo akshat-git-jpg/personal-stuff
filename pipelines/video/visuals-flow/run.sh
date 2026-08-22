@@ -29,8 +29,8 @@ if [[ $# -eq 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
   exit 2
 fi
 
-# `configure` takes extra flags (--drive-folder/--drive-account) and `status`
-# takes --track; every other step is exactly two args.
+# `configure` takes extra flags (--intro/--drive-folder/--drive-account) and
+# `status` takes --track; every other step is exactly two args.
 if [[ $# -lt 2 ]] || { [[ "$2" != "configure" ]] && [[ "$2" != "status" ]] && [[ $# -ne 2 ]]; }; then
   usage
   exit 2
@@ -247,9 +247,10 @@ case "$step" in
     ;;
 
   configure)
-    # Step 010 — the owner's Drive delivery choices for this video. The
-    # HeyGen engine choice moved to the avatar spend gate (420, plan 197). See
-    # steps/010-configure-run-human/README.md.
+    # Step 010 — the owner's kickoff choices for this video: which INTRO FLOW
+    # (`--intro simple|complex`, default simple — plan 218) and the Drive
+    # delivery target. The HeyGen engine choice moved to the avatar spend gate
+    # (420, plan 197). See steps/010-configure-run-human/README.md.
     dry "node lib/run-config.mjs $slug${*:+ $*}" && exit 0
     node lib/run-config.mjs "$slug" "$@"
     ;;

@@ -7,7 +7,7 @@
   "verbs": [
     "configure"
   ],
-  "usageArgs": "[--drive-folder <id>] [--drive-account <email>]",
+  "usageArgs": "[--intro simple|complex] [--drive-folder <id>] [--drive-account <email>]",
   "consumes": [],
   "produces": [
     "run-config.json"
