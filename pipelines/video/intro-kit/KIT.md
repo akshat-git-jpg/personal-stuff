@@ -62,6 +62,10 @@ Every kit card:
 
 ```js
       /* ===== DURATION (LOCKED — identical in all 7 kit cards) ===== */
+      // The root's STATIC data-duration is "0", not the default: hyperframes'
+      // render CLI only re-probes the composition length from the live browser
+      // when the static attribute is <= 0 — any nonzero literal freezes the
+      // render at that value regardless of --variables (verified empirically).
       const DUR = Math.min(5, Math.max(2, Number(VARS.duration ?? 3.5)));
       const root = document.getElementById('root');
       root.setAttribute('data-duration', String(DUR));
@@ -70,6 +74,10 @@ Every kit card:
       }
       const T = (frac) => +(DUR * frac).toFixed(3);
 ```
+
+Every card's root and `.clip` children declare `data-duration="0"` in the
+static markup (the DURATION script above overwrites it at runtime) — this is
+NOT a typo, see the comment above.
 
 ## The 7 cards
 
