@@ -80,6 +80,29 @@ test('INTRO-MODE: a typo in introMode throws rather than silently defaulting', (
   fs.rmSync(w, { recursive: true, force: true });
 });
 
+// Plan 220 added the simple flow's own three intro-track steps. Tag: INTRO-MODE.
+const SIMPLE_ONLY = ['115', '125', '135', '445'];
+
+test('INTRO-MODE: the four simple-flow steps declare modes: ["simple"]', () => {
+  const steps = loadSteps();
+  for (const n of SIMPLE_ONLY) {
+    const s = steps.find((x) => x.number === n);
+    assert.ok(s, `INTRO-MODE: step ${n} must exist in the registry`);
+    assert.deepEqual(s.modes, ['simple'],
+      `INTRO-MODE: step ${n} must be tagged modes: ["simple"], got ${JSON.stringify(s.modes)}`);
+  }
+});
+
+test('INTRO-MODE: a complex video never parks on 115/125/135', () => {
+  const next = nextStep({ ...emptyProbes, mode: 'complex' });
+  for (const track of Object.keys(next)) {
+    const step = next[track];
+    if (!step) continue;
+    assert.ok(!['115', '125', '135'].includes(step.number),
+      `INTRO-MODE: mode "complex" parked the ${track} track on simple-only step ${step.number} ${step.slug} — the mode filter in firstUnsatisfied() is not being applied`);
+  }
+});
+
 test('INTRO-MODE: the legacy intro key is still stripped, never honoured', () => {
   const w = tmpWorkdir({ intro: 'cards', introMode: 'simple' });
   const cfg = loadRunConfig(w);

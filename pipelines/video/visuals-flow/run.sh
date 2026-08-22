@@ -310,6 +310,45 @@ EOF
     node lib/intro-film/teasers.mjs "$slug"
     ;;
 
+  intro-simple|intro-simple-render|intro-simple-lint)
+    if [[ "$step" == "intro-simple" ]]; then
+      # 115 — the cut-list authoring pass. Picks a card slug per beat from the
+      # locked kit and fills its variables; never writes HTML. See
+      # steps/115-author-intro-simple-llm/SIMPLE-PASS.md.
+      d="$(step_slug 115)"
+      dry "cat steps/$d/SIMPLE-PASS.md | sed s/<slug>/$slug/g" && exit 0
+      cat "steps/$d/SIMPLE-PASS.md" | sed "s/<slug>/$slug/g"
+      exit 0
+    elif [[ "$step" == "intro-simple-render" ]]; then
+      # No approval check here on purpose, same reasoning as intro-render:
+      # rendering is how the owner GETS a cut to watch (lib/intro-film/approve.mjs).
+      # render-simple.mjs itself refuses a cut list that fails the S1-S7 lint.
+      dry "record_step 135 -- node lib/intro-kit/render-simple.mjs $slug" && exit 0
+      record_step 135 "Rendered the intro cut list to intro-film/out/intro.mp4." \
+        "intro-film/out/intro.mp4" -- node lib/intro-kit/render-simple.mjs "$slug"
+      exit $?
+    elif [[ "$step" == "intro-simple-lint" ]]; then
+      # The helper: prints the S1-S7 pacing report without rendering anything.
+      dry "node lib/intro-kit/lint-cutlist.mjs $slug" && exit 0
+      node lib/intro-kit/lint-cutlist.mjs "$slug"
+      exit $?
+    fi
+    ;;
+
+  intro-simple-rerender)
+    # 445 — the cut list was approved at 125 against a static avatar
+    # stand-in; this is the encode that swaps in the real avatar.mp4 and
+    # ships. Mirrors intro-rerender (440) for the complex flow.
+    if [[ ! -f "videos/$slug/avatar.mp4" ]]; then
+      echo "no real avatar.mp4 for $slug yet — 445 re-renders against it; run.sh $slug avatar-download (or place it) first"
+      exit 1
+    fi
+    dry "record_step 445 -- node lib/intro-kit/render-simple.mjs $slug" && exit 0
+    record_step 445 "Re-rendered the intro cut list against the real avatar clip." \
+      "intro-film/out/intro.mp4" -- node lib/intro-kit/render-simple.mjs "$slug"
+    exit $?
+    ;;
+
   intro-rerender)
     # 440 — the intro was approved at 150 against a static avatar stand-in;
     # this is the encode that swaps in the real avatar.mp4 and ships. Must

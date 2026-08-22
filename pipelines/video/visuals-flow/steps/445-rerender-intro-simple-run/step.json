@@ -1,0 +1,24 @@
+{
+  "number": "445",
+  "slug": "445-rerender-intro-simple-run",
+  "title": "re-render the intro cut list with the real avatar",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "intro-simple-rerender"
+  ],
+  "consumes": [
+    "avatar.mp4",
+    "intro-simple/cutlist.json"
+  ],
+  "produces": [
+    "intro-film/out/intro.mp4"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "summary": "the real `avatar.mp4` + the approved cut list -> a final `intro-film/out/intro.mp4`. The intro approved at 125 was cut against a static stand-in; this is the encode that ships. Fails if the workdir still has no real avatar. Mirrors 440 for the complex flow.",
+  "track": "main",
+  "modes": ["simple"]
+}

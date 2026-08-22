@@ -12,7 +12,7 @@ import { registerVersion } from './versions.mjs';
 import { loadConceptSpans } from './concept-spans.mjs';
 import { SHOT_CONSTANTS, jobPurpose } from './shot-constants.mjs';
 import { readFinalCut } from './final-cut.mjs';
-import { introSpan } from './intro-modes.mjs';
+import { introSpan, introMode } from './intro-modes.mjs';
 import { requireIntroApproved } from './intro-film/approve.mjs';
 import { pathToFileURL } from 'node:url';
 
@@ -1174,11 +1174,15 @@ export async function loadAssemblyInputs(opts) {
   const filmSpan = introSpan(workdir);
   const introFile = path.join(workdir, 'intro-film', 'out', 'intro.mp4');
   if (!fs.existsSync(introFile)) {
-    throw new Error(`missing intro film: ${introFile} — run.sh ${video} intro-render`);
+    // Both intro flows deliver to this SAME path (plan 220) — only the verb
+    // that produces it differs per mode. See intro-modes.mjs / approve.mjs.
+    const renderVerb = introMode(workdir) === 'simple' ? 'intro-simple-render' : 'intro-render';
+    throw new Error(`missing intro film: ${introFile} — run.sh ${video} ${renderVerb}`);
   }
-  // THIS is the door gate 027 guards. It used to sit on intro-render, which
-  // both deadlocked the review and left this path — the one that puts the
-  // film in front of an audience — completely unguarded.
+  // THIS is the door gate 027 (complex) / 125 (simple) guards. It used to sit
+  // on intro-render, which both deadlocked the review and left this path —
+  // the one that puts the film in front of an audience — completely
+  // unguarded. requireIntroApproved() is itself mode-aware (approve.mjs).
   requireIntroApproved(workdir);
 
   const voPath = path.join(workdir, 'vo.mp3');

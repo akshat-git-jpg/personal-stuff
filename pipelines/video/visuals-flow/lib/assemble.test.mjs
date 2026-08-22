@@ -1010,7 +1010,10 @@ test('loadAssemblyInputs: throws with actionable message if film is missing', as
   const dir = path.join(testTmp, 'film-err');
   fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'run-config.json'), JSON.stringify({ intro: 'film' }));
+  // introMode explicit: plan 220 defaulted an unconfigured workdir to
+  // "simple", which changed the missing-intro hint's verb name. This fixture
+  // means to exercise the complex (bespoke film) flow, so it must say so.
+  fs.writeFileSync(path.join(dir, 'run-config.json'), JSON.stringify({ introMode: 'complex' }));
   fs.writeFileSync(path.join(dir, 'cues.json'), JSON.stringify({ approved: true, cues: [] }));
   fs.writeFileSync(path.join(dir, 'resolved.json'), JSON.stringify({ video: 'film-err', resolved: [] }));
   fs.writeFileSync(path.join(dir, 'transcript.json'), JSON.stringify([]));

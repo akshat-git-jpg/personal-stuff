@@ -1,0 +1,23 @@
+{
+  "number": "135",
+  "slug": "135-render-intro-simple-run",
+  "title": "render the intro cut list",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "intro-simple-render"
+  ],
+  "consumes": [
+    "intro-simple/cutlist.json"
+  ],
+  "produces": [
+    "intro-film/out/intro.mp4"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "summary": "`intro-simple/cutlist.json` → `intro-film/out/intro.mp4`. Refuses to run if the cut list fails the S1-S7 pacing lint. No approval check here on purpose, mirroring the complex flow's 160 — rendering is how the owner GETS a cut to watch; the gate (125) is enforced downstream at assembly (`requireIntroApproved()`).",
+  "track": "intro",
+  "modes": ["simple"]
+}
