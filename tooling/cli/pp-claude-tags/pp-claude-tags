@@ -1,0 +1,272 @@
+#!/usr/bin/env python3
+"""Unlock Claude Code's built-in session tags in the agents view.
+
+Claude Code ships the tag feature (it calls them groups) but the agents view
+hardcodes its gate to false, so `ctrl+e` (set tag) and the tag view are dead.
+This flips that one byte, re-signs the binary, and verifies it still runs —
+restoring the original byte if anything goes wrong.
+
+The gate is found by the SHAPE of the surrounding code, not by minified
+variable names, because those are regenerated every release (it was `X` in
+2.1.237, `Q` in 2.1.238, `q` in 2.1.239). One match is required; anything else
+is treated as "this build changed too much" and the binary is left alone.
+
+Idempotent and cheap to re-run: a stamp file skips the scan when the binary has
+not changed, so it can sit in a shell startup function.
+
+Exit codes: 0 = patched, already patched, or safely skipped. 1 = failed and
+rolled back.
+"""
+import fcntl
+import hashlib
+import json
+import mmap
+import os
+import re
+import subprocess
+import sys
+
+LAUNCHER = os.path.expanduser("~/.local/bin/claude")
+STAMP = os.path.expanduser("~/.cache/pp-claude-tags.json")
+LOCK = os.path.expanduser("~/.cache/pp-claude-tags.lock")
+CONFIGS = [
+    os.path.expanduser("~/.claude-work/.claude.json"),
+    os.path.expanduser("~/.claude-personal/.claude.json"),
+]
+
+_ID = rb"[A-Za-z_$][\w$]*"
+
+# Strategy 1 — code shape:
+#   ...capExpanded:X}=hook(M), GATE=!1, [S]=React.useState(()=>make(host,GATE))
+# The back-reference ties the flag to the store it is passed into, which is what
+# makes this specific enough to patch blind.
+BY_SHAPE = re.compile(
+    rb"capExpanded:" + _ID + rb"\}=" + _ID + rb"\(" + _ID + rb"\),"
+    rb"(" + _ID + rb")=!([01]),"
+    rb"\[" + _ID + rb"\]=" + _ID + rb"\.useState\(\(\)=>" + _ID + rb"\(" + _ID + rb",\1\)\)"
+)
+
+# Strategy 2 — the property name Anthropic wrote, which minification leaves
+# alone: the view store is told whether groups are on via
+# `attachView({groupsEnabled:<gate>})`. That names the gate variable exactly.
+# A bare `groupsEnabled:` is too loose (it also matches the props it is
+# destructured into downstream, which have no declaration), so the store call is
+# the anchor. Short minified names repeat across a 310MB bundle, so only a
+# declaration close to that call counts, and there must be exactly one.
+BY_PROP = re.compile(rb"attachView\(\{groupsEnabled:(" + _ID + rb")\}")
+NEAR = 12_000
+
+QUIET = "-q" in sys.argv or "--quiet" in sys.argv
+
+
+def say(msg):
+    if not QUIET:
+        print(f"pp-claude-tags: {msg}")
+
+
+def warn(msg):
+    print(f"pp-claude-tags: {msg}", file=sys.stderr)
+
+
+def alert(msg):
+    """Put a failure on screen.
+
+    The launch agent runs unattended, so a warning in its log is a warning
+    nobody reads — the first symptom is noticing your tags are gone, hours
+    later. A desktop notification turns that into an immediate, obvious signal.
+    """
+    warn(msg)
+    body = msg.replace('"', "'").replace("\\", "")
+    try:
+        subprocess.run(
+            ["osascript", "-e",
+             f'display notification "{body}" with title "Claude Code tags need a fix"'],
+            capture_output=True, timeout=20,
+        )
+    except (subprocess.TimeoutExpired, OSError):
+        pass
+
+
+def fingerprint(path):
+    st = os.stat(path)
+    return hashlib.sha256(
+        f"{os.path.realpath(path)}:{st.st_size}:{st.st_mtime_ns}".encode()
+    ).hexdigest()
+
+
+def read_stamp():
+    try:
+        with open(STAMP) as fh:
+            return json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def write_stamp(path):
+    os.makedirs(os.path.dirname(STAMP), exist_ok=True)
+    tmp = STAMP + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump({"fingerprint": fingerprint(path), "patched": True}, fh)
+    os.replace(tmp, STAMP)
+
+
+def _by_shape(mm):
+    hits = list(BY_SHAPE.finditer(mm))
+    if len(hits) != 1:
+        return None
+    return hits[0].start(2), hits[0].group(2).decode()
+
+
+def _by_prop(mm):
+    uses = list(BY_PROP.finditer(mm))
+    if len(uses) != 1:
+        return None
+    use = uses[0]
+    decl = re.compile(rb"[^\w$]" + re.escape(use.group(1)) + rb"=!([01])[,;)]")
+    near = [
+        (m.start(1), m.group(1).decode())
+        for m in decl.finditer(mm)
+        if abs(m.start() - use.start()) < NEAR
+    ]
+    if len(near) != 1:
+        return None
+    return near[0]
+
+
+def find_gate(path):
+    """Return (offset_of_digit, current_value) or (None, reason).
+
+    Two independent strategies, so one refactor does not take the whole thing
+    out. They must agree if both fire.
+    """
+    with open(path, "rb") as fh:
+        with mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            shape = _by_shape(mm)
+            prop = _by_prop(mm)
+            if shape and prop and shape[0] != prop[0]:
+                return None, "the two gate strategies disagree"
+            hit = shape or prop
+            if hit is None:
+                return None, "gate not found"
+            return hit
+
+
+def codesign(path):
+    out = subprocess.run(
+        ["codesign", "-f", "-s", "-", path], capture_output=True, text=True
+    )
+    if out.returncode != 0:
+        warn(f"codesign failed: {out.stderr.strip()[:200]}")
+        return False
+    return True
+
+
+def runs(path):
+    try:
+        out = subprocess.run(
+            [path, "--version"], capture_output=True, text=True, timeout=120
+        )
+    except (subprocess.TimeoutExpired, OSError) as exc:
+        warn(f"could not run patched binary: {exc}")
+        return False
+    return out.returncode == 0 and "Claude Code" in out.stdout
+
+
+def write_byte(path, offset, value):
+    with open(path, "r+b") as fh:
+        fh.seek(offset)
+        fh.write(value)
+
+
+def restore_group_view():
+    """Re-select the tag view.
+
+    With the gate off, the view clamps `fleetViewGroupMode` to a mode it still
+    allows, so an update that reverts the patch also rewrites this setting and
+    the tags look deleted. Put it back once tags work again.
+    """
+    for path in CONFIGS:
+        if not os.path.exists(path):
+            continue
+        try:
+            with open(path) as fh:
+                data = json.load(fh)
+            if data.get("fleetViewGroupMode") == "group":
+                continue
+            data["fleetViewGroupMode"] = "group"
+            tmp = path + ".tmp"
+            with open(tmp, "w") as fh:
+                json.dump(data, fh, indent=2)
+            os.replace(tmp, path)
+            say(f"re-selected the tag view in {os.path.basename(os.path.dirname(path))}")
+        except (OSError, json.JSONDecodeError) as exc:
+            warn(f"could not update {path}: {exc}")
+
+
+def main():
+    if not os.path.exists(LAUNCHER):
+        warn(f"no claude launcher at {LAUNCHER}")
+        return 0
+    target = os.path.realpath(LAUNCHER)
+
+    if read_stamp().get("fingerprint") == fingerprint(target):
+        say("already unlocked (stamp current)")
+        return 0
+
+    offset, value = find_gate(target)
+    if offset is None:
+        # A release changed this code too much to patch blind. Leave it alone:
+        # the agents view keeps working, just without tags.
+        alert(
+            f"{value} in {os.path.basename(target)} — left unpatched, "
+            "tags are hidden until the pattern is updated."
+        )
+        return 0
+
+    if value == "0":
+        say("already unlocked")
+        write_stamp(target)
+        restore_group_view()
+        return 0
+
+    say(f"unlocking tags in {os.path.basename(target)}")
+    write_byte(target, offset, b"0")
+    if not codesign(target) or not runs(target):
+        warn("patched binary did not run — rolling back")
+        write_byte(target, offset, b"1")
+        codesign(target)
+        if runs(target):
+            alert("patch did not run, rolled back — Claude Code is fine, tags hidden")
+        else:
+            alert(f"ROLLBACK FAILED — reinstall Claude Code or delete {target}")
+        return 1
+
+    write_stamp(target)
+    restore_group_view()
+    say("tags unlocked — ctrl+e tags, ctrl+s tag view, ctrl+r renames")
+    return 0
+
+
+def main_locked():
+    """Serialise runs.
+
+    The shell hook, the launchd watch and its interval can all fire at once. Two
+    instances patching the same file race: one sees the other's half-written
+    binary, calls it a failure and rolls the byte back. One at a time; the rest
+    exit quietly, because whoever holds the lock is already doing the work.
+    """
+    os.makedirs(os.path.dirname(LOCK), exist_ok=True)
+    fd = os.open(LOCK, os.O_CREAT | os.O_RDWR, 0o644)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            say("another run is in progress — skipping")
+            return 0
+        return main()
+    finally:
+        os.close(fd)
+
+
+if __name__ == "__main__":
+    sys.exit(main_locked())
