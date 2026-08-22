@@ -6,7 +6,7 @@ test_cmd: bash tooling/cli/pp-land/test-pp-land.sh
 ui:
 deploy:
 needs: []
-needs_prs: [225, 226]
+needs_prs: [186, 187]
 touches: [tooling/cli/pp-land/pp-land, tooling/cli/pp-land/verify-map.tsv, tooling/cli/pp-land/test-pp-land.sh, tooling/cli/pp-land/README.md, tooling/cli/greenlight/greenlight, scripts/lib/guard-install.sh]
 
 mutation_apply: |
