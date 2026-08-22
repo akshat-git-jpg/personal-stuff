@@ -88,7 +88,7 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    `introMode` in `run-config.json` (set at 010 with
    `configure --intro simple|complex`; the default is **simple**).
    - `simple` — steps 115 (author the cut list) → 125 (owner gate) → 135 (render).
-     The cards are LOCKED (`pipelines/video/intro-kit/`, 7 of them). You pick and fill;
+     The simple flow now picks cards from the body card catalogue (`pipelines/video/card-library/catalog.json`). You pick and fill;
      you never design. Rulebook: `steps/115-author-intro-simple-llm/SIMPLE-PASS.md`.
      Taste: `TASTE-SIMPLE.md`. Pacing is ENFORCED by `lib/intro-kit/lint-cutlist.mjs`.
    - `complex` — steps 110 → 120 → 130 → 140 → 150 → 160, the bespoke film, unchanged.
@@ -98,7 +98,7 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    (`modes` in `step.json`), but a session that reads the wrong rulebook wastes the run.
 
    **The intro's "full creative freedom" applies to `complex` only** — the `simple`
-   flow is a locked kit of 7 cards (plan 219); there is no composition to design, only
+   flow now picks cards from the body card catalogue (`pipelines/video/card-library/catalog.json`); there is no composition to design, only
    a card and its variables to pick per beat.
 7b. **Look-preview prompts go to a FILE, never into the chat.** Both gates that
    approve a look from generated frames — 110 (competing intro directions, `complex`
