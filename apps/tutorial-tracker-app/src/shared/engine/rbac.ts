@@ -208,6 +208,10 @@ export interface Transition {
   kind: "start" | "submit" | "approve" | "reject" | "advance" | "reopen";
   by: "doer" | "reviewer";
   requiresFeedback?: boolean;
+  /** A submit note is required before this move is allowed — the doer's side of
+   *  requiresFeedback. Only ever set on a submit that lands in front of a
+   *  reviewer; an auto-completing stage has nobody to read one. */
+  requiresNote?: boolean;
   disabledReason?: string;
 }
 
@@ -251,7 +255,8 @@ export function transitionsForStage(roles: string[], email: string, s: StageDef,
       : undefined;
     out.push({
       stageId: s.id, statusCol, to: tr.to, label: tr.label,
-      kind: tr.kind, by: tr.by, requiresFeedback: tr.needsFeedback, disabledReason,
+      kind: tr.kind, by: tr.by, requiresFeedback: tr.needsFeedback,
+      requiresNote: tr.needsNote, disabledReason,
     });
   }
   return out;

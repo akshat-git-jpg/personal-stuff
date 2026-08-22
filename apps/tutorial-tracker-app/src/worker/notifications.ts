@@ -13,7 +13,7 @@ export interface NotifyContext {
   stageLabel?: string;          // e.g. "Script" — or the role, for "assigned"
   actorName?: string;           // who triggered it (the submitter)
   recipientName?: string;       // the assignee being notified
-  feedback?: string;            // send-back note
+  feedback?: string;            // send-back note, or the doer's submit note
 }
 
 export type NotificationEvent = "submitted" | "assigned" | "approved" | "sentBack";
@@ -23,7 +23,9 @@ type Template = (c: NotifyContext) => { subject: string; text: string };
 export const NOTIFICATIONS: Record<NotificationEvent, Template> = {
   submitted: (c) => ({
     subject: `🔔 ${c.stageLabel} submitted for review: ${c.title}`,
-    text: `${c.actorName} submitted the ${c.stageLabel} for "${c.title}" for your review.\n\nOpen the tracker: ${c.appUrl}`,
+    text: `${c.actorName} submitted the ${c.stageLabel} for "${c.title}" for your review.`
+      + (c.feedback ? `\n\nWhat they did:\n\n"${c.feedback}"` : "")
+      + `\n\nOpen the tracker: ${c.appUrl}`,
   }),
   assigned: (c) => ({
     subject: `📋 You've been assigned: ${c.title}`,

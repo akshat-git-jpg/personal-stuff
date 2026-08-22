@@ -14,6 +14,7 @@
  *   GET  /api/board       → board for the current user (+ per-row actions/locks/membership)
  *   GET  /api/review-queue→ cards awaiting THIS user's review (assigned reviewer / admin)
  *   POST /api/update      → doer cell write (status transition or content edit)
+ *   POST /api/submit      → doer submit for review (atomic status+note; note required)
  *   POST /api/review      → reviewer approve / request-changes (atomic status+feedback)
  *   GET  *                → serve SPA via ASSETS binding
  */
@@ -45,7 +46,7 @@ import {
 } from "../shared/engine/registry";
 import { derive, statusOf } from "../shared/engine/derive";
 import { colOf, stageHasReviewerSlot, createFieldsOf, requiredToCreate } from "../shared/engine/types";
-import { lifecycle } from "../shared/engine/lifecycle";
+import { lifecycle, eventTypeFor } from "../shared/engine/lifecycle";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
 import { sendNotification } from "./notifications";
@@ -424,22 +425,29 @@ app.get("/api/board", async (c) => {
 // (or all, for admins). Each item shows who submitted it + which stage.
 app.get("/api/review-queue", async (c) => {
   const { email, memberships } = getUser(c);
-  const [allRows, team] = await Promise.all([
+  const store = getStore(c.env);
+  const [allRows, team, submitNotes] = await Promise.all([
     cachedReadRows(c.env),
-    getStore(c.env).loadTeam(),
+    store.loadTeam(),
+    store.latestSubmitNotes(),
   ]);
   const names = buildNamesMap(team);
 
   const items = reviewQueueForMemberships(memberships, email, allRows).map(({ row, stage, submittedBy }) => {
     const eff = effectiveRolesFor(memberships, row);
+    const rowId = (row.row_id ?? "") as string;
     return {
-      row_id: (row.row_id ?? "") as string,
+      row_id: rowId,
       video_title: (row.video_title ?? "") as string,
       stageId: stage.id,
       stage: stage.label,
       statusCol: colOf(stage, "status"),
       submittedBy,
       submittedByName: displayName(submittedBy, names),
+      // What the doer said they did. Rendered ON the queue row, because Approve
+      // is one click there — a note only readable inside the card would be
+      // approved past without ever being seen.
+      submitNote: submitNotes.get(`${rowId}:${stage.id}`) ?? "",
       // Attach the same authority meta the board sends, so opening a queue item
       // shows its Approve / Request-changes buttons (and field locks).
       row: { ...projectRowForRoles(eff, row), ...rowMeta(eff, email, row) },
@@ -477,6 +485,15 @@ app.post("/api/update", async (c) => {
   const check = authorizeWrite(effRoles, email, typedCol, value, targetRow);
   if (!check.ok) return c.json({ error: "forbidden", message: check.reason }, 403);
 
+  // A submit that needs a note is not writable through this endpoint — it would
+  // land in the reviewer's queue with nothing to read. /api/submit is the only
+  // door, so the note requirement cannot be bypassed with a hand-rolled call.
+  const submitStage = derive(pipe).byStatusCol.get(typedCol);
+  if (submitStage && transitionsForStage(effRoles, email, submitStage, targetRow, pipe)
+    .some((t) => t.to === value && t.requiresNote)) {
+    return c.json({ error: "note_required", message: "Submitting for review needs a note. Use /api/submit." }, 400);
+  }
+
   const store = getStore(c.env);
 
   // System-membership guard: a person can only be assigned to a doer/reviewer slot
@@ -513,13 +530,10 @@ app.post("/api/update", async (c) => {
   if (STATUS_COLS.has(typedCol) && stage) {
     c.executionCtx.waitUntil((async () => {
       try {
-        const trans = lifecycle(stage.lifecycle).transitions.find((t) => t.to === value && t.from === oldValue);
-        const rawType = trans?.kind ?? "submit";
-        const type = ["start", "submit", "advance"].includes(rawType) ? "complete" : rawType;
         await store.logEvent({
           card_id: row_id,
           stage_id: stage.id,
-          type: type,
+          type: eventTypeFor(stage.lifecycle, oldValue, value),
           actor: email,
         });
       } catch (err) {
@@ -648,6 +662,110 @@ app.post("/api/review", async (c) => {
   }
 
   return c.json({ ok: true });
+});
+
+// POST /api/submit {row_id, stage, note}
+// The doer's mirror of /api/review: an atomic status+note write for a submit
+// that lands in front of a reviewer. The note is NOT optional — a resubmit with
+// no word on what changed forces the reviewer to re-review from scratch, which
+// is the whole cost this endpoint exists to remove.
+app.post("/api/submit", async (c) => {
+  const { email, memberships } = getUser(c);
+
+  let body: { row_id?: string; stage?: string; note?: string };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+  const { row_id, stage: stageId, note } = body;
+  if (!row_id || !stageId) {
+    return c.json({ error: "missing required fields: row_id, stage" }, 400);
+  }
+
+  const store = getStore(c.env);
+  const allRows = await cachedReadRows(c.env);
+  const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
+  if (!targetRow) return c.json({ error: "row not found", row_id }, 404);
+
+  const pipe = pipeOf(targetRow);
+  const stage = stageById(pipe, stageId);
+  if (!stage) return c.json({ error: "invalid stage", stage: stageId }, 400);
+
+  const statusCol = colOf(stage, "status");
+  const effRoles = effectiveRolesFor(memberships, targetRow);
+  const fromStatus = statusOf(stage, targetRow);
+
+  // Authority + valid-transition in one check, from the same table the buttons
+  // are built from — so what the UI offers and what this accepts cannot drift.
+  const transition = transitionsForStage(effRoles, email, stage, targetRow, pipe)
+    .find((t) => t.by === "doer" && t.requiresNote);
+  if (!transition) {
+    return c.json({
+      error: "invalid_transition",
+      message: `Nothing to submit for review from "${fromStatus}".`,
+    }, 409);
+  }
+  if (transition.disabledReason) {
+    return c.json({ error: "blocked", message: transition.disabledReason }, 400);
+  }
+
+  const trimmed = (note ?? "").trim();
+  if (!trimmed) {
+    return c.json({ error: "note_required", message: "Tell the reviewer what you did." }, 400);
+  }
+
+  // Belt-and-braces: the status write goes through the same single enforcement
+  // point every other doer write does.
+  const check = authorizeWrite(effRoles, email, statusCol, transition.to, targetRow);
+  if (!check.ok) return c.json({ error: "forbidden", message: check.reason }, 403);
+
+  try {
+    await store.updateCells(row_id, {
+      [statusCol]: transition.to,
+      status_since: new Date().toISOString(),
+    }, { col: statusCol, value: fromStatus });
+  } catch (err) {
+    if (err instanceof ConflictError) {
+      return c.json({ error: "conflict", message: "Someone else changed this just now — reloading.", current: err.current }, 409);
+    }
+    throw err;
+  }
+
+  c.executionCtx.waitUntil((async () => {
+    try {
+      await store.logEvent({
+        card_id: row_id,
+        stage_id: stage.id,
+        type: eventTypeFor(stage.lifecycle, fromStatus, transition.to),
+        actor: email,
+        detail: trimmed,
+      });
+    } catch (err) {
+      console.error("Failed to log submit event:", err);
+    }
+  })());
+
+  await bustBoardCache(c.env);
+
+  // Notify this stage's reviewer AFTER the response. The queue row carries the
+  // note too, so a missed mail never hides it.
+  c.executionCtx.waitUntil((async () => {
+    try {
+      const team = await store.loadTeam();
+      const names = buildNamesMap(team);
+      const stageReviewer = stageHasReviewerSlot(stage)
+        ? ((targetRow[colOf(stage, "reviewer")] ?? "") as string).trim() : "";
+      const recipients = stageReviewer
+        ? [stageReviewer]
+        : team.filter((m) => (m.roles ?? [m.role]).some(isApprover)).map((m) => m.email);
+      await sendNotification(c.env, "submitted", recipients, {
+        title: (targetRow.video_title ?? "") as string,
+        appUrl: c.env.APP_URL ?? "",
+        stageLabel: stage.label,
+        actorName: displayName(email, names),
+        feedback: trimmed,
+      });
+    } catch (e) { console.warn("[notify] submit notification failed:", e); }
+  })());
+
+  return c.json({ ok: true, status: transition.to });
 });
 
 // ---------------------------------------------------------------------------

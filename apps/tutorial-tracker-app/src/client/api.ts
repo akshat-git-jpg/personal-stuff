@@ -59,6 +59,9 @@ export interface ReviewItem {
   statusCol: string;
   submittedBy: string;
   submittedByName: string;
+  /** What the doer said they did on their latest submit. Blank for work
+   *  submitted before submit notes existed. */
+  submitNote?: string;
   row: BoardRow;
 }
 export interface ReviewQueueData { count: number; items: ReviewItem[]; names?: Record<string, string>; }
@@ -150,18 +153,25 @@ export async function review(
   await throwOnError(await postJSON("/api/review", { row_id, stage: stageId, action, feedback }));
 }
 
+/** Submit for review with the doer's note. The note is compulsory server-side. */
+export async function submitForReview(row_id: string, stageId: string, note: string): Promise<void> {
+  await throwOnError(await postJSON("/api/submit", { row_id, stage: stageId, note }));
+}
+
 /**
  * Apply a server-issued transition. Reviewer actions (approve / request-changes)
- * go through /api/review; everything else is a plain status write.
+ * go through /api/review, a note-bearing submit through /api/submit, and
+ * everything else is a plain status write.
  */
 export async function applyTransition(
   row_id: string,
   t: Transition,
   currentStatus: string,
-  feedback?: string,
+  text?: string,
 ): Promise<void> {
   if (t.kind === "approve") return review(row_id, t.stageId, "approve");
-  if (t.kind === "reject" || t.kind === "reopen") return review(row_id, t.stageId, "sendback", feedback);
+  if (t.kind === "reject" || t.kind === "reopen") return review(row_id, t.stageId, "sendback", text);
+  if (t.requiresNote) return submitForReview(row_id, t.stageId, text ?? "");
   return updateCell(row_id, t.statusCol as Column, t.to, currentStatus);
 }
 

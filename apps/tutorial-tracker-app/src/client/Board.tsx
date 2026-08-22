@@ -168,7 +168,10 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
 
   async function doAction(row: BoardRow, t: Transition) {
     if (!row.row_id) return;
+    // Anything that needs words typed opens the panel instead of firing: the
+    // reviewer's send-back reason, and the doer's submit note.
     if (t.requiresFeedback) { openDetail(row, stageByStatusColIn(pipeOf(row), t.statusCol)?.id, "reviewer"); return; }
+    if (t.requiresNote) { openDetail(row, stageByStatusColIn(pipeOf(row), t.statusCol)?.id, "doer"); return; }
     // Send the RAW stored value (blank stays blank) as the optimistic-lock expectation,
     // so a blank cell isn't mistaken for a "To Do" change.
     const prev = (row[t.statusCol as keyof BoardRow] as string) ?? "";

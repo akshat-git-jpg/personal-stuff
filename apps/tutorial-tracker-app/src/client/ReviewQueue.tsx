@@ -64,6 +64,12 @@ export function ReviewQueue({ items, onOpen, onAction, multiSystem }: ReviewQueu
               )}
             </div>
 
+            {item.submitNote && (
+              <div data-testid="queue-submit-note" className="rounded-r-sm border-l-2 border-border bg-muted/40 py-1.5 pl-3 text-sm leading-relaxed text-foreground/80">
+                {item.submitNote}
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
               <Button size="sm" variant="outline" className="h-9 px-3.5 text-[13px]" onClick={() => onOpen(item)}>
                 Open the work

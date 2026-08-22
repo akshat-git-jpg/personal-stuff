@@ -27,6 +27,7 @@ export interface LifecycleTransition {
   label: string;
   gate?: GateKind;          // omitted = no required-field gate (e.g. "Resume editing")
   needsFeedback?: boolean;  // a send-back note is required to perform it
+  needsNote?: boolean;      // a submit note is required to perform it
 }
 
 export interface Lifecycle {
@@ -44,9 +45,9 @@ const REVIEW: Lifecycle = {
   reviewed: true,
   transitions: [
     { from: "To Do",        to: "In Progress",  kind: "start",   by: "doer",     label: "Start", gate: "start" },
-    { from: "In Progress",  to: "In Review",    kind: "submit",  by: "doer",     label: "Submit for review", gate: "submit" },
+    { from: "In Progress",  to: "In Review",    kind: "submit",  by: "doer",     label: "Submit for review", gate: "submit", needsNote: true },
     { from: "Need Changes", to: "In Progress",  kind: "start",   by: "doer",     label: "Resume editing" },
-    { from: "Need Changes", to: "In Review",    kind: "submit",  by: "doer",     label: "Resubmit for review", gate: "submit" },
+    { from: "Need Changes", to: "In Review",    kind: "submit",  by: "doer",     label: "Resubmit for review", gate: "submit", needsNote: true },
     { from: "In Review",    to: "Done",         kind: "approve", by: "reviewer", label: "Approve", gate: "approve" },
     { from: "In Review",    to: "Need Changes", kind: "reject",  by: "reviewer", label: "Request changes", needsFeedback: true },
     { from: "Done",         to: "Need Changes", kind: "reopen",  by: "reviewer", label: "Reopen (request changes)", needsFeedback: true },
@@ -60,7 +61,7 @@ const APPROVE_ONLY: Lifecycle = {
   reviewed: true,
   transitions: [
     { from: "To Do",       to: "In Progress", kind: "start",   by: "doer",     label: "Start", gate: "start" },
-    { from: "In Progress", to: "In Review",   kind: "submit",  by: "doer",     label: "Submit for review", gate: "submit" },
+    { from: "In Progress", to: "In Review",   kind: "submit",  by: "doer",     label: "Submit for review", gate: "submit", needsNote: true },
     { from: "In Review",   to: "Done",        kind: "approve", by: "reviewer", label: "Approve", gate: "approve" },
   ],
 };
@@ -93,6 +94,29 @@ const LIFECYCLES: Record<LifecycleId, Lifecycle> = {
 
 export function lifecycle(id: LifecycleId): Lifecycle {
   return LIFECYCLES[id];
+}
+
+const sameStatus = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/** The transition a status move corresponds to, matched case-insensitively.
+ *  Callers hold a status read back from storage, whose case they do not control;
+ *  comparing it raw against the lifecycle's cased names never matched, which is
+ *  why every doer action used to be logged as "complete". */
+export function findTransition(id: LifecycleId, from: string, to: string): LifecycleTransition | undefined {
+  return lifecycle(id).transitions.find((t) => sameStatus(t.from, from) && sameStatus(t.to, to));
+}
+
+/** The card_events `type` for a status move — the vocabulary the activity feed
+ *  reads: start | submit | approve | sendback | reopen | complete. */
+export function eventTypeFor(id: LifecycleId, from: string, to: string): string {
+  switch (findTransition(id, from, to)?.kind) {
+    case "start":   return "start";
+    case "submit":  return "submit";
+    case "approve": return "approve";
+    case "reject":  return "sendback";
+    case "reopen":  return "reopen";
+    default:        return "complete";
+  }
 }
 
 /** Every distinct status across all lifecycles (for display tables, legends, etc.). */

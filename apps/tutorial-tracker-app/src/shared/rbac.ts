@@ -203,6 +203,10 @@ export interface Transition {
   // context (My work = doer, Review queue = reviewer).
   by: "doer" | "reviewer";
   requiresFeedback?: boolean;
+  // A submit note is required before this move is allowed — the doer's side of
+  // requiresFeedback. Populated by the engine (see engine/lifecycle.ts); this
+  // legacy shim only needs the field so client code type-checks against it.
+  requiresNote?: boolean;
   // Set when the transition is allowed by role but blocked by an unmet
   // prerequisite (e.g. required fields not filled). The UI shows the button
   // disabled with this reason; the server rejects the write with it too.

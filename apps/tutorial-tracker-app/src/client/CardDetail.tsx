@@ -76,6 +76,8 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
   const [formError, setFormError] = useState<string | null>(null);
 
   const [feedbackTexts, setFeedbackTexts] = useState<Record<string, string>>({});
+  // The doer's side of the same conversation: what changed, per stage.
+  const [noteTexts, setNoteTexts] = useState<Record<string, string>>({});
   const [actingId, setActingId] = useState<string | null>(null);
   const [showActivity, setShowActivity] = useState(false);
   const [events, setEvents] = useState<CardEvent[]>([]);
@@ -235,6 +237,9 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
 
     const rawStatus = (row[g.statusCol as Column] as string) ?? "";
     const feedback = feedbackTexts[g.stageId] ?? "";
+    const note = noteTexts[g.stageId] ?? "";
+    /** A move that needs words typed first can't be a plain button. */
+    const needsWords = (t: Transition) => t.requiresFeedback || t.requiresNote;
     const blockReason = (t: Transition): string | undefined => {
       let cols: string[];
       if (t.kind === "approve") cols = requiredToApprove(pipeline, stage);
@@ -245,8 +250,8 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
       return missing.length ? `Add the ${missing.map(fieldLabel).join(", ")} first.` : undefined; };
     const hint = g.transitions.map(blockReason).find(Boolean);
     return ( <div key={g.stageId} className="space-y-2"> <div className="flex items-center gap-2 text-sm"> <strong className="font-semibold">{stage.label}</strong> <StatusPill status={status} /> </div>
-        {g.transitions.some((t) => !t.requiresFeedback) && ( <div className="flex flex-wrap gap-2"> {g.transitions
-              .filter((t) => !t.requiresFeedback)
+        {g.transitions.some((t) => !needsWords(t)) && ( <div className="flex flex-wrap gap-2"> {g.transitions
+              .filter((t) => !needsWords(t))
               .map((t) => {
                 const reason = blockReason(t);
                 const reject = t.kind === "reject",
@@ -264,6 +269,24 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
         )} {hint && ( <div className="flex items-start gap-1.5 text-[11px] leading-relaxed text-amber-700 dark:text-amber-400" role="status"> <AlertTriangle className="mt-px size-3 shrink-0" aria-hidden="true" />
             <span>{hint}</span> </div>
         )} {g.transitions
+          .filter((t) => t.requiresNote)
+          .map((t) => {
+            const reason = blockReason(t);
+            // A resubmit answers a send-back, so ask the pointed question then;
+            // a first submit is an introduction, so ask the open one.
+            const resubmit = status === "Need Changes";
+            return ( <div key={"note" + t.to} data-testid="submit-note-box" className="space-y-1.5 rounded-lg border border-border bg-muted/40 p-3">
+                <label className="text-xs font-medium text-foreground/80" htmlFor={`note-${g.stageId}`}>
+                  {resubmit ? "What did you change? The reviewer reads this first." : "Anything the reviewer should know before they look?"}
+                </label>
+                <textarea id={`note-${g.stageId}`} data-testid="submit-note-input" className={cn(inputCls, "h-auto min-h-16 py-2")} rows={3}
+                  placeholder={resubmit ? "Fixed the audio drift at 4:10 and re-cut the intro." : "Recorded at 1440p; the last 20s are a placeholder."}
+                  value={note} onChange={(e) => setNoteTexts((m) => ({ ...m, [g.stageId]: e.target.value }))} />
+                <Button size="sm" data-testid="submit-note-send" disabled={actingId !== null || !note.trim() || !!reason}
+                  title={reason ?? (note.trim() ? "" : "Add a note first")}
+                  onClick={() => { if (!reason) void runTransition(t, rawStatus, note.trim()); }}>
+                  {t.label} </Button> </div>
+            ); })} {g.transitions
           .filter((t) => t.requiresFeedback)
           .map((t) => ( <div key={"fb" + t.to} className="space-y-1.5 rounded-lg border border-border bg-muted/40 p-3"> <label className="text-xs font-medium text-foreground/80">Or send it back — say what to change:</label>
               <textarea className={cn(inputCls, "h-auto min-h-16 py-2")} rows={3} placeholder="What needs to change?" value={feedback} onChange={(e) => setFeedbackTexts((m) => ({ ...m, [g.stageId]: e.target.value }))} />
@@ -330,6 +353,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
                           <span className="text-foreground/90"> <span className="font-medium">{ev.actorName}</span> {ev.type === "submit" ? "submitted for review" : ev.type === "approve" ? "approved" : ev.type === "sendback" ? "requested changes" : ev.type === "reopen" ? "reopened" : ev.type === "start" ? "started work" : "completed"}
                           </span> <span className="text-xs text-muted-foreground" title={new Date(ev.created_at).toLocaleString()}> {} {new Date(ev.created_at).toLocaleDateString()} {new Date(ev.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span> </div> {isSendback && ev.detail && <div className="mt-1.5 ml-1 border-l-2 border-red-300 pl-3 py-1 text-sm text-red-800 dark:border-red-900/50 dark:text-red-200 bg-red-50/50 dark:bg-red-950/20 rounded-r-sm">{ev.detail}</div>}
+                        {} {ev.type === "submit" && ev.detail && <div data-testid="activity-submit-note" className="mt-1.5 ml-1 rounded-r-sm border-l-2 border-border bg-muted/40 py-1 pl-3 text-sm text-foreground/80">{ev.detail}</div>}
                       </div>
                     ); })} </div>
             )} </div> {isAdmin && !readOnly && onDelete && ( <div className="border-t border-border pt-3"> <Button type="button" variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={onDelete}>

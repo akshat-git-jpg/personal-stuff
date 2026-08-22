@@ -44,6 +44,11 @@ export interface DataStore {
   deleteEmployee(email: string): Promise<boolean>;
   logEvent(e: { card_id: string; stage_id: string; type: string; actor: string; detail?: string }): Promise<void>;
   listEvents(cardId: string): Promise<CardEventRecord[]>;
+  /** The most recent submit note per card+stage, keyed `${card_id}:${stage_id}`.
+   *  One query for the whole review queue — the reviewer must be able to read
+   *  what changed WITHOUT opening each card, because Approve is one click on
+   *  the queue row. */
+  latestSubmitNotes(): Promise<Map<string, string>>;
 }
 
 export interface CardEventRecord {
@@ -255,6 +260,19 @@ class D1Store implements DataStore {
   async listEvents(cardId: string): Promise<CardEventRecord[]> {
     return ((await this.db.prepare(`SELECT * FROM card_events WHERE card_id = ? ORDER BY id ASC`)
       .bind(cardId).all<CardEventRecord>()).results ?? []);
+  }
+
+  async latestSubmitNotes(): Promise<Map<string, string>> {
+    // MAX(id) per card+stage rides the (card_id, id) index. Scoped to submits
+    // with a note, so it stays a small result set even as the log grows.
+    const res = await this.db.prepare(
+      `SELECT card_id, stage_id, detail FROM card_events
+        WHERE type = 'submit' AND detail IS NOT NULL AND detail <> ''
+          AND id IN (SELECT MAX(id) FROM card_events WHERE type = 'submit' GROUP BY card_id, stage_id)`,
+    ).all<{ card_id: string; stage_id: string; detail: string }>();
+    const out = new Map<string, string>();
+    for (const r of res.results ?? []) out.set(`${r.card_id}:${r.stage_id}`, r.detail);
+    return out;
   }
 }
 
