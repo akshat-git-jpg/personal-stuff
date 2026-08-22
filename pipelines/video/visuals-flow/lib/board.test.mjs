@@ -1379,6 +1379,68 @@ test('/intro-video returns 206 for a Range request, 404 JSON when unrendered', a
   }
 });
 
+// Plan 221: /api/intro-data learns which flow built the intro, and — for a
+// simple video — the parsed cut list and the same pacing numbers the lint
+// enforces, so the board can show the owner the exact figures being judged.
+test('/api/intro-data returns mode, cutlist and pacing for a simple video', async () => {
+  const workdir = makeWorkdir();
+  fs.writeFileSync(path.join(workdir, 'run-config.json'), JSON.stringify({ introMode: 'simple' }));
+  const cutlist = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, 'intro-kit', 'fixtures', 'good.json'), 'utf8'));
+  fs.mkdirSync(path.join(workdir, 'intro-simple'), { recursive: true });
+  fs.writeFileSync(path.join(workdir, 'intro-simple', 'cutlist.json'), JSON.stringify(cutlist));
+
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/api/intro-data`);
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.mode, 'simple');
+    assert.equal(data.cutlist.beats.length, cutlist.beats.length);
+    assert.equal(typeof data.pacing.avatarShare, 'number');
+    assert.equal(data.pacing.cuts, cutlist.beats.length);
+    assert.equal(typeof data.pacing.longestAvatarHold, 'number');
+  } finally {
+    server.close();
+  }
+});
+
+// A complex video never authors a cut list — cutlist/pacing must stay null,
+// not throw, so the same endpoint answers both flows.
+test('/api/intro-data returns mode "complex" with null cutlist/pacing when no cut list exists', async () => {
+  const workdir = makeWorkdir();
+  fs.writeFileSync(path.join(workdir, 'run-config.json'), JSON.stringify({ introMode: 'complex' }));
+
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/api/intro-data`);
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.mode, 'complex');
+    assert.equal(data.cutlist, null);
+    assert.equal(data.pacing, null);
+  } finally {
+    server.close();
+  }
+});
+
+// loadRunConfig() THROWS on an unrecognised introMode (plan 218) — a typo in
+// one video's run-config.json must 400 for that video only, never 500 the
+// whole board.
+test('/api/intro-data answers 400, not 500, on a bad introMode', async () => {
+  const workdir = makeWorkdir();
+  fs.writeFileSync(path.join(workdir, 'run-config.json'), JSON.stringify({ introMode: 'bogus' }));
+
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/api/intro-data`);
+    assert.equal(res.status, 400);
+    const data = await res.json();
+    assert.match(data.error, /introMode/);
+  } finally {
+    server.close();
+  }
+});
+
 test('edit/delete guard accepts intro:0, rejects cue:7', async () => {
   const workdir = makeWorkdir();
   fs.writeFileSync(path.join(workdir, 'feedback.json'), JSON.stringify({

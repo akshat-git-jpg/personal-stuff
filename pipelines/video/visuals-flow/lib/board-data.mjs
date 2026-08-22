@@ -10,6 +10,8 @@ import { loadSteps } from './steps.mjs';
 import { loadRunConfig } from './run-config.mjs';
 import { buildAvatarPlan, mergeAvatarPlan, avatarPlanPath, loadRegistry } from './avatar-plan.mjs';
 import { playableIds } from './intro-film/teasers.mjs';
+import { introMode } from './intro-modes.mjs';
+import { loadCutlist } from './intro-kit/inputs.mjs';
 
 // Which board tabs apply to THIS video, derived from the step registry plus
 // the video's run-config. Before this, board-ui rendered all five tabs for
@@ -201,12 +203,50 @@ export function buildBoardData(workdir, cardLibraryRoot, { buildSegments }) {
   };
 }
 
+// Same definitions as lib/intro-kit/lint-cutlist.mjs (S1/S2/S3). Computed here for
+// DISPLAY only — the lint is the gate. If these two ever disagree, the lint wins and
+// this is the bug.
+function pacingSummary(cutlist) {
+  const beats = cutlist?.beats ?? [];
+  const total = beats.reduce((n, b) => n + (b.t_end - b.t_start), 0) || 1;
+  const avatarish = beats.filter((b) => b.kind === 'avatar' || b.kind === 'overlay');
+  const holds = beats.filter((b) => b.kind === 'avatar').map((b) => b.t_end - b.t_start);
+  return {
+    avatarShare: +(avatarish.reduce((n, b) => n + (b.t_end - b.t_start), 0) / total).toFixed(3),
+    cuts: beats.length,
+    longestAvatarHold: holds.length ? +Math.max(...holds).toFixed(2) : 0,
+  };
+}
+
 export function introData(workdir) {
+  // Which flow built this intro. The Intro tab has three mutually exclusive
+  // surfaces and picks by this field, not by guessing from which files exist —
+  // a half-built complex video and a simple video can both have no
+  // screenplay.json. introMode() throws on an unrecognised introMode (plan
+  // 218) — the caller (board.mjs's /api/intro-data handler) wraps this whole
+  // function in a try/catch and answers 400, not 500, for that one video.
+  const mode = introMode(workdir);
+
+  // simple only: the parsed intro-simple/cutlist.json, or null before the
+  // authoring step has run. Computed regardless of whether intro-film/ exists
+  // yet, because a simple video's cutlist is reviewable BEFORE its render —
+  // that render is what creates intro-film/.
+  let cutlist = null;
+  let pacing = null;
+  if (mode === 'simple') {
+    try {
+      cutlist = loadCutlist(workdir);
+      pacing = pacingSummary(cutlist);
+    } catch (e) {
+      // not authored yet — cutlist/pacing stay null
+    }
+  }
+
   const introDir = path.join(workdir, 'intro-film');
   if (!fs.existsSync(introDir)) {
-    return { present: false };
+    return { present: false, mode, cutlist, pacing };
   }
-  
+
   let approved = false;
   let beats = [];
   let findings = [];
@@ -278,7 +318,10 @@ export function introData(workdir) {
     beats,
     findings,
     sheets,
-    idea
+    idea,
+    mode,
+    cutlist,
+    pacing
   };
 }
 

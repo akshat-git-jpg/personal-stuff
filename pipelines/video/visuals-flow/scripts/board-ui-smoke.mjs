@@ -746,6 +746,94 @@ try {
     }
   }
 
+  // ---- Simple-flow gate (125) renders its own surface (plan 220/221) ------
+  // A simple video is reviewable BEFORE intro-film/ exists (that dir is only
+  // created by the render) — the cut list lives in intro-simple/, which is
+  // the whole point of the mode-keyed branch this exercises. Every assertion
+  // below is tagged SIMPLE-INTRO: it is the mutation gate's target and its
+  // failure marker (plans/221-vf-intro-simple-board-and-skill.md).
+  const simpleSlug = 'smoke-intro-simple';
+  const simpleWorkdir = path.join(tmpDir, simpleSlug);
+  fs.mkdirSync(simpleWorkdir, { recursive: true });
+  fs.writeFileSync(path.join(simpleWorkdir, 'run-config.json'), JSON.stringify({ introMode: 'simple' }));
+  // board-data needs these to answer at all (same reason the idea-gate fixture
+  // above copies them) — the tab's own fetch is in its own try, but the fixture
+  // should still exercise the real board-data path, not a 500 it happens to survive.
+  fs.copyFileSync(path.join(workdir, 'vo.mp3'), path.join(simpleWorkdir, 'vo.mp3'));
+  fs.copyFileSync(path.join(workdir, 'transcript.json'), path.join(simpleWorkdir, 'transcript.json'));
+
+  // The 11-beat reference cut list already used by the pacing-lint tests
+  // (lib/intro-kit/fixtures/good.json) — real card/overlay/avatar beats with
+  // real vars, so the beat-table text column has something to read.
+  const simpleCutlist = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), 'lib', 'intro-kit', 'fixtures', 'good.json'), 'utf8'),
+  );
+  fs.mkdirSync(path.join(simpleWorkdir, 'intro-simple'), { recursive: true });
+  fs.writeFileSync(path.join(simpleWorkdir, 'intro-simple', 'cutlist.json'), JSON.stringify(simpleCutlist));
+
+  fs.mkdirSync(path.join(simpleWorkdir, 'intro-film', 'out'), { recursive: true });
+  const simpleMp4 = path.join(simpleWorkdir, 'intro-film', 'out', 'intro.mp4');
+  const encSimple = spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'testsrc=size=320x180:rate=30:duration=3',
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', simpleMp4]);
+  if (encSimple.status !== 0 || !fs.existsSync(simpleMp4)) {
+    console.log('SKIP simple-intro gate check: ffmpeg could not build the fixture clip');
+  } else {
+    const serverSimple = boardMod.createServer(simpleWorkdir);
+    const portSimple = await new Promise((resolve) => {
+      serverSimple.listen(0, '127.0.0.1', () => resolve(serverSimple.address().port));
+    });
+    try {
+      const urlSimple = `http://127.0.0.1:${portSimple}/app/?video=${simpleSlug}#intro`;
+      const domSimple = await new Promise((resolve, reject) => {
+        const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
+        let child;
+        const timeout = setTimeout(() => {
+          if (child) child.kill('SIGKILL');
+          fs.rmSync(profileDir, { recursive: true, force: true });
+          reject(new Error('Chrome dump-dom timeout on #intro (simple gate)'));
+        }, CHROME_TIMEOUT_MS);
+        child = spawn(CHROME, [
+          '--headless=new', '--no-sandbox', '--disable-background-networking',
+          `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
+          '--virtual-time-budget=8000', '--dump-dom', urlSimple
+        ]);
+        let out = '';
+        child.stdout.on('data', d => {
+          out += d;
+          if (out.includes('</html>')) {
+            clearTimeout(timeout);
+            child.kill('SIGKILL');
+            resolve(out);
+          }
+        });
+        child.on('close', () => {
+          clearTimeout(timeout);
+          fs.rmSync(profileDir, { recursive: true, force: true });
+        });
+        child.on('error', e => {
+          clearTimeout(timeout);
+          fs.rmSync(profileDir, { recursive: true, force: true });
+          reject(e);
+        });
+      });
+
+      const rowCount = (domSimple.match(/class="intro-simple-beat-row[^"]*"/g) || []).length;
+      if (rowCount !== simpleCutlist.beats.length) {
+        throw new Error(
+          `SIMPLE-INTRO beat table: expected ${simpleCutlist.beats.length} rows (one per beat), found ${rowCount}`);
+      }
+      if (!domSimple.includes('class="intro-simple-pacing-value"')) {
+        throw new Error('SIMPLE-INTRO pacing strip: avatar-share figure not found');
+      }
+      if (!domSimple.includes('class="intro-simple-approve-btn"')) {
+        throw new Error('SIMPLE-INTRO approve control not found');
+      }
+    } finally {
+      if (serverSimple.closeAllConnections) serverSimple.closeAllConnections();
+      serverSimple.close();
+    }
+  }
+
   console.log('board-ui smoke OK');
   process.exit(0);
 } finally {

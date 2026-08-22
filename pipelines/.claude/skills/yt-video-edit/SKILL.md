@@ -1,7 +1,7 @@
 ---
 name: yt-video-edit
 description: >-
-  Operate the visuals-flow pipeline (pipelines/video/visuals-flow) by verb — the session runs the steps, the owner only reviews the board and green-lights live HeyGen. Verbs: run graphics for <video>, run the concept pass, audit the cues, make the sound plan, mix the audio, final cut review, run the shot pass for <video>, open my storyboard/board, render the graphics, make the avatar videos, download the avatar videos, assemble the video, export the timeline / open it in resolve, qc the video, analyze reference <url>, fold the feedback. Triggers on those phrases plus "yt-video-edit", "visuals-flow" (the old name, still accepted), "run the cue pass", "approve flow for <video>", "avatar clips for <video>", "resolve export", "filmstrip qc".
+  Operate the visuals-flow pipeline (pipelines/video/visuals-flow) by verb — the session runs the steps, the owner only reviews the board and green-lights live HeyGen. Verbs: run graphics for <video>, run the concept pass, audit the cues, make the sound plan, mix the audio, final cut review, run the shot pass for <video>, open my storyboard/board, render the graphics, make the avatar videos, download the avatar videos, assemble the video, export the timeline / open it in resolve, qc the video, analyze reference <url>, fold the feedback. The intro has two flows, chosen at 010 (`configure --intro simple|complex`, default simple): author the intro cut list / write the cut list (simple), check the intro pacing, render the intro, re-render the intro with the real avatar. Triggers on those phrases plus "yt-video-edit", "visuals-flow" (the old name, still accepted), "run the cue pass", "approve flow for <video>", "avatar clips for <video>", "resolve export", "filmstrip qc", "use the simple intro", "use the complex intro".
 ---
 
 # yt-video-edit — operating skill (verb router)
@@ -83,9 +83,26 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    reads UNLIMITED). Never flip to production yourself.
 7. **Snapshot before owner edits**: after a cue/shot pass converges, copy the
    final LLM output to `cues.llm.json` / `shots.llm.json` (committed, immutable).
+7a. **The intro has two flows. Check which one before touching an intro step.**
+   `bash run.sh <slug> status` prints `intro flow: simple|complex`, and it comes from
+   `introMode` in `run-config.json` (set at 010 with
+   `configure --intro simple|complex`; the default is **simple**).
+   - `simple` — steps 115 (author the cut list) → 125 (owner gate) → 135 (render).
+     The cards are LOCKED (`pipelines/video/intro-kit/`, 7 of them). You pick and fill;
+     you never design. Rulebook: `steps/115-author-intro-simple-llm/SIMPLE-PASS.md`.
+     Taste: `TASTE-SIMPLE.md`. Pacing is ENFORCED by `lib/intro-kit/lint-cutlist.mjs`.
+   - `complex` — steps 110 → 120 → 130 → 140 → 150 → 160, the bespoke film, unchanged.
+     Rulebooks: `IDEA-PASS.md`, `AUTHORING.md`. Taste: `TASTE-INTRO.md`.
+
+   Never run a step from the other flow's lane. The step registry already refuses
+   (`modes` in `step.json`), but a session that reads the wrong rulebook wastes the run.
+
+   **The intro's "full creative freedom" applies to `complex` only** — the `simple`
+   flow is a locked kit of 7 cards (plan 219); there is no composition to design, only
+   a card and its variables to pick per beat.
 7b. **Look-preview prompts go to a FILE, never into the chat.** Both gates that
-   approve a look from generated frames — 110 (competing intro directions) and
-   240 (new-card look, owner rule 2026-07-31) — author their prompts as markdown:
+   approve a look from generated frames — 110 (competing intro directions, `complex`
+   mode only) and 240 (new-card look, owner rule 2026-07-31) — author their prompts as markdown:
    `videos/<slug>/intro-film/idea-previews/<idea-id>.md` and
    `videos/<slug>/card-previews/<card-slug>.md`. Then run
    `bash run.sh <slug> previews`, which pushes them to the `flow-queue` relay so
@@ -96,43 +113,53 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    changes go through the 130 fold, not through operating sessions.
 9. **If the owner says this session owns ONE track, obey the track boundary.**
    After 050 the flow splits into two tracks that share no artifact — `intro`
-   (110-160, the bespoke film) and `main` (everything else) — and they are
-   meant to be run by two sessions at once. Every `step.json` declares its
-   `track`; see your own lane with `bash run.sh <slug> status --track
-   intro|main`. Four rules, none of them enforced by code:
+   and `main` (everything else) — and they are meant to be run by two sessions
+   at once. The `intro` track's own step range is mode-dependent (both flows
+   declare `"track": "intro"` in their `step.json`): `110-160` in `complex`
+   mode (the bespoke film, unchanged), `115`/`125`/`135` in `simple` mode. Every
+   `step.json` declares its `track`; see your own lane with `bash run.sh <slug>
+   status --track intro|main`. Four rules, none of them enforced by code:
    - **Only the MAIN session runs git.** A `git add -A` from the intro session
      sweeps the other's in-flight files and races `index.lock`. The intro
-     session writes only under `videos/<slug>/intro-film/`; main commits it.
+     session writes only under `videos/<slug>/intro-film/` (`complex`) or
+     `videos/<slug>/intro-simple/` (`simple`); main commits it.
    - **Never launch a second board.** One board serves both tracks (it reads
      from disk per request and `?video=` re-points it). `lib/board.mjs` now
      reuses a live board on 4322 — do not work around that.
    - **Never write a file while your own gate is open on the board**, which
-     writes approvals into `cues.json`/`shots.json`/`screenplay.json`.
-   - **The intro session STOPS AT 160.** 440 (the shipping encode with the
-     real avatar) is `main`, because it needs 430's output.
+     writes approvals into `cues.json`/`shots.json`/`screenplay.json`/
+     `intro-simple/cutlist.json`.
+   - **The intro session STOPS at the last intro-track step**: `160` in
+     `complex` mode, `135` in `simple` mode. `440`/`445` (the shipping encode
+     with the real avatar) is `main`, because it needs 430's output.
 
    Full contract + copy-paste kickoff prompts:
    `pipelines/video/visuals-flow/docs/two-session-kickoff.md`.
 
 ## Verb Map
 
-**Review model — SIX human steps. Verified against `run.sh` and `steps/` on
-2026-08-08.** This section used to say "three owner gates" numbered 037 / 080 /
-120. All three numbers predate the phase renumber, the card-plan gate it called
-Gate 1 was deleted by plan 195, and three real gates were missing entirely. The
+**Review model — mode-dependent: FIVE human steps in `simple` mode, SIX in
+`complex` (plan 221; verified against `run.sh` and `steps/` on 2026-08-22).**
+This section used to say "three owner gates" numbered 037 / 080 / 120. All
+three numbers predate the phase renumber, the card-plan gate it called Gate 1
+was deleted by plan 195, and three real gates were missing entirely. The
 owner noticed before the doc did: a session working from this list looks like it
 is asking for the same review over and over, because it cannot name the gate it
 is actually at. The table below IS the contract, and `ls steps/ | grep human` is
-the check that keeps it honest.
+the check that keeps it honest — it now lists SEVEN folders on disk (010, 120,
+125, 150, 340, 420, 530), because 120/150 (`complex`) and 125 (`simple`) both
+exist, but a `step.json`'s `modes` field means only one of the two intro rows
+ever fires for a given video.
 
-| Step | What the owner does | Kind |
-|---|---|---|
-| `010-configure-run-human` | Engine + Drive folder at kickoff | setup, not a review |
-| `120-approve-intro-idea-human` | Picks one proposed intro direction | review |
-| `150-approve-intro-film-human` | Approves the built intro film | review |
-| `340-approve-storyboard-human` | Cards, on-card text, avatar placement | review |
-| `420-propose-avatar-human` | Picks character + model | **spend gate** |
-| `530-approve-final-cut-human` | The assembled cut, judged in motion | review |
+| Step | What the owner does | Kind | Mode |
+|---|---|---|---|
+| `010-configure-run-human` | Engine, Drive folder, **and the intro flow** | setup, not a review | both |
+| `120-approve-intro-idea-human` | Picks one proposed intro direction | review | complex |
+| `150-approve-intro-film-human` | Approves the built intro film | review | complex |
+| `125-approve-intro-simple-human` | Approves the cut intro (player + beat table) | review | simple |
+| `340-approve-storyboard-human` | Cards, on-card text, avatar placement | review | both |
+| `420-propose-avatar-human` | Picks character + model | **spend gate** | both |
+| `530-approve-final-cut-human` | The assembled cut, judged in motion | review | both |
 
 None is skippable. **Express review no longer exists** — `--review full|express`
 was removed by plan 194 (2026-08-07) and `configure` takes `--engine` only. Any
@@ -173,6 +200,11 @@ Between the gates the session runs unattended: render → avatar renders → cut
 |---|---|---|
 | "where are we", "what's the status", "show me the run" | `bash run.sh <slug> status` (or the board's **Run** tab) | reads `run-log.json`; steps with no entry are labelled as inferred |
 | "use heygen 3/4", "set up the run" | `bash run.sh <slug> configure --engine heygen3\|heygen4` | **010 kickoff config** — see Review model above. There is no `--review` flag; express was removed by plan 194 |
+| "use the simple intro", "use the complex intro" | `bash run.sh <slug> configure --intro simple\|complex` | **010**; default `simple` |
+| "author the intro", "write the cut list" | `bash run.sh <slug> intro-simple` | 115; prints `SIMPLE-PASS.md` (simple mode only) |
+| "check the intro pacing" | `bash run.sh <slug> intro-simple-lint` | S1-S7 (`lib/intro-kit/lint-cutlist.mjs`); errors, not warnings |
+| "render the intro" | `bash run.sh <slug> intro-simple-render` | 135 |
+| "re-render the intro with the real avatar" | `bash run.sh <slug> intro-simple-rerender` | 445 |
 | "map the segments", "propose segments" | `bash run.sh <slug> segments` | writes `structure` + `segments`; owner then sets `confirmed: true`. 035 refuses without `structure` |
 | "run graphics", "run the concept pass" | `bash run.sh <slug> concept-pass` | |
 | "run the cue pass" | `bash run.sh <slug> cue-pass` | authors the BODY only |

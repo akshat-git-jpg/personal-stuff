@@ -1464,7 +1464,15 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
   if (req.method === 'GET' && url.pathname === '/api/intro-data') {
     res.setHeader('content-type', 'application/json; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(JSON.stringify(introData(workdir)));
+    // introData() calls introMode(), which THROWS on an unrecognised
+    // introMode (plan 218) — a typo in one video's run-config.json must 400
+    // for that video only, not 500 the whole board.
+    try {
+      return res.end(JSON.stringify(introData(workdir)));
+    } catch (e) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ error: e.message }));
+    }
   }
 
   if (req.method === 'GET' && url.pathname === '/api/avatar-data') {
