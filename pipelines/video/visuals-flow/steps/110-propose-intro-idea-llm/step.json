@@ -20,5 +20,6 @@
   "external": false,
   "optional": false,
   "summary": "`transcript.json` + `segments.json` + `concept.json` -> `intro-film/idea.json`: 2-3 competing visual directions for the intro, one page each. Prose only — no beats, no timings, no code. The cheapest place to reject an intro.",
-  "track": "intro"
+  "track": "intro",
+  "modes": ["complex"]
 }

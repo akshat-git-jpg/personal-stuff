@@ -19,5 +19,6 @@
   "external": false,
   "optional": false,
   "summary": "the real `avatar.mp4` + the approved screenplay -> a final `intro-film/out/intro.mp4`. The intro approved at the 1xx gate was rendered against a static stand-in; this is the encode that ships. Fails if the workdir still has no real avatar.",
-  "track": "main"
+  "track": "main",
+  "modes": ["complex"]
 }
