@@ -330,5 +330,89 @@ else
   echo "SKIP: agy.sh not yet created (plan 040)"
 fi
 
+# -----------------------------------------------------------------------
+# (8) boss_stall_check: a RE-DISPATCH must not inherit the previous run's
+#     stall clock. PR#180 (2026-08-22) was re-dispatched twice after its first
+#     crew hung on MCP startup. stall_fp/progress_at survived in the same
+#     .meta; the fresh crew's first fingerprint MATCHED the stale one (same
+#     HEAD, clean tree, empty out, sub-minute CPU — what a just-started crew
+#     always looks like), so the idle window was measured from the ORIGINAL
+#     dispatch and the killer fired on a 90-second-old healthy crew as
+#     "stalled 45m". The fix keys off dispatched_at, which every executor
+#     rewrites on dispatch, so it covers the direct
+#     `executors/<e>.sh dispatch` salvage path too.
+#
+#     The seeded fingerprint MUST match what boss computes, or this test is
+#     vacuous: with a non-matching one the `fp != last_fp` branch re-seeds
+#     progress_at and the case passes with or without the fix.
+# -----------------------------------------------------------------------
+echo "--- (8) stall clock resets on re-dispatch ---"
+
+STALL_REPO="$TMP/stall-repo"
+STALL_BOSS="$STALL_REPO/tooling/boss"
+mkdir -p "$STALL_BOSS/bin" "$STALL_BOSS/state" "$STALL_BOSS/executors"
+mkdir -p "$STALL_REPO/tooling/cli/notify"
+cp "$STUB_DIR/notify" "$STALL_REPO/tooling/cli/notify/notify"
+chmod +x "$STALL_REPO/tooling/cli/notify/notify"
+cp "$BOSSDIR/bin/boss-lib.sh" "$STALL_BOSS/bin/"
+
+STALL_WT="$TMP/stall-wt"
+mkdir -p "$STALL_WT"
+git init -q "$STALL_WT"
+git -C "$STALL_WT" commit -q --allow-empty -m init
+
+STALL_META="$STALL_BOSS/state/500.meta"
+STALL_OUT="$STALL_BOSS/state/500.out"
+
+# seed_stall <dispatched_at> <progress_at> <stall_fp> <pid>
+seed_stall() {
+  printf 'worktree=%s\nexecutor=claude-p\nout=%s\npid=%s\nstall_fp=%s\nprogress_at=%s\ndispatched_at=%s\n' \
+    "$STALL_WT" "$STALL_OUT" "$4" "$3" "$2" "$1" > "$STALL_META"
+}
+
+# stall_case <dispatched_at> <progress_at> <stall_fp> -> "<verdict> ALIVE|KILLED"
+stall_case() {
+  sleep 600 &
+  local crew=$! verdict
+  seed_stall "$1" "$2" "$3" "$crew"
+  verdict=$(boss_stall_check 500)
+  sleep 1
+  if kill -0 "$crew" 2>/dev/null; then
+    kill "$crew" 2>/dev/null
+    echo "$verdict ALIVE"
+  else
+    echo "$verdict KILLED"
+  fi
+}
+
+(
+  source "$STALL_BOSS/bin/boss-lib.sh"
+  touch "$STALL_OUT"
+  now=$(date +%s)
+  old=$(( now - 60*60 ))          # 60 min ago: past the 45m kill line
+
+  # Learn the fingerprint boss actually computes for this worktree/pid/out.
+  sleep 600 &
+  bootstrap=$!
+  seed_stall "$(( old - 600 ))" "$now" "bootstrap" "$bootstrap"
+  boss_stall_check 500 > /dev/null
+  real_fp=$(meta_get 500 stall_fp)
+  kill "$bootstrap" 2>/dev/null
+  [ -n "$real_fp" ] || fail "(8) could not learn a fingerprint"
+
+  # Re-dispatch: dispatched_at NEWER than progress_at -> stale clock dropped.
+  r=$(stall_case "$now" "$old" "$real_fp")
+  [ "$r" = "working ALIVE" ] || fail "(8) re-dispatched crew should survive, got: $r"
+
+  # Genuine stall: dispatched_at OLDER than progress_at -> still killed.
+  r=$(stall_case "$(( old - 600 ))" "$old" "$real_fp")
+  case "$r" in
+    STALLED-KILLED*" KILLED") ;;
+    *) fail "(8) a real stall should still be killed, got: $r" ;;
+  esac
+) || exit 1
+
+echo "PASS: stall clock resets on re-dispatch, real stalls still killed"
+
 echo ""
 echo "ALL TESTS PASSED"

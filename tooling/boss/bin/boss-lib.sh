@@ -443,6 +443,20 @@ boss_stall_check() {
   sw=$(meta_get "$pr" stall_warn); warn=$(( ${sw:-$BOSS_STALL_WARN_MIN} ))
   sk=$(meta_get "$pr" stall_kill); kill_=$(( ${sk:-$BOSS_STALL_KILL_MIN} ))
   last_fp=$(meta_get "$pr" stall_fp); progress_at=$(meta_get "$pr" progress_at)
+  # A RE-DISPATCH starts a new run, and stall_fp/progress_at from the PREVIOUS run
+  # survive in the same .meta file. When the new crew's first fingerprint happens to
+  # match the old one — same HEAD, clean tree, empty output, sub-minute CPU, which is
+  # exactly what a freshly-started crew looks like — idle was measured from the OLD
+  # dispatch and the killer fired instantly on a healthy crew. (2026-08-22, PR#180:
+  # a 90-second-old crew was killed as "stalled 45m".) dispatched_at is rewritten by
+  # every executor's dispatch verb and meta_get takes the last value, so a
+  # dispatched_at newer than progress_at means this is a new run: drop the stale pair
+  # and let the branch below re-seed it. Fixes every dispatch path at once, including
+  # the direct `executors/<e>.sh dispatch` salvage route that bypasses boss-dispatch.
+  local dispatched_at; dispatched_at=$(meta_get "$pr" dispatched_at)
+  if [ -n "$dispatched_at" ] && [ -n "$progress_at" ] && [ "$dispatched_at" -gt "$progress_at" ]; then
+    last_fp=""; progress_at=""; meta_set "$pr" killed_reason ""
+  fi
   if [ "$fp" != "$last_fp" ] || [ -z "$progress_at" ]; then
     meta_set "$pr" stall_fp "$fp"; meta_set "$pr" progress_at "$now"; echo working; return
   fi
