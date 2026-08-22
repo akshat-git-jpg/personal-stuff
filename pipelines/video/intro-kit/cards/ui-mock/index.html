@@ -1,0 +1,186 @@
+<!doctype html>
+<!--
+  UI-MOCK   (intro-kit card)
+  A stylised app window, used twice per intro — once working, once failed.
+  The `state` token is the whole trick: same geometry, same file, one
+  variable recolours every stroke between "it worked" and "it broke".
+  1920x1080, 30fps, VARIABLE duration (2.5-5.0s, default 3.5 — see KIT.md).
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block (appName, appLogo,   │
+  │  shot, state, caption) and :root. Never touch TIMELINE or DURATION.     │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render cards/ui-mock -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.60);
+        --accent: #fb923c;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 100%; height: 1080px; }
+      #bg { position: absolute; inset: -10%; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); will-change: transform; }
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+      #window {
+        width: 1400px; height: 760px; border-radius: 20px; background: #0f0d0a;
+        border: 2px solid rgba(255,255,255,0.14); overflow: hidden; opacity: 0;
+        display: flex; flex-direction: column; position: relative;
+      }
+      #titlebar {
+        height: 56px; flex: 0 0 56px; display: flex; align-items: center; gap: 14px;
+        padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,0.10);
+      }
+      #titlebar img { width: 28px; height: 28px; border-radius: 8px; object-fit: contain; }
+      #appName { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+      #body { flex: 1; display: flex; min-height: 0; }
+      #sidebar {
+        width: 240px; flex: 0 0 240px; padding: 28px 20px; display: flex; flex-direction: column; gap: 18px;
+        border-right: 1px solid rgba(255,255,255,0.10);
+      }
+      .input-block { height: 56px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.03); }
+      #genButton {
+        margin-top: auto; height: 56px; border-radius: 10px; border: 2px solid var(--accent);
+        display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: var(--accent);
+      }
+      #pane { flex: 1; position: relative; background: #050403; }
+      #pane img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+      #caption { position: absolute; left: 24px; bottom: 20px; font-size: 22px; font-weight: 600; color: var(--text-dim); }
+
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="uimock" data-start="0" data-duration="0" data-width="1920" data-height="1080"
+      data-composition-variables='{"appName":"OpenArt","appLogo":"openart","shot":"shots/mockup-dashboard.jpg","state":"ok","caption":null,"buttonLabel":"Generate","duration":3.5}'>
+      <div id="bg" class="clip" data-start="0" data-duration="0" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="0" data-track-index="1">
+        <div id="window">
+          <div id="titlebar"><img id="appLogoImg" alt="" /><div id="appName"></div></div>
+          <div id="body">
+            <div id="sidebar">
+              <div class="input-block"></div>
+              <div class="input-block"></div>
+              <div id="genButton"></div>
+            </div>
+            <div id="pane"><img id="shotImg" alt="" /><div id="caption"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        appName: VARS.appName ?? "OpenArt",
+        appLogo: VARS.appLogo ?? "openart",
+        shot: VARS.shot ?? "shots/mockup-dashboard.jpg",
+        state: VARS.state === 'fail' ? 'fail' : 'ok',
+        caption: VARS.caption ?? null,
+        buttonLabel: VARS.buttonLabel ?? "Generate"
+      };
+
+      // The kit's own mirror of logos/registry.json's slug -> file map — see
+      // logo-grid's identical comment for why this is not a fetch()'d lookup.
+      const LOGO_FILES = {
+        openart: "openart.png", higgsfield: "higgsfield.png", synthesia: "synthesia.png",
+        heygen: "heygen.png", arcads: "arcads.png", n8n: "n8n.png", make: "make.png",
+        zapier: "zapier.png", langchain: "langchain.png", flowise: "flowise.png",
+        submagic: "submagic.png", opusclip: "opusclip.png"
+      };
+
+      /* ===== DURATION (LOCKED — identical in all 7 kit cards) ===== */
+      // Kit cards are variable-length: the builder (plan 220) picks 2.0-5.0s per
+      // beat from the transcript, so nothing here may hard-code a schedule.
+      // The root's STATIC data-duration is deliberately "0", not the default:
+      // hyperframes' render CLI only re-probes the composition length from the
+      // live browser (window.__hf.duration, which reflects this script's own
+      // mutation below) when the static attribute is <= 0 — any nonzero literal
+      // freezes the render at that value regardless of --variables. Verified
+      // empirically against the render pipeline: with the literal left at the
+      // "3.5" default, `--variables '{"duration":2.0}'` still rendered a 3.5s
+      // mp4; with the literal at "0" the same command renders 2.0s, and a
+      // variable-less render still yields the 3.5s default below. Standalone
+      // preview is unaffected — VARS.duration ?? 3.5 still governs DUR here.
+      const DUR = Math.min(5, Math.max(2, Number(VARS.duration ?? 3.5)));
+      const root = document.getElementById('root');
+      root.setAttribute('data-duration', String(DUR));
+      for (const el of root.querySelectorAll('.clip')) {
+        el.setAttribute('data-duration', String(DUR));
+      }
+      // A fraction of the card's own length, never a wall-clock constant.
+      const T = (frac) => +(DUR * frac).toFixed(3);
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      // The state token recolours every stroke — a literal table, not prose,
+      // per the plan: same geometry, same file, one variable.
+      const ACCENT = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#fb923c';
+      const STATE_STROKE = { ok: ACCENT, fail: '#ef4444' };
+      const stroke = STATE_STROKE[DATA.state];
+
+      document.getElementById('window').style.borderColor = stroke;
+      document.querySelectorAll('.input-block').forEach((el) => { el.style.borderColor = stroke; });
+      const btn = document.getElementById('genButton');
+      btn.style.borderColor = stroke;
+      btn.style.color = stroke;
+      btn.textContent = DATA.buttonLabel;
+      const appNameEl = document.getElementById('appName');
+      appNameEl.textContent = DATA.appName;
+      appNameEl.style.color = stroke;
+
+      const logoImg = document.getElementById('appLogoImg');
+      if (DATA.appLogo && LOGO_FILES[DATA.appLogo]) {
+        logoImg.src = 'logos/' + LOGO_FILES[DATA.appLogo];
+      } else {
+        logoImg.remove();
+      }
+
+      const shotImg = document.getElementById('shotImg');
+      shotImg.src = DATA.shot;
+
+      const captionEl = document.getElementById('caption');
+      if (DATA.caption) {
+        captionEl.textContent = DATA.caption;
+      } else {
+        captionEl.remove();
+      }
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.to('#bg', { scale: 1.05, x: -20, y: -10, duration: DUR, ease: 'none' }, 0);
+
+      // Window scale + fade in.
+      tl.fromTo('#window', { scale: 0.96 }, { opacity: 1, scale: 1, duration: T(0.12), ease: 'power2.out' }, 0);
+
+      // One button press — a single scale dip, not a repeating pulse.
+      tl.to(btn, { scale: 0.96, duration: 0.08, ease: 'power1.inOut', transformOrigin: 'center' }, T(0.45));
+      tl.to(btn, { scale: 1, duration: 0.1, ease: 'power1.out' }, T(0.45) + 0.08);
+
+      // Shot pane crossfades in.
+      tl.to(shotImg, { opacity: 1, duration: 0.35, ease: 'power2.out' }, T(0.5));
+
+      // On fail, one 2-frame horizontal shake (2 frames @ 30fps == ~0.067s) — a
+      // single judder, never a repeating loop.
+      if (DATA.state === 'fail') {
+        tl.to('#window', { x: 6, duration: 1 / 30, ease: 'none' }, T(0.55));
+        tl.to('#window', { x: -6, duration: 1 / 30, ease: 'none' }, T(0.55) + 1 / 30);
+        tl.to('#window', { x: 0, duration: 1 / 30, ease: 'none' }, T(0.55) + 2 / 30);
+      }
+
+      window.__timelines['uimock'] = tl;
+    </script>
+  </body>
+</html>
