@@ -1,0 +1,23 @@
+[
+  { "text": "Quietly", "start": 3.2, "end": 3.5 },
+  { "text": "making", "start": 3.6, "end": 3.9 },
+  { "text": "people", "start": 4.0, "end": 4.3 },
+  { "text": "thousands", "start": 4.4, "end": 4.7 },
+  { "text": "of", "start": 4.8, "end": 4.9 },
+  { "text": "dollars", "start": 5.1, "end": 5.4 },
+  { "text": "a", "start": 5.5, "end": 5.6 },
+  { "text": "month", "start": 5.8, "end": 6.1 },
+
+  { "text": "Too", "start": 18.2, "end": 18.4 },
+  { "text": "many", "start": 18.5, "end": 18.7 },
+  { "text": "tools", "start": 18.8, "end": 19.1 },
+  { "text": "one", "start": 19.2, "end": 19.4 },
+  { "text": "workflow", "start": 19.6, "end": 20.0 },
+
+  { "text": "See", "start": 24.6, "end": 24.8 },
+  { "text": "it", "start": 24.9, "end": 25.0 },
+  { "text": "before", "start": 25.2, "end": 25.5 },
+  { "text": "you", "start": 25.5, "end": 25.7 },
+  { "text": "build", "start": 25.9, "end": 26.1 },
+  { "text": "it", "start": 26.2, "end": 26.3 }
+]
