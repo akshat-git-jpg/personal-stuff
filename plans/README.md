@@ -1294,3 +1294,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 217-tracker-team-and-defaults — PR#176 217-tracker-team-and-defaults: Tracker — bring Team and Assignment defaults up to the new design — DONE
 - 215-tracker-setup-before-list — PR#174 215-tracker-setup-before-list: Tracker — a video is set up before it reaches anyone's list — DONE
 - 216-tracker-split-card-detail — PR#175 216-tracker-split-card-detail: Tracker — split the card panel; affiliate links move to Links tab — DONE
+- 218-vf-intro-mode-switch — PR#177 218-vf-intro-mode-switch: visuals-flow — introMode switch (simple | complex) — DONE
