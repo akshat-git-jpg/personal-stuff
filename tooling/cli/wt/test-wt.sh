@@ -111,4 +111,90 @@ exit_code=$?
 set -e
 [ "$exit_code" -eq 2 ] || fail "unknown command exited with $exit_code, expected 2"
 
+# ---------------------------------------------------------------------------
+# Lease reaping (2026-08-22). A lease is only ever returned by an explicit
+# `wt return`, so a holder that dies keeps its slot forever and the pool only
+# shrinks — four of eight slots had leaked in the real pool, one for 25 days,
+# because `wt get`'s only liveness test was "does the lease file exist".
+#
+# These pin the reap behaviour AND its one hard safety rule: a stale lease whose
+# worktree still holds uncommitted work is never freed silently.
+#
+# Age is read from the lease file's mtime, so `touch -t` is how a lease is aged.
+# ---------------------------------------------------------------------------
+OLD_STAMP=202601010000   # older than any TTL used below
+
+# 9. reap ignores a lease younger than the TTL
+p9=$("$WT_BIN" get --repo "$TEST_REPO" --holder fresh9 2>/dev/null)
+n9=$(basename "$(dirname "$p9")")
+lease9="$pool_dir/$n9.lease"
+out=$("$WT_BIN" reap --repo "$TEST_REPO" --yes 2>&1 || true)
+[ -f "$lease9" ] || fail "reap freed a FRESH lease (slot $n9) — TTL not respected"
+echo "$out" | grep -q "nothing to reap" || fail "reap on a fresh pool did not say 'nothing to reap'"
+
+# 10. reap DRY RUN reports a stale lease but frees nothing
+touch -t "$OLD_STAMP" "$lease9"
+out=$("$WT_BIN" reap --repo "$TEST_REPO" 2>&1 || true)
+echo "$out" | grep -q "Would reap slot $n9" || fail "reap dry-run did not report stale slot $n9"
+[ -f "$lease9" ] || fail "reap dry-run FREED slot $n9 — a dry run must not mutate"
+
+# 11. reap --yes frees a stale + clean lease
+out=$("$WT_BIN" reap --repo "$TEST_REPO" --yes 2>&1 || true)
+[ ! -f "$lease9" ] || fail "reap --yes did not free stale+clean slot $n9"
+echo "$out" | grep -q "reaped slot $n9" || fail "reap --yes did not report reaping slot $n9"
+
+# 12. reap --yes REFUSES a stale + DIRTY lease. This is the load-bearing rule:
+#     a mid-flight kill routinely leaves a complete-but-uncommitted
+#     implementation, and losing a slot is far cheaper than losing that work.
+p12=$("$WT_BIN" get --repo "$TEST_REPO" --holder dirty12 2>/dev/null)
+n12=$(basename "$(dirname "$p12")")
+lease12="$pool_dir/$n12.lease"
+printf 'precious uncommitted work\n' > "$p12/UNCOMMITTED.txt"
+touch -t "$OLD_STAMP" "$lease12"
+out=$("$WT_BIN" reap --repo "$TEST_REPO" --yes 2>&1 || true)
+[ -f "$lease12" ] || fail "reap --yes FREED a stale+DIRTY slot $n12 — the work would be lost"
+[ -f "$p12/UNCOMMITTED.txt" ] || fail "reap --yes DESTROYED uncommitted work in slot $n12"
+echo "$out" | grep -q "STALE but DIRTY" || fail "reap --yes did not explain why slot $n12 was skipped"
+
+# 13. --force-dirty is the explicit opt-in that does free it
+"$WT_BIN" reap --repo "$TEST_REPO" --yes --force-dirty >/dev/null 2>&1 || true
+[ ! -f "$lease12" ] || fail "reap --yes --force-dirty did not free stale+dirty slot $n12"
+
+# 14. release --holder frees the named slot with no TTL wait, and refuses dirty
+p14=$("$WT_BIN" get --repo "$TEST_REPO" --holder boss-999 2>/dev/null)
+n14=$(basename "$(dirname "$p14")")
+lease14="$pool_dir/$n14.lease"
+printf 'wip\n' > "$p14/WIP.txt"
+set +e
+"$WT_BIN" release --repo "$TEST_REPO" --holder boss-999 >/dev/null 2>&1
+rc=$?
+set -e
+[ "$rc" -ne 0 ] || fail "release freed a DIRTY slot without --force-dirty (exit 0)"
+[ -f "$lease14" ] || fail "release FREED dirty slot $n14 without --force-dirty"
+rm -f "$p14/WIP.txt"
+"$WT_BIN" release --repo "$TEST_REPO" --holder boss-999 >/dev/null 2>&1 || fail "release failed on a clean slot"
+[ ! -f "$lease14" ] || fail "release did not free clean slot $n14 for holder boss-999"
+
+# 15. release with no --holder exits 2
+set +e
+"$WT_BIN" release --repo "$TEST_REPO" >/dev/null 2>&1
+rc=$?
+set -e
+[ "$rc" -eq 2 ] || fail "release without --holder exited $rc, expected 2"
+
+# 16. With the pool full, `get` reclaims a stale+clean lease instead of failing.
+#     This is the net that stops one leak from permanently shrinking the pool.
+for h in f1 f2 f3 f4 f5 f6 f7 f8; do
+  "$WT_BIN" get --repo "$TEST_REPO" --holder "$h" >/dev/null 2>&1 || true
+done
+for i in 1 2 3 4 5 6 7 8; do
+  if [ -f "$pool_dir/$i.lease" ]; then touch -t "$OLD_STAMP" "$pool_dir/$i.lease"; fi
+done
+set +e
+p16=$("$WT_BIN" get --repo "$TEST_REPO" --holder needsaslot 2>/dev/null)
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "get did not reclaim a stale lease when the pool was full (exit $rc)"
+[ -d "$p16" ] || fail "get returned no usable worktree after reaping"
+
 echo "ALL TESTS PASSED"

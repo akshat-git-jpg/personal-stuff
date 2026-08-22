@@ -25,6 +25,43 @@ The `wt` tool is strictly for parallel agent runs (e.g., plan validation, captai
   ```bash
   wt prune --yes
   ```
+- **`wt reap`**: Free leases nobody is coming back for — older than the TTL (default 24h) **and** clean. Dry-run by default.
+  ```bash
+  wt reap             # report what would be freed
+  wt reap --yes       # free the clean ones
+  ```
+- **`wt release --holder <label>`**: Free the slot held by one holder, with no TTL wait. For a caller that *knows* the holder is finished.
+  ```bash
+  wt release --holder boss-152
+  ```
+
+### Leases leak, and that is what `reap` / `release` exist for
+
+A lease is created by `wt get` and removed only by an explicit `wt return`. There is no
+owner-liveness signal (lease-only model, by design), and `wt get`'s only test was *"does
+the lease file exist"* — so a holder that dies never gives its slot back and the leak is
+**permanent**. The pool only ever shrinks.
+
+This was not theoretical. On 2026-08-22 four of eight slots were held by boss crews whose
+PRs had merged or closed weeks earlier (one held for 25 days), and the pool was one leak
+away from `ERROR: pool full` starving every future dispatch.
+
+Three layers now stop it:
+
+1. **`wt status`** shows a lease's age in hours and marks it `STALE` / `STALE/DIRTY`, so a
+   leak is visible instead of reading as a normal `leased`.
+2. **`wt get`** reaps stale-and-clean leases before reporting the pool full, so one leak can
+   never permanently cost a slot.
+3. **boss sweeps on its own behalf.** `boss-session-start.sh` maps each `boss-<pr>` holder to
+   its GitHub PR and calls `wt release` for any PR that is no longer `OPEN`. Note it keys on
+   the PR's **state**, never its labels: PR#152 and #153 were both `MERGED` and still
+   labelled `boss:in-progress`, so a label check would have called them live.
+
+**A dirty worktree is never freed silently.** `reap` and `release` both refuse a stale lease
+whose worktree holds uncommitted work; they name the path and stop. A mid-flight kill
+routinely leaves a complete-but-uncommitted implementation (see `decisions.md` 2026-08-02),
+and losing a slot is far cheaper than losing that work. `--force-dirty` is the explicit
+opt-in that discards it.
 
 ## Bootstrap Hook (`bootstrap.d`)
 

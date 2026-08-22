@@ -1,6 +1,22 @@
 #!/bin/bash
 set -euo pipefail
 
+# A lease is held from `wt get` until someone calls `wt return`. There is no
+# owner-liveness signal by design (lease-only model, see README) — so a holder
+# that dies between the two NEVER gives its slot back, and `wt get` treats the
+# stale lease as live forever because its only test is "does the lease file
+# exist". On 2026-08-22 four of eight slots were held by boss crews whose PRs
+# had been merged or closed weeks earlier (one for 25 days), and the pool was
+# one lease away from `ERROR: pool full` starving every future dispatch.
+#
+# `reap` is the safety net for that. It answers only the two questions this
+# tool can answer on its own — how OLD is the lease, and is the worktree
+# CLEAN — and refuses to discard uncommitted work. Whether a holder is
+# actually still alive is caller-specific knowledge (boss maps `boss-<pr>` to a
+# GitHub PR state and sweeps on that in boss-session-start.sh); wt deliberately
+# does not guess at it.
+DEFAULT_TTL_HOURS=24
+
 function usage() {
   echo "Usage: wt <command> [options]" >&2
   echo "Commands:" >&2
@@ -8,6 +24,11 @@ function usage() {
   echo "  return <worktree-path>" >&2
   echo "  status [--repo <path>]" >&2
   echo "  prune  [--repo <path>] [--yes]" >&2
+  echo "  reap   [--repo <path>] [--ttl-hours <n>] [--yes] [--force-dirty]" >&2
+  echo "         free leases older than the TTL (default $DEFAULT_TTL_HOURS h) whose worktree is CLEAN." >&2
+  echo "  release --holder <label> [--repo <path>] [--force-dirty]" >&2
+  echo "         free the slot held by <label>. For a caller that KNOWS the holder is done" >&2
+  echo "         (boss maps boss-<pr> to a terminal PR state); no TTL wait." >&2
   exit 2
 }
 
@@ -22,15 +43,19 @@ REPO="."
 HOLDER="unknown"
 PRUNE_YES=0
 TARGET_WT=""
+TTL_HOURS="$DEFAULT_TTL_HOURS"
+FORCE_DIRTY=0
 
 # Parse args
 case "$CMD" in
-  get|status|prune)
+  get|status|prune|reap|release)
     while [[ $# -gt 0 ]]; do
       case "$1" in
         --repo) REPO="$2"; shift 2 ;;
         --holder) HOLDER="$2"; shift 2 ;;
         --yes) PRUNE_YES=1; shift ;;
+        --ttl-hours) TTL_HOURS="$2"; shift 2 ;;
+        --force-dirty) FORCE_DIRTY=1; shift ;;
         *) usage ;;
       esac
     done
@@ -96,6 +121,41 @@ function reset_worktree() {
   git -C "$wt_path" clean -fd >&2
 }
 
+# Lease age in whole hours, from the lease file's mtime. mtime rather than the
+# `leased_at` line inside the file: `wt status` already reports mtime, so the
+# two can never disagree, and a hand-edited or truncated lease file still ages.
+function lease_age_hours() {
+  local lease_file=$1 now mtime
+  [ -f "$lease_file" ] || { echo 0; return; }
+  now=$(date +%s)
+  mtime=$(stat -f %m "$lease_file" 2>/dev/null || echo "$now")
+  echo $(( (now - mtime) / 3600 ))
+}
+
+function wt_is_clean() {
+  local wt_path=$1
+  [ -z "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]
+}
+
+# Free one slot. Refuses a dirty worktree unless --force-dirty: a leaked lease
+# costs a slot, but discarding a crew's uncommitted implementation costs the
+# work itself, and a mid-flight kill leaving a complete-but-uncommitted tree is
+# a KNOWN boss failure mode (decisions.md 2026-08-02) — exactly the case that
+# must survive a reap. Caller holds the pool lock.
+function reap_slot() {
+  local i=$1 wt_path=$2 lease_file=$3 holder=$4 age=$5
+  if ! wt_is_clean "$wt_path" && [ "$FORCE_DIRTY" -ne 1 ]; then
+    echo "wt: slot $i STALE but DIRTY — NOT reaped (holder=$holder, ${age}h old)" >&2
+    echo "    uncommitted work lives at $wt_path — salvage it, then: wt return $wt_path" >&2
+    echo "    (or re-run with --force-dirty to discard it)" >&2
+    return 1
+  fi
+  rm -f "$lease_file"
+  reset_worktree "$wt_path"
+  echo "wt: reaped slot $i (holder=$holder, ${age}h old)" >&2
+  return 0
+}
+
 function run_bootstrap() {
   local wt_path=$1
   local hook_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/bootstrap.d/$REPO_BASENAME.sh"
@@ -143,8 +203,30 @@ case "$CMD" in
       fi
     done
     
+    # Pool full: before failing, reclaim any lease that is provably abandoned
+    # (older than the TTL and clean). Without this a single leaked lease is
+    # permanent and the pool only ever shrinks — four had leaked by 2026-08-22,
+    # each one silently removing a dispatch slot for good.
     if [ -z "$allocated_path" ]; then
-      echo "ERROR: pool full ($MAX_TREES)" >&2
+      for i in $(seq 1 $MAX_TREES); do
+        wt_path="$POOL/$i/$REPO_BASENAME"
+        lease_file="$POOL/$i.lease"
+        [ -d "$wt_path" ] && [ -f "$lease_file" ] || continue
+        age=$(lease_age_hours "$lease_file")
+        [ "$age" -ge "$TTL_HOURS" ] || continue
+        holder=$(grep "^holder=" "$lease_file" 2>/dev/null | cut -d= -f2 || echo unknown)
+        if reap_slot "$i" "$wt_path" "$lease_file" "$holder" "$age"; then
+          allocated_path="$wt_path"
+          allocated_lease="$lease_file"
+          break
+        fi
+      done
+    fi
+
+    if [ -z "$allocated_path" ]; then
+      echo "ERROR: pool full ($MAX_TREES) and no lease is reapable" >&2
+      echo "  Every slot is leased and younger than ${TTL_HOURS}h, or stale but DIRTY." >&2
+      echo "  Inspect with: wt status   Free abandoned ones with: wt reap --yes" >&2
       unlock_pool
       exit 1
     fi
@@ -188,28 +270,109 @@ case "$CMD" in
     
   status)
     lock_pool
-    printf "%-5s %-10s %-15s %s\n" "N" "STATE" "HOLDER" "AGE"
+    printf "%-5s %-10s %-15s %-6s %s\n" "N" "STATE" "HOLDER" "HOURS" "AGE"
+    stale_seen=0
     for i in $(seq 1 $MAX_TREES); do
       n_dir="$POOL/$i"
       wt_path="$n_dir/$REPO_BASENAME"
       lease_file="$POOL/$i.lease"
-      
+
       if [ -d "$wt_path" ]; then
         if [ -f "$lease_file" ]; then
           holder=$(grep "^holder=" "$lease_file" | cut -d= -f2)
-          printf "%-5s %-10s %-15s %s\n" "$i" "leased" "$holder" "$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$lease_file")"
+          age=$(lease_age_hours "$lease_file")
+          state="leased"
+          # A leak is invisible if it just reads as "leased" — say so out loud.
+          if [ "$age" -ge "$TTL_HOURS" ]; then
+            stale_seen=1
+            if wt_is_clean "$wt_path"; then state="STALE"; else state="STALE/DIRTY"; fi
+          fi
+          printf "%-5s %-10s %-15s %-6s %s\n" "$i" "$state" "$holder" "$age" "$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$lease_file")"
         else
           if [ -n "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
-            printf "%-5s %-10s %-15s %s\n" "$i" "dirty" "-" "-"
+            printf "%-5s %-10s %-15s %-6s %s\n" "$i" "dirty" "-" "-" "-"
           else
-            printf "%-5s %-10s %-15s %s\n" "$i" "free" "-" "-"
+            printf "%-5s %-10s %-15s %-6s %s\n" "$i" "free" "-" "-" "-"
           fi
         fi
       fi
     done
+    if [ "$stale_seen" -eq 1 ]; then
+      echo "" >&2
+      echo "STALE = leased >= ${TTL_HOURS}h. Free the clean ones: wt reap --yes" >&2
+      echo "STALE/DIRTY holds uncommitted work — salvage it before freeing." >&2
+    fi
     unlock_pool
     ;;
     
+  release)
+    # Targeted, immediate, no TTL: the caller has positively established that this
+    # holder is finished, which is knowledge wt cannot derive (boss checks the PR
+    # state). Still refuses a dirty worktree without --force-dirty — "the holder is
+    # gone" and "its work was committed" are different claims, and a mid-flight kill
+    # routinely leaves a complete implementation uncommitted (decisions.md 2026-08-02).
+    if [ "$HOLDER" = "unknown" ]; then
+      echo "ERROR: release needs --holder <label>" >&2
+      exit 2
+    fi
+    lock_pool
+    released=0
+    for i in $(seq 1 $MAX_TREES); do
+      wt_path="$POOL/$i/$REPO_BASENAME"
+      lease_file="$POOL/$i.lease"
+      [ -d "$wt_path" ] && [ -f "$lease_file" ] || continue
+      h=$(grep "^holder=" "$lease_file" 2>/dev/null | cut -d= -f2 || echo "")
+      [ "$h" = "$HOLDER" ] || continue
+      age=$(lease_age_hours "$lease_file")
+      if reap_slot "$i" "$wt_path" "$lease_file" "$h" "$age"; then
+        released=$((released + 1))
+      fi
+    done
+    if [ "$released" -eq 0 ]; then
+      echo "wt: no slot released for holder=$HOLDER" >&2
+      unlock_pool
+      exit 1
+    fi
+    unlock_pool
+    ;;
+
+  reap)
+    # Dry-run by default (like prune) — freeing a slot resets the worktree, so
+    # the destructive form is opt-in.
+    lock_pool
+    reaped=0; blocked=0; candidates=0
+    for i in $(seq 1 $MAX_TREES); do
+      wt_path="$POOL/$i/$REPO_BASENAME"
+      lease_file="$POOL/$i.lease"
+      [ -d "$wt_path" ] && [ -f "$lease_file" ] || continue
+      age=$(lease_age_hours "$lease_file")
+      [ "$age" -ge "$TTL_HOURS" ] || continue
+      candidates=$((candidates + 1))
+      holder=$(grep "^holder=" "$lease_file" 2>/dev/null | cut -d= -f2 || echo unknown)
+      if [ "$PRUNE_YES" -ne 1 ]; then
+        if wt_is_clean "$wt_path"; then
+          echo "Would reap slot $i (holder=$holder, ${age}h old, clean)" >&2
+        else
+          echo "Would SKIP slot $i (holder=$holder, ${age}h old, DIRTY — holds uncommitted work)" >&2
+        fi
+        continue
+      fi
+      if reap_slot "$i" "$wt_path" "$lease_file" "$holder" "$age"; then
+        reaped=$((reaped + 1))
+      else
+        blocked=$((blocked + 1))
+      fi
+    done
+    if [ "$candidates" -eq 0 ]; then
+      echo "wt: nothing to reap (no lease is >= ${TTL_HOURS}h old)" >&2
+    elif [ "$PRUNE_YES" -eq 1 ]; then
+      echo "wt: reaped $reaped, skipped $blocked (dirty)" >&2
+    else
+      echo "wt: $candidates stale lease(s); re-run with --yes to free the clean ones" >&2
+    fi
+    unlock_pool
+    ;;
+
   prune)
     lock_pool
     for i in $(seq 1 $MAX_TREES); do
