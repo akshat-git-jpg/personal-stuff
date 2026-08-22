@@ -354,3 +354,144 @@
   margin-top: 16px;
   max-width: 800px;
 }
+
+/* Gate 125 — the simple intro (plan 220/221). No <ReviewSurface> here: this
+   flow's player carries no timestamped composer, so it is a plain <video>,
+   not the shared component the complex flow and Final Cut mount. */
+.intro-simple-tab {
+  max-width: 1400px;
+}
+
+.intro-simple-player {
+  margin-bottom: 24px;
+}
+
+.intro-simple-video {
+  width: 100%;
+  max-height: 70vh;
+  display: block;
+  background: #000;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+/* Same missing-render box shape as the idea gate's teaser-missing state
+   (16:9, dashed border) — a consistent "not rendered yet" look everywhere
+   the Intro tab shows one. */
+.intro-simple-player-missing {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+  color: var(--dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.intro-simple-pacing {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.intro-simple-pacing-figure {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 16px;
+}
+
+.intro-simple-pacing-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.intro-simple-pacing-label {
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.intro-simple-pacing-limit {
+  font-variant-numeric: tabular-nums;
+}
+
+.intro-simple-beats {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+
+.intro-simple-beats th,
+.intro-simple-beats td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+}
+
+.intro-simple-beats th {
+  color: var(--dim);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.intro-simple-beats td:first-child,
+.intro-simple-beats th:first-child {
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+  width: 32px;
+}
+
+/* An overlay beat keeps the presenter on screen underneath the card — the
+   difference the owner is judging — so it reads visibly differently from a
+   full-screen card row rather than blending into the same grey row. */
+.intro-simple-beat-overlay td {
+  background: rgba(251, 146, 60, 0.08);
+}
+
+.intro-simple-beat-feedback-list {
+  max-width: 800px;
+  margin-bottom: 24px;
+}
+
+.intro-simple-beat-feedback {
+  margin-bottom: 12px;
+}
+
+.intro-simple-approve-btn {
+  background: transparent;
+  border: 1px solid var(--ok);
+  color: var(--ok);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+.intro-simple-approve-btn:hover:not(:disabled) {
+  background: rgba(52, 211, 153, 0.12);
+}
+/* Visibly disabled, never merely inert — this exact regression (a UA-default
+   control left unstyled) has shipped three times on this board
+   (plans/runs/LESSONS.md, 2026-07-31). */
+.intro-simple-approve-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--dim);
+  color: var(--dim);
+}

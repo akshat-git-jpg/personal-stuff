@@ -30,6 +30,20 @@ function BeatFrame({ file, zoom, onZoom }: { file: string; zoom: number; onZoom:
   );
 }
 
+// Gate 125 (the simple flow, plan 220/221). A locked-kit beat carries its
+// on-screen words in one of three shapes depending on which card it fills —
+// this is the ONE thing the owner reads per row, so it has to work for all
+// three or a row renders blank.
+function simpleBeatText(b: any): string {
+  const vars = b?.vars || {};
+  if (typeof vars.text === 'string') return vars.text;
+  if (Array.isArray(vars.rows)) {
+    return vars.rows.map((r: any) => r?.label ?? r?.text ?? '').filter(Boolean).join(', ');
+  }
+  if (typeof vars.appName === 'string') return vars.appName;
+  return '';
+}
+
 export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
   video: string;
   onMeta: (meta: ReactNode) => void;
@@ -87,7 +101,12 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
     // is no film to approve yet, and showing the button anyway would let the
     // owner approve a film that has not been authored against the chosen idea.
     const ideaOpen = !!(data?.idea && !data.idea.approved);
-    if (data?.present && !ideaOpen) {
+    // Nor while the simple gate (125) owns the screen — its own inline Approve
+    // button is the "one Approve button" the plan calls for; this header
+    // button would otherwise double up once intro-film/out/intro.mp4 exists
+    // but the cut list is still unapproved.
+    const simpleGateOpen = data?.mode === 'simple' && !!data?.cutlist && !data.cutlist.approved;
+    if (data?.present && !ideaOpen && !simpleGateOpen) {
       const isApproved = !!data.approved;
       onActions(
         <button
@@ -117,6 +136,117 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
   // The wrapper carries no padding any more (it must not squeeze the player),
   // so text states bring their own rather than hugging the window edge.
   if (!data) return <div className="intro-tab" style={{ padding: 24 }}>loading...</div>;
+
+  // Gate 125 — the simple intro. One surface: watch the cut, read the beat table,
+  // approve. There is no idea gate and no frame contact sheet in this flow, because
+  // there is no bespoke composition to review — the cards are locked (plan 219).
+  // Taken FIRST and by `data.mode`, never by guessing from which files exist: a
+  // half-built complex video and a simple video both lack a screenplay.json.
+  if (data.mode === 'simple' && data.cutlist && !data.cutlist.approved) {
+    const beats = data.cutlist.beats || [];
+    const pacing = data.pacing || { avatarShare: 0, cuts: beats.length, longestAvatarHold: 0 };
+    const renderCmd = `run.sh ${video} intro-simple-render`;
+
+    return (
+      <div className="intro-tab intro-simple-tab" style={{ padding: 24 }}>
+        <div className="intro-simple-player">
+          {videoMissing ? (
+            <div className="intro-simple-player-missing">
+              Not rendered yet — run <code>bash {renderCmd}</code>
+            </div>
+          ) : (
+            <video
+              className="intro-simple-video"
+              src={`/intro-video?video=${encodeURIComponent(video)}`}
+              controls
+            />
+          )}
+        </div>
+
+        {/* The pacing strip: the same S1/S2 numbers the lint enforces, each with
+            its limit beside it, so a figure near the edge is visible without
+            arithmetic. */}
+        <div className="intro-simple-pacing">
+          <div className="intro-simple-pacing-figure">
+            <span className="intro-simple-pacing-value">{Math.round(pacing.avatarShare * 100)}%</span>
+            <span className="intro-simple-pacing-label">
+              avatar share <span className="intro-simple-pacing-limit">≤ 55%</span>
+            </span>
+          </div>
+          <div className="intro-simple-pacing-figure">
+            <span className="intro-simple-pacing-value">{pacing.cuts}</span>
+            <span className="intro-simple-pacing-label">cuts</span>
+          </div>
+          <div className="intro-simple-pacing-figure">
+            <span className="intro-simple-pacing-value">{pacing.longestAvatarHold.toFixed(1)}s</span>
+            <span className="intro-simple-pacing-label">
+              longest hold <span className="intro-simple-pacing-limit">≤ 5.0s</span>
+            </span>
+          </div>
+        </div>
+
+        <table className="intro-simple-beats">
+          <thead>
+            <tr>
+              <th>#</th><th>kind</th><th>card</th><th>start</th><th>length</th><th>text</th>
+            </tr>
+          </thead>
+          <tbody>
+            {beats.map((b: any, i: number) => (
+              <tr
+                key={b.id}
+                className={`intro-simple-beat-row${b.kind === 'overlay' ? ' intro-simple-beat-overlay' : ''}`}
+              >
+                <td>{i + 1}</td>
+                <td>{b.kind}</td>
+                <td>{b.card ?? '—'}</td>
+                <td>{fmtClock(b.t_start ?? 0)}</td>
+                <td>{((b.t_end ?? 0) - (b.t_start ?? 0)).toFixed(1)}s</td>
+                <td>{simpleBeatText(b)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Per-beat comments — the same autosaved FeedbackBox the complex flow's
+            beat sheet already uses (this file's only comment store). No second
+            store, no player-tied composer: the player above carries none. */}
+        <div className="intro-simple-beat-feedback-list">
+          {beats.map((b: any) => (
+            <div key={b.id} className="intro-simple-beat-feedback">
+              <FeedbackBox
+                refKey={`intro-${b.id}`}
+                placeholder={`feedback on ${b.id} — staging, timing, wording… (read by the next Claude session)`}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* No Reject button. The fix path for a simple intro is edit the cut
+            list and re-render — a session action, not a board round-trip (plan
+            221 STOP condition). Do not add one for symmetry with the idea gate. */}
+        <button
+          type="button"
+          className="intro-simple-approve-btn"
+          disabled={videoMissing}
+          title={videoMissing ? `render the intro first: ${renderCmd}` : undefined}
+          onClick={async () => {
+            try {
+              const res = await fetch('/approve-intro', { method: 'POST' });
+              if (res.ok) {
+                await loadData();
+                await onRefetch();
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }}
+        >
+          Approve intro
+        </button>
+      </div>
+    );
+  }
 
   if (!data.present) {
     return (

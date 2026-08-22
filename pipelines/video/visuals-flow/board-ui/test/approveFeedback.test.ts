@@ -18,8 +18,11 @@ import path from 'node:path';
 const TABS = path.resolve(import.meta.dirname, '..', 'src', 'tabs');
 
 function tabSources() {
+  // .test.tsx (plan 221) is a test file, not a tab — it also ends in .tsx and
+  // its mocked '/approve-intro' URL string would otherwise pull it into the
+  // scan below and fail on content it never claimed to have.
   return fs.readdirSync(TABS)
-    .filter((f) => f.endsWith('.tsx'))
+    .filter((f) => f.endsWith('.tsx') && !f.endsWith('.test.tsx'))
     .map((f) => ({ file: f, src: fs.readFileSync(path.join(TABS, f), 'utf8') }));
 }
 
