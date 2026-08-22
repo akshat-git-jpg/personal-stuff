@@ -2818,6 +2818,59 @@
       "default_duration": 3.5,
       "max_beats": 14,
       "max_reveal_chars": 16
+    },
+    {
+      "slug": "enacted/shot-float",
+      "hero_shape": "prose",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": false,
+      "purpose": "generated stills or screenshots floating as evidence while one spoken line runs word by word",
+      "variables": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "Every one of these was generated, not filmed"
+        },
+        "shots": {
+          "required": true,
+          "type": "array",
+          "note": "up to 6 image paths relative to the video workdir; enrichImages inlines each as a data URI"
+        },
+        "accent": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "generated, not filmed"
+        },
+        "duration": {
+          "required": false,
+          "type": "number",
+          "role": "free",
+          "note": "2.0-5.0; the card scales its own motion schedule to it (intro-kit variable-duration contract)"
+        }
+      },
+      "beat_source": "beat",
+      "beat_shape": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "generated"
+        },
+        "accent": {
+          "required": true,
+          "type": "boolean"
+        },
+        "at": {
+          "required": true,
+          "type": "number"
+        }
+      },
+      "default_duration": 3.5,
+      "max_beats": 14,
+      "max_reveal_chars": 16
     }
   ]
 }

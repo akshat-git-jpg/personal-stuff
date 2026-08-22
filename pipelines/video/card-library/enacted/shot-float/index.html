@@ -1,0 +1,197 @@
+<!doctype html>
+<!--
+  SHOT-FLOAT   (intro-kit card)
+  Generated stills / screenshots as evidence, floating around the edges while
+  the spoken line runs centred. Nothing ever crosses the centre band the
+  sentence owns (y 44%-60%).
+  1920x1080, 30fps, VARIABLE duration (2.5-5.0s, default 3.5 — see KIT.md).
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block (text, accent,       │
+  │  beats, shots) and :root. Never touch the TIMELINE or DURATION blocks.  │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render cards/shot-float -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.60);
+        --accent: #fb923c;
+        --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 96px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 100%; height: 1080px; }
+      #bg { position: absolute; inset: -10%; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); will-change: transform; }
+      #frame { position: absolute; inset: 0; }
+      #shots { position: absolute; inset: 0; }
+      .shot {
+        position: absolute; border-radius: 22px; overflow: hidden; opacity: 0;
+        border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 14px 30px rgba(0,0,0,0.4);
+        will-change: transform, opacity;
+      }
+      .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      #sentence {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        padding: 0 220px; text-align: center;
+      }
+      #sentenceText { font-size: var(--hero-size); font-weight: 800; line-height: 1.2; letter-spacing: -0.025em; max-width: 1440px; color: var(--text); }
+      .word { display: inline-block; white-space: pre-wrap; will-change: opacity, color; }
+
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="shotfloat" data-start="0" data-duration="0" data-width="1920" data-height="1080"
+      data-composition-variables='{"text":"Every one of these was generated, not filmed","accent":"generated, not filmed","beats":[{"text":"Every","accent":false,"at":0.0},{"text":"one","accent":false,"at":0.2},{"text":"of","accent":false,"at":0.38},{"text":"these","accent":false,"at":0.5},{"text":"was","accent":false,"at":0.75},{"text":"generated,","accent":true,"at":0.95},{"text":"not","accent":true,"at":1.35},{"text":"filmed","accent":true,"at":1.55}],"shots":["shots/mockup-dashboard.jpg","shots/mockup-code.jpg","shots/mockup-chat.jpg","shots/mockup-social.jpg"],"duration":3.5}'>
+      <div id="bg" class="clip" data-start="0" data-duration="0" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="0" data-track-index="1">
+        <div id="shots"></div>
+        <div id="sentence"><div id="sentenceText"></div></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        text: VARS.text ?? "Every one of these was generated, not filmed",
+        accent: VARS.accent ?? "generated, not filmed",
+        beats: VARS.beats ?? [
+          { text: "Every", accent: false, at: 0.0 },
+          { text: "one", accent: false, at: 0.2 },
+          { text: "of", accent: false, at: 0.38 },
+          { text: "these", accent: false, at: 0.5 },
+          { text: "was", accent: false, at: 0.75 },
+          { text: "generated,", accent: true, at: 0.95 },
+          { text: "not", accent: true, at: 1.35 },
+          { text: "filmed", accent: true, at: 1.55 }
+        ],
+        shots: VARS.shots ?? ["shots/mockup-dashboard.jpg", "shots/mockup-code.jpg", "shots/mockup-chat.jpg", "shots/mockup-social.jpg"]
+      };
+
+      /* ===== DURATION (LOCKED — identical in all 7 kit cards) ===== */
+      // Kit cards are variable-length: the builder (plan 220) picks 2.0-5.0s per
+      // beat from the transcript, so nothing here may hard-code a schedule.
+      // The root's STATIC data-duration is deliberately "0", not the default:
+      // hyperframes' render CLI only re-probes the composition length from the
+      // live browser (window.__hf.duration, which reflects this script's own
+      // mutation below) when the static attribute is <= 0 — any nonzero literal
+      // freezes the render at that value regardless of --variables. Verified
+      // empirically against the render pipeline: with the literal left at the
+      // "3.5" default, `--variables '{"duration":2.0}'` still rendered a 3.5s
+      // mp4; with the literal at "0" the same command renders 2.0s, and a
+      // variable-less render still yields the 3.5s default below. Standalone
+      // preview is unaffected — VARS.duration ?? 3.5 still governs DUR here.
+      const DUR = Math.min(5, Math.max(2, Number(VARS.duration ?? 3.5)));
+      const root = document.getElementById('root');
+      root.setAttribute('data-duration', String(DUR));
+      for (const el of root.querySelectorAll('.clip')) {
+        el.setAttribute('data-duration', String(DUR));
+      }
+      // A fraction of the card's own length, never a wall-clock constant.
+      const T = (frac) => +(DUR * frac).toFixed(3);
+
+      // Statement-style hero scale by word count.
+      const wordCount = (DATA.beats || []).length;
+      const bucket = wordCount <= 8 ? { size: 96, leading: 1.15 }
+                   : wordCount <= 12 ? { size: 80, leading: 1.2 }
+                   : { size: 60, leading: 1.25 };
+      document.documentElement.style.setProperty('--hero-size', bucket.size + 'px');
+      document.getElementById('sentenceText').style.lineHeight = bucket.leading;
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      // 6 fixed edge slots, none crossing the centre band (y 44%-60% == 475-648
+      // on a 1080 canvas). Two rows of three; a shot list under 6 just uses the
+      // first N slots. Slot geometry is a PURE function of index — deterministic,
+      // seek-safe, never Math.random().
+      const SLOTS = [
+        { x: 90,   y: 80,  w: 380, h: 220 },
+        { x: 770,  y: 60,  w: 380, h: 214 },
+        { x: 1450, y: 90,  w: 380, h: 220 },
+        { x: 90,   y: 760, w: 380, h: 220 },
+        { x: 770,  y: 786, w: 380, h: 214 },
+        { x: 1450, y: 750, w: 380, h: 220 }
+      ];
+      const shotsEl = document.getElementById('shots');
+      const shots = DATA.shots.slice(0, 6).map((src, i) => {
+        const slot = SLOTS[i % SLOTS.length];
+        const el = document.createElement('div');
+        el.className = 'shot';
+        el.style.left = slot.x + 'px';
+        el.style.top = slot.y + 'px';
+        el.style.width = slot.w + 'px';
+        el.style.height = slot.h + 'px';
+        const img = document.createElement('img');
+        if (src) { img.src = src; } else { img.style.display = 'none'; }
+        el.appendChild(img);
+        shotsEl.appendChild(el);
+        return el;
+      });
+
+      // Accent color is applied at BUILD time as an INLINE LITERAL, resolved
+      // from the live --accent token via getComputedStyle — never as a GSAP
+      // color tween and never as `var(--accent)` on the span (see statement
+      // card's comment for the full history of why).
+      const ACCENT = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#fb923c';
+      const sentenceEl = document.getElementById('sentenceText');
+      const words = DATA.beats.map((b, i) => {
+        const span = document.createElement('span');
+        span.className = b.accent ? 'word is-accent' : 'word';
+        span.textContent = b.text + (i < DATA.beats.length - 1 ? ' ' : '');
+        span.style.opacity = 0;
+        if (b.accent) span.style.color = ACCENT;
+        sentenceEl.appendChild(span);
+        return { b, span };
+      });
+
+      // A card is only as long as the builder gave it. If the transcript's word
+      // times run past the card, compress them proportionally rather than dropping
+      // words — a sentence that stops mid-phrase reads as a broken render.
+      const raw = words.map(({ b }) => Number(b.at) || 0);
+      const last = raw.length ? raw[raw.length - 1] : 0;
+      const limit = DUR * 0.9;
+      const squeeze = last > limit && last > 0 ? limit / last : 1;
+      const beatAt = raw.map((t) => +(t * squeeze).toFixed(3));
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.to('#bg', { scale: 1.05, x: -20, y: -10, duration: DUR, ease: 'none' }, 0);
+
+      // Shots enter staggered over T(0.3), scale 0.9 -> 1.
+      const enterEnd = T(0.3);
+      const enterSpan = shots.length > 1 ? enterEnd / (shots.length - 1) : 0;
+      shots.forEach((el, i) => {
+        const at = shots.length > 1 ? i * enterSpan : 0;
+        tl.fromTo(el, { scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.35, ease: 'power2.out' }, at);
+        // Slow drift for the rest of the card, each shot phase-offset so the
+        // set never moves as a block.
+        const phase = (i % 3) * 0.35;
+        const dir = i % 2 === 0 ? 1 : -1;
+        tl.fromTo(
+          el,
+          { y: -18 * dir, rotate: -3.5 * dir },
+          { y: 18 * dir, rotate: 3.5 * dir, duration: DUR - phase, ease: 'sine.inOut' },
+          phase
+        );
+      });
+
+      words.forEach(({ span }, i) => {
+        tl.to(span, { opacity: 1, duration: 0.1, ease: 'none' }, T(0.2) + beatAt[i]);
+      });
+
+      window.__timelines['shotfloat'] = tl;
+    </script>
+  </body>
+</html>
