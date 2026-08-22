@@ -47,7 +47,7 @@ test('a fixture cut list renders end-to-end to an mp4 matching the fixture span 
       { id: 'b01', kind: 'avatar', t_start: 0.0, t_end: 3.0 },
       // beats: [] — no on-screen word list, so S7 has nothing to check. The
       // point of this fixture is the render pipeline, not the word lint.
-      { id: 'b02', kind: 'card', card: 'statement', t_start: 3.0, t_end: SPAN, vars: { text: 'Hello world', beats: [] } },
+      { id: 'b02', kind: 'card', card: 'slate/kinetic-sentence', t_start: 3.0, t_end: SPAN, vars: { text: 'Hello world', beats: [] } },
     ],
   };
 

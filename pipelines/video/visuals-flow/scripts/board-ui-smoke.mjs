@@ -14,7 +14,7 @@ const HASHES = ['', '#intro', '#storyboard', '#avatar', '#final-cut', '#calibrat
 const CHROME_TIMEOUT_MS = Number(process.env.BOARD_UI_SMOKE_TIMEOUT_MS ?? 120000);
 
 if (!fs.existsSync(CHROME)) {
-  console.log('SKIP board-ui smoke: no Chrome');
+  console.log(new Date(), 'SKIP board-ui smoke: no Chrome');
   process.exit(0);
 }
 
@@ -490,7 +490,7 @@ try {
   const enc = spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'testsrc=size=320x180:rate=30:duration=7',
     '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', introMp4]);
   if (enc.status !== 0 || !fs.existsSync(introMp4)) {
-    console.log('SKIP intro player check: ffmpeg could not build the fixture clip');
+    console.log(new Date(), 'SKIP intro player check: ffmpeg could not build the fixture clip');
   } else {
     const serverIntro = boardMod.createServer(introWorkdir);
     const portIntro = await new Promise((resolve) => {
@@ -674,7 +674,7 @@ try {
   const encIdea = spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'testsrc=size=320x180:rate=30:duration=2',
     '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', ideaMp4]);
   if (encIdea.status !== 0 || !fs.existsSync(ideaMp4)) {
-    console.log('SKIP idea-gate teaser check: ffmpeg could not build the fixture clip');
+    console.log(new Date(), 'SKIP idea-gate teaser check: ffmpeg could not build the fixture clip');
   } else {
     const serverIdea = boardMod.createServer(ideaWorkdir);
     const portIdea = await new Promise((resolve) => {
@@ -776,7 +776,7 @@ try {
   const encSimple = spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'testsrc=size=320x180:rate=30:duration=3',
     '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', simpleMp4]);
   if (encSimple.status !== 0 || !fs.existsSync(simpleMp4)) {
-    console.log('SKIP simple-intro gate check: ffmpeg could not build the fixture clip');
+    console.log(new Date(), 'SKIP simple-intro gate check: ffmpeg could not build the fixture clip');
   } else {
     const serverSimple = boardMod.createServer(simpleWorkdir);
     const portSimple = await new Promise((resolve) => {
@@ -834,7 +834,7 @@ try {
     }
   }
 
-  console.log('board-ui smoke OK');
+  console.log(new Date(), 'board-ui smoke OK');
   process.exit(0);
 } finally {
   if (server.closeAllConnections) server.closeAllConnections();

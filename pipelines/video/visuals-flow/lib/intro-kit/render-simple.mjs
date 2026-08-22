@@ -21,8 +21,10 @@ import { CARD_RENDERER } from '../renderer-constants.mjs';
 import { npxArgs, npxSpawnOpts } from '../intro-film/npx.mjs';
 import { hashRenderInputs, runPool, rewriteDuration, DEFAULT_JOBS } from '../render.mjs';
 import { STAND_IN_IMAGE } from '../intro-film/film-assets.mjs';
-import { lintCutlist } from './lint-cutlist.mjs';
-import { loadKit, loadCutlist, INTRO_KIT_ROOT } from './inputs.mjs';
+import { lintCutlist, truncationNotices } from './lint-cutlist.mjs';
+import { loadKit, loadCutlist, CARD_LIBRARY_ROOT } from './inputs.mjs';
+import { enrichLogos } from '../logos-inline.mjs';
+import { enrichImages } from '../images-inline.mjs';
 
 const HYPERFRAMES = CARD_RENDERER;
 const CANVAS_VF = 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=30,format=yuv420p';
@@ -44,16 +46,18 @@ function run(cmd, args) {
 // against pipelines/video/intro-kit/ (the locked 7-card kit) rather than
 // card-library/. Mirrors lib/render.mjs's renderOne staging block, verbatim
 // per plan 220's "The render machinery to REUSE" section.
-function renderCardBeat(beat, { renderDir, cacheDir, noCache }) {
+function renderCardBeat(beat, { renderDir, cacheDir, noCache, workdir }) {
   const stagedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hf-intro-simple-'));
   try {
     // --- staging, copied from lib/render.mjs's renderOne (see header comment) ---
-    fs.cpSync(path.join(INTRO_KIT_ROOT, 'hyperframes.json'), path.join(stagedDir, 'hyperframes.json'));
-    fs.cpSync(path.join(INTRO_KIT_ROOT, 'meta.json'), path.join(stagedDir, 'meta.json'));
-    const cardRel = path.join('cards', beat.card);
+    fs.cpSync(path.join(CARD_LIBRARY_ROOT, 'hyperframes.json'), path.join(stagedDir, 'hyperframes.json'));
+    fs.cpSync(path.join(CARD_LIBRARY_ROOT, 'meta.json'), path.join(stagedDir, 'meta.json'));
+    // A catalog slug IS the relative path ("<type>/<card>"), unlike the old
+    // kit which prefixed every card with "cards/".
+    const cardRel = beat.card;
     const stagedCardDir = path.join(stagedDir, cardRel);
     fs.mkdirSync(path.dirname(stagedCardDir), { recursive: true });
-    fs.cpSync(path.join(INTRO_KIT_ROOT, cardRel), stagedCardDir, { recursive: true });
+    fs.cpSync(path.join(CARD_LIBRARY_ROOT, cardRel), stagedCardDir, { recursive: true });
     // --- end staging ---
 
     const duration = +(beat.t_end - beat.t_start).toFixed(3);

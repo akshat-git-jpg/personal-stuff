@@ -334,3 +334,23 @@
   the first version loop forever. After three failures it stops and names the
   cause on screen rather than silently seeking past the frame, because skipping
   footage without telling the reviewer is worse than stopping.
+- **2026-08-23**: **One card catalogue for the intro and the body.** The `simple`
+  intro flow no longer has a card set of its own: `pipelines/video/intro-kit/`
+  (plan 219's locked 7-card kit, with its own `kit.json`, `hyperframes.json`
+  and private logo mirror) is deleted, and steps 115/135 read
+  `pipelines/video/card-library/catalog.json` like the body cue pass does. The
+  four kit cards with no body equivalent were ported first (plan 228) as
+  `tool-icon/logo-grid`, `enacted/shot-float`, `enacted/ui-mock` and
+  `process/chain`; `statement`, `checklist` and `lower-third` map onto the
+  existing `slate/kinetic-sentence`, `checklist/checklist` and
+  `overlay/lower-third`. Two catalogues for one video drift, and the owner has
+  to remember which cards exist where. **Accepted cost:** body cards hard-code
+  their motion in absolute seconds against a 4-15s `default_duration`, so at a
+  1.5-4.0s intro cut they play their entry and get truncated; the owner chose
+  (this date) to swap first and fix the cards that actually look wrong, so
+  `intro-simple-lint` now prints a non-blocking `NOTICE truncation:` per short
+  beat instead of a gate. Lint code `S6` retired with `kit.json` (its per-card
+  duration range had no catalogue equivalent; `S3`'s 1.5-4.0s is tighter
+  anyway). This supersedes `intro-kit/KIT.md`'s "do not add an 8th card without
+  an owner decision recorded in decisions.md" — the kit itself is gone.
+  Plans 228, 229.

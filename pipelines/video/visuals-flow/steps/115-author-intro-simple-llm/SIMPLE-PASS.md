@@ -16,30 +16,63 @@ See the schema in `plans/220-vf-intro-simple-flow.md` ("The cut list") for the
 full shape, or read `../../lib/intro-kit/cutlist-schema.mjs` / a fixture under
 `../../lib/intro-kit/fixtures/good.json`.
 
-## The 7 cards, and what each is for
+## Pick from the body card catalogue — the same one the cue pass uses
 
-| Slug | Purpose | Overlay |
-|---|---|---|
-| `statement` | the spoken line, alone, word by word — the workhorse | no |
-| `checklist` | two to four verdict rows under one icon, safe to repeat back-to-back | no |
-| `logo-grid` | "too many tools" — real logos, then the line lands and they dim | no |
-| `shot-float` | generated stills/screenshots as evidence while the line runs | no |
-| `ui-mock` | a stylised app window, used once ok / once fail | no |
-| `chain` | N labelled inputs converging into one named thing | no |
-| `lower-third` | the ONLY card that sits over live footage (presenter name/role) | **yes** |
+There is no intro card set. `pipelines/video/card-library/catalog.json` is the
+ONE catalogue for the intro and the body (owner decision 2026-08-23), and every
+card in it is available to you. A slug is always `"<type>/<card>"` —
+`slate/kinetic-sentence`, never `kinetic-sentence`.
 
-(Copied from `../../../intro-kit/KIT.md` — read that file for each card's full
-description; do not restate its internals here.)
+Read `catalog.json` and pick per beat. Each entry tells you everything you
+need:
 
-`lower-third` is the only card whose `kit.json` entry has `"overlay": true`.
-An overlay card may ONLY be used with `kind: "overlay"` in a beat, never
-`kind: "card"`, and vice versa for every other card.
+| Field | What it means for you |
+|---|---|
+| `purpose` | one line on what the card is for — this is your selection signal |
+| `placement` | `overlay` cards may ONLY be used with `kind: "overlay"`; `fullframe` cards ONLY with `kind: "card"` |
+| `variables` | `vars` must contain every entry with `"required": true`, and nothing outside the whole list |
+| `beat_shape` | present on beat cards: the shape of each element of `vars.beats[]` |
+| `max_beats` | the cap on `vars.beats[]` length |
+| `default_duration` | the length the card's motion was designed for — see the truncation note below |
 
-## Read `../../../intro-kit/kit.json` for each card's required variables
+`vars.beats[]` elements may additionally carry `at` (seconds, rebased to the
+beat's own start), which is the cut list's own field and is not in any
+`beat_shape`.
 
-It is the schema. `vars` on a beat must contain every key in that card's
-`required` list, and no key outside `required` + `optional` — a missing
-required var renders an empty card, and the pacing lint (S4) refuses it.
+**Never set `duration`.** The renderer computes it from `t_end - t_start` and
+injects it; lint code `S4 renderer-owned-var` refuses a cut list that sets one.
+
+If nothing in the catalogue expresses a beat, use `slate/kinetic-sentence` —
+one spoken sentence, word by word, on the ambient canvas. It always works, and
+it is the direct replacement for the old kit's `statement`.
+
+### The four cards that came from the old intro kit
+
+These were the intro kit's own devices and are now ordinary body cards, so the
+body may use them too:
+
+| Slug | Purpose |
+|---|---|
+| `tool-icon/logo-grid` | "too many tools" — real logos, then the line lands and they dim |
+| `enacted/shot-float` | generated stills or screenshots as evidence while the line runs |
+| `enacted/ui-mock` | a stylised app window around a screenshot, in an ok or a fail state |
+| `process/chain` | N labelled inputs converging on one named output |
+
+They are the only cards that scale their motion to the beat length.
+
+### Truncation: expect it, report it, do not work around it
+
+Body cards hard-code their motion schedule in absolute seconds against a
+`default_duration` of 4–15s, while an intro beat runs 1.5–4.0s. A body card in
+an intro therefore plays its entry animation and is cut off part-way through
+its idle motion. The owner accepted this on 2026-08-23 rather than retrofitting
+every body card up front.
+
+`intro-simple-lint` prints a `NOTICE truncation:` line per beat that runs under
+60% of its card's `default_duration`. Notices are NOT errors and never fail the
+lint. **Do not lengthen a beat past its transcript line to silence one** — the
+cut length comes from the words being spoken, and `S3` caps it at 4.0s anyway.
+Leave the notices; they are the owner's list of what to look at in the render.
 
 ## The pacing targets — author to these, do not discover them by failing the lint
 

@@ -19,7 +19,7 @@ authoring a bespoke Hyperframes film IS the step.
 | `transcript.json` | `020-transcribe-run`, already through its quality pass |
 | `segments.json` | `040-split-narration-demo-run` — the measured intro span |
 | `concept.json` | `050-choose-concept-llm` — the through-line |
-| `../intro-kit/kit.json` | plan 219's locked 7-card kit (the schema) |
+| `../../../card-library/catalog.json` | the shared card catalogue — the schema for every card the intro may use |
 
 Out: `videos/<slug>/intro-simple/cutlist.json`
 
