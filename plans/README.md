@@ -1296,3 +1296,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 216-tracker-split-card-detail — PR#175 216-tracker-split-card-detail: Tracker — split the card panel; affiliate links move to Links tab — DONE
 - 218-vf-intro-mode-switch — PR#177 218-vf-intro-mode-switch: visuals-flow — introMode switch (simple | complex) — DONE
 - 219-vf-intro-kit-cards — PR#178 219-vf-intro-kit-cards: the locked intro kit — 7 cards, one accent, five moves — DONE
+- 220-vf-intro-simple-flow — PR#179 220-vf-intro-simple-flow: the simple intro flow — cut list, pacing lint, three steps — DONE
