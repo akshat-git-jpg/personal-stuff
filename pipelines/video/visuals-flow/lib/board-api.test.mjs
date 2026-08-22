@@ -298,8 +298,11 @@ test('intro-data and intro-frame endpoints', async () => {
     const res = await fetch(`${base}/api/intro-data`);
     assert.equal(res.status, 200);
     const data = await res.json();
-    assert.deepEqual(data, { present: false });
-    
+    // No run-config.json: introMode defaults to 'simple' (plan 220) and this
+    // fixture has no intro-simple/cutlist.json either, so cutlist/pacing stay
+    // null while present stays false (no intro-film/ dir).
+    assert.deepEqual(data, { present: false, mode: 'simple', cutlist: null, pacing: null });
+
     const res2 = await fetch(`${base}/intro-frame?f=../../etc/passwd`);
     assert.equal(res2.status, 400);
   } finally {
