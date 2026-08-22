@@ -6,7 +6,7 @@ test_cmd: bash scripts/check-skill-descriptions.sh && bash scripts/check-repo-hy
 ui:
 deploy:
 needs: []
-needs_prs: [226, 227]
+needs_prs: [187, 188]
 touches: [tooling/claude-skills/commit-now/SKILL.md, .claude/skills/personal-stuff-change-control/SKILL.md, CLAUDE.md]
 mutation_apply:
 mutation_command:
