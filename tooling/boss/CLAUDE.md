@@ -28,6 +28,19 @@ Run `bin/boss-session-start.sh`. It:
 3. Prints the ledger (recently landed + blocked PRs).
 4. Lists the `boss:ready` queue (oldest first, with age).
 5. Reconciles in-flight PRs from worktree state.
+6. **Sweeps worktree leases held by finished PRs** (added 2026-08-22). `boss-dispatch`
+   leases a `wt` pool slot per PR but returns it only on an error path or after a
+   successful `boss-merge` — so a PR that dies, is blocked, or is abandoned keeps its
+   slot forever, and `wt get`'s only liveness test was "does the lease file exist".
+   Four of eight slots had leaked by 2026-08-22 (one held 25 days by a PR merged weeks
+   earlier); the next leak would have starved dispatch with `ERROR: pool full`.
+   Session-start now maps each `boss-<pr>` holder to its PR and calls
+   `wt release --holder` for any PR that is not `OPEN`.
+   **It keys on the PR's state, never its labels** — PR#152 and #153 were both `MERGED`
+   and *still* labelled `boss:in-progress`, so a label check would have called them live.
+   A slot whose worktree is dirty is reported and left alone, never freed: a mid-flight
+   kill routinely leaves a complete-but-uncommitted implementation. Salvage it, then
+   `wt return <path>` (or `wt reap --yes --force-dirty` to discard).
 
 Address anything flagged before taking the next ask.
 

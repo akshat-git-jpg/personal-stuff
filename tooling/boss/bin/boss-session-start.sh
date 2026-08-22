@@ -64,3 +64,30 @@ echo "== orphaned in-progress (on GitHub, no local state — needs reconcile) ==
 for n in $(gh pr list --state open --label boss:in-progress --json number -q '.[].number' 2>/dev/null); do
   [ -f "$STATE_DIR/$n.meta" ] || echo "  ORPHAN  #$n — boss:in-progress but no state/$n.meta (re-dispatch or reset label)"
 done
+
+# Worktree-lease sweep (2026-08-22). boss-dispatch leases a pool slot per PR, but
+# only ever RETURNS it on an error path or after a successful boss-merge. A PR that
+# dies, gets blocked, or is abandoned keeps its slot forever, and `wt get`'s only
+# liveness test is "does the lease file exist" — so the leak is permanent and the
+# pool only ever shrinks. Four of eight slots had leaked by 2026-08-22 (one held
+# 25 days by a PR merged weeks earlier); the next leak would have starved dispatch
+# with `ERROR: pool full`.
+#
+# The signal is the PR's STATE, never its labels: PR#152 and #153 were both MERGED
+# and *still* labelled boss:in-progress, so a label check would have called them live.
+echo "== worktree leases held by finished PRs =="
+lease_sweep_found=0
+while IFS= read -r line; do
+  case "$line" in ''|N' '*) continue;; esac
+  holder=$(echo "$line" | awk '{print $3}')
+  case "$holder" in boss-*) ;; *) continue;; esac
+  pr=${holder##*-}
+  case "$pr" in ''|*[!0-9]*) continue;; esac
+  st=$(gh pr view "$pr" --json state -q .state 2>/dev/null)
+  [ -n "$st" ] || continue
+  [ "$st" = "OPEN" ] && continue
+  lease_sweep_found=1
+  echo "  #$pr is $st but still holds a worktree slot (holder=$holder) — freeing"
+  wt release --holder "$holder" --repo "$REPO_ROOT" 2>&1 | sed 's/^/    /'
+done < <(wt status --repo "$REPO_ROOT" 2>/dev/null)
+[ "$lease_sweep_found" -eq 0 ] && echo "  none — every leased slot belongs to an open PR"
