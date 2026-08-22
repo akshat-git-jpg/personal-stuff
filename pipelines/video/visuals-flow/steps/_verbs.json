@@ -23,5 +23,10 @@
     "kind": "helper",
     "after": "intro-idea",
     "summary": "renders one 6-second teaser per proposed intro direction, so gate 120 judges moving pictures instead of prose"
+  },
+  "intro-simple-lint": {
+    "kind": "helper",
+    "after": "intro-simple",
+    "summary": "prints the S1-S7 pacing report for intro-simple/cutlist.json without rendering anything — the cheap check before a render"
   }
 }

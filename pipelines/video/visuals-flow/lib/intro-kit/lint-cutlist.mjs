@@ -6,6 +6,14 @@
 //
 // Mirrors lib/lint-cues.mjs's report shape: `{ errors: [], warnings: [] }`.
 // There are no warnings in this lint — every rule below is a hard gate.
+//
+// fs/path/resolveWorkdir/pathToFileURL are only used by the CLI guard at the
+// bottom (the `intro-simple-lint` verb) — lintCutlist() itself is pure.
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { resolveWorkdir } from '../workdir.mjs';
+import { loadKit, loadCutlist } from './inputs.mjs';
 
 // The three thresholds are module constants so the mutation recipe
 // (plans/220-vf-intro-simple-flow.md) can reach them by name.
@@ -211,4 +219,34 @@ export function lintCutlist({ cutlist, kit, words }) {
     ...checkS7(cutlist, words),
   ];
   return { errors, warnings: [] };
+}
+
+// The `intro-simple-lint` helper verb (steps/_verbs.json): the cheap check
+// before a render — prints the S1-S7 report against a real workdir's cut
+// list without rendering anything.
+function main() {
+  const slug = process.argv[2];
+  if (!slug) {
+    console.error('usage: node lib/intro-kit/lint-cutlist.mjs <slug-or-path>');
+    process.exit(1);
+  }
+  const workdir = resolveWorkdir(slug);
+  const cutlist = loadCutlist(workdir);
+  const kit = loadKit();
+  const transcriptPath = path.join(workdir, 'transcript.json');
+  const words = fs.existsSync(transcriptPath) ? JSON.parse(fs.readFileSync(transcriptPath, 'utf8')) : [];
+
+  const { errors } = lintCutlist({ cutlist, kit, words });
+  if (errors.length) {
+    for (const e of errors) console.error(e);
+    console.error(`${errors.length} pacing lint error(s)`);
+    process.exit(1);
+  }
+  console.log('intro-simple pacing lint: 0 errors (S1-S7)');
+}
+
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
 }

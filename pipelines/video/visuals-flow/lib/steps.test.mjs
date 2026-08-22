@@ -102,13 +102,20 @@ test('every step declares a valid track', () => {
   for (const s of STEPS) {
     assert.match(s.track, /^(intro|main)$/, `${s.slug} has track "${s.track}"`);
   }
-  // The intro track is exactly 110-160 — the bespoke intro film. Everything
-  // else, including 440 (which rejoins main with the real avatar clips), is main.
+  // The intro track was exactly 110-160 (the bespoke intro film) until plan
+  // 220 added the simple flow's own intro-track steps (115/125/135) alongside
+  // it — both flows share the track, and `modes` (checked elsewhere) is what
+  // keeps a video from parking on the other flow's step. Everything past the
+  // 1xx range, including 440/445 (which rejoin main with the real avatar
+  // clips), is main.
   const introSlugs = STEPS.filter((s) => s.track === 'intro').map((s) => s.slug);
   assert.deepEqual(introSlugs, [
     '110-propose-intro-idea-llm',
+    '115-author-intro-simple-llm',
     '120-approve-intro-idea-human',
+    '125-approve-intro-simple-human',
     '130-author-intro-screenplay-llm',
+    '135-render-intro-simple-run',
     '140-review-intro-frames-run',
     '150-approve-intro-film-human',
     '160-render-intro-film-run',

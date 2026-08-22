@@ -1,0 +1,24 @@
+{
+  "number": "125",
+  "slug": "125-approve-intro-simple-human",
+  "title": "approve the intro cut list",
+  "actor": "human",
+  "actorLabel": "[OWNER]",
+  "verbs": [],
+  "consumes": [
+    "intro-simple/cutlist.json"
+  ],
+  "produces": [],
+  "gate": {
+    "file": "intro-simple/cutlist.json",
+    "field": "approved",
+    "label": "Intro (simple)"
+  },
+  "tab": "intro",
+  "external": false,
+  "optional": false,
+  "nextHint": "run.sh <slug> intro-simple-render, then approve on the board's Intro tab  (HUMAN GATE — 125 intro simple)",
+  "summary": "`intro-simple/cutlist.json` → `approved: true` in `cutlist.json` (HUMAN GATE: Intro (simple)). Reviewed on the Intro tab of the board against the rendered `intro-film/out/intro.mp4` (135 runs before this gate despite the lower number — same reason 150/160 order this way in the complex flow; see steps/150-approve-intro-film-human/step.json's own `consumes`, which omits its render output for the identical reason).",
+  "track": "intro",
+  "modes": ["simple"]
+}
