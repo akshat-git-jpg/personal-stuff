@@ -1329,3 +1329,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 220-vf-intro-simple-flow — PR#179 220-vf-intro-simple-flow: the simple intro flow — cut list, pacing lint, three steps — DONE
 - 221-vf-intro-simple-board-and-skill — PR#180 221-vf-intro-simple-board-and-skill: the simple intro's review surface, taste doc, and skill wiring — DONE
 - 228-vf-intro-cards-into-body-catalog — PR#181 228-vf-intro-cards-into-body-catalog: port the four intro-only cards into the body card library — DONE
+- 229-vf-intro-uses-body-catalog — PR#182 229-vf-intro-uses-body-catalog: point the simple intro flow at the body card catalogue — DONE
