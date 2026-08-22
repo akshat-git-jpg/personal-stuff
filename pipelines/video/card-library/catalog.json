@@ -2764,6 +2764,228 @@
       "max_reveal_chars": 24,
       "default_duration": 6,
       "pre_beat_render": "frame"
+    },
+    {
+      "slug": "tool-icon/logo-grid",
+      "hero_shape": "prose",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": false,
+      "purpose": "a grid of real tool logos behind one spoken line; the logos dim as the line lands — the 'too many tools doing one job each' beat",
+      "variables": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "There are too many tools doing one job each"
+        },
+        "productLogos": {
+          "required": true,
+          "type": "array",
+          "role": "logo_slug_list",
+          "note": "up to 12 registry slugs; the grid dims them as the line lands"
+        },
+        "accent": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "one job each"
+        },
+        "duration": {
+          "required": false,
+          "type": "number",
+          "role": "free",
+          "note": "2.0-5.0; the card scales its own motion schedule to it (intro-kit variable-duration contract)"
+        }
+      },
+      "beat_source": "beat",
+      "beat_shape": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "tools"
+        },
+        "accent": {
+          "required": true,
+          "type": "boolean"
+        },
+        "at": {
+          "required": true,
+          "type": "number"
+        }
+      },
+      "default_duration": 3.5,
+      "max_beats": 14,
+      "max_reveal_chars": 16
+    },
+    {
+      "slug": "enacted/shot-float",
+      "hero_shape": "prose",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": false,
+      "purpose": "generated stills or screenshots floating as evidence while one spoken line runs word by word",
+      "variables": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "Every one of these was generated, not filmed"
+        },
+        "shots": {
+          "required": true,
+          "type": "array",
+          "note": "up to 6 image paths relative to the video workdir; enrichImages inlines each as a data URI"
+        },
+        "accent": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "generated, not filmed"
+        },
+        "duration": {
+          "required": false,
+          "type": "number",
+          "role": "free",
+          "note": "2.0-5.0; the card scales its own motion schedule to it (intro-kit variable-duration contract)"
+        }
+      },
+      "beat_source": "beat",
+      "beat_shape": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "generated"
+        },
+        "accent": {
+          "required": true,
+          "type": "boolean"
+        },
+        "at": {
+          "required": true,
+          "type": "number"
+        }
+      },
+      "default_duration": 3.5,
+      "max_beats": 14,
+      "max_reveal_chars": 16
+    },
+    {
+      "slug": "enacted/ui-mock",
+      "hero_shape": "none",
+      "kind": "single",
+      "placement": "fullframe",
+      "side": false,
+      "purpose": "a stylised app window around a real screenshot, in an ok or a fail state — the 'here is the tool, here is where it breaks' beat",
+      "variables": {
+        "appName": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpenArt"
+        },
+        "shot": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "note": "image path relative to the video workdir; enrichImages inlines it as a data URI",
+          "example": "shots/mockup-dashboard.jpg"
+        },
+        "state": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "enum": ["ok", "fail"],
+          "example": "ok"
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "openart"
+        },
+        "caption": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "example": "Four renders in"
+        },
+        "buttonLabel": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "example": "Generate"
+        },
+        "duration": {
+          "required": false,
+          "type": "number",
+          "role": "free",
+          "note": "2.0-5.0; the card scales its own motion schedule to it (intro-kit variable-duration contract)"
+        }
+      },
+      "default_duration": 3.5
+    },
+    {
+      "slug": "process/chain",
+      "hero_shape": "none",
+      "kind": "single",
+      "placement": "fullframe",
+      "side": false,
+      "purpose": "N labelled inputs converging on one named output — the 'all of this becomes that' beat",
+      "variables": {
+        "items": {
+          "required": true,
+          "type": "array",
+          "item_shape": {
+            "label": {
+              "required": true,
+              "type": "string",
+              "role": "label",
+              "example": "Podcast audio"
+            },
+            "shot": {
+              "required": false,
+              "type": "string",
+              "role": "free",
+              "note": "image path relative to the video workdir; enrichImages inlines it as a data URI",
+              "example": "shots/mockup-chat.jpg"
+            },
+            "logo": {
+              "required": false,
+              "type": "string",
+              "role": "logo_slug",
+              "example": "opusclip"
+            }
+          }
+        },
+        "target": {
+          "required": true,
+          "type": "object",
+          "shape": {
+            "label": {
+              "required": true,
+              "type": "string",
+              "role": "label",
+              "example": "Final video"
+            },
+            "logo": {
+              "required": false,
+              "type": "string",
+              "role": "logo_slug",
+              "example": "heygen"
+            }
+          }
+        },
+        "duration": {
+          "required": false,
+          "type": "number",
+          "role": "free",
+          "note": "2.0-5.0; the card scales its own motion schedule to it (intro-kit variable-duration contract)"
+        }
+      },
+      "default_duration": 3.5
     }
   ]
 }

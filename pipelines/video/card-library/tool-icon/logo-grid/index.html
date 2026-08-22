@@ -1,0 +1,187 @@
+<!doctype html>
+<!--
+  LOGO-GRID   (intro-kit card)
+  "There are too many tools" — real product logos scattered loosely, then the
+  spoken line lands and the logos dim into noise behind it.
+  1920x1080, 30fps, VARIABLE duration (2.5-5.0s, default 3.5 — see KIT.md).
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block (text, accent,       │
+  │  beats, logos) and :root. Never touch the TIMELINE or DURATION blocks.  │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render cards/logo-grid -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.60);
+        --accent: #fb923c;
+        --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 96px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 100%; height: 1080px; }
+      #bg { position: absolute; inset: -10%; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); will-change: transform; }
+      #frame { position: absolute; inset: 0; }
+      #grid { position: absolute; inset: 0; }
+      .tile {
+        position: absolute; width: 132px; height: 132px; background: #ffffff; border-radius: 26px;
+        display: flex; align-items: center; justify-content: center; opacity: 0;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      }
+      .tile img { width: 76%; height: 76%; object-fit: contain; }
+      #sentence {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        padding: 0 200px; text-align: center;
+      }
+      #sentenceText { font-size: var(--hero-size); font-weight: 800; line-height: 1.2; letter-spacing: -0.025em; max-width: 1480px; }
+      .word { display: inline-block; white-space: pre-wrap; will-change: opacity, color; }
+      .accent { color: var(--accent); }
+
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="logogrid" data-start="0" data-duration="0" data-width="1920" data-height="1080"
+      data-composition-variables='{"text":"There are too many tools doing one job each","accent":"one job each","beats":[{"text":"There","accent":false,"at":0.0},{"text":"are","accent":false,"at":0.2},{"text":"too","accent":false,"at":0.4},{"text":"many","accent":false,"at":0.6},{"text":"tools","accent":false,"at":0.85},{"text":"doing","accent":false,"at":1.15},{"text":"one","accent":true,"at":1.4},{"text":"job","accent":true,"at":1.6},{"text":"each","accent":true,"at":1.8}],"productLogos":["openart","higgsfield","synthesia","heygen","arcads","n8n","make","zapier"],"duration":3.5}'>
+      <div id="bg" class="clip" data-start="0" data-duration="0" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="0" data-track-index="1">
+        <div id="grid"></div>
+        <div id="sentence"><div id="sentenceText"></div></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        text: VARS.text ?? "There are too many tools doing one job each",
+        accent: VARS.accent ?? "one job each",
+        beats: VARS.beats ?? [
+          { text: "There", accent: false, at: 0.0 },
+          { text: "are", accent: false, at: 0.2 },
+          { text: "too", accent: false, at: 0.4 },
+          { text: "many", accent: false, at: 0.6 },
+          { text: "tools", accent: false, at: 0.85 },
+          { text: "doing", accent: false, at: 1.15 },
+          { text: "one", accent: true, at: 1.4 },
+          { text: "job", accent: true, at: 1.6 },
+          { text: "each", accent: true, at: 1.8 }
+        ],
+        productLogos: VARS.productLogos ?? ["openart", "higgsfield", "synthesia", "heygen", "arcads", "n8n", "make", "zapier"]
+      };
+
+      /* ===== DURATION (LOCKED — identical in all 7 kit cards) ===== */
+      // Kit cards are variable-length: the builder (plan 220) picks 2.0-5.0s per
+      // beat from the transcript, so nothing here may hard-code a schedule.
+      // The root's STATIC data-duration is deliberately "0", not the default:
+      // hyperframes' render CLI only re-probes the composition length from the
+      // live browser (window.__hf.duration, which reflects this script's own
+      // mutation below) when the static attribute is <= 0 — any nonzero literal
+      // freezes the render at that value regardless of --variables. Verified
+      // empirically against the render pipeline: with the literal left at the
+      // "3.5" default, `--variables '{"duration":2.0}'` still rendered a 3.5s
+      // mp4; with the literal at "0" the same command renders 2.0s, and a
+      // variable-less render still yields the 3.5s default below. Standalone
+      // preview is unaffected — VARS.duration ?? 3.5 still governs DUR here.
+      const DUR = Math.min(5, Math.max(2, Number(VARS.duration ?? 3.5)));
+      const root = document.getElementById('root');
+      root.setAttribute('data-duration', String(DUR));
+      for (const el of root.querySelectorAll('.clip')) {
+        el.setAttribute('data-duration', String(DUR));
+      }
+      // A fraction of the card's own length, never a wall-clock constant.
+      const T = (frac) => +(DUR * frac).toFixed(3);
+
+      // Statement-style hero scale by word count.
+      const wordCount = (DATA.beats || []).length;
+      const bucket = wordCount <= 8 ? { size: 120, leading: 1.1 }
+                   : wordCount <= 12 ? { size: 96, leading: 1.15 }
+                   : { size: 64, leading: 1.25 };
+      document.documentElement.style.setProperty('--hero-size', bucket.size + 'px');
+      document.getElementById('sentenceText').style.lineHeight = bucket.leading;
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      // Loose 4x3 grid, jittered up to ±26px. Jitter is a PURE function of the
+      // tile's index — deterministic, seek-safe, never Math.random().
+      const gridEl = document.getElementById('grid');
+      const COLS = 4, ROWS = 3;
+      const cellW = 1920 / COLS, cellH = 1080 / ROWS;
+      const jitterX = (i) => ((i * 37) % 53) - 26;
+      const jitterY = (i) => ((i * 59) % 53) - 26;
+      const tiles = DATA.productLogos.slice(0, 12).map((slug, i) => {
+        const col = i % COLS;
+        const rowIdx = Math.floor(i / COLS) % ROWS;
+        const cx = cellW * col + cellW / 2 + jitterX(i);
+        const cy = cellH * rowIdx + cellH / 2 + jitterY(i);
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.style.left = (cx - 66) + 'px';
+        tile.style.top = (cy - 66) + 'px';
+        const img = document.createElement('img');
+        // Logos arrive pre-inlined as data URIs in VARS.__logos (enrichLogos,
+        // lib/logos-inline.mjs) — the card no longer mirrors the registry.
+        const href = (VARS.__logos || {})[slug];
+        if (href) { img.src = href; } else { img.style.display = 'none'; }
+        tile.appendChild(img);
+        gridEl.appendChild(tile);
+        return tile;
+      });
+
+      // Accent color is applied at BUILD time as an INLINE LITERAL, resolved
+      // from the live --accent token via getComputedStyle — never as a GSAP
+      // color tween and never as `var(--accent)` on the span (see statement
+      // card's comment for the full history of why).
+      const ACCENT = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#fb923c';
+      const sentenceEl = document.getElementById('sentenceText');
+      const words = DATA.beats.map((b, i) => {
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.textContent = b.text + (i < DATA.beats.length - 1 ? ' ' : '');
+        span.style.opacity = 0;
+        if (b.accent) span.style.color = ACCENT;
+        sentenceEl.appendChild(span);
+        return { b, span };
+      });
+      const raw = words.map(({ b }) => Number(b.at) || 0);
+      const last = raw.length ? raw[raw.length - 1] : 0;
+      const limit = DUR * 0.9;
+      const squeeze = last > limit && last > 0 ? limit / last : 1;
+      const beatAt = raw.map((t) => +(t * squeeze).toFixed(3));
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.to('#bg', { scale: 1.05, x: -20, y: -10, duration: DUR, ease: 'none' }, 0);
+
+      const tileStart = T(0.0);
+      const tileEnd = T(0.35);
+      const tileSpan = tiles.length > 1 ? (tileEnd - tileStart) / (tiles.length - 1) : 0;
+      tiles.forEach((tile, i) => {
+        const at = tiles.length > 1 ? tileStart + i * tileSpan : tileStart;
+        tl.to(tile, { opacity: 1, duration: 0.2, ease: 'power2.out' }, at);
+      });
+
+      // The tools becoming noise IS the content here, not a focus effect —
+      // DESIGN.md's "never express focus with blur" is deliberately bent; see
+      // KIT.md's logo-grid section for the full justification.
+      tl.to(tiles, { opacity: 0.22, filter: 'blur(9px)', duration: 0.3, ease: 'none' }, T(0.42));
+
+      words.forEach(({ span }, i) => {
+        tl.to(span, { opacity: 1, duration: 0.1, ease: 'none' }, T(0.42) + beatAt[i]);
+      });
+
+      window.__timelines['logogrid'] = tl;
+    </script>
+  </body>
+</html>
