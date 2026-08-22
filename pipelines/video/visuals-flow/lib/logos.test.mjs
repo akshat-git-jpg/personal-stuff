@@ -76,3 +76,14 @@ test('validateCues handles logo slugs', () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test('enrichLogos resolves process/chain shapes: target.logo and items[].logo', () => {
+  const root = path.resolve(import.meta.dirname, '..', '..', 'card-library');
+  const { variables, missing } = enrichLogos(
+    { target: { label: 'Final video', logo: 'heygen' }, items: [{ label: 'Clips', logo: 'opusclip' }] },
+    root,
+  );
+  assert.deepEqual(missing, []);
+  assert.ok(variables.__logos.heygen.startsWith('data:'), 'target.logo was not inlined');
+  assert.ok(variables.__logos.opusclip.startsWith('data:'), 'items[].logo was not inlined');
+});

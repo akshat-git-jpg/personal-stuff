@@ -21,6 +21,15 @@ export function enrichLogos(variables, cardLibraryRoot) {
   for (const side of [variables.left, variables.right, ...(Array.isArray(variables.sides) ? variables.sides : [])]) {
     if (typeof side?.logo === 'string') refs.add(side.logo);
   }
+  // process/chain's two shapes (plan 228): one named target the inputs
+  // converge on, and the input rows themselves. Same one-line-per-shape
+  // pattern as sides[] above — this walker is a list of known shapes, not a
+  // generic deep search, on purpose (a deep search would pick up any string
+  // field called `logo` that is not a registry slug).
+  if (typeof variables.target?.logo === 'string') refs.add(variables.target.logo);
+  for (const it of Array.isArray(variables.items) ? variables.items : []) {
+    if (typeof it?.logo === 'string') refs.add(it.logo);
+  }
   const logos = {};
   const logoDark = {};
   const missing = [];
