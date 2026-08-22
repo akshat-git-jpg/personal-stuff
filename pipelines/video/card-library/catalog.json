@@ -2871,6 +2871,61 @@
       "default_duration": 3.5,
       "max_beats": 14,
       "max_reveal_chars": 16
+    },
+    {
+      "slug": "enacted/ui-mock",
+      "hero_shape": "none",
+      "kind": "single",
+      "placement": "fullframe",
+      "side": false,
+      "purpose": "a stylised app window around a real screenshot, in an ok or a fail state — the 'here is the tool, here is where it breaks' beat",
+      "variables": {
+        "appName": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpenArt"
+        },
+        "shot": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "note": "image path relative to the video workdir; enrichImages inlines it as a data URI",
+          "example": "shots/mockup-dashboard.jpg"
+        },
+        "state": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "enum": ["ok", "fail"],
+          "example": "ok"
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "openart"
+        },
+        "caption": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "example": "Four renders in"
+        },
+        "buttonLabel": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "example": "Generate"
+        },
+        "duration": {
+          "required": false,
+          "type": "number",
+          "role": "free",
+          "note": "2.0-5.0; the card scales its own motion schedule to it (intro-kit variable-duration contract)"
+        }
+      },
+      "default_duration": 3.5
     }
   ]
 }
