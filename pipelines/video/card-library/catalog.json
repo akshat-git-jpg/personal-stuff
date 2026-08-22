@@ -2764,6 +2764,60 @@
       "max_reveal_chars": 24,
       "default_duration": 6,
       "pre_beat_render": "frame"
+    },
+    {
+      "slug": "tool-icon/logo-grid",
+      "hero_shape": "prose",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": false,
+      "purpose": "a grid of real tool logos behind one spoken line; the logos dim as the line lands — the 'too many tools doing one job each' beat",
+      "variables": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "There are too many tools doing one job each"
+        },
+        "productLogos": {
+          "required": true,
+          "type": "array",
+          "role": "logo_slug_list",
+          "note": "up to 12 registry slugs; the grid dims them as the line lands"
+        },
+        "accent": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "one job each"
+        },
+        "duration": {
+          "required": false,
+          "type": "number",
+          "role": "free",
+          "note": "2.0-5.0; the card scales its own motion schedule to it (intro-kit variable-duration contract)"
+        }
+      },
+      "beat_source": "beat",
+      "beat_shape": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "tools"
+        },
+        "accent": {
+          "required": true,
+          "type": "boolean"
+        },
+        "at": {
+          "required": true,
+          "type": "number"
+        }
+      },
+      "default_duration": 3.5,
+      "max_beats": 14,
+      "max_reveal_chars": 16
     }
   ]
 }
