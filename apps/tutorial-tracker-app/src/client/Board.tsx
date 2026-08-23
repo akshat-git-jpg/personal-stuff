@@ -257,7 +257,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
         </>
       )}
       {activeTab === "team" && <TeamPanel onChanged={reload} pipelines={pipelines} />}
-      {activeTab === "links" && <LinksTab />}
+      {activeTab === "links" && <LinksTab rows={rows} onSaved={reload} />}
 
       {tabs.length === 0 && <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">No work is assigned to you right now.</div>}
 
