@@ -21,7 +21,9 @@ describe("pipeline definitions", () => {
 
 describe("createFieldsOf", () => {
   it("returns default fields for standard and tut-2", () => {
-    const defaultCols = ["video_title", "video_notes", "category", "subcategory"];
+    // Category/subcategory were dropped from the create form — nobody filled them
+    // in, and assignment defaults are keyed on the SYSTEM now.
+    const defaultCols = ["video_title", "video_notes"];
     expect(createFieldsOf(getPipeline("standard")).map((f) => f.col)).toEqual(defaultCols);
     expect(createFieldsOf(getPipeline("tut-2")).map((f) => f.col)).toEqual(defaultCols);
   });

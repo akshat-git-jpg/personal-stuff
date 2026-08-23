@@ -2,7 +2,7 @@
  * Filters.tsx — admin filter bar for the All-videos view (client-side).
  *
  * Redesign note: the old bar put four form controls on screen at all times
- * (search + assignee + category + stage). Day to day an admin wants one of a
+ * (search + assignee + stage). Day to day an admin wants one of a
  * handful of *questions* answered ("what is stuck?", "what is with a
  * reviewer?"), so those are now one-click buckets. The precise dropdowns still
  * exist, one click away under "More filters", so nothing was taken away.
@@ -41,11 +41,7 @@ export function Filters({ rows, pipeline, names, memberRoles = {}, filters, onCh
   }
   const assignees = [...assigneeSet.entries()].sort((a, b) => a[1].localeCompare(b[1]));
 
-  const catSet = new Set<string>();
-  for (const row of pRows) { const c = (row.category ?? "").trim(); if (c) catSet.add(c); }
-  const categories = [...catSet].sort();
-
-  const hasPrecise = filters.assignee !== "" || filters.category !== "" || filters.stage !== "";
+  const hasPrecise = filters.assignee !== "" || filters.stage !== "";
   const hasFilters = filters.q !== "" || filters.bucket !== "" || hasPrecise;
   const filteredCount = pRows.filter((r) => rowMatchesFilters(r, filters, viewerEmail)).length;
 
@@ -130,14 +126,6 @@ export function Filters({ rows, pipeline, names, memberRoles = {}, filters, onCh
               onChange={(e) => onChange({ ...filters, assignee: e.target.value })}>
               <option value="">All</option>
               {assignees.map(([email, name]) => <option key={email} value={email}>{name}</option>)}
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-medium text-muted-foreground" htmlFor="f-category">Category</label>
-            <select id="f-category" className={selectCls} value={filters.category}
-              onChange={(e) => onChange({ ...filters, category: e.target.value })}>
-              <option value="">All</option>
-              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div className="flex flex-col gap-1">

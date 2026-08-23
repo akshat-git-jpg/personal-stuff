@@ -18,11 +18,11 @@ export const standard: PipelineDef = {
     {
       id: "topic", label: "Topic", role: "Admin", lifecycle: "approveOnly", kind: "brief",
       cols: { status: "topic_status", assignee: "admin_email", reviewer: "topic_reviewer_email" },
-      briefFields: ["video_title", "video_notes", "video_description", "category", "subcategory", "topic_date"],
+      briefFields: ["video_title", "video_notes", "video_description", "topic_date"],
     },
     {
       id: "script", label: "Script", role: "Scriptwriter", lifecycle: "review", gate: "topic",
-      contextFields: ["video_title", "video_notes", "category", "subcategory"],
+      contextFields: ["video_title", "video_notes"],
       work: { id: "script_link", label: "Script", type: "url", slot: "work_link", required: "submit" },
       cols: {
         status: "script_status", assignee: "script_writer_email", reviewer: "script_reviewer_email",

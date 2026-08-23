@@ -281,9 +281,7 @@ app.get("/api/defaults/resolve", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({}, 200);
   const pipe = getPipeline(c.req.query("pipeline")).id;
-  const category = (c.req.query("category") ?? "").trim();
-  const subcategory = (c.req.query("subcategory") ?? "").trim();
-  return c.json(await resolveDefaults(c.env.TRACKER_DB, pipe, category, subcategory));
+  return c.json(await resolveDefaults(c.env.TRACKER_DB, pipe));
 });
 
 // The columns a default set can fill (doers + per-stage reviewers) for a pipeline.
@@ -292,10 +290,8 @@ app.get("/api/defaults/cols", (c) => c.json(assignableColsFor(getPipeline(c.req.
 app.post("/api/defaults", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  let body: { pipeline?: string; category?: string; subcategory?: string; assignments?: Record<string, string> };
+  let body: { pipeline?: string; assignments?: Record<string, string> };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
-  const category = (body.category ?? "").trim();
-  if (!category) return c.json({ error: "category is required" }, 400);
   const pipe = getPipeline(body.pipeline);
   // Keep only this system's assignable columns (doers + per-stage reviewers).
   const validCols = new Set(assignableColsFor(pipe));
@@ -303,22 +299,21 @@ app.post("/api/defaults", async (c) => {
   for (const [col, email] of Object.entries(body.assignments ?? {})) {
     if (validCols.has(col)) assignments[col] = (email ?? "").trim();
   }
-  await setDefaults(c.env.TRACKER_DB, pipe.id, category, body.subcategory ?? "", assignments);
+  await setDefaults(c.env.TRACKER_DB, pipe.id, assignments);
   return c.json({ ok: true });
 });
 
 app.post("/api/defaults/delete", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  let body: { pipeline?: string; category?: string; subcategory?: string };
+  let body: { pipeline?: string };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
-  if (!(body.category ?? "").trim()) return c.json({ error: "category is required" }, 400);
-  await deleteDefaults(c.env.TRACKER_DB, getPipeline(body.pipeline).id, body.category!.trim(), body.subcategory ?? "");
+  await deleteDefaults(c.env.TRACKER_DB, getPipeline(body.pipeline).id);
   return c.json({ ok: true });
 });
 
 // POST /api/apply-defaults {row_id} — fill this card's BLANK assignee/reviewer
-// fields from the defaults for its (category, subcategory). Never overwrites.
+// fields from its SYSTEM's default set. Never overwrites.
 app.post("/api/apply-defaults", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
@@ -333,7 +328,7 @@ app.post("/api/apply-defaults", async (c) => {
   if (!target) return c.json({ error: "row not found", row_id: rowId }, 404);
 
   const targetPipe = pipeOf(target);
-  const defaults = await resolveDefaults(c.env.TRACKER_DB, targetPipe.id, (target.category as string) ?? "", (target.subcategory as string) ?? "");
+  const defaults = await resolveDefaults(c.env.TRACKER_DB, targetPipe.id);
   const cardCols = new Set(assignableColsFor(targetPipe)); // only this card's pipeline cols
   const updates: Record<string, string> = {};
   for (const [col, email] of Object.entries(defaults)) {
@@ -835,7 +830,7 @@ app.post("/api/video", async (c) => {
   const firstStage = pipe.stages[0]; // the brief/topic stage
   // Pre-fill assignees/reviewers from the defaults for this (category, subcategory),
   // keeping only columns that exist in THIS pipeline.
-  const defaults = await resolveDefaults(c.env.TRACKER_DB, pipe.id, values.category ?? "", values.subcategory ?? "");
+  const defaults = await resolveDefaults(c.env.TRACKER_DB, pipe.id);
   const cardCols = new Set(assignableColsFor(pipe));
   const filteredDefaults = Object.fromEntries(Object.entries(defaults).filter(([col]) => cardCols.has(col)));
   

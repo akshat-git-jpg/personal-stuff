@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Column } from "../shared/columns";
 import type { Transition } from "../shared/engine/rbac";
 import { pipeOf, stageByStatusColIn } from "./stages";
 import {
-  applyTransition, getReviewQueue, deleteVideo, applyDefaults, getDefaults, updateCell,
-  type BoardRow, type ReviewItem, type AssignmentDefaultRow,
+  applyTransition, getReviewQueue, deleteVideo, applyDefaults, updateCell,
+  type BoardRow, type ReviewItem,
 } from "./api";
 import { CardDetail } from "./CardDetail";
 import { PipelineBoard } from "./PipelineBoard";
@@ -106,24 +106,6 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void refreshQueue(); }, [refreshQueue, rows]);
 
-  // Category/subcategory options come from existing cards AND the assignment
-  // defaults (so a category created only in a default still shows up everywhere).
-  const [defaultRows, setDefaultRows] = useState<AssignmentDefaultRow[]>([]);
-  useEffect(() => {
-    if (!isAdmin) return;
-    void getDefaults().then(setDefaultRows).catch(() => {});
-  }, [isAdmin, rows]);
-
-  const categoryOptions = useMemo(
-    () => [...new Set([
-      ...rows.map((r) => (r.category ?? "").trim()),
-      ...defaultRows.map((d) => (d.category ?? "").trim()),
-    ].filter(Boolean))].sort(), [rows, defaultRows]);
-  const subcategoryOptions = useMemo(
-    () => [...new Set([
-      ...rows.map((r) => (r.subcategory ?? "").trim()),
-      ...defaultRows.map((d) => (d.subcategory ?? "").trim()),
-    ].filter(Boolean))].sort(), [rows, defaultRows]);
 
   // Single delete path used by every admin surface (Pipeline matrix, board card
   // tiles, and the card detail panel). Confirms, deletes, closes any open detail,
@@ -200,8 +182,6 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
       onOpenChange={setShowNewVideo}
       pipelines={pipelines}
       defaultPipeline={matrixPipeline}
-      categoryOptions={categoryOptions}
-      subcategoryOptions={subcategoryOptions}
       names={names}
       memberRoles={memberRoles}
       memberships={memberships}
@@ -276,7 +256,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
             onDelete={(rowId, title) => void handleDelete(rowId, title)} />
         </>
       )}
-      {activeTab === "team" && <TeamPanel onChanged={reload} pipelines={pipelines} categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions} />}
+      {activeTab === "team" && <TeamPanel onChanged={reload} pipelines={pipelines} />}
       {activeTab === "links" && <LinksTab />}
 
       {tabs.length === 0 && <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">No work is assigned to you right now.</div>}
@@ -286,7 +266,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
           contextStageId={detailStageId} perspective={detailPerspective}
           onDelete={() => void handleDelete(detailRow.row_id ?? "", detailRow.video_title ?? "")}
           onApplyDefaults={() => void handleApplyDefaults(detailRow.row_id ?? "")}
-          categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions}
+         
           onClose={() => { setDetailRow(null); setDetailStageId(undefined); }}
           onSaved={() => { reload(); void refreshQueue(); setDetailRow(null); setDetailStageId(undefined); }} />
       )}
