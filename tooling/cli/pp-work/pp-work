@@ -149,7 +149,7 @@ ws_set_touched() {
 }
 
 if [ $# -eq 0 ]; then
-  die "Usage: pp-work <claim|list|remove|reap|snapshot|touch> ..."
+  die "Usage: pp-work <claim|list [--dirty] [--size]|remove|reap|snapshot|touch> ..."
 fi
 
 cmd="$1"
@@ -188,8 +188,29 @@ case "$cmd" in
     fi
 
     if [ -d "$wt_path" ]; then
-      # Re-claiming an existing workspace means a session is picking the work back up.
-      # That is exactly the signal the reaper needs in order to leave it alone.
+      # Re-claiming an existing workspace means a session is picking the work back up. The
+      # owner asked for exactly this ("if I am doing anything on the same video in a new
+      # session, that new session should be able to pick the same work tree"), so a re-claim
+      # SUCCEEDS by design — the design spec's "a second live claim fails, never co-tenancy"
+      # was written before that decision and is superseded.
+      #
+      # But two LIVE sessions in one folder is the original contamination bug moved indoors,
+      # so it must not be silent. There is no reliable way to test whether another Claude
+      # session is alive (the manifest's `pid` is pp-work's own, dead the moment claim
+      # returns), so this reports rather than refuses, and names the other session so the
+      # owner can tell takeover from collision.
+      prev_session=$(sed -n 's/^session=//p' "$WS_ROOT/$slug/manifest" 2>/dev/null | tail -1 || true)
+      this_session="${CLAUDE_SESSION_ID:-unknown}"
+      if [ -n "$prev_session" ] && [ "$prev_session" != "unknown" ] \
+         && [ "$prev_session" != "$this_session" ]; then
+        prev_touch=$(ws_touched "$WS_ROOT/$slug")
+        age=$(( $(date +%s) - prev_touch ))
+        echo "pp-work: NOTE this workspace was last claimed by session $prev_session, ${age}s ago." >&2
+        echo "  Taking it over is fine if that session is finished. If it is still running, you are" >&2
+        echo "  now BOTH editing one working tree — the contamination this tool exists to prevent." >&2
+        echo "  Use a different --slug to work in parallel." >&2
+      fi
+      printf 'session=%s\n' "$this_session" >> "$WS_ROOT/$slug/manifest"
       ws_set_touched "$WS_ROOT/$slug"
       echo "$wt_path"
       exit 0
@@ -248,9 +269,11 @@ EOF
 
   list)
     dirty_only=0
+    want_size=0
     while [ $# -gt 0 ]; do
       case "$1" in
         --dirty) dirty_only=1; shift ;;
+        --size) want_size=1; shift ;;
         *) die "unknown arg: $1" ;;
       esac
     done
@@ -301,8 +324,15 @@ EOF
             | grep -v '/node_modules/' | head -1 || true)
           [ -n "$media_found" ] && media="yes"
 
-          size=$(du -sh "$slug_dir" 2>/dev/null | awk '{print $1}' || true)
-          [ -n "$size" ] || size="?"
+          # `du -sh` over these trees walks ~8 GB and made `list` take over two minutes,
+          # which meant the one screen showing stranded work was too slow to check casually.
+          # An inventory nobody runs protects nothing, so sizes are opt-in via --size.
+          if [ "$want_size" -eq 1 ]; then
+            size=$(du -sh "$slug_dir" 2>/dev/null | awk '{print $1}' || true)
+            [ -n "$size" ] || size="?"
+          else
+            size="-"
+          fi
 
           mbranch=$(ws_manifest_branch "$slug_dir" || true)
           mismatch=""
@@ -340,6 +370,11 @@ EOF
       wt status --repo "$MAIN"
     fi
 
+    if [ "$want_size" -eq 0 ]; then
+      echo "--- Summary ---"
+      echo "Sizes omitted for speed. Re-run with --size for disk totals."
+      exit 0
+    fi
     sz_ws=$( [ -d "$WS_ROOT" ] && du -sk "$WS_ROOT" 2>/dev/null | awk '{print $1}' || echo 0 )
     sz_pool=$( [ -d "$WT_POOL" ] && du -sk "$WT_POOL" 2>/dev/null | awk '{print $1}' || echo 0 )
     sz_land=$( [ -d "$LANDING" ] && du -sk "$LANDING" 2>/dev/null | awk '{print $1}' || echo 0 )

@@ -121,6 +121,21 @@ echo "== blocked lands (fix-ups dispatched into the workspace that already exist
 # work was the only work this screen was silent about (found 2026-08-23, while the owner was
 # being told the opposite). `list --dirty` is the fix: it prints only rows that need a human,
 # and it is also the one place a BRANCH-MISMATCH workspace becomes visible.
+# Is the lander even armed? The post-commit hook is UNTRACKED — only scripts/relink.sh
+# installs it, and nothing on this Mac re-runs relink on its own. The failure is asymmetric
+# and that is what makes it dangerous: a missing pre-push makes pp-push refuse loudly, but a
+# missing post-commit is TOTAL SILENCE — no land, no .blocked entry, no log line, and every
+# workspace commit simply stops reaching main.
+echo "== lander armed? =="
+_hooks_dir="$(git -C "$REPO_ROOT" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)/hooks"
+for _h in post-commit pre-push pre-commit; do
+  if [ -x "$_hooks_dir/$_h" ]; then
+    echo "  ok $_h"
+  else
+    echo "  MISSING $_h — commits will not land. Run: bash scripts/relink.sh"
+  fi
+done
+
 echo "== workspaces needing attention (uncommitted / unlanded / mismatched / snapshotted) =="
 "$REPO_ROOT/tooling/cli/pp-work/pp-work" list --dirty 2>&1 | sed 's/^/  /' || true
 

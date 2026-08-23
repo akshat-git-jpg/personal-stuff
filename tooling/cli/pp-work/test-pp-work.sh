@@ -446,5 +446,47 @@ if ! run_guarded env PPWORK_GRACE_SECS=0 "$PPWORK" remove "$out_p" >/dev/null 2>
 fi
 [ -d "$out_p" ] && fail "(19) remove reported success but the directory remains"
 
+# -----------------------------------------------------------------------------
+# 20. A re-claim by a DIFFERENT session SUCCEEDS but says so.
+#
+# The owner asked for takeover explicitly: "if I am doing anything on the same video in a new
+# session, that new session should be able to pick the same work tree". So a re-claim must not
+# fail — the design spec's "a second live claim fails, never co-tenancy" predates that call
+# and is superseded. But two LIVE sessions in one working tree is the original contamination
+# bug moved indoors, so it must be visible. There is no reliable liveness test (the manifest's
+# `pid` is pp-work's own, dead the moment claim returns), so this reports and names the other
+# session rather than guessing.
+# -----------------------------------------------------------------------------
+out_s1=$(CLAUDE_SESSION_ID=session-AAA run_guarded "$PPWORK" claim --kind code --slug shared-slug)
+[ -n "$out_s1" ] || fail "(20) first claim produced no path"
+
+# same session again: no note, it is just picking its own work back up
+same_err=$(CLAUDE_SESSION_ID=session-AAA "$PPWORK" claim --kind code --slug shared-slug 2>&1 >/dev/null)
+case "$same_err" in
+  *"last claimed by session"*) fail "(20) warned about co-tenancy for the SAME session: $same_err" ;;
+esac
+
+# A different session: still succeeds, and names the previous holder. Both streams come from
+# ONE invocation on purpose — claiming twice to sample stdout and stderr separately would
+# record the new session on the first call, so the second would correctly stay silent and the
+# assertion would fail for the wrong reason (it did, while this case was being written).
+other_out=$(CLAUDE_SESSION_ID=session-BBB "$PPWORK" claim --kind code --slug shared-slug 2>"$SANDBOX/cotenant.err")
+other_err=$(cat "$SANDBOX/cotenant.err")
+[ "$other_out" = "$out_s1" ] \
+  || fail "(20) a re-claim by another session did not return the same folder (takeover broke)"
+echo "$other_err" | grep -q "last claimed by session session-AAA" \
+  || fail "(20) a re-claim by a different session was SILENT about the previous holder: $other_err"
+echo "$other_err" | grep -q "different --slug" \
+  || fail "(20) the note did not say how to work in parallel instead: $other_err"
+
+# 21. --size is opt-in, because du over these trees took over two minutes and an inventory
+# nobody runs protects nothing.
+nosize=$("$PPWORK" list 2>/dev/null)
+echo "$nosize" | grep -q "size:-" \
+  || fail "(21) list still ran du by default: $(echo "$nosize" | grep 'kind:' | head -1)"
+withsize=$("$PPWORK" list --size 2>/dev/null)
+echo "$withsize" | grep -qE "size:[0-9]" \
+  || fail "(21) list --size did not report a real size: $(echo "$withsize" | grep 'kind:' | head -1)"
+
 echo ""
 echo "ALL TESTS PASSED"

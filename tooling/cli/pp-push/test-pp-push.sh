@@ -47,6 +47,31 @@ GATE="$HOME/.local/libexec/pp-push"
 [ -z "$(git -C "$BASE/wt" config --get core.hooksPath || true)" ] || fail "guard_install left core.hooksPath set"
 ok "guard_install installs the gate, records a checksum, arms pre-push, leaves core.hooksPath unset"
 
+# 0b. the pre-commit half of the wall. `.claude/hooks/no-history-in-main.sh` is a PreToolUse
+# hook, so it only sees what Claude runs — a human typing a commit in the main checkout walks
+# past it. This git hook closes that half, and must be silent in linked worktrees, which are
+# the sanctioned place to record history.
+[ -x "$BASE/wt/.git/hooks/pre-commit" ] || fail "guard_install did not arm pre-commit"
+# The fixture repo must ship the wall's marker file, since the hook identifies its repo by it.
+mkdir -p "$BASE/wt/.claude/hooks"
+: > "$BASE/wt/.claude/hooks/no-history-in-main.sh"
+PRECOMMIT_HOOK="$BASE/wt/.git/hooks/pre-commit"
+set +e
+( cd "$BASE/wt" && bash "$PRECOMMIT_HOOK" >/dev/null 2>&1 ); pc_main=$?
+set -e
+[ "$pc_main" -ne 0 ] || fail "pre-commit ALLOWED a commit in the main checkout"
+PCWT="$BASE/pcwt"
+git -C "$BASE/wt" worktree add -q "$PCWT" -b harness/precommit >/dev/null 2>&1
+set +e
+( cd "$PCWT" && bash "$PRECOMMIT_HOOK" >/dev/null 2>&1 ); pc_wt=$?
+set -e
+[ "$pc_wt" -eq 0 ] || fail "pre-commit BLOCKED a commit in a linked worktree (the sanctioned place)"
+# Remove the marker again: leaving it in place makes the pre-commit hook fire for every
+# later case in this file, which is how this test first broke the whole suite.
+rm -f "$BASE/wt/.claude/hooks/no-history-in-main.sh"
+git -C "$BASE/wt" worktree remove --force "$PCWT" >/dev/null 2>&1 || true
+ok "pre-commit refuses the main checkout and is silent in a linked worktree"
+
 # 1. a clean push SUCCEEDS through the gate
 git fetch -q origin
 echo a >> README.md; git add README.md; git commit -qm "clean change"
