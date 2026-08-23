@@ -217,9 +217,14 @@ case "$CMD" in
       
       if [ -d "$wt_path" ]; then
         if [ ! -f "$lease_file" ]; then
-          # Check if clean
-          if [ -n "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
-            echo "wt: reclaimed dirty orphaned slot $wt_path (crashed holder, uncommitted work discarded)" >&2
+          if ! wt_is_clean "$wt_path"; then
+            if [ "$FORCE_DIRTY" -ne 1 ]; then
+              echo "wt: slot $i unleased but DIRTY — skipped, NOT reclaimed" >&2
+              echo "  Uncommitted work is still there: $wt_path" >&2
+              echo "  Rescue it, or discard it with: wt get --force-dirty" >&2
+              continue
+            fi
+            echo "wt: reclaimed dirty orphaned slot $wt_path (--force-dirty: uncommitted work discarded)" >&2
           fi
           reset_worktree "$wt_path"
           allocated_path="$wt_path"
