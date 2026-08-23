@@ -1,6 +1,6 @@
 # boss — PR-driven implementation orchestrator
 
-The successor to `captain` (frozen/deprecated). Three roles:
+The successor to `captain` (deleted 2026-08-23). Three roles:
 
 | Role | Is a… | Job |
 |---|---|---|
@@ -44,4 +44,5 @@ tooling/boss/
 
 Full spec: `docs/specs/2026-07-07-boss-design.md`.
 
-Boss shares **no code** with captain (`tooling/captain/` is frozen, not deleted).
+Boss shares **no code** with captain. `tooling/captain/` was deleted 2026-08-23; two
+reference docs survive in `docs/archive/captain-references/`, the rest is in git history.

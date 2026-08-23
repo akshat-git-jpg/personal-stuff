@@ -32,8 +32,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | A specific app | apps/<name>/ — full list in the README map below; each app folder carries its own operate-doc (README and/or CLAUDE.md) |
 | YouTube / Pinterest / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
 | Worktree pool for agent runs (wt) | [`tooling/cli/wt/README.md`](tooling/cli/wt/README.md) |
-| Delegate parallel work across projects (captain) | tooling/captain/README.md |
-| PR-driven implementation orchestrator — dispatch a crew, verify, merge, deploy (boss, captain's successor) | `tooling/boss/README.md` |
+| PR-driven implementation orchestrator — dispatch a crew, verify, merge, deploy (boss) | `tooling/boss/README.md` |
 | YouTube research / scripts / tutorial pipeline | `pipelines/youtube/` |
 | Voiceover / TTS (reference voices, engines, voiceover manifest) | `pipelines/video/tts/` |
 | Generate / review / lock a voiceover (any pipeline) | `yt-vo` skill (source: `pipelines/.claude/skills/yt-vo`) |

@@ -15,7 +15,7 @@ Three deployment surfaces, three mechanisms. **Deploys go to production directly
 | VPS Docker app (personal-dashboard, hyperframes-render) | SSH → `cd /docker/<name> && docker compose up -d --build` | `docker ps` + curl the domain |
 | VPS cron | Pattern B (code in git, wiring via SSH) — lifecycle in `VPS-CRONS.md`; schedule/dep changes: `ssh root@72.61.241.170 '/srv/crons/vps-apply.sh'` | manual run: `/srv/crons/<job>/run.sh`, then `tail logs/cron.log` |
 
-**Orchestrated path (plan-driven work): boss** (`tooling/boss/`, captain's successor — captain is frozen). Boss lands PRs via greenlight then runs the gated `bin/boss-deploy.sh`. Standing permission (decisions.md 2026-07-11): boss may execute the owner-side deploy chain itself — `wrangler secret put`/`deploy`, VPS SSH cron wiring, committing wrappers to `vps-crons`, syncing the mirrored `VPS-CRONS.md` copies — but ONLY after the owner explicitly says "deploy" (or equivalent) on that item; the deploy gate itself is unchanged. Still human-only: interactive browser OAuth consent and deleting a live credential/account.
+**Orchestrated path (plan-driven work): boss** (`tooling/boss/`, captain's successor — captain was deleted 2026-08-23). Boss lands PRs via greenlight then runs the gated `bin/boss-deploy.sh`. Standing permission (decisions.md 2026-07-11): boss may execute the owner-side deploy chain itself — `wrangler secret put`/`deploy`, VPS SSH cron wiring, committing wrappers to `vps-crons`, syncing the mirrored `VPS-CRONS.md` copies — but ONLY after the owner explicitly says "deploy" (or equivalent) on that item; the deploy gate itself is unchanged. Still human-only: interactive browser OAuth consent and deleting a live credential/account.
 
 ## Workers — the rules
 

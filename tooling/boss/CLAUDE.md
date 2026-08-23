@@ -258,7 +258,7 @@ suggestion; a gate is not. `boss-merge` rejects a branch that:
 - **Never brainstorm, plan, or write product code.** Crew does that.
 - **Crew never pushes, merges, or deploys.** Boss does that.
 - **personal-stuff repo only** (multi-repo deferred).
-- **Shares no code with captain** (`tooling/captain/` is frozen/deprecated).
+- **Shares no code with captain** (`tooling/captain/` deleted 2026-08-23).
 - Reuses `greenlight`, `wt`, `notify` from `tooling/cli/` — standalone leaf tools.
 
 ## Executors
