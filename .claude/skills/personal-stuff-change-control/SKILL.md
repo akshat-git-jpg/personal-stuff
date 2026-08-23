@@ -53,6 +53,25 @@ cd "$(pp-work claim --kind code --slug <task>)" && <git …>   # one command
 git -C <workspace-path> <git …>                              # one command, no cd
 ```
 
+**`<workspace-path>` means a literal path, not a variable.** The wall reads the command text
+to work out which directory the command targets; it cannot expand a variable without running
+the shell, so it fail-closes. Any path containing `$`, a backtick, `*` or `?` falls back to
+the session cwd and is judged as main. So this is refused, even though it targets a workspace:
+
+```
+WS=/Users/kbtg/kb-scratch/workspaces/.../personal-stuff
+git -C "$WS" commit -m "..."      # BLOCKED — "$WS" is unresolvable
+```
+
+Paste the absolute path into every command instead. `cd "$(pp-work claim ...)"` is the single
+substitution the wall recognises, and it does so by shape rather than by resolving it.
+
+This is correct behaviour, not a bug to route around — do NOT reach for `GUARD_OK=1` when you
+hit it, and do NOT try to teach the wall to expand variables. Emulating shell semantics is
+exactly what it refuses to do, and every extra form it understands is another way to fool it
+(2026-08-23: the block message was extended to say this, because the reason lived only in a
+code comment and the error read like a false positive).
+
 Before that fix every one of those was blocked from a main-cwd session — including the first,
 which the hook's own message printed as the remedy — and three `GUARD_OK=1` uses were forced
 in one afternoon. If you reach for the override now, that is a bug in the wall; fix the wall.
