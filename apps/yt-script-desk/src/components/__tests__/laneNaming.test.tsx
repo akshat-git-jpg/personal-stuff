@@ -133,3 +133,26 @@ describe('Instructions is a master switch, and looks like one', () => {
     expect(document.querySelectorAll('[data-testid="right-cell"]').length).toBe(0)
   })
 })
+
+// Owner 2026-08-23: "remove word count from everywhere. i dont want to show
+// anywhere" — and, shown the full-script subtitle, "remove this as well" for
+// "about 6 min read aloud". Both screens. A length number is pressure; the only
+// progress signal left is how many BEATS are written.
+describe('no length number appears on either screen', () => {
+  const LENGTH_NUMBER = /\d+\s*(words?|min\b|minutes?)/i
+
+  it('the write screen shows no word count and no read time', () => {
+    const beat = makeWriteBeat({ angle: ['Say roughly this.'] })
+    renderView([beat])
+    expect(
+      document.body.textContent ?? '',
+      'LENGTH_NUMBER_SHOWN: the write screen is displaying a word count or read time',
+    ).not.toMatch(LENGTH_NUMBER)
+  })
+
+  it('the beat progress counter survives, because it counts beats not words', () => {
+    const beat = makeWriteBeat({ angle: ['Say roughly this.'] })
+    renderView([beat])
+    expect(document.body.textContent ?? '').not.toMatch(/\bwords\b/i)
+  })
+})

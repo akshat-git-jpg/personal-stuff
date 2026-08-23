@@ -43,6 +43,24 @@ export async function upsertVideo(
   return { token }
 }
 
+// Newest first, so `desk.mjs list` reads as "what am I working on".
+// `finished` comes back as D1's 0/1 integer — normalise it here, not at the
+// call site, or the CLI prints a truthy 0.
+export async function listVideos(
+  db: D1Database,
+): Promise<Array<{ key: string; title: string; token: string; finished: boolean; publishedAt: string }>> {
+  const { results } = await db
+    .prepare('SELECT key, title, token, finished, published_at FROM videos ORDER BY published_at DESC')
+    .all<{ key: string; title: string; token: string; finished: number; published_at: string }>()
+  return (results ?? []).map((r) => ({
+    key: r.key,
+    title: r.title,
+    token: r.token,
+    finished: r.finished === 1,
+    publishedAt: r.published_at,
+  }))
+}
+
 export async function setFinished(db: D1Database, key: string, finished: boolean): Promise<void> {
   await db
     .prepare('UPDATE videos SET finished = ? WHERE key = ?')

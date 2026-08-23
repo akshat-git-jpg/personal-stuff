@@ -268,6 +268,9 @@ Triggered by the owner asking for the outline.
    ```bash
    cd apps/yt-script-desk
    DESK_ADMIN_TOKEN=… node bin/desk.mjs publish <key>
+
+   # lost the link for an older video? every published one, newest first:
+   DESK_ADMIN_TOKEN=… node bin/desk.mjs list
    ```
 
    It prints one URL. That URL is the handoff — the maker reads the
