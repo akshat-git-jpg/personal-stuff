@@ -11,3 +11,13 @@ link() {  # link <relpath>
 link pipelines/.env
 link pipelines/credentials.json
 link .mcp.json
+
+# Every app's .dev.vars is machine-local and gitignored, so a leased worktree gets none of
+# them and any suite needing one fails there while passing in the main checkout. The
+# tracker's absence produced "gate unprovable", loginAs timeouts and blank "Not found"
+# screenshots (recorded lesson tracker-e2e-needs-devvars). Loop rather than naming one:
+# there are 8 today, and a new app must not have to remember to edit this hook.
+for _dv in "$main"/apps/*/.dev.vars; do
+  [ -e "$_dv" ] || continue
+  link "apps/$(basename "$(dirname "$_dv")")/.dev.vars"
+done
