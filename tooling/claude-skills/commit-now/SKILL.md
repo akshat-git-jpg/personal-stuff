@@ -34,6 +34,7 @@ These rules override anything else in this skill or the user's general guidance:
 5. **Don't claim a check passed unless you ran it and saw a zero exit code.** If a script doesn't exist in package.json, say so explicitly — don't fabricate output.
 6. **`--no-verify` is allowed only under one condition:** every check the husky hook would have run (format, lint, typecheck, build) has already been run *by this skill* in this session and exited clean. If any check was skipped, failed, or wasn't applicable, you may NOT auto-use `--no-verify` — the user must explicitly authorize it.
 7. **Branch naming: `feature/{small-name}` always.** Whenever a branch is created (or renamed) as part of the commit flow, it MUST be `feature/<small-name>` — a short, lowercase, kebab-case slug (e.g. `feature/flat-account-source`, `feature/qb-fixes`). No `fix/`, `bugfix/`, `chore/`, or long descriptive slugs, regardless of change type. If the current branch doesn't match and was just created for this work, offer to rename it before committing. (Commit-message `type` is still inferred from the change itself, not the prefix.)
+8. **Repo-local overrides win.** If the repository being committed to ships its own commit-flow rules (in `.claude/skills/` or its root `CLAUDE.md`), read them first and follow them where they differ from this skill — a repo may own its branch naming, its staging location, and what happens after the commit.
 
 ## Workflow
 
