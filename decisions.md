@@ -983,3 +983,27 @@ Two fixes, because the failure had two halves:
 The textual half alone would not have held. This hook's own header already makes the argument:
 *a skill is an instruction the model can skip.* So is a CLAUDE.md line. The mechanical half is
 what holds; the wording removes the excuse.
+
+## 2026-08-23 — the PayPal CLI's income table was invisible to every Claude session
+
+`paypal-txns-pp-cli income` prints a month-by-program table with the USD received and the INR
+that settled to the bank. Nobody had seen it. `wantsHumanTable` (`internal/cli/helpers.go`)
+ended in `return isTerminal(w)`, and a Claude session always pipes stdout, so every agent run
+fell through to JSON and then reformatted the numbers by hand into a table the CLI already
+knew how to draw.
+
+There was `--json` to force machine output and nothing to force the other direction. Added
+`--table` as a persistent flag, checked after the machine-format flags so `--json`, `--csv`,
+`--compact`, `--quiet`, `--plain` and `--select` still win when both are passed. It applies to
+all four commands that call `wantsHumanTable`: `income`, `history`, `search-get`,
+`balances-get`.
+
+Second thing that surfaced while looking: `~/printing-press/library/` is not a git repo and
+never was. Five generated CLIs, none of their source backed up anywhere, binaries on PATH with
+nothing to rebuild them from. `paypal-txns` source now mirrors into
+`tooling/press-clis/paypal-txns/` (836 KB, no binary, no PII scan artifact). The other four
+are still exposed.
+
+The mirror direction is deliberate. `~/printing-press/library/paypal-txns/` stays the working
+copy because that is where Printing Press expects to run and where `make install` puts the
+binary on PATH. Building out of the repo copy would leave two trees claiming to be the CLI.

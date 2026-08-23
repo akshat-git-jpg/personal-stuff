@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-19T18:25:42.904094Z",
+  "printing_press_version": "4.20.1",
+  "api_name": "paypal-txns",
+  "cli_name": "paypal-txns-pp-cli",
+  "spec_path": "pp_txn_spec.json",
+  "run_id": "20260619-234541",
+  "novel_features": [
+    {
+      "name": "Monthly income summary",
+      "command": "income",
+      "description": "Total money received from PayPal grouped by month and currency over any date range."
+    },
+    {
+      "name": "Windowed transaction history",
+      "command": "history",
+      "description": "Fetch every transaction across an arbitrary date range, transparently handling PayPal's 31-day-per-call limit and pagination."
+    }
+  ]
+}
