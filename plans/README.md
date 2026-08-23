@@ -1346,3 +1346,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 229-boss-land-sweep — PR#190 229-boss-land-sweep: boss picks up blocked lands, without pretending to be a crew — DONE
 - 231-yt-script-beats-model — PR#192 231-yt-script-beats-model: lib/beats.mjs — one parsed beat model for outline.md — DONE
 - 232-script-desk-write-view — PR#193 232-script-desk-write-view: script desk — app shell, local server, write view — DONE
+- 233-script-desk-full-script-view — PR#194 233-script-desk-full-script-view: script desk — the full script view — DONE
