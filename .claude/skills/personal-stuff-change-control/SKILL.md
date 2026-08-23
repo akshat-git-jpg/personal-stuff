@@ -40,6 +40,17 @@ rules via its constraint #8. These are personal-stuff's overrides:
    (`.claude/hooks/no-history-in-main.sh`). Run `cd "$(pp-work claim --kind code --slug <task>)"`
    first and commit there. **Do not reach for `GUARD_OK=1`** — every use of it trains the override
    on, and there are deliberately zero call sites in the repo.
+   Since 2026-08-23 the wall resolves the directory the command actually targets, so all three
+   of these work from ANY session directory and none of them needs the override:
+   ```
+   cd "$(pp-work claim --kind code --slug <task>)"            # then commit in a later command
+   cd "$(pp-work claim --kind code --slug <task>)" && <git …>  # one command
+   git -C <workspace-path> <git …>                             # one command, no cd
+   ```
+   Before that fix, every one of those was blocked from a main-cwd session — including the
+   first form, which the hook's own message printed as the remedy — and three `GUARD_OK=1`
+   uses were forced in one afternoon. If you find yourself reaching for the override now,
+   that is a bug in the wall; fix the wall.
 3. **The commit still does not push — but it does land.** `commit-now` never pushes, exactly as
    the shared skill says. A `post-commit` hook then verifies and merges the commit to `main` on
    its own. Do not push, do not open a PR, and do not treat "not pushed" as "not going anywhere".

@@ -128,6 +128,50 @@ expect 0 "$MAIN" 'echo hello > f.txt' \
 expect 0 "$FOREIGN" 'git commit -m x' \
   'FAIL: wall fired in a repo that does not ship it (ZluriHQ repos would be affected)'
 
+# --- retargeting: the command, not the session cwd, decides which tree git touches ---
+#
+# Measured on 2026-08-23, BEFORE this was handled: judging by the session cwd alone was
+# wrong in both directions. From main, all three correct ways to commit into a workspace
+# were blocked (including `cd "$(pp-work claim ...)"`, which the hook itself prints as the
+# remedy), and from a workspace, retargeting INTO main was allowed — the wall defeated by
+# a `cd`. Every message below carries WALL-RETARGET so a mutation gate can grep for it.
+
+# 15-16. from main, retargeting OUT to a linked worktree is the sanctioned workflow
+expect 0 "$MAIN" "cd $WT && git commit -m x" \
+  'FAIL: WALL-RETARGET wall blocked `cd <linked-worktree> && git commit` from main'
+expect 0 "$MAIN" "git -C $WT commit -m x" \
+  'FAIL: WALL-RETARGET wall blocked `git -C <linked-worktree> commit` from main'
+
+# 17. a RELATIVE cd must resolve against the session cwd too
+expect 0 "$MAIN" "cd ../wt && git commit -m x" \
+  'FAIL: WALL-RETARGET wall blocked a relative `cd ../wt && git commit` from main'
+
+# 18-19. from a worktree, retargeting IN to main is exactly what the wall exists to stop
+expect 2 "$WT" "cd $MAIN && git commit -m x" \
+  'FAIL: WALL-RETARGET wall ALLOWED `cd <main> && git commit` from a linked worktree'
+expect 2 "$WT" "git -C $MAIN commit -m x" \
+  'FAIL: WALL-RETARGET wall ALLOWED `git -C <main> commit` from a linked worktree'
+
+# 20. two retargeting constructs can disagree, so the pair is not reasoned about at all:
+#     it falls back to the session cwd, which from main means blocked.
+expect 2 "$MAIN" "cd $WT && cd $MAIN && git commit -m x" \
+  'FAIL: WALL-RETARGET a two-cd command was not judged by the session cwd (fail-closed)'
+
+# 21. the form the hook's own message recommends. It is a command substitution and can
+#     never be resolved statically; it is allowed because `pp-work claim` cannot return a
+#     path under main, the wt pool, or the landing tree.
+expect 0 "$MAIN" 'cd "$(pp-work claim --kind code --slug x)" && git commit -m x' \
+  'FAIL: WALL-RETARGET wall blocked its own recommended `cd "$(pp-work claim ...)"` form'
+
+# 22. but that allowance must NOT widen: a second cd after it is fail-closed again
+expect 2 "$MAIN" 'cd "$(pp-work claim --kind code --slug x)" && cd /tmp && git commit -m x' \
+  'FAIL: WALL-RETARGET the pp-work-claim allowance leaked to a command with a second cd'
+
+# 23. an unresolvable literal path must stay blocked from main, not sail through. This is
+#     case 6 restated as an invariant: resolution failure means fall back, never allow.
+expect 2 "$MAIN" 'git -C /no/such/path/here commit -m x' \
+  'FAIL: WALL-RETARGET an unresolvable -C path was allowed instead of falling back'
+
 if [ "$FAILURES" -ne 0 ]; then
   echo "$FAILURES test(s) failed"
   exit 1
