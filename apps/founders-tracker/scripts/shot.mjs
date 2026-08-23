@@ -65,10 +65,18 @@ function seed() {
   d1('DELETE FROM recurring_templates')
 
   const now = new Date().toISOString()
+  // due_day for the monthly template is TODAY's day-of-month, not a fixed 1: the
+  // Worker's catch-up generator (src/worker/recurring.ts) materializes a real,
+  // dated task for any active monthly template on load. A fixed due_day=1 would
+  // make that generated task land in Overdue on every day but the 1st of the
+  // month, silently inflating the overdue count this script asserts below.
+  // Anchoring due_day to today keeps the generated task in the Today bucket,
+  // deterministically, on any day the shot runs.
+  const monthlyDueDay = new Date().getUTCDate()
   d1(`INSERT INTO recurring_templates (id, title, owner, notes, cadence, due_day, active, created_at) VALUES
       (1, 'Knowledge gain', 'khushi', NULL, 'daily', 1, 1, '${now}'),
       (2, 'Video editing skill improvement', 'khushi', NULL, 'daily', 1, 1, '${now}'),
-      (3, 'Revenue and cost sheet', 'khushi', NULL, 'monthly', 1, 1, '${now}')`)
+      (3, 'Revenue and cost sheet', 'khushi', NULL, 'monthly', ${monthlyDueDay}, 1, '${now}')`)
 
   // Template 1: kept the six days ending YESTERDAY, today still open -> the
   // grace rule means the strip shows 6 and a tick must take it to 7.
