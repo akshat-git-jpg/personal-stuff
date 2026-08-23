@@ -115,5 +115,22 @@ echo "== blocked lands (fix-ups dispatched into the workspace that already exist
 # step. Running it HERE makes it the catch-up path as well: a workspace whose session died
 # is reclaimed the next time boss opens. reap refuses anything dirty, unmerged, holding
 # renders, or touched inside the grace window, so it can never take live work.
+# Uncommitted workspace work. This runs BEFORE reap on purpose. reap checks idleness FIRST
+# and prints "in use (touched inside the grace window)" for anything touched in the last 4h,
+# never mentioning that it holds uncommitted work — so the freshest, most-likely-forgotten
+# work was the only work this screen was silent about (found 2026-08-23, while the owner was
+# being told the opposite). `list --dirty` is the fix: it prints only rows that need a human,
+# and it is also the one place a BRANCH-MISMATCH workspace becomes visible.
+echo "== workspaces needing attention (uncommitted / unlanded / mismatched / snapshotted) =="
+"$REPO_ROOT/tooling/cli/pp-work/pp-work" list --dirty 2>&1 | sed 's/^/  /' || true
+
+# A rescue snapshot for anything still dirty. `stash create` + a private ref records the tree
+# without committing it — deliberately NOT a commit, because a commit in a workspace IS a
+# trigger here (post-commit -> pp-land -> push to main), so a "just in case" commit would ship
+# unreviewed work to production. This is the backstop for a session that died mid-turn, which
+# no in-process hook can catch.
+echo "== rescue snapshots for dirty workspaces =="
+"$REPO_ROOT/tooling/cli/pp-work/pp-work" snapshot --all 2>&1 | sed 's/^/  /' || true
+
 echo "== idle workspaces (reclaimed only when clean, merged and untouched) =="
 "$REPO_ROOT/tooling/cli/pp-work/pp-work" reap 2>&1 | sed 's/^/  /' || true

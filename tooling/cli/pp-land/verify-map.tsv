@@ -8,3 +8,6 @@ scripts/	bash scripts/check-repo-hygiene.sh
 pipelines/video/visuals-flow/	cd pipelines/video/visuals-flow && bash scripts/check.sh
 pipelines/video/intro-studio/	cd pipelines/video/intro-studio && bash scripts/check.sh
 apps/tutorial-tracker-app/	cd apps/tutorial-tracker-app && npm test
+.claude/hooks/	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh
+.claude/skills/	bash .claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh
+tooling/claude-skills/	bash scripts/check-skill-descriptions.sh

@@ -73,6 +73,9 @@ STATE="${PPLAND_STATE_ROOT:-$HOME/.local/state/pp-land}/$REPO_NAME-$HASH8"
 LANDS_DIR="${PPLAND_LANDS_DIR:-$MAIN/tooling/boss/state/lands}"
 VERIFY_MAP="${PPLAND_VERIFY_MAP:-$MAIN/tooling/cli/pp-land/verify-map.tsv}"
 GREENLIGHT_BIN="${PPLAND_GREENLIGHT:-$MAIN/tooling/cli/greenlight/greenlight}"
+# The floor for an unmapped path. See the note at the fallback below.
+VERIFY_FALLBACK_SCRIPT="scripts/check-repo-hygiene.sh"
+VERIFY_FALLBACK_CMD="bash scripts/check-repo-hygiene.sh"
 PPWORK_BIN="${PPLAND_PPWORK:-$MAIN/tooling/cli/pp-work/pp-work}"
 BOOTSTRAP_HOOK="$MAIN/tooling/cli/wt/bootstrap.d/$REPO_NAME.sh"
 
@@ -323,12 +326,35 @@ do_one_land() {
     gl_args+=(--verify "$cmd")
     n=$((n + 1))
   done < <(matched_verify_cmds "$land_branch")
-  [ "$n" -gt 0 ] || log "no verify suite matched"
+  # No prefix matched: run the repo-wide gate rather than landing with NOTHING run.
+  #
+  # Measured 2026-08-23: only 825 of 4228 tracked files (19.5%) match a prefix in
+  # verify-map.tsv, and 6 of the 12 lands that day ran no suite at all. The worst case was
+  # this system's own security hook — `.claude/hooks/no-history-in-main.sh` landed four
+  # times, each time ALSO adding cases to its own harness, and the lander never once ran
+  # that harness because `.claude/hooks/` was not in the map.
+  #
+  # `scripts/check-repo-hygiene.sh` is cheap, has no external deps, and asserts
+  # repo-wide invariants, so it is a truthful floor. It is not a substitute for a real
+  # suite: the fix for an unmapped path is to MAP it, and this only stops the silent case.
+  if [ "$n" -eq 0 ]; then
+    if [ -f "$MAIN/$VERIFY_FALLBACK_SCRIPT" ]; then
+      gl_args+=(--verify "$VERIFY_FALLBACK_CMD")
+      n=1
+      log "no verify prefix matched — falling back to the repo-wide gate: $VERIFY_FALLBACK_CMD"
+    else
+      log "no verify suite matched, and the repo-wide fallback is missing: $VERIFY_FALLBACK_SCRIPT"
+    fi
+  fi
 
   gl_root="$STATE/gl/$$-$cycle-$slug"
   rm -rf "$gl_root"
   mkdir -p "$gl_root"
-  GREENLIGHT_STATE_ROOT="$gl_root" "$GREENLIGHT_BIN" "${gl_args[@]}" >/dev/null 2>&1
+  # GREENLIGHT_QUIET=1: greenlight pings Telegram on land, park and stage-failure. That is
+  # right for a boss PR merge the owner is watching, and wrong here — this runs on EVERY
+  # workspace commit, and the owner ruled notifications out. Blocked lands are surfaced by
+  # the sweep and by boss-session-start, not by a phone.
+  GREENLIGHT_QUIET=1 GREENLIGHT_STATE_ROOT="$gl_root" "$GREENLIGHT_BIN" "${gl_args[@]}" >/dev/null 2>&1
   gl_state=""
   for d in "$gl_root"/*/; do
     [ -d "$d" ] && gl_state="${d%/}"

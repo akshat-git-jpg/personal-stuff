@@ -61,8 +61,9 @@ HOOK
   # never block on one.
   cat > "$hooks/post-commit" <<'HOOK'
 #!/usr/bin/env bash
-# Fires the lander when a WORKSPACE commit lands. Writes nothing: this runs on every
-# commit, and any output would enter the session transcript each time.
+# Fires the lander when a WORKSPACE commit lands. Writes nothing to STDOUT: this runs on
+# every commit, and any output would enter the session transcript each time. It does append
+# to the workspace's own land.log, which no session reads.
 set -uo pipefail
 {
   gd=$(git rev-parse --path-format=absolute --git-dir 2>/dev/null) || exit 0
@@ -71,13 +72,24 @@ set -uo pipefail
   # commits (boss-merge.sh, boss-commit-main.sh) from each spawning a full
   # verify-and-push cycle, invisibly.
   [ "$gd" != "$gcd" ] || exit 0
-  br=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || exit 0
-  case "$br" in subject/*|work/*) ;; *) exit 0;; esac
   top=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
-  [ -f "$(dirname "$top")/manifest" ] || exit 0        # a pp-work workspace
+  slugdir=$(dirname "$top")
+  [ -f "$slugdir/manifest" ] || exit 0                 # a pp-work workspace
+  br=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || exit 0
+  # A branch outside work/*|subject/* never lands. This used to `exit 0` in SILENCE, which
+  # made it a silent-loss path: measured 2026-08-23, the `script-desk-plans` workspace sat
+  # on `boss/235-…` with one commit that no land.log even mentioned, while `reap` refused
+  # the workspace forever as unmerged. Record the skip where `pp-work list` can find it.
+  case "$br" in
+    subject/*|work/*) ;;
+    *)
+      printf '[%s] post-commit: NOT LANDED — HEAD is %s, outside work/*|subject/*. No lander will carry this commit.\n' \
+        "$(date +'%Y-%m-%d %H:%M:%S')" "$br" >> "$slugdir/land.log"
+      exit 0 ;;
+  esac
   LAND="$(dirname "$gcd")/tooling/cli/pp-land/pp-land"
   [ -x "$LAND" ] || exit 0
-  nohup "$LAND" "$top" >>"$(dirname "$top")/land.log" 2>&1 &
+  nohup "$LAND" "$top" >>"$slugdir/land.log" 2>&1 &
 } >/dev/null 2>&1
 exit 0
 HOOK

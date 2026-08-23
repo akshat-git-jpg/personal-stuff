@@ -75,6 +75,24 @@ ws_touched() {
 #
 # So compare by patch-id. `git cherry` prints `+` for a commit whose patch is NOT upstream
 # and `-` for one that is. No `+` lines means fully applied, however it got there.
+# The branch the manifest says this workspace is for, vs the branch HEAD is actually on.
+# They diverge when a session runs `checkout -b` inside a workspace (the wall only blocks
+# that in the MAIN checkout). The consequence is severe and silent: `post-commit` only fires
+# the lander for work/*|subject/*, so every commit on the new branch is unlanded, and
+# ws_is_merged then pins the workspace forever. Measured 2026-08-23 on script-desk-plans.
+ws_manifest_branch() {
+  local slug_dir="$1"
+  [ -f "$slug_dir/manifest" ] || return 0
+  sed -n 's/^branch=//p' "$slug_dir/manifest" 2>/dev/null | tail -1 || true
+}
+
+# Snapshot refs taken by `pp-work snapshot`. Counted, never dereferenced, in `list`.
+ws_snapshot_count() {
+  local slug="$1"
+  git -C "$MAIN" for-each-ref --format='%(refname)' "refs/pp-work/snap/$slug/" 2>/dev/null \
+    | grep -c . || true
+}
+
 ws_is_merged() {
   local branch="$1" out rc=0
   git -C "$MAIN" merge-base --is-ancestor "$branch" origin/main 2>/dev/null && return 0
@@ -111,7 +129,7 @@ ws_set_touched() {
 }
 
 if [ $# -eq 0 ]; then
-  die "Usage: pp-work <claim|list|remove|reap|touch> ..."
+  die "Usage: pp-work <claim|list|remove|reap|snapshot|touch> ..."
 fi
 
 cmd="$1"
@@ -209,6 +227,13 @@ EOF
     ;;
 
   list)
+    dirty_only=0
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --dirty) dirty_only=1; shift ;;
+        *) die "unknown arg: $1" ;;
+      esac
+    done
     resolve
 
     echo "--- Workspaces ---"
@@ -259,7 +284,24 @@ EOF
           size=$(du -sh "$slug_dir" 2>/dev/null | awk '{print $1}' || true)
           [ -n "$size" ] || size="?"
 
-          echo "$slug | kind:$kind | branch:$branch | age:${age_days}d | unlanded:$unlanded | uncommitted:$uncommitted | media:$media | size:$size"
+          mbranch=$(ws_manifest_branch "$slug_dir" || true)
+          mismatch=""
+          if [ -n "$mbranch" ] && [ -n "$branch" ] && [ "$branch" != "unknown" ] \
+             && [ "$mbranch" != "$branch" ]; then
+            mismatch=" | BRANCH-MISMATCH manifest:$mbranch"
+          fi
+          snaps=$(ws_snapshot_count "$slug" || true)
+          [ -n "$snaps" ] || snaps=0
+
+          # --dirty keeps only rows that need a human: uncommitted work, commits that have
+          # not reached main, a branch that will never land, or a rescue snapshot.
+          if [ "$dirty_only" -eq 1 ]; then
+            case "$uncommitted$unlanded$snaps$mismatch" in
+              000) exit 0 ;;
+            esac
+          fi
+
+          echo "$slug | kind:$kind | branch:$branch | age:${age_days}d | unlanded:$unlanded | uncommitted:$uncommitted | media:$media | snaps:$snaps | size:$size$mismatch"
           echo "  cd $wt_path"
         ) || echo "$slug | UNREADABLE (could not inspect) | cd $wt_path"
       done
@@ -363,6 +405,12 @@ EOF
           kept=$((kept + 1)); echo "pp-work: keep $slug — uncommitted work or generated media"; continue
         fi
         branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+        mbranch=$(ws_manifest_branch "$slug_dir" || true)
+        if [ -n "$mbranch" ] && [ -n "$branch" ] && [ "$mbranch" != "$branch" ]; then
+          kept=$((kept + 1))
+          echo "pp-work: keep $slug — BRANCH-MISMATCH: HEAD is [$branch], manifest says [$mbranch]. Commits on [$branch] never land, so nothing will reclaim this until you deal with it."
+          continue
+        fi
         if [ -z "$branch" ] || ! ws_is_merged "$branch"; then
           kept=$((kept + 1)); echo "pp-work: keep $slug — branch [$branch] has commits not yet on origin/main"; continue
         fi
@@ -374,6 +422,74 @@ EOF
       done
     fi
     echo "pp-work: reap done — $reaped reclaimed, $kept kept"
+    ;;
+
+  snapshot)
+    # Record a workspace's tree WITHOUT committing it. Usage: snapshot <path> | snapshot --all
+    #
+    # Why not a commit: in this system a commit inside a workspace IS a trigger — the
+    # post-commit hook fires pp-land, which rebases, verifies and pushes to main. So there
+    # is no such thing as a private rescue commit here; a "just in case" commit ships
+    # unreviewed code to production, and the VPS pulls this repo every 15 minutes.
+    #
+    # `stash create` writes a commit OBJECT and changes nothing else: no index write, no
+    # working-tree change, no branch reflog entry. A live session sees no interference.
+    # `update-ref` under a private namespace makes it permanent (unlike the stash stack,
+    # which any later stash churns) and fires no hook.
+    #
+    # Recover with:  git -C <workspace> stash apply <ref>    (or: git diff HEAD <ref>)
+    resolve
+    # Built on a THROWAWAY index, not with `stash create`. `stash create` records tracked
+    # modifications only, and a brand-new untracked file is the single most likely thing to
+    # lose — measured while building this: the first implementation silently omitted two new
+    # hook files. read-tree + add -A + write-tree against GIT_INDEX_FILE captures tracked
+    # AND untracked (still honouring .gitignore, so renders and node_modules stay out), and
+    # touches neither the real index, the working tree, the stash stack, nor any branch.
+    # commit-tree writes a commit object directly, so no hook fires.
+    snap_one() {
+      local wt="$1" slug="$2" idx tree obj
+      [ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] || return 1
+      idx=$(mktemp -t ppwork-snap-idx) || return 1
+      rm -f "$idx"
+      if ! GIT_INDEX_FILE="$idx" git -C "$wt" read-tree HEAD 2>/dev/null; then
+        rm -f "$idx"; return 1
+      fi
+      if ! GIT_INDEX_FILE="$idx" git -C "$wt" add -A 2>/dev/null; then
+        rm -f "$idx"; return 1
+      fi
+      tree=$(GIT_INDEX_FILE="$idx" git -C "$wt" write-tree 2>/dev/null)
+      rm -f "$idx"
+      [ -n "$tree" ] || return 1
+      obj=$(git -C "$wt" commit-tree "$tree" -p HEAD \
+              -m "pp-work snapshot: $slug (uncommitted rescue, never landed)" 2>/dev/null) || return 1
+      [ -n "$obj" ] || return 1
+      git -C "$MAIN" update-ref "refs/pp-work/snap/$slug/$(date +%s)" "$obj" || return 1
+      return 0
+    }
+    if [ "${1:-}" = "--all" ]; then
+      taken=0
+      for slug_dir in "$WS_ROOT"/*; do
+        [ -d "$slug_dir" ] || continue
+        slug=$(basename "$slug_dir")
+        wt_path="$slug_dir/$REPO_NAME"
+        [ -d "$wt_path" ] || continue
+        if snap_one "$wt_path" "$slug"; then
+          taken=$((taken + 1))
+          echo "pp-work: snapshot taken for $slug (refs/pp-work/snap/$slug/)"
+        fi
+      done
+      echo "pp-work: snapshot done — $taken taken"
+    else
+      [ $# -ge 1 ] || die "usage: snapshot <path> | snapshot --all"
+      wt="${1%/}"
+      resolve "$wt"
+      slug=$(basename "$(dirname "$wt")")
+      if snap_one "$wt" "$slug"; then
+        echo "pp-work: snapshot taken for $slug"
+      else
+        echo "pp-work: nothing to snapshot for $slug (tree is clean)"
+      fi
+    fi
     ;;
 
   touch)
