@@ -13,7 +13,7 @@
 # Usage: pp-push --repo <worktree> <remote> <refspec> [git-push-args...]
 set -euo pipefail
 
-PPPUSH_SIZE_CAP=$((1024 * 1024))   # 1 MB per path
+PPPUSH_SIZE_CAP=$((4 * 1024 * 1024))   # 4 MB per path
 
 # Paths that must never reach a public repo. Extend this list, never narrow it.
 #
