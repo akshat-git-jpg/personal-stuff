@@ -1,29 +1,43 @@
-import { useEffect, useState } from 'react'
-import { getVideo, putDraft, putSay, restoreSay } from './api'
+import { useCallback, useEffect, useState } from 'react'
+import { getVideo, postFinish, putDraft, putSay, restoreSay } from './api'
 import type { VideoDoc } from './types'
 import { usePrefs } from './hooks/usePrefs'
 import { Header } from './components/Header'
-import { ToggleRail } from './components/ToggleRail'
+import { ToggleRail, FULL_SCRIPT_CHIPS } from './components/ToggleRail'
 import { WriteView } from './components/WriteView'
+import { FullScript, fullScriptStats } from './components/FullScript'
 
 function getKeyFromUrl(): string {
   const params = new URLSearchParams(window.location.search)
   return params.get('key') ?? ''
 }
 
+function isFinishedError(err: unknown): boolean {
+  return err instanceof Error && /-> 409/.test(err.message)
+}
+
 export function App() {
   const { prefs, setPrefs } = usePrefs()
   const [doc, setDoc] = useState<VideoDoc | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<'notfound' | 'network' | null>(null)
+  const [saveBlocked, setSaveBlocked] = useState(false)
   const [tab, setTab] = useState<'write' | 'full'>('write')
   const key = getKeyFromUrl()
 
-  useEffect(() => {
-    if (!key) return
+  const fetchDoc = useCallback(() => {
+    setLoadError(null)
     getVideo(key)
       .then(setDoc)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err)
+        setLoadError(/-> 404/.test(msg) ? 'notfound' : 'network')
+      })
   }, [key])
+
+  useEffect(() => {
+    if (!key) return
+    fetchDoc()
+  }, [key, fetchDoc])
 
   if (!key) {
     return (
@@ -32,31 +46,28 @@ export function App() {
       </div>
     )
   }
-  if (error) {
-    return (
-      <div className="app">
-        <p style={{ padding: '20px 40px' }}>{error}</p>
-      </div>
-    )
-  }
-  if (!doc) {
-    return (
-      <div className="app">
-        <p style={{ padding: '20px 40px' }}>Loading…</p>
-      </div>
-    )
-  }
 
-  const writableBeats = doc.beats.filter((b) => b.mode === 'write')
-  const writtenCount = writableBeats.filter((b) => (doc.draft[b.num] ?? '').trim().length > 0).length
+  const writableBeats = doc ? doc.beats.filter((b) => b.mode === 'write') : []
+  const writtenCount = doc ? writableBeats.filter((b) => (doc.draft[b.num] ?? '').trim().length > 0).length : 0
+  const fullScriptWords = doc ? fullScriptStats(doc).totalWords : 0
 
   const handleDraftSave = async (num: string, text: string) => {
-    await putDraft(key, num, text)
+    try {
+      await putDraft(key, num, text)
+    } catch (err) {
+      if (isFinishedError(err)) return setSaveBlocked(true)
+      throw err
+    }
     setDoc((prev) => (prev ? { ...prev, draft: { ...prev.draft, [num]: text } } : prev))
   }
 
   const handleSaySave = async (num: string, lines: string[]) => {
-    await putSay(key, num, lines)
+    try {
+      await putSay(key, num, lines)
+    } catch (err) {
+      if (isFinishedError(err)) return setSaveBlocked(true)
+      throw err
+    }
     setDoc((prev) => {
       if (!prev) return prev
       const beat = prev.beats.find((b) => b.num === num)
@@ -86,30 +97,41 @@ export function App() {
     })
   }
 
+  const handleFinish = async () => {
+    await postFinish(key)
+    setDoc((prev) => (prev ? { ...prev, finished: true } : prev))
+  }
+
   return (
     <div className="app">
       <Header
-        title={doc.title}
-        beatCount={doc.beats.length}
+        title={doc?.title ?? ''}
+        beatCount={doc?.beats.length ?? 0}
         writtenCount={writtenCount}
         totalWritable={writableBeats.length}
         tab={tab}
         onTabChange={setTab}
+        fullScriptWords={fullScriptWords}
       />
-      <ToggleRail prefs={prefs} setPrefs={setPrefs} />
+      <ToggleRail prefs={prefs} setPrefs={setPrefs} chips={tab === 'full' ? FULL_SCRIPT_CHIPS : undefined} />
+      {saveBlocked && <p className="finished-notice">Script finished — ask Kushal to reopen it.</p>}
       {tab === 'write' ? (
-        <WriteView
-          beats={doc.beats}
-          prefs={prefs}
-          draft={doc.draft}
-          edits={doc.edits}
-          says={doc.says}
-          onDraftSave={handleDraftSave}
-          onSaySave={handleSaySave}
-          onSayRestore={handleSayRestore}
-        />
+        !doc ? (
+          <p style={{ padding: '20px 40px' }}>{loadError ? 'Could not load the script.' : 'Loading…'}</p>
+        ) : (
+          <WriteView
+            beats={doc.beats}
+            prefs={prefs}
+            draft={doc.draft}
+            edits={doc.edits}
+            says={doc.says}
+            onDraftSave={handleDraftSave}
+            onSaySave={handleSaySave}
+            onSayRestore={handleSayRestore}
+          />
+        )
       ) : (
-        <p style={{ padding: '20px 40px' }}>Full script view — coming in plan 233.</p>
+        <FullScript doc={doc} loadError={loadError} beatLabels={prefs.beatLabels} onRetry={fetchDoc} onFinish={handleFinish} />
       )}
     </div>
   )
