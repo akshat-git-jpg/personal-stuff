@@ -30,34 +30,32 @@ New folder? Route via the placement rule (apps/ = personal products incl. all de
 
 ## commit-now in this repo
 
-The shared `commit-now` skill (lives in both work and personal accounts) defers to a repo's own
-rules via its constraint #8. These are personal-stuff's overrides:
+**One source of truth: `.claude/skills/commit-now/SKILL.md`** — a repo-level skill, so it is
+only ever visible inside personal-stuff. Read it before staging anything. It owns the full
+flow: **auto-commit is the default here**, `pp-work` owns branch names, the commit never
+pushes but does land, and merges, conflicts and cleanup all belong to `pp-land`.
 
-1. **Branch naming is not yours.** `pp-work claim` creates and names the branch (`work/<slug>` or
-   `subject/<slug>`). Do not rename it to `feature/<name>`, and do not create a branch as part of
-   the commit flow. Shared constraint #7 does not apply here.
-2. **Claim a workspace before staging.** The main checkout refuses history-recording git verbs
-   (`.claude/hooks/no-history-in-main.sh`). Run `cd "$(pp-work claim --kind code --slug <task>)"`
-   first and commit there. **Do not reach for `GUARD_OK=1`** — every use of it trains the override
-   on, and there are deliberately zero call sites in the repo.
-   Since 2026-08-23 the wall resolves the directory the command actually targets, so all three
-   of these work from ANY session directory and none of them needs the override:
-   ```
-   cd "$(pp-work claim --kind code --slug <task>)"            # then commit in a later command
-   cd "$(pp-work claim --kind code --slug <task>)" && <git …>  # one command
-   git -C <workspace-path> <git …>                             # one command, no cd
-   ```
-   Before that fix, every one of those was blocked from a main-cwd session — including the
-   first form, which the hook's own message printed as the remedy — and three `GUARD_OK=1`
-   uses were forced in one afternoon. If you find yourself reaching for the override now,
-   that is a bug in the wall; fix the wall.
-3. **The commit still does not push — but it does land.** `commit-now` never pushes, exactly as
-   the shared skill says. A `post-commit` hook then verifies and merges the commit to `main` on
-   its own. Do not push, do not open a PR, and do not treat "not pushed" as "not going anywhere".
-4. **Merges and conflicts are not yours.** `pp-land` performs the merge and the boss land sweep
-   resolves a blocked one. The shared skill's "Merge & conflict-resolution commits" section does
-   not apply here; do not finish a conflicted merge by hand in a workspace unless a land brief
-   explicitly asks for it.
+The user-level skill in both accounts is `commit-now-work` and applies **only** to ZluriHQ
+work repos (split 2026-08-23; before that one shared skill served both and deferred here via
+its "repo-local overrides win" constraint). The two duplicate their common wording on purpose
+so neither drifts the other.
+
+Only one rule lives here rather than there, because it is an override policy, not a commit rule:
+
+**Never use `GUARD_OK=1`.** There are deliberately zero call sites. The main checkout refuses
+history-recording git verbs (`.claude/hooks/no-history-in-main.sh`), and since 2026-08-23 that
+wall resolves the directory a command actually targets, so all three of these work from ANY
+session directory and none needs the override:
+
+```
+cd "$(pp-work claim --kind code --slug <task>)"             # then commit in a later command
+cd "$(pp-work claim --kind code --slug <task>)" && <git …>   # one command
+git -C <workspace-path> <git …>                              # one command, no cd
+```
+
+Before that fix every one of those was blocked from a main-cwd session — including the first,
+which the hook's own message printed as the remedy — and three `GUARD_OK=1` uses were forced
+in one afternoon. If you reach for the override now, that is a bug in the wall; fix the wall.
 
 ## The non-negotiables (rule — rationale — incident)
 

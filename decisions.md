@@ -653,3 +653,51 @@ void if the command contains a second `cd`.
 Nine cases in `.claude/hooks/test-no-history-in-main.sh` pin this (15-23), all tagged
 WALL-RETARGET. Three mutations were run and each was caught: neutering the resolution (5
 failures), breaking the pp-work-claim pattern, and loosening the single-`cd` guard.
+
+## 2026-08-23 — commit-now split in two, and auto-commit is the default in personal-stuff
+
+One shared `commit-now` skill served both ZluriHQ work repos and personal-stuff, deferring
+here through its "repo-local overrides win" constraint. That indirection is gone. There are
+now two standalone skills that duplicate their common wording on purpose, so neither can
+drift the other (owner's call: "common logic can reside at both the places"):
+
+- **`.claude/skills/commit-now/`** — REPO-LEVEL, so it is only ever visible inside
+  personal-stuff. Auto-commit by default, `pp-work` workspaces, no `feature/` branch
+  naming, never pushes, and the commit reaches `main` by itself.
+- **`tooling/claude-skills/commit-now-work/`** — user-level, both accounts, ZluriHQ only.
+  Behaviourally unchanged from the old shared skill apart from its name and a scope header.
+
+**Why the split is by REPO and not by account.** The obvious design — `commit-now-work` in
+`manifest/work.txt`, `commit-now` in `personal.txt` — is wrong here, and measurably so: this
+machine's work account (`CLAUDE_CONFIG_DIR=/Users/kbtg/.claude-work`) is the account that
+edits personal-stuff. Splitting by account would have handed a personal-stuff session the
+work-repo rules. Both manifests therefore list `commit-now-work`, and the personal skill is
+repo-level so the repo itself scopes it.
+
+**Auto-commit rationale.** The owner's reason was losing track of dirty workspaces: "I might
+forget that some of the things are not committed yet… if I close the session I might not
+remember to track that." So the skill instructs a commit at the end of any turn that changed
+tracked files in a workspace, with no asking. It is MODEL-driven rather than a Stop hook,
+because a shell hook cannot write a real conventional-commit subject and the owner rejected
+a `wip:` convention.
+
+Two deliberate limits. **A red check means no commit** — the work is reported uncommitted
+instead, since a red tree either lands untested code (the verify map covers only some paths)
+or manufactures a blocked land. And a session killed mid-turn still leaves a dirty
+workspace; nothing is lost, because a dirty workspace is never reclaimed and
+`boss-session-start.sh` lists it. That is the accepted residual, not a bug to engineer away.
+Cost, measured the same day: every commit starts a land, 15-60s of background work each.
+
+`scripts/check-repo-hygiene.sh` gains SKILL-SPLIT assertions (the repo-level skill exists,
+no user-level `commit-now` survives to shadow it, both manifests name `commit-now-work`).
+The installed-symlink half is advisory on purpose: whether `relink.sh` has run is machine
+state, and a hard check there would be unpassable in the very commit that does the rename
+and would break on the VPS, which has no `~/.claude-*` dirs.
+
+Two pre-existing problems surfaced while doing this and are NOT fixed here:
+1. `pipelines/.claude/skills/yt-video-edit` has a 1028-char description, over the 700-char
+   hard cap, so `scripts/relink.sh` ABORTS for everyone until it is trimmed or run with
+   `SKIP_DESC_GUARD=1`. It is a verb-router trigger list; trimming it could stop the skill
+   firing on phrases the owner uses, so it needs the owner, not a silent edit.
+2. `HYGIENE-2`'s failure message contained an invalid parameter expansion that would itself
+   have errored had that assertion ever fired. Fixed in passing.

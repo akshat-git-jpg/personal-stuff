@@ -15,7 +15,7 @@ src=$(git check-ignore -v .claude/settings.local.json 2>/dev/null | cut -d: -f1 
 
 # HYGIENE-2: per-session worktrees, same reasoning.
 src=$(git check-ignore -v .claude/worktrees/probe 2>/dev/null | cut -d: -f1 || true)
-[ "$src" = ".gitignore" ] || fail "HYGIENE-2: .claude/worktrees/ is ignored by '${src*-nothing}', not .gitignore"
+[ "$src" = ".gitignore" ] || fail "HYGIENE-2: .claude/worktrees/ is ignored by '${src:-nothing}', not .gitignore"
 
 
 # HYGIENE-3: the rendered-media rule must match the path the files actually live at.
@@ -37,5 +37,54 @@ done
 n=$(find "$probe/apps" -maxdepth 2 -name .dev.vars -type l 2>/dev/null | wc -l | tr -d ' ')
 rm -rf "$probe"
 [ "${n:-0}" -ge 8 ] || fail "HYGIENE-4: bootstrap linked only ${n:-0} app .dev.vars files, expected at least 8"
+
+# HYGIENE-5: manifest entries that resolve to nothing in this repo. ADVISORY, because
+# relink.sh resolves an entry against TWO roots: tooling/claude-skills (this repo) and
+# ~/.agents/skills (the printing-press pp-* skills, which live outside the repo). Only the
+# first is checkable from repo content, so a miss here is a report, not a failure — it found
+# `pp-openrouter` on the first run, which is correctly external, not broken.
+for m in tooling/claude-skills/manifest/work.txt tooling/claude-skills/manifest/personal.txt; do
+  while IFS= read -r skill; do
+    case "$skill" in ''|'#'*) continue ;; esac
+    if [ ! -d "tooling/claude-skills/$skill" ]; then
+      echo "warn HYGIENE-5: $m lists '$skill', absent from tooling/claude-skills — expected to come from ~/.agents/skills" >&2
+    fi
+  done < "$m"
+done
+
+# HYGIENE-6: the commit-now split (2026-08-23). personal-stuff commits through a REPO-LEVEL
+# `commit-now` (auto-commit, pp-work workspaces, lands itself); ZluriHQ work repos use the
+# user-level `commit-now-work`. A leftover user-level `commit-now` would shadow the repo-level
+# one from either account and silently reinstate the work rules — `feature/` branch naming and
+# a commit that never lands — inside this repo.
+#
+# These are text/-path assertions rather than behavioural ones because a skill IS text: there
+# is no code to execute. The non-circular part is the SHAPE (which file exists where, and what
+# the manifests point at), not the wording.
+[ -f .claude/skills/commit-now/SKILL.md ] \
+  || fail "SKILL-SPLIT: .claude/skills/commit-now/SKILL.md is missing — personal-stuff has no commit flow of its own"
+[ ! -e tooling/claude-skills/commit-now ] \
+  || fail "SKILL-SPLIT: tooling/claude-skills/commit-now/ is back; a user-level commit-now shadows the repo-level one and reimposes the work-repo rules here"
+[ -f tooling/claude-skills/commit-now-work/SKILL.md ] \
+  || fail "SKILL-SPLIT: tooling/claude-skills/commit-now-work/SKILL.md is missing — ZluriHQ work repos lost their commit gate"
+for m in tooling/claude-skills/manifest/work.txt tooling/claude-skills/manifest/personal.txt; do
+  grep -qx 'commit-now-work' "$m" \
+    || fail "SKILL-SPLIT: $m does not list commit-now-work"
+  grep -qx 'commit-now' "$m" \
+    && fail "SKILL-SPLIT: $m still lists commit-now; it would be linked into the account and shadow the repo-level skill"
+done
+# The installed symlinks. ADVISORY ONLY, deliberately: whether `relink.sh` has been run is
+# machine state, not repo content. Failing on it would block a land on the VPS (no
+# ~/.claude-* dirs at all) and would also make this gate unpassable in the very commit that
+# performs the rename — relink cannot run until the rename is on main.
+for d in "$HOME/.claude-work/skills" "$HOME/.claude-personal/skills"; do
+  [ -d "$d" ] || continue
+  if [ -e "$d/commit-now" ]; then
+    echo "warn SKILL-SPLIT: $d/commit-now is still installed — run scripts/relink.sh" >&2
+  fi
+  if [ ! -e "$d/commit-now-work" ]; then
+    echo "warn SKILL-SPLIT: $d/commit-now-work is not installed yet — run scripts/relink.sh" >&2
+  fi
+done
 
 echo "repo hygiene OK"
