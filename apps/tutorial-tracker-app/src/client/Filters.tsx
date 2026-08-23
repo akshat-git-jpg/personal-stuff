@@ -8,7 +8,7 @@
  * exist, one click away under "More filters", so nothing was taken away.
  */
 import { useState, useEffect } from "react";
-import type { Row } from "../shared/rbac";
+import type { Row } from "../shared/engine/rbac";
 import { personLabel } from "./api";
 import { stagesOf, assigneeColOf, type PipelineDef } from "./stages";
 import { BUCKETS, EMPTY_FILTERS, rowMatchesFilters, type AdminFilters, type Bucket } from "./filterModel";

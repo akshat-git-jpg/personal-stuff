@@ -1,4 +1,4 @@
-import type { Row } from "../shared/rbac";
+import type { Row } from "../shared/engine/rbac";
 import { activeStage, daysSince } from "./pipeline";
 import { stagesOf, assigneeColOf, statusOf, statusColOf, sinceOf, reviewerColOf, etaColOf } from "./stages";
 import { etaBadge } from "./labels";

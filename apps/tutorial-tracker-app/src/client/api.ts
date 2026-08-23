@@ -1,5 +1,5 @@
 import type { Column } from "../shared/columns";
-import type { Row, Transition } from "../shared/rbac";
+import type { Row, Transition } from "../shared/engine/rbac";
 import type { Holding } from "../shared/engine/holdings";
 
 export type { Holding };

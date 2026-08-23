@@ -2,7 +2,7 @@ export { ComboSelect } from "./CardDetailUtils";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, ChevronDown } from "lucide-react";
 import type { Column } from "../shared/columns";
-import type { Row, Transition } from "../shared/rbac";
+import type { Row, Transition } from "../shared/engine/rbac";
 import { canEditForRoles, isAdminRoles } from "../shared/engine/rbac";
 import { PROTECTED_ADMIN_EMAIL } from "../shared/engine/registry";
 import { holdsRoleInSystem } from "../shared/engine/memberships";

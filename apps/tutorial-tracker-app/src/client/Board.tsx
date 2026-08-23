@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import type { Column } from "../shared/columns";
-import type { Transition } from "../shared/rbac";
+import type { Transition } from "../shared/engine/rbac";
 import { pipeOf, stageByStatusColIn } from "./stages";
 import {
   applyTransition, getReviewQueue, deleteVideo, applyDefaults, getDefaults, updateCell,

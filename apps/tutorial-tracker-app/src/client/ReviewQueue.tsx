@@ -8,7 +8,7 @@
  */
 import { Clock } from "lucide-react";
 import type { ReviewItem } from "./api";
-import type { Transition } from "../shared/rbac";
+import type { Transition } from "../shared/engine/rbac";
 import { pipeOf, sinceOf } from "./stages";
 import { daysSince } from "./pipeline";
 import { Button } from "@/components/ui/button";

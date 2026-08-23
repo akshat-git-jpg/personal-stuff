@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Clock, Trash2, Hourglass, Link2, CalendarDays } from "lucide-react";
-import type { Row, Transition } from "../shared/rbac";
+import type { Row, Transition } from "../shared/engine/rbac";
 import {
   pipeOf, stageByStatusColIn, normalizeStatusIn, feedbackColOf, assigneeColOf, sinceOf,
   etaColOf, workLinkColOf, requiredToSubmitFrom, missingColumns,
