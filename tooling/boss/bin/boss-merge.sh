@@ -156,6 +156,10 @@ elif ! grep -q "boss:$slug" "$readme" 2>/dev/null; then
 fi
 
 gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:done 2>/dev/null || true
+# Record the terminal verdict LOCALLY. The session-start in-flight loop can then skip
+# this PR with no `gh` call at all; before this it ran `gh pr view` for every one of
+# 171 metas on every startup, because a live lookup was its only skip test.
+meta_set "$pr" terminal done
 # greenlight lands by merging the branch into main directly (not via the PR
 # merge button), so GitHub leaves the PR OPEN. Close it explicitly with a
 # landing comment — boss:done is the state, closed is the lifecycle.
