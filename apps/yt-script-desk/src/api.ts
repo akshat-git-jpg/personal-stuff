@@ -15,6 +15,12 @@ const hostedToken = HOSTED_PATH.exec(window.location.pathname)?.[1] ?? null
 const base = hostedToken ? `/api/d/${hostedToken}` : '/api'
 const keyQuery = (key: string) => (hostedToken ? '' : `?key=${encodeURIComponent(key)}`)
 
+// In hosted mode the secret token in the path IS the video identity — there is
+// no ?key= and there must not be one. App.tsx has to know that, or it bails on
+// an empty key and renders "no ?key= in the URL" for every freelancer link,
+// which is exactly what shipped on 2026-08-23.
+export const isHosted = hostedToken !== null
+
 async function j<T = { ok: true }>(url: string, method = 'GET', body?: unknown): Promise<T> {
   const res = await fetch(url, {
     method,
