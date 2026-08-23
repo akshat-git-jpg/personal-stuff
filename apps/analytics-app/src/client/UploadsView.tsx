@@ -88,7 +88,7 @@ function buildBuckets(videos: DatedVideo[], start: Date, end: Date, bucket: Buck
   return buckets;
 }
 
-type PresetKey = "30d" | "90d" | "year" | "all";
+type PresetKey = "7d" | "30d" | "90d" | "year" | "all";
 
 export function UploadsView({ videos }: { videos: VideoStat[] }) {
   // Videos that have a real YouTube publish date.
@@ -110,7 +110,7 @@ export function UploadsView({ videos }: { videos: VideoStat[] }) {
 
   const untracked = videos.length - dated.length;
 
-  // Overall data span (used by the "All time" preset and as default range).
+  // Overall data span (used by the "All time" preset).
   const span = useMemo(() => {
     if (dated.length === 0) return null;
     const min = startOfDay(dated[dated.length - 1].date);
@@ -118,8 +118,8 @@ export function UploadsView({ videos }: { videos: VideoStat[] }) {
     return { min, max };
   }, [dated]);
 
-  const [bucket, setBucket] = useState<Bucket>("month");
-  const [preset, setPreset] = useState<PresetKey>("all");
+  const [bucket, setBucket] = useState<Bucket>("week");
+  const [preset, setPreset] = useState<PresetKey>("7d");
   const [customStart, setCustomStart] = useState<Date | null>(null);
   const [customEnd, setCustomEnd] = useState<Date | null>(null);
 
@@ -132,6 +132,8 @@ export function UploadsView({ videos }: { videos: VideoStat[] }) {
       return { start, end };
     }
     switch (preset) {
+      case "7d":
+        return { start: new Date(today.getTime() - 6 * DAY), end: today };
       case "30d":
         return { start: new Date(today.getTime() - 29 * DAY), end: today };
       case "90d":
@@ -183,6 +185,7 @@ export function UploadsView({ videos }: { videos: VideoStat[] }) {
   }
 
   const presets: { key: PresetKey; label: string }[] = [
+    { key: "7d", label: "Last 7 days" },
     { key: "30d", label: "Last 30 days" },
     { key: "90d", label: "Last 90 days" },
     { key: "year", label: "This year" },
