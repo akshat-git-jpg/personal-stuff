@@ -121,12 +121,15 @@ export function NewVideoDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!nvBusy) onOpenChange(o); }}>
-      <DialogContent className="max-w-[800px]">
-        <DialogHeader>
+      {/* Header and footer sit OUTSIDE the scrolling middle, so the title and
+          the Create button stay put however tall the people column grows. */}
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[800px]">
+        <DialogHeader className="shrink-0 border-b border-border px-6 py-4 pr-12">
           <DialogTitle>New video &mdash; set up first</DialogTitle>
           <DialogDescription>A complete setup is required before a video reaches the board.</DialogDescription>
         </DialogHeader>
-        
+
+        <div data-testid="new-video-body" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
         {pipelines.length > 1 && (
           <div className="mb-4 space-y-1.5 w-64">
             <label className="text-xs font-medium text-foreground/80">Pipeline <span className="text-primary">*</span></label>
@@ -139,7 +142,9 @@ export function NewVideoDialog({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-8 py-2">
+        {/* One column on a narrow window — two cramped columns on a small
+            laptop is what made this dialog so tall in the first place. */}
+        <div className="grid gap-8 py-2 sm:grid-cols-2">
           {/* Left: The video */}
           <div className="space-y-4">
             <h3 className="font-semibold">The video</h3>
@@ -225,7 +230,9 @@ export function NewVideoDialog({
           </div>
         </div>
 
-        <DialogFooter className="sm:justify-between items-center border-t pt-4 mt-2">
+        </div>
+
+        <DialogFooter className="shrink-0 items-center gap-3 border-t border-border px-6 py-4 sm:justify-between">
           <div className="text-sm font-medium text-destructive">
             {missingCols.length > 0 ? (
               <span>{missingCols.length} {missingCols.length === 1 ? "thing" : "things"} left: {missingLabels.join(", ")}</span>
