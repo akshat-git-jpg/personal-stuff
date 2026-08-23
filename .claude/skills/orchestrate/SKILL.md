@@ -315,6 +315,32 @@ Once plan(s) pass Step 3.5, ask the user how to hand off. Three routes:
   re-read executor diffs — verification is exit codes, structural checks, and
   one-line verdicts.
 
+#### Reporting a batch — always name the executor
+
+**Every plan or PR you report to the owner carries its executor and model.**
+Not on request — always, in the same breath as the link. Take them from the
+plan's frontmatter (`executor:` / `model:`); a blank `model:` means that
+executor's default, so print the resolved name (`agy` -> Gemini 3.1 Pro (High),
+`claude-p` -> Sonnet) rather than a blank cell.
+
+Owner rule (2026-08-23): *"whenever you give me summary on the PRs, I find it
+very annoying that you don't share me what executor have you used for which PR.
+I like seeing that."* You do not get to pick a model unilaterally, so the owner
+has to be able to audit the routing from the summary alone.
+
+For more than one plan, use a table with these columns in this order:
+
+| PR | Plan | Executor | Model | Difficulty | UI gate | Waits for | What it does |
+|---|---|---|---|---|---|---|---|
+
+`Difficulty` is the Status block's grade, `UI gate` is `ui:` from the
+frontmatter, `Waits for` is `needs_prs`. **If a batch mixes executors, add one
+sentence saying why** — cite the row of `tooling/boss/data/rules.md` you routed
+from. An unexplained mix reads as an accident rather than a decision.
+
+This applies to `secretary raise` reports too, and `secretary`'s own SKILL.md
+carries the same rule so the shape does not drift between the two skills.
+
 #### Executor registry
 
 Pick the executor from each plan's `Executor:` field (ask the user if plans in
