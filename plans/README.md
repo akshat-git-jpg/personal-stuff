@@ -1333,3 +1333,5 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 224-repo-hygiene-and-clone-safe-ignores — PR#185 224-repo-hygiene-and-clone-safe-ignores: clone-safe ignores, a live dead rule, and the bootstrap link list — DONE
 - 222-wt-never-destroys-uncommitted-work — PR#183 222-wt-never-destroys-uncommitted-work: wt must never destroy uncommitted work, and never wedge forever — DONE
 - 223-boss-guards-and-o1-startup — PR#184 223-boss-guards-and-o1-startup: boss guards — an owner-checked chrome lock, an overridable state dir, and an O(1) startup — DONE
+- 226-pp-work-workspaces-and-inventory — PR#187 226-pp-work-workspaces-and-inventory: pp-work — per-session workspaces that are never wiped, and one inventory — DONE
+- 225-pp-push-the-one-push-chokepoint — PR#186 225-pp-push-the-one-push-chokepoint: pp-push — one chokepoint every push to this repo passes through — DONE
