@@ -9,7 +9,7 @@ The `wt` tool is strictly for parallel agent runs (e.g., plan validation, captai
 
 ## Commands
 
-- **`wt get`**: Acquire a worktree lease, reset it, run bootstrap hook, and print its path.
+- **`wt get [--force-dirty]`**: Acquire a worktree lease, reset it, run bootstrap hook, and print its path. Skips an unleased slot that still holds uncommitted work unless `--force-dirty`.
   ```bash
   path=$(wt get --holder captain)
   ```
