@@ -267,6 +267,16 @@ because the crew had already committed. `wt return` now takes `--holder <label>`
 exits 3 when the lease names someone else; all five boss call sites pass it. **If you
 add a call site, pass the holder** — a bare `wt return` still works and is still blind.
 
+**The lease sweep reads the LAST digit run in the holder, and reports what it cannot map.**
+Session-start derived the PR from `${holder##*-}` — the text after the last dash. That
+covered `boss-<pr>` and `boss-mut-<pr>` and silently `continue`d past everything else. On
+2026-08-23 `boss-197fix` and `boss-197ver` held two of eight slots for five hours while the
+sweep printed `none — every leased slot belongs to an open PR`, because a suffixed holder
+failed the all-digits test. Two changes: the PR is now the last digit run anywhere in the
+holder, and a `boss-*` holder carrying no digits is **printed as UNMAPPABLE** instead of
+skipped. The silence was the real defect — an unparseable holder and a clean pool looked
+identical from the outside.
+
 ### Deterministic pre-merge gates
 
 Every rule here was already in the crew brief and was violated anyway. Prose is a
