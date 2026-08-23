@@ -618,3 +618,38 @@ pending work.
 
 General rule for this repo: any "is this work safe to discard?" check must be by CONTENT,
 never by SHA reachability, because every landing path here rebases.
+
+## 2026-08-23 — the wall judges the directory the command TARGETS, not the session's cwd
+
+`.claude/hooks/no-history-in-main.sh` read the session cwd from the PreToolUse payload and
+judged that. It is handed a command, though, and a command can retarget git. Measured that
+day, the cwd-only reading was wrong in BOTH directions:
+
+| session cwd | command | old verdict | correct |
+|---|---|---|---|
+| main | `cd <workspace> && git commit` | BLOCKED | allow |
+| main | `git -C <workspace> commit` | BLOCKED | allow |
+| main | `cd "$(pp-work claim …)" && git commit` | BLOCKED | allow |
+| workspace | `git -C <main> commit` | ALLOWED | block |
+| workspace | `cd <main> && git commit` | ALLOWED | block |
+
+The false blocks are the reason three `GUARD_OK=1` uses were forced in one afternoon, in a
+repo whose change-control skill says that override has deliberately zero call sites — and
+the first blocked form is the one the hook's own message prints as the remedy. The false
+allows are worse: a worktree session could record history straight into main, which is the
+single thing the wall exists to prevent.
+
+The hook now resolves an EFFECTIVE directory from a single leading `cd <path>` or a single
+`git -C <path>`, relative paths included, and judges that. It fails CLOSED: two retargeting
+constructs, a glob, a backtick or an unresolvable path all fall back to the session cwd, so
+`git -C /no/such/path commit` from main stays blocked rather than sailing through.
+
+One narrow allowance: `cd "$(pp-work claim …)" && …` is a command substitution and can never
+be resolved statically, so it is matched by pattern. That is safe because `pp-work claim`
+carries three explicit `die` guards refusing to create a workspace under the main checkout,
+the wt pool, or the landing tree — its stdout is always a workspace path. The allowance is
+void if the command contains a second `cd`.
+
+Nine cases in `.claude/hooks/test-no-history-in-main.sh` pin this (15-23), all tagged
+WALL-RETARGET. Three mutations were run and each was caught: neutering the resolution (5
+failures), breaking the pp-work-claim pattern, and loosening the single-`cd` guard.
