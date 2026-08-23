@@ -156,22 +156,16 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
     const pacing = data.pacing || { avatarShare: 0, cuts: beats.length, longestAvatarHold: 0 };
     const renderCmd = `run.sh ${video} intro-simple-render`;
 
-    return (
-      <div className="intro-tab intro-simple-tab" style={{ padding: 24 }}>
-        <div className="intro-simple-player">
-          {videoMissing ? (
-            <div className="intro-simple-player-missing">
-              Not rendered yet — run <code>bash {renderCmd}</code>
-            </div>
-          ) : (
-            <video
-              className="intro-simple-video"
-              src={`/intro-video?video=${encodeURIComponent(video)}`}
-              controls
-            />
-          )}
-        </div>
-
+    // Gate 125 reviews a VIDEO, so it gets the same surface as the final cut:
+    // pause anywhere and the comment attaches to that timestamp. It used to be
+    // a bare <video> plus one autosaved box per beat, which made the owner
+    // translate "this card is late" into a beat id by hand (owner report
+    // 2026-08-22). The player, comment list and composer all come from
+    // <ReviewSurface>, exactly as the complex gate and the Final Cut tab do —
+    // namespace/contextPrefix stay "intro" because /feedback-intro writes its
+    // keys under a hardcoded `intro:` prefix (lib/board.mjs).
+    const belowPlayer = (
+      <>
         {/* The pacing strip: the same S1/S2 numbers the lint enforces, each with
             its limit beside it, so a figure near the edge is visible without
             arithmetic. */}
@@ -216,43 +210,68 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
             ))}
           </tbody>
         </table>
+      </>
+    );
 
-        {/* Per-beat comments — the same autosaved FeedbackBox the complex flow's
-            beat sheet already uses (this file's only comment store). No second
-            store, no player-tied composer: the player above carries none. */}
-        <div className="intro-simple-beat-feedback-list">
-          {beats.map((b: any) => (
-            <div key={b.id} className="intro-simple-beat-feedback">
-              <FeedbackBox
-                refKey={`intro-${b.id}`}
-                placeholder={`feedback on ${b.id} — staging, timing, wording… (read by the next Claude session)`}
-              />
-            </div>
-          ))}
-        </div>
+    // The timestamped composer is dead until intro.mp4 exists, which is most of
+    // this gate's life — the complex gate shipped without a fallback and took no
+    // feedback at all (owner report 2026-08-13). This box autosaves with no
+    // player, so an un-rendered cut is still reviewable.
+    const panelTop = (
+      <div className="intro-global-feedback">
+        <FeedbackBox
+          refKey="intro-global"
+          placeholder="overall feedback on the intro cut (read by the next Claude session)"
+        />
+        {videoMissing && (
+          <div className="intro-feedback-hint">
+            Not rendered yet — timestamped comments need the cut. This box autosaves.
+          </div>
+        )}
+      </div>
+    );
 
-        {/* No Reject button. The fix path for a simple intro is edit the cut
-            list and re-render — a session action, not a board round-trip (plan
-            221 STOP condition). Do not add one for symmetry with the idea gate. */}
-        <button
-          type="button"
-          className="intro-simple-approve-btn"
-          disabled={videoMissing}
-          title={videoMissing ? `render the intro first: ${renderCmd}` : undefined}
-          onClick={async () => {
-            try {
-              const res = await fetch('/approve-intro', { method: 'POST' });
-              if (res.ok) {
-                await loadData();
-                await onRefetch();
-              }
-            } catch (e) {
-              console.error(e);
+    // No Reject button. The fix path for a simple intro is edit the cut list and
+    // re-render — a session action, not a board round-trip (plan 221 STOP
+    // condition). Do not add one for symmetry with the idea gate.
+    const approveBtn = (
+      <button
+        type="button"
+        className="intro-simple-approve-btn"
+        disabled={videoMissing}
+        title={videoMissing ? `render the intro first: ${renderCmd}` : undefined}
+        onClick={async () => {
+          try {
+            const res = await fetch('/approve-intro', { method: 'POST' });
+            if (res.ok) {
+              await loadData();
+              await onRefetch();
             }
-          }}
-        >
-          Approve intro
-        </button>
+          } catch (e) {
+            console.error(e);
+          }
+        }}
+      >
+        Approve intro
+      </button>
+    );
+
+    return (
+      <div className="intro-tab intro-simple-tab">
+        <ReviewSurface
+          src={videoMissing ? '' : `/intro-video?video=${encodeURIComponent(video)}`}
+          notReady={<>Not rendered yet — run <code>bash {renderCmd}</code></>}
+          namespace="intro"
+          postUrl="/feedback-intro"
+          contextPrefix="intro"
+          items={fcItems}
+          onItemsChange={setFcItems}
+          panelTop={panelTop}
+          panelBottom={approveBtn}
+          belowPlayer={belowPlayer}
+          showSpeed
+          showMute
+        />
       </div>
     );
   }
