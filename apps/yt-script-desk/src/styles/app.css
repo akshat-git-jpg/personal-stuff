@@ -291,3 +291,11 @@
 /* A dead /d/:token link — the only thing on the page, so it cannot be mistaken
    for a script that loaded empty. */
 .dead-link { padding: 64px 44px; font: 16px/1.6 var(--sans); color: var(--note); }
+
+/* The master chip (Instructions) governs the four after it. The divider and the
+   disabled state are the only things saying so — without them, switching the
+   master off leaves the children looking live while clicking them does nothing. */
+.toggle-rail-divider {
+  width: 1px; align-self: stretch; margin: 4px 4px; background: var(--rule);
+}
+.chip:disabled { opacity: .42; cursor: not-allowed; }

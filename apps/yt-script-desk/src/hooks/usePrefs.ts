@@ -1,19 +1,24 @@
 import { useCallback, useState } from 'react'
 
+// One name per thing, and the SAME name on the toggle and on the block header
+// in the right column — owner's rule 2026-08-23. Three of the old four chips
+// were called "notes" and none of them said which was which.
 export type Prefs = {
-  showRecording: boolean
-  showEdit: boolean
-  showFacts: boolean
-  notesTrack: boolean // the whole right track
+  instructions: boolean // the whole right column; master switch for the four below
+  whatToCover: boolean // the body-beat brief (outline ANGLE)
+  screenRecording: boolean // what to film or screen-record (outline SHOW)
+  generalNotes: boolean // section rules + the beat's facts, merged
+  videoEditor: boolean // post-production notes (outline EDIT)
   beatLabels: boolean // the grey margin labels in the full script view
   scriptNotes: boolean // reserved; renders nothing yet
 }
 
 const DEFAULTS: Prefs = {
-  showRecording: true,
-  showEdit: false,
-  showFacts: true,
-  notesTrack: true,
+  instructions: true,
+  whatToCover: true, // the brief — on by default, or a body beat is a blank box
+  screenRecording: true,
+  generalNotes: true,
+  videoEditor: false,
   beatLabels: true,
   scriptNotes: false,
 }

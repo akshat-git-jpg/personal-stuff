@@ -282,7 +282,7 @@ the desk exists — the old `outline.pdf` mixed all four in one vertical stream
 and the maker could not tell content from instruction at a glance.
 
 A body beat's `SAY` lane is still a short draft prompt, never finished copy. In
-the desk it appears in the RIGHT track, labelled **Angle** — an instruction he
+the desk it appears in the RIGHT track, labelled **What to cover** — an instruction he
 reads, not a line he can paste (decisions.md 2026-08-18; enforced by a test in
 `lib/beats.mjs`).
 

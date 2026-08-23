@@ -6,13 +6,13 @@ A two-track script editor for YouTube tutorial makers, replacing the old PDF han
 
 The desk separates instructions from content. It splits every beat into two columns:
 - **Left track (Script):** The exact words that will be spoken on camera.
-- **Right track (Angle/Notes/Facts):** Recording instructions, edit notes, and fact sheets.
+- **Right track (instructions):** four blocks, each behind its own toggle — **What to cover** (the brief for a body beat), **Screen Recording notes**, **General Notes** (the section rules plus the beat's facts), **Video Editor Notes**. The `Instructions` toggle is the master for all four.
 
 This separation prevents the maker from accidentally reading production notes as part of the script, and prevents instructions from bleeding into the final voiceover feed.
 
 ## The two views
 
-1. **Freelancer view**: The maker reads the `Angle` prompt and writes their lines in the left track. They cannot edit the instructions.
+1. **Freelancer view**: The maker reads the **What to cover** brief and writes their lines in the left track. They cannot edit the instructions.
 2. **Review view**: The owner sees what was changed against the locked pre-filled copy and approves or restores lines.
 
 ## Running locally
