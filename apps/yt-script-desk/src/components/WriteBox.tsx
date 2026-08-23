@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-
-type SaveState = 'saved' | 'saving' | 'retrying'
+import { useEffect, useId, useRef, useState } from 'react'
+import { useSaveReporter } from '../hooks/useSaveStatus'
+import type { SaveState } from '../hooks/useSaveStatus'
 
 type WriteBoxProps = {
   value: string
@@ -10,11 +10,22 @@ type WriteBoxProps = {
 const DEBOUNCE_MS = 600
 const RETRY_MS = 5000
 
-// No word target, no word limit — owner decision. Just a plain count.
+// No word target, no word limit, and no count either — owner decision
+// 2026-08-23: a length number on screen is pressure, and he does not want one
+// anywhere in the desk. The footer says only whether the text is saved.
 export function WriteBox({ value, onSave }: WriteBoxProps) {
   const [text, setText] = useState(value)
   const [prevValue, setPrevValue] = useState(value)
-  const [saveState, setSaveState] = useState<SaveState>('saved')
+  const [saveState, setSaveStateRaw] = useState<SaveState>('saved')
+  const id = useId()
+  const report = useSaveReporter()
+
+  // Every state change is announced upward, so the header badge can speak for
+  // the whole page instead of the reader hunting through 15 little footers.
+  const setSaveState = (next: SaveState) => {
+    setSaveStateRaw(next)
+    report(id, next)
+  }
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -29,7 +40,9 @@ export function WriteBox({ value, onSave }: WriteBoxProps) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
       if (retryRef.current) clearTimeout(retryRef.current)
+      report(id, 'saved')
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const doSave = (t: string) => {
@@ -44,14 +57,15 @@ export function WriteBox({ value, onSave }: WriteBoxProps) {
 
   const handleChange = (next: string) => {
     setText(next)
+    // Unsaved the instant a key is pressed. Waiting for the debounce to fire
+    // meant the box claimed 'Saved' while the text was still only local.
+    setSaveState('dirty')
     if (debounceRef.current) clearTimeout(debounceRef.current)
     if (retryRef.current) clearTimeout(retryRef.current)
     debounceRef.current = setTimeout(() => doSave(next), DEBOUNCE_MS)
   }
 
-  const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length
-
-  const footerText = saveState === 'saved' ? 'Saved' : saveState === 'saving' ? 'Saving…' : 'Not saved — retrying'
+  const footerText = saveState === 'saved' ? 'Saved' : saveState === 'retrying' ? 'Not saved — retrying' : 'Saving…'
 
   return (
     <div className="write-box">
@@ -62,7 +76,6 @@ export function WriteBox({ value, onSave }: WriteBoxProps) {
         onChange={(e) => handleChange(e.target.value)}
       />
       <div className="write-box-footer">
-        <span>{wordCount} words</span>
         <span>{footerText}</span>
       </div>
     </div>

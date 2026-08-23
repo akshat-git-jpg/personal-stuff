@@ -7,7 +7,7 @@
 .mk-title { font: 500 10.5px/1.4 var(--sans); letter-spacing: .2px; color: var(--faint);
             opacity: .8; text-wrap: pretty; }
 .bd  { grid-column: 2; padding-bottom: 22px; }
-.bd p { margin: 0 0 15px; font: 19.5px/1.72 var(--serif); color: var(--paper-ink); letter-spacing: .1px; text-wrap: pretty; }
+.bd p { margin: 0 0 15px; font: 17.5px/1.75 var(--serif); color: var(--paper-ink); letter-spacing: .1px; text-wrap: pretty; }
 .bd p:last-child { margin-bottom: 0; }
 .bd p.not-written { font-style: italic; color: var(--faint); }
 .mk-in-prose { font: 600 10.5px var(--mono); color: var(--faint); }

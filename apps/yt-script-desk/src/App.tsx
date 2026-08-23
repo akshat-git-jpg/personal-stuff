@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { getVideo, isHosted, postFinish, putDraft, putSay, restoreSay } from './api'
 import type { VideoDoc } from './types'
 import { usePrefs } from './hooks/usePrefs'
+import { SaveStatusProvider } from './hooks/useSaveStatus'
 import { Header } from './components/Header'
 import { ToggleRail, FULL_SCRIPT_CHIPS } from './components/ToggleRail'
 import { WriteView } from './components/WriteView'
-import { FullScript, fullScriptStats } from './components/FullScript'
+import { FullScript } from './components/FullScript'
 
 function getKeyFromUrl(): string {
   const params = new URLSearchParams(window.location.search)
@@ -64,16 +65,13 @@ export function App() {
   if (!doc && loadError === 'notfound') {
     return (
       <div className="app">
-        <p className="dead-link">
-          This link isn&rsquo;t valid any more. Ask Kushal for a new one.
-        </p>
+        <p className="dead-link">This link isn&rsquo;t valid any more. Ask Kushal for a new one.</p>
       </div>
     )
   }
 
   const writableBeats = doc ? doc.beats.filter((b) => b.mode === 'write') : []
   const writtenCount = doc ? writableBeats.filter((b) => (doc.draft[b.num] ?? '').trim().length > 0).length : 0
-  const fullScriptWords = doc ? fullScriptStats(doc).totalWords : 0
 
   const handleDraftSave = async (num: string, text: string) => {
     try {
@@ -99,7 +97,10 @@ export function App() {
       return {
         ...prev,
         says: { ...prev.says, [num]: lines },
-        edits: { ...prev.edits, [num]: prev.edits[num] ?? { original, at: new Date().toISOString() } },
+        edits: {
+          ...prev.edits,
+          [num]: prev.edits[num] ?? { original, at: new Date().toISOString() },
+        },
       }
     })
   }
@@ -127,36 +128,43 @@ export function App() {
   }
 
   return (
-    <div className="app">
-      <Header
-        title={doc?.title ?? ''}
-        beatCount={doc?.beats.length ?? 0}
-        writtenCount={writtenCount}
-        totalWritable={writableBeats.length}
-        tab={tab}
-        onTabChange={setTab}
-        fullScriptWords={fullScriptWords}
-      />
-      <ToggleRail prefs={prefs} setPrefs={setPrefs} chips={tab === 'full' ? FULL_SCRIPT_CHIPS : undefined} />
-      {saveBlocked && <p className="finished-notice">Script finished — ask Kushal to reopen it.</p>}
-      {tab === 'write' ? (
-        !doc ? (
-          <p style={{ padding: '20px 40px' }}>{loadError ? 'Could not load the script.' : 'Loading…'}</p>
+    <SaveStatusProvider>
+      <div className="app">
+        <Header
+          title={doc?.title ?? ''}
+          beatCount={doc?.beats.length ?? 0}
+          writtenCount={writtenCount}
+          totalWritable={writableBeats.length}
+          tab={tab}
+          onTabChange={setTab}
+        />
+        <ToggleRail prefs={prefs} setPrefs={setPrefs} chips={tab === 'full' ? FULL_SCRIPT_CHIPS : undefined} />
+        {saveBlocked && <p className="finished-notice">Script finished — ask Kushal to reopen it.</p>}
+        {tab === 'write' ? (
+          !doc ? (
+            <p style={{ padding: '20px 40px' }}>{loadError ? 'Could not load the script.' : 'Loading…'}</p>
+          ) : (
+            <WriteView
+              beats={doc.beats}
+              prefs={prefs}
+              draft={doc.draft}
+              edits={doc.edits}
+              says={doc.says}
+              onDraftSave={handleDraftSave}
+              onSaySave={handleSaySave}
+              onSayRestore={handleSayRestore}
+            />
+          )
         ) : (
-          <WriteView
-            beats={doc.beats}
-            prefs={prefs}
-            draft={doc.draft}
-            edits={doc.edits}
-            says={doc.says}
-            onDraftSave={handleDraftSave}
-            onSaySave={handleSaySave}
-            onSayRestore={handleSayRestore}
+          <FullScript
+            doc={doc}
+            loadError={loadError}
+            beatLabels={prefs.beatLabels}
+            onRetry={fetchDoc}
+            onFinish={handleFinish}
           />
-        )
-      ) : (
-        <FullScript doc={doc} loadError={loadError} beatLabels={prefs.beatLabels} onRetry={fetchDoc} onFinish={handleFinish} />
-      )}
-    </div>
+        )}
+      </div>
+    </SaveStatusProvider>
   )
 }

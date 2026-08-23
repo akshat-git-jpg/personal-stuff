@@ -2,6 +2,7 @@
 // Zero-dependency CLI for the hosted script desk (plan 234).
 //
 //   node bin/desk.mjs publish <key> [--base https://script-desk.agrolloo.com]
+//   node bin/desk.mjs list                 # every published video and its link
 //   node bin/desk.mjs pull    <key> [--base ...]
 //   node bin/desk.mjs pull    --fixture <file.json> --out <file.md>   # offline, for tests
 //
@@ -202,6 +203,27 @@ function parseArgs(argv) {
   return { positional, ...args }
 }
 
+// The link registry. Every desk URL carries a secret token, so the list of them
+// cannot be a file in this repo - it is public. D1 already stores every one, so
+// the database IS the registry and this reads it back. Without it the only
+// record of an older video's link is whatever terminal happened to print it.
+async function cmdList(base) {
+  const res = await fetch(base + '/api/admin/list', { headers: adminHeaders() })
+  const { videos } = await readJsonOrThrow(res, 'GET /api/admin/list')
+  if (!videos.length) {
+    console.error('no videos published yet')
+    return
+  }
+  for (const v of videos) {
+    const when = (v.publishedAt || '').slice(0, 10)
+    const state = v.finished ? 'finished' : 'in progress'
+    console.log(when + '  ' + v.key)
+    console.log('            ' + v.title)
+    console.log('            ' + v.url + '  (' + state + ')')
+    console.log('')
+  }
+}
+
 async function main(argv) {
   const [cmd, ...rest] = argv
   const { positional, base, fixture, out, force } = parseArgs(rest)
@@ -223,7 +245,11 @@ async function main(argv) {
     return cmdPull(key, { base, fixturePath: fixture, outPath: out, force })
   }
 
-  console.error('usage: node bin/desk.mjs <publish|pull> ...')
+  if (cmd === 'list') {
+    return cmdList(base)
+  }
+
+  console.error('usage: node bin/desk.mjs <publish|pull|list> ...')
   process.exit(1)
 }
 

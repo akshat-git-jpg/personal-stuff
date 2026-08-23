@@ -29,12 +29,14 @@ function Chip({
   chipKey,
   label,
   disabled = false,
+  master = false,
 }: {
   prefs: Prefs
   setPrefs: (update: Partial<Prefs>) => void
   chipKey: keyof Prefs
   label: string
   disabled?: boolean
+  master?: boolean
 }) {
   return (
     <button
@@ -43,7 +45,7 @@ function Chip({
       aria-checked={prefs[chipKey]}
       disabled={disabled}
       title={disabled ? 'Turn Instructions on to choose what it shows.' : undefined}
-      className="chip"
+      className={master ? 'chip chip-master' : 'chip'}
       onClick={() => setPrefs({ [chipKey]: !prefs[chipKey] })}
     >
       <span className="chip-switch">
@@ -69,13 +71,16 @@ export function ToggleRail({ prefs, setPrefs, chips }: ToggleRailProps) {
 
   const off = !prefs[MASTER.key]
   return (
-    <div className="toggle-rail">
-      <span className="toggle-rail-label">Show me</span>
-      <Chip prefs={prefs} setPrefs={setPrefs} chipKey={MASTER.key} label={MASTER.label} />
-      <span className="toggle-rail-divider" aria-hidden="true" />
-      {CHIPS.map(({ key, label }) => (
-        <Chip key={key} prefs={prefs} setPrefs={setPrefs} chipKey={key} label={label} disabled={off} />
-      ))}
+    <div className="toggle-rail toggle-rail-stacked">
+      <div className="toggle-row">
+        <span className="toggle-rail-label">Show me</span>
+        <Chip prefs={prefs} setPrefs={setPrefs} chipKey={MASTER.key} label={MASTER.label} master />
+      </div>
+      <div className="toggle-row toggle-row-lanes">
+        {CHIPS.map(({ key, label }) => (
+          <Chip key={key} prefs={prefs} setPrefs={setPrefs} chipKey={key} label={label} disabled={off} />
+        ))}
+      </div>
     </div>
   )
 }

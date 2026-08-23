@@ -88,13 +88,20 @@ describe('WriteView', () => {
     expect(screen.queryByTestId('right-cell')).toBeNull()
   })
 
-  it('shows a live word count with no target or limit', () => {
+  // Owner 2026-08-23: no length number anywhere in the desk. A word count on a
+  // write box reads as a target even when none is set, and he does not want one.
+  it('shows the save state and never a word count', () => {
     const beat = makeWriteBeat()
     renderView([beat])
 
     const textarea = screen.getByPlaceholderText('Write what you saw…')
     fireEvent.change(textarea, { target: { value: 'three word count' } })
-    const footer = textarea.closest('.write-box')?.querySelector('.write-box-footer span')
-    expect(footer?.textContent).toMatch(/^\d+ words$/)
+    const footer = textarea.closest('.write-box')?.querySelector('.write-box-footer')
+
+    expect(
+      footer?.textContent ?? '',
+      'WORD_COUNT_BACK: the write box is showing a length number again',
+    ).not.toMatch(/\d+\s*words?/i)
+    expect(footer?.textContent).toMatch(/Saved|Saving|Not saved/)
   })
 })

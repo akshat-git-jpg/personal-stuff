@@ -42,7 +42,7 @@ export function FullScript({ doc, loadError, beatLabels, onRetry, onFinish }: Fu
     return (
       <>
         <p className="full-script-message">This outline has no beats.</p>
-        <FullScriptFooter words={0} written={0} total={0} finished={false} disabled onFinish={onFinish} />
+        <FullScriptFooter written={0} total={0} finished={false} disabled onFinish={onFinish} />
       </>
     )
   }
@@ -58,7 +58,6 @@ export function FullScript({ doc, loadError, beatLabels, onRetry, onFinish }: Fu
         ))}
       </div>
       <FullScriptFooter
-        words={stats.totalWords}
         written={stats.writtenCount}
         total={stats.totalBeats}
         finished={doc.finished}
@@ -105,14 +104,12 @@ function BeatRows({ beat, doc, beatLabels }: { beat: Beat; doc: VideoDoc; beatLa
 }
 
 function FullScriptFooter({
-  words,
   written,
   total,
   finished,
   disabled,
   onFinish,
 }: {
-  words: number
   written: number
   total: number
   finished: boolean
@@ -122,7 +119,7 @@ function FullScriptFooter({
   return (
     <div className="full-script-footer">
       <span className="full-script-count">
-        {words} words · {written} of {total} beats written
+        {written} of {total} beats written
       </span>
       {finished ? (
         <span className="chip-finished">
@@ -166,21 +163,13 @@ export function resolveBeatParagraphs(beat: Beat, doc: VideoDoc): string[] {
     .filter((p) => p.length > 0)
 }
 
-function countWords(text: string): number {
-  const t = text.trim()
-  return t === '' ? 0 : t.split(/\s+/).length
-}
 
-export function fullScriptStats(doc: VideoDoc): { totalWords: number; writtenCount: number; totalBeats: number } {
-  let totalWords = 0
+// No word total here on purpose — owner 2026-08-23 wants no length number
+// anywhere in the desk, so nothing counts words any more.
+export function fullScriptStats(doc: VideoDoc): { writtenCount: number; totalBeats: number } {
   let writtenCount = 0
   for (const beat of doc.beats) {
-    const paragraphs = resolveBeatParagraphs(beat, doc)
-    if (paragraphs.length > 0) {
-      writtenCount += 1
-      totalWords += paragraphs.reduce((sum, p) => sum + countWords(p), 0)
-    }
-    if (beat.verdict && beat.verdict.trim().length > 0) totalWords += countWords(beat.verdict)
+    if (resolveBeatParagraphs(beat, doc).length > 0) writtenCount += 1
   }
-  return { totalWords, writtenCount, totalBeats: doc.beats.length }
+  return { writtenCount, totalBeats: doc.beats.length }
 }

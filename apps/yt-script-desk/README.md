@@ -33,6 +33,14 @@ DESK_ADMIN_TOKEN=… node bin/desk.mjs publish <key>
 ```
 It prints a single secret URL. This URL is the only thing sent to the freelancer.
 
+**Find an older video's link:**
+```bash
+DESK_ADMIN_TOKEN=… node bin/desk.mjs list
+```
+Prints every published video — date, key, title and its secret URL. This is the
+registry: the links cannot be kept in a file here because this repo is public,
+so the database is the record and this reads it back.
+
 **Pull the completed draft:**
 ```bash
 DESK_ADMIN_TOKEN=… node bin/desk.mjs pull <key>

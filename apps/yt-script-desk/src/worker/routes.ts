@@ -26,6 +26,10 @@ export async function handleApiRequest(request: Request, env: Env, url: URL): Pr
     if (!isAdminAuthorized(request, env)) return notFound()
     return handlePull(url, env)
   }
+  if (pathname === '/api/admin/list' && method === 'GET') {
+    if (!isAdminAuthorized(request, env)) return notFound()
+    return handleList(request, env)
+  }
 
   const tokenMatch = pathname.match(/^\/api\/d\/([^/]+)((?:\/.*)?)$/)
   if (!tokenMatch) return notFound()
@@ -111,6 +115,19 @@ async function handlePublish(request: Request, env: Env): Promise<Response> {
   })
   const origin = new URL(request.url).origin
   return json(200, { token, url: `${origin}/d/${token}` })
+}
+
+// The link registry. Every published desk URL contains a secret token, so the
+// list of them cannot live in this repo — it is public. The database already
+// holds every one, so the DB IS the registry and this route is how you read it,
+// behind the same admin token as publish and pull. Without it the only record
+// of a link is whatever terminal printed it.
+async function handleList(request: Request, env: Env): Promise<Response> {
+  const origin = new URL(request.url).origin
+  const rows = await db.listVideos(env.DESK_DB)
+  return json(200, {
+    videos: rows.map((r) => ({ ...r, url: `${origin}/d/${r.token}` })),
+  })
 }
 
 async function handlePull(url: URL, env: Env): Promise<Response> {
