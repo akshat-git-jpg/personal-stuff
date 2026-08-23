@@ -14,7 +14,7 @@ test('the skill routes the handoff through the desk', () => {
   const s = read('pipelines/.claude/skills/yt-script/SKILL.md')
   assert.match(s, /desk\.mjs publish/, 'DESK_WIRING_MISSING: step 2 does not publish to the desk')
   assert.match(s, /desk\.mjs pull/, 'DESK_WIRING_MISSING: step 3 does not pull the draft')
-  assert.match(s, /Angle/, 'DESK_WIRING_MISSING: the body-draft rule is not restated')
+  assert.match(s, /What to cover/, 'DESK_WIRING_MISSING: the body-draft rule is not restated')
 })
 
 test('the folder guide says the same thing', () => {

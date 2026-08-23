@@ -5,12 +5,12 @@
 ### The two-track rule
 **Instructions never enter the left track.** The desk strictly splits every beat into two columns:
 1. Words that will be spoken on the left.
-2. Recording notes, edit notes, and facts on the right.
+2. Instructions on the right, in four toggleable blocks: What to cover, Screen Recording notes, General Notes, Video Editor Notes.
 
 ### The resolution order (`says -> say -> draft`)
 When parsing what text should appear in the spoken track, the resolution order is:
 1. `says` (final locked copy)
-2. `say` (draft prompt, which becomes the `Angle` in the right track, leaving the left track empty for the maker to fill)
+2. `say` (draft prompt, which becomes **What to cover** in the right track, leaving the left track empty for the maker to fill)
 3. `draft` (the maker's typed copy)
 
 ### Data flow and upstream

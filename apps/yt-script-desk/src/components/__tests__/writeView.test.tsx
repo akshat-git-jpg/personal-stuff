@@ -5,10 +5,11 @@ import { makeReadBeat, makeWriteBeat } from '../../test/fixtures'
 import type { Prefs } from '../../hooks/usePrefs'
 
 const allOnPrefs: Prefs = {
-  showRecording: true,
-  showEdit: true,
-  showFacts: true,
-  notesTrack: true,
+  instructions: true,
+  whatToCover: true,
+  screenRecording: true,
+  generalNotes: true,
+  videoEditor: true,
   beatLabels: true,
   scriptNotes: false,
 }
@@ -67,15 +68,15 @@ describe('WriteView', () => {
     expect(leftCell.querySelectorAll('.say p').length).toBe(2)
   })
 
-  it('hides facts when showFacts is off, and drops right cells entirely when notesTrack is off', () => {
+  it('hides General Notes when its toggle is off, and drops right cells entirely when Instructions is off', () => {
     const beat = makeReadBeat({ facts: ['A fact line.'] })
-    const { rerender } = renderView([beat], { ...allOnPrefs, showFacts: false })
+    const { rerender } = renderView([beat], { ...allOnPrefs, generalNotes: false })
     expect(screen.queryByText('A fact line.')).toBeNull()
 
     rerender(
       <WriteView
         beats={[beat]}
-        prefs={{ ...allOnPrefs, notesTrack: false }}
+        prefs={{ ...allOnPrefs, instructions: false }}
         draft={{}}
         edits={{}}
         says={{}}

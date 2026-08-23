@@ -20,8 +20,8 @@ type WriteViewProps = {
 // facts, angle) is an instruction and belongs in the right cell only.
 export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSaySave, onSayRestore }: WriteViewProps) {
   return (
-    <div className={`tracks${prefs.notesTrack ? '' : ' no-notes'}`}>
-      {prefs.notesTrack && <div className="rail" />}
+    <div className={`tracks${prefs.instructions ? '' : ' no-notes'}`}>
+      {prefs.instructions && <div className="rail" />}
       {beats.map((beat) => (
         <Fragment key={beat.num}>
           <div className="rowL" data-testid="left-cell">
@@ -47,7 +47,7 @@ export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSay
             {beat.verdict && <SayCard lines={[beat.verdict]} editable={false} />}
           </div>
 
-          {prefs.notesTrack && (
+          {prefs.instructions && (
             <div className="rowR" data-testid="right-cell">
               {renderRightCell(beat, prefs)}
             </div>
@@ -58,16 +58,27 @@ export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSay
   )
 }
 
-// Rules and the body-draft angle are always part of the instruction track
-// when it's on; show/facts/edit each sit behind their own per-lane toggle.
+// Every label here MUST equal the toggle label in ToggleRail — the owner's
+// rule is that the switch and the block say the same words, so nobody has to
+// work out which chip hid which block. `General Notes` deliberately merges the
+// section's RULES with the beat's FACTS: both are context to know, as opposed
+// to an action to take.
+const LANES: Array<{ pref: keyof Prefs; label: string; lines: (b: Beat) => string[] }> = [
+  { pref: 'whatToCover', label: 'What to cover', lines: (b) => b.angle ?? [] },
+  { pref: 'screenRecording', label: 'Screen Recording notes', lines: (b) => b.show },
+  { pref: 'generalNotes', label: 'General Notes', lines: (b) => [...b.rules, ...b.facts] },
+  { pref: 'videoEditor', label: 'Video Editor Notes', lines: (b) => b.edit },
+]
+
 function renderRightCell(beat: Beat, prefs: Prefs): ReactNode {
   const blocks: ReactNode[] = []
 
-  if (beat.rules.length > 0) blocks.push(<InstructionBlock key="rules" label="Rules" lines={beat.rules} />)
-  if (beat.angle && beat.angle.length > 0) blocks.push(<InstructionBlock key="angle" label="Angle" lines={beat.angle} />)
-  if (prefs.showRecording && beat.show.length > 0) blocks.push(<InstructionBlock key="show" label="Recording" lines={beat.show} />)
-  if (prefs.showFacts && beat.facts.length > 0) blocks.push(<InstructionBlock key="facts" label="Facts" lines={beat.facts} />)
-  if (prefs.showEdit && beat.edit.length > 0) blocks.push(<InstructionBlock key="edit" label="Edit" lines={beat.edit} />)
+  for (const lane of LANES) {
+    if (!prefs[lane.pref]) continue
+    const lines = lane.lines(beat)
+    if (lines.length === 0) continue
+    blocks.push(<InstructionBlock key={lane.pref} label={lane.label} lines={lines} />)
+  }
 
   if (blocks.length === 0) return <p className="right-empty">No instructions for this beat.</p>
   return blocks
