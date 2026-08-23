@@ -1,13 +1,20 @@
 ---
-name: commit-now
-description: Pre-commit gate for ANY git commit, however phrased — "commit now", "commit this", "commit and push", "push this" (push implies commit), "raise a PR", committing as one step of a larger task, AND merge/revert/conflict-resolution commits ("resolve conflicts", "merge the base branch", "update from develop"). Runs prettier, lint, tsc, and build, auto-fixing what it can; proposes a single-line conventional-commit message (no body, no AI mention) and commits only after the user confirms (unattended sessions skip only the confirmation). NEVER pushes.
+name: commit-now-work
+description: Pre-commit gate for ZluriHQ WORK repos only (personal-stuff has its own repo-level commit-now). Fires for any commit, however phrased — "commit now", "commit this", "commit and push", "push this" (push implies commit), "raise a PR", committing as one step of a larger task, AND merge/revert/conflict-resolution commits ("resolve conflicts", "merge the base branch", "update from develop"). Runs prettier, lint, tsc, and build, auto-fixing what it can; proposes a single-line conventional-commit message (no body, no AI mention) and commits only after the user confirms (unattended sessions skip only the confirmation). NEVER pushes.
 user-invocable: true
 metadata:
   author: kbtg
   version: 2.0.0
 ---
 
-# commit-now
+# commit-now-work
+
+**Scope: ZluriHQ work repos only.** The `personal-stuff` repo has its own standalone
+`commit-now` skill (repo-level, at `.claude/skills/commit-now/`) with different rules:
+auto-commit by default, `pp-work` workspaces in place of `feature/` branches, and a commit
+that reaches `main` on its own. The two skills duplicate their shared wording on purpose, so
+neither can drift the other. Never apply this skill's rules in `personal-stuff`, and never
+apply that one's here.
 
 A pre-commit gate that runs the project's quality checks, fixes what it can, proposes a conventional-commit message, and — after the user confirms — stages the relevant files and creates the commit. **Never pushes.** Only edits source files (for auto-fixes) and the working tree (for staging the fix being committed).
 

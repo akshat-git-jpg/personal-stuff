@@ -1,5 +1,5 @@
 claude-router
-commit-now
+commit-now-work
 create-feature-plan
 github-router
 humanizer
