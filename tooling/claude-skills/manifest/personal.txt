@@ -2,7 +2,6 @@ claude-router
 commit-now-work
 github-router
 humanizer
-pp-impact
 pp-openrouter
 printing-press
 printing-press-catalog

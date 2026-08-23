@@ -1035,3 +1035,37 @@ repo" actually means here. Any future personal-finance or income skill goes the 
 The generalisable bit: a fix to a tool is not a fix to how the tool gets called. When the
 complaint is "the output shape keeps changing", check whether anything in the session's load path
 states the shape, before touching the tool again.
+
+## 2026-08-23 — personal-finance skills are repo-scoped, never account-scoped
+
+`pp-impact` was in both `tooling/claude-skills/manifest/work.txt` and `personal.txt`, so it
+loaded into every session on both accounts — including every ZluriHQ work repo. That is wrong on
+scope, not just on taste: those manifests scope by Claude ACCOUNT, and the account doing
+personal-stuff work here is the work one. "Only in my personal repo" is not expressible in a
+manifest at all.
+
+Both income skills are now tier 1 (repo-operating): source in `pipelines/.claude/skills/<name>/`,
+symlinked into `.claude/skills/`. They load in any personal-stuff session, on either account, and
+in no other repo. `docs/skill-library-and-infra-handoff.md` tier 2 now says so explicitly.
+
+Removing a name from a manifest is only half the change. `relink.sh` prunes managed symlinks that
+are no longer listed, so `scripts/relink.sh` has to run from the main checkout after this lands or
+`~/.claude-work/skills/pp-impact` dangles at a folder that no longer exists.
+
+## 2026-08-23 — impact.com has no month-by-program report, so the skill loops
+
+The PayPal and impact income skills now state the same output contract — months oldest-first,
+programs largest-first inside each month, subtotals, grand total. Only PayPal can honour it in one
+call: `paypal-txns-pp-cli income --table` does the rollup in the CLI.
+
+impact.com cannot. Checked against the live report list: `partner_performance_by_month` has no
+program dimension, `partner_performance_by_program` has no month dimension, and nothing crosses
+them. So the skill calls `partner_performance_by_program` once per calendar month with
+month-bounded dates and assembles the table from `results.Records[].Campaign` and `.Total_Cost`.
+`Sale_Amount` is the brand's revenue, not ours, and is not income.
+
+That per-caller assembly is exactly why the shape drifted, so the honest fix is an `income`
+subcommand on `impact-pp-cli` mirroring the PayPal one. Not done here: the impact CLI source in
+`~/printing-press/library/impact/` is still not mirrored into any git repo, so that work starts
+with the mirror, the way `tooling/press-clis/paypal-txns/` did. Recorded as a known gap in the
+skill body rather than left implicit.
