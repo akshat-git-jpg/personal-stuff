@@ -430,6 +430,42 @@ The legacy `intro: "cards"|"film"` key stays stripped — it named a deleted flo
 and `introMode` is a new vocabulary over two flows that both exist.
 
 Do NOT "simplify" this back to one flow. Both flows are wanted: plans 218-220.
+
+## 2026-08-22 — Re-cutting a pre-plan-192 video: force the plan, null the film span
+
+`opusclip-vs-submagic` (delivered 2026-08-01) shipped with the FPS frame-drift
+desync: pieces were encoded with `-t <float>`, ffmpeg emitted `floor(dur * fps)`
+frames, and the dropped remainders summed to 0.985s of video against a 1076.352s
+master — the avatar read ~1s behind by the outro. The fix (`framesUntil` +
+`-frames:v`, commit 39292645) landed 2026-08-09, eight days after delivery.
+
+Re-cutting an OLD video on current main hits two walls, and neither is a bug:
+
+1. `introSpan(workdir)` returns `{0, 117.567}` for this video, because
+   `introMode` defaults to `simple`. Current `assemble` then demands
+   `intro-film/out/intro.mp4` and would replace the whole intro zone with a film
+   segment — deleting cues z01-z08, whose `intro/tape-board` card IS this
+   video's approved intro. Pre-plan-192 videos have no film and never will.
+2. Re-resolving trips a new E12 frame-gate on z14 (`like-subscribe`), and would
+   also shift c16 +0.98s / c18 +2.12s from improved anchor matching.
+
+Approach taken, and the one to repeat: run current `lib/` from a scratch COPY
+with `filmSpan` forced to `null` (reproducing pre-192 `planSegments` behaviour),
+against the frozen `resolved.json` via `--force`. `--force` is safe here
+precisely because cues/shots/final-cut are all already `approved=true`, so it
+bypasses only the freshness guard. Result: the encoder fix applies and the
+approved plan is reused byte-for-byte. No repo code edited, no HeyGen re-render
+(the 25fps avatar clips contributed only ~0.24s of the loss, so re-rendering
+them would not have fixed it and would have cost metered Avatar IV credits).
+
+Do NOT "fix" an old video by building it an intro film — that re-opens gate 125
+and changes an approved cut. Do NOT re-resolve to clear the freshness guard.
+
+Known side effect to disclose every time: post-delivery fixes ride along.
+Here `freezeTrailingGap` (a20de115) turned the last 1.6s from a cut-to-screen-
+recording into a freeze on the host, and dropped the whip at 1074.8. Better, but
+it IS a change to an approved cut — surface it, never bury it.
+
 - 2026-08-22 — **`wt` leases leaked permanently, and four of eight pool slots were gone before anyone noticed.** A lease is written by `wt get` and removed only by an explicit `wt return`. `boss-dispatch` leases a slot per PR but returns it only on an error path or after a successful `boss-merge`, so any PR that dies, blocks, or is abandoned keeps its slot forever — and because `wt get`'s only liveness test was *"does the lease file exist"*, a stale lease was indistinguishable from a live one and the pool could only ever shrink. Found while brainstorming the concurrent-session problem: slots 1/2/5/7 were held by `boss-152`, `boss-153`, `boss-116`, `boss-126` — all merged or closed weeks earlier, one held **25 days** — leaving the pool one leak away from `ERROR: pool full` starving every future dispatch. Fixed in three layers, each answering only what its owner can actually know: (1) `wt status` now prints lease age in hours and marks `STALE` / `STALE/DIRTY`, so a leak stops reading as a normal `leased`; (2) `wt reap` (dry-run by default) frees leases past a TTL (default 24h), and `wt get` reaps stale-and-clean slots before reporting the pool full, so one leak can never permanently cost a slot; (3) `wt release --holder <label>` frees a named slot with no TTL wait, and `boss-session-start.sh` uses it to sweep every `boss-<pr>` holder whose PR is no longer `OPEN`. **Liveness is caller-specific knowledge and `wt` deliberately does not guess at it** — `wt` answers only "how old" and "is it clean"; boss owns the PR mapping. Two details worth keeping: the sweep keys on the PR's **state, never its labels** (PR#152 and #153 were both `MERGED` and *still* labelled `boss:in-progress`, so a label check would have called them live), and **a dirty worktree is never freed silently** — a mid-flight kill routinely leaves a complete-but-uncommitted implementation (2026-08-02), so `reap`/`release` name the path and stop unless given `--force-dirty`. That safety rule is mutation-proven: disabling the dirty check makes `test-wt.sh` fail with `reap --yes FREED a stale+DIRTY slot`. Pool restored to 8/8. **General principle: a lease with no liveness signal is a permanent allocation — either give it a TTL or give its holder a way to prove it is gone.**
 - **2026-08-23**: **The simple intro flow reads the body card catalogue.**
   `pipelines/video/intro-kit/` is deleted; steps 115/135 read
@@ -455,3 +491,77 @@ Do NOT "simplify" this back to one flow. Both flows are wanted: plans 218-220.
   entitled to write that file; the commit is the chokepoint. Zero `GUARD_OK=1` call sites
   by design; the override is for a human's deliberate one-off only. Pinned by
   `.claude/hooks/test-no-history-in-main.sh` (14 behavioural cases).
+
+## 2026-08-22 — Span end anchors drift from the VO; the LAST span is where it shows
+
+Shipping the `opusclip-vs-submagic` sync fix surfaced a second, unrelated defect
+the owner caught on review: the voice says "Goodbye" and the avatar does not.
+
+Measured, acoustically against `vo.mp3` (not the transcript):
+
+| | transcript says | actually is |
+|---|---|---|
+| "Goodbye." | 1074.31 → 1074.83 | **1074.89 → 1075.38** |
+
+`shots.json` s10's `to_anchor` is "Have a great day. Goodbye", and it resolved to
+1074.83 — which is 0.06s BEFORE the word begins. So the HeyGen slice never
+contained "Goodbye", the render could not say it, and no amount of sync work
+fixes that: the word was never in the driving audio.
+
+This is not a tail-only artifact. Checking every span's end against the
+acoustic end of speech: drift runs -0.18s to **+0.69s** (worst: s04), scattered,
+not accumulating. Mid-video it hides, because a graphic or screen segment
+follows and nobody notices the host got cut off a fraction early. On the LAST
+span it is fully exposed, because the only thing after it is the gap-filler.
+
+Root cause is that the word times come from a Groq/Whisper pass over the SCREEN
+RECORDING audio, re-timed with `alignScriptToWords`, while the master clock and
+the HeyGen slices are cut from `vo.mp3`. The two agree to a few hundred ms, not
+to the frame.
+
+What to do about it, in order:
+- **Never trust a transcript timestamp for the last span's end.** Verify it with
+  `silencedetect=noise=-45dB:d=0.20` on `vo.mp3` before slicing.
+- A span whose `to_anchor` is the video's final phrase should end at the VO's
+  acoustic end of speech, not at the anchor's resolved time.
+- Fixing it AFTER render costs a metered Avatar IV re-render, so it belongs at
+  320/420, not at 530.
+
+The accepted fix for THIS video did not re-render: the owner chose to let the
+goodbye play over black. Video fades out across the natural pause
+(1074.65 → 1074.89) so it is black exactly as the word starts, and the audio is
+stream-copied, so the voice is bit-identical and complete. Shipped as v15.
+
+An ending that lands on a gap-filler is a smell in general — v12 cut to a stray
+browser screenshot there, v13 froze the host for 1.5s. Neither was authored;
+both were the tail-gap filler being seen.
+
+**Fixed inline the same day** (owner: "you do inline fix, no boss"), two halves,
+both gated:
+
+- `lib/vo-speech.mjs` (new) probes vo.mp3 with `silencedetect=noise=-45dB:d=0.20`
+  and returns speech/silence intervals. The `run` seam is injectable so the
+  parsing is unit-tested without ffmpeg, and a failed probe THROWS — reporting
+  "no silence, all speech" would silently pass the gate it exists to fail.
+- `resolveShots(shotsFile, words, { voSpeechEnd })` — the SNAP_EDGE tail snap now
+  targets `max(transcriptTotal, voSpeechEnd)` instead of the transcript total, so
+  the last span covers the real end of speech. Only ever extends. Without
+  `voSpeechEnd` (no vo.mp3 yet) behaviour is byte-identical to before.
+- **E9 tail-speech-uncovered** in `lint-shots.mjs` is the safety net, scoped to
+  the LAST span and only when tail-adjacent — mid-video, speech continuing past
+  a span is the normal hand-off to screen narration and would false-positive
+  constantly. `W9` fires when there is no vo.mp3 to check against, rather than
+  passing quietly.
+
+The two fixes collided on first contact and that is worth remembering: snapping
+s10 to 1075.38 immediately tripped **E7 sentence-cut**, because E7's legal
+sentence ends also come from the transcript. E7 already treated "the video edge"
+as legal, so it now seeds `sentenceEnds` with the acoustic end too. A resolver
+that emits a plan its own lint rejects is the failure mode to watch for whenever
+one of these two clocks moves.
+
+Verified end to end on the shipped video: E9 fires on the old
+`shots.resolved.json` as the ONLY error, re-resolving moves s10 to 1075.38, and
+`lint-shots` then exits 0. Full `bash scripts/check.sh` green before and after.
+No `SHOT_CONSTANTS` entry and no `check.sh` edit — new `lib/*.test.mjs` files
+join the gate by existing, so the usual rebase collision on that file is avoided.
