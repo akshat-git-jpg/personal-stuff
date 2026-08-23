@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getVideo, postFinish, putDraft, putSay, restoreSay } from './api'
+import { getVideo, isHosted, postFinish, putDraft, putSay, restoreSay } from './api'
 import type { VideoDoc } from './types'
 import { usePrefs } from './hooks/usePrefs'
 import { Header } from './components/Header'
@@ -10,6 +10,13 @@ import { FullScript, fullScriptStats } from './components/FullScript'
 function getKeyFromUrl(): string {
   const params = new URLSearchParams(window.location.search)
   return params.get('key') ?? ''
+}
+
+// Local mode identifies the video with ?key=; hosted mode identifies it with
+// the secret token already in the path, and api.ts drops the key argument
+// there. So an empty key is only a real problem when we are NOT hosted.
+function hasVideoIdentity(key: string): boolean {
+  return isHosted || key !== ''
 }
 
 function isFinishedError(err: unknown): boolean {
@@ -23,6 +30,7 @@ export function App() {
   const [saveBlocked, setSaveBlocked] = useState(false)
   const [tab, setTab] = useState<'write' | 'full'>('write')
   const key = getKeyFromUrl()
+  const identified = hasVideoIdentity(key)
 
   const fetchDoc = useCallback(() => {
     getVideo(key)
@@ -37,14 +45,28 @@ export function App() {
   }, [key])
 
   useEffect(() => {
-    if (!key) return
+    if (!identified) return
     fetchDoc()
-  }, [key, fetchDoc])
+  }, [identified, fetchDoc])
 
-  if (!key) {
+  if (!identified) {
     return (
       <div className="app">
         <p style={{ padding: '20px 40px' }}>no ?key= in the URL</p>
+      </div>
+    )
+  }
+
+  // A dead or mistyped link resolves to no video at all. Rendering the full
+  // chrome around that — tabs, toggles, "Beats 1-0" — reads as a script that
+  // loaded and turned out empty, so the maker asks why his script vanished.
+  // Say the link is the problem, and show nothing else.
+  if (!doc && loadError === 'notfound') {
+    return (
+      <div className="app">
+        <p className="dead-link">
+          This link isn&rsquo;t valid any more. Ask Kushal for a new one.
+        </p>
       </div>
     )
   }

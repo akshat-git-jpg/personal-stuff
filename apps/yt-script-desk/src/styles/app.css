@@ -287,3 +287,7 @@
   font: 600 13.5px/1.2 var(--sans);
   cursor: pointer;
 }
+
+/* A dead /d/:token link — the only thing on the page, so it cannot be mistaken
+   for a script that loaded empty. */
+.dead-link { padding: 64px 44px; font: 16px/1.6 var(--sans); color: var(--note); }
