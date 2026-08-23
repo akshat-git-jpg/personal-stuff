@@ -845,3 +845,38 @@ net diff still catches a modification to a file that already existed at the base
 Case 2b in `test-pp-push.sh` pins it, and asserts the fixture is not vacuous — the two-point
 diff must see nothing, and the secret must really be readable at the middle commit, or the
 case proves nothing. Mutation-gated: dropping the additions scan fails it.
+
+## 2026-08-23 — round 3 from an outside review: the silent-failure holes
+
+A second session reviewed the whole chain. Five findings, all verified before acting, and one
+of its claims was already stale (`.claude/hooks/` had been added to the verify map hours
+earlier). The push-gate hole has its own entry above. The rest:
+
+**The lander could go missing in total silence.** The `post-commit` hook is untracked and only
+`scripts/relink.sh` installs it; nothing on this Mac re-runs relink on its own. The failure is
+asymmetric, which is what makes it dangerous: a missing `pre-push` makes `pp-push` refuse
+loudly, but a missing `post-commit` produces no land, no `.blocked` entry and no log line —
+commits simply stop reaching main. `boss-session-start.sh` now checks all three hooks are
+armed and names the fix.
+
+**The wall only ever stopped Claude.** It is a `PreToolUse` hook, so a commit typed by a human
+in the main checkout walked straight past it. `guard-install.sh` now also arms a `pre-commit`
+git hook, which git enforces regardless of who invoked the commit; it is silent in linked
+worktrees, and `--no-verify` is the deliberate escape hatch. Writing its test exposed a
+second-order trap worth remembering: planting the wall's marker file in the fixture repo broke
+every LATER case in that suite, because the hook then fired for the suite's own commits.
+
+**Co-tenancy was possible and silent.** Two sessions claiming one slug shared a working tree —
+the original contamination bug moved indoors. It is deliberately NOT made to fail, because the
+owner asked for takeover; it now names the previous session and says how to work in parallel.
+There is no reliable liveness test to do better: the manifest's `pid` is pp-work's own and is
+dead the moment claim returns.
+
+**`pp-work list` took over two minutes** because it ran `du -sh` across ~8 GB. The one screen
+that shows stranded work was too slow to check casually, and an inventory nobody runs protects
+nothing. Sizes are opt-in via `--size` now; `list` returns in about 4 seconds.
+
+Left undone deliberately: the `secretary`/`pp-work` folder-ownership collision (a boss branch
+living inside a pp-work workspace) is an architecture fork, not a bug fix, and is the owner's
+call. The live instance was resolved — the workspace was freed once the safety rule was
+corrected, with PR#196 untouched.

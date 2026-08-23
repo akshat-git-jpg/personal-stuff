@@ -6,6 +6,24 @@ assumed. Executor for implementation: `agy`. Scope: `personal-stuff` only.
 
 Supersedes BRIEF-v1 … v14. Where this file and any BRIEF disagree, this file wins.
 
+> **SUPERSEDED IN PART — read `decisions.md` (entries dated 2026-08-23) first.** This file
+> records the design as approved on the MORNING of 2026-08-23. Two of its requirements were
+> reversed by the owner the same day, so where this file and `decisions.md` disagree,
+> **`decisions.md` wins**:
+>
+> - **R3 "No auto-commit"** — reversed. Auto-commit is now the DEFAULT in this repo, declared
+>   by the repo-level `.claude/skills/commit-now` skill and backed by a `Stop` hook. The
+>   owner's reason: worktrees made uncommitted work invisible, so he wanted forgetting it to
+>   be impossible.
+> - **"a second live claim fails … never co-tenancy"** (§6) — reversed. A re-claim of the same
+>   slug SUCCEEDS and returns the same folder, because the owner asked for a new session to be
+>   able to pick up an interrupted one. It now prints a note naming the previous session
+>   rather than refusing.
+>
+> Also stale here: `branch-guard.sh` is deleted (replaced by
+> `.claude/hooks/no-history-in-main.sh`), and the wall gained a `pre-commit` half so it stops
+> commits typed by a human, not only those run by Claude.
+
 ---
 
 ## 1. The problem

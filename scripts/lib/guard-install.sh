@@ -95,5 +95,40 @@ exit 0
 HOOK
   chmod +x "$hooks/post-commit"
   echo "guard: armed post-commit at $hooks/post-commit"
+
+  # The other half of the wall. `.claude/hooks/no-history-in-main.sh` is a PreToolUse hook,
+  # so it only ever sees commands Claude runs — a human typing `git commit` in the main
+  # checkout walks straight past it. This git hook closes that half, and git enforces it
+  # regardless of who or what invoked the commit.
+  #
+  # It lives in the SHARED .git/hooks, so it fires from the main checkout and from every
+  # linked worktree; the linked-worktree test below is what makes it a no-op in workspaces,
+  # which are the sanctioned place to record history. `--no-verify` bypasses it, which is the
+  # deliberate escape hatch and the analogue of GUARD_OK=1.
+  cat > "$hooks/pre-commit" <<'PRECOMMIT'
+#!/usr/bin/env bash
+# Refuses a commit in the MAIN checkout of this repo. Silent in linked worktrees.
+set -uo pipefail
+read -r GD GCD < <(git rev-parse --path-format=absolute --git-dir --git-common-dir 2>/dev/null | tr '\n' ' ')
+[ -n "${GD:-}" ] && [ -n "${GCD:-}" ] || exit 0
+[ "$GD" = "$GCD" ] || exit 0            # a linked worktree — allowed, that is the whole point
+MAIN_TOP="$(dirname "$GCD")"
+[ -f "$MAIN_TOP/.claude/hooks/no-history-in-main.sh" ] || exit 0   # not the repo that ships the wall
+cat >&2 <<MSG
+BLOCKED: recording git history in the main checkout.
+
+Two sessions share this working tree, so a commit here can capture another session's
+uncommitted edits.
+
+Do this instead:
+  cd "\$(pp-work claim --kind code --slug <short-task-name>)"
+and commit there. It lands on main by itself.
+
+Deliberate one-off: git commit --no-verify
+MSG
+exit 1
+PRECOMMIT
+  chmod +x "$hooks/pre-commit"
+  echo "guard: armed pre-commit at $hooks/pre-commit"
   return 0
 }
