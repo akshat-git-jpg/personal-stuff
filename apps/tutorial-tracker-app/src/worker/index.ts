@@ -47,6 +47,7 @@ import {
 import { derive, statusOf } from "../shared/engine/derive";
 import { colOf, stageHasReviewerSlot, createFieldsOf, requiredToCreate } from "../shared/engine/types";
 import { lifecycle, eventTypeFor } from "../shared/engine/lifecycle";
+import { liveHoldingsFor, rolesRemoved } from "../shared/engine/holdings";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
 import { sendNotification } from "./notifications";
@@ -217,6 +218,21 @@ app.post("/api/team", async (c) => {
 
   if (Object.keys(clean).length === 0) return c.json({ error: "assign at least one role in one system" }, 400);
 
+  // Taking a role (or a whole system) away strands work just as surely as a full
+  // removal does — same refusal, scoped to what this save would actually revoke.
+  const before = await getStore(c.env).lookupMemberships(email);
+  const gone = rolesRemoved(before, clean);
+  if (gone.roles.length) {
+    const holdings = liveHoldingsFor(email, await cachedReadRows(c.env), gone);
+    if (holdings.length) {
+      return c.json({
+        error: "holds_live_work",
+        message: `${name} still has ${holdings.length} unfinished job${holdings.length === 1 ? "" : "s"} needing ${gone.roles.join(", ")}. Hand them to someone else first.`,
+        holdings,
+      }, 409);
+    }
+  }
+
   const result = await getStore(c.env).saveMemberships(name, email, clean);
   await bustBoardCache(c.env);
   return c.json({ ok: true, result });
@@ -232,6 +248,18 @@ app.post("/api/team/delete", async (c) => {
   if (email.toLowerCase() === PROTECTED_ADMIN_EMAIL) {
     return c.json({ error: "the founding admin is fixed and can't be removed" }, 403);
   }
+  // Refuse while they still stand on unfinished work. Deleting the employee row
+  // does NOT touch the cards, so their stages would keep a dead email: invisible
+  // in everyone's "My work", movable only by an admin, and nothing would say so.
+  const holdings = liveHoldingsFor(email, await cachedReadRows(c.env));
+  if (holdings.length) {
+    return c.json({
+      error: "holds_live_work",
+      message: `${email} still has ${holdings.length} unfinished job${holdings.length === 1 ? "" : "s"}. Hand them to someone else first.`,
+      holdings,
+    }, 409);
+  }
+
   const removed = await getStore(c.env).deleteEmployee(email);
   await bustBoardCache(c.env);
   return c.json({ ok: removed });

@@ -15,10 +15,12 @@
 
 import { useEffect, useState, useMemo } from "react";
 import {
-  getTeam, getRoleOptions, saveTeamMember, deleteTeamMember, type TeamMember, type PipelineSummary,
+  getTeam, getRoleOptions, saveTeamMember, deleteTeamMember, updateCell,
+  HoldsLiveWorkError, type Holding, type TeamMember, type PipelineSummary,
 } from "./api";
+import type { Column } from "../shared/columns";
 import { AssignmentDefaults } from "./AssignmentDefaults";
-import { Lock, Plus } from "lucide-react";
+import { AlertTriangle, Lock, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -51,6 +53,84 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
   // null = nothing open; "__new__" = add form; otherwise the email being edited.
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
+
+  // A removal the server refused because the person still stands on live work.
+  // `retry` re-runs the exact change once every job has been handed over, so the
+  // admin never has to remember what they were doing.
+  const [handover, setHandover] = useState<
+    { email: string; name: string; message: string; jobs: Holding[]; retry: () => Promise<void> } | null
+  >(null);
+  const [handingOver, setHandingOver] = useState<string | null>(null);
+
+  /** Run a team change; if the server refuses it, open the handover panel. */
+  async function attempt(m: { email: string; name: string }, change: () => Promise<void>) {
+    setBusy(true); setError(null);
+    try {
+      await change();
+      setHandover(null);
+      await load(); onChanged?.();
+    } catch (e) {
+      if (e instanceof HoldsLiveWorkError) {
+        setHandover({ email: m.email, name: m.name, message: e.message, jobs: e.holdings, retry: change });
+      } else {
+        setError(e instanceof Error ? e.message : "That didn't work");
+      }
+    } finally { setBusy(false); }
+  }
+
+  /** Who can take this job: holds the needed role in that job's own system. */
+  function candidatesFor(job: Holding, exclude: string): TeamMember[] {
+    const wanted = exclude.trim().toLowerCase();
+    return members
+      .filter((m) => m.email.trim().toLowerCase() !== wanted)
+      .filter((m) => isAdminMember(m) || rolesIn(m, job.pipelineId).includes(job.role))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /** Hand one job over. When the last one goes, the refused change is retried. */
+  async function handOver(job: Holding, toEmail: string) {
+    if (!handover || !toEmail) return;
+    const key = `${job.row_id}:${job.col}`;
+    setHandingOver(key); setError(null);
+    try {
+      await updateCell(job.row_id, job.col as Column, toEmail);
+      const left = handover.jobs.filter((j) => `${j.row_id}:${j.col}` !== key);
+      if (left.length === 0) {
+        await attempt({ email: handover.email, name: handover.name }, handover.retry);
+      } else {
+        setHandover({ ...handover, jobs: left });
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't hand that over");
+    } finally { setHandingOver(null); }
+  }
+
+  /** Hand every listed job to one person, then retry the refused change. */
+  async function handOverAll(toEmail: string) {
+    if (!handover || !toEmail) return;
+    setHandingOver("__all__"); setError(null);
+    try {
+      for (const job of handover.jobs) {
+        if (!candidatesFor(job, handover.email).some((c) => c.email === toEmail)) {
+          setError(`That person can't take the ${job.stageLabel} job on "${job.title}" — hand that one over on its own.`);
+          return;
+        }
+      }
+      for (const job of handover.jobs) await updateCell(job.row_id, job.col as Column, toEmail);
+      await attempt({ email: handover.email, name: handover.name }, handover.retry);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't hand those over");
+    } finally { setHandingOver(null); }
+  }
+
+  /** People who could take EVERY listed job — the one-click path. Not memoised:
+   *  it depends on candidatesFor, which is rebuilt each render, so a memo would
+   *  recompute anyway while pretending not to. It is a handful of array passes. */
+  const takesEverything: TeamMember[] = !handover || handover.jobs.length === 0
+    ? []
+    : handover.jobs
+        .map((j) => candidatesFor(j, handover.email))
+        .reduce((acc, list) => acc.filter((m) => list.some((x) => x.email === m.email)));
 
   const systemName = (id: string) => systems.find((s) => s.id === id)?.name ?? id;
 
@@ -95,18 +175,17 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
     if (!draft.name.trim()) return setError("Name is required");
     if (!draft.email.includes("@")) return setError("A valid email is required");
     if (draft.roles.length === 0) return setError(`Pick at least one role in ${systemName(activeSystem)}`);
-    setBusy(true); setError(null);
-    try {
-      const email = draft.email.trim().toLowerCase();
-      // Merge: keep this person's roles in OTHER systems, set their roles here.
-      const existing = members.find((m) => m.email === email);
-      const next: Record<string, string[]> = { ...(existing?.memberships ?? {}) };
-      next[activeSystem] = draft.roles;
+    const email = draft.email.trim().toLowerCase();
+    // Merge: keep this person's roles in OTHER systems, set their roles here.
+    const existing = members.find((m) => m.email === email);
+    const next: Record<string, string[]> = { ...(existing?.memberships ?? {}) };
+    next[activeSystem] = draft.roles;
+    // Taking a role away here can strand work, so it goes through the same
+    // refuse-and-hand-over path a removal does.
+    await attempt({ email, name: draft.name.trim() }, async () => {
       await saveTeamMember({ name: draft.name.trim(), email: draft.email.trim(), memberships: next });
-      setEditing(null); await load(); onChanged?.();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    } finally { setBusy(false); }
+      setEditing(null);
+    });
   }
 
   async function removeFromSystem(m: TeamMember) {
@@ -116,8 +195,7 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
       ? `Remove ${m.name} from ${systemName(activeSystem)}? They keep their access to their other system(s).`
       : `Remove ${m.name} (${m.email}) from the team entirely? They'll lose all access.`;
     if (!confirm(msg)) return;
-    setBusy(true); setError(null);
-    try {
+    await attempt(m, async () => {
       const next: Record<string, string[]> = { ...(m.memberships ?? {}) };
       delete next[activeSystem];
       const realSystems = Object.keys(next).filter((k) => k !== "*");
@@ -126,10 +204,92 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
       } else {
         await saveTeamMember({ name: m.name, email: m.email, memberships: next });
       }
-      await load(); onChanged?.();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Remove failed");
-    } finally { setBusy(false); }
+    });
+  }
+
+  /** The refusal, made actionable: every stranded job with a way to hand it on.
+   *  Rendered inline under the person, so the list and the person stay together. */
+  function renderHandover() {
+    if (!handover) return null;
+    const many = handover.jobs.length !== 1;
+    return (
+      <div data-testid="handover-panel" className="mt-2 space-y-3 rounded-[10px] border border-amber-500/40 bg-amber-500/5 p-4">
+        <div className="flex items-start gap-2">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-500" aria-hidden="true" />
+          <div className="space-y-0.5">
+            <div className="text-sm font-semibold text-foreground">
+              Can&rsquo;t remove {handover.name} yet &mdash; {handover.jobs.length} unfinished job{many ? "s" : ""}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Hand {many ? "each one" : "it"} to someone else first. Removing {handover.name} now would leave
+              {many ? " these videos" : " this video"} with nobody able to move {many ? "them" : "it"}.
+            </div>
+          </div>
+        </div>
+
+        {takesEverything.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-background/60 px-3 py-2">
+            <span className="text-xs font-medium text-foreground/80">Hand all {handover.jobs.length} to</span>
+            <select
+              data-testid="handover-all"
+              className={cn(inputCls, "h-8 w-auto min-w-52 text-xs")}
+              defaultValue=""
+              disabled={handingOver !== null || busy}
+              onChange={(e) => { const v = e.target.value; e.target.value = ""; void handOverAll(v); }}
+            >
+              <option value="">Choose someone&hellip;</option>
+              {takesEverything.map((c) => (
+                <option key={c.email} value={c.email}>{c.name}</option>
+              ))}
+            </select>
+            <span className="text-[11px] text-muted-foreground">or one at a time below</span>
+          </div>
+        )}
+
+        <ul className="space-y-2">
+          {handover.jobs.map((job) => {
+            const key = `${job.row_id}:${job.col}`;
+            const options = candidatesFor(job, handover.email);
+            return (
+              <li key={key} data-testid="handover-job"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-background/60 px-3 py-2">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-foreground">{job.title}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {job.stageLabel} &middot; {job.status.toLowerCase()} &middot; {job.pipelineName}
+                    {job.slot === "reviewer" && " · as reviewer"}
+                  </div>
+                </div>
+                {options.length > 0 ? (
+                  <select
+                    aria-label={`Hand the ${job.stageLabel} job on ${job.title} to someone else`}
+                    className={cn(inputCls, "h-8 w-auto min-w-44 text-xs")}
+                    defaultValue=""
+                    disabled={handingOver !== null || busy}
+                    onChange={(e) => { const v = e.target.value; e.target.value = ""; void handOver(job, v); }}
+                  >
+                    <option value="">{handingOver === key ? "Handing over…" : "Hand to…"}</option>
+                    {options.map((c) => (
+                      <option key={c.email} value={c.email}>{c.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="text-[11px] font-medium text-destructive">
+                    Nobody else is a {job.role} in {job.pipelineName} &mdash; add one first.
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="flex justify-end">
+          <Button size="sm" variant="ghost" disabled={handingOver !== null} onClick={() => setHandover(null)}>
+            Leave them on the team
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   function renderForm(isNew: boolean) {
@@ -208,9 +368,11 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
           {roster.map((m) => {
             const isAdmin = isAdminMember(m);
             return editing === m.email ? (
-              <div key={m.email}>{renderForm(false)}</div>
+              // The edit form stays open behind a refused save, so the handover
+              // panel has to ride along with it too — not only the collapsed row.
+              <div key={m.email}>{renderForm(false)}{handover?.email === m.email && renderHandover()}</div>
             ) : (
-              <div key={m.email} className="flex flex-col gap-2 rounded-[10px] border border-border bg-card p-4 shadow-xs">
+              <div key={m.email} data-testid={`team-row-${m.email}`} className="flex flex-col gap-2 rounded-[10px] border border-border bg-card p-4 shadow-xs">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex flex-col min-w-0">
                     <span className="text-[16px] font-semibold leading-snug tracking-tight text-foreground">{m.name}</span>
@@ -239,6 +401,7 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
                       .join(" · ")
                   )}
                 </div>
+                {handover?.email === m.email && renderHandover()}
               </div>
             );
           })}

@@ -1,5 +1,8 @@
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
+import type { Holding } from "../shared/engine/holdings";
+
+export type { Holding };
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -11,6 +14,19 @@ export class ForbiddenError extends Error {
 }
 export class ConflictError extends Error {
   constructor() { super("Someone else changed this just now"); this.name = "ConflictError"; }
+}
+
+/** A team removal was refused because the person still stands on unfinished
+ *  work. Carries that work so the Team panel can offer it for reassignment. */
+export class HoldsLiveWorkError extends Error {
+  // A plain field, not a constructor parameter property — the app build runs
+  // with erasableSyntaxOnly, which rejects those.
+  holdings: Holding[];
+  constructor(message: string, holdings: Holding[]) {
+    super(message);
+    this.name = "HoldsLiveWorkError";
+    this.holdings = holdings;
+  }
 }
 
 /** Per-stage allowed transitions the server computed for this card + user. */
@@ -71,8 +87,14 @@ export interface ReviewQueueData { count: number; items: ReviewItem[]; names?: R
 async function throwOnError(res: Response): Promise<void> {
   if (res.ok) return;
   if (res.status === 401) throw new UnauthorizedError();
-  let message = "";
-  try { message = ((await res.json()) as { message?: string }).message ?? ""; } catch { /* ignore */ }
+  let body: { error?: string; message?: string; holdings?: Holding[] } = {};
+  try { body = (await res.json()) as typeof body; } catch { /* ignore */ }
+  const message = body.message ?? "";
+  // A refused removal is a 409 too, but it carries work to hand over — it must
+  // not collapse into the generic "someone else changed this" conflict.
+  if (body.error === "holds_live_work") {
+    throw new HoldsLiveWorkError(message || "That person still has unfinished work.", body.holdings ?? []);
+  }
   if (res.status === 409) throw new ConflictError();
   if (res.status === 403) throw new ForbiddenError(message);
   throw new Error(message || `HTTP ${res.status}`);
