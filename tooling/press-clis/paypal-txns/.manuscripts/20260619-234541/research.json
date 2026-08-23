@@ -1,0 +1,115 @@
+{
+  "api_name": "paypal-txns",
+  "novelty_score": 0,
+  "alternatives": [],
+  "gaps": [],
+  "patterns": [],
+  "recommendation": "proceed",
+  "researched_at": "2026-06-19T00:00:00Z",
+  "novel_features": [
+    {
+      "name": "Monthly income summary",
+      "command": "income",
+      "description": "Total money received from PayPal grouped by month and currency over any date range.",
+      "rationale": "PayPal's Transaction Search endpoint caps each call at a 31-day window and paginates; this command auto-chunks the full range, fetches every page, filters to credit/received transactions, and rolls up the totals locally.",
+      "example": "paypal-txns-pp-cli income --since 5mo --json",
+      "why_it_matters": "Pick this when an agent or user asks how much came in over a multi-month period - a single raw API call cannot answer it.",
+      "group": "Income reporting"
+    },
+    {
+      "name": "Windowed transaction history",
+      "command": "history",
+      "description": "Fetch every transaction across an arbitrary date range, transparently handling PayPal's 31-day-per-call limit and pagination.",
+      "rationale": "The raw /v1/reporting/transactions endpoint rejects ranges over 31 days and returns at most 500 rows per page; this command splits the range into windows and walks all pages so the caller gets one complete list.",
+      "example": "paypal-txns-pp-cli history --since 4mo --status S --json",
+      "why_it_matters": "Use this to export a full transaction list for a period without writing windowing or pagination loops by hand.",
+      "group": "Income reporting"
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Monthly income summary",
+      "command": "income",
+      "description": "Total money received from PayPal grouped by month and currency over any date range.",
+      "rationale": "PayPal's Transaction Search endpoint caps each call at a 31-day window and paginates; this command auto-chunks the full range, fetches every page, filters to credit/received transactions, and rolls up the totals locally.",
+      "example": "paypal-txns-pp-cli income --since 5mo --json",
+      "why_it_matters": "Pick this when an agent or user asks how much came in over a multi-month period - a single raw API call cannot answer it.",
+      "group": "Income reporting"
+    },
+    {
+      "name": "Windowed transaction history",
+      "command": "history",
+      "description": "Fetch every transaction across an arbitrary date range, transparently handling PayPal's 31-day-per-call limit and pagination.",
+      "rationale": "The raw /v1/reporting/transactions endpoint rejects ranges over 31 days and returns at most 500 rows per page; this command splits the range into windows and walks all pages so the caller gets one complete list.",
+      "example": "paypal-txns-pp-cli history --since 4mo --status S --json",
+      "why_it_matters": "Use this to export a full transaction list for a period without writing windowing or pagination loops by hand.",
+      "group": "Income reporting"
+    }
+  ],
+  "narrative": {
+    "display_name": "PayPal Transaction Search",
+    "headline": "Read-only PayPal income reporting that handles the 31-day window limit for you - pull months of transactions and a monthly income summary in one command.",
+    "value_prop": "Wraps PayPal's official Transaction Search and Balances reporting API for a Business account. The headline 'income' command auto-chunks any date range into the 31-day windows PayPal requires, paginates each, and rolls up money received by month and currency. 'history' returns the full windowed transaction list. Read-only by design - no ban surface, just the sanctioned reporting path.",
+    "auth_narrative": "Uses OAuth2 client-credentials against your PayPal Business account. Create a Live REST app at developer.paypal.com, enable the Transaction Search feature on it (grants the reporting/search/read scope), then set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET. The CLI exchanges them for a Bearer token automatically. Defaults to the live api-m.paypal.com host.",
+    "quickstart": [
+      {
+        "command": "paypal-txns-pp-cli doctor --dry-run",
+        "comment": "Confirm the binary and config resolve before hitting the API."
+      },
+      {
+        "command": "paypal-txns-pp-cli income --since 5mo",
+        "comment": "Money received by month over the last five months."
+      },
+      {
+        "command": "paypal-txns-pp-cli history --since 1mo --json",
+        "comment": "Full transaction list for the last month as JSON."
+      }
+    ],
+    "troubleshoots": [
+      {
+        "symptom": "PERMISSION_DENIED or scope error",
+        "fix": "Enable the Transaction Search feature on your PayPal app at developer.paypal.com -\u003e Apps \u0026 Credentials -\u003e your app -\u003e Features."
+      },
+      {
+        "symptom": "Empty results for a recent transaction",
+        "fix": "PayPal takes up to 3 hours to make a transaction searchable; wait and retry."
+      },
+      {
+        "symptom": "Date range rejected",
+        "fix": "Transaction Search only covers the last 3 years; pick a start date within that window."
+      }
+    ],
+    "when_to_use": "Reach for this CLI when the task is reading PayPal income for a Business account: how much came in over a period, a monthly breakdown, or a full transaction export. It is the right tool whenever a date range spans more than 31 days, because it handles PayPal's per-call window limit and pagination automatically.",
+    "anti_triggers": [
+      "Do not use this CLI to send money, refund, create invoices, or any write operation - it is read-only reporting.",
+      "Do not use it for transactions older than 3 years - PayPal does not expose them via Transaction Search.",
+      "Do not use it for sub-second-fresh data - PayPal delays searchability by up to 3 hours."
+    ],
+    "recipes": [
+      {
+        "title": "Monthly income, last 5 months",
+        "command": "paypal-txns-pp-cli income --since 5mo",
+        "explanation": "Auto-windows the range and sums money received per month and currency."
+      },
+      {
+        "title": "Export a quarter of transactions as JSON, narrowed fields",
+        "command": "paypal-txns-pp-cli history --start 2026-01-01 --end 2026-03-31 --json --select transactions.transaction_info.transaction_id,transactions.transaction_info.transaction_amount",
+        "explanation": "Pulls a 3-month range across multiple 31-day windows and keeps only the id and amount fields."
+      },
+      {
+        "title": "Current balances",
+        "command": "paypal-txns-pp-cli reporting balances-get --json",
+        "explanation": "Point-in-time account balances by currency from the Balances endpoint."
+      }
+    ],
+    "trigger_phrases": [
+      "how much did I make on paypal",
+      "paypal income last few months",
+      "paypal monthly income",
+      "export my paypal transactions",
+      "paypal transaction history",
+      "use paypal-txns",
+      "run paypal-txns"
+    ]
+  }
+}

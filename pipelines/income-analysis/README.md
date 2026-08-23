@@ -9,10 +9,11 @@ The plan: every income source gets its own CLI or MCP that reads its data, and t
 ### PayPal (Business)
 
 - Account: PayPal Business, multi-currency (I get paid in both INR and USD).
-- Tool: `paypal-txns-pp-cli`. Built with Printing Press from PayPal's official Transaction Search spec. The CLI lives in `~/printing-press/library/paypal-txns/` and the binary is on PATH at `~/go/bin/paypal-txns-pp-cli`. No Claude skill yet.
+- Tool: `paypal-txns-pp-cli`. Built with Printing Press from PayPal's official Transaction Search spec. The CLI lives in `~/printing-press/library/paypal-txns/` and the binary is on PATH at `~/go/bin/paypal-txns-pp-cli`. That folder is not a git repo, so the source is mirrored into this one at `../../tooling/press-clis/paypal-txns/`. No Claude skill yet.
 - Reads: money received grouped by month and then by program/payer, net of PayPal fees, with the INR that actually settled into the bank per program (`income`); the full transaction list (`history`); and account balances. It handles PayPal's 31-day-per-call limit and pagination on its own, so a range like `--since 5mo` just works.
 - Multi-currency gotcha: each USD payout also shows up as an INR conversion credit and an INR bank withdrawal. Those are the same money moving, not new income. `income` counts only the incoming payments (PayPal event-code family T00xx) and attributes the conversion/withdrawal legs back to the programs that funded them (oldest first, split pro-rata). A blank bank amount means that money is still sitting in PayPal.
 - How to query: source the creds and run, e.g. `paypal-txns-pp-cli income --since 5mo`. Or just ask Claude.
+- Output format gotcha: the month-by-program table only prints when stdout is a real terminal. Pipe it, redirect it, or let Claude run it, and you get JSON instead. Pass `--table` to force the table anyway. `--json` still wins if both are given.
 - Notes: read-only reporting. OAuth2 client credentials, so it needs a Live app at developer.paypal.com with the Transaction Search feature switched on, otherwise the token comes back without the reporting scope and every call 403s. Creds sit in `~/.config/paypal-txns-pp-cli/creds.env` (chmod 600, outside any repo); I can rotate the secret from the PayPal dashboard anytime. Only the last 3 years are searchable, and a new transaction takes up to 3 hours to show up.
 
 ### impact.com (affiliate)
