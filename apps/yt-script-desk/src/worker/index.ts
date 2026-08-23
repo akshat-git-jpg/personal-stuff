@@ -21,9 +21,12 @@ export default {
     }
 
     // The SPA reads its token from location.pathname, so /d/:token itself
-    // isn't a static file — serve the built shell for it.
+    // isn't a static file — serve the built shell for it. Fetch '/' and NOT
+    // '/index.html': the assets binding's default html_handling redirects
+    // /index.html to / with a 307, which strips the token before the SPA ever
+    // boots and makes every freelancer link dead.
     if (SHELL_PATH_RE.test(url.pathname)) {
-      return env.ASSETS.fetch(new Request(new URL('/index.html', url), request))
+      return env.ASSETS.fetch(new Request(new URL('/', url), request))
     }
 
     return env.ASSETS.fetch(request)
