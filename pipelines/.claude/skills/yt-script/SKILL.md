@@ -45,8 +45,8 @@ yt-script/
     ├── outline.md             step 2 — the source of truth
     ├── outline.html/.pdf      generated, gitignored — the PDF is what the
     │                          tutorial maker receives
-    ├── script-worksheet.md    step 2 — the WRITE artifact sent to the maker.
-    │                          Voiceover only; pre-filled copy + empty slots
+    ├── script-worksheet.md    step 2 — fallback only, if desk is down
+    ├── desk-draft.json        local-mode scratch, gitignored
     ├── script-draft.md        step 3 INPUT — the team member's completed
     │                          draft, stored verbatim. Provenance, tracked
     ├── script.md              step 3 — the final VO script, human-readable
@@ -260,26 +260,34 @@ Triggered by the owner asking for the outline.
    it). The markdown is **parsed**, so the exact forms in
    OUTLINE-INSTRUCTIONS.md matter — an unrecognised form renders as plain prose
    with no lane and nothing errors.
-4. Render it: `node render-outline.mjs <key>` → `outline.html` + `outline.pdf`.
-   The PDF is what the tutorial maker receives. Both are gitignored.
-5. Generate the write artifact: `node render-worksheet.mjs <key>` →
-   `script-worksheet.md`. It is **script only**: pre-filled spoken copy for every
-   finished beat, and for every body beat a heading with a bare `target — words`
-   marker plus an empty `**Voiceover**` slot. Nothing else.
-6. **Stamp each body beat's word target** from `SCRIPT-INSTRUCTIONS.md`'s budgets
-   — the generator cannot, because those budgets are per *kind* of beat and a
-   parser cannot tell what kind `B4` is. A shipped worksheet still carrying
-   `target — words` is a bug.
-7. The owner sends the maker **both** files: `outline.pdf` to read, and
-   `script-worksheet.md` to fill.
-8. **Stop and wait for approval.** Do not start the script.
+4. Render the read copy: `node render-outline.mjs <key>` → `outline.html` +
+   `outline.pdf`. Both gitignored. The PDF is now a **fallback**, not the
+   handoff — keep making it, because it is what works if the desk is down.
+5. Publish to the script desk:
 
-**The worksheet carries no reference draft and no facts** (owner decision
-2026-08-18, reversing the original design). Both were built and removed: printing
-the outline's body SAY draft into the worksheet made it read as finished copy the
-maker could paste, which defeats the point of asking him to write from his screen
-time. He reads `outline.pdf` for the angle to hit and for every number. Do not
-re-add them, and do not "helpfully" paste knowledge into a slot.
+   ```bash
+   cd apps/yt-script-desk
+   DESK_ADMIN_TOKEN=… node bin/desk.mjs publish <key>
+   ```
+
+   It prints one URL. That URL is the handoff — the maker reads the
+   instructions and writes his lines in the same page, with the two kept in
+   separate tracks. Nothing else is sent.
+6. **Stop and wait for approval.** Do not start the script.
+
+**Instructions never enter the script track.** The desk splits every beat into
+two columns: the words that will be spoken on the left, and the recording
+notes, edit notes and facts on the right. That separation is the whole reason
+the desk exists — the old `outline.pdf` mixed all four in one vertical stream
+and the maker could not tell content from instruction at a glance.
+
+A body beat's `SAY` lane is still a short draft prompt, never finished copy. In
+the desk it appears in the RIGHT track, labelled **Angle** — an instruction he
+reads, not a line he can paste (decisions.md 2026-08-18; enforced by a test in
+`lib/beats.mjs`).
+
+`render-worksheet.mjs` still works and still produces `script-worksheet.md` with a bare `target — words` marker.
+Use it only if the desk is unavailable.
 
 ### Step 3 — the final AI-VO script
 
@@ -292,16 +300,25 @@ a script an AI voiceover engine reads correctly on the first take: pronunciation
 spelling, punctuation that paces the delivery, clean headings, and a hard split
 between the words that are spoken and the words that are not.
 
-1. **Store the draft verbatim first** as `videos/<key>/script-draft.md`, before
-   changing a single character. Never edit it in place, then or later — it is the
-   record of what the team member actually wrote. If it arrived as a link or an
-   attachment, keep the original in `sources/` as well.
-2. **Diff it against what was sent**: `diff script-worksheet.md script-draft.md`.
-   This splits his return into two piles — empty slots he filled (expected) and
-   pre-filled text he changed (the owner must see every one of these). Pre-filled
-   copy is his to change if his screen time showed it wrong, so a change here is
-   legitimate, not a violation; it just may never pass silently. Every one becomes
-   its own line in the step-7 change report.
+1. **Pull his draft down.** From the repo root:
+
+   ```bash
+   cd apps/yt-script-desk
+   DESK_ADMIN_TOKEN=… node bin/desk.mjs pull <key>
+   ```
+
+   It writes `videos/<key>/script-draft.md` — his words, verbatim — and prints
+   to stderr one line per beat whose locked copy he edited. It refuses to
+   overwrite an existing draft without `--force`, because that file is the
+   record.
+
+   If he sent a file or a paste instead (desk unavailable), store it verbatim
+   at that same path by hand. Never edit it in place, then or later, and **Diff it against what was sent**: `diff script-worksheet.md script-draft.md`.
+2. **Read the edited-line list.** Every line `desk.mjs pull` printed is a place
+   he changed copy that was final. Each one becomes its own line in the step-7
+   change report. Changing pre-filled copy is legitimate — his screen time may
+   have shown it wrong — but it may never pass silently. The original is kept
+   in the desk and reachable with its **Restore original** control.
 3. Read `SCRIPT-INSTRUCTIONS.md` in full and follow it exactly. It is the only
    authority on voice, structure, the Voiceover/Notes split, and the VO polish
    rules. If it is a placeholder, stop and ask — same rule as step 2.

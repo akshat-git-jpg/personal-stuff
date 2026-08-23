@@ -1,3 +1,45 @@
 # yt-script-desk
 
-A local write view for the YouTube script pipeline: it reads `outline.md` through `buildBeats()` and lets the maker type his own lines into a two-track screen — spoken copy on the left, instructions on the right — instead of juggling a PDF and a worksheet. See `CLAUDE.md` for how to operate it; a fuller README lands with plan 235.
+A two-track script editor for YouTube tutorial makers, replacing the old PDF handoff.
+
+## What it is
+
+The desk separates instructions from content. It splits every beat into two columns:
+- **Left track (Script):** The exact words that will be spoken on camera.
+- **Right track (Angle/Notes/Facts):** Recording instructions, edit notes, and fact sheets.
+
+This separation prevents the maker from accidentally reading production notes as part of the script, and prevents instructions from bleeding into the final voiceover feed.
+
+## The two views
+
+1. **Freelancer view**: The maker reads the `Angle` prompt and writes their lines in the left track. They cannot edit the instructions.
+2. **Review view**: The owner sees what was changed against the locked pre-filled copy and approves or restores lines.
+
+## Running locally
+
+```bash
+npm install
+npm run dev:local
+```
+Then open `http://localhost:5175/?key=character-consistency-ai` (or any other valid video key you are working on).
+
+## CLI Workflow
+
+The app provides a CLI to push/pull drafts from the skill:
+
+**Publish a script to the desk:**
+```bash
+DESK_ADMIN_TOKEN=… node bin/desk.mjs publish <key>
+```
+It prints a single secret URL. This URL is the only thing sent to the freelancer.
+
+**Pull the completed draft:**
+```bash
+DESK_ADMIN_TOKEN=… node bin/desk.mjs pull <key>
+```
+This downloads their final words to `videos/<key>/script-draft.md` in the pipeline folder and prints a list of any locked lines they edited.
+
+## What the freelancer sees
+
+The freelancer receives a secret link to the desk. There is no login.
+They see a clean, two-column UI where they write their lines on the left, guided by the non-editable instructions on the right.
