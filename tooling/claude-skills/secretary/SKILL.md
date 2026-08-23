@@ -88,6 +88,37 @@ gapped PR is automatically invisible to it without anyone refusing anything.
    action does this — see below). **Do NOT dispatch or implement** — that is
    boss's job.
 
+### The report ALWAYS names the executor
+
+**Every PR you report carries its executor and model, without being asked.**
+Read them out of the plan's frontmatter (`executor:` / `model:`) — never guess,
+never omit. A blank `model:` means the executor's default, which for `agy` is
+Gemini 3.1 Pro (High) and for `claude-p` is Sonnet; print the resolved name, not
+the blank.
+
+Owner rule (2026-08-23): *"whenever you give me summary on the PRs, I find it
+very annoying that you don't share me what executor have you used for which PR.
+I like seeing that."* Routing is an owner-level knob (change-control), so the
+owner has to be able to see the call you made without opening five files.
+
+**One PR** — a single line is enough:
+
+```
+#192 231-yt-script-beats-model  [agy · Gemini 3.1 Pro (High)]  boss:ready
+```
+
+**A batch** — a table, one row per PR, with these columns in this order:
+
+| PR | Plan | Executor | Model | Difficulty | UI gate | Waits for |
+|---|---|---|---|---|---|---|
+| #192 | 231 | `agy` | Gemini 3.1 Pro (High) | standard | — | — |
+| #193 | 232 | `claude-p` | Sonnet | standard | screenshot | #192 |
+
+`Difficulty` comes from the plan's Status block, `UI gate` from `ui:` in the
+frontmatter, `Waits for` from `needs_prs`. If a batch mixes executors, add one
+sentence saying why — the owner reads that as the routing decision, and a silent
+mix reads as an accident.
+
 ## groom
 
 An on-demand sweep of open PRs that retires the ones reality has passed by (a
