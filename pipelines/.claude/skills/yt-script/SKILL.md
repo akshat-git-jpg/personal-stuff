@@ -1,6 +1,6 @@
 ---
 name: yt-script
-description: Turn owner-supplied knowledge into a YouTube outline, then a final AI-voiceover script. Step 1 ingests brain-dump, screenshots, links and YouTube URLs (via transcribe) into knowledge.md; step 2 writes the outline and stops for approval; step 3 takes the team member's completed draft back and makes it VO-ready (pronunciation lexicon, pacing punctuation, Voiceover/Notes split); step 4 (VO generation) is unwired. Triggers on "yt-script", "yt-script-2" (the old name, still accepted), "outline for <video>", "write the outline", "here's the completed draft", "finalise the script", "make it VO-ready".
+description: Turn owner-supplied knowledge into a YouTube outline, then a VO-ready final script. Four owner-driven steps, tabulated in the skill body. Triggers on "yt-script", "yt-script-2" (the old name, still accepted), "outline for <video>", "write the outline", "here's the completed draft", "finalise the script", "make it VO-ready".
 user-invocable: true
 metadata:
   author: kbtg
