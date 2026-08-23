@@ -64,6 +64,12 @@ async function main() {
     await page.waitForSelector('[role="alertdialog"]', { timeout: 5_000 })
     await page.screenshot({ path: join(APP_ROOT, 'docs', 'shots', 'confirm-dialog.png') })
     console.log('shot: wrote docs/shots/confirm-dialog.png')
+    await page.keyboard.press('Escape')
+
+    await page.getByRole('tab', { name: 'Full script' }).click()
+    await page.waitForSelector('.doc', { timeout: 15_000 })
+    await page.screenshot({ path: join(APP_ROOT, 'docs', 'shots', 'full-script.png'), fullPage: true })
+    console.log('shot: wrote docs/shots/full-script.png')
   } finally {
     if (browser) await browser.close()
     apiProc.kill()
