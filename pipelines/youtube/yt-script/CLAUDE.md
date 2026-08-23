@@ -1,178 +1,121 @@
-# yt-script — how to operate here
+# yt-script — folder guide
 
-The operating contract lives in the skill:
-`pipelines/.claude/skills/yt-script/SKILL.md`. The outline format is defined in
-[OUTLINE-INSTRUCTIONS.md](OUTLINE-INSTRUCTIONS.md), the script format in
-[SCRIPT-INSTRUCTIONS.md](SCRIPT-INSTRUCTIONS.md). Read the skill plus whichever
-format file your step needs before doing anything in this folder.
+The flow itself lives in the skill: `pipelines/.claude/skills/yt-script/SKILL.md`.
+This file is the folder map. Read the skill first — it owns the step table and
+the gates; this only says where things are.
 
-## What this folder is
-
-Owner-supplied knowledge → outline → final AI-VO script → voiceover. **Four
-steps**, each gated on the owner asking for the next one.
-
-| Step | In | Out |
-|---|---|---|
-| 1 | the owner's knowledge (4 shapes) | `knowledge.md` |
-| 2 | `knowledge.md` | `outline.md` → `outline.pdf` (he reads) + `script-worksheet.md` (he fills) |
-| 3 | the maker's completed draft back | `script.md` + `script.vo.txt` |
-| 4 | `script.vo.txt` | voiceover audio — **not wired yet** |
-
-The hinge is step 3. The outline PDF is now a fallback, and instead you publish to the desk:
-`cd apps/yt-script-desk && DESK_ADMIN_TOKEN=… node bin/desk.mjs publish <key>`.
-What comes back is **his draft**, pulled via:
-`cd apps/yt-script-desk && DESK_ADMIN_TOKEN=… node bin/desk.mjs pull <key>`.
-Step 3 does not write a script — it finalises his, for an AI voiceover engine:
-pronunciation, spelling, pacing punctuation, clear headings, and a hard split
-between spoken words and production notes. The incoming draft is stored untouched
-as `script-draft.md`; every edit lands in `script.md`.
-
-Step 4 is deliberately open (2026-08-18) — the owner supplies the VO API. Until
-then, stop after step 3 and say so. Do not pick an engine, and do not reach for
-`../../video/tts/` on your own judgement.
-
-**No research happens here.** The line is ingestion vs. discovery: opening exactly
-what the owner handed over (a link, a screenshot, a YouTube URL) is step 1's job;
-going and finding more is not. No `dossiers/` reads, no `yt-research/`, no
-searching, no following a link discovered inside a source. What the owner handed
-over is the whole input.
-
-The outline is written as markdown, then rendered into the PDF the tutorial
-maker actually receives.
-
-The `<key>` in `videos/<key>/` is **not** picked here. It is minted once in
-[`pipelines/video-registry/`](../../video-registry/CLAUDE.md) via `vreg ensure`,
-and is the same string `visuals-flow` uses for the same video. If a video was
-already started on the edit side, `ensure` hands back that key instead of minting
-a second identity — so never slugify the title and use it directly.
-
-## Layout
+## The flow is twelve step folders
 
 ```
-OUTLINE-INSTRUCTIONS.md    owner-owned — the only authority on outline format
-SCRIPT-INSTRUCTIONS.md     owner-owned — the only authority on script format
-render-outline.mjs         outline.md -> outline.html + outline.pdf
-render-script.mjs          script.md  -> script.html  + script.pdf
-render-worksheet.mjs       outline.md -> script-worksheet.md (voiceover only)
-videos/<key>/
-├── knowledge.md           every source as TEXT — the only input steps 2/3 read
-├── sources/               the originals: screenshots, fetched pages, transcripts
-├── outline.md             step 2 — the source of truth
-├── outline.html           generated, gitignored
-├── outline.pdf            generated, gitignored — this is what the maker gets
-├── script-worksheet.md    step 2 — fallback only, if desk is down
-├── desk-draft.json        local-mode scratch, gitignored
-├── script-draft.md        step 3 INPUT — the maker's draft, stored untouched
-├── script.md              step 3 — the final VO script, human-readable
-├── script.vo.txt          step 3 — the engine feed. Step 4's only input.
-│                          Anything in here WILL be spoken out loud
-├── script.html            generated, gitignored
-└── script.pdf             generated, gitignored
+steps/
+  010-take-knowledge-llm/        020-approve-knowledge-human/
+  030-write-outline-llm/         040-approve-outline-human/
+  050-write-script-draft-llm/    060-review-local-desk-human/
+  070-publish-desk-run/          080-freelancer-writes-human/
+  090-pull-draft-run/            100-write-script-llm/
+  110-approve-script-human/      120-voiceover-run/
 ```
 
-## The four source types
+Each holds a `step.json` (the machine record — actor, what it reads, what it
+writes) and a `README.md` (what to actually do). Kinds are `llm`, `run`, `human`.
+Five human gates: 020, 040, 060, 080, 110.
 
-Knowledge arrives in four shapes and all four land as text in `knowledge.md`:
+**Changing a step is local.** Edit its README. Adding one is a new folder plus a
+row in SKILL.md's table — `test/steps.test.mjs` fails if the two disagree.
 
-| Shape | How it is ingested |
-|---|---|
-| Plain-text brain-dump | Pasted verbatim under `## Owner brain-dump`. Never tidied — the mess is signal. |
-| Screenshots | Read as an image, transcribed to text (every number exactly as shown). File kept in `sources/`. |
-| Website links | Fetched, fact-bearing content kept under `## Source: <url> (fetched <date>)`. |
-| YouTube URLs | Transcribed via the `transcribe` skill (`python3 -m common.transcribe fetch`), timestamps kept. |
+## The chain
 
-Full recipes, including what to do when a fetch fails or a price is illegible,
-are in the skill. Two rules matter most:
+```
+knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  script.md
+  (010)           (030)            (050)               (090, his words)     (100)
+```
 
-- **Ingestion is not discovery.** Open exactly what the owner handed over.
-  Following a link found inside a fetched page, searching, or opening a "related"
-  video is out of bounds — `dossiers/` is the discovery library and stays out.
-- **A source left as a URL, an image or a path was not ingested.** Steps 2 and 3
-  read `knowledge.md` and nothing else.
-
-## Rendering
+The handoff is the **script desk** (`apps/yt-script-desk`), not a PDF:
 
 ```bash
-node render-outline.mjs <key>            # writes outline.html + outline.pdf
-node render-outline.mjs <key> --no-pdf   # HTML only
+cd apps/yt-script-desk
+set -a && . ../../infra/secrets/script-desk.env && set +a
 
-node render-script.mjs  <key>            # writes script.html  + script.pdf
-node render-script.mjs  <key> --no-pdf   # HTML only
-node render-worksheet.mjs <key>           # writes script-worksheet.md
-node render-worksheet.mjs <key> --force   # overwrite (loses stamped word targets)
+npm run dev:local                  # 060 — review at localhost:5175/?key=<key>
+node bin/desk.mjs publish <key>    # 070 — prints the freelancer's secret URL
+node bin/desk.mjs list             # every published video and its link
+node bin/desk.mjs pull <key>       # 090 — his draft back as script-draft.md
 ```
 
-Two renderers, not one. `script.md` uses a different grammar from `outline.md`
-(Voiceover/Notes instead of SAY/SHOW/EDIT lanes, numbered sections instead of
-`SECTION:`/beat headings), so `render-script.mjs` is a separate, simpler parser
-styled to match. Both take a `<key>` or a direct path to a `.md` file.
+## Files in this folder
 
-No dependencies. PDF export shells out to headless Chrome (falls back to
-Edge/Chromium, and prints a "use Cmd-P" message if none is installed).
+```
+OUTLINE-INSTRUCTIONS.md       owner-owned — the only authority on outline format
+SCRIPT-PLAN-INSTRUCTIONS.md   owner-owned — the only authority on script-plan format
+SCRIPT-INSTRUCTIONS.md        owner-owned — the only authority on final script format
+lib/beats.mjs                 script-plan.md -> the typed beat model the desk reads
+render-worksheet.mjs          script-plan.md -> script-worksheet.md (voiceover only) — desk-down fallback
+render-outline.mjs            RETIRED 2026-08-23 — not called by any step
+render-script.mjs             RETIRED 2026-08-23 — not called by any step
+steps/                        the twelve step folders
+test/                         beats, worksheet, steps, desk-docs
+videos/<key>/                 one folder per video
+```
 
-Send the maker the **PDF** — it opens on anything, works offline, and needs no
-explanation. The HTML is the same content if he'd rather have something that
-reflows on a second monitor.
+### Inside `videos/<key>/`
 
-### Why the PDF is dark, and why that's load-bearing
+```
+knowledge.md        010 — every source, as TEXT. The only input later steps read
+sources/            010 — the originals. Provenance, tracked
+outline.md          030 — one page, sections + one line each. The direction
+script-plan.md      050 — the beat-by-beat document the desk publishes
+script-worksheet.md fallback only, if the desk is down
+desk-draft.json     local-mode scratch, gitignored
+script-draft.md     090 — the maker's completed work, verbatim. Provenance, tracked
+script.md           100 — the final VO script
+script.vo.txt       100 — the flattened engine feed
+```
 
-It's read on a screen, never printed, and the owner asked for dark. Two details
-in the print CSS keep it working, both of which fail silently if removed:
+## Renamed on 2026-08-23
 
-- `print-color-adjust: exact` — browsers strip background colours when printing.
-  Without it every lane chip and rules box prints as an identical grey
-  rectangle, and the colour coding *is* the layout.
-- `@page { margin: 0 }` with the padding moved onto `.wrap` — with a normal page
-  margin the dark ground stops at the text area and every page gets a white
-  border frame.
+`outline.md` → **`script-plan.md`**, and `OUTLINE-INSTRUCTIONS.md` →
+**`SCRIPT-PLAN-INSTRUCTIONS.md`**.
 
-Parts deliberately do **not** force a page break. They used to, which left pages
-~70% empty in a document that's scrolled rather than bound.
+The old `outline.md` was never an outline: it carried verbatim intro and
+conclusion copy plus 25+ beats with `SAY`/`SHOW`/`EDIT`/`FACTS` lanes, which is a
+draft script. Approving "the outline" therefore meant reading a finished
+document, and a wrong section order cost a full rewrite.
 
-## Why it replaced the original yt-script/ (deleted 2026-08-20)
+`outline.md` is now a genuinely new, one-page document written at step 030 and
+approved at 040 — sections and one line each, no spoken copy, no lanes. The names
+finally mean what they say.
 
-The original `yt-script/` (v1) was hardwired to tier-list comparison videos built from a
-Gemini-generated knowledge base — four tiers, pricing screenshots, ranked
-Winners, affiliate-link mentions. It ran once, and was deleted on 2026-08-20
-(recoverable from git history). This pipeline was built
-deliberately clean (2026-07-31) for any topic, any format, with the owner
-supplying the knowledge directly. The two share no files.
+`lib/beats.mjs`, the desk's local server, the Worker and the tests all read
+`script-plan.md` now.
 
-## The traps
+## Gotchas
 
-- **Step 3 is not a writing step.** It finalises the maker's returned draft. A
-  session that writes a script straight from the outline has skipped the person
-  whose screen time the demo lines come from. No draft back = nothing to do.
-- **Both format files are owner-owned, and empty means ask.** Neither is a
-  placeholder any more (`SCRIPT-INSTRUCTIONS.md` was filled in 2026-08-11), but if
-  either ever reverts to one, stop and ask instead of improvising a format.
-- **The markdown is parsed, not just rendered.** `render-outline.mjs` recognises
-  specific forms (`**SAY**` alone on its line, spoken copy in a blockquote). An
-  unrecognised form falls through to plain prose with no lane, silently. See
-  OUTLINE-INSTRUCTIONS.md for the full table.
-- **Anything left in `script.vo.txt` gets spoken.** A stray Note, heading, or
-  bracketed pronunciation hint in that file is a line the engine reads out loud.
-- **Never commit `outline.html/.pdf` or `script.html/.pdf`** — all four are
-  gitignored, regenerate them. (`script.html`/`script.pdf` were tracked by mistake
-  until 2026-08-18, because `render-script.mjs` shipped without a matching ignore
-  rule.)
-- **The worksheet is voiceover only.** No `SHOW`, no `EDIT`, no rules boxes, no
-  tables. Those are in `outline.pdf`, which he reads beside it. Repeating them in
-  the worksheet is the exact mistake the format exists to prevent, and a test
-  asserts they are absent.
-- **Pre-filled copy is copied, never retyped.** `render-worksheet.mjs` reproduces
-  the outline's blockquote lines byte for byte, so a word cannot drift on its way
-  to camera. Do not route spoken copy through a paragraph-joining helper —
-  `render-outline.mjs`'s `splitParas` joins lines with a space, which is correct
-  for HTML and fatal here. The `PREFILLED_DRIFT` test is the guard.
-- **Instructions never enter the script track.** The desk splits every beat into
-  two columns: the words that will be spoken on the left, and the recording
-  notes, edit notes and facts on the right. That separation is the whole reason
-  the desk exists — the old `outline.pdf` mixed all four in one vertical stream
-  and the maker could not tell content from instruction at a glance.
-- A body beat's `SAY` lane is still a short draft prompt, never finished copy. In
-  the desk it appears in the RIGHT track, labelled **Angle** — an instruction he
-  reads, not a line he can paste (decisions.md 2026-08-18; enforced by a test in
-  `lib/beats.mjs`).
-- **`--force` loses work.** The word targets in a worksheet are stamped by hand by
-  the step-2 session and are not regenerable.
+- **The script plan is PARSED, not just rendered.** `lib/beats.mjs` recognises the
+  exact forms in `SCRIPT-PLAN-INSTRUCTIONS.md`. An unrecognised form falls through
+  to plain prose **silently** — no error, no lane. Getting a form wrong does not
+  fail anything; it produces a worse document that looks fine at a glance.
+- **A pre-spec outline is refused, not half-parsed.** Files written before the
+  format settled use `### 1. Cold Open` and `**Voiceover**`. `buildBeats` throws
+  `LEGACY_OUTLINE_FORMAT` rather than returning the handful of beats it happens to
+  recognise. Two files in `videos/` are still in that state:
+  `ai-avatar-online-courses` and `ai-video-tools-comparison`.
+- **A body beat's `SAY` is a draft prompt, never finished copy.** It reaches the
+  desk as **What to cover** in the instruction track — something he reads, not a
+  line he can paste. Enforced by `BODY_DRAFTS_ARE_INSTRUCTIONS` in `lib/beats.mjs`
+  and its mutation gate.
+- **`script-draft.md` is never edited in place.** It is his words. Yours go in
+  `script.md`.
+- **`PREFILLED_DRIFT`** in the worksheet tests means the worksheet's pre-filled
+  blocks are no longer byte-identical to `script-plan.md`.
+- Generated HTML and PDF are gitignored, and nothing generates them any more.
+
+## Tests
+
+```bash
+cd pipelines/youtube/yt-script
+node --test test/beats.test.mjs test/worksheet.test.mjs test/steps.test.mjs test/desk-docs.test.mjs
+```
+
+`test/steps.test.mjs` is the one that keeps the docs honest: it fails if the step
+folders and SKILL.md's table disagree, if a gate is misnamed, if publishing is
+ordered before the local review, or if a render step comes back.

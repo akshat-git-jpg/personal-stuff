@@ -1,0 +1,17 @@
+{
+  "number": "010",
+  "slug": "010-take-knowledge-llm",
+  "title": "take the knowledge",
+  "actor": "llm",
+  "actorLabel": "[LLM]",
+  "oneLiner": "Reads everything you hand over into one knowledge file.",
+  "consumes": [],
+  "produces": [
+    "knowledge.md",
+    "sources/"
+  ],
+  "gate": null,
+  "external": false,
+  "optional": false,
+  "summary": "The owner's sources - brain-dump, screenshots, links, YouTube URLs - all become TEXT in `videos/<key>/knowledge.md`, with the originals kept in `sources/`. Fetching what you were handed is ingestion; going and finding more is research, and this skill does no research. Ends by naming every gap it can see as a question."
+}

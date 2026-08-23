@@ -1,0 +1,18 @@
+{
+  "number": "120",
+  "slug": "120-voiceover-run",
+  "title": "the voiceover",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "oneLiner": "Not wired yet.",
+  "consumes": [
+    "script.vo.txt"
+  ],
+  "produces": [
+    "voiceover audio"
+  ],
+  "gate": null,
+  "external": false,
+  "optional": true,
+  "summary": "NOT WIRED. `script.vo.txt` is the intended input for the `yt-vo` skill and the TTS hub at `pipelines/video/tts`. Nothing in this skill runs it today."
+}

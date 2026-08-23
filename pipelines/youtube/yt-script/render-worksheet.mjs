@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Render an outline.md into script-worksheet.md — the WRITE artifact the remote
+// Render a script-plan.md into script-worksheet.md — the WRITE artifact the remote
 // tutorial maker fills in. SCRIPT ONLY: the spoken copy that is already final,
 // plus an empty slot per beat he has to write. No SHOW, no EDIT, no rules boxes,
 // no reference drafts and no fact packs — all of that is in outline.pdf, which he
@@ -9,8 +9,8 @@
 // (2026-08-18): reprinting the outline's draft here made it read as finished copy
 // he could paste, which defeats the point of asking him to write from screen time.
 //
-//   node render-worksheet.mjs <slug>          # videos/<slug>/outline.md -> script-worksheet.md
-//   node render-worksheet.mjs path/to/outline.md
+//   node render-worksheet.mjs <slug>          # videos/<slug>/script-plan.md -> script-worksheet.md
+//   node render-worksheet.mjs path/to/script-plan.md
 //   node render-worksheet.mjs <slug> --force  # overwrite an existing worksheet
 //
 // Why a separate parser rather than importing render-outline.mjs's: same reason
@@ -256,11 +256,11 @@ function main(argv) {
   const force = argv.includes('--force')
   const arg = args[0]
   if (!arg) {
-    console.error('usage: node render-worksheet.mjs <slug|path/to/outline.md> [--force]')
+    console.error('usage: node render-worksheet.mjs <slug|path/to/script-plan.md> [--force]')
     process.exit(1)
   }
 
-  const inPath = arg.endsWith('.md') ? resolve(arg) : join(HERE, 'videos', arg, 'outline.md')
+  const inPath = arg.endsWith('.md') ? resolve(arg) : join(HERE, 'videos', arg, 'script-plan.md')
   if (!existsSync(inPath)) {
     console.error(`no outline at ${inPath}`)
     process.exit(1)

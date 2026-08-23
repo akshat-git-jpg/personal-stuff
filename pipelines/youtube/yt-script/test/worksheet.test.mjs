@@ -144,7 +144,7 @@ test('a body beat is exactly heading + empty Voiceover slot', () => {
 })
 
 // The body draft must NOT be duplicated into the worksheet — that text lives only
-// in outline.md / outline.pdf now.
+// in script-plan.md / outline.pdf now.
 test('a body SAY draft never appears in the worksheet', () => {
   const ws = buildWorksheet(FIXTURE)
   assert.ok(
@@ -178,21 +178,21 @@ function outlineQuoteBlocks(md) {
 
 for (const key of REAL) {
   test(`byte identity — ${key}`, () => {
-    const md = readFileSync(join(VIDEOS, key, 'outline.md'), 'utf8')
+    const md = readFileSync(join(VIDEOS, key, 'script-plan.md'), 'utf8')
     const got = prefilledQuoteBlocks(buildWorksheet(md))
     const want = outlineQuoteBlocks(md)
     assert.ok(got.length > 0, `${key}: no pre-filled blocks found at all`)
     for (const block of got) {
       assert.ok(
         want.includes(block),
-        `PREFILLED_DRIFT in ${key}: a pre-filled block is not byte-identical to outline.md.\n--- worksheet ---\n${block}\n`
+        `PREFILLED_DRIFT in ${key}: a pre-filled block is not byte-identical to script-plan.md.\n--- worksheet ---\n${block}\n`
       )
     }
   })
 }
 
 test('byte identity covers a real intro end to end', () => {
-  const md = readFileSync(join(VIDEOS, 'character-consistency-ai', 'outline.md'), 'utf8')
+  const md = readFileSync(join(VIDEOS, 'character-consistency-ai', 'script-plan.md'), 'utf8')
   const ws = buildWorksheet(md)
   assert.ok(
     ws.includes('> "Perfect face. Perfect outfit. Exactly the character you wanted.'),

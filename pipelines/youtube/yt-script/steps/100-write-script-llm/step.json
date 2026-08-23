@@ -1,0 +1,21 @@
+{
+  "number": "100",
+  "slug": "100-write-script-llm",
+  "title": "write the final script",
+  "actor": "llm",
+  "actorLabel": "[LLM]",
+  "oneLiner": "Finalises his words into the VO-ready script.",
+  "consumes": [
+    "script-draft.md",
+    "script-plan.md",
+    "knowledge.md"
+  ],
+  "produces": [
+    "script.md",
+    "script.vo.txt"
+  ],
+  "gate": null,
+  "external": false,
+  "optional": false,
+  "summary": "`script-draft.md` -> `script.md` (human-readable) + `script.vo.txt` (the flattened engine feed, spoken lines only). Follows `SCRIPT-INSTRUCTIONS.md`. This is a FINALISE pass over someone else's words, not a fresh write - his phrasing survives unless it is wrong."
+}

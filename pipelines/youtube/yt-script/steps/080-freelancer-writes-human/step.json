@@ -1,0 +1,16 @@
+{
+  "number": "080",
+  "slug": "080-freelancer-writes-human",
+  "title": "the freelancer writes",
+  "actor": "human",
+  "actorLabel": "[OWNER]",
+  "oneLiner": "He records, writes his lines, tells you he is done.",
+  "consumes": [
+    "a secret desk URL"
+  ],
+  "produces": [],
+  "gate": null,
+  "external": true,
+  "optional": false,
+  "summary": "External. The maker opens the link, reads the intro and conclusion as written, records his screen through the body, and types the demo-specific lines only he can write - the ones that depend on what the tool actually did. He can edit a locked line behind a plain confirmation, and every such edit is reported at 090."
+}

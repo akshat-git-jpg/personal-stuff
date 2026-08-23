@@ -1,0 +1,18 @@
+{
+  "number": "030",
+  "slug": "030-write-outline-llm",
+  "title": "write the outline",
+  "actor": "llm",
+  "actorLabel": "[LLM]",
+  "oneLiner": "One page: sections and headings only, no script.",
+  "consumes": [
+    "knowledge.md"
+  ],
+  "produces": [
+    "outline.md"
+  ],
+  "gate": null,
+  "external": false,
+  "optional": false,
+  "summary": "`knowledge.md` -> `videos/<key>/outline.md`, following `OUTLINE-INSTRUCTIONS.md`. One screen: the intro's hook/credibility/roadmap as bullets, the body sections numbered with one line each, and one line on how the conclusion is organised. No spoken copy, no lanes, no tables. Added 2026-08-23 - before it, the first document written was the full beat draft, so the owner could only judge direction by reading a finished script."
+}

@@ -1,0 +1,16 @@
+{
+  "number": "040",
+  "slug": "040-approve-outline-human",
+  "title": "approve the outline",
+  "actor": "human",
+  "actorLabel": "[OWNER]",
+  "oneLiner": "You approve the direction, while it is cheap to change.",
+  "consumes": [
+    "outline.md"
+  ],
+  "produces": [],
+  "gate": "the direction and the running order are right",
+  "external": false,
+  "optional": false,
+  "summary": "The owner reads one page and approves what the video IS and what order it happens in - or reorders, renames, or cuts sections. The last cheap moment to change direction. Once approved the section names are locked, because the script plan's `### SECTION:` headings and the intro roadmap must match them word for word."
+}
