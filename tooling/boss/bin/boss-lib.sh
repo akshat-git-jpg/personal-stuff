@@ -236,6 +236,37 @@ boss_ensure_labels() {
 # migrates the slug keys in all three ledgers, so there the ledger IS the intent
 # and a blanket ban makes the plan unmergeable. Opt-out is per-plan and explicit,
 # so the rule still binds everywhere it was written for (2026-08-07, PR#159).
+# Dependency prelude for anything boss runs in a POOL worktree.
+#
+# The greenlight verify and the mutation command do NOT run in the crew's
+# worktree — each leases its own slot out of the pool of 8. `node_modules` is
+# gitignored and `wt`'s reset uses `git clean -fd` (no -x), so ignored files
+# survive a lease but are PER SLOT: whether the slot you happen to draw has ever
+# built this app is a coin flip. PR#197 (2026-08-23) burned two merge cycles on
+# "mutation gate: command already fails on CLEAN state" for exactly this — the
+# crew's own tests were green, the gate's slot simply had no node_modules.
+#
+# The invariant is "a plan's test_cmd must run in a clean checkout". Asking plan
+# authors to remember an install step is prose, and prose is a suggestion. So
+# boss derives the install step itself, from the command's own `cd` targets, and
+# prepends it. Works for every plan already written, not just future ones.
+#
+# Presence is tested against the BRANCH, not the working tree or main: a plan
+# that creates a new app has no package.json on main yet.
+boss_dep_prelude() {
+  local cmd="$1" branch="$2" dir prelude="" seen=""
+  while IFS= read -r dir; do
+    [ -n "$dir" ] || continue
+    case " $seen " in *" $dir "*) continue ;; esac
+    seen="$seen $dir"
+    git -C "$REPO_ROOT" cat-file -e "$branch:$dir/package.json" 2>/dev/null || continue
+    prelude="${prelude}(cd $dir && npm install --no-audit --no-fund --silent) && "
+  done <<EOF
+$(printf '%s' "$cmd" | grep -oE '\bcd[[:space:]]+[^&|;[:space:]]+' | sed -E 's/^cd[[:space:]]+//' | sed -E 's/[\"'"'"']//g')
+EOF
+  printf '%s' "$prelude"
+}
+
 boss_hygiene_gate() {
   local branch="$1" planfile="${2:-}" files allow_artifacts=""
   files=$(git -C "$REPO_ROOT" diff --name-only "origin/main...$branch" 2>/dev/null)
@@ -306,6 +337,10 @@ boss_mutation_gate() {
   cwd=$(fm_get mutation_cwd "$plan" 2>/dev/null)
   tbin=$(boss_timeout_bin) || { echo "mutation gate needs gtimeout (brew install coreutils)"; return 0; }
   ttl=$(fm_get mutation_timeout "$plan" 2>/dev/null); ttl="${ttl:-600}"
+  # Install deps the leased slot may not have — see boss_dep_prelude. Without
+  # this the gate reports "command already fails on CLEAN state" and the recipe
+  # gets blamed for a missing node_modules.
+  cmd="$(boss_dep_prelude "$cmd" "$branch")$cmd"
 
   # Refuse to run against a dirty tree — we must be able to restore by checkout.
   dirty=$(git -C "$wt" status --porcelain 2>/dev/null)

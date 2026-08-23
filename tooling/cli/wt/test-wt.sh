@@ -253,4 +253,23 @@ set -e
 grep -q "breaking stale pool lock" "$lock_err" || fail "wt did not report breaking the stale lock"
 rm -f "$lock_err"
 
+# 21. return --holder REFUSES when the lease names someone else, and does not free
+#     or reset the slot. Pre-fix `wt return <path>` was custody-blind, so a caller
+#     holding a stale path clobbered a slot re-leased to a live crew (boss-merge for
+#     PR#195 detached PR#197's worktree under its running crew, 2026-08-23).
+p21=$("$WT_BIN" get --repo "$TEST_REPO" --holder owner-A 2>/dev/null)
+n21=$(basename "$(dirname "$p21")")
+set +e
+err21=$("$WT_BIN" return "$p21" --holder owner-B 2>&1)
+rc=$?
+set -e
+[ "$rc" -eq 3 ] || fail "return --holder with the WRONG holder should exit 3, got $rc"
+echo "$err21" | grep -q "leased to 'owner-A'" || fail "return --holder did not name the real lease holder"
+[ -f "$pool_dir/$n21.lease" ] || fail "return --holder FREED a slot owned by someone else"
+
+# 22. ...and the matching holder still returns it (the fix must not break the path
+#     every boss call site now takes).
+"$WT_BIN" return "$p21" --holder owner-A >/dev/null 2>&1 || fail "return --holder with the RIGHT holder failed"
+[ ! -f "$pool_dir/$n21.lease" ] || fail "return --holder did not free a slot it owns"
+
 echo "ALL TESTS PASSED"

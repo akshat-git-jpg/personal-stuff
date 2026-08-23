@@ -236,6 +236,37 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
   **Boss auto-commits a dirty main, so it will commit that other session's
   in-progress work under boss's name** — know what else is running before you start.
 
+### Two properties every `test_cmd` must have (added 2026-08-23, PR#197/#198)
+
+Neither was written down, and nine plans in a row satisfied them by luck.
+
+1. **It must run in a checkout that has never been built.** The greenlight verify and
+   the mutation gate do NOT run in the crew's worktree — each leases its own slot from
+   the pool of 8. `node_modules` is gitignored and `wt`'s reset is `git clean -fd` (no
+   `-x`), so ignored files survive a lease but are **per slot**: whether the slot you
+   draw has ever built that app is a coin flip. PR#197 lost two merge cycles to
+   `mutation gate: command already fails on CLEAN state`, which reads as a broken
+   recipe and was an empty `node_modules`. boss now fixes this itself —
+   `boss_dep_prelude` reads the `cd` targets out of the command and prepends an
+   `npm install` for each one that has a `package.json` **on the branch**. You do not
+   need to write the install step, but do not be surprised to see it in the verify.
+2. **It must leave the tree clean.** Plan 237's `test_cmd` ended in `npm run shot`,
+   which regenerated the two screenshots the branch had just committed. greenlight then
+   parked with `cannot detach at origin/main in worktree` — a message that sends you
+   hunting a git problem that does not exist. A command that regenerates a tracked file
+   must restore it (`&& git checkout -- <path>`). boss-merge now names this cause when
+   a "cannot detach" park meets a dirty worktree, so read that line before debugging git.
+
+### Worktree custody — pass `--holder` on every `wt return`
+
+`wt return <path>` used to delete the lease and hard-reset the worktree **without
+checking who held it**, so a stale path clobbered a slot re-leased to someone else.
+boss-merge for PR#195 returned slot 1 from PR#195's own meta; slot 1 was by then
+leased to PR#197, whose `agy` crew was still working in it. Nothing was lost only
+because the crew had already committed. `wt return` now takes `--holder <label>` and
+exits 3 when the lease names someone else; all five boss call sites pass it. **If you
+add a call site, pass the holder** — a bare `wt return` still works and is still blind.
+
 ### Deterministic pre-merge gates
 
 Every rule here was already in the crew brief and was violated anyway. Prose is a
