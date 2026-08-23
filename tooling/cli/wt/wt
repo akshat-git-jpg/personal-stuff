@@ -28,7 +28,7 @@ function usage() {
   echo "Usage: wt <command> [options]" >&2
   echo "Commands:" >&2
   echo "  get    [--repo <path>] [--holder <label>]" >&2
-  echo "  return <worktree-path>" >&2
+  echo "  return <worktree-path> [--force-dirty]" >&2
   echo "  status [--repo <path>]" >&2
   echo "  prune  [--repo <path>] [--yes]" >&2
   echo "  reap   [--repo <path>] [--ttl-hours <n>] [--yes] [--force-dirty]" >&2
@@ -68,8 +68,14 @@ case "$CMD" in
     done
     ;;
   return)
-    if [ $# -ne 1 ]; then usage; fi
-    TARGET_WT="$1"
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --force-dirty) FORCE_DIRTY=1; shift ;;
+        -*) usage ;;
+        *) [ -n "$TARGET_WT" ] && usage; TARGET_WT="$1"; shift ;;
+      esac
+    done
+    [ -n "$TARGET_WT" ] || usage
     ;;
   *)
     usage
@@ -298,8 +304,16 @@ case "$CMD" in
     if [ -n "$(git -C "$wt_path" log --oneline @{u}..HEAD 2>/dev/null)" ]; then
       echo "WARNING: worktree has unpushed commits" >&2
     fi
-    if [ -n "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
-      echo "WARNING: worktree is dirty" >&2
+    if ! wt_is_clean "$wt_path"; then
+      if [ "$FORCE_DIRTY" -ne 1 ]; then
+        echo "ERROR: worktree is DIRTY — NOT returned" >&2
+        echo "  A mid-flight kill routinely leaves a complete-but-uncommitted implementation;" >&2
+        echo "  losing a slot is far cheaper than losing that work (decisions.md 2026-08-02)." >&2
+        echo "  $wt_path" >&2
+        echo "  Rescue it, or discard it with: wt return --force-dirty $wt_path" >&2
+        exit 1
+      fi
+      echo "wt: returning a DIRTY worktree (--force-dirty: uncommitted work discarded)" >&2
     fi
     
     n_dir=$(dirname "$wt_path")
