@@ -116,6 +116,9 @@ else
 fi
 
 WT_BIN="wt"
+# Absolute path on purpose: the gate must not be shadowable by anything on PATH, and
+# it deliberately lives OUTSIDE every working tree so no branch can edit or delete it.
+PP_PUSH_BIN="${PP_PUSH_BIN:-$HOME/.local/libexec/pp-push}"
 
 # Acquire worktree
 log "Acquiring worktree..."
@@ -389,7 +392,7 @@ for attempt in $(seq 1 "$LAND_ATTEMPTS"); do
     git -C "$WT_PATH" merge --abort >&2 || true
     park "land merge conflict against origin/main"
   fi
-  if git -C "$WT_PATH" push origin HEAD:main >&2; then
+  if "$PP_PUSH_BIN" --repo "$WT_PATH" origin HEAD:main >&2; then
     landed=1; break
   fi
   log "land push rejected (attempt $attempt/$LAND_ATTEMPTS) — origin/main moved; retrying"
