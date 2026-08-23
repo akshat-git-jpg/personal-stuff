@@ -1,5 +1,32 @@
 # Decisions
 
+- **2026-08-23**: The simple intro renderer now builds its card variables
+  through one exported `buildBeatVars()` — enrich images, enrich logos, then
+  inject the renderer-owned `duration` last — and stages the card with the
+  same brand tokens the body injects. Plan 229 pointed the intro at the body
+  catalogue but left three halves of that swap undone, and all three shipped
+  green: it imported `enrichImages`/`enrichLogos` and called neither, it
+  declared `workdir` in `renderCardBeat`'s signature and never passed it (so
+  the value was `undefined` at every call), and it never wrote `duration` into
+  `vars.json` although S4's `renderer-owned-var` rule told authors the renderer
+  "computes it and injects it". The consequence was silent and only visible in
+  a finished render: a beat carrying a shot or a logo staged a card whose src
+  paths resolve to nothing inside the temp dir, and the four ported kit cards —
+  which scale their motion schedule to `VARS.duration ?? 3.5` — ran a 3.5s
+  schedule inside every cut, so a 2.5s beat got chopped a second early. The
+  rule was right and the renderer was wrong, which is the worst version of
+  this bug: the lint actively taught authors that the thing it refuses was
+  already handled. `buildBeatVars()` is exported and separated from
+  `renderCardBeat`'s filesystem work for one reason — the defects survived
+  because no test could see the variables object. Three tests in
+  `lib/intro-kit/render-simple.test.mjs` now assert duration injection (and
+  that an authored value is OVERWRITTEN, not merged over), image inlining, and
+  logo inlining; reverting `buildBeatVars` to the shipped `return beat.vars ??
+  {}` fails all three. Lesson for the next catalogue swap: a shared source
+  means a shared PROTOCOL — staging path, asset enrichment, brand injection and
+  renderer-owned variables all have to move together, and a plan that moves one
+  of them is not done.
+
 - **2026-08-17**: Gate 120 (approve the intro idea) now judges 6-second MOVING
   teasers, not a page of prose. Prose was the cheapest thing to reject, but it
   is a poor way to judge a **look**: three directions described in words all
