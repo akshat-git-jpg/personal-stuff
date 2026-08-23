@@ -1,9 +1,8 @@
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
 import type { Holding } from "../shared/engine/holdings";
-import type { DuplicateMatch } from "../shared/engine/identity";
 
-export type { Holding, DuplicateMatch };
+export type { Holding };
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -15,18 +14,6 @@ export class ForbiddenError extends Error {
 }
 export class ConflictError extends Error {
   constructor() { super("Someone else changed this just now"); this.name = "ConflictError"; }
-}
-
-/** A new team member was refused because they look like someone already on the
- *  team — one mistyped letter in an email makes a second person. Carries the
- *  matches so the admin can edit the existing record instead. */
-export class PossibleDuplicateError extends Error {
-  duplicates: DuplicateMatch[];
-  constructor(message: string, duplicates: DuplicateMatch[]) {
-    super(message);
-    this.name = "PossibleDuplicateError";
-    this.duplicates = duplicates;
-  }
 }
 
 /** A team removal was refused because the person still stands on unfinished
@@ -100,16 +87,13 @@ export interface ReviewQueueData { count: number; items: ReviewItem[]; names?: R
 async function throwOnError(res: Response): Promise<void> {
   if (res.ok) return;
   if (res.status === 401) throw new UnauthorizedError();
-  let body: { error?: string; message?: string; holdings?: Holding[]; duplicates?: DuplicateMatch[] } = {};
+  let body: { error?: string; message?: string; holdings?: Holding[] } = {};
   try { body = (await res.json()) as typeof body; } catch { /* ignore */ }
   const message = body.message ?? "";
   // A refused removal is a 409 too, but it carries work to hand over — it must
   // not collapse into the generic "someone else changed this" conflict.
   if (body.error === "holds_live_work") {
     throw new HoldsLiveWorkError(message || "That person still has unfinished work.", body.holdings ?? []);
-  }
-  if (body.error === "possible_duplicate") {
-    throw new PossibleDuplicateError(message || "That looks like someone already on the team.", body.duplicates ?? []);
   }
   if (res.status === 409) throw new ConflictError();
   if (res.status === 403) throw new ForbiddenError(message);
@@ -169,12 +153,8 @@ export async function getRoleOptions(system?: string): Promise<string[]> {
 }
 
 /** Replace a teammate's full per-system membership set ({ systemId: roles[] }). */
-export async function saveTeamMember(
-  input: { name: string; email: string; memberships: Record<string, string[]> },
-  /** Set once the admin has confirmed they really are a different person. */
-  confirmDuplicate = false,
-): Promise<void> {
-  await throwOnError(await postJSON("/api/team", { ...input, confirm_duplicate: confirmDuplicate }));
+export async function saveTeamMember(input: { name: string; email: string; memberships: Record<string, string[]> }): Promise<void> {
+  await throwOnError(await postJSON("/api/team", input));
 }
 export async function deleteTeamMember(email: string): Promise<void> {
   await throwOnError(await postJSON("/api/team/delete", { email }));

@@ -16,10 +16,8 @@
 import { useEffect, useState, useMemo } from "react";
 import {
   getTeam, getRoleOptions, saveTeamMember, deleteTeamMember, updateCell,
-  HoldsLiveWorkError, PossibleDuplicateError,
-  type Holding, type DuplicateMatch, type TeamMember, type PipelineSummary,
+  HoldsLiveWorkError, type Holding, type TeamMember, type PipelineSummary,
 } from "./api";
-import { findDuplicates } from "../shared/engine/identity";
 import type { Column } from "../shared/columns";
 import { AssignmentDefaults } from "./AssignmentDefaults";
 import { AlertTriangle, Lock, Plus } from "lucide-react";
@@ -64,37 +62,16 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
   >(null);
   const [handingOver, setHandingOver] = useState<string | null>(null);
 
-  // A new person the server thinks already exists under another spelling.
-  // `commit` re-sends the same save with the duplicate check waived.
-  const [maybeDupe, setMaybeDupe] = useState<
-    { name: string; email: string; matches: DuplicateMatch[] } | null
-  >(null);
-
-  /** Existing rows that look like the same human as another row — the mess that
-   *  is already on the team, not a new one being made. Shown as a quiet badge so
-   *  a split person is visible without hunting. */
-  const dupeNotes = useMemo(() => {
-    const people = members.map((m) => ({ name: m.name, email: m.email }));
-    const out = new Map<string, string>();
-    for (const p of people) {
-      const hits = findDuplicates(p, people.filter((o) => o.email !== p.email));
-      if (hits.length) out.set(p.email, hits.map((h) => h.person.email).join(", "));
-    }
-    return out;
-  }, [members]);
-
   /** Run a team change; if the server refuses it, open the handover panel. */
   async function attempt(m: { email: string; name: string }, change: () => Promise<void>) {
     setBusy(true); setError(null);
     try {
       await change();
-      setHandover(null); setMaybeDupe(null);
+      setHandover(null);
       await load(); onChanged?.();
     } catch (e) {
       if (e instanceof HoldsLiveWorkError) {
         setHandover({ email: m.email, name: m.name, message: e.message, jobs: e.holdings, retry: change });
-      } else if (e instanceof PossibleDuplicateError) {
-        setMaybeDupe({ name: m.name, email: m.email, matches: e.duplicates });
       } else {
         setError(e instanceof Error ? e.message : "That didn't work");
       }
@@ -194,7 +171,7 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
     setDraft((d) => ({ ...d, roles: d.roles.includes(r) ? d.roles.filter((x) => x !== r) : [...d.roles, r] }));
   }
 
-  async function save(confirmDuplicate = false) {
+  async function save() {
     if (!draft.name.trim()) return setError("Name is required");
     if (!draft.email.includes("@")) return setError("A valid email is required");
     if (draft.roles.length === 0) return setError(`Pick at least one role in ${systemName(activeSystem)}`);
@@ -206,7 +183,7 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
     // Taking a role away here can strand work, so it goes through the same
     // refuse-and-hand-over path a removal does.
     await attempt({ email, name: draft.name.trim() }, async () => {
-      await saveTeamMember({ name: draft.name.trim(), email: draft.email.trim(), memberships: next }, confirmDuplicate);
+      await saveTeamMember({ name: draft.name.trim(), email: draft.email.trim(), memberships: next });
       setEditing(null);
     });
   }
@@ -228,62 +205,6 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
         await saveTeamMember({ name: m.name, email: m.email, memberships: next });
       }
     });
-  }
-
-  /** The near-duplicate warning. One mistyped letter makes a second person, so
-   *  this shows the address it collides with and offers the existing record. */
-  function renderDuplicateWarning() {
-    if (!maybeDupe) return null;
-    return (
-      <div data-testid="duplicate-warning" className="mt-2 space-y-3 rounded-[10px] border border-amber-500/40 bg-amber-500/5 p-4">
-        <div className="flex items-start gap-2">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-500" aria-hidden="true" />
-          <div className="space-y-0.5">
-            <div className="text-sm font-semibold text-foreground">
-              Is this already someone on the team?
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Two accounts for one person split their work in half: each one only sees its own
-              videos, and the same name shows up twice with different roles.
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="rounded-md border border-border bg-background/60 px-3 py-2">
-            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">You typed</div>
-            <div className="text-sm font-medium text-foreground">{maybeDupe.name}</div>
-            <div className="font-mono text-xs text-foreground/80">{maybeDupe.email}</div>
-          </div>
-          {maybeDupe.matches.map((d) => (
-            <div key={d.person.email} data-testid="duplicate-match"
-              className="rounded-md border border-border bg-background/60 px-3 py-2">
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Already on the team</div>
-              <div className="text-sm font-medium text-foreground">{d.person.name}</div>
-              <div className="font-mono text-xs text-foreground/80">{d.person.email}</div>
-              <div className="mt-1 text-xs text-amber-700 dark:text-amber-400">{d.detail}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button size="sm" variant="secondary" disabled={busy}
-            onClick={() => {
-              // Same person: drop this spelling and edit the record that exists,
-              // which is how you add a role in another system.
-              const keep = maybeDupe.matches[0].person;
-              const m = members.find((x) => x.email === keep.email);
-              setMaybeDupe(null);
-              if (m) startEdit(m);
-            }}>
-            Edit {maybeDupe.matches[0].person.name} instead
-          </Button>
-          <Button size="sm" variant="outline" disabled={busy} onClick={() => void save(true)}>
-            They&rsquo;re different people &mdash; add anyway
-          </Button>
-        </div>
-      </div>
-    );
   }
 
   /** The refusal, made actionable: every stranded job with a way to hand it on.
@@ -374,16 +295,14 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
   function renderForm(isNew: boolean) {
     return (
       <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
-        {/* htmlFor/id pairs: the labels used to float free of their inputs, so a
-            screen reader announced an unlabelled box. */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-foreground/80" htmlFor="tm-name">Name</label>
-          <input id="tm-name" className={inputCls} value={draft.name} placeholder="Full name"
+          <label className="text-xs font-medium text-foreground/80">Name</label>
+          <input className={inputCls} value={draft.name} placeholder="Full name"
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-medium text-foreground/80" htmlFor="tm-email">Email</label>
-          <input id="tm-email" className={inputCls} value={draft.email} placeholder="name@email.com" disabled={!isNew}
+          <label className="text-xs font-medium text-foreground/80">Email</label>
+          <input className={inputCls} value={draft.email} placeholder="name@email.com" disabled={!isNew}
             title={isNew ? "" : "Email is the identifier — remove and re-add to change it"}
             onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))} />
         </div>
@@ -445,7 +364,7 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
         <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">Loading…</div>
       ) : (
         <div className="flex flex-col gap-2">
-          {editing === "__new__" && <div>{renderForm(true)}{renderDuplicateWarning()}</div>}
+          {editing === "__new__" && renderForm(true)}
           {roster.map((m) => {
             const isAdmin = isAdminMember(m);
             return editing === m.email ? (
@@ -458,14 +377,6 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
                   <div className="flex flex-col min-w-0">
                     <span className="text-[16px] font-semibold leading-snug tracking-tight text-foreground">{m.name}</span>
                     <span className="text-xs text-muted-foreground">{m.email}</span>
-                    {dupeNotes.has(m.email) && (
-                      <span data-testid="dupe-badge"
-                        className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400"
-                        title={`Nearly the same address as ${dupeNotes.get(m.email)}`}>
-                        <AlertTriangle className="size-3" aria-hidden="true" />
-                        Looks like {dupeNotes.get(m.email)}
-                      </span>
-                    )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {isAdmin ? (
