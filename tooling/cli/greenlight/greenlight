@@ -17,6 +17,8 @@ function usage() {
   echo "Usage: greenlight <command> [options]" >&2
   echo "Commands:" >&2
   echo "  run --branch <name> [--repo <path>] [--intent \"<text>\"] [--verify \"<cmd>\" ...] [--review] [--skip <stage,stage>] [--no-land] [--reviewer-model sonnet]" >&2
+  echo "  --worktree <path>  use THIS tree instead of leasing one from the wt pool. The caller owns its" >&2
+  echo "                     lifecycle (no lease, no release) and gets re-verify on a land retry." >&2
   echo "" >&2
   echo "  Default gate is DETERMINISTIC: rebase -> verify -> lint -> land." >&2
   echo "  --verify \"<cmd>\"  deterministic check run in the worktree (repeatable; non-zero parks). Pass the project" >&2
@@ -44,6 +46,9 @@ REVIEWER_MODEL="sonnet"
 REVIEW=0
 VERIFY_CMDS=()
 RUN_ID=""
+# Also settable by --worktree. When set, greenlight leases nothing and releases nothing:
+# pp-land owns the landing tree, resets it before every land, and re-uses it for the next.
+GL_WT_OVERRIDE="${GL_WT_OVERRIDE:-}"
 
 case "$CMD" in
   run)
@@ -57,6 +62,7 @@ case "$CMD" in
         --reviewer-model) REVIEWER_MODEL="$2"; shift 2 ;;
         --review) REVIEW=1; shift ;;
         --verify) VERIFY_CMDS+=("$2"); shift 2 ;;
+        --worktree) GL_WT_OVERRIDE="$2"; shift 2 ;;
         *) usage ;;
       esac
     done
@@ -120,19 +126,28 @@ WT_BIN="wt"
 # it deliberately lives OUTSIDE every working tree so no branch can edit or delete it.
 PP_PUSH_BIN="${PP_PUSH_BIN:-$HOME/.local/libexec/pp-push}"
 
-# Acquire worktree
-log "Acquiring worktree..."
-WT_PATH=$("$WT_BIN" get --repo "$REPO_TOPLEVEL" --holder "greenlight-$RUN_ID")
-log "Worktree acquired: $WT_PATH"
+# Acquire worktree. A single early branch, not scattered conditionals: with --worktree the
+# caller already owns a tree, so leasing one from the 8-slot pool would starve boss — one
+# lease per landed commit against 8 slots, failing with no notification (plan 228).
+if [ -n "$GL_WT_OVERRIDE" ]; then
+  WT_PATH="$GL_WT_OVERRIDE"
+  log "Using caller-provided worktree: $WT_PATH (no pool lease)"
+  # No cleanup trap on purpose: there is no lease to hand back, and the caller resets this
+  # tree before every land — safe only because no owner work ever lives there.
+else
+  log "Acquiring worktree..."
+  WT_PATH=$("$WT_BIN" get --repo "$REPO_TOPLEVEL" --holder "greenlight-$RUN_ID")
+  log "Worktree acquired: $WT_PATH"
 
-function cleanup() {
-  log "Releasing worktree..."
-  # `wt return` refuses a dirty worktree (plan 222) so a killed run's uncommitted work
-  # survives. This trap must not turn that refusal into a non-zero exit for an otherwise
-  # successful land — boss reads this script's exit code.
-  "$WT_BIN" return "$WT_PATH" || log "WARN: worktree NOT returned (dirty?) — slot stays leased: $WT_PATH"
-}
-trap cleanup EXIT
+  function cleanup() {
+    log "Releasing worktree..."
+    # `wt return` refuses a dirty worktree (plan 222) so a killed run's uncommitted work
+    # survives. This trap must not turn that refusal into a non-zero exit for an otherwise
+    # successful land — boss reads this script's exit code.
+    "$WT_BIN" return "$WT_PATH" || log "WARN: worktree NOT returned (dirty?) — slot stays leased: $WT_PATH"
+  }
+  trap cleanup EXIT
+fi
 
 git -C "$WT_PATH" checkout "$BRANCH" >&2 || {
   log "ERROR: failed to checkout branch $BRANCH"
@@ -396,6 +411,18 @@ for attempt in $(seq 1 "$LAND_ATTEMPTS"); do
     landed=1; break
   fi
   log "land push rejected (attempt $attempt/$LAND_ATTEMPTS) — origin/main moved; retrying"
+  if [ -n "$GL_WT_OVERRIDE" ] && [ "${#VERIFY_CMDS[@]}" -gt 0 ]; then
+    # origin/main moved, so the tree we are about to publish was never verified in THIS
+    # combination. Re-verify before republishing. Gated on --worktree so boss's retry path
+    # stays byte-identical — changing its merge timing is not this flag's business.
+    log "re-verifying after re-merge (${#VERIFY_CMDS[@]} command(s))"
+    for cmd in "${VERIFY_CMDS[@]}"; do
+      log "re-verify: $cmd"
+      if ! ( cd "$WT_PATH" && bash -c "$cmd" ) >&2; then
+        park "re-verify failed after re-merge: $cmd"
+      fi
+    done
+  fi
 done
 if [ "$landed" -ne 1 ]; then
   park "land push rejected after $LAND_ATTEMPTS attempts (origin/main kept moving)"
