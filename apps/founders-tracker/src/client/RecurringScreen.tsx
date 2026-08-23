@@ -8,7 +8,7 @@ function dueLabel(t: Template): string {
   if (t.cadence === "weekly") return `every ${DOW[t.dueDay] ?? "?"}`;
   const n = t.dueDay;
   const suff = n === 1 || n === 21 || n === 31 ? "st" : n === 2 || n === 22 ? "nd" : n === 3 || n === 23 ? "rd" : "th";
-  return `the ${n}${suff}`;
+  return `due the ${n}${suff}`;
 }
 
 export function RecurringScreen({ templates, onChanged }: {
@@ -27,22 +27,24 @@ export function RecurringScreen({ templates, onChanged }: {
   return (
     <div>
       <div className="crown-row" style={{ marginBottom: 16 }}>
-        <span className="kicker" style={{ letterSpacing: ".18em" }}>Auto-generated tasks</span>
+        <span className="kicker" style={{ letterSpacing: ".18em" }}>Habits &amp; repeats</span>
         <button className="btn btn-primary btn-add" onClick={() => setEditing("new")}>
           <span className="plus">+</span> New repeat
         </button>
       </div>
       {templates.length === 0 && (
-        <p className="empty">No repeating jobs yet — add one to have it appear on schedule.</p>
+        <p className="empty">No habits or repeats yet — add one to start a streak.</p>
       )}
       {templates.map((t) => (
         <div className="card rec-card" key={t.id}>
           <div className="body">
             <div className="title">{t.title}</div>
             <div className="meta">
-              <span className="cadence-chip">{t.cadence}</span>
+              <span className={`cadence-chip ${t.cadence === "monthly" ? "" : "habit"}`}>
+                {t.cadence === "monthly" ? "monthly task" : `${t.cadence} habit`}
+              </span>
               {!t.active && <span className="paused-chip">paused</span>}
-              <span>{t.owner[0].toUpperCase() + t.owner.slice(1)} · due {dueLabel(t)}</span>
+              <span>{t.owner[0].toUpperCase() + t.owner.slice(1)} · {dueLabel(t)}</span>
             </div>
           </div>
           <div className="rec-actions">

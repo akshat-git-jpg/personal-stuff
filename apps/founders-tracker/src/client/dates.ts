@@ -31,15 +31,6 @@ export function daysLeft(eta: string): number {
   return Math.round((b - a) / 86_400_000);
 }
 
-export type Urgency = "safe" | "soon" | "over";
-
-/** Calm 3-tier deadline mood: comfortable / approaching / due-now-or-past. */
-export function etaUrgency(d: number): Urgency {
-  if (d <= 2) return "over"; // overdue, due today, or within 2 days
-  if (d <= 7) return "soon";
-  return "safe";
-}
-
 export function fmtEta(eta: string): string {
   const d = new Date(`${eta}T12:00:00Z`);
   return d.toLocaleDateString("en-GB", {

@@ -244,15 +244,6 @@ body {
 }
 .deadline .date .ic { font-size: 11px; opacity: .7; }
 .deadline .date:hover { color: var(--navy); }
-.bar { flex: 1; height: 5px; border-radius: 999px; background: var(--paper-2); overflow: hidden; min-width: 30px; }
-.bar > span { display: block; height: 100%; border-radius: 999px; }
-.bar.safe > span { background: var(--safe); }
-.bar.soon > span { background: var(--soon); }
-.bar.over > span { background: var(--over); }
-.days { font-weight: 700; font-size: 11px; white-space: nowrap; letter-spacing: .04em;
-  text-transform: uppercase; font-variant-numeric: tabular-nums; }
-.days.safe { color: var(--safe); } .days.soon { color: var(--soon); }
-.days.over { color: var(--over); }
 .clear-eta { appearance: none; border: 0; background: transparent; cursor: pointer;
   color: var(--faint); font-size: 13px; padding: 0 2px; line-height: 1; }
 .clear-eta:hover { color: var(--over); }
@@ -351,3 +342,98 @@ body {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ---- Today strip (habits) ------------------------------------------------ */
+.habit-strip {
+  background: var(--paper-2); border: 1px solid var(--line);
+  border-radius: 14px; padding: 11px 13px 8px; margin-bottom: 16px;
+}
+.habit-strip-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.habit-strip-head .kicker {
+  font-size: 10px; letter-spacing: .24em; text-transform: uppercase;
+  color: var(--muted); font-weight: 700;
+}
+.habit-date {
+  font-family: "Fraunces", Georgia, serif; font-size: 12.5px; font-style: italic;
+  color: var(--muted);
+}
+.habit-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 2px; border-top: 1px solid var(--line);
+}
+.habit-row:first-of-type { border-top: 0; }
+.habit-row .check { width: 19px; height: 19px; margin-top: 0; }
+.habit-title {
+  flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.habit-row.kept .habit-title { color: var(--muted); }
+.habit-who {
+  flex: none; font-size: 10px; font-weight: 700; letter-spacing: .06em;
+  color: var(--muted); background: var(--surface); border: 1px solid var(--line);
+  width: 19px; height: 19px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.streak {
+  flex: none; font-size: 11.5px; font-weight: 700; letter-spacing: .02em;
+  font-variant-numeric: tabular-nums; padding: 2px 9px; border-radius: 999px;
+  min-width: 40px; text-align: center;
+}
+.streak.live { color: var(--safe); background: rgba(63,125,87,.11); }
+.streak.cold { color: var(--faint); background: var(--surface); }
+.habit-best {
+  flex: none; font-size: 10.5px; font-weight: 600; color: var(--faint);
+  font-variant-numeric: tabular-nums; min-width: 48px; text-align: right;
+}
+
+/* ---- Grouped tracker ---------------------------------------------------- */
+.bucket { margin-bottom: 18px; }
+.bucket-head {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 8px 2px;
+  font-family: inherit; font-size: 10.5px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--muted);
+}
+.bucket-head.over { color: var(--over); }
+.bucket-head.soon { color: var(--soon); }
+.bucket-count {
+  font-size: 10px; font-weight: 700; letter-spacing: 0;
+  font-variant-numeric: tabular-nums; padding: 1px 7px; border-radius: 999px;
+  background: var(--paper-2); color: var(--muted);
+}
+.bucket-head.over .bucket-count { background: rgba(178,58,46,.11); color: var(--over); }
+.bucket-head.soon .bucket-count { background: rgba(189,132,32,.13); color: var(--soon); }
+
+/* Dense single-line row. Overrides the tall .card geometry; .card.editing
+   still wins for the expanded editor because it comes later in the file. */
+.card.row {
+  padding: 9px 10px 9px 8px; margin-bottom: 6px; border-radius: 11px;
+  gap: 9px; align-items: center;
+}
+.card.row .handle { padding: 0; font-size: 14px; }
+.card.row .check { width: 19px; height: 19px; margin-top: 0; }
+.row-line { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.row-title {
+  appearance: none; border: 0; background: transparent; padding: 0;
+  font-family: inherit; font-size: 14.5px; font-weight: 600; color: var(--ink);
+  letter-spacing: -.005em; text-align: left; cursor: text;
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.row-title:disabled { cursor: default; }
+.card.row.done .row-title {
+  text-decoration: line-through; text-decoration-color: var(--faint); color: var(--muted);
+}
+.row-meta {
+  flex: none; font-size: 11px; font-weight: 600; color: var(--muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.card.row .repeat-chip { margin: 4px 0 0; }
+
+/* The editor still needs room to breathe when a dense row expands. */
+.card.row.editing { align-items: stretch; padding: 13px 13px 13px 11px; }
+.card.row.editing .row-line { display: none; }
+
+/* ---- Habit vs task chip on the Repeats screen -------------------------- */
+.cadence-chip.habit { color: var(--safe); background: rgba(63,125,87,.1); }
