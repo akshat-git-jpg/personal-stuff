@@ -341,9 +341,14 @@ echo "$list_out" | grep -q "mismatch-test .* BRANCH-MISMATCH manifest:work/misma
   || fail "(16) list did not flag the branch mismatch: $(echo "$list_out" | grep mismatch-test | head -1)"
 
 reap_out=$(run_guarded env PPWORK_GRACE_SECS=0 "$PPWORK" reap 2>&1)
-echo "$reap_out" | grep -q "keep mismatch-test — BRANCH-MISMATCH" \
-  || fail "(16) reap did not refuse the mismatched workspace by name: $reap_out"
-[ -d "$out_m" ] || fail "(16) reap DELETED a workspace whose commits can never land"
+# The mismatch is REPORTED...
+echo "$reap_out" | grep -q "note mismatch-test — HEAD is \[boss/999-elsewhere\]" \
+  || fail "(16) reap did not report the branch mismatch: $reap_out"
+# ...but what REFUSES the removal is that the commit exists nowhere else. This branch was
+# never pushed, so it is unique to the workspace.
+echo "$reap_out" | grep -q "keep mismatch-test — branch \[boss/999-elsewhere\] has commits that exist ONLY here" \
+  || fail "(16) reap did not refuse a workspace whose commits exist only there: $reap_out"
+[ -d "$out_m" ] || fail "(16) reap DELETED a workspace holding the only copy of a commit"
 
 # 17. --dirty prints only rows that need a human, and never hides one that does.
 dirty_out=$("$PPWORK" list --dirty 2>/dev/null) || fail "(17) list --dirty failed"
@@ -411,6 +416,35 @@ echo "$clean_out" | grep -q "nothing to snapshot" \
 list_out=$("$PPWORK" list 2>/dev/null) || fail "(18) list failed after a snapshot"
 echo "$list_out" | grep -q "snap-test .* snaps:1" \
   || fail "(18) list did not report snaps:1: $(echo "$list_out" | grep snap-test | head -1)"
+
+# -----------------------------------------------------------------------------
+# 19. A branch that is PUSHED but not merged is reclaimable; an unpushed one is not.
+#
+# `secretary raise` pushes a plan branch and opens a boss PR. The commits reach main only
+# when boss merges, which can be days — so an "is it on origin/main" gate pinned the
+# workspace for the whole life of the PR. Measured 2026-08-23: script-desk-plans held
+# 137 MB behind the open PR#196, and every future raise would have pinned another. The
+# commits were never at risk; they were on origin the whole time.
+#
+# The rule is therefore "exists ONLY here", not "not on main".
+# -----------------------------------------------------------------------------
+out_p=$(run_guarded "$PPWORK" claim --kind code --slug pushed-not-merged)
+( cd "$out_p" && echo p > p.txt && git add p.txt && git commit -qm "raised, not merged" ) >/dev/null 2>&1
+# unmerged AND unpushed -> refuse
+if run_guarded env PPWORK_GRACE_SECS=0 "$PPWORK" remove "$out_p" >/dev/null 2>&1; then
+  fail "(19) remove accepted a branch that is neither merged nor pushed"
+fi
+[ -d "$out_p" ] || fail "(19) remove DELETED the only copy of a commit"
+
+# now push it, still unmerged -> allow
+( cd "$out_p" && git push -q origin work/pushed-not-merged ) >/dev/null 2>&1 \
+  || fail "(19) fixture setup failed — could not push the branch"
+git -C "$MAIN_DIR" merge-base --is-ancestor work/pushed-not-merged origin/main 2>/dev/null \
+  && fail "(19) fixture is vacuous — the branch is already merged into main"
+if ! run_guarded env PPWORK_GRACE_SECS=0 "$PPWORK" remove "$out_p" >/dev/null 2>&1; then
+  fail "(19) remove refused a branch whose tip is safely on origin"
+fi
+[ -d "$out_p" ] && fail "(19) remove reported success but the directory remains"
 
 echo ""
 echo "ALL TESTS PASSED"
