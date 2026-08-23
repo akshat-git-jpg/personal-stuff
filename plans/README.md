@@ -1344,3 +1344,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 228-pp-land-automatic-landing — PR#189 228-pp-land-automatic-landing: pp-land — a commit lands on main by itself — DONE
 - 230-commit-now-repo-override — PR#191 230-commit-now-repo-override: teach commit-now about workspaces — without changing it for the work repos — DONE
 - 229-boss-land-sweep — PR#190 229-boss-land-sweep: boss picks up blocked lands, without pretending to be a crew — DONE
+- 231-yt-script-beats-model — PR#192 231-yt-script-beats-model: lib/beats.mjs — one parsed beat model for outline.md — DONE
