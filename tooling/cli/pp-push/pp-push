@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+# pp-push — the ONE chokepoint every push to this repo passes through.
+#
+# Why it exists: the repo is PUBLIC, main has no branch protection, and .gitignore
+# drifts (a rule pointing at a moved directory matched nothing for months and 37
+# rendered files are already tracked). boss-commit-main.sh's `git add -A` misfired
+# twice on that class. So the ignore surface is not a sufficient last line of defence
+# before a world-readable publish.
+#
+# Why it lives outside the working tree: installed as a COPY to ~/.local/libexec, so
+# no branch can edit the guard and no checkout of an older commit can make it vanish.
+#
+# Usage: pp-push --repo <worktree> <remote> <refspec> [git-push-args...]
+set -euo pipefail
+
+PPPUSH_SIZE_CAP=$((1024 * 1024))   # 1 MB per path
+
+# Paths that must never reach a public repo. Extend this list, never narrow it.
+#
+# All globs are kept on ONE line with `)` on the next, deliberately. Inside a bash
+# compound array assignment a `#` comments to END OF LINE only, so a multi-line list
+# would leave every following glob live — and the mutation that proves this gate is
+# alive works by commenting the rest of this line out. One line = the neutered gate
+# really is neutered, which is what makes the silent-no-op failure detectable.
+SECRET_GLOBS=( '*.env' '.env' '.env.*' '*.local.json' 'credentials.json' 'token.json' 'client_secret*.json' '*.pem' '*.key' '*.p12' '*.keystore' '.dev.vars' '.dev.vars.*' '*.gpg'
+)
+
+die() { echo "pp-push: $*" >&2; exit 1; }
+
+# ---------------------------------------------------------------------------
+# Self-checks. Each answers "is the guard really the guard?", and each FAILS
+# CLOSED — a gate that cannot verify itself must not wave a push through.
+# ---------------------------------------------------------------------------
+self=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+# (1) Never run from inside a git working tree.
+if git -C "$self" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  die "refusing to run from inside a git working tree ($self).
+  The tracked copy is a SOURCE, not the gate. Install it with scripts/lib/guard-install.sh,
+  which copies it to ~/.local/libexec/pp-push."
+fi
+
+# (2) Self-integrity against the checksum recorded AT INSTALL TIME, in a sibling
+#     file. Deliberately NOT a comparison against the repo: which content that would
+#     be depends on the checked-out commit, so a branch that legitimately edits
+#     pp-push (or an older branch) would refuse every push, including the custody
+#     push. Divergence from the repo is a staleness warning, not a refusal.
+sum_file="$self/pp-push.sha256"
+if [ -f "$sum_file" ]; then
+  want=$(cut -d' ' -f1 < "$sum_file")
+  have=$(shasum -a 256 "${BASH_SOURCE[0]}" | cut -d' ' -f1)
+  [ "$want" = "$have" ] || die "installed copy does not match its recorded checksum.
+  Re-run scripts/lib/guard-install.sh. Refusing to push with an unverified gate."
+else
+  die "no recorded checksum beside the installed copy ($sum_file).
+  Re-run scripts/lib/guard-install.sh."
+fi
+
+# (3) The pre-push dispatcher must be armed — it is the second, independent net that
+#     catches a push made by hand or by a tool that does not call pp-push.
+REPO=""; args=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --repo) REPO="${2:-}"; shift 2 ;;
+    *) args+=("$1"); shift ;;
+  esac
+done
+[ -n "$REPO" ] || die "usage: pp-push --repo <worktree> <remote> <refspec> [args...]"
+[ "${#args[@]}" -ge 2 ] || die "usage: pp-push --repo <worktree> <remote> <refspec> [args...]"
+
+common=$(git -C "$REPO" rev-parse --path-format=absolute --git-common-dir)
+hook="$common/hooks/pre-push"
+[ -x "$hook" ] || die "the pre-push dispatcher is not armed at $hook.
+  Re-run scripts/lib/guard-install.sh. Refusing to push without the second net."
+[ -z "$(git -C "$REPO" config --get core.hooksPath || true)" ] \
+  || die "core.hooksPath is set; the shared .git/hooks dispatcher would be bypassed.
+  Re-run scripts/lib/guard-install.sh, which unsets it."
+
+remote="${args[0]}"; refspec="${args[1]}"
+
+# ---------------------------------------------------------------------------
+# What is being published. `local_ref:remote_ref`, or a bare ref meaning both.
+# ---------------------------------------------------------------------------
+case "$refspec" in
+  *:*) local_ref="${refspec%%:*}"; remote_ref="${refspec##*:}" ;;
+  *)   local_ref="$refspec";       remote_ref="$refspec" ;;
+esac
+
+# Base for the diff: the remote-tracking ref if we have one, else origin's default
+# branch. A missing base would otherwise mean diffing against nothing and inspecting
+# the entire tree.
+base="refs/remotes/$remote/${remote_ref#refs/heads/}"
+if ! git -C "$REPO" rev-parse --verify --quiet "$base" >/dev/null; then
+  base="refs/remotes/$remote/main"
+fi
+git -C "$REPO" rev-parse --verify --quiet "$base" >/dev/null \
+  || die "cannot resolve a base ref to diff against ($base). Refusing to push blind."
+
+# A while-read loop, not `mapfile`: the system bash on this Mac is 3.2, which has no
+# mapfile, and the gate must run under whichever bash `env` finds.
+changed=()
+while IFS= read -r _p; do
+  [ -n "$_p" ] || continue
+  changed+=("$_p")
+done < <(git -C "$REPO" diff --name-only "$base".."$local_ref" 2>/dev/null || true)
+
+# ---------------------------------------------------------------------------
+# The gate.
+# ---------------------------------------------------------------------------
+for path in "${changed[@]:-}"; do
+  [ -n "$path" ] || continue
+  base_name=$(basename "$path")
+  for g in "${SECRET_GLOBS[@]}"; do
+    # shellcheck disable=SC2053
+    if [[ "$base_name" == $g ]]; then
+      die "PPPUSH-SECRET refusing to push: '$path' matches the secret pattern '$g'.
+  This repo is PUBLIC and main has no branch protection, so a push here is irreversible.
+  Remove it from the commit range ${base}..${local_ref} and try again."
+    fi
+  done
+  size=$(git -C "$REPO" cat-file -s "$local_ref:$path" 2>/dev/null || echo 0)
+  if [ "$size" -gt "$PPPUSH_SIZE_CAP" ]; then
+    die "PPPUSH-SIZE refusing to push: '$path' is $size bytes, over the ${PPPUSH_SIZE_CAP}-byte cap.
+  Generated media is rebuildable and must not enter a public repo. If this file genuinely
+  belongs in git, raise PPPUSH_SIZE_CAP deliberately in pp-push, not per-push."
+  fi
+done
+
+# ---------------------------------------------------------------------------
+# Serialise. Its OWN lock, never boss's Chrome lock (that one guards browser
+# contention, a different concern). Reentrancy-safe: a nested pp-push — including
+# one reached via the pre-push dispatcher this very push triggers — must not
+# deadlock against its own ancestor.
+# ---------------------------------------------------------------------------
+LOCK_DIR="${PPPUSH_LOCK_DIR:-$HOME/.local/state/pp-push}"
+LOCK="$LOCK_DIR/push.lock"
+held=0
+if [ -z "${PPPUSH_LOCK_HELD:-}" ]; then
+  mkdir -p "$LOCK_DIR"
+  waited=0; max=$((300 * 5))
+  while ! mkdir "$LOCK" 2>/dev/null; do
+    owner=$(cat "$LOCK/pid" 2>/dev/null || echo "")
+    if [ -n "$owner" ] && ! kill -0 "$owner" 2>/dev/null; then
+      echo "pp-push: breaking stale push lock (holder pid $owner is gone)" >&2
+      rm -rf "$LOCK"; continue
+    fi
+    if [ -z "$owner" ]; then
+      now=$(date +%s)
+      mt=$(stat -f %m "$LOCK" 2>/dev/null || stat -c %Y "$LOCK" 2>/dev/null || echo "$now")
+      if [ $((now - mt)) -ge 300 ]; then
+        echo "pp-push: breaking stale push lock (no pid, 300s+ old)" >&2
+        rm -rf "$LOCK"; continue
+      fi
+    fi
+    [ "$waited" -ge "$max" ] && die "push lock held >300s by live pid ${owner:-unknown}. Not breaking it."
+    sleep 0.2; waited=$((waited + 1))
+  done
+  printf '%s\n' "$$" > "$LOCK/pid"
+  held=1
+  export PPPUSH_LOCK_HELD="$$"
+fi
+release() { if [ "$held" -eq 1 ]; then rm -rf "$LOCK" 2>/dev/null || true; fi; }
+trap release EXIT
+
+git -C "$REPO" push "${args[@]}"
