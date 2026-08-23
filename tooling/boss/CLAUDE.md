@@ -272,3 +272,53 @@ Scripts in `executors/` implementing three verbs:
 
 Shipped: `claude-p` (backgrounded `claude -p`, default model sonnet),
 `agy` (Antigravity CLI, default model Gemini 3.1 Pro (High)).
+
+## Blocked lands (`state/lands/`, plan 229)
+
+`pp-land` carries every workspace commit to `main` on its own. When a land does not
+complete — a rebase conflict, a failed verify — it writes
+`state/lands/land-<slug>.blocked` and stops. The owner ruled out notifications and their
+own involvement, so boss picks those up: **`bin/boss-land-sweep.sh`**, called by `pp-land`
+after every land (once the landing mutex is released) and again at session start as the
+catch-up path for a reboot or a dead sweep.
+
+**Its own state namespace is the load-bearing part.** The sweep exports
+`BOSS_STATE_DIR=<boss>/state/lands`, so every meta it or the executor writes lands there.
+Without it, `boss_crews_running` globs `state/*.meta`, reports the fix-up's live pid as a
+crew, and every `boss-merge` then waits `BOSS_CHROME_WAIT_MIN` (45m) behind a fix-up whose
+own timeout is 180m — and the session-start in-flight loop prints a `land-*` id forever,
+because it is not a PR number so the lookup fails and the empty result matches no skip
+branch. Do **not** fix this with a `land-*` filter at either call site; the namespace
+covers every glob, including ones added later.
+
+**A fix-up is a DIRECT `executors/agy.sh dispatch` into the workspace that already
+exists** — never `boss-dispatch.sh`, no pool lease, no branch reset. A blocked land's
+branch was never pushed, so forcing it to `origin/<branch>` would move it away from the
+owner's only copy of the commit. The sweep writes a synthetic meta first (`agy.sh` takes
+no path argument; it reads `worktree` from the meta) and an **absolute** brief path (the
+executor `cd`s into the worktree). Success is `boss_head_advanced`, never a label — there
+is no PR here at all.
+
+**Entry lifecycle.** `land-<slug>.blocked` → atomic `mv` to `.dispatching` (a rename in
+one directory, so two sweepers can never take the same slug) → dispatch. A `.dispatching`
+entry whose fix-up is no longer alive is reaped: HEAD advanced means done (the fix-up's
+own commit re-triggers the land), HEAD unmoved is a real failure and goes back to
+`.blocked` with the counter spent. **One dispatch per run** — the fix-up holds the chrome
+lock for its whole life, so the rest of the queue waits for the next sweep.
+
+**The attempt policy.** Three classes, not two:
+
+| class | causes | effect |
+|---|---|---|
+| **transient** | landing-mutex stale-break or timeout, push rejected, fetch/network failure, pool exhaustion, mechanical dispatch failure, chrome lock busy | **resets** `real_attempts`; bounded at 5 per slug per 24 h |
+| **real** | verify failure (**always**), lint failure, hard rebase conflict, a fix-up whose HEAD never advanced | **consumes** `real_attempts`; cap 2 |
+| **never retry** | a `pp-push` gate refusal, the `no_auto_resolve=1` deploy-live hold, a repeat `cannot detach at origin/main` | no dispatch at all; the entry stays listed |
+
+A verify failure is real even when it smells flaky: auto-retrying a flaky verify is how
+red code reaches a repo `vps-sync.sh` deploys within 15 minutes. A `pp-push` refusal never
+retries because a retry re-attempts publishing a secret to a **public** repo. An
+unrecognised cause defaults to **real**, so the worst case is two wasted dispatches rather
+than an unbounded loop.
+
+Capped, held and never-retry entries are still **listed** at session start. That is the
+whole visibility surface — there is no notification, by design.

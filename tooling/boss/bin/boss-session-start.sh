@@ -100,3 +100,12 @@ while IFS= read -r line; do
   wt release --holder "$holder" --repo "$REPO_ROOT" 2>&1 | sed 's/^/    /'
 done < <(wt status --repo "$REPO_ROOT" 2>/dev/null)
 [ "$lease_sweep_found" -eq 0 ] && echo "  none — every leased slot belongs to an open PR"
+
+# Blocked lands (2026-08-23, plan 229). THE catch-up path: a land blocks whenever a rebase
+# conflicts or a verify fails, and the owner ruled out both notifications and their own
+# involvement — so if no boss session was open when it blocked, nothing else re-drives it.
+# The sweep dispatches what it can and LISTS the rest, so a capped or held land stays
+# visible here without becoming a notification. It runs under its own state namespace, so
+# nothing it writes shows up in the in-flight loop above.
+echo "== blocked lands (fix-ups dispatched into the workspace that already exists) =="
+"$BOSS_HOME/bin/boss-land-sweep.sh" 2>&1 | sed 's/^/  /'

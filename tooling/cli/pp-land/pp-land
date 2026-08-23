@@ -399,10 +399,12 @@ main() {
 
   mutex_release
 
-  # AFTER releasing, never before: a sweep that re-lands a blocked branch has to be able
-  # to take this same mutex. Plan 229 owns the sweep itself.
-  if [ -n "${PPLAND_SWEEP:-}" ] && [ -x "${PPLAND_SWEEP:-}" ]; then
-    "$PPLAND_SWEEP" "$MAIN" >/dev/null 2>&1 || true
+  # AFTER releasing, never before: a fix-up dispatched under the mutex would commit, fire
+  # the post-commit dispatcher, and that land would block on the mutex its own dispatcher
+  # is still holding.
+  local sweep="${PPLAND_SWEEP:-$MAIN/tooling/boss/bin/boss-land-sweep.sh}"
+  if [ -x "$sweep" ]; then
+    "$sweep" "$MAIN" >/dev/null 2>&1 || true
   fi
   return 0
 }

@@ -466,5 +466,197 @@ case "$sd" in */tooling/boss/state) : ;; *) fail "STATE_DIR default changed (got
 echo "PASS: STATE_DIR override works and the default is unchanged"
 rm -rf "$LOCKTMP-state"
 
+# -----------------------------------------------------------------------
+# (L1-L6) the land sweep (plan 229). Every case drives the REAL
+# tooling/boss/bin/boss-land-sweep.sh through a fake boss home, with a stub
+# executor that writes exactly the meta fields agy.sh writes. Nothing here
+# asserts on source text: L1 asks boss_crews_running what it reports, and the
+# rest read the entry files the sweep actually produced.
+# -----------------------------------------------------------------------
+LAND_REPO="$TMP/land-repo"
+LAND_BOSS="$LAND_REPO/tooling/boss"
+LANDS="$LAND_BOSS/state/lands"
+AGY_LOG="$TMP/land-agy.log"
+mkdir -p "$LAND_BOSS/bin" "$LAND_BOSS/executors" "$LANDS"
+mkdir -p "$LAND_REPO/tooling/cli/notify"
+cp "$STUB_DIR/notify" "$LAND_REPO/tooling/cli/notify/notify"
+chmod +x "$LAND_REPO/tooling/cli/notify/notify"
+cp "$BOSSDIR/bin/boss-lib.sh" "$BOSSDIR/bin/boss-land-sweep.sh" \
+   "$BOSSDIR/bin/boss-session-start.sh" "$BOSSDIR/bin/boss-state.sh" "$LAND_BOSS/bin/"
+chmod +x "$LAND_BOSS/bin/"*.sh
+LAND_SWEEP="$LAND_BOSS/bin/boss-land-sweep.sh"
+
+# Stub executor. Same contract as executors/agy.sh: resolve the worktree from
+# $STATE_DIR/$id.meta, record head_before, background the run, record pid/dispatched_at.
+# It resolves STATE_DIR through boss-lib exactly like the real one, which is what makes
+# L1 a test of where the sweep's bookkeeping LANDS rather than of a string in a file.
+cat > "$LAND_BOSS/executors/agy.sh" <<'LANDAGYEOF'
+#!/bin/bash
+set -uo pipefail
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../bin" && pwd)/boss-lib.sh"
+verb="${1:?}"; id="${2:?}"
+case "$verb" in
+  dispatch)
+    printf '%s\n' "$id" >> "${AGY_STUB_LOG:-/dev/null}"
+    wt=$(meta_get "$id" worktree) || { echo "ERROR: no worktree for $id" >&2; exit 1; }
+    [ -f "${3:-}" ] || { echo "ERROR: brief unreadable: ${3:-}" >&2; exit 1; }
+    meta_set "$id" head_before "$(git -C "$wt" rev-parse HEAD 2>/dev/null || echo none)"
+    ( exec sleep "${LAND_STUB_SLEEP:-60}" ) & pid=$!
+    disown "$pid" 2>/dev/null || true
+    meta_set "$id" pid "$pid"; meta_set "$id" dispatched_at "$(date +%s)" ;;
+  alive)
+    pid=$(meta_get "$id" pid) || exit 2; [ -n "$pid" ] || exit 2
+    kill -0 "$pid" 2>/dev/null && exit 0; exit 1 ;;
+  *) exit 2 ;;
+esac
+LANDAGYEOF
+chmod +x "$LAND_BOSS/executors/agy.sh"
+
+LAND_WS="$TMP/land-ws"
+mkdir -p "$LAND_WS"
+git init -q "$LAND_WS"
+git -C "$LAND_WS" commit -q --allow-empty -m init
+
+export AGY_STUB_LOG="$AGY_LOG"
+export BOSS_LAND_LOCK_MAX_WAIT=10
+
+# land_kill <pid> — kill a stub fix-up, but ONLY if that pid is still the `sleep` we
+# started. macOS recycles pids inside 100k, and a blind `kill` on a recorded pid took
+# out one of this suite's own children and ended the run with no message at all.
+land_kill() {
+  local p="${1:-}"
+  case "$p" in ''|*[!0-9]*) return 0 ;; esac
+  ps -o command= -p "$p" 2>/dev/null | grep -q '^sleep' || return 0
+  kill "$p" 2>/dev/null || true
+  return 0
+}
+
+# land_reset — kill any stub fix-up still sleeping, then wipe every trace so the next
+# case starts from a known state (including the chrome lock a dispatch hands over).
+land_reset() {
+  local m
+  for m in "$LANDS"/*.meta "$LAND_BOSS/state"/*.meta; do
+    [ -f "$m" ] || continue
+    land_kill "$(sed -n 's/^pid=//p' "$m" | tail -1)"
+  done
+  rm -rf "$LANDS" "$LAND_BOSS/state"
+  mkdir -p "$LANDS"
+  : > "$AGY_LOG"
+  return 0
+}
+
+# land_entry <slug> <reason> [extra key=value ...]
+land_entry() {
+  local slug="$1" reason="$2"; shift 2
+  {
+    printf 'workspace=%s\n' "$LAND_WS"
+    printf 'branch=%s\n' "boss/$slug"
+    printf 'reason=%s\n' "$reason"
+    printf 'attempts=%s\n' 1
+    printf 'at=%s\n' "2026-08-23T00:00:00Z"
+    local kv; for kv in "$@"; do printf '%s\n' "$kv"; done
+  } > "$LANDS/land-$slug.blocked"
+}
+
+land_field() { sed -n "s/^$2=//p" "$1" 2>/dev/null | tail -1; }
+
+echo "--- (L1) a land fix-up is invisible to boss_crews_running ---"
+land_reset
+land_entry boss-l1 "verify failed: npm test"
+LAND_STUB_SLEEP=120 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l1.out" 2>&1
+grep -q DISPATCHED "$TMP/l1.out" \
+  || fail "(L1) fixture is vacuous — the sweep dispatched nothing: $(cat "$TMP/l1.out")"
+l1_meta=""
+for c in "$LANDS/land-boss-l1.meta" "$LAND_BOSS/state/land-boss-l1.meta"; do
+  [ -f "$c" ] && l1_meta="$c"
+done
+[ -n "$l1_meta" ] || fail "(L1) fixture is vacuous — no land meta was written anywhere"
+l1_pid=$(land_field "$l1_meta" pid)
+kill -0 "$l1_pid" 2>/dev/null \
+  || fail "(L1) fixture is vacuous — the stub fix-up (pid '$l1_pid') is not alive"
+# The question the hazard actually asks: with the DEFAULT state dir, does boss see a crew?
+l1_crews=$(bash -c 'source "'"$LAND_BOSS"'/bin/boss-lib.sh" >/dev/null 2>&1; boss_crews_running' 2>/dev/null)
+case "$l1_crews" in
+  *land-*) land_kill "$l1_pid"
+           fail "a land fix-up was reported as a live boss crew" ;;
+esac
+land_kill "$l1_pid"
+echo "PASS: a land fix-up is invisible to boss_crews_running"
+
+echo "--- (L2) the per-slug claim is atomic under two concurrent sweeps ---"
+land_reset
+land_entry boss-l2 "verify failed: npm test"
+( LAND_STUB_SLEEP=20 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l2a.out" 2>&1 ) &
+l2a=$!
+( LAND_STUB_SLEEP=20 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l2b.out" 2>&1 ) &
+l2b=$!
+wait "$l2a"; wait "$l2b"
+l2_n=$(ls "$LANDS"/land-*.dispatching 2>/dev/null | wc -l | tr -d ' ')
+[ "$l2_n" -eq 1 ] || fail "(L2) expected exactly 1 .dispatching entry, got $l2_n"
+l2_inv=$(grep -c . "$AGY_LOG" || true)
+[ "$l2_inv" -eq 1 ] || fail "(L2) executor was invoked $l2_inv time(s), expected exactly 1"
+echo "PASS: the claim is atomic — one .dispatching, one dispatch"
+
+echo "--- (L3) no_auto_resolve=1 is held, restored byte-identically, no attempt spent ---"
+land_reset
+land_entry boss-l3 "deploy-live-conflict" "no_auto_resolve=1" "real_attempts=1" \
+  "conflicts=tooling/boss/bin/boss-merge.sh"
+l3_before=$(shasum -a 256 < "$LANDS/land-boss-l3.blocked")
+l3_out=$(BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+[ -f "$LANDS/land-boss-l3.blocked" ] || fail "(L3) the .blocked name was not restored"
+[ -e "$LANDS/land-boss-l3.dispatching" ] && fail "(L3) a held land was left claimed"
+l3_after=$(shasum -a 256 < "$LANDS/land-boss-l3.blocked")
+[ "$l3_before" = "$l3_after" ] || fail "(L3) a held land's entry changed (an attempt was spent)"
+[ ! -s "$AGY_LOG" ] || fail "(L3) a deploy-live land was dispatched: $(cat "$AGY_LOG")"
+echo "$l3_out" | grep -q 'HOLD' || fail "(L3) the hold was not listed: $l3_out"
+echo "PASS: no_auto_resolve holds without consuming an attempt"
+
+echo "--- (L4) transient resets the real counter; real consumes one ---"
+land_reset
+land_entry boss-l4t "PPLAND-MUTEX refusing to land: held for >3600s" "real_attempts=1"
+BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l4t.out" 2>&1
+l4t="$LANDS/land-boss-l4t.dispatching"
+[ -f "$l4t" ] || fail "(L4) a transient land was not dispatched: $(cat "$TMP/l4t.out")"
+[ "$(land_field "$l4t" real_attempts)" = "0" ] \
+  || fail "(L4) transient did not RESET real_attempts (got '$(land_field "$l4t" real_attempts)')"
+[ "$(land_field "$l4t" transient_attempts)" = "1" ] \
+  || fail "(L4) transient did not consume a transient attempt (got '$(land_field "$l4t" transient_attempts)')"
+
+land_reset
+land_entry boss-l4r "verify failed: card-qa exited 1" "real_attempts=0" "transient_attempts=3"
+BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l4r.out" 2>&1
+l4r="$LANDS/land-boss-l4r.dispatching"
+[ -f "$l4r" ] || fail "(L4) a real-failure land was not dispatched: $(cat "$TMP/l4r.out")"
+[ "$(land_field "$l4r" real_attempts)" = "1" ] \
+  || fail "(L4) a verify failure did not CONSUME a real attempt (got '$(land_field "$l4r" real_attempts)')"
+[ "$(land_field "$l4r" transient_attempts)" = "3" ] \
+  || fail "(L4) a real failure moved the transient counter (got '$(land_field "$l4r" transient_attempts)')"
+echo "PASS: the classifier routes transient and real to the right counter"
+
+echo "--- (L5) at the real cap: no dispatch, still listed at session start ---"
+land_reset
+land_entry boss-l5 "verify failed: npm test" "real_attempts=2"
+l5_out=$(BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l5_out" | grep -q 'CAPPED' || fail "(L5) a capped land was not reported capped: $l5_out"
+[ -f "$LANDS/land-boss-l5.blocked" ] || fail "(L5) a capped land lost its .blocked entry"
+[ ! -s "$AGY_LOG" ] || fail "(L5) a capped land was dispatched anyway: $(cat "$AGY_LOG")"
+# Visibility without a notification: session start must still print it.
+l5_ss=$(cd "$LAND_REPO" && BOSS_CHROME_WAIT_MIN=0 bash "$LAND_BOSS/bin/boss-session-start.sh" 2>&1)
+echo "$l5_ss" | grep -q 'land-boss-l5' \
+  || fail "(L5) boss-session-start did not list the capped land"
+[ ! -s "$AGY_LOG" ] || fail "(L5) session start dispatched a capped land: $(cat "$AGY_LOG")"
+echo "PASS: a capped land stops dispatching but stays visible at session start"
+
+echo "--- (L6) the transient bound holds inside the window ---"
+land_reset
+land_entry boss-l6 "PPLAND-MUTEX refusing to land: held for >3600s" \
+  "transient_attempts=5" "transient_window_start=$(date +%s)"
+l6_out=$(BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l6_out" | grep -q 'CAPPED' || fail "(L6) a 6th transient retry was not capped: $l6_out"
+[ -f "$LANDS/land-boss-l6.blocked" ] || fail "(L6) a transient-capped land lost its entry"
+[ ! -s "$AGY_LOG" ] || fail "(L6) a 6th transient retry dispatched: $(cat "$AGY_LOG")"
+land_reset
+echo "PASS: the transient bound holds"
+
 echo ""
 echo "ALL TESTS PASSED"
