@@ -14,6 +14,13 @@ export PATH="$STUB_DIR:$PATH"
 # Isolate greenlight state so tests never pollute the real ~/kb-scratch/greenlight
 export GREENLIGHT_STATE_ROOT="$STUB_DIR/gl-state"
 
+# Inherited env must not decide what this suite observes. pp-land runs greenlight with
+# GREENLIGHT_QUIET=1 (it lands on every workspace commit and the owner ruled pings out),
+# and once this path is mapped in verify-map.tsv the suite runs INSIDE that land — so it
+# would inherit the switch and case (b)'s "ntfy was called" assertion would fail for a
+# reason that has nothing to do with greenlight.
+unset GREENLIGHT_QUIET
+
 # greenlight now calls tooling/cli/notify (Telegram-first, ntfy fallback)
 # instead of pp-ntfy directly. Force the ntfy-fallback path deterministically:
 # point at a telegram env file that never exists so notify always falls
@@ -73,6 +80,45 @@ fi
 exec /usr/bin/git "$@"
 EOF
 chmod +x "$STUB_DIR/git"
+
+# Mock pp-push. Since 2026-08-02 (66a19275) greenlight lands via pp-push, not `git
+# push` — so without this stub every landing case below dies for an environmental
+# reason. pp-push is a fail-closed SECURITY gate: it is installed OUTSIDE any working
+# tree at ~/.local/libexec/pp-push, pinned to a checksum recorded at install time, and
+# it refuses unless the pushing repo has an armed .git/hooks/pre-push dispatcher. A
+# throwaway repo satisfies none of that, and proving the gate really blocks secrets is
+# pp-push's OWN suite's job, not greenlight's. What greenlight owes is: push through
+# the gate, and react correctly to what the gate says.
+#
+# PPPUSH_STUB_FAIL makes the stub fail with a chosen message (cases (j)/(k)).
+# PPPUSH_STUB_RACE_ONCE makes it emit a real non-fast-forward rejection on the first
+# call only, so the genuine retry path stays covered.
+cat > "$STUB_DIR/pp-push" << 'EOF'
+#!/bin/bash
+REPO=""; args=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --repo) REPO="${2:-}"; shift 2 ;;
+    *) args+=("$1"); shift ;;
+  esac
+done
+echo "$*" >> "$PPPUSH_STUB_LOG"
+if [ -n "${PPPUSH_STUB_FAIL:-}" ]; then
+  echo "$PPPUSH_STUB_FAIL" >&2
+  exit 1
+fi
+if [ -n "${PPPUSH_STUB_RACE_ONCE:-}" ] && [ ! -f "$PPPUSH_STUB_LOG.raced" ]; then
+  touch "$PPPUSH_STUB_LOG.raced"
+  echo " ! [rejected]        HEAD -> main (fetch first)" >&2
+  echo "error: failed to push some refs" >&2
+  exit 1
+fi
+exec git -C "$REPO" push "${args[@]}"
+EOF
+chmod +x "$STUB_DIR/pp-push"
+export PP_PUSH_BIN="$STUB_DIR/pp-push"
+export PPPUSH_STUB_LOG="$STUB_DIR/pp-push-calls.log"
+: > "$PPPUSH_STUB_LOG"
 
 GREENLIGHT_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/greenlight"
 
@@ -245,5 +291,82 @@ git -C "$ORIGIN_REPO" log --oneline main | grep -q "greenlight: land sidebranch-
   || fail "(i) merge commit not pushed to origin/main"
 [ "$(git -C "$TEST_REPO" rev-parse --abbrev-ref HEAD)" = "other-work" ] \
   || fail "(i) landing switched the top-level checkout's branch"
+
+# (j) a pp-push REFUSAL is not a remote race. pp-push fails closed on its own gate
+# checks — unarmed pre-push hook, checksum drift, a secret glob or an oversized file
+# anywhere in the pushed range. greenlight used to label every non-zero pp-push exit
+# "origin/main moved", retry it 3x, and park saying the remote kept moving. For the
+# secret-glob case that buries the one message that must never be lost, and it sends
+# the reader looking for a race that never happened.
+git checkout main >/dev/null 2>&1
+git checkout -b gate-refusal-branch >/dev/null 2>&1
+echo "gr" > file9.txt
+git add file9.txt
+git commit -m "gr" >/dev/null 2>&1
+git checkout main >/dev/null 2>&1
+: > "$PPPUSH_STUB_LOG"
+export PPPUSH_STUB_FAIL="pp-push: .env matches a secret glob. Refusing to publish."
+"$GREENLIGHT_BIN" run --branch gate-refusal-branch --repo "$TEST_REPO" --verify "true" >/dev/null 2>&1 || true
+unset PPPUSH_STUB_FAIL
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
+reason=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/parked-reason" 2>/dev/null || echo "")
+[ "$state" = "parked" ] || fail "(j) gate refusal state=$state, expected parked"
+grep -q "secret glob" <<< "$reason" \
+  || fail "(j) parked reason lost the gate's own message: '$reason'"
+grep -qv "kept moving" <<< "$reason" \
+  || fail "(j) gate refusal mislabelled as a remote race: '$reason'"
+calls=$(wc -l < "$PPPUSH_STUB_LOG" | tr -d ' ')
+[ "$calls" = "1" ] || fail "(j) gate refusal retried $calls times; a refusal must not be retried"
+
+# (k) a REAL non-fast-forward rejection still retries and then lands. This is the
+# other half of (j): the classification must not turn every push failure into a park.
+git checkout main >/dev/null 2>&1
+git checkout -b race-once-branch >/dev/null 2>&1
+echo "ro" > file10.txt
+git add file10.txt
+git commit -m "ro" >/dev/null 2>&1
+git checkout main >/dev/null 2>&1
+: > "$PPPUSH_STUB_LOG"
+rm -f "$PPPUSH_STUB_LOG.raced"
+export PPPUSH_STUB_RACE_ONCE=1
+"$GREENLIGHT_BIN" run --branch race-once-branch --repo "$TEST_REPO" --verify "true" >/dev/null 2>&1 || true
+unset PPPUSH_STUB_RACE_ONCE
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
+reason=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/parked-reason" 2>/dev/null || echo "")
+[ "$state" = "landed" ] || fail "(k) race-then-succeed state=$state reason='$reason', expected landed"
+calls=$(wc -l < "$PPPUSH_STUB_LOG" | tr -d ' ')
+[ "$calls" = "2" ] || fail "(k) expected 2 push calls (one race, one success), got $calls"
+
+# (l) a SILENT non-zero exit from the gate parks too, and is not retried. A real
+# non-fast-forward always prints git's rejection text and every pp-push refusal prints
+# its own reason, so "failed with nothing to say" is an unknown — and retrying an unknown
+# 3x just produces the same unknown under a wrong label. Pinned because pp-land's golden
+# test used to simulate a race exactly this way, which is what surfaced the question.
+git checkout main >/dev/null 2>&1
+git checkout -b silent-fail-branch >/dev/null 2>&1
+echo "sf" > file11.txt
+git add file11.txt
+git commit -m "sf" >/dev/null 2>&1
+git checkout main >/dev/null 2>&1
+: > "$PPPUSH_STUB_LOG"
+export PPPUSH_STUB_FAIL=""
+cat > "$STUB_DIR/pp-push-silent" << 'EOF'
+#!/bin/bash
+echo "$*" >> "$PPPUSH_STUB_LOG"
+exit 1
+EOF
+chmod +x "$STUB_DIR/pp-push-silent"
+PP_PUSH_BIN="$STUB_DIR/pp-push-silent" \
+  "$GREENLIGHT_BIN" run --branch silent-fail-branch --repo "$TEST_REPO" --verify "true" >/dev/null 2>&1 || true
+unset PPPUSH_STUB_FAIL
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
+reason=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/parked-reason" 2>/dev/null || echo "")
+[ "$state" = "parked" ] || fail "(l) silent gate failure state=$state, expected parked"
+grep -q "no output" <<< "$reason" || fail "(l) parked reason should name the empty output: '$reason'"
+calls=$(wc -l < "$PPPUSH_STUB_LOG" | tr -d ' ')
+[ "$calls" = "1" ] || fail "(l) silent failure retried $calls times; expected 1"
 
 echo "ALL TESTS PASSED"

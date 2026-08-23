@@ -422,8 +422,37 @@ for attempt in $(seq 1 "$LAND_ATTEMPTS"); do
     git -C "$WT_PATH" merge --abort >&2 || true
     park "land merge conflict against origin/main"
   fi
-  if "$PP_PUSH_BIN" --repo "$WT_PATH" origin HEAD:main >&2; then
+  # Capture the gate's output so the failure can be CLASSIFIED, then echo it — nothing
+  # that used to reach stderr is lost. pp-push exits non-zero for two very different
+  # reasons and they need OPPOSITE handling:
+  #
+  #   - a real non-fast-forward: someone pushed while we were merging. Retrying from a
+  #     freshly fetched origin/main is exactly right, and is what the loop is for.
+  #   - the gate refusing: an unarmed pre-push dispatcher, checksum drift on the
+  #     installed copy, core.hooksPath set, or a secret glob / oversized file anywhere
+  #     in the pushed range. Retrying cannot change any of those. Worse, reporting them
+  #     as "origin/main kept moving" buries the one message that must never be lost —
+  #     that a publish to a PUBLIC repo was just stopped — and points the reader at a
+  #     race that never happened.
+  #
+  # Until 2026-08-23 every non-zero exit took the race path: 3 pointless retries (each
+  # re-merging, and on --worktree re-running the whole verify set) and then a park whose
+  # stated reason was wrong. Found by greenlight's own suite, which had not run in a
+  # land because verify-map.tsv pointed this path at test-boss.sh.
+  # A silent non-zero exit is deliberately treated as a refusal, not a race: a real
+  # non-fast-forward always prints git's rejection text, and every pp-push refusal path
+  # prints its own reason. So "failed with nothing to say" is an unknown, and retrying an
+  # unknown three times just yields the same unknown with a wrong label on it.
+  push_log="$STATE_DIR/land-push-$attempt.log"
+  push_rc=0
+  "$PP_PUSH_BIN" --repo "$WT_PATH" origin HEAD:main >"$push_log" 2>&1 || push_rc=$?
+  cat "$push_log" >&2
+  if [ "$push_rc" -eq 0 ]; then
     landed=1; break
+  fi
+  if ! grep -qE '\[rejected\]|non-fast-forward|fetch first|cannot lock ref|Updates were rejected' "$push_log"; then
+    push_msg=$(tr '\n' ' ' < "$push_log" | sed 's/  */ /g' | cut -c1-300)
+    park "land push refused by the push gate (exit $push_rc) — ${push_msg:-no output from $PP_PUSH_BIN}"
   fi
   log "land push rejected (attempt $attempt/$LAND_ATTEMPTS) — origin/main moved; retrying"
   if [ -n "$GL_WT_OVERRIDE" ] && [ "${#VERIFY_CMDS[@]}" -gt 0 ]; then

@@ -357,11 +357,22 @@ chmod +x "$SANDBOX/stubbin/wt"
 
 # A push stub that rejects once, to drive greenlight down its retry path without ever
 # publishing anything.
+#
+# It must print git's real rejection wording. Since 2026-08-23 greenlight CLASSIFIES a
+# failed push instead of assuming every one is a lost race: it retries only on evidence
+# of a non-fast-forward and otherwise parks quoting the gate, so that a pp-push refusal
+# (a secret in the range, an unarmed hook) is never reported as a race. A stub that exits
+# 1 silently is not a race any more — and it never was one in reality, because a rejected
+# push always prints this text.
 cat > "$SANDBOX/stubbin/pp-push-stub" <<STUBPUSH
 #!/usr/bin/env bash
 echo push >> "$SANDBOX/push-calls"
 n=\$(wc -l < "$SANDBOX/push-calls" | tr -d ' ')
-if [ "\$n" -le 1 ]; then exit 1; fi
+if [ "\$n" -le 1 ]; then
+  echo " ! [rejected]        HEAD -> main (fetch first)" >&2
+  echo "error: failed to push some refs to 'origin'" >&2
+  exit 1
+fi
 exit 0
 STUBPUSH
 chmod +x "$SANDBOX/stubbin/pp-push-stub"
