@@ -20,12 +20,13 @@
  */
 
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { setCookie } from "hono/cookie";
 import type { Env, Variables } from "./auth";
 import { getUser, loginRedirect, logout, oauthCallback, requireSession } from "./auth";
-import { getAccessToken, ConflictError } from "./sheets";
+import { getAccessToken, ConflictError, SheetsError } from "./sheets";
 import { getStore } from "./datastore";
-import { loadAffiliateRecords } from "./affiliate";
+import { loadAffiliateRecords, type AffiliateRecord } from "./affiliate";
 import { resolveSelection, externalCollisions, buildPlan, renderDescription, validateDescription, planHash, generateVideoCode } from "./linkgen";
 import * as clickstore from "./clickstore";
 import {
@@ -72,6 +73,68 @@ async function cachedReadRows(env: Env): Promise<Row[]> {
 async function bustBoardCache(env: Env): Promise<void> {
   await env.SESSIONS.delete(BOARD_CACHE_KEY);
 }
+
+// ---------------------------------------------------------------------------
+// KV-backed cache for the affiliate-programs sheet (~5 min TTL)
+//
+// FIVE endpoints each read this one Google Sheet on every request. Opening the
+// Links tab was enough to get HTTP 429 (rate limited) back from Google, which
+// escaped as a bare 500 — "Couldn't fetch link drift (HTTP 500)" with no clue
+// why. The sheet changes a few times a week, so caching it costs nothing.
+// ---------------------------------------------------------------------------
+
+const AFFILIATE_CACHE_KEY = "affiliates:records";
+const AFFILIATE_CACHE_TTL = 300;
+/** Last-known-good copy, kept far longer than the fresh window. A drift report
+ *  built from a ten-minute-old sheet beats an error page every time. */
+const AFFILIATE_STALE_KEY = "affiliates:records:last";
+const AFFILIATE_STALE_TTL = 604800;   // 7 days
+
+/** Why the affiliate sheet could not be read, in words a person can act on. */
+function sheetFailure(err: unknown): { status: 429 | 502; message: string } {
+  if (err instanceof SheetsError) {
+    if (err.rateLimited) {
+      return { status: 429, message: "Google is rate-limiting the affiliate sheet right now. Try again in a minute." };
+    }
+    if (err.status === 403) {
+      return { status: 502, message: "The tracker's service account can't read the affiliate sheet — re-share it with that account." };
+    }
+    if (err.status === 404) {
+      return { status: 502, message: "The affiliate sheet wasn't found — check AFFILIATE_PROGRAMS_SHEET_URL." };
+    }
+    return { status: 502, message: `The affiliate sheet couldn't be read (Google returned ${err.status}).` };
+  }
+  return { status: 502, message: "The affiliate sheet couldn't be read." };
+}
+
+async function cachedAffiliates(env: Env): Promise<Record<string, AffiliateRecord>> {
+  const fresh = await env.SESSIONS.get(AFFILIATE_CACHE_KEY);
+  if (fresh) {
+    try { return JSON.parse(fresh) as Record<string, AffiliateRecord>; } catch { /* fall through */ }
+  }
+  try {
+    const token = await getAccessToken(env.GOOGLE_SA_JSON);
+    const records = await loadAffiliateRecords(token, env.AFFILIATE_PROGRAMS_SHEET_URL);
+    const body = JSON.stringify(records);
+    await env.SESSIONS.put(AFFILIATE_CACHE_KEY, body, { expirationTtl: AFFILIATE_CACHE_TTL });
+    await env.SESSIONS.put(AFFILIATE_STALE_KEY, body, { expirationTtl: AFFILIATE_STALE_TTL });
+    return records;
+  } catch (err) {
+    // Refresh failed. Serve the last good copy if we have one — being a few
+    // minutes behind is not worth an error page.
+    const stale = await env.SESSIONS.get(AFFILIATE_STALE_KEY);
+    if (stale) {
+      try { return JSON.parse(stale) as Record<string, AffiliateRecord>; } catch { /* fall through */ }
+    }
+    // Nothing cached at all: say exactly what went wrong, in one sentence.
+    const { status, message } = sheetFailure(err);
+    throw new HTTPException(status, {
+      res: Response.json({ error: "affiliate_sheet_unavailable", message }, { status }),
+    });
+  }
+}
+
+
 
 // ---------------------------------------------------------------------------
 // Name helpers
@@ -908,8 +971,7 @@ app.post("/api/generate-links", async (c) => {
 app.get("/api/affiliate-catalog", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const affiliates = await cachedAffiliates(c.env);
   const list = Object.values(affiliates).map(a => ({
     slug: a.tool,
     displayName: a.displayName,
@@ -958,8 +1020,7 @@ app.post("/api/link-preview", async (c) => {
   }
   if (!tools || tools.length === 0) return c.json({ error: "no_tools", message: "Select at least one tool for this video, then preview." }, 422);
 
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const affiliates = await cachedAffiliates(c.env);
   const resolved = resolveSelection(tools, affiliates);
   
   let videoCode = (target.video_code as string)?.trim();
@@ -1011,8 +1072,7 @@ app.post("/api/link-confirm", async (c) => {
   let tools: any[] = [];
   try { tools = JSON.parse((target.video_tools as string) || "[]"); } catch (e) { tools = []; }
   
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const affiliates = await cachedAffiliates(c.env);
   const resolved = resolveSelection(tools, affiliates);
   
   let previewVideoCode = (target.video_code as string)?.trim();
@@ -1082,8 +1142,7 @@ app.get("/api/link-drift", async (c) => {
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
   
   const allRows = await cachedReadRows(c.env);
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const affiliates = await cachedAffiliates(c.env);
   
   const drift = [];
   const db = c.env.DB;
@@ -1113,8 +1172,7 @@ app.post("/api/link-resync", async (c) => {
   const linkRow = await db.prepare("SELECT tool FROM links WHERE slug = ?").bind(slug).first<{tool: string}>();
   if (!linkRow) return c.json({ error: "link not found" }, 404);
   
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const affiliates = await cachedAffiliates(c.env);
   
   const rec = affiliates[linkRow.tool];
   if (!rec || !rec.isApproved || !rec.targetUrl.trim()) {
