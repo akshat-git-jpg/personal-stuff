@@ -297,10 +297,9 @@ export async function linkConfirm(row_id: string, plan_hash: string): Promise<Co
 
 export async function linkDrift(): Promise<{ drift: DriftRow[] }> {
   const res = await fetch("/api/link-drift", { credentials: "same-origin" });
-  if (!res.ok) {
-    if (res.status === 401) throw new UnauthorizedError();
-    throw new Error(`Couldn't fetch link drift (HTTP ${res.status})`);
-  }
+  // throwOnError surfaces the server's OWN message. This used to replace it with
+  // "HTTP 500", which hid the real cause (Google rate-limiting the sheet).
+  await throwOnError(res);
   return res.json() as Promise<{ drift: DriftRow[] }>;
 }
 
