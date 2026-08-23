@@ -1,0 +1,417 @@
+#!/usr/bin/env bash
+# pp-land — carries a workspace commit to main by itself, with no further action and no
+# notification. Usage: pp-land <workspace-path> [--wait]
+#
+# Why this exists rather than calling greenlight directly (plan 228):
+#
+#   1. greenlight leased a slot from the 8-slot `wt` pool for every run. One land per
+#      commit against 8 slots exhausts that pool, and with the owner's no-notification
+#      rule commits then stop arriving on main silently. This tool owns a DEDICATED
+#      landing tree outside the pool, so landing can never starve boss.
+#   2. `--worktree` skips the pool lease, and that lease was also doing the reset AND the
+#      provisioning (the bootstrap hook that links pipelines/.env, credentials.json,
+#      .mcp.json and every apps/*/.dev.vars). So this tool does both itself, in that order.
+#   3. One mutex is held across the WHOLE land. pp-push's lock is taken at the push, which
+#      is AFTER a verify that takes minutes, so it cannot serialise a land.
+#
+# The landing tree is the only worktree in this system that is ALWAYS reset. That is safe
+# only because no owner work ever lives there. If anything ever writes owner state into it,
+# the reset becomes data loss.
+set -uo pipefail
+
+# NOT `set -e`: greenlight exits 0 when it parks, the mutex must be released on every
+# path, and a tolerated failure (pp-work refusing an unmerged workspace) is normal.
+
+log() {
+  local line="[$(date +'%Y-%m-%d %H:%M:%S')] pp-land: $1"
+  printf '%s\n' "$line" >&2
+  if [ -n "${STATE:-}" ] && [ -d "${STATE:-}" ]; then
+    printf '%s\n' "$line" >> "$STATE/land.log"
+  fi
+  return 0
+}
+
+die() { printf 'pp-land: %s\n' "$1" >&2; exit 1; }
+
+# ---------------------------------------------------------------------------
+# Arguments
+# ---------------------------------------------------------------------------
+WORKSPACE=""
+WAIT_MODE=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --wait) WAIT_MODE=1; shift ;;
+    -*) die "unknown option: $1" ;;
+    *)
+      [ -z "$WORKSPACE" ] || die "usage: pp-land <workspace-path> [--wait]"
+      WORKSPACE="$1"; shift ;;
+  esac
+done
+[ -n "$WORKSPACE" ] || die "usage: pp-land <workspace-path> [--wait]"
+[ -d "$WORKSPACE" ] || die "not a directory: $WORKSPACE"
+
+# ---------------------------------------------------------------------------
+# Roots. Anchored on the MAIN checkout via --git-common-dir, never --show-toplevel:
+# inside a linked worktree the latter returns the worktree itself.
+# ---------------------------------------------------------------------------
+COMMON=$(git -C "$WORKSPACE" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
+  || die "not inside a git repository: $WORKSPACE"
+MAIN=$(dirname "$COMMON")
+REPO_NAME=$(basename "$MAIN")
+HASH8=$(printf '%s' "$MAIN" | shasum -a 256 | cut -c 1-8)
+
+LANDING="${PPLAND_LANDING:-$HOME/kb-scratch/landing/$REPO_NAME-$HASH8}"
+STATE="${PPLAND_STATE_ROOT:-$HOME/.local/state/pp-land}/$REPO_NAME-$HASH8"
+LANDS_DIR="${PPLAND_LANDS_DIR:-$MAIN/tooling/boss/state/lands}"
+VERIFY_MAP="${PPLAND_VERIFY_MAP:-$MAIN/tooling/cli/pp-land/verify-map.tsv}"
+GREENLIGHT_BIN="${PPLAND_GREENLIGHT:-$MAIN/tooling/cli/greenlight/greenlight}"
+PPWORK_BIN="${PPLAND_PPWORK:-$MAIN/tooling/cli/pp-work/pp-work}"
+BOOTSTRAP_HOOK="$MAIN/tooling/cli/wt/bootstrap.d/$REPO_NAME.sh"
+
+MUTEX="$STATE/land.lock"
+FLAG="$STATE/coalesce"
+MUTEX_STALE_SECS="${PPLAND_MUTEX_STALE_SECS:-1800}"
+MUTEX_MAX_WAIT="${PPLAND_MUTEX_MAX_WAIT:-3600}"
+MAX_CYCLES="${PPLAND_MAX_CYCLES:-12}"
+
+mkdir -p "$STATE" || die "cannot create state dir $STATE"
+
+# The workspace can be removed by `pp-work remove` mid-run, so never sit inside it.
+cd "$MAIN" || die "cannot cd to $MAIN"
+
+MUTEX_HELD=0
+PENDING_WS=""
+
+# ---------------------------------------------------------------------------
+# The landing mutex. Same hardening as the worktree-pool lock and the push lock: a
+# mkdir lock holding a pid file, a stale break when the recorded pid is gone, an age
+# break when there is no pid, a bounded wait that fails loudly, and a release that only
+# removes a lock this process owns.
+# ---------------------------------------------------------------------------
+mutex_try_acquire() {
+  if mkdir "$MUTEX" 2>/dev/null; then
+    printf '%s\n' "$$" > "$MUTEX/pid"
+    MUTEX_HELD=1
+    return 0
+  fi
+  local owner now mt
+  owner=$(cat "$MUTEX/pid" 2>/dev/null || echo "")
+  if [ -n "$owner" ] && ! kill -0 "$owner" 2>/dev/null; then
+    log "breaking stale landing mutex (holder pid $owner is gone)"
+    rm -rf "$MUTEX"
+  elif [ -z "$owner" ]; then
+    now=$(date +%s)
+    mt=$(stat -f %m "$MUTEX" 2>/dev/null || stat -c %Y "$MUTEX" 2>/dev/null || echo "$now")
+    if [ $((now - mt)) -ge "$MUTEX_STALE_SECS" ]; then
+      log "breaking stale landing mutex (no pid recorded, ${MUTEX_STALE_SECS}s+ old)"
+      rm -rf "$MUTEX"
+    fi
+  fi
+  if mkdir "$MUTEX" 2>/dev/null; then
+    printf '%s\n' "$$" > "$MUTEX/pid"
+    MUTEX_HELD=1
+    return 0
+  fi
+  return 1
+}
+
+mutex_wait_acquire() {
+  local waited=0 max=$((MUTEX_MAX_WAIT * 5))
+  while ! mutex_try_acquire; do
+    if [ "$waited" -ge "$max" ]; then
+      printf 'pp-land: PPLAND-MUTEX refusing to land: the landing mutex has been held for >%ss by live pid %s. Not breaking a live holder.\n' \
+        "$MUTEX_MAX_WAIT" "$(cat "$MUTEX/pid" 2>/dev/null || echo unknown)" >&2
+      return 1
+    fi
+    sleep 0.2
+    waited=$((waited + 1))
+  done
+  return 0
+}
+
+mutex_release() {
+  [ "$MUTEX_HELD" -eq 1 ] || return 0
+  local owner
+  owner=$(cat "$MUTEX/pid" 2>/dev/null || echo "")
+  if [ -n "$owner" ] && [ "$owner" != "$$" ]; then
+    return 0
+  fi
+  rm -rf "$MUTEX" 2>/dev/null || true
+  MUTEX_HELD=0
+  return 0
+}
+trap mutex_release EXIT
+
+# ---------------------------------------------------------------------------
+# The landing tree: reset, THEN provision. The order is load-bearing — the reset
+# discards the previous land, and the provisioning replaces the machine-local files
+# that no commit can carry.
+# ---------------------------------------------------------------------------
+reset_landing_tree() {
+  if [ ! -e "$LANDING/.git" ]; then
+    mkdir -p "$(dirname "$LANDING")" || return 1
+    git -C "$MAIN" worktree add --detach "$LANDING" origin/main >/dev/null 2>&1 || return 1
+    return 0
+  fi
+  git -C "$LANDING" merge --abort >/dev/null 2>&1 || true
+  git -C "$LANDING" rebase --abort >/dev/null 2>&1 || true
+  git -C "$LANDING" reset --hard >/dev/null 2>&1 || true
+  # Deliberately WITHOUT -x. The gitignored files here are exactly the ones the bootstrap
+  # hook links (pipelines/.env, credentials.json, .mcp.json, every apps/*/.dev.vars) plus
+  # every node_modules, so wiping ignored files would make every verify fail from the very
+  # first land. `checkout --detach` is blocked by modified TRACKED files and by an unmerged
+  # index, both handled above — not by ignored build output.
+  git -C "$LANDING" clean -fd >/dev/null 2>&1 || true
+  if ! git -C "$LANDING" checkout --detach origin/main >/dev/null 2>&1; then
+    # Escalation, and ONLY on failure: something untracked is genuinely in the way.
+    # Retry once, then give up rather than loop. This is never the routine step.
+    log "detach at origin/main failed — escalating once"
+    git -C "$LANDING" clean -xfd >/dev/null 2>&1 || true
+    git -C "$LANDING" checkout --detach origin/main >/dev/null 2>&1 || return 1
+  fi
+  git -C "$LANDING" reset --hard origin/main >/dev/null 2>&1 || return 1
+  return 0
+}
+
+provision_landing_tree() {
+  [ -f "$BOOTSTRAP_HOOK" ] || return 0
+  ( cd "$LANDING" && WT_MAIN_CHECKOUT="$MAIN" bash "$BOOTSTRAP_HOOK" ) >/dev/null 2>&1 \
+    || log "WARN: bootstrap hook failed for $LANDING"
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# The verify map: a path prefix, a tab, and the command whose exit 0 gates a land
+# touching that prefix. Every command whose prefix matches at least one changed path
+# runs, de-duplicated. No match means the land proceeds — there is no repo-wide suite,
+# and refusing here would mean a doc-only commit never arrives.
+# ---------------------------------------------------------------------------
+matched_verify_cmds() {
+  local ref="$1" changed prefix cmd
+  [ -f "$VERIFY_MAP" ] || return 0
+  changed=$(git -C "$MAIN" diff --name-only "origin/main..$ref" 2>/dev/null)
+  [ -n "$changed" ] || return 0
+  while IFS="$(printf '\t')" read -r prefix cmd; do
+    [ -n "${prefix:-}" ] || continue
+    case "$prefix" in \#*) continue ;; esac
+    [ -n "${cmd:-}" ] || continue
+    if printf '%s\n' "$changed" | awk -v p="$prefix" 'index($0,p)==1 { f=1 } END { exit !f }'; then
+      printf '%s\n' "$cmd"
+    fi
+  done < "$VERIFY_MAP" | awk '!seen[$0]++'
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# A blocked land. Nothing else changes and the workspace is left untouched.
+# ---------------------------------------------------------------------------
+detect_conflicts() {
+  local lb="$1"
+  git -C "$LANDING" merge --abort >/dev/null 2>&1 || true
+  git -C "$LANDING" rebase --abort >/dev/null 2>&1 || true
+  git -C "$LANDING" checkout --detach origin/main >/dev/null 2>&1 || return 0
+  git -C "$LANDING" reset --hard origin/main >/dev/null 2>&1 || return 0
+  if git -C "$LANDING" merge --no-commit --no-ff "$lb" >/dev/null 2>&1; then
+    git -C "$LANDING" merge --abort >/dev/null 2>&1 || true
+    return 0
+  fi
+  git -C "$LANDING" diff --name-only --diff-filter=U 2>/dev/null
+  git -C "$LANDING" merge --abort >/dev/null 2>&1 || true
+  return 0
+}
+
+write_blocked() {
+  local ws="$1" branch="$2" reason="$3" land_branch="$4"
+  local slug file conflicts="" no_auto=0 attempts=1 p
+  slug=$(printf '%s' "$branch" | tr '/' '-')
+  mkdir -p "$LANDS_DIR" || return 0
+  file="$LANDS_DIR/land-$slug.blocked"
+  if [ -f "$file" ]; then
+    attempts=$(sed -n 's/^attempts=//p' "$file" | head -1)
+    case "$attempts" in
+      ''|*[!0-9]*) attempts=1 ;;
+      *) attempts=$((attempts + 1)) ;;
+    esac
+  fi
+  case "$reason" in
+    *conflict*)
+      conflicts=$(detect_conflicts "$land_branch")
+      while IFS= read -r p; do
+        [ -n "$p" ] || continue
+        # These paths reach production through vps-sync.sh's 15-minute pull, so an
+        # automatic resolution here would publish a guess. The land simply waits.
+        case "$p" in
+          infra/*|scripts/*|.github/*|tooling/boss/*|apps/*/wrangler.toml) no_auto=1 ;;
+        esac
+      done < <(printf '%s\n' "$conflicts")
+      ;;
+  esac
+  {
+    printf 'workspace=%s\n' "$ws"
+    printf 'branch=%s\n' "$branch"
+    if [ "$no_auto" -eq 1 ]; then
+      printf 'reason=%s\n' "deploy-live-conflict"
+    else
+      printf 'reason=%s\n' "$reason"
+    fi
+    printf 'attempts=%s\n' "$attempts"
+    printf 'at=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    if [ -n "$conflicts" ]; then
+      printf 'conflicts=%s\n' "$(printf '%s' "$conflicts" | tr '\n' ',')"
+    fi
+    if [ "$no_auto" -eq 1 ]; then
+      printf 'no_auto_resolve=1\n'
+    fi
+  } > "$file"
+  log "blocked: $file ($reason)"
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# One land. The workspace branch is SNAPSHOTTED onto a landing ref first, for two
+# reasons: the branch itself is checked out in the workspace, so no other tree is
+# allowed to check it out; and a commit arriving mid-land must NOT be swept in
+# invisibly — it has to surface as an explicit coalesced re-run, verified on its own.
+# ---------------------------------------------------------------------------
+do_one_land() {
+  local ws="$1" cycle="$2"
+  if [ ! -d "$ws" ]; then
+    log "workspace is gone, nothing to land: $ws"
+    return 0
+  fi
+  local branch sha slug land_branch gl_root gl_state gl_result reason n cmd d
+  branch=$(git -C "$ws" rev-parse --abbrev-ref HEAD 2>/dev/null) \
+    || { log "cannot read the branch in $ws"; return 0; }
+  sha=$(git -C "$ws" rev-parse HEAD 2>/dev/null) \
+    || { log "cannot read HEAD in $ws"; return 0; }
+  slug=$(printf '%s' "$branch" | tr '/' '-')
+  land_branch="land/$slug"
+
+  git -C "$MAIN" fetch origin main >/dev/null 2>&1 || true
+  if git -C "$MAIN" merge-base --is-ancestor "$sha" origin/main 2>/dev/null; then
+    log "already on main, nothing to land: $branch ($sha)"
+    rm -f "$LANDS_DIR/land-$slug.blocked" 2>/dev/null || true
+    return 0
+  fi
+
+  log "cycle $cycle: landing $branch ($sha) from $ws"
+
+  if ! reset_landing_tree; then
+    write_blocked "$ws" "$branch" "cannot reset the landing tree at $LANDING" "$land_branch"
+    return 0
+  fi
+  provision_landing_tree
+
+  if ! git -C "$MAIN" update-ref -f "refs/heads/$land_branch" "$sha"; then
+    write_blocked "$ws" "$branch" "cannot create the landing ref $land_branch" "$land_branch"
+    return 0
+  fi
+
+  local gl_args
+  gl_args=(run --repo "$MAIN" --branch "$land_branch" --worktree "$LANDING")
+  n=0
+  while IFS= read -r cmd; do
+    [ -n "$cmd" ] || continue
+    gl_args+=(--verify "$cmd")
+    n=$((n + 1))
+  done < <(matched_verify_cmds "$land_branch")
+  [ "$n" -gt 0 ] || log "no verify suite matched"
+
+  gl_root="$STATE/gl/$$-$cycle-$slug"
+  rm -rf "$gl_root"
+  mkdir -p "$gl_root"
+  GREENLIGHT_STATE_ROOT="$gl_root" "$GREENLIGHT_BIN" "${gl_args[@]}" >/dev/null 2>&1
+  gl_state=""
+  for d in "$gl_root"/*/; do
+    [ -d "$d" ] && gl_state="${d%/}"
+  done
+  gl_result="unknown"
+  reason="greenlight produced no state"
+  if [ -n "$gl_state" ] && [ -f "$gl_state/state" ]; then
+    gl_result=$(cat "$gl_state/state")
+    reason=$(cat "$gl_state/parked-reason" 2>/dev/null || echo "$gl_result")
+  fi
+
+  if [ "$gl_result" = "landed" ]; then
+    log "landed $branch"
+    rm -f "$LANDS_DIR/land-$slug.blocked" 2>/dev/null || true
+    git -C "$MAIN" fetch origin main >/dev/null 2>&1 || true
+    # `pp-work remove` refuses unless the workspace is clean AND its branch is merged.
+    # A refusal is the normal outcome while a newer commit is still pending, so it is
+    # tolerated here and never forced.
+    "$PPWORK_BIN" remove "$ws" >/dev/null 2>&1 \
+      || log "workspace kept (dirty, or newer commits not yet on main): $ws"
+    git -C "$MAIN" update-ref -d "refs/heads/$land_branch" >/dev/null 2>&1 || true
+  else
+    log "land did not complete for $branch: $gl_result — $reason"
+    write_blocked "$ws" "$branch" "$reason" "$land_branch"
+  fi
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# main. Defined here and invoked at the very bottom, so the sequence reads in order
+# and every helper it calls is defined by the time it runs.
+# ---------------------------------------------------------------------------
+main() {
+  local ws="$1"
+
+  if [ "$WAIT_MODE" -eq 1 ]; then
+    mutex_wait_acquire || exit 1
+  elif ! mutex_try_acquire; then
+    # Acquire FIRST, then flag, then retry acquisition ONCE. Flag-then-exit would race
+    # the holder's own check, and without the retry a holder that released in between
+    # would leave this commit for nobody to land.
+    printf '%s\n' "$ws" >> "$FLAG"
+    if ! mutex_try_acquire; then
+      log "a land is in flight — flagged for coalescing: $ws"
+      exit 0
+    fi
+    rm -f "$FLAG"
+  fi
+
+  local cycle=0 queue="$ws" pending w
+  while : ; do
+    cycle=$((cycle + 1))
+    while IFS= read -r w; do
+      [ -n "$w" ] || continue
+      do_one_land "$w" "$cycle"
+    done < <(printf '%s\n' "$queue" | awk '!seen[$0]++')
+
+    if [ "$cycle" -ge "$MAX_CYCLES" ]; then
+      log "coalesce cycle cap ($MAX_CYCLES) reached — the flag is left for the next trigger"
+      break
+    fi
+    pending=0
+    coalesce_check_and_clear || pending=1
+    [ "$pending" -eq 1 ] || break
+    queue="$PENDING_WS"
+    log "coalescing a commit that arrived during the land"
+  done
+
+  mutex_release
+
+  # AFTER releasing, never before: a sweep that re-lands a blocked branch has to be able
+  # to take this same mutex. Plan 229 owns the sweep itself.
+  if [ -n "${PPLAND_SWEEP:-}" ] && [ -x "${PPLAND_SWEEP:-}" ]; then
+    "$PPLAND_SWEEP" "$MAIN" >/dev/null 2>&1 || true
+  fi
+  return 0
+}
+
+# Read AND clear the flag INSIDE the mutex, and loop if it was set. Checking and then
+# releasing would leave a window: a trigger arriving between the check and the release
+# finds the mutex held, sets the flag and exits — and the holder has already passed its
+# check, so nobody re-runs. That commit then reaches main only if some LATER commit
+# happens to start a fresh land, and with no notifications that is indistinguishable
+# from success. Returns 0 when nothing is pending, non-zero when there is more to land.
+coalesce_check_and_clear() {
+  PENDING_WS=""
+  [ -f "$FLAG" ] || return 0
+  PENDING_WS=$(cat "$FLAG" 2>/dev/null)
+  rm -f "$FLAG"
+  [ -n "$PENDING_WS" ] || return 0
+  return 1
+}
+
+main "$WORKSPACE"
