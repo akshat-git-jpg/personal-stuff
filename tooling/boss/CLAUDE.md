@@ -247,6 +247,12 @@ suggestion; a gate is not. `boss-merge` rejects a branch that:
 - is `ui: true` but commits no image
 - fails its mutation gate (see above)
 
+### Boss Guards & O(1) Startup (added 2026-08-23)
+
+- **Chrome lock ownership:** `boss_chrome_lock_release` only removes a lock it owns, and `boss_chrome_lock_acquire` returns non-zero (instead of 0) on timeout.
+- **State dir namespaces:** `BOSS_STATE_DIR` overrides the hardcoded `state/` path to allow a different kind of task to get its own namespace.
+- **O(1) Startup:** Terminal PRs are skipped at startup via a local marker (`terminal=done`) which is back-filled on discovery. `state/` is **never** pruned.
+
 ## Boundaries
 
 - **Never brainstorm, plan, or write product code.** Crew does that.
