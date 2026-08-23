@@ -109,3 +109,21 @@ editor's end-of-line key instead.
 
 Remove the two `pp-claude-tags` lines from `~/.zshrc`, unload the launch agent,
 then reinstall Claude Code.
+
+## Tagging a session automatically
+
+Tagging by hand gets tedious for a folder you open often. `.claude/hooks/session-group.sh`
+in this repo is a `SessionStart` hook that writes the tag file for you, picking the tag from
+the session's working directory. Sessions in `tooling/boss` come up tagged `boss` instead of
+Ungrouped.
+
+Add a folder by adding one `case` arm:
+
+```bash
+case "$cwd" in
+  */personal-stuff/tooling/boss|*/personal-stuff/tooling/boss/*) group="boss" ;;
+  */personal-stuff/pipelines/video/*)                            group="video-production" ;;
+esac
+```
+
+An existing tag is never overwritten, so `ctrl+e` still has the final say on any session.

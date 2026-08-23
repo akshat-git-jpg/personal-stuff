@@ -701,3 +701,30 @@ Two pre-existing problems surfaced while doing this and are NOT fixed here:
    firing on phrases the owner uses, so it needs the owner, not a silent edit.
 2. `HYGIENE-2`'s failure message contained an invalid parameter expansion that would itself
    have errored had that assertion ever fired. Fixed in passing.
+
+## 2026-08-23 — session tags are auto-assigned from cwd by a SessionStart hook
+
+Sessions opened in `tooling/boss` kept landing under **Ungrouped** in the agents view,
+so every one of them had to be tagged by hand with `ctrl+e`. `.claude/hooks/session-group.sh`
+now does it: a `SessionStart` hook maps the session's `cwd` to a tag and writes
+`$CLAUDE_CONFIG_DIR/jobs/<short-session-id>/group`. One `case` arm per folder;
+`tooling/boss` -> `boss` is the only one so far.
+
+Three things this is careful about:
+
+1. **It never overwrites an existing `group` file.** A manual `ctrl+e` retag always wins,
+   including on resume, so the hook cannot fight the owner over a session it already tagged.
+2. **It does not create the job dir.** The daemon may not have written
+   `jobs/<id>/` yet when `SessionStart` fires, so the write is backgrounded and polls for
+   up to 20s. Creating the dir here instead would leave orphan job dirs for sessions the
+   daemon never registers.
+3. **It matches the on-disk format exactly** — the tag file holds the bare name with
+   no trailing newline, which is what Claude Code itself writes.
+
+The tag file, not the hook, is the source of truth; see `tooling/cli/pp-claude-tags/README.md`
+for how the agents view reads it and why the view has to be byte-patched to show tags at all.
+
+This does not reopen the 2026-07-08 rejection of a repo-wide `SessionStart` hook. That one
+was rejected because it would have run boss's `session-start` (gh label and PR calls) on
+every personal-stuff session. This hook makes no network call, does nothing at all outside
+`tooling/boss`, and returns in under a second.
