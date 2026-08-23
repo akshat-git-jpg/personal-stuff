@@ -110,7 +110,7 @@ ok "a secret added and deleted within one push range is refused"
 
 # 3. an oversized file is REFUSED
 git fetch -q origin
-mkdir -p big; dd if=/dev/zero of=big/blob.bin bs=1024 count=2000 2>/dev/null
+mkdir -p big; dd if=/dev/zero of=big/blob.bin bs=1024 count=5000 2>/dev/null
 git add big/blob.bin; git commit -qm "add big"
 set +e; "$GATE" --repo "$BASE/wt" origin HEAD:main >/dev/null 2>&1; rc=$?; set -e
 [ "$rc" -ne 0 ] || fail "pp-push PUSHED an oversized file"
