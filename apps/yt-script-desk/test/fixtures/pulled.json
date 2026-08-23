@@ -1,0 +1,45 @@
+{
+  "title": "Character Consistency AI — is it worth it?",
+  "pulledAt": "2026-08-23T00:00:00.000Z",
+  "beats": [
+    {
+      "num": "A1",
+      "title": "Cold open — the drift",
+      "part": "A — INTRODUCTION",
+      "say": ["Perfect face. Perfect outfit.", "Scene two. Different person."]
+    },
+    {
+      "num": "A2",
+      "title": "Credibility beat",
+      "part": "A — INTRODUCTION",
+      "say": null
+    },
+    {
+      "num": "B1",
+      "title": "Meet the five tools",
+      "part": "B — BODY",
+      "say": null
+    },
+    {
+      "num": "B2",
+      "title": "The pick",
+      "part": "B — BODY",
+      "say": ["This was the platform I always came back to."]
+    },
+    {
+      "num": "B3",
+      "title": "Sign-off pause",
+      "part": "B — BODY",
+      "say": ["Five tools, one winner.", "", "See you in the next one."]
+    }
+  ],
+  "draft": {
+    "B1": "So I built one character and ran her through five scenes.\nFive tools, one test."
+  },
+  "says": {
+    "B2": ["This is the one I'd actually pay for."]
+  },
+  "edits": {
+    "B2": { "original": ["This was the platform I always came back to."], "at": "2026-08-22T10:00:00.000Z" }
+  }
+}
