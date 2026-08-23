@@ -26,24 +26,25 @@ export function SayCard({ lines, editable = true, editedInfo = null, onSave, onR
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    setDraftText(lines.join('\n'))
-  }, [lines])
-
-  useEffect(() => {
     if (unlocked) textareaRef.current?.focus()
   }, [unlocked])
+
+  const unlock = () => {
+    setDraftText(lines.join('\n'))
+    setUnlocked(true)
+  }
 
   const handleEditClick = () => {
     if (LOCKED_LINES_NEED_CONFIRM) {
       setConfirmOpen(true)
     } else {
-      setUnlocked(true)
+      unlock()
     }
   }
 
   const handleConfirmYes = () => {
     setConfirmOpen(false)
-    setUnlocked(true)
+    unlock()
   }
 
   const handleConfirmNo = () => {

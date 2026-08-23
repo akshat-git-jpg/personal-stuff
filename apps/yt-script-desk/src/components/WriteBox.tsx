@@ -13,13 +13,17 @@ const RETRY_MS = 5000
 // No word target, no word limit — owner decision. Just a plain count.
 export function WriteBox({ value, onSave }: WriteBoxProps) {
   const [text, setText] = useState(value)
+  const [prevValue, setPrevValue] = useState(value)
   const [saveState, setSaveState] = useState<SaveState>('saved')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
+  // A prop change (a fresh load, not the user's own keystroke) resets the
+  // local draft — done during render, not an effect, so it can't cascade.
+  if (value !== prevValue) {
+    setPrevValue(value)
     setText(value)
-  }, [value])
+  }
 
   useEffect(() => {
     return () => {

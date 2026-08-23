@@ -19,15 +19,19 @@ export function App() {
   const key = getKeyFromUrl()
 
   useEffect(() => {
-    if (!key) {
-      setError('no ?key= in the URL')
-      return
-    }
+    if (!key) return
     getVideo(key)
       .then(setDoc)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
   }, [key])
 
+  if (!key) {
+    return (
+      <div className="app">
+        <p style={{ padding: '20px 40px' }}>no ?key= in the URL</p>
+      </div>
+    )
+  }
   if (error) {
     return (
       <div className="app">
