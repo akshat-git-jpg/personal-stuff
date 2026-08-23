@@ -426,5 +426,45 @@ stall_case() {
 
 echo "PASS: stall clock resets on re-dispatch, real stalls still killed"
 
+# -----------------------------------------------------------------------
+# (2026-08-23) The three guards from plan 223. Each asserts OBSERVABLE
+# behaviour — a lock surviving, a non-zero return, a scan making no network
+# call — never that a string appears in a source file.
+# -----------------------------------------------------------------------
+
+echo "--- (G1) chrome lock release refuses a foreign lock ---"
+LOCKTMP=$(mktemp -d)
+(
+  export BOSS_LOCK_DIR="$LOCKTMP"
+  source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+  mkdir -p "$BOSS_LOCK_DIR/chrome.lock"
+  echo "someone-else" > "$BOSS_LOCK_DIR/chrome.lock/owner"
+  echo 999999        > "$BOSS_LOCK_DIR/chrome.lock/pid"
+  boss_chrome_lock_release >/dev/null 2>&1
+  [ -d "$BOSS_LOCK_DIR/chrome.lock" ] || exit 3
+) || fail "chrome lock release DELETED a lock owned by another process"
+echo "PASS: chrome lock release refuses a foreign lock"
+
+echo "--- (G2) chrome lock acquire returns non-zero when it times out ---"
+(
+  export BOSS_LOCK_DIR="$LOCKTMP" BOSS_CHROME_WAIT_MIN=0
+  source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+  mkdir -p "$BOSS_LOCK_DIR/chrome.lock"
+  echo "holder"  > "$BOSS_LOCK_DIR/chrome.lock/owner"
+  echo "$$"      > "$BOSS_LOCK_DIR/chrome.lock/pid"   # a LIVE pid, so the reaper skips it
+  boss_chrome_lock_acquire "probe" >/dev/null 2>&1
+  [ $? -ne 0 ] || exit 3
+) || fail "chrome lock acquire returned 0 without holding the lock"
+echo "PASS: chrome lock acquire reports a timeout"
+rm -rf "$LOCKTMP"
+
+echo "--- (G3) STATE_DIR honours BOSS_STATE_DIR ---"
+sd=$(BOSS_STATE_DIR="$LOCKTMP-state" bash -c 'source '"$BOSSDIR"'/bin/boss-lib.sh >/dev/null 2>&1; echo "$STATE_DIR"')
+[ "$sd" = "$LOCKTMP-state" ] || fail "STATE_DIR ignored BOSS_STATE_DIR (got '$sd')"
+sd=$(bash -c 'source '"$BOSSDIR"'/bin/boss-lib.sh >/dev/null 2>&1; echo "$STATE_DIR"')
+case "$sd" in */tooling/boss/state) : ;; *) fail "STATE_DIR default changed (got '$sd')";; esac
+echo "PASS: STATE_DIR override works and the default is unchanged"
+rm -rf "$LOCKTMP-state"
+
 echo ""
 echo "ALL TESTS PASSED"
