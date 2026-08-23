@@ -880,3 +880,24 @@ Left undone deliberately: the `secretary`/`pp-work` folder-ownership collision (
 living inside a pp-work workspace) is an architecture fork, not a bug fix, and is the owner's
 call. The live instance was resolved — the workspace was freed once the safety rule was
 corrected, with PR#196 untouched.
+
+## 2026-08-23 — the pre-commit wall needs two sanctioned exceptions
+
+Arming a `pre-commit` hook in the main checkout would have broken boss. Two tools commit
+there legitimately, and one of them is a LIVE path that ran the same day:
+
+- `boss-merge.sh:155` appends one line to `plans/README.md` and commits it to record a landed
+  PR. Commit `263a3bfb boss: record 231-yt-script-beats-model (PR#192) landed` is an instance
+  from that afternoon. Without an exception, every PR merge would silently stop recording.
+- `boss-commit-main.sh` exists precisely to make a deliberate main commit, and is already
+  guarded by the `BOSS_COMMIT_MAIN_MAX` blast-radius cap.
+
+Both now pass `--no-verify`, which is the hook's documented escape hatch. That is the honest
+shape of the rule: the wall's job is to stop a commit that would scoop up a CONCURRENT
+session's uncommitted edits, and these two stage a named file each, from content they wrote
+themselves, under a cap.
+
+Worth noting how close this came to shipping broken: the hook, its test and the install were
+all green, and nothing in any suite exercises `boss-merge`'s registry commit against a real
+pre-commit hook. The catch came from grepping for other main-checkout committers before
+arming it, not from a gate.
