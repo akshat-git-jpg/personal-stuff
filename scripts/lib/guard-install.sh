@@ -54,5 +54,34 @@ exit 1
 HOOK
   chmod +x "$hooks/pre-push"
   echo "guard: armed pre-push at $hooks/pre-push"
+
+  # The lander's trigger. Its SILENCE is a requirement, not a style choice: this runs on
+  # every commit the owner makes, so any echo here costs tokens in the session transcript
+  # forever. It also launches detached, because a land takes minutes and a commit must
+  # never block on one.
+  cat > "$hooks/post-commit" <<'HOOK'
+#!/usr/bin/env bash
+# Fires the lander when a WORKSPACE commit lands. Writes nothing: this runs on every
+# commit, and any output would enter the session transcript each time.
+set -uo pipefail
+{
+  gd=$(git rev-parse --path-format=absolute --git-dir 2>/dev/null) || exit 0
+  gcd=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0
+  # A LINKED worktree only. This is what stops boss's own main-checkout bookkeeping
+  # commits (boss-merge.sh, boss-commit-main.sh) from each spawning a full
+  # verify-and-push cycle, invisibly.
+  [ "$gd" != "$gcd" ] || exit 0
+  br=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || exit 0
+  case "$br" in subject/*|work/*) ;; *) exit 0;; esac
+  top=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+  [ -f "$(dirname "$top")/manifest" ] || exit 0        # a pp-work workspace
+  LAND="$(dirname "$gcd")/tooling/cli/pp-land/pp-land"
+  [ -x "$LAND" ] || exit 0
+  nohup "$LAND" "$top" >>"$(dirname "$top")/land.log" 2>&1 &
+} >/dev/null 2>&1
+exit 0
+HOOK
+  chmod +x "$hooks/post-commit"
+  echo "guard: armed post-commit at $hooks/post-commit"
   return 0
 }
