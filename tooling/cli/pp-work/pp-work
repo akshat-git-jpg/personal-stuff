@@ -80,6 +80,26 @@ ws_touched() {
 # that in the MAIN checkout). The consequence is severe and silent: `post-commit` only fires
 # the lander for work/*|subject/*, so every commit on the new branch is unlanded, and
 # ws_is_merged then pins the workspace forever. Measured 2026-08-23 on script-desk-plans.
+# Are this branch's commits recoverable WITHOUT this folder?
+#
+# `ws_is_merged` asks "is it on origin/main", which is the right question for a landed
+# workspace but the wrong one for a raised plan. `secretary raise` PUSHES the branch and
+# opens a boss PR; the commits reach main only when boss merges, which can be days. Until
+# then ws_is_merged says no, so the workspace was unreclaimable — measured 2026-08-23 on
+# script-desk-plans: 137 MB pinned behind an open PR#196, and every future raise would pin
+# another. The commits were never at risk; they were on origin the whole time.
+#
+# So the refusal test is "exists only here", not "not on main". A tip that matches origin
+# is recoverable by anyone with the remote.
+ws_is_on_origin() {
+  local branch="$1" local_sha remote_sha
+  [ -n "$branch" ] || return 1
+  local_sha=$(git -C "$MAIN" rev-parse --verify "refs/heads/$branch" 2>/dev/null) || return 1
+  remote_sha=$(git -C "$MAIN" ls-remote --heads origin "$branch" 2>/dev/null | awk '{print $1}' | head -1)
+  [ -n "$remote_sha" ] || return 1
+  [ "$local_sha" = "$remote_sha" ]
+}
+
 ws_manifest_branch() {
   local slug_dir="$1"
   [ -f "$slug_dir/manifest" ] || return 0
@@ -360,8 +380,13 @@ EOF
   There is no TTL and no automatic reclaim; this workspace stays until you deal with it."
     fi
     branch=$(git -C "$wt" rev-parse --abbrev-ref HEAD)
-    ws_is_merged "$branch" \
-      || die "PPWORK-UNMERGED refusing to remove $wt — branch '$branch' has commits that are not on origin/main."
+    if ! ws_is_merged "$branch"; then
+      if ws_is_on_origin "$branch"; then
+        echo "pp-work: '$branch' is not on origin/main, but its tip matches origin — the commits are recoverable without this folder." >&2
+      else
+        die "PPWORK-UNMERGED refusing to remove $wt — branch '$branch' has commits that are neither on origin/main nor pushed to origin. They exist ONLY here."
+      fi
+    fi
     
     # The idle gate. A land does NOT mean the owner's work is over -- a session commits
     # many times into one workspace -- so a clean, merged, just-landed workspace must keep
@@ -407,12 +432,16 @@ EOF
         branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
         mbranch=$(ws_manifest_branch "$slug_dir" || true)
         if [ -n "$mbranch" ] && [ -n "$branch" ] && [ "$mbranch" != "$branch" ]; then
-          kept=$((kept + 1))
-          echo "pp-work: keep $slug — BRANCH-MISMATCH: HEAD is [$branch], manifest says [$mbranch]. Commits on [$branch] never land, so nothing will reclaim this until you deal with it."
-          continue
+          # A NOTE, not a refusal. The safety test below is what protects work; refusing on
+          # the mismatch alone pinned a workspace forever even when its commits were safely
+          # on origin, which is exactly the PR#196 case this rule was added for.
+          echo "pp-work: note $slug — HEAD is [$branch], manifest says [$mbranch]; the lander never fires for that branch."
         fi
-        if [ -z "$branch" ] || ! ws_is_merged "$branch"; then
-          kept=$((kept + 1)); echo "pp-work: keep $slug — branch [$branch] has commits not yet on origin/main"; continue
+        if [ -z "$branch" ]; then
+          kept=$((kept + 1)); echo "pp-work: keep $slug — cannot read its branch"; continue
+        fi
+        if ! ws_is_merged "$branch" && ! ws_is_on_origin "$branch"; then
+          kept=$((kept + 1)); echo "pp-work: keep $slug — branch [$branch] has commits that exist ONLY here (not on origin/main, not pushed)"; continue
         fi
         if "$SELF" remove "$wt_path" --now >/dev/null 2>&1; then
           reaped=$((reaped + 1)); echo "pp-work: reaped $slug"

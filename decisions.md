@@ -797,3 +797,29 @@ Rejected: the sweep-that-commits design originally proposed to the owner. It wou
 pushed unreviewed, untested work to main across a verify surface covering one fifth of the
 repo, and it aimed at the least-guaranteed layer while a real guarantee (the Stop hook) was
 available all along.
+
+## 2026-08-23 — removal refuses work that exists ONLY in the workspace, not work that is merely off main
+
+`pp-work`'s removal gate asked "is this branch on origin/main". That is the right question
+for a landed workspace and the wrong one for a raised plan. `secretary raise` PUSHES the
+branch and opens a boss PR; the commits reach main only when boss merges it, which can be
+days. Until then the gate said no, so the workspace was unreclaimable for the entire life of
+the PR — and every future raise would pin another 137 MB.
+
+Measured: `script-desk-plans` held one commit on `boss/235-script-desk-wire-into-yt-script`
+behind open PR#196. The commit was never at risk; its tip matched origin the whole time.
+
+So the refusal test is now "exists ONLY here": `ws_is_merged` (patch-id against origin/main)
+OR `ws_is_on_origin` (local tip matches the remote tip). Either one means the commits survive
+without this folder. Neither means they do not, and removal is refused with PPWORK-UNMERGED.
+
+The BRANCH-MISMATCH check added earlier the same day was downgraded from a refusal to a NOTE
+for the same reason: refusing on the mismatch alone pinned a workspace forever even when its
+commits were safely on origin, which is precisely the PR#196 case. The mismatch is still
+worth reporting — a branch outside work/*|subject/* never triggers the lander — but what
+protects work is the safety test, not the branch name.
+
+Mutation-gated in BOTH directions, which is the point: making `ws_is_on_origin` always false
+fails case 19 (a pushed branch must be reclaimable), and making it always true fails case 16
+(a branch that exists only in the workspace must not be). A one-directional test would have
+passed a rule that cheerfully deleted unique work.
