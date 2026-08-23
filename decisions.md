@@ -728,6 +728,21 @@ This does not reopen the 2026-07-08 rejection of a repo-wide `SessionStart` hook
 was rejected because it would have run boss's `session-start` (gh label and PR calls) on
 every personal-stuff session. This hook makes no network call, does nothing at all outside
 `tooling/boss`, and returns in under a second.
+
+**Registration is in each account's USER settings, not in this repo's `.claude/settings.json`.**
+The first attempt registered it in the repo and did nothing, because a session started in
+`tooling/boss` never loads the repo-root settings at all — Claude Code takes the project
+settings from the working directory, and `tooling/boss` has its own `.claude/`. Confirmed
+by probe: an identical headless run fires the hook from the repo root and does not fire it
+from `tooling/boss`. So the hook is registered by absolute path in both
+`~/.claude-work/settings.json` and `~/.claude-personal/settings.json`, and the repo carries
+only the script.
+
+Two consequences worth knowing. The registration is machine state, like the
+`pp-claude-tags` binary patch it depends on, so a new machine needs both. And the hook now
+runs on every session in every repo, which is why the `case` table is the first thing it
+checks and why it exits without touching disk when nothing matches.
+
 ## 2026-08-23 — land reliability: silence, coverage, and a real auto-commit guarantee
 
 An Opus 5 review of the auto-commit design found three shipped defects that outranked the

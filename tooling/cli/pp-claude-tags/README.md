@@ -127,3 +127,26 @@ esac
 ```
 
 An existing tag is never overwritten, so `ctrl+e` still has the final say on any session.
+
+### Where it is registered, and why not in the repo
+
+In the `SessionStart` block of **each account's user settings**, by absolute path:
+
+```json
+"SessionStart": [
+  { "hooks": [ { "type": "command",
+      "command": "/Users/kbtg/codebase/personal-stuff/.claude/hooks/session-group.sh" } ] }
+]
+```
+
+`~/.claude-work/settings.json` and `~/.claude-personal/settings.json` both carry it. Putting
+it in the repo's own `.claude/settings.json` looks tidier and does not work: Claude Code
+reads project settings from the working directory, and `tooling/boss` has its own `.claude/`,
+so a session started there never sees the repo-root file — which is the one case the hook is
+for. This is machine state, same as the binary patch above; a new machine needs both.
+
+To see what it decided:
+
+```bash
+CLAUDE_SESSION_GROUP_DEBUG=1 claude      # then read /tmp/session-group.log
+```
