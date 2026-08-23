@@ -96,15 +96,12 @@ EOF
 grep -q "^TELEGRAM_CHAT_ID=424242$" "$ENV_FILE" \
   || fail "(d2) expected TELEGRAM_CHAT_ID=424242 written to env file"
 
-# --- (e) greenlight/overnight self-tests still pass after the notify wiring ---
+# --- (e) the greenlight self-test still passes after the notify wiring ---
+# overnight was the second caller checked here; it was deleted 2026-08-23 (decisions.md).
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 bash "$REPO_ROOT/tooling/cli/greenlight/test-greenlight.sh" > /tmp/notify-test-greenlight.out 2>&1 \
   || { cat /tmp/notify-test-greenlight.out >&2; fail "(e) greenlight self-test failed"; }
 grep -q "ALL TESTS PASSED" /tmp/notify-test-greenlight.out || fail "(e) greenlight self-test did not report ALL TESTS PASSED"
-
-bash "$REPO_ROOT/tooling/cli/overnight/test-overnight.sh" > /tmp/notify-test-overnight.out 2>&1 \
-  || { cat /tmp/notify-test-overnight.out >&2; fail "(e) overnight self-test failed"; }
-grep -q "ALL TESTS PASSED" /tmp/notify-test-overnight.out || fail "(e) overnight self-test did not report ALL TESTS PASSED"
-rm -f /tmp/notify-test-greenlight.out /tmp/notify-test-overnight.out
+rm -f /tmp/notify-test-greenlight.out
 
 echo "ALL TESTS PASSED"

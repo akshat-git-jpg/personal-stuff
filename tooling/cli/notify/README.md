@@ -1,7 +1,7 @@
 # notify
 
 Telegram-first phone-ping CLI, with [ntfy](../ntfy/README.md) as a fallback
-channel. Used by `greenlight` and `overnight` for phone notifications.
+channel. Used by `greenlight` for phone notifications.
 
 ## Why this exists
 
