@@ -192,3 +192,48 @@ test('the worksheet is still byte-identical after the parser change', () => {
     assert.equal(actual, expected, `${key}: worksheet output drifted`)
   }
 })
+
+// ---------------------------------------------------------------- legacy guard
+// A pre-spec outline must be REFUSED, not silently half-parsed. Measured
+// 2026-08-23: ai-avatar-online-courses returned 5 beats instead of 13 and
+// ai-video-tools-comparison returned 0, both with no error, so the desk showed
+// a short plausible wrong script.
+
+test('a legacy "### N. Title" outline is refused, not half-parsed', () => {
+  const legacy = [
+    '# A legacy outline',
+    '',
+    '## PART A — INTRODUCTION',
+    '',
+    '### 1. Cold Open',
+    '',
+    '**Voiceover**',
+    '',
+    '> "Something spoken."',
+    '',
+    '### 2. The Test',
+    '',
+    '**Notes**',
+    '',
+    'Show the thing.',
+    '',
+  ].join('\n')
+
+  let err = null
+  try {
+    buildBeats(legacy)
+  } catch (e) {
+    err = e
+  }
+  assert.ok(err, 'LEGACY_OUTLINE_FORMAT: expected buildBeats to refuse a legacy outline')
+  assert.equal(err.code, 'LEGACY_OUTLINE_FORMAT')
+  assert.match(err.message, /LEGACY_OUTLINE_FORMAT/)
+})
+
+test('every real spec-format outline still parses', () => {
+  for (const key of REAL) {
+    const md = readFileSync(join(VIDEOS, key, 'outline.md'), 'utf8')
+    const out = buildBeats(md)
+    assert.ok(out.beats.length > 0, `${key}: expected beats, got none`)
+  }
+})
