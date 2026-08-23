@@ -1,7 +1,12 @@
 ---
 name: yt-video-edit
 description: >-
-  Operate the visuals-flow pipeline (pipelines/video/visuals-flow) by verb — the session runs the steps, the owner only reviews the board and green-lights live HeyGen. Verbs: run graphics for <video>, run the concept pass, audit the cues, make the sound plan, mix the audio, final cut review, run the shot pass for <video>, open my storyboard/board, render the graphics, make the avatar videos, download the avatar videos, assemble the video, export the timeline / open it in resolve, qc the video, analyze reference <url>, fold the feedback. The intro has two flows, chosen at 010 (`configure --intro simple|complex`, default simple): author the intro cut list / write the cut list (simple), check the intro pacing, render the intro, re-render the intro with the real avatar. Triggers on those phrases plus "yt-video-edit", "visuals-flow" (the old name, still accepted), "run the cue pass", "approve flow for <video>", "avatar clips for <video>", "resolve export", "filmstrip qc", "use the simple intro", "use the complex intro".
+  Operate the visuals-flow pipeline (pipelines/video/visuals-flow) by verb — graphics,
+  concept and shot passes, cues, sound plan and mix, avatars, assembly, Resolve export, QC
+  and the two intro flows. The session runs the steps; the owner reviews the board and
+  green-lights live HeyGen. Invoke by name — "yt-video-edit", or "visuals-flow" (the old
+  name, still accepted). Every verb and its trigger phrases are listed in the skill body.
+user-invocable: true
 ---
 
 # yt-video-edit — operating skill (verb router)
