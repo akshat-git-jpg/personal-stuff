@@ -947,3 +947,39 @@ anything never converted is reported under `unsettled`.
 Output is grouped month → program, since "which program paid me what, and what actually hit the
 bank" is the question this gets asked. Fetching now uses `fields=all`; `transaction_info` alone
 omits the payer, so there is no cheaper way to get the program name.
+
+## 2026-08-23 — the two guards only protected a session that had already claimed
+
+The wall and the Stop hook were built as a pair, and between them they left the one hole
+that matters. `no-history-in-main.sh` fires on a history-recording git verb. `commit-before-
+stop.sh` fired only inside a linked pp-work worktree — its own header argued that nagging in
+main is "a dead end" because nothing can be committed there anyway.
+
+Both true, and together they meant: claim a workspace and you are held to account; skip the
+claim and edit main directly and NOTHING fires. The wall waits for a verb that never comes,
+and the Stop hook exits early. Silence, which is exactly the state the whole system exists to
+prevent.
+
+It happened that afternoon. A session answered a read-only PayPal reporting question, grew
+into a Go fix plus two doc edits, appended to `decisions.md` in the main checkout, and ended.
+At that moment another session's four `apps/tutorial-tracker-app/` files were sitting STAGED
+in the same index — they were not there when the session started. One `git add decisions.md
+&& git commit` and 2026-08-22 repeats verbatim. The wall would have caught that, but only at
+the last possible second, and only because a git verb happened to be involved.
+
+Two fixes, because the failure had two halves:
+
+- **Mechanical.** The Stop hook now nags in main too. It cannot ask for a commit (impossible
+  there), so it asks the session to move its own work into a workspace, or to say in one line
+  that none of the dirty files are its. It also cannot know WHICH files belong to the session
+  — main is shared and git records no author for a working-tree edit — so it lists them and
+  lets the session judge. That means false positives whenever another session leaves main
+  dirty, which is often. One extra turn is the price; the silent hole was the alternative.
+- **Textual.** `CLAUDE.md` said both "claim a workspace first" and "one-off file edits on main
+  are fine", three lines apart, and the session followed the second. The permissive line is
+  now scoped to reads and scratch, plus a note that the claim decision has to be re-asked when
+  a turn grows from a question into a change — the boundary nothing prompts at.
+
+The textual half alone would not have held. This hook's own header already makes the argument:
+*a skill is an instruction the model can skip.* So is a CLAUDE.md line. The mechanical half is
+what holds; the wording removes the excuse.
