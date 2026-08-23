@@ -8,6 +8,7 @@
 #
 #   tooling/claude-skills/manifest/work.txt     -> ~/.claude-work/skills/
 #   tooling/claude-skills/manifest/personal.txt -> ~/.claude-personal/skills/
+#   .claude/skills/                             -> .agents/skills/  (Codex view)
 #   a name in both = shared; in one = exclusive to that account.
 #
 # Machines NOT running the Mac dual-account scheme (no ~/.claude-work or
@@ -71,6 +72,11 @@ else
   DEFAULT_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"
   sync_skills_dir default "$DEFAULT_DIR" "$STORE/manifest/personal.txt" "$STORE" "$AGENTS_DIR" || status=$?
 fi
+
+# Rebuild .agents/skills/ so a Codex session in this repo sees the same skills.
+# Symlinks only, so there is one copy of each skill on disk (see AGENTS.md).
+# Non-fatal: a broken mirror must not block the Claude-side relink.
+"$SCRIPTS_DIR/mirror-codex-skills.sh" || { echo "codex mirror had problems (non-fatal)" >&2; status=$?; }
 
 # Install the push gate (a copy outside every working tree) and arm the shared
 # .git/hooks pre-push net. Sourced, so it must not abort us: guard_install always
