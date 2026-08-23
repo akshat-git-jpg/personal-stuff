@@ -54,19 +54,31 @@ path2=$("$WT_BIN" get --repo "$TEST_REPO" --holder test2 2>/dev/null)
 path3=$("$WT_BIN" get --repo "$TEST_REPO" --holder test3 2>/dev/null)
 [ "$path1" = "$path3" ] || fail "third wt get did not reuse path 1"
 
-# 5. Reclaim unleased dirty slot
+# 5. An unleased DIRTY slot is SKIPPED, not reclaimed. Pre-2026-08-23 `get` wiped it
+#    and announced "uncommitted work discarded"; a mid-flight kill routinely leaves a
+#    complete-but-uncommitted implementation there.
 "$WT_BIN" return "$path1" 2>/dev/null
 touch "$path1/junk"
 echo "dirty change" >> "$path1/README.md"
 
-# Run get and capture stderr
 get_err=$(mktemp)
 path4=$("$WT_BIN" get --repo "$TEST_REPO" --holder test4 2>"$get_err")
-[ "$path1" = "$path4" ] || fail "dirty unleased path 1 was not reclaimed/reused, got $path4"
-[ -z "$(git -C "$path1" status --porcelain --untracked-files=all 2>/dev/null)" ] || fail "reclaimed path 1 is still dirty"
-grep -q "^holder=test4" "$pool_dir/1.lease" || fail "reclaimed path 1 not leased to test4"
-grep -q "wt: reclaimed dirty orphaned slot $path1" "$get_err" || fail "reclaim log message not printed to stderr"
+[ "$path1" != "$path4" ] || fail "get RECLAIMED a dirty unleased slot (work destroyed)"
+[ -f "$path1/junk" ] || fail "get DESTROYED untracked work in the dirty unleased slot"
+grep -q "dirty change" "$path1/README.md" || fail "get DESTROYED tracked edits in the dirty unleased slot"
+grep -q "unleased but DIRTY — skipped" "$get_err" || fail "get did not explain why it skipped the dirty slot"
 rm -f "$get_err"
+skipped_onto="$path4"
+
+# 5b. --force-dirty is the explicit opt-in that DOES reclaim it.
+path4=$("$WT_BIN" get --repo "$TEST_REPO" --holder test4b --force-dirty 2>/dev/null)
+[ "$path1" = "$path4" ] || fail "get --force-dirty did not reclaim the dirty unleased slot"
+[ ! -f "$path1/junk" ] || fail "get --force-dirty did not clean the reclaimed slot"
+
+# 5c. Test 5's skip pushed `get` onto a fresh slot that the old (reclaiming) test 5
+#     never took. Hand it straight back, so tests 6-8 see the same pool state they
+#     were written against: slot 1 leased+clean, slot 2 leased+dirty, slot 3 free.
+"$WT_BIN" return "$skipped_onto" 2>/dev/null
 
 # 6. Negative check: leased dirty slot is NOT reclaimed
 # path2 (slot 2) is leased to test2. Let's make it dirty:
@@ -196,5 +208,49 @@ rc=$?
 set -e
 [ "$rc" -eq 0 ] || fail "get did not reclaim a stale lease when the pool was full (exit $rc)"
 [ -d "$p16" ] || fail "get returned no usable worktree after reaping"
+
+# ---------------------------------------------------------------------------
+# 17-20 (2026-08-23). `return` must refuse a dirty tree, and the pool lock must
+# never wedge. Both were silent-failure defects: `return` printed
+# "WARNING: worktree is dirty" and wiped it anyway, and lock_pool was an unbounded
+# `until mkdir` spin whose only release was an EXIT trap that SIGKILL skips.
+# ---------------------------------------------------------------------------
+
+# 17. return REFUSES a dirty worktree, and the work survives.
+p17=$("$WT_BIN" get --repo "$TEST_REPO" --holder ret17 2>/dev/null)
+printf 'precious\n' > "$p17/KEEPME.txt"
+echo "tracked edit" >> "$p17/README.md"
+set +e
+"$WT_BIN" return "$p17" >/dev/null 2>&1
+rc=$?
+set -e
+[ "$rc" -ne 0 ] || fail "return WIPED a dirty worktree without --force-dirty"
+[ -f "$p17/KEEPME.txt" ] || fail "return WIPED a dirty worktree without --force-dirty"
+grep -q "tracked edit" "$p17/README.md" || fail "return WIPED a dirty worktree without --force-dirty"
+
+# 18. return --force-dirty is the explicit opt-in that does clean it.
+"$WT_BIN" return "$p17" --force-dirty >/dev/null 2>&1 || fail "return --force-dirty failed on a dirty tree"
+[ ! -f "$p17/KEEPME.txt" ] || fail "return --force-dirty did not clean the worktree"
+
+# 19. return still succeeds on a clean worktree (the common path).
+p19=$("$WT_BIN" get --repo "$TEST_REPO" --holder ret19 2>/dev/null)
+"$WT_BIN" return "$p19" >/dev/null 2>&1 || fail "return failed on a CLEAN worktree"
+
+# 20. lock_pool breaks a lock whose recorded holder is gone, instead of spinning forever.
+#     999999 is not a live pid; pre-fix this call never returned. The `timeout` prefix
+#     keeps a regression a VISIBLE failure rather than a hung suite (LESSONS 2026-07-31).
+TIMEOUT_BIN=""
+if command -v gtimeout >/dev/null 2>&1; then TIMEOUT_BIN="gtimeout"
+elif command -v timeout >/dev/null 2>&1; then TIMEOUT_BIN="timeout"; fi
+mkdir -p "$pool_dir/.lock.d"
+echo 999999 > "$pool_dir/.lock.d/pid"
+lock_err=$(mktemp)
+set +e
+${TIMEOUT_BIN:+$TIMEOUT_BIN 60} "$WT_BIN" status --repo "$TEST_REPO" >/dev/null 2>"$lock_err"
+rc=$?
+set -e
+[ "$rc" -eq 0 ] || fail "wt hung or failed on a stale pool lock (exit $rc)"
+grep -q "breaking stale pool lock" "$lock_err" || fail "wt did not report breaking the stale lock"
+rm -f "$lock_err"
 
 echo "ALL TESTS PASSED"
