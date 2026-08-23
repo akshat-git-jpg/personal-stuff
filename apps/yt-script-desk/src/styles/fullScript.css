@@ -1,8 +1,11 @@
 /* ---------------------------------------------------------------- full script */
 
 .doc { display: grid; grid-template-columns: 84px 592px; gap: 0 28px; padding: 34px 44px 40px; align-items: start; }
-.mk  { grid-column: 1; text-align: right; font: 600 10.5px/1.9 var(--mono); letter-spacing: 1px;
-       color: var(--faint); padding-top: 9px; }
+.mk  { grid-column: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+       text-align: right; padding-top: 9px; }
+.mk-num   { font: 600 10.5px/1.9 var(--mono); letter-spacing: 1px; color: var(--faint); }
+.mk-title { font: 500 10.5px/1.4 var(--sans); letter-spacing: .2px; color: var(--faint);
+            opacity: .8; text-wrap: pretty; }
 .bd  { grid-column: 2; padding-bottom: 22px; }
 .bd p { margin: 0 0 15px; font: 19.5px/1.72 var(--serif); color: var(--paper-ink); letter-spacing: .1px; text-wrap: pretty; }
 .bd p:last-child { margin-bottom: 0; }
