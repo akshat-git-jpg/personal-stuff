@@ -1351,3 +1351,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 233-script-desk-full-script-view — PR#194 233-script-desk-full-script-view: script desk — the full script view — DONE
 - 234-script-desk-hosted — PR#195 234-script-desk-hosted: script desk — hosted Worker, D1, secret link, publish and pull — DONE
 - 236-founders-habits-out-of-tasks — PR#197 236-founders-habits-out-of-tasks: founders-tracker — daily habits stop being tasks — DONE
+- 235-script-desk-wire-into-yt-script — PR#196 235-script-desk-wire-into-yt-script: wire the desk into the skill and the registries — DONE
