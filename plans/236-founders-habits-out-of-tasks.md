@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd apps/founders-tracker && npm run typecheck && npm test
+test_cmd: cd apps/founders-tracker && npm install --no-audit --no-fund --silent && npm run typecheck && npm test
 ui:
 deploy:
 needs: []
@@ -9,7 +9,7 @@ needs_prs: []
 touches: [apps/founders-tracker/tsconfig.app.json, apps/founders-tracker/tsconfig.worker.json, apps/founders-tracker/src/habits.ts, apps/founders-tracker/src/shared.ts, apps/founders-tracker/src/worker/db.ts, apps/founders-tracker/src/worker/recurring.ts, apps/founders-tracker/src/worker/index.ts, apps/founders-tracker/src/worker/dates.ts, apps/founders-tracker/schema.sql, apps/founders-tracker/migrations/2026-08-23-habits.sql, apps/founders-tracker/test/habits.test.ts, apps/founders-tracker/README.md, apps/founders-tracker/CLAUDE.md]
 
 mutation_apply: perl -0pi -e 's/if \(t\.cadence !== "monthly"\) continue;/\/\/ mutated/' apps/founders-tracker/src/worker/recurring.ts
-mutation_command: cd apps/founders-tracker && npm test
+mutation_command: cd apps/founders-tracker && npm install --no-audit --no-fund --silent && npm test
 mutation_expect: HABIT_NEVER_GENERATES_TASKS
 mutation_cwd:
 mutation_timeout: 900
