@@ -1335,3 +1335,5 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 223-boss-guards-and-o1-startup — PR#184 223-boss-guards-and-o1-startup: boss guards — an owner-checked chrome lock, an overridable state dir, and an O(1) startup — DONE
 - 226-pp-work-workspaces-and-inventory — PR#187 226-pp-work-workspaces-and-inventory: pp-work — per-session workspaces that are never wiped, and one inventory — DONE
 - 225-pp-push-the-one-push-chokepoint — PR#186 225-pp-push-the-one-push-chokepoint: pp-push — one chokepoint every push to this repo passes through — DONE
+- 227-the-wall-no-history-in-main — PR#188 227-the-wall-no-history-in-main: the wall — no recording history in the main checkout — DONE
+- 228-pp-land-automatic-landing — PR#189 228-pp-land-automatic-landing: pp-land — a commit lands on main by itself — DONE
