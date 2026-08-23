@@ -25,7 +25,7 @@ export const tut2: PipelineDef = {
   name: "Tut 2",
   stages: [
     { id: "topic", label: "Topic", role: "Admin", lifecycle: "approveOnly", kind: "brief",
-      briefFields: ["video_title", "video_notes", "video_description", "category", "subcategory", "topic_date"] },
+      briefFields: ["video_title", "video_notes", "video_description", "topic_date"] },
 
     { id: "outline", label: "Outline", role: "Scriptwriter", lifecycle: "review", gate: "topic",
       work: { id: "outline_doc", label: "Outline", type: "url", slot: "work_link", required: "submit" } },

@@ -12,7 +12,7 @@ import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl } from "./labels";
 import { daysSince } from "./pipeline";
 import { StatusPill } from "./Card";
 import { cn } from "@/lib/utils";
-import { inputCls, labelCls, EtaBadge, ComboSelect, ASSIGNEE_COLS, MULTILINE_COLS, COMBO_COLS, ETA_COLS, DATE_COLS, STATUS_COLS, ASSIGNEE_ROLE, REVIEWER_COL_SET, sectionsForPipeline } from "./CardDetailUtils";
+import { inputCls, labelCls, EtaBadge, ASSIGNEE_COLS, MULTILINE_COLS, ETA_COLS, DATE_COLS, STATUS_COLS, ASSIGNEE_ROLE, REVIEWER_COL_SET, sectionsForPipeline } from "./CardDetailUtils";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -31,14 +31,12 @@ interface CardDetailProps {
   contextStageId?: string;
 
   perspective?: "doer" | "reviewer" | "all";
-  categoryOptions?: string[];
-  subcategoryOptions?: string[];
   onClose: () => void;
   onSaved: () => void;
   onDelete?: () => void;
   onApplyDefaults?: () => void; }
 
-export function CardDetail({ row, columns, roles, names, memberRoles = {}, memberships = {}, readOnly, viewerEmail, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete, onApplyDefaults }: CardDetailProps) {
+export function CardDetail({ row, columns, roles, names, memberRoles = {}, memberships = {}, readOnly, viewerEmail, contextStageId, perspective = "all", onClose, onSaved, onDelete, onApplyDefaults }: CardDetailProps) {
   const locks = row._locks ?? {};
   const actionGroups = row._actions ?? [];
   const isAdmin = isAdminRoles(roles);
@@ -188,15 +186,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     const err = errors[col];
     const st = fieldStatus[col];
     const indicator = st === "saving" ? <span className="text-[11px] text-muted-foreground">Saving…</span> : st === "saved" ? <span className="text-[11px] text-emerald-600">Saved ✓</span> : null;
-    return ( <div key={col} className="space-y-1"> <label htmlFor={`f-${col}`} className={labelCls}> {displayLabel} {indicator} </label> {COMBO_COLS.has(col) ? ( <ComboSelect
-            id={`f-${col}`}
-            value={value}
-            options={col === "category" ? categoryOptions : subcategoryOptions}
-            placeholder={`New ${label.toLowerCase()}…`}
-            onChange={(v) => {
-              handleChange(col, v);
-              void autoSaveField(col, v); }} />
-        ) : ASSIGNEE_COLS.has(col) ? (
+    return ( <div key={col} className="space-y-1"> <label htmlFor={`f-${col}`} className={labelCls}> {displayLabel} {indicator} </label> {ASSIGNEE_COLS.has(col) ? (
           (() => {
             const requiredRole = ASSIGNEE_ROLE[col];
 

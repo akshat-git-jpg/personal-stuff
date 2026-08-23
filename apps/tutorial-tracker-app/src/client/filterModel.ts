@@ -9,12 +9,11 @@ export interface AdminFilters {
   q: string;          // title search
   bucket: Bucket;     // quick "what state is it in" bucket, or "" for everything
   assignee: string;   // email (lowercase) or ""
-  category: string;   // raw category value or ""
   stage: string;      // stage id or ""
   showPublished: boolean;
 }
 
-export const EMPTY_FILTERS: AdminFilters = { q: "", bucket: "", assignee: "", category: "", stage: "", showPublished: false };
+export const EMPTY_FILTERS: AdminFilters = { q: "", bucket: "", assignee: "", stage: "", showPublished: false };
 
 export const BUCKETS: { key: Bucket; label: string; rule: string }[] = [
   { key: "needsyou", label: "Waiting on you", rule: "Submitted and needs your approval" },
@@ -71,6 +70,5 @@ export function rowMatchesFilters(row: Row, filters: AdminFilters, viewerEmail?:
     const hit = cols.some((c) => (r[c] ?? "").trim().toLowerCase() === filters.assignee);
     if (!hit) return false;
   }
-  if (filters.category && (r.category ?? "") !== filters.category) return false;
   return true;
 }
