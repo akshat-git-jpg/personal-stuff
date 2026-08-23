@@ -4,7 +4,7 @@
     "target": "es2022",
     "lib": ["ES2022"],
     "module": "esnext",
-    "types": ["@cloudflare/workers-types"],
+    "types": ["@cloudflare/workers-types", "node"],
     "skipLibCheck": true,
 
     /* Bundler mode */
