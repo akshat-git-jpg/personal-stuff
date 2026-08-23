@@ -351,15 +351,31 @@ lock for its whole life, so the rest of the queue waits for the next sweep.
 
 | class | causes | effect |
 |---|---|---|
-| **transient** | landing-mutex stale-break or timeout, push rejected, fetch/network failure, pool exhaustion, mechanical dispatch failure, chrome lock busy | **resets** `real_attempts`; bounded at 5 per slug per 24 h |
+| **transient** | landing-mutex stale-break or timeout, push rejected, fetch/network failure, pool exhaustion, mechanical dispatch failure, chrome lock busy, **an auth/permission failure** (`403`, `Permission to … denied to …`, `exit 128`) | **resets** `real_attempts`; bounded at 5 per slug per 24 h |
 | **real** | verify failure (**always**), lint failure, hard rebase conflict, a fix-up whose HEAD never advanced | **consumes** `real_attempts`; cap 2 |
-| **never retry** | a `pp-push` gate refusal, the `no_auto_resolve=1` deploy-live hold, a repeat `cannot detach at origin/main` | no dispatch at all; the entry stays listed |
+| **never retry** | a `pp-push` gate refusal (the *secret* kind — **not** a bare auth 403), the `no_auto_resolve=1` deploy-live hold, a repeat `cannot detach at origin/main` | no dispatch at all; the entry stays listed |
 
 A verify failure is real even when it smells flaky: auto-retrying a flaky verify is how
 red code reaches a repo `vps-sync.sh` deploys within 15 minutes. A `pp-push` refusal never
 retries because a retry re-attempts publishing a secret to a **public** repo. An
 unrecognised cause defaults to **real**, so the worst case is two wasted dispatches rather
 than an unbounded loop.
+
+**An auth 403 is transient, and the reason string will not say so.** On 2026-08-23 every land
+failed because `~/.gitconfig` routes `github.com` through `!gh auth git-credential`, which uses
+gh's *globally-active* account. An interactive session has `GH_TOKEN` set and pushed fine; every
+shell without it — agy crews, this sweep, crons — fell through to the gh keyring, where the
+active account was the **work** account, and 403'd on the personal repo. `pp-land` recorded
+`land push refused by the push gate (exit 128) — remote: Permission to … denied to …`. That
+string carries neither `pp-push` nor `push rejected`, so it matched no case and took the default
+**real**, spent `REAL_CAP` in four attempts, and the land was listed as capped — permanently,
+while its verify passed the whole time. `land_class` now routes auth failures to **transient**,
+bounded by `TRANSIENT_CAP`; the `pp-push`/secret `never` case is matched FIRST, so a real secret
+refusal can never be softened into an auth blip. `test-boss.sh` pins both directions.
+
+Diagnose it in one command, from inside the repo:
+`printf 'protocol=https\nhost=github.com\n\n' | env -u GH_TOKEN -u GITHUB_TOKEN git credential fill`
+If `username` is not the personal account, that is this bug — no land will succeed until it is.
 
 Capped, held and never-retry entries are still **listed** at session start. That is the
 whole visibility surface — there is no notification, by design.
