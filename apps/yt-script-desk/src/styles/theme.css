@@ -1,0 +1,62 @@
+:root {
+  --bg: #f6f3ee;
+  --hdr: #fbf9f6;
+  --panel: #f1ede6;
+  --border: #e2ddd4;
+  --rule: #e9e4db;
+
+  --text: #6a655e;
+  --text-h: #1f1c18;
+  --faint: #a9a297;
+  --note: #7d776e;
+
+  --paper: #fffdf7;
+  --paper-brd: #eae3d2;
+  --paper-rail: #cbb87c;
+  --paper-ink: #221e18;
+
+  --box-bg: #ffffff;
+  --box-ink: #1f1c18;
+  --box-ph: #b3ada3;
+  --box-ft: #f0e9f7;
+
+  --accent: #9a2fe8;
+  --accent-ink: #ffffff;
+  --accent-bg: rgba(154, 47, 232, 0.09);
+  --accent-brd: rgba(154, 47, 232, 0.38);
+
+  --chip-bg: #ffffff;
+  --sw-off: #ddd7cd;
+  --sw-knob: #ffffff;
+
+  --tag-say-bg: #f0e9d8;
+  --tag-say-ink: #7b6a35;
+  --tag-write-bg: rgba(154, 47, 232, 0.1);
+  --tag-write-ink: #7623b8;
+
+  --warm-bg: #fbf7ec;
+  --warm-brd: #e2d7b4;
+  --warm-ink: #836f2f;
+  --warm-say: #fffcf2;
+
+  --scrim: rgba(60, 45, 30, 0.34);
+  --sh-sm: 0 1px 2px rgba(30, 20, 10, 0.05);
+  --sh-box: 0 1px 2px rgba(30, 20, 10, 0.05), 0 10px 24px -14px rgba(154, 47, 232, 0.35);
+  --sh-mod: 0 2px 6px rgba(30, 20, 10, 0.08), 0 24px 56px -18px rgba(30, 20, 10, 0.32);
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --mono: ui-monospace, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 var(--sans);
+  letter-spacing: 0.15px;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); }
+a:hover { opacity: 0.8; }
