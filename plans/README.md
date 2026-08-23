@@ -1330,3 +1330,6 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 221-vf-intro-simple-board-and-skill — PR#180 221-vf-intro-simple-board-and-skill: the simple intro's review surface, taste doc, and skill wiring — DONE
 - 228-vf-intro-cards-into-body-catalog — PR#181 228-vf-intro-cards-into-body-catalog: port the four intro-only cards into the body card library — DONE
 - 229-vf-intro-uses-body-catalog — PR#182 229-vf-intro-uses-body-catalog: point the simple intro flow at the body card catalogue — DONE
+- 224-repo-hygiene-and-clone-safe-ignores — PR#185 224-repo-hygiene-and-clone-safe-ignores: clone-safe ignores, a live dead rule, and the bootstrap link list — DONE
+- 222-wt-never-destroys-uncommitted-work — PR#183 222-wt-never-destroys-uncommitted-work: wt must never destroy uncommitted work, and never wedge forever — DONE
+- 223-boss-guards-and-o1-startup — PR#184 223-boss-guards-and-o1-startup: boss guards — an owner-checked chrome lock, an overridable state dir, and an O(1) startup — DONE
