@@ -28,7 +28,8 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 const BODY_DRAFTS_ARE_INSTRUCTIONS = true
 
 // `#### 2.9 · Remembering the character next week` -> ['2.9', 'Remembering …']
-const BEAT_RE = /^([0-9A-Za-z][0-9A-Za-z.]*)\s*·\s*(.*)$/
+// Also supports optional target words at the end: `... target 160-260 words`
+const BEAT_RE = /^([0-9A-Za-z][0-9A-Za-z.]*)\s*·\s*(.*?)(?:\s+target\s+(.*))?$/
 
 export function buildBeats(md) {
   const blocks = parse(md)
@@ -88,7 +89,8 @@ export function buildBeats(md) {
       const m = b.text.match(BEAT_RE)
       pending = {
         num: m ? m[1] : String(beats.length + 1),
-        title: (m ? m[2] : b.text).trim(),
+        title: (m && m[2] ? m[2] : b.text).trim(),
+        target: m && m[3] ? m[3].trim() : null,
         part: curPart,
         partKind: curPartKind,
         section: curSection,
