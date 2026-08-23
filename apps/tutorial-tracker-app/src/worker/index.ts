@@ -48,6 +48,7 @@ import { derive, statusOf } from "../shared/engine/derive";
 import { colOf, stageHasReviewerSlot, createFieldsOf, requiredToCreate } from "../shared/engine/types";
 import { lifecycle, eventTypeFor } from "../shared/engine/lifecycle";
 import { liveHoldingsFor, rolesRemoved } from "../shared/engine/holdings";
+import { findDuplicates } from "../shared/engine/identity";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
 import { sendNotification } from "./notifications";
@@ -194,12 +195,30 @@ app.post("/api/team", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
 
-  let body: { name?: string; email?: string; memberships?: Record<string, string[]> };
+  let body: { name?: string; email?: string; memberships?: Record<string, string[]>; confirm_duplicate?: boolean };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
   const name = (body.name ?? "").trim();
   const email = (body.email ?? "").trim().toLowerCase();
   if (!name) return c.json({ error: "name is required" }, 400);
   if (!email || !email.includes("@")) return c.json({ error: "a valid email is required" }, 400);
+
+  // A brand-new email is the ONE moment a duplicate person can be created, and
+  // one mistyped letter is enough: the same name then appears twice with
+  // different roles and their videos split across two accounts that cannot see
+  // each other's half. Warn once, here; re-saving an existing email is an edit
+  // (adding a role in another system) and must stay silent.
+  const roster = await getStore(c.env).loadTeam();
+  const isNewPerson = !roster.some((m) => m.email.trim().toLowerCase() === email);
+  if (isNewPerson && !body.confirm_duplicate) {
+    const duplicates = findDuplicates({ name, email }, roster.map((m) => ({ name: m.name, email: m.email })));
+    if (duplicates.length) {
+      return c.json({
+        error: "possible_duplicate",
+        message: `${name} looks like someone already on the team.`,
+        duplicates,
+      }, 409);
+    }
+  }
 
   // Sanitize each system's roles against what's valid there; drop unknown systems.
   const clean: Memberships = {};
