@@ -11,7 +11,7 @@ binding = "ASSETS"
 binding = "DESK_DB"
 database_name = "script-desk-db"
 # Owner step: `wrangler d1 create script-desk-db`, then paste the returned id here.
-database_id = "PLACEHOLDER-SET-BY-OWNER"
+database_id = "6e2263df-96c9-4803-985b-89c0957da787"
 
 [[routes]]
 pattern = "script-desk.agrolloo.com"
