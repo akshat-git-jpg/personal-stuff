@@ -579,10 +579,24 @@ The manifest's `pid` cannot answer "is a session still using this?" — it is `p
 own pid and is dead the moment `claim` returns. `touched` can, so it is refreshed on
 re-claim and after every land, append-only with readers taking the last value.
 
-Found while explaining the flow, alongside the bug that had been masking it: the media
-probe in `pp-work` ends in a `grep` whose "no match" case is normal, and it exits 1 when a
-workspace holds no renders. Under `set -euo pipefail` that killed `pp-work list` mid-loop
-— reporting a *subset* of workspaces and exiting 1 — and made `ws_is_clean` call every
-media-free workspace dirty, so no workspace could ever be removed. Guarded at both call
-sites. Lesson for this class: a `grep` whose empty result is expected must be guarded, and
-any per-item inventory loop belongs in a subshell so one bad item cannot hide the rest.
+Found while explaining the flow: the media probe in `pp-work` ends in a `grep` whose "no
+match" case is normal, and it exits 1 when a workspace holds no renders. Under
+`set -euo pipefail` that killed `pp-work list` mid-loop, reporting a *subset* of
+workspaces and exiting 1.
+
+Two errexit subtleties came out of this and are the reusable part:
+
+1. The same line in `ws_is_clean` did **not** misbehave, because the function is called as
+   `if ! ws_is_clean …` and bash suppresses errexit for a command in that position. It ran
+   on with an empty value and returned *clean*. So the bug never blocked removal — a
+   clean, merged workspace really could be deleted mid-session, which is why the idle gate
+   above is a fix and not just a nicety.
+2. Wrapping the loop body in `( … ) || echo UNREADABLE` does **not** contain a failure
+   either, for the same reason: errexit is suppressed for the whole subshell as the left
+   side of `||`, and re-running `set -e` inside does not clear it. The body simply runs to
+   the end, printing a row with blank fields. Containment has to come from an explicit
+   fallback on every fallible command; the subshell only scopes variables.
+
+Lesson: never rely on errexit for control flow inside `if`, `&&`, `||`, `while` or a
+subshell in those positions. Guard each command, and give any per-item inventory loop a
+visible fallback value so a bad item is reported rather than silently mis-rendered.

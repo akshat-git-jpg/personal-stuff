@@ -63,15 +63,25 @@ deletion path and `reap` cannot drift away from `remove`'s gates.
 ### `list` never hides a workspace
 
 `list` is the only screen showing which workspaces exist, their disk use, and the blocked
-lands, so a partial list is worse than a crash. Each workspace is inspected in a subshell
-whose failure prints `UNREADABLE` for that row and moves on.
+lands, so a partial list is worse than a crash. Every fallible command in a row carries an
+explicit fallback (`?`, `unknown`), so a workspace that cannot be inspected renders as a
+flagged row and the loop moves on.
 
-This is not hypothetical. The media probe exits 1 when a workspace holds no renders,
-because `grep` reports "no match" that way; under `set -euo pipefail` that killed `list`
-mid-loop, so it silently reported a **subset** of the workspaces and exited 1. The same
-line made `ws_is_clean` report every media-free workspace as dirty, so nothing could ever
-be removed. Both call sites are now guarded, and `test-pp-work.sh` case 11 pins it with
-two workspaces where the media-free one sorts first.
+This is not hypothetical. The media probe ends in a `grep` that exits 1 when a workspace
+holds no renders, and under `set -euo pipefail` that status propagates to the assignment.
+As a plain statement inside the loop, that aborted `list` mid-way: it silently reported a
+**subset** of the workspaces and exited 1.
+
+The same line in `ws_is_clean` behaved differently, and understanding why matters. It is
+called as `if ! ws_is_clean …`, and bash suppresses errexit for a command in that
+position, so the function did **not** abort — it carried on with `media` empty and
+returned *clean*. Removal was therefore never blocked by the bug; a clean, merged
+workspace really could be deleted mid-session. That is the hazard the idle gate closes.
+
+Both call sites are guarded now, but the guarantee for `list` rests on the explicit
+fallback attached to every fallible command in the row body — see the note in the source.
+`test-pp-work.sh` case 11 pins the media-free ordering and case 14 pins a workspace whose
+git repo is unusable.
 
 ## Usage
 
