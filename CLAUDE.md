@@ -30,6 +30,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Phone notifications (Telegram-first) | tooling/cli/notify/README.md |
 | Visual plan review before dispatch | .claude/skills/plan-review/SKILL.md |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
+| Running this repo under Codex (or any non-Claude agent) — path mapping, what doesn't carry over | [`AGENTS.md`](AGENTS.md) + `scripts/mirror-codex-skills.sh` |
 | A specific app | apps/<name>/ — full list in the README map below; each app folder carries its own operate-doc (README and/or CLAUDE.md) |
 | YouTube / Pinterest / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
 | Worktree pool for agent runs (wt) | [`tooling/cli/wt/README.md`](tooling/cli/wt/README.md) |
