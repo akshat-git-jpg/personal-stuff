@@ -20,6 +20,7 @@ BIN_DIR="$HOME/.local/bin"
 # name -> repo-relative path. One CLI per line; only these names are managed.
 CLIS=(
   "wt         tooling/cli/wt/wt"
+  "pp-work    tooling/cli/pp-work/pp-work"
   "yt-claude  tooling/cli/yt-claude/yt-claude"
 )
 
