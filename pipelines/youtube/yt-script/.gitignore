@@ -9,3 +9,6 @@ videos/*/outline.html
 videos/*/outline.pdf
 videos/*/script.html
 videos/*/script.pdf
+
+# Local-mode desk scratch. The record that matters is script-draft.md, pulled with desk.mjs.
+videos/*/desk-draft.json

@@ -1,3 +1,7 @@
 node_modules
 dist
 .npm-cache
+.wrangler
+
+# Cloudflare dev secrets — the owner's local copy of .dev.vars.example
+.dev.vars
