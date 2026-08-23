@@ -3,6 +3,7 @@ import type { Prefs } from '../hooks/usePrefs'
 type ToggleRailProps = {
   prefs: Prefs
   setPrefs: (update: Partial<Prefs>) => void
+  chips?: Array<{ key: keyof Prefs; label: string }>
 }
 
 const CHIPS: Array<{ key: keyof Prefs; label: string }> = [
@@ -12,11 +13,13 @@ const CHIPS: Array<{ key: keyof Prefs; label: string }> = [
   { key: 'showEdit', label: 'Edit notes' },
 ]
 
-export function ToggleRail({ prefs, setPrefs }: ToggleRailProps) {
+export const FULL_SCRIPT_CHIPS: Array<{ key: keyof Prefs; label: string }> = [{ key: 'beatLabels', label: 'Beat labels' }]
+
+export function ToggleRail({ prefs, setPrefs, chips = CHIPS }: ToggleRailProps) {
   return (
     <div className="toggle-rail">
       <span className="toggle-rail-label">Show me</span>
-      {CHIPS.map(({ key, label }) => (
+      {chips.map(({ key, label }) => (
         <button
           key={key}
           type="button"
