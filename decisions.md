@@ -600,3 +600,21 @@ Two errexit subtleties came out of this and are the reusable part:
 Lesson: never rely on errexit for control flow inside `if`, `&&`, `||`, `while` or a
 subshell in those positions. Guard each command, and give any per-item inventory loop a
 visible fallback value so a bad item is reported rather than silently mis-rendered.
+
+## 2026-08-23 — "merged" is a patch-id test, because landing rebases
+
+`pp-work`'s removal gate used `merge-base --is-ancestor <branch> origin/main`. That is
+wrong here, and fails silently. `pp-land` lands through `greenlight`, which REBASES the
+branch onto main, so the commits reaching main carry new SHAs and the workspace branch tip
+stops being an ancestor of main — while every line of it is on main. Measured: two live,
+fully landed workspaces, both reported unmerged, both with zero unapplied patches. Any
+workspace that landed after main had moved was therefore unreclaimable forever, which
+would have left the new `reap` inert for the common case.
+
+`ws_is_merged` now keeps `is-ancestor` as a fast path and otherwise uses
+`git cherry origin/main <branch>`, comparing by patch-id. `list` reports `unlanded:N` from
+the same source, replacing a raw commit count that treated landed-but-rebased commits as
+pending work.
+
+General rule for this repo: any "is this work safe to discard?" check must be by CONTENT,
+never by SHA reachability, because every landing path here rebases.

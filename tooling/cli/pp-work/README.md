@@ -37,7 +37,7 @@ In a shared checkout, session B switching to its own branch moves HEAD for sessi
 Removal requires **all three**. There is no `--force` and no TTL.
 
 1. **Clean**: no uncommitted work and no generated media (`.mp4`, `.wav`, …). Gitignored media blocks removal forever, because renders cannot be recovered from git.
-2. **Merged**: the workspace branch is fully merged into `origin/main`.
+2. **Merged**: every commit on the branch is on `origin/main`, compared by **patch-id**.
 3. **Idle**: the workspace has not been touched for `PPWORK_GRACE_SECS` (default 4h).
 
 ### Why the idle gate exists
@@ -59,6 +59,26 @@ manifest, and a stranded manifest reads as *untouched*, which is to say reapable
 `--now` is the explicit human override for gate 3 alone. Gates 1 and 2 have no override.
 `reap` uses it, after making the idle check itself, so this tool keeps exactly one
 deletion path and `reap` cannot drift away from `remove`'s gates.
+
+### Why "merged" is a patch-id test, not `is-ancestor`
+
+`pp-land` lands through `greenlight`, which **rebases** the branch onto main in the landing
+tree. The commits that reach main therefore carry new SHAs, and the workspace's own branch
+tip is no longer an ancestor of main — even though every line of it is on main.
+
+With `merge-base --is-ancestor` as the gate, no workspace that landed after main had moved
+could ever be removed. They would accumulate forever, with `reap` reporting "not merged"
+on every pass. Measured on 2026-08-23: two live, fully landed workspaces both reported
+unmerged, both with zero unapplied patches.
+
+So `ws_is_merged` tries `is-ancestor` as a fast path and otherwise falls back to
+`git cherry origin/main <branch>`, which compares by patch-id — a `+` line is a commit
+whose patch is not upstream, and no `+` lines means fully applied however it got there.
+`list` reports that same count as **`unlanded:`**, replacing a raw commit count that
+called rebased-and-landed commits pending.
+
+General rule: any "is this work safe to discard?" check here must be by **content**, never
+by SHA reachability, because every landing path in this repo rebases.
 
 ### `list` never hides a workspace
 

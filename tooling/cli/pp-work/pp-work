@@ -63,6 +63,36 @@ ws_touched() {
   printf '%s\n' "$t"
 }
 
+# Is every change on this branch already on origin/main?
+#
+# `merge-base --is-ancestor` alone is WRONG here, and silently so. pp-land lands through
+# greenlight, which REBASES the branch onto main in the landing tree, so the commits that
+# reach main carry new SHAs. The workspace's own branch tip is then not an ancestor of
+# main even though every line of it is on main -- measured 2026-08-23 on two live
+# workspaces, both fully landed, both reported unmerged. That made removal impossible for
+# any workspace that landed after main had moved, i.e. most of them: workspaces would have
+# accumulated forever while `reap` reported "not merged" each time.
+#
+# So compare by patch-id. `git cherry` prints `+` for a commit whose patch is NOT upstream
+# and `-` for one that is. No `+` lines means fully applied, however it got there.
+ws_is_merged() {
+  local branch="$1" out rc=0
+  git -C "$MAIN" merge-base --is-ancestor "$branch" origin/main 2>/dev/null && return 0
+  out=$(git -C "$MAIN" cherry origin/main "$branch" 2>/dev/null) || rc=$?
+  [ "$rc" -eq 0 ] || return 1
+  printf '%s\n' "$out" | grep -q '^+' && return 1
+  return 0
+}
+
+# How many commits on this branch are NOT yet on main, by patch-id. Reported by `list` in
+# place of a raw `rev-list --count`, which counted rebased-and-landed commits as pending.
+ws_unlanded() {
+  local branch="$1" out rc=0
+  out=$(git -C "$MAIN" cherry origin/main "$branch" 2>/dev/null) || rc=$?
+  if [ "$rc" -ne 0 ]; then printf '?\n'; return 0; fi
+  printf '%s\n' "$out" | grep -c '^+' || true
+}
+
 ws_is_idle() {
   local slug_dir="$1" t now
   t=$(ws_touched "$slug_dir")
@@ -215,8 +245,8 @@ EOF
 
           branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
           [ -n "$branch" ] || branch="unknown"
-          ahead=$(git -C "$wt_path" rev-list --count origin/main..HEAD 2>/dev/null || true)
-          [ -n "$ahead" ] || ahead="?"
+          unlanded=$(ws_unlanded "$branch" || true)
+          [ -n "$unlanded" ] || unlanded="?"
           uncommitted=$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null | wc -l | tr -d ' ' || true)
           [ -n "$uncommitted" ] || uncommitted="?"
 
@@ -229,7 +259,7 @@ EOF
           size=$(du -sh "$slug_dir" 2>/dev/null | awk '{print $1}' || true)
           [ -n "$size" ] || size="?"
 
-          echo "$slug | kind:$kind | branch:$branch | age:${age_days}d | ahead:$ahead | uncommitted:$uncommitted | media:$media | size:$size"
+          echo "$slug | kind:$kind | branch:$branch | age:${age_days}d | unlanded:$unlanded | uncommitted:$uncommitted | media:$media | size:$size"
           echo "  cd $wt_path"
         ) || echo "$slug | UNREADABLE (could not inspect) | cd $wt_path"
       done
@@ -288,8 +318,8 @@ EOF
   There is no TTL and no automatic reclaim; this workspace stays until you deal with it."
     fi
     branch=$(git -C "$wt" rev-parse --abbrev-ref HEAD)
-    git -C "$MAIN" merge-base --is-ancestor "$branch" origin/main 2>/dev/null \
-      || die "PPWORK-UNMERGED refusing to remove $wt — branch '$branch' is not merged into origin/main."
+    ws_is_merged "$branch" \
+      || die "PPWORK-UNMERGED refusing to remove $wt — branch '$branch' has commits that are not on origin/main."
     
     # The idle gate. A land does NOT mean the owner's work is over -- a session commits
     # many times into one workspace -- so a clean, merged, just-landed workspace must keep
@@ -333,8 +363,8 @@ EOF
           kept=$((kept + 1)); echo "pp-work: keep $slug — uncommitted work or generated media"; continue
         fi
         branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-        if [ -z "$branch" ] || ! git -C "$MAIN" merge-base --is-ancestor "$branch" origin/main 2>/dev/null; then
-          kept=$((kept + 1)); echo "pp-work: keep $slug — branch [$branch] is not merged into origin/main"; continue
+        if [ -z "$branch" ] || ! ws_is_merged "$branch"; then
+          kept=$((kept + 1)); echo "pp-work: keep $slug — branch [$branch] has commits not yet on origin/main"; continue
         fi
         if "$SELF" remove "$wt_path" --now >/dev/null 2>&1; then
           reaped=$((reaped + 1)); echo "pp-work: reaped $slug"
