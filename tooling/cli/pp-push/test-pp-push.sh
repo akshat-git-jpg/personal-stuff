@@ -61,6 +61,28 @@ set +e; "$GATE" --repo "$BASE/wt" origin HEAD:main >/dev/null 2>&1; rc=$?; set -
 git reset -q --hard HEAD~1
 ok "a secret-shaped path is refused"
 
+# 2b. a secret ADDED then DELETED inside the same push range is REFUSED.
+#
+# This is the gap a two-point diff leaves. `diff --name-only A..B` compares the endpoints,
+# so a file that appears in one commit and vanishes in the next reports as NO CHANGE — while
+# staying readable forever from the pushed history. Proved 2026-08-23: the old gate saw zero
+# files and `git show <mid>:.env` still printed the token. It is not exotic here: pp-land
+# coalesces commits, so multi-commit pushes are normal, and this repo is public with no
+# branch protection.
+git fetch -q origin
+printf 'GH_TOKEN=gho_leak\n' > .env; git add -f .env; git commit -qm "oops, add env"
+MID_SHA=$(git rev-parse HEAD)
+git rm -q .env; git commit -qm "remove env again"
+# the fixture must be genuinely invisible to the OLD check, or this case proves nothing
+[ -z "$(git diff --name-only origin/main..HEAD)" ] \
+  || fail "(2b) fixture is vacuous — the two-point diff already sees the range"
+git show "$MID_SHA:.env" >/dev/null 2>&1 \
+  || fail "(2b) fixture is wrong — the secret is not actually in the range"
+set +e; "$GATE" --repo "$BASE/wt" origin HEAD:main >/dev/null 2>&1; rc=$?; set -e
+[ "$rc" -ne 0 ] || fail "pp-push PUSHED a range that ADDED then DELETED a secret — readable forever"
+git reset -q --hard HEAD~2
+ok "a secret added and deleted within one push range is refused"
+
 # 3. an oversized file is REFUSED
 git fetch -q origin
 mkdir -p big; dd if=/dev/zero of=big/blob.bin bs=1024 count=2000 2>/dev/null

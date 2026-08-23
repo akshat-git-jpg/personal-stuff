@@ -823,3 +823,25 @@ Mutation-gated in BOTH directions, which is the point: making `ws_is_on_origin` 
 fails case 19 (a pushed branch must be reclaimable), and making it always true fails case 16
 (a branch that exists only in the workspace must not be). A one-directional test would have
 passed a rule that cheerfully deleted unique work.
+
+## 2026-08-23 — the push gate scans every ADDITION in the range, not the net diff
+
+`pp-push` compared two POINTS: `diff --name-only <base>..<tip>`. A secret added in one commit
+and deleted in the next therefore reported as no change, while staying readable forever from
+the pushed history. Proved in a throwaway repo: commit 1 adds `.env`, commit 2 removes it,
+both pushed together — the gate saw zero files, and reading the file at the middle commit
+still printed the token.
+
+This is not a corner case in this repo. `pp-land` coalesces commits, so a push carrying
+several commits is the normal shape, and the repo is public with no branch protection, which
+makes a leak irreversible. A live `gho_` token also still sits in
+`.claude/settings.local.json`; the tracked `.gitignore` and the gate's `*.local.json` glob
+both cover it, but this hole punched through the second of those nets.
+
+The scan is now the UNION of the net diff and `log --diff-filter=A --name-only` across the
+range. Keeping both matters: the additions filter catches the add-then-delete pair, and the
+net diff still catches a modification to a file that already existed at the base.
+
+Case 2b in `test-pp-push.sh` pins it, and asserts the fixture is not vacuous — the two-point
+diff must see nothing, and the secret must really be readable at the middle commit, or the
+case proves nothing. Mutation-gated: dropping the additions scan fails it.
