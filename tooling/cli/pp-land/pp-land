@@ -344,11 +344,13 @@ do_one_land() {
     log "landed $branch"
     rm -f "$LANDS_DIR/land-$slug.blocked" 2>/dev/null || true
     git -C "$MAIN" fetch origin main >/dev/null 2>&1 || true
-    # `pp-work remove` refuses unless the workspace is clean AND its branch is merged.
-    # A refusal is the normal outcome while a newer commit is still pending, so it is
-    # tolerated here and never forced.
-    "$PPWORK_BIN" remove "$ws" >/dev/null 2>&1 \
-      || log "workspace kept (dirty, or newer commits not yet on main): $ws"
+    # A land is NOT the end of the owner's work: one session commits many times into the
+    # same workspace, so removing it here would pull the folder out from under a live
+    # session's shell. Refresh `touched` instead and leave the folder alone. Reclaiming is
+    # `pp-work reap`'s job, from boss-session-start, and only once the workspace has been
+    # idle for the grace window AND is clean AND is merged.
+    "$PPWORK_BIN" touch "$ws" >/dev/null 2>&1 || true
+    log "workspace kept for further commits: $ws"
     git -C "$MAIN" update-ref -d "refs/heads/$land_branch" >/dev/null 2>&1 || true
   else
     log "land did not complete for $branch: $gl_result — $reason"

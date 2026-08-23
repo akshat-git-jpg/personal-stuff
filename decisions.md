@@ -565,3 +565,24 @@ Verified end to end on the shipped video: E9 fires on the old
 `lint-shots` then exits 0. Full `bash scripts/check.sh` green before and after.
 No `SHOT_CONSTANTS` entry and no `check.sh` edit — new `lib/*.test.mjs` files
 join the gate by existing, so the usual rebase collision on that file is avoided.
+
+## 2026-08-23 — a land is not the end of the work: workspaces are reaped, not removed on land
+
+`pp-land` used to call `pp-work remove` after every successful land. That was wrong: one
+session commits many times into one workspace, so the first land of a clean workspace
+deleted the folder out from under the live session's shell. Landing now only calls
+`pp-work touch`; reclaiming moved to a new `pp-work reap`, gated on clean + merged +
+untouched for `PPWORK_GRACE_SECS` (4h), and wired into `boss-session-start.sh` so it
+doubles as the catch-up path for a workspace whose session died.
+
+The manifest's `pid` cannot answer "is a session still using this?" — it is `pp-work`'s
+own pid and is dead the moment `claim` returns. `touched` can, so it is refreshed on
+re-claim and after every land, append-only with readers taking the last value.
+
+Found while explaining the flow, alongside the bug that had been masking it: the media
+probe in `pp-work` ends in a `grep` whose "no match" case is normal, and it exits 1 when a
+workspace holds no renders. Under `set -euo pipefail` that killed `pp-work list` mid-loop
+— reporting a *subset* of workspaces and exiting 1 — and made `ws_is_clean` call every
+media-free workspace dirty, so no workspace could ever be removed. Guarded at both call
+sites. Lesson for this class: a `grep` whose empty result is expected must be guarded, and
+any per-item inventory loop belongs in a subshell so one bad item cannot hide the rest.

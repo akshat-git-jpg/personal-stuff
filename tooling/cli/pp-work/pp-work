@@ -9,6 +9,10 @@ set -euo pipefail
 
 die() { echo "pp-work: $*" >&2; exit 1; }
 
+# Absolute path to this script, for `reap` to re-enter itself. Taken from BASH_SOURCE
+# rather than $0 so it stays correct when pp-work is reached via its ~/.local/bin symlink.
+SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+
 # Anchor on the MAIN checkout, never `--show-toplevel`: inside a linked worktree that
 # returns the worktree's own path, so the root would differ per workspace.
 resolve() {
@@ -33,13 +37,51 @@ ws_is_clean() {
   local media
   media=$(git -C "$wt" ls-files --others --ignored --exclude-standard 2>/dev/null \
           | grep -Ei '\.(mp4|mov|webm|wav|mp3|m4a|png|jpe?g)$' \
-          | grep -v '/node_modules/' | head -1)
+          | grep -v '/node_modules/' | head -1 || true)
   [ -z "$media" ] || return 1
   return 0
 }
 
+# Idleness. The manifest's `pid` is pp-work's OWN pid and is dead the moment claim
+# returns, so it can never answer "is a session still using this?". `touched` can:
+# claim refreshes it, and pp-land refreshes it after every land. A workspace touched
+# inside the grace window counts as in use and is never reaped.
+#
+# Removal ALREADY requires zero uncommitted files, so this window only has to cover the
+# gap between a land and the owner's next edit -- the one moment a session sitting in a
+# clean, just-landed workspace could have the folder deleted out from under its shell.
+PPWORK_GRACE_SECS="${PPWORK_GRACE_SECS:-14400}"   # 4h
+
+ws_touched() {
+  local slug_dir="$1" t=""
+  if [ -f "$slug_dir/manifest" ]; then
+    t=$(sed -n 's/^touched=//p' "$slug_dir/manifest" 2>/dev/null | tail -1 || true)
+  fi
+  case "$t" in
+    ''|*[!0-9]*) t=$(stat -f %m "$slug_dir" 2>/dev/null || stat -c %Y "$slug_dir" 2>/dev/null || date +%s) ;;
+  esac
+  printf '%s\n' "$t"
+}
+
+ws_is_idle() {
+  local slug_dir="$1" t now
+  t=$(ws_touched "$slug_dir")
+  now=$(date +%s)
+  [ "$((now - t))" -ge "$PPWORK_GRACE_SECS" ]
+}
+
+# APPEND, never rewrite in place -- the same convention boss-lib.sh's meta_set uses, and
+# every reader here takes `tail -1`. A partial in-place rewrite would strand the manifest,
+# and a stranded manifest reads as untouched, which is to say reapable.
+ws_set_touched() {
+  local slug_dir="$1"
+  [ -f "$slug_dir/manifest" ] || return 0
+  printf 'touched=%s\n' "$(date +%s)" >> "$slug_dir/manifest"
+  return 0
+}
+
 if [ $# -eq 0 ]; then
-  die "Usage: pp-work <claim|list|remove> ..."
+  die "Usage: pp-work <claim|list|remove|reap|touch> ..."
 fi
 
 cmd="$1"
@@ -78,6 +120,9 @@ case "$cmd" in
     fi
 
     if [ -d "$wt_path" ]; then
+      # Re-claiming an existing workspace means a session is picking the work back up.
+      # That is exactly the signal the reaper needs in order to leave it alone.
+      ws_set_touched "$WS_ROOT/$slug"
       echo "$wt_path"
       exit 0
     fi
@@ -146,32 +191,37 @@ EOF
           continue
         fi
 
-        kind="unknown"
-        if [ -f "$slug_dir/manifest" ]; then
-          kind=$(grep "^kind=" "$slug_dir/manifest" | cut -d= -f2 || echo "unknown")
-          touched=$(grep "^touched=" "$slug_dir/manifest" | cut -d= -f2 || date +%s)
-        else
-          touched=$(stat -f %m "$slug_dir" 2>/dev/null || stat -c %Y "$slug_dir" 2>/dev/null || date +%s)
-        fi
+        # Contain a per-workspace failure. `list` is the only screen that shows which
+        # workspaces exist, their disk use and the blocked lands, so ONE unreadable
+        # workspace must never hide the rest. That is precisely how the media-grep
+        # pipefail bug hid a whole workspace behind a single exit 1.
+        (
+          kind="unknown"
+          if [ -f "$slug_dir/manifest" ]; then
+            kind=$(sed -n 's/^kind=//p' "$slug_dir/manifest" | tail -1 || true)
+            [ -n "$kind" ] || kind="unknown"
+          fi
+          touched=$(ws_touched "$slug_dir")
 
-        now=$(date +%s)
-        age_sec=$((now - touched))
-        age_days=$((age_sec / 86400))
+          now=$(date +%s)
+          age_sec=$((now - touched))
+          age_days=$((age_sec / 86400))
 
-        branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-        ahead=$(git -C "$wt_path" rev-list --count origin/main..HEAD 2>/dev/null || echo "0")
-        uncommitted=$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null | wc -l | tr -d ' ')
+          branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+          ahead=$(git -C "$wt_path" rev-list --count origin/main..HEAD 2>/dev/null || echo "0")
+          uncommitted=$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null | wc -l | tr -d ' ')
 
-        media="no"
-        media_found=$(git -C "$wt_path" ls-files --others --ignored --exclude-standard 2>/dev/null \
-          | grep -Ei '\.(mp4|mov|webm|wav|mp3|m4a|png|jpe?g)$' \
-          | grep -v '/node_modules/' | head -1)
-        [ -n "$media_found" ] && media="yes"
+          media="no"
+          media_found=$(git -C "$wt_path" ls-files --others --ignored --exclude-standard 2>/dev/null \
+            | grep -Ei '\.(mp4|mov|webm|wav|mp3|m4a|png|jpe?g)$' \
+            | grep -v '/node_modules/' | head -1 || true)
+          [ -n "$media_found" ] && media="yes"
 
-        size=$(du -sh "$slug_dir" 2>/dev/null | awk '{print $1}')
+          size=$(du -sh "$slug_dir" 2>/dev/null | awk '{print $1}')
 
-        echo "$slug | kind:$kind | branch:$branch | age:${age_days}d | ahead:$ahead | uncommitted:$uncommitted | media:$media | size:$size"
-        echo "  cd $wt_path"
+          echo "$slug | kind:$kind | branch:$branch | age:${age_days}d | ahead:$ahead | uncommitted:$uncommitted | media:$media | size:$size"
+          echo "  cd $wt_path"
+        ) || echo "$slug | UNREADABLE (could not inspect) | cd $wt_path"
       done
     fi
 
@@ -210,8 +260,16 @@ EOF
     ;;
 
   remove)
-    [ $# -ge 1 ] || die "usage: remove <path>"
-    wt="$1"
+    force_now=0
+    wt=""
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --now) force_now=1; shift ;;
+        -*) die "unknown arg: $1" ;;
+        *) [ -z "$wt" ] || die "unexpected extra argument: $1"; wt="${1%/}"; shift ;;
+      esac
+    done
+    [ -n "$wt" ] || die "usage: remove <path> [--now]"
     resolve "$wt"
 
     if ! ws_is_clean "$wt"; then
@@ -223,12 +281,67 @@ EOF
     git -C "$MAIN" merge-base --is-ancestor "$branch" origin/main 2>/dev/null \
       || die "PPWORK-UNMERGED refusing to remove $wt — branch '$branch' is not merged into origin/main."
     
+    # The idle gate. A land does NOT mean the owner's work is over -- a session commits
+    # many times into one workspace -- so a clean, merged, just-landed workspace must keep
+    # its folder, or the session's own shell loses its cwd mid-task. It is reclaimed later
+    # by `reap`, once untouched for the grace window. `--now` is the explicit override,
+    # and it is what `reap` uses after making the same check itself.
+    if [ "$force_now" -eq 0 ] && ! ws_is_idle "$(dirname "$wt")"; then
+      die "PPWORK-ACTIVE refusing to remove $wt — it was used under $((PPWORK_GRACE_SECS / 60)) min ago, so a session may still be working in it.
+  It is clean and merged, so 'pp-work reap' will reclaim it once it goes idle.
+  To remove it right now anyway: pp-work remove $wt --now"
+    fi
+
     git -C "$MAIN" worktree remove "$wt"
     
     parent_dir=$(dirname "$wt")
     if [ -d "$parent_dir" ]; then
       rm -rf "$parent_dir"
     fi
+    ;;
+
+  reap)
+    # The cleanup path, and the catch-up too: it runs from boss-session-start, so a
+    # workspace whose session died is reclaimed the next time boss opens. Each gate is
+    # checked here only to REPORT why a workspace is kept; the deletion itself goes
+    # through `remove --now`, so this tool keeps exactly ONE deletion path and reap
+    # cannot drift away from remove's gates.
+    resolve
+    reaped=0
+    kept=0
+    if [ -d "$WS_ROOT" ]; then
+      for slug_dir in "$WS_ROOT"/*; do
+        [ -d "$slug_dir" ] || continue
+        slug=$(basename "$slug_dir")
+        wt_path="$slug_dir/$REPO_NAME"
+        [ -d "$wt_path" ] || continue
+
+        if ! ws_is_idle "$slug_dir"; then
+          kept=$((kept + 1)); echo "pp-work: keep $slug — in use (touched inside the grace window)"; continue
+        fi
+        if ! ws_is_clean "$wt_path"; then
+          kept=$((kept + 1)); echo "pp-work: keep $slug — uncommitted work or generated media"; continue
+        fi
+        branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+        if [ -z "$branch" ] || ! git -C "$MAIN" merge-base --is-ancestor "$branch" origin/main 2>/dev/null; then
+          kept=$((kept + 1)); echo "pp-work: keep $slug — branch [$branch] is not merged into origin/main"; continue
+        fi
+        if "$SELF" remove "$wt_path" --now >/dev/null 2>&1; then
+          reaped=$((reaped + 1)); echo "pp-work: reaped $slug"
+        else
+          kept=$((kept + 1)); echo "pp-work: keep $slug — remove refused it"
+        fi
+      done
+    fi
+    echo "pp-work: reap done — $reaped reclaimed, $kept kept"
+    ;;
+
+  touch)
+    # Called by pp-land after every land: a land is activity, not completion.
+    [ $# -ge 1 ] || die "usage: touch <path>"
+    wt="${1%/}"
+    resolve "$wt"
+    ws_set_touched "$(dirname "$wt")"
     ;;
 
   *)

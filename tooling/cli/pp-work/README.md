@@ -9,7 +9,7 @@ Worktrees across this repo are separated into three distinct roots with opposite
 - **`wt` pool**: `$HOME/kb-scratch/worktrees/<repo>-<hash8>/<n>/<repo>`
   - Reapable, reset on acquire.
 - **`pp-work` workspaces**: `$HOME/kb-scratch/workspaces/<repo>-<hash8>/<slug>/<repo>`
-  - NEVER reset, NEVER reaped.
+  - NEVER reset. Reclaimed only once clean, merged AND idle — see Removal Rules.
 - **landing tree**: `$HOME/kb-scratch/landing/<repo>-<hash8>`
   - Always reset on use (a later plan).
 
@@ -34,10 +34,44 @@ In a shared checkout, session B switching to its own branch moves HEAD for sessi
 
 ## Removal Rules
 
-A workspace is only removed via an explicit `pp-work remove <path>` call. There is no `--force`, no TTL, and no automatic reclaim.
-Removal requires **both**:
-1. **Clean**: No uncommitted work and no generated media (e.g. `.mp4`, `.wav`). Gitignored media blocks removal forever, because renders cannot be recovered from git.
-2. **Merged**: The workspace branch must be fully merged into `origin/main`.
+Removal requires **all three**. There is no `--force` and no TTL.
+
+1. **Clean**: no uncommitted work and no generated media (`.mp4`, `.wav`, …). Gitignored media blocks removal forever, because renders cannot be recovered from git.
+2. **Merged**: the workspace branch is fully merged into `origin/main`.
+3. **Idle**: the workspace has not been touched for `PPWORK_GRACE_SECS` (default 4h).
+
+### Why the idle gate exists
+
+A land is **not** the end of the owner's work. One session commits many times into one
+workspace, and `pp-land` runs on every one of those commits. Without gate 3, the first
+successful land of a clean workspace deleted the folder while the session was still
+sitting in it — taking the session's working directory with it.
+
+So landing no longer removes anything. `pp-land` calls `pp-work touch` after each land,
+and reclaiming is a separate, later step: `pp-work reap`, run from
+`boss-session-start.sh`. That placement makes it the catch-up path too — a workspace
+whose session died is reclaimed the next time boss opens.
+
+`touched` is **append-only** in the manifest (the same convention as `boss-lib.sh`'s
+`meta_set`); every reader takes the last value. An in-place rewrite could strand the
+manifest, and a stranded manifest reads as *untouched*, which is to say reapable.
+
+`--now` is the explicit human override for gate 3 alone. Gates 1 and 2 have no override.
+`reap` uses it, after making the idle check itself, so this tool keeps exactly one
+deletion path and `reap` cannot drift away from `remove`'s gates.
+
+### `list` never hides a workspace
+
+`list` is the only screen showing which workspaces exist, their disk use, and the blocked
+lands, so a partial list is worse than a crash. Each workspace is inspected in a subshell
+whose failure prints `UNREADABLE` for that row and moves on.
+
+This is not hypothetical. The media probe exits 1 when a workspace holds no renders,
+because `grep` reports "no match" that way; under `set -euo pipefail` that killed `list`
+mid-loop, so it silently reported a **subset** of the workspaces and exited 1. The same
+line made `ws_is_clean` report every media-free workspace as dirty, so nothing could ever
+be removed. Both call sites are now guarded, and `test-pp-work.sh` case 11 pins it with
+two workspaces where the media-free one sorts first.
 
 ## Usage
 
@@ -49,6 +83,15 @@ cd "$wt_path"
 # Inventory across workspaces and the wt pool
 pp-work list
 
-# Remove a completed, clean, and merged workspace
+# Remove a completed workspace (clean + merged + idle)
 pp-work remove /Users/.../kb-scratch/workspaces/...
+
+# Same, overriding the idle gate only
+pp-work remove /Users/.../kb-scratch/workspaces/... --now
+
+# Reclaim every finished, idle workspace. Runs from boss-session-start.
+pp-work reap
+
+# Mark a workspace as still in use. pp-land calls this after every land.
+pp-work touch /Users/.../kb-scratch/workspaces/...
 ```
