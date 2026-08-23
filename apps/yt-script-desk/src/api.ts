@@ -27,3 +27,5 @@ export const putSay = (key: string, num: string, lines: string[]) =>
 
 export const restoreSay = (key: string, num: string) =>
   j<{ lines: string[] }>(`${base}/beat/${num}/restore?key=${encodeURIComponent(key)}`, 'POST')
+
+export const postFinish = (key: string) => j(`${base}/finish?key=${encodeURIComponent(key)}`, 'POST')

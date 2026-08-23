@@ -121,6 +121,7 @@ const server = createServer(async (req, res) => {
       const num = decodeURIComponent(beatMatch[1])
       const body = await readBody(req)
       const doc = readDraft(key)
+      if (doc.finished) return sendJson(res, 409, { error: 'finished' })
       doc.draft[num] = body.text ?? ''
       writeDraft(key, doc)
       return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString() })
@@ -134,6 +135,7 @@ const server = createServer(async (req, res) => {
       const body = await readBody(req)
       const lines = Array.isArray(body.lines) ? body.lines : []
       const doc = readDraft(key)
+      if (doc.finished) return sendJson(res, 409, { error: 'finished' })
       // The first edit captures the original; a later edit leaves it alone —
       // the original is the FIRST version, never the previous one.
       if (!doc.edits[num]) {
@@ -160,6 +162,15 @@ const server = createServer(async (req, res) => {
       const { beats } = buildBeats(readFileSync(outPath, 'utf8'))
       const beat = beats.find((b) => b.num === num)
       return sendJson(res, 200, { lines: beat?.say ?? [] })
+    }
+
+    // POST /api/finish?key=<key>
+    if (req.method === 'POST' && url.pathname === '/api/finish') {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const doc = readDraft(key)
+      doc.finished = true
+      writeDraft(key, doc)
+      return sendJson(res, 200, { ok: true })
     }
 
     sendJson(res, 404, { error: 'not found' })
