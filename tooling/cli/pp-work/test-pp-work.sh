@@ -250,5 +250,44 @@ echo "$reap_out" | grep -q "keep touch-test2 — in use" \
   || fail "(13) a touched workspace was not read as in use — the reader is not taking the last value: $reap_out"
 [ -d "$out_t" ] || fail "(13) reap deleted a freshly touched workspace"
 
+# -----------------------------------------------------------------------------
+# 14. A workspace that cannot be inspected at all must not hide the ones after it, and
+# must not print a row of blank fields either. This is the guarantee that matters: `list`
+# is the only screen showing disk use and blocked lands, so a SUBSET is the worst possible
+# outcome -- it reads as "these are all my workspaces".
+#
+# A linked worktree keeps a `.git` FILE pointing at its gitdir. Renaming it aside makes
+# every git call in the row body fail, which is a harsher fixture than the original bug.
+# -----------------------------------------------------------------------------
+rename_path() { python3 -c 'import os,sys; os.rename(sys.argv[1], sys.argv[2])' "$1" "$2"; }
+
+out_b=$(run_guarded "$PPWORK" claim --kind code --slug aab-broken)
+run_guarded "$PPWORK" claim --kind code --slug zzy-after-broken >/dev/null
+rename_path "$out_b/.git" "$out_b/.git-disabled"
+git -C "$out_b" status >/dev/null 2>&1 \
+  && fail "(14) fixture is vacuous — the workspace is still a working git repo"
+
+list_rc=0
+list_out=$("$PPWORK" list 2>/dev/null) || list_rc=$?
+[ "$list_rc" -eq 0 ] || fail "(14) list exited $list_rc — one broken workspace still breaks it"
+echo "$list_out" | grep -q "aab-broken" \
+  || fail "(14) list dropped the broken workspace entirely instead of flagging it"
+echo "$list_out" | grep -q "zzy-after-broken | kind:code" \
+  || fail "(14) list omitted the workspace AFTER the broken one — the loop died early"
+echo "$list_out" | grep -q "zzz-media" \
+  || fail "(14) list omitted zzz-media"
+
+# No blank fields: every fallible field carries an explicit fallback, so the row is either
+# an honest UNREADABLE marker or a row containing '?' / 'unknown'.
+broken_row=$(echo "$list_out" | grep "aab-broken" | head -1)
+case "$broken_row" in
+  *UNREADABLE*|*unknown*|*'?'*) : ;;
+  *) fail "(14) the broken workspace printed no marker and no fallback: $broken_row" ;;
+esac
+if echo "$broken_row" | grep -qE '\|[[:space:]]*(branch|ahead|uncommitted|size):[[:space:]]*\|'; then
+  fail "(14) the broken workspace printed a BLANK field: $broken_row"
+fi
+rename_path "$out_b/.git-disabled" "$out_b/.git"
+
 echo ""
 echo "ALL TESTS PASSED"

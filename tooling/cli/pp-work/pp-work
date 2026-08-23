@@ -191,10 +191,16 @@ EOF
           continue
         fi
 
-        # Contain a per-workspace failure. `list` is the only screen that shows which
-        # workspaces exist, their disk use and the blocked lands, so ONE unreadable
-        # workspace must never hide the rest. That is precisely how the media-grep
-        # pipefail bug hid a whole workspace behind a single exit 1.
+        # `list` is the only screen showing which workspaces exist, their disk use and
+        # the blocked lands, so ONE bad workspace must never hide the rest -- the
+        # media-probe pipefail bug hid a whole workspace behind a single exit 1.
+        #
+        # The guarantee comes from the explicit fallback on EVERY fallible command below,
+        # not from this subshell. Bash suppresses errexit for a command on the left of
+        # `||` (and re-setting `set -e` inside does not clear that), so the body always
+        # runs to the end; the subshell only scopes the variables and catches an explicit
+        # non-zero return. An unguarded failure would therefore print a row with blank
+        # fields, which is worse than crashing -- hence the fallbacks.
         (
           kind="unknown"
           if [ -f "$slug_dir/manifest" ]; then
@@ -207,9 +213,12 @@ EOF
           age_sec=$((now - touched))
           age_days=$((age_sec / 86400))
 
-          branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-          ahead=$(git -C "$wt_path" rev-list --count origin/main..HEAD 2>/dev/null || echo "0")
-          uncommitted=$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null | wc -l | tr -d ' ')
+          branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+          [ -n "$branch" ] || branch="unknown"
+          ahead=$(git -C "$wt_path" rev-list --count origin/main..HEAD 2>/dev/null || true)
+          [ -n "$ahead" ] || ahead="?"
+          uncommitted=$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null | wc -l | tr -d ' ' || true)
+          [ -n "$uncommitted" ] || uncommitted="?"
 
           media="no"
           media_found=$(git -C "$wt_path" ls-files --others --ignored --exclude-standard 2>/dev/null \
@@ -217,7 +226,8 @@ EOF
             | grep -v '/node_modules/' | head -1 || true)
           [ -n "$media_found" ] && media="yes"
 
-          size=$(du -sh "$slug_dir" 2>/dev/null | awk '{print $1}')
+          size=$(du -sh "$slug_dir" 2>/dev/null | awk '{print $1}' || true)
+          [ -n "$size" ] || size="?"
 
           echo "$slug | kind:$kind | branch:$branch | age:${age_days}d | ahead:$ahead | uncommitted:$uncommitted | media:$media | size:$size"
           echo "  cd $wt_path"
