@@ -17,5 +17,5 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["vite/client"]
   },
-  "include": ["src/client", "src/shared.ts"]
+  "include": ["src/client", "src/shared.ts", "src/habits.ts"]
 }

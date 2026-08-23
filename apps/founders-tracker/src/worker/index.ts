@@ -4,6 +4,7 @@ import { COOKIE, loginPage, requireAuth, signSession } from "./auth";
 import {
   computeScoreboard, createTask, createTemplate, deleteTask, deleteTemplate,
   listTasks, listTemplates, patchTask, patchTemplate, reorderTasks,
+  listHabitsToday, toggleHabit,
 } from "./db";
 import { runGenerator } from "./recurring";
 import type { Owner, TaskInput, TaskPatch, TaskStatus, TemplateInput } from "../shared";
@@ -39,10 +40,11 @@ app.use("/api/*", requireAuth);
 app.get("/api/bootstrap", async (c) => {
   // Backstop: also materialize recurring tasks on load.
   await runGenerator(c.env.DB).catch((e) => console.error("on-load generator:", e));
-  const [tasks, templates, scoreboard] = await Promise.all([
-    listTasks(c.env.DB), listTemplates(c.env.DB), computeScoreboard(c.env.DB),
+  const [tasks, templates, habits, scoreboard] = await Promise.all([
+    listTasks(c.env.DB), listTemplates(c.env.DB), listHabitsToday(c.env.DB),
+    computeScoreboard(c.env.DB),
   ]);
-  return c.json({ tasks, templates, scoreboard });
+  return c.json({ tasks, templates, habits, scoreboard });
 });
 
 app.post("/api/tasks", async (c) => {
@@ -87,6 +89,15 @@ app.patch("/api/templates/:id", async (c) => {
 app.delete("/api/templates/:id", async (c) => {
   await deleteTemplate(c.env.DB, Number(c.req.param("id")));
   return c.json({ ok: true });
+});
+
+// ---- Habits ----------------------------------------------------------------
+app.get("/api/habits", async (c) => c.json(await listHabitsToday(c.env.DB)));
+
+app.post("/api/habits/:templateId/toggle", async (c) => {
+  const id = Number(c.req.param("templateId"));
+  if (!Number.isFinite(id)) return c.json({ error: "bad template id" }, 400);
+  return c.json(await toggleHabit(c.env.DB, id));
 });
 
 app.onError((err, c) => {

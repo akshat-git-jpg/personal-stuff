@@ -26,3 +26,17 @@ CREATE TABLE IF NOT EXISTS recurring_templates (
 CREATE UNIQUE INDEX IF NOT EXISTS ux_tasks_template_period
   ON tasks(template_id, period_key) WHERE template_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS ix_tasks_owner_status ON tasks(owner, status);
+
+-- One row per kept habit period. `anchor_ymd` is the FIRST day of the period
+-- (daily: the day; weekly: that ISO week's Monday), which makes streak maths
+-- plain day arithmetic. Absence of a row means the period was not kept.
+CREATE TABLE IF NOT EXISTS habit_logs (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  template_id INTEGER NOT NULL,
+  anchor_ymd  TEXT NOT NULL,
+  done_at     TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_habit_logs_template_anchor
+  ON habit_logs(template_id, anchor_ymd);
+CREATE INDEX IF NOT EXISTS ix_habit_logs_template ON habit_logs(template_id);

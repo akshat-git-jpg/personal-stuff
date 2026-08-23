@@ -1,30 +1,11 @@
-import type { Cadence, Template } from "../shared";
+import type { Template } from "../shared";
+import { periodKey } from "../habits";
 import { etaSortKey, listTemplates } from "./db";
 import { nowIso, todayIST } from "./dates";
 
 function parseYmd(ymd: string): { y: number; m: number; d: number } {
   const [y, m, d] = ymd.split("-").map(Number);
   return { y, m, d };
-}
-
-/** ISO week number + ISO week-year for a 'YYYY-MM-DD'. */
-function isoWeek(ymd: string): { year: number; week: number } {
-  const { y, m, d } = parseYmd(ymd);
-  const date = new Date(Date.UTC(y, m - 1, d));
-  const day = (date.getUTCDay() + 6) % 7; // 0=Mon … 6=Sun
-  date.setUTCDate(date.getUTCDate() - day + 3); // nearest Thursday
-  const firstThursday = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
-  const fday = (firstThursday.getUTCDay() + 6) % 7;
-  firstThursday.setUTCDate(firstThursday.getUTCDate() - fday + 3);
-  const week = 1 + Math.round((date.getTime() - firstThursday.getTime()) / (7 * 86_400_000));
-  return { year: date.getUTCFullYear(), week };
-}
-
-export function periodKey(cadence: Cadence, ymd: string): string {
-  if (cadence === "daily") return ymd; // YYYY-MM-DD — one instance per day
-  if (cadence === "monthly") return ymd.slice(0, 7); // YYYY-MM
-  const { year, week } = isoWeek(ymd);
-  return `${year}-W${String(week).padStart(2, "0")}`;
 }
 
 function daysInMonth(y: number, m: number): number {
@@ -55,6 +36,10 @@ export async function runGenerator(db: D1Database): Promise<number> {
   const templates = (await listTemplates(db)).filter((t) => t.active);
   let inserted = 0;
   for (const t of templates) {
+    // HABIT_NEVER_GENERATES_TASKS — daily and weekly templates are habits: they
+    // are ticked in habit_logs and must never mint a row in `tasks`. Only
+    // monthly templates generate real, deadline-bearing work items.
+    if (t.cadence !== "monthly") continue;
     const pk = periodKey(t.cadence, today);
     const exists = await db
       .prepare("SELECT 1 FROM tasks WHERE template_id = ? AND period_key = ? LIMIT 1")

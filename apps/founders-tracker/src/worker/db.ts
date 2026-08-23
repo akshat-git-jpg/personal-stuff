@@ -1,9 +1,10 @@
 import type {
   Owner, Scoreboard, OwnerScore, Task, TaskInput, TaskPatch,
-  TaskStatus, Template, TemplateInput,
+  TaskStatus, Template, TemplateInput, HabitToday,
 } from "../shared";
 import { OWNERS } from "../shared";
 import { daysBetween, nowIso, todayIST } from "./dates";
+import { currentStreak, bestStreak, isHabitCadence, periodStart } from "../habits";
 
 type Row = Record<string, unknown>;
 
@@ -200,4 +201,70 @@ export async function computeScoreboard(db: D1Database): Promise<Scoreboard> {
 function stripPrivate(s: OwnerScore & { _lateSum: number }): OwnerScore {
   const { _lateSum, ...rest } = s;
   return rest;
+}
+
+/** Every anchor day this habit was kept, newest-first order irrelevant. */
+async function habitAnchors(db: D1Database, templateId: number): Promise<Set<string>> {
+  const { results } = await db
+    .prepare("SELECT anchor_ymd FROM habit_logs WHERE template_id = ?")
+    .bind(templateId)
+    .all();
+  return new Set((results as Row[]).map((r) => String(r.anchor_ymd)));
+}
+
+/** Build the habit strip for the current period: every ACTIVE daily/weekly
+ *  template, with its tick state and streaks. Paused habits are omitted —
+ *  a paused rhythm is not something to nag about today. */
+export async function listHabitsToday(db: D1Database, today = todayIST()): Promise<HabitToday[]> {
+  const templates = (await listTemplates(db)).filter((t) => t.active && isHabitCadence(t.cadence));
+  const out: HabitToday[] = [];
+  for (const t of templates) {
+    const cadence = t.cadence as "daily" | "weekly";
+    const anchors = await habitAnchors(db, t.id);
+    const anchorYmd = periodStart(cadence, today);
+    out.push({
+      templateId: t.id,
+      title: t.title,
+      owner: t.owner,
+      cadence,
+      anchorYmd,
+      keptNow: anchors.has(anchorYmd),
+      streak: currentStreak(cadence, anchors, today),
+      best: bestStreak(cadence, anchors),
+      total: anchors.size,
+    });
+  }
+  return out;
+}
+
+/** Tick or un-tick the current period for one habit. Idempotent per period:
+ *  calling it twice returns to the un-ticked state. Throws when the template
+ *  is missing or is not a habit. */
+export async function toggleHabit(
+  db: D1Database, templateId: number, today = todayIST(),
+): Promise<HabitToday> {
+  const template = await getTemplate(db, templateId);
+  if (!isHabitCadence(template.cadence)) {
+    throw new Error(`template ${templateId} is ${template.cadence}, not a habit`);
+  }
+  const anchorYmd = periodStart(template.cadence, today);
+  const existing = await db
+    .prepare("SELECT id FROM habit_logs WHERE template_id = ? AND anchor_ymd = ?")
+    .bind(templateId, anchorYmd)
+    .first();
+  if (existing) {
+    await db
+      .prepare("DELETE FROM habit_logs WHERE template_id = ? AND anchor_ymd = ?")
+      .bind(templateId, anchorYmd)
+      .run();
+  } else {
+    await db
+      .prepare("INSERT OR IGNORE INTO habit_logs (template_id, anchor_ymd, done_at) VALUES (?, ?, ?)")
+      .bind(templateId, anchorYmd, nowIso())
+      .run();
+  }
+  const all = await listHabitsToday(db, today);
+  const found = all.find((h) => h.templateId === templateId);
+  if (!found) throw new Error(`habit ${templateId} vanished after toggle`);
+  return found;
 }
