@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { renderSimple } from './render-simple.mjs';
+import { renderSimple, buildBeatVars } from './render-simple.mjs';
 import { validateShape } from './cutlist-schema.mjs';
 import { lintCutlist } from './lint-cutlist.mjs';
 import { loadKit } from './inputs.mjs';
@@ -78,4 +78,53 @@ test('a fixture cut list renders end-to-end to an mp4 matching the fixture span 
   const renderMeta = JSON.parse(fs.readFileSync(path.join(workdir, 'intro-simple', 'render.json'), 'utf8'));
   assert.equal(renderMeta.beats.length, 2);
   assert.equal(renderMeta.standIn, false);
+});
+
+// --- buildBeatVars: the variables contract the two shipped defects broke ---
+//
+// Both defects (plan 229 imported the enrichers and never called them; the
+// renderer never injected `duration` although S4 told authors it did) passed
+// the gate because nothing could see the variables object. These three tests
+// are that gate. They spend no render — buildBeatVars is pure enough to call
+// directly, which is the whole reason it was pulled out of renderCardBeat.
+
+test('buildBeatVars injects the beat length as `duration`, overriding anything authored — the four ported kit cards scale their motion schedule to VARS.duration, so a missing one silently ran a 3.5s schedule inside a 2.5s cut', (t) => {
+  const workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'intro-vars-dur-'));
+  t.after(() => fs.rmSync(workdir, { recursive: true, force: true }));
+
+  const beat = { id: 'b01', kind: 'card', card: 'enacted/ui-mock', t_start: 3.0, t_end: 5.5, vars: { appName: 'Zap' } };
+  const vars = buildBeatVars(beat, { workdir, duration: 2.5 });
+  assert.equal(vars.duration, 2.5, 'the renderer owns duration — S4 refuses an authored one on exactly this promise');
+  assert.equal(vars.appName, 'Zap', 'authored variables survive alongside it');
+
+  // Renderer-owned means renderer WINS, not "renderer defers". A cut list that
+  // slipped a duration past the lint must still render at its beat length.
+  const authored = buildBeatVars({ ...beat, vars: { appName: 'Zap', duration: 9 } }, { workdir, duration: 2.5 });
+  assert.equal(authored.duration, 2.5, 'an authored duration is overwritten, never merged over');
+});
+
+test('buildBeatVars inlines a workdir image as a data URI — a staged card renders from a temp dir where a workdir-relative src resolves to nothing', (t) => {
+  const workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'intro-vars-img-'));
+  t.after(() => fs.rmSync(workdir, { recursive: true, force: true }));
+
+  // A 1x1 PNG is enough: the assertion is that the path became a data URI,
+  // not what the pixels are.
+  const PNG_1PX = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+  fs.mkdirSync(path.join(workdir, 'shots'), { recursive: true });
+  fs.writeFileSync(path.join(workdir, 'shots', 'a.png'), PNG_1PX);
+
+  const beat = { id: 'b02', kind: 'card', card: 'enacted/shot-float', t_start: 0, t_end: 3, vars: { text: 'x', shots: ['shots/a.png'] } };
+  const vars = buildBeatVars(beat, { workdir, duration: 3 });
+  assert.ok(vars.shots[0].startsWith('data:image/png;base64,'), `expected a data URI, got ${vars.shots[0]}`);
+});
+
+test('buildBeatVars inlines logo slugs under __logos — without it a logo-grid beat renders empty tiles', (t) => {
+  const workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'intro-vars-logo-'));
+  t.after(() => fs.rmSync(workdir, { recursive: true, force: true }));
+
+  const beat = { id: 'b03', kind: 'card', card: 'tool-icon/logo-grid', t_start: 0, t_end: 3, vars: { text: 'x', productLogos: ['heygen', 'n8n'] } };
+  const vars = buildBeatVars(beat, { workdir, duration: 3 });
+  assert.ok(vars.__logos, 'enrichLogos never ran');
+  assert.ok(vars.__logos.heygen?.startsWith('data:'), 'heygen was not inlined');
+  assert.ok(vars.__logos.n8n?.startsWith('data:'), 'n8n was not inlined');
 });
