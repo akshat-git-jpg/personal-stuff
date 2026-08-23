@@ -72,5 +72,12 @@ else
   sync_skills_dir default "$DEFAULT_DIR" "$STORE/manifest/personal.txt" "$STORE" "$AGENTS_DIR" || status=$?
 fi
 
+# Install the push gate (a copy outside every working tree) and arm the shared
+# .git/hooks pre-push net. Sourced, so it must not abort us: guard_install always
+# returns 0, and the `|| true` is belt-and-braces under `set -e`.
+REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
+source "$SCRIPTS_DIR/lib/guard-install.sh"
+guard_install "$REPO_ROOT" || true
+
 echo "done. Restart any running claude-work / claude-personal / default session to pick up changes."
 exit "$status"

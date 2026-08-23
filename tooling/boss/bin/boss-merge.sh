@@ -152,7 +152,8 @@ elif ! grep -q "boss:$slug" "$readme" 2>/dev/null; then
   # Append a one-line record to a dedicated "boss-landed" list at end of file (idempotent).
   grep -q '^## boss-landed' "$readme" || printf '\n## boss-landed\n' >> "$readme"
   printf -- '- %s — PR#%s %s — DONE\n' "$slug" "$pr" "${title:-}" >> "$readme"
-  ( cd "$REPO_ROOT" && git add plans/README.md && git commit -q -m "boss: record $slug (PR#$pr) landed" && git push -q origin main )
+  ( cd "$REPO_ROOT" && git add plans/README.md && git commit -q -m "boss: record $slug (PR#$pr) landed" \
+      && "$HOME/.local/libexec/pp-push" --repo "$REPO_ROOT" origin main )
 fi
 
 gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:done 2>/dev/null || true

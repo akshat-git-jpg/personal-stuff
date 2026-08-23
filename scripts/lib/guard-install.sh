@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Sourced by scripts/relink.sh and scripts/vps-sync.sh. Installs the push gate and
+# arms the git hook, on the Mac and on the VPS alike.
+#
+# It must never abort its caller: both callers run `set -euo pipefail`, and
+# `git config --unset` exits 5 when the key is already absent — an unguarded unset
+# would silently stop the VPS skill relink on its 15-minute cron from the second run
+# onward. So every path here returns 0.
+
+guard_install() {
+  local repo="${1:-}"
+  [ -n "$repo" ] || { echo "guard_install: no repo path given" >&2; return 0; }
+  git -C "$repo" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+
+  local libexec="$HOME/.local/libexec"
+  local src="$repo/tooling/cli/pp-push/pp-push"
+  mkdir -p "$libexec" || return 0
+
+  # A COPY, never a symlink into the checkout: a symlinked gate is editable by the
+  # branches it guards and vanishes on a checkout of an older commit.
+  if [ -f "$src" ]; then
+    cp -f "$src" "$libexec/pp-push" && chmod +x "$libexec/pp-push"
+    shasum -a 256 "$libexec/pp-push" > "$libexec/pp-push.sha256"
+    echo "guard: installed pp-push -> $libexec/pp-push"
+  else
+    echo "guard: WARNING $src missing; pp-push not installed" >&2
+  fi
+
+  # core.hooksPath is per-clone and untracked, so a tracked hooks dir would ship the
+  # scripts but never the pointer. Unset it and use git's default lookup in the shared
+  # .git/hooks, which fires from the main worktree AND from every linked worktree.
+  # `|| true` is load-bearing: unset exits 5 when the key is absent.
+  git -C "$repo" config --unset core.hooksPath 2>/dev/null || true
+
+  local common hooks
+  common=$(git -C "$repo" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 0
+  hooks="$common/hooks"
+  mkdir -p "$hooks" || return 0
+
+  cat > "$hooks/pre-push" <<'HOOK'
+#!/usr/bin/env bash
+# Second, independent net behind pp-push: catches a push made by hand or by a tool
+# that does not call the gate. Untracked and in the SHARED .git/hooks, so it is
+# present in every linked worktree regardless of which commit is checked out.
+set -uo pipefail
+GATE="$HOME/.local/libexec/pp-push"
+[ -x "$GATE" ] || { echo "pre-push: $GATE missing — run scripts/relink.sh" >&2; exit 1; }
+# pp-push itself sets PPPUSH_LOCK_HELD; if it is set, this push already came through
+# the gate and re-running it would be a redundant round trip.
+[ -n "${PPPUSH_LOCK_HELD:-}" ] && exit 0
+echo "pre-push: this push did not go through pp-push. Refusing." >&2
+echo "  Use: pp-push --repo <worktree> <remote> <refspec>" >&2
+exit 1
+HOOK
+  chmod +x "$hooks/pre-push"
+  echo "guard: armed pre-push at $hooks/pre-push"
+  return 0
+}

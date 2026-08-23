@@ -101,6 +101,43 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 
 ---
 
+## Git push chokepoint (`pp-push`)
+
+This repo is **PUBLIC** and `main` has **no branch protection**, so any push is an
+irreversible publish. `.gitignore` is not a sufficient last line of defence: a rule
+pointing at a moved directory matched nothing for months, and `boss-commit-main.sh`'s
+`git add -A` has misfired twice on that class (once ~200 MB of `.mp4`/`.mov`).
+
+- **Every push goes through `pp-push`.** It refuses a commit range containing a
+  secret-shaped path (`.env`, `*.pem`, `credentials.json`, `.dev.vars`, …) or a file over
+  1 MB, and it holds its own lock so two landings cannot race. Source of truth:
+  `tooling/cli/pp-push/pp-push`; harness: `tooling/cli/pp-push/test-pp-push.sh`.
+- **It is installed as a COPY at `~/.local/libexec/pp-push`**, deliberately *not* a
+  symlink into the checkout like the CLIs in `scripts/link-clis.sh`. A symlinked gate is
+  editable by the branches it guards and vanishes on a checkout of an older commit. The
+  installed copy refuses to run from inside a working tree, and verifies itself against
+  `~/.local/libexec/pp-push.sha256` recorded at install time.
+- **`scripts/lib/guard-install.sh` installs it**, sourced and called by **both**
+  `scripts/relink.sh` (Mac) and `scripts/vps-sync.sh` (VPS 15-min cron). Run
+  `scripts/relink.sh` after pulling a change to the gate.
+- **`core.hooksPath` is deliberately UNSET and must stay unset.** It used to point at a
+  path containing a space (`.../personal stuff/.git/hooks`), so no git hook in this repo
+  had ever run. The pointer lives in `.git/config`, which is per-clone and untracked, so
+  a tracked `.githooks/` directory would carry the scripts but never the pointer. With it
+  unset, git's default lookup finds the shared `.git/hooks`, which fires from the main
+  worktree **and** from every linked worktree.
+- **The `pre-push` net lives in the shared `.git/hooks`, untracked by design.** It
+  refuses any push that did not come through `pp-push`. If that is ever too blunt for a
+  legitimate manual push, call `pp-push --repo <worktree> origin <refspec>` — do not
+  weaken the net.
+
+The three former bare pushers now all call the gate: `tooling/cli/greenlight/greenlight`
+(the real lander), `tooling/boss/bin/boss-commit-main.sh` (which also gained a
+`BOSS_COMMIT_MAIN_MAX` blast-radius refusal, default 10 paths) and
+`tooling/boss/bin/boss-merge.sh` (the `plans/README.md` registry push).
+
+---
+
 ## Cleanup / confirm
 
 - [x] Removed stale nginx vhost `n8n-website` (sites-enabled + sites-available). Backup: `/root/cleanup-backup-20260613/`. nginx still disabled.

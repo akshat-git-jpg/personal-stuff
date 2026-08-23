@@ -48,6 +48,11 @@ fi
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPTS_DIR/lib/skill-link.sh"
 
+# Same push gate + pre-push net as the Mac gets from relink.sh. guard_install always
+# returns 0, so it can never abort this cron-run script.
+source "$SCRIPTS_DIR/lib/guard-install.sh"
+guard_install "$REPO" || true
+
 status=0
 sync_skills_dir personal "$SKILLS_DIR" "$MANIFEST" "$STORE" "$AGENTS_DIR" || status=$?
 echo "done."

@@ -43,9 +43,22 @@ echo "Committing $nfiles path(s) on main (gitignored media excluded):"
 echo "$staged_preview" | sed 's/^/  /'
 [ "$nfiles" -gt 6 ] && echo "  … and $((nfiles - 6)) more"
 
+# Blast-radius guard. boss's own dirty-main is a handful of paths; on 2026-08-20 this
+# staged 64 files because a concurrent session's 29-file app deletion was in the tree,
+# and committed it under an unrelated message. boss cannot attribute dirt, so it refuses
+# a sweep this large instead of guessing. pp-push's size gate covers the other logged
+# misfire (~200 MB of .mp4/.mov when an ignore glob missed a renamed directory).
+BOSS_COMMIT_MAIN_MAX="${BOSS_COMMIT_MAIN_MAX:-10}"
+if [ "$nfiles" -gt "$BOSS_COMMIT_MAIN_MAX" ] && [ "${BOSS_COMMIT_MAIN_FORCE:-0}" != "1" ]; then
+  echo "REFUSING: $nfiles dirty path(s) on main is more than boss should ever sweep (max $BOSS_COMMIT_MAIN_MAX)." >&2
+  echo "  This is almost certainly another session's work. Inspect it, then either commit it" >&2
+  echo "  yourself or re-run with BOSS_COMMIT_MAIN_FORCE=1 if it really is all boss's." >&2
+  boss_notify "boss: REFUSED to auto-commit $nfiles dirty paths on main (needs a human look)"
+  exit 2
+fi
 git -C "$REPO_ROOT" add -A
 git -C "$REPO_ROOT" commit -q -m "$msg"
-if git -C "$REPO_ROOT" push -q origin HEAD 2>&1; then
+if "$HOME/.local/libexec/pp-push" --repo "$REPO_ROOT" origin HEAD 2>&1; then
   echo "committed + pushed: $msg"
   boss_notify "boss: auto-committed dirty main to unblock land — $msg"
 else
