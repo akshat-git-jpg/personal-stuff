@@ -925,3 +925,25 @@ all green, and nothing in any suite exercises `boss-merge`'s registry commit aga
 pre-commit hook. The catch came from grepping for other main-checkout committers before
 arming it, not from a gate.
 - **2026-08-23** — `yt-script` gained step `055-review-plan-md-human`, a markdown read of `script-plan.md` before the local desk at 060. Owner's reason: opening a file is faster than booting the desk, so wording and section-order fixes should not cost a server start; 060 now owns only the two-track-UI question. Six owner gates, thirteen steps.
+
+## 2026-08-23 — `paypal-txns-pp-cli income` counts payments, not balance movement
+
+The `income` command summed every positive amount in the transaction feed, which on a
+multi-currency Business account roughly doubled the number. One USD payout is recorded three
+times: the payment in (`T00xx`), a currency conversion out of USD and into INR at one shared
+timestamp (`T02xx`, a debit and a credit), and the bank withdrawal (`T04xx`). The INR
+conversion credit is positive, so it was being counted as a second income event.
+
+The rule now is: income is the `T00xx` family only, net of the `fee_amount` PayPal reports on
+the same record. Everything else is the same money moving.
+
+That left the bank leg unattributed, because conversions and withdrawals carry no `payer_info`.
+Sweeps are matched back to income lots FIFO, and the settled amount is split pro-rata across
+the lots a sweep drained — necessary because PayPal bundles several payouts into one sweep when
+they land close together (2026-06-01 swept Book Bolt 172.52 + HeyGen 18.62 as a single
+191.14 → ₹17,464.93). A blank bank amount means the money has not been withdrawn yet, and
+anything never converted is reported under `unsettled`.
+
+Output is grouped month → program, since "which program paid me what, and what actually hit the
+bank" is the question this gets asked. Fetching now uses `fields=all`; `transaction_info` alone
+omits the payer, so there is no cheaper way to get the program name.
