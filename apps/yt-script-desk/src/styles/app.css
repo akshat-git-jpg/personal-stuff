@@ -4,7 +4,15 @@
 
 /* ---------------------------------------------------------------- header */
 
+/* The header and the toggle rail stay put while the script scrolls under them.
+   Both carry live controls - the save badge, the tab switch, the lane toggles -
+   and on a 26-beat script all three were three screens away by the time you
+   wanted them. `--hdr` on both is load-bearing: a transparent sticky bar lets
+   the prose show through as it passes underneath. */
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -40,6 +48,8 @@
 /* ---------------------------------------------------------------- toggle rail */
 
 .toggle-rail {
+  position: sticky;
+  z-index: 29;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -337,3 +347,7 @@
 @media (prefers-reduced-motion: reduce) {
   .save-badge-pending svg { animation: none; }
 }
+
+/* Set from JS to the header's real height - hard-coding it breaks the moment
+   the header wraps onto two lines on a narrow window. */
+.toggle-rail { top: var(--chrome-top, 74px); }

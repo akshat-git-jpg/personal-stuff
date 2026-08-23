@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getVideo, isHosted, postFinish, putDraft, putSay, restoreSay } from './api'
 import type { VideoDoc } from './types'
+import { useChromeOffset } from './hooks/useChromeOffset'
 import { usePrefs } from './hooks/usePrefs'
 import { SaveStatusProvider } from './hooks/useSaveStatus'
 import { Header } from './components/Header'
@@ -26,6 +27,7 @@ function isFinishedError(err: unknown): boolean {
 
 export function App() {
   const { prefs, setPrefs } = usePrefs()
+  useChromeOffset()
   const [doc, setDoc] = useState<VideoDoc | null>(null)
   const [loadError, setLoadError] = useState<'notfound' | 'network' | null>(null)
   const [saveBlocked, setSaveBlocked] = useState(false)

@@ -84,13 +84,27 @@ function renderRightCell(beat: Beat, prefs: Prefs): ReactNode {
   return blocks
 }
 
+// Outline authors emphasise with markdown - "**This is the one demo block**" -
+// and the instruction track used to print the asterisks literally. Bold is the
+// only inline mark that appears in these lanes, so this renders that one and
+// leaves every other character alone rather than pulling in a markdown parser.
+function renderEmphasis(line: string): ReactNode[] {
+  return line.split(/(\*\*[^*]+\*\*)/g).map((piece, i) =>
+    piece.startsWith('**') && piece.endsWith('**') && piece.length > 4 ? (
+      <strong key={i}>{piece.slice(2, -2)}</strong>
+    ) : (
+      <Fragment key={i}>{piece}</Fragment>
+    ),
+  )
+}
+
 function InstructionBlock({ label, lines }: { label: string; lines: string[] }) {
   return (
     <div className="right-block">
       <div className="right-block-label">{label}</div>
       {lines.map((line, i) => (
         <div className="right-block-line" key={i}>
-          {line}
+          {renderEmphasis(line)}
         </div>
       ))}
     </div>
