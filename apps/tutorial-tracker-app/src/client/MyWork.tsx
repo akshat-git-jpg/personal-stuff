@@ -1,5 +1,5 @@
 import type { ReviewItem, BoardRow } from "./api";
-import type { Transition } from "../shared/rbac";
+import type { Transition } from "../shared/engine/rbac";
 import { ReviewQueue } from "./ReviewQueue";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";

@@ -1,21 +1,27 @@
+// RBAC rules, gates and review authority — the same suite as before, now run
+// against the ENGINE instead of the legacy src/shared/* shims (which duplicated
+// the engine and have been deleted). Every assertion below is the original
+// one; only the imports and two shape-specific checks changed.
 import { describe, it, expect } from "vitest";
-import {
-  ALL_ROLES, stageById, normalizeStatus, statusOf,
-} from "../src/shared/pipeline";
+import { getPipeline, stageById, rolesForSystem } from "../src/shared/engine/registry";
+import { statusOf } from "../src/shared/engine/derive";
+import { lifecycle } from "../src/shared/engine/lifecycle";
+import { normalizeStatusIn } from "../src/client/stages";
 import {
   filterRowsForRoles, transitionsForStage, authorizeWrite, canReview,
   cardStagesForUser, reviewQueueForUser, fieldLockReason, type Row,
-} from "../src/shared/rbac";
+} from "../src/shared/engine/rbac";
 import { parseRoles } from "../src/worker/roles";
 
-const SCRIPT = stageById("script")!;
-const TOPIC = stageById("topic")!;
+const STD = getPipeline("standard");
+const SCRIPT = stageById(STD, "script")!;
+const TOPIC = stageById(STD, "topic")!;
 
 // A card that has cleared Topic and is at the Script stage, assigned to sw@x,
 // reviewed by rv@x.
 function scriptCard(script_status: string): Row {
   return {
-    row_id: "r1", video_title: "T",
+    row_id: "r1", video_title: "T", pipeline: "standard",
     topic_status: "Done",
     script_writer_email: "sw@x.com",
     script_reviewer_email: "rv@x.com",
@@ -25,32 +31,52 @@ function scriptCard(script_status: string): Row {
 
 describe("role roster", () => {
   it("has no Ideator role — Topic is the Admin's job", () => {
-    expect(ALL_ROLES).not.toContain("Ideator");
-    expect(ALL_ROLES.slice().sort()).toEqual(
-      ["Admin", "Recorder", "Reviewer", "Scriptwriter", "Thumbnail Maker", "Uploader", "Video Editor"],
+    // Admin is NOT a per-system role in the engine: it is granted cross-system
+    // (membership key "*") to the founder only, so it is absent from a system's
+    // roster by design. The legacy roster listed it here.
+    const roles = rolesForSystem("standard");
+    expect(roles).not.toContain("Ideator");
+    expect(roles).not.toContain("Admin");
+    expect(roles.slice().sort()).toEqual(
+      ["Recorder", "Reviewer", "Scriptwriter", "Thumbnail Maker", "Uploader", "Video Editor"],
     );
   });
 });
 
 describe("lane normalization (the Need-Changes-on-create guard)", () => {
   it("maps blank/unknown to To Do, never to Need Changes", () => {
-    expect(normalizeStatus(TOPIC, "")).toBe("To Do");
-    expect(normalizeStatus(TOPIC, undefined)).toBe("To Do");
-    expect(normalizeStatus(TOPIC, "garbage")).toBe("To Do");
-    expect(normalizeStatus(SCRIPT, "")).toBe("To Do");
+    expect(normalizeStatusIn(TOPIC, "")).toBe("To Do");
+    expect(normalizeStatusIn(TOPIC, undefined)).toBe("To Do");
+    expect(normalizeStatusIn(TOPIC, "garbage")).toBe("To Do");
+    expect(normalizeStatusIn(SCRIPT, "")).toBe("To Do");
   });
   it("a freshly created Topic=To Do card is in the To Do lane", () => {
-    const row: Row = { row_id: "r9", video_title: "New", topic_status: "To Do" };
+    const row: Row = { row_id: "r9", video_title: "New", pipeline: "standard", topic_status: "To Do" };
     expect(statusOf(TOPIC, row)).toBe("To Do");
   });
 });
 
 describe("gated handoff", () => {
-  it("a scriptwriter only sees a card once Topic is Done", () => {
-    const blocked: Row = { row_id: "a", video_title: "A", topic_status: "In Progress", script_writer_email: "sw@x.com" };
-    const open: Row = { row_id: "b", video_title: "B", topic_status: "Done", script_writer_email: "sw@x.com" };
+  // The engine deliberately split SEEING a card from being able to WORK it:
+  // canSeeRow is "owns an assigned stage (gate open or not)", which is what lets
+  // a doer look ahead at work not yet unblocked. The gate lives on the lane
+  // instead. The legacy shim hid the card entirely, so this assertion moved.
+  const blocked: Row = { row_id: "a", video_title: "A", pipeline: "standard", topic_status: "In Progress", script_writer_email: "sw@x.com" };
+  const open: Row = { row_id: "b", video_title: "B", pipeline: "standard", topic_status: "Done", script_writer_email: "sw@x.com" };
+
+  it("a scriptwriter can see a card assigned to them even before Topic is Done", () => {
     const visible = filterRowsForRoles(["Scriptwriter"], "sw@x.com", [blocked, open]);
-    expect(visible.map((r) => r.row_id)).toEqual(["b"]);
+    expect(visible.map((r) => r.row_id)).toEqual(["a", "b"]);
+  });
+
+  it("…but it only enters their working lane once Topic is Done", () => {
+    expect(cardStagesForUser(["Scriptwriter"], "sw@x.com", blocked)).toEqual([]);
+    expect(cardStagesForUser(["Scriptwriter"], "sw@x.com", open)).toEqual(["script_status"]);
+  });
+
+  it("and a card assigned to nobody they are stays invisible", () => {
+    const someoneElse: Row = { ...open, row_id: "c", script_writer_email: "other@x.com" };
+    expect(filterRowsForRoles(["Scriptwriter"], "sw@x.com", [someoneElse])).toEqual([]);
   });
 });
 
@@ -97,7 +123,7 @@ describe("reviewer transitions + can't-review-own-work", () => {
   it("tags transitions by doer/reviewer so each context shows only its own (the My-work-vs-queue fix)", () => {
     // Sean is admin (owns Topic) AND the topic's reviewer — the exact multi-role case.
     const topicRow: Row = {
-      row_id: "t1", video_title: "T", topic_status: "In Review",
+      row_id: "t1", video_title: "T", pipeline: "standard", topic_status: "In Review",
       admin_email: "sean@x.com", topic_reviewer_email: "sean@x.com",
     };
     const ts = transitionsForStage(["Admin", "Reviewer"], "sean@x.com", TOPIC, topicRow);
@@ -109,7 +135,7 @@ describe("reviewer transitions + can't-review-own-work", () => {
 
   it("the admin can review their own Topic (owner == reviewer is allowed for Topic only)", () => {
     const topicRow: Row = {
-      row_id: "t1", video_title: "T", topic_status: "In Review",
+      row_id: "t1", video_title: "T", pipeline: "standard", topic_status: "In Review",
       admin_email: "sean@x.com", topic_reviewer_email: "sean@x.com",
     };
     expect(canReview(["Admin", "Reviewer"], "sean@x.com", TOPIC, topicRow)).toBe(true);
@@ -144,7 +170,7 @@ describe("required fields gate submit/advance", () => {
   });
 });
 
-describe("ETA gate — Start requires the stage's ETA (control.ts mustFill on To Do)", () => {
+describe("ETA gate — Start requires the stage's ETA", () => {
   it("a scriptwriter can't Start until the ETA is set, and the transition says why", () => {
     const noEta = scriptCard("To Do"); // script_eta empty
     const start = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, noEta).find((t) => t.kind === "start")!;
@@ -157,7 +183,7 @@ describe("ETA gate — Start requires the stage's ETA (control.ts mustFill on To
   });
 });
 
-describe("reviewer must brief the next worker before approving (control.ts toApprove)", () => {
+describe("reviewer must brief the next worker before approving", () => {
   it("approving Script is blocked until the Recorder's instruction is written", () => {
     const noInstr = scriptCard("In Review"); // tutorial_instruction empty
     const approve = transitionsForStage(["Reviewer"], "rv@x.com", SCRIPT, noInstr).find((t) => t.kind === "approve")!;
@@ -169,11 +195,15 @@ describe("reviewer must brief the next worker before approving (control.ts toApp
 });
 
 describe("thumbnail stage", () => {
-  it("sits between Editing and Upload, reviewable, and Upload now gates on it", () => {
-    const thumb = stageById("thumbnail")!;
-    expect(thumb.order).toBe(4);
-    expect(thumb.reviewable).toBe(true);
-    expect(stageById("upload")!.order).toBe(5);
+  it("sits between Editing and Upload, reviewable, and Upload gates on it", () => {
+    // The engine has no `order`/`reviewable` fields: position IS the order, and
+    // reviewability comes from the stage's lifecycle.
+    const ids = STD.stages.map((s) => s.id);
+    expect(ids.indexOf("thumbnail")).toBe(4);
+    expect(ids.indexOf("upload")).toBe(5);
+    const thumb = stageById(STD, "thumbnail")!;
+    expect(lifecycle(thumb.lifecycle).reviewed).toBe(true);
+    expect(stageById(STD, "upload")!.gate).toBe("thumbnail");
   });
 });
 
@@ -218,7 +248,7 @@ describe("board membership + review queue", () => {
   });
 });
 
-describe("parseRoles validates against the new roster", () => {
+describe("parseRoles validates against the roster", () => {
   it("keeps valid roles, drops unknown", () => {
     expect(parseRoles("Scriptwriter, Nope, Recorder")).toEqual(["Scriptwriter", "Recorder"]);
   });

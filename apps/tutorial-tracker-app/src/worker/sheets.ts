@@ -6,7 +6,7 @@
 
 import type { Column } from "../shared/columns";
 import { COLUMNS } from "../shared/columns";
-import type { Row } from "../shared/rbac";
+import type { Row } from "../shared/engine/rbac";
 import { colLetter } from "./google-jwt";
 
 // ---------------------------------------------------------------------------
