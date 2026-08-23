@@ -1091,3 +1091,15 @@ understands is another way to fool it. A confusing error is cheaper to fix than 
 
 The generalisable bit: when a guard is right but keeps being fought, fix what it SAYS before
 touching what it DOES.
+
+## 2026-08-23 — an auth 403 on a land is transient, not a push-gate refusal
+
+`pp-land` reports a failed push as `land push refused by the push gate (exit 128)`. When the
+cause is a wrong-account 403, that string matched no case in `land_class` and took the default
+`real`, so the land spent its 2-attempt cap and was then listed as capped forever while its
+verify was passing. Auth failures now classify as **transient** (bounded by `TRANSIENT_CAP`);
+the `pp-push`/secret `never` case is still matched first so a real secret refusal cannot be
+softened. Root cause of the 403 itself: `~/.gitconfig` routes github.com through
+`!gh auth git-credential`, which uses gh's globally-active account — the work account in any
+shell without `GH_TOKEN` (agy crews, the sweep, crons). Pinned per-repo via
+`~/.local/bin/git-credential-pp-personal`, so work repos are unaffected.

@@ -141,6 +141,20 @@ entry_rewrite() {
 # pp-push refusal NEVER retries because a retry re-attempts publishing a secret to a
 # PUBLIC repo — it is a content defect wearing a refusal's clothes.
 #
+# An AUTH failure is transient, and saying so is the whole point of this class. On
+# 2026-08-23 every land 403'd because the crew shell had no GH_TOKEN and authenticated
+# as the WORK account. pp-land reported it as `land push refused by the push gate
+# (exit 128) — remote: Permission to <repo> denied to <other-user>`. That string carries
+# neither `pp-push` nor `push rejected`, so it fell through every case here to the
+# default `real`, burned REAL_CAP in four attempts, and the land was then listed as
+# capped — forever, with the verify passing the whole time. Nothing about a 403 is a
+# content defect: the fix is one account switch, after which the same commit lands
+# untouched. It is bounded by TRANSIENT_CAP, so a token that has genuinely lost its
+# scope costs at most TRANSIENT_CAP dispatches per window rather than retrying forever.
+#
+# Ordering is load-bearing: the pp-push/secret `never` case is matched FIRST, so a real
+# secret refusal can never be reclassified as an auth blip by the patterns below.
+#
 # The default is `real`, deliberately: an unrecognised cause that consumes an attempt
 # costs at most REAL_CAP dispatches, while defaulting to transient retries forever.
 # ---------------------------------------------------------------------------
@@ -148,6 +162,13 @@ land_class() {
   local r="$1"
   case "$r" in
     *pp-push*|*PPPUSH*|*secret*|*deploy-live*|*no_auto_resolve*) printf 'never'; return ;;
+  esac
+  # Auth/permission: a wrong-account or scope-less token. Transient — see above.
+  case "$r" in
+    *403*|*"Permission to"*|*"denied to"*|*"Authentication failed"*\
+      |*"could not read Username"*|*"Invalid username or password"*\
+      |*"exit 128"*|*"terminal prompts disabled"*)
+      printf 'transient'; return ;;
   esac
   # A SECOND `cannot detach at origin/main` means the tree is wedged: the one-shot
   # `clean -xfd` escalation already ran and did not free it.
@@ -392,4 +413,5 @@ main() {
   return 0
 }
 
-main
+# BOSS_LAND_SWEEP_LIB=1 sources this for its pure helpers (land_class) without sweeping.
+[ "${BOSS_LAND_SWEEP_LIB:-}" = 1 ] || main

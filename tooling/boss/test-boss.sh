@@ -685,5 +685,42 @@ git -C "$dep_repo" -c user.email=t@t -c user.name=t commit -qm init
 rm -rf "$dep_repo"
 echo "PASS: boss_dep_prelude targets exactly the dirs that need installing"
 
+# --- land_class: an auth 403 is transient, a secret refusal is still never -------
+# Regression for 2026-08-23: every land 403'd because the crew shell had no GH_TOKEN and
+# authenticated as the work account. The reason string pp-land recorded carries neither
+# `pp-push` nor `push rejected`, so it fell through to the default `real`, burned REAL_CAP
+# in four attempts, and the land sat listed as capped while its verify was passing.
+(
+  export BOSS_LAND_SWEEP_LIB=1
+  # shellcheck disable=SC1090
+  source "$BOSSDIR/bin/boss-land-sweep.sh" >/dev/null 2>&1 \
+    || fail "(LC) cannot source boss-land-sweep.sh as a library"
+  type land_class >/dev/null 2>&1 || fail "(LC) land_class not defined after sourcing"
+
+  real403='land push refused by the push gate (exit 128) — remote: Permission to acct/repo.git denied to other-user. fatal: The requested URL returned error: 403'
+  got=$(land_class "$real403")
+  [ "$got" = "transient" ] \
+    || fail "(LC) the real 2026-08-23 403 string must be transient, got [$got]"
+
+  # Ordering guard: a genuine secret refusal must NEVER be softened to transient, even
+  # though pp-push's own message can also mention a push failing.
+  got=$(land_class 'pp-push refused: secret-shaped value in apps/x/.dev.vars (exit 128)')
+  [ "$got" = "never" ] \
+    || fail "(LC) a pp-push secret refusal must stay never, got [$got]"
+  got=$(land_class 'deploy-live-conflict')
+  [ "$got" = "never" ] || fail "(LC) deploy-live must stay never, got [$got]"
+
+  # A verify failure stays real: auto-retrying a flaky verify lands red code.
+  got=$(land_class 'verify failed: cd apps/tutorial-tracker-app && npm test')
+  [ "$got" = "real" ] || fail "(LC) a verify failure must stay real, got [$got]"
+  got=$(land_class 'rebase conflict')
+  [ "$got" = "real" ] || fail "(LC) a rebase conflict must stay real, got [$got]"
+
+  # The safe default survives.
+  got=$(land_class 'something nobody predicted')
+  [ "$got" = "real" ] || fail "(LC) an unrecognised cause must default to real, got [$got]"
+) || exit 1
+echo "PASS: land_class treats an auth 403 as transient without softening a secret refusal"
+
 echo ""
 echo "ALL TESTS PASSED"
