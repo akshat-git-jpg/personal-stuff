@@ -185,10 +185,9 @@ test('the worksheet is still byte-identical after the parser change', () => {
     let actual = buildWorksheet(md)
     // buildWorksheet outputs the 'target — words' placeholder, while the on-disk
     // worksheet has been stamped with the actual word counts. Since we are testing
-    // byte-identity of the parser change, we reconcile the targets before comparing.
-    const expectedTargets = [...expected.matchAll(/target \d+-\d+ words/g)].map((m) => m[0])
-    let i = 0
-    actual = actual.replace(/target — words/g, () => expectedTargets[i++] || 'target — words')
+    // byte-identity of the parser change, we apply a symmetric normalization to both.
+    expected = expected.replace(/target (\d+-\d+|—) words/g, 'target <NORMALIZED> words')
+    actual = actual.replace(/target (\d+-\d+|—) words/g, 'target <NORMALIZED> words')
     
     assert.equal(actual, expected, `${key}: worksheet output drifted`)
   }
