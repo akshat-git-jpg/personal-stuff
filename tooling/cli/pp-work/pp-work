@@ -1,0 +1,237 @@
+#!/usr/bin/env bash
+# pp-work — per-session and per-subject git worktrees that are NEVER reset.
+#
+# Distinct from `wt` on purpose. `wt` is a fixed pool of 8 slots that RESETS a slot on
+# acquire and on return; a session's in-progress work must survive exactly that. The two
+# live under different roots so `wt return`'s own guard ($POOL/*/<repo>) can never match a
+# workspace.
+set -euo pipefail
+
+die() { echo "pp-work: $*" >&2; exit 1; }
+
+# Anchor on the MAIN checkout, never `--show-toplevel`: inside a linked worktree that
+# returns the worktree's own path, so the root would differ per workspace.
+resolve() {
+  local dir="${1:-$PWD}" common
+  common=$(git -C "$dir" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
+    || die "not inside a git repository: $dir"
+  MAIN=$(dirname "$common")
+  REPO_NAME=$(basename "$MAIN")
+  HASH8=$(echo -n "$MAIN" | shasum -a 256 | cut -c 1-8)
+  WS_ROOT="$HOME/kb-scratch/workspaces/$REPO_NAME-$HASH8"
+  WT_POOL="$HOME/kb-scratch/worktrees/$REPO_NAME-$HASH8"
+  LANDING="$HOME/kb-scratch/landing/$REPO_NAME-$HASH8"
+}
+
+# A workspace is clean only if it has NO uncommitted work AND NO generated media.
+# Renders are gitignored, so a commit can never carry them — folder persistence is the
+# only thing that saves them, which is why ignored media blocks removal forever with no
+# TTL. node_modules and the bootstrap symlinks are ignored too and must NOT block.
+ws_is_clean() {
+  local wt="$1"
+  [ -z "$(git -C "$wt" status --porcelain --untracked-files=all 2>/dev/null)" ] || return 1
+  local media
+  media=$(git -C "$wt" ls-files --others --ignored --exclude-standard 2>/dev/null \
+          | grep -Ei '\.(mp4|mov|webm|wav|mp3|m4a|png|jpe?g)$' \
+          | grep -v '/node_modules/' | head -1)
+  [ -z "$media" ] || return 1
+  return 0
+}
+
+if [ $# -eq 0 ]; then
+  die "Usage: pp-work <claim|list|remove> ..."
+fi
+
+cmd="$1"
+shift
+
+case "$cmd" in
+  claim)
+    kind=""
+    slug=""
+    task=""
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --kind) kind="$2"; shift 2 ;;
+        --slug) slug="$2"; shift 2 ;;
+        --task) task="$2"; shift 2 ;;
+        *) die "unknown arg: $1" ;;
+      esac
+    done
+    [ -n "$kind" ] && [ -n "$slug" ] || die "usage: claim --kind <code|subject> --slug <slug> [--task <text>]"
+    [[ "$kind" == "code" || "$kind" == "subject" ]] || die "kind must be code or subject"
+
+    resolve
+
+    [[ "$slug" =~ ^[a-z0-9._/-]+$ ]] || die "invalid slug format"
+    [[ "$slug" == *..* ]] && die "slug cannot contain .."
+
+    wt_path="$WS_ROOT/$slug/$REPO_NAME"
+    if [[ "$wt_path" == "$MAIN/"* || "$wt_path" == "$MAIN" ]]; then
+      die "refusing to create workspace under main checkout"
+    fi
+    if [[ "$wt_path" == "$WT_POOL/"* || "$wt_path" == "$WT_POOL" ]]; then
+      die "refusing to create workspace under WT_POOL"
+    fi
+    if [[ "$wt_path" == "$LANDING/"* || "$wt_path" == "$LANDING" ]]; then
+      die "refusing to create workspace under LANDING"
+    fi
+
+    if [ -d "$wt_path" ]; then
+      echo "$wt_path"
+      exit 0
+    fi
+
+    avail_kb=$(df -k "$HOME" | awk 'NR==2 {print $4}')
+    if [ "$avail_kb" -lt 10485760 ]; then
+      echo "pp-work: WARNING: Under 10 GiB available on \$HOME. See pp-work list." >&2
+    fi
+
+    if [ "$kind" = "subject" ]; then
+      branch="subject/$slug"
+    else
+      branch="work/$slug"
+    fi
+
+    mkdir -p "$WS_ROOT/$slug"
+
+    if git -C "$MAIN" show-ref --verify --quiet "refs/heads/$branch"; then
+      if ! git -C "$MAIN" worktree add "$wt_path" "$branch" >&2; then
+        holding=$(git -C "$MAIN" worktree list --porcelain | grep -B2 "branch refs/heads/$branch" | awk '/^worktree/ {print $2}')
+        die "branch $branch is checked out elsewhere: $holding. Read-only inspection is available there."
+      fi
+    else
+      if ! git -C "$MAIN" worktree add "$wt_path" -b "$branch" >&2; then
+        holding=$(git -C "$MAIN" worktree list --porcelain | grep -B2 "branch refs/heads/$branch" | awk '/^worktree/ {print $2}' || echo "unknown")
+        die "branch $branch is checked out elsewhere: $holding. Read-only inspection is available there."
+      fi
+    fi
+
+    if [ -f "$MAIN/tooling/cli/wt/bootstrap.d/$REPO_NAME.sh" ]; then
+      ( cd "$wt_path" && WT_MAIN_CHECKOUT="$MAIN" bash "$MAIN/tooling/cli/wt/bootstrap.d/$REPO_NAME.sh" ) || true
+    fi
+
+    cat > "$WS_ROOT/$slug/manifest" <<EOF
+kind=$kind
+slug=$slug
+branch=$branch
+session=${CLAUDE_SESSION_ID:-unknown}
+pid=$$
+task=$task
+created=$(date +%s)
+touched=$(date +%s)
+main=$MAIN
+EOF
+
+    if [ -d "$MAIN/tooling/boss/state/lands" ]; then
+      blocked_count=$(find "$MAIN/tooling/boss/state/lands" -maxdepth 1 -name "*.blocked" 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$blocked_count" -gt 0 ]; then
+        echo "pp-work: ${blocked_count} blocked land(s) waiting — see pp-work list" >&2
+      fi
+    fi
+
+    echo "$wt_path"
+    ;;
+
+  list)
+    resolve
+
+    echo "--- Workspaces ---"
+    if [ -d "$WS_ROOT" ]; then
+      for slug_dir in "$WS_ROOT"/*; do
+        [ -d "$slug_dir" ] || continue
+        slug=$(basename "$slug_dir")
+        wt_path="$slug_dir/$REPO_NAME"
+        if [ ! -d "$wt_path" ]; then
+          continue
+        fi
+
+        kind="unknown"
+        if [ -f "$slug_dir/manifest" ]; then
+          kind=$(grep "^kind=" "$slug_dir/manifest" | cut -d= -f2 || echo "unknown")
+          touched=$(grep "^touched=" "$slug_dir/manifest" | cut -d= -f2 || date +%s)
+        else
+          touched=$(stat -f %m "$slug_dir" 2>/dev/null || stat -c %Y "$slug_dir" 2>/dev/null || date +%s)
+        fi
+
+        now=$(date +%s)
+        age_sec=$((now - touched))
+        age_days=$((age_sec / 86400))
+
+        branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+        ahead=$(git -C "$wt_path" rev-list --count origin/main..HEAD 2>/dev/null || echo "0")
+        uncommitted=$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null | wc -l | tr -d ' ')
+
+        media="no"
+        media_found=$(git -C "$wt_path" ls-files --others --ignored --exclude-standard 2>/dev/null \
+          | grep -Ei '\.(mp4|mov|webm|wav|mp3|m4a|png|jpe?g)$' \
+          | grep -v '/node_modules/' | head -1)
+        [ -n "$media_found" ] && media="yes"
+
+        size=$(du -sh "$slug_dir" 2>/dev/null | awk '{print $1}')
+
+        echo "$slug | kind:$kind | branch:$branch | age:${age_days}d | ahead:$ahead | uncommitted:$uncommitted | media:$media | size:$size"
+        echo "  cd $wt_path"
+      done
+    fi
+
+    if [ -d "$LANDING" ]; then
+      landing_size=$(du -sh "$LANDING" 2>/dev/null | awk '{print $1}')
+      echo "--- Landing ---"
+      echo "Size: $landing_size"
+    fi
+
+    echo "--- WT Pool ---"
+    if [ -x "$MAIN/tooling/cli/wt/wt" ]; then
+      "$MAIN/tooling/cli/wt/wt" status --repo "$MAIN"
+    elif command -v wt >/dev/null 2>&1; then
+      wt status --repo "$MAIN"
+    fi
+
+    sz_ws=$( [ -d "$WS_ROOT" ] && du -sk "$WS_ROOT" 2>/dev/null | awk '{print $1}' || echo 0 )
+    sz_pool=$( [ -d "$WT_POOL" ] && du -sk "$WT_POOL" 2>/dev/null | awk '{print $1}' || echo 0 )
+    sz_land=$( [ -d "$LANDING" ] && du -sk "$LANDING" 2>/dev/null | awk '{print $1}' || echo 0 )
+    total_kb=$((sz_ws + sz_pool + sz_land))
+    total_mb=$((total_kb / 1024))
+
+    avail_kb=$(df -k "$HOME" | awk 'NR==2 {print $4}')
+    avail_gb=$((avail_kb / 1024 / 1024))
+
+    echo "--- Summary ---"
+    echo "Total size: ${total_mb} MB | Available disk: ${avail_gb} GB"
+
+    if [ -d "$MAIN/tooling/boss/state/lands" ]; then
+      blocked=$(ls -1 "$MAIN/tooling/boss/state/lands"/*.blocked 2>/dev/null || true)
+      if [ -n "$blocked" ]; then
+        echo "--- Blocked Lands ---"
+        echo "$blocked"
+      fi
+    fi
+    ;;
+
+  remove)
+    [ $# -ge 1 ] || die "usage: remove <path>"
+    wt="$1"
+    resolve "$wt"
+
+    if ! ws_is_clean "$wt"; then
+      die "PPWORK-DIRTY refusing to remove $wt — it holds uncommitted work or generated media.
+  Inspect it with: pp-work list
+  There is no TTL and no automatic reclaim; this workspace stays until you deal with it."
+    fi
+    branch=$(git -C "$wt" rev-parse --abbrev-ref HEAD)
+    git -C "$MAIN" merge-base --is-ancestor "$branch" origin/main 2>/dev/null \
+      || die "PPWORK-UNMERGED refusing to remove $wt — branch '$branch' is not merged into origin/main."
+    
+    git -C "$MAIN" worktree remove "$wt"
+    
+    parent_dir=$(dirname "$wt")
+    if [ -d "$parent_dir" ]; then
+      rm -rf "$parent_dir"
+    fi
+    ;;
+
+  *)
+    die "unknown command: $cmd"
+    ;;
+esac
