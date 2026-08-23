@@ -74,12 +74,21 @@ function BeatRows({ beat, doc, beatLabels }: { beat: Beat; doc: VideoDoc; beatLa
   const hasVerdict = Boolean(beat.verdict && beat.verdict.trim().length > 0)
   const isUnwritten = paragraphs.length === 0 && !hasVerdict
   const label = beatLabels ? beat.num : ''
+  const title = beatLabels ? (beat.title ?? '').trim() : ''
+  const inProse = [label, title].filter(Boolean).join(' · ')
 
   return (
     <>
-      <div className="mk">{LABELS_LIVE_IN_THE_MARGIN ? label : ''}</div>
+      <div className="mk">
+        {LABELS_LIVE_IN_THE_MARGIN && label ? (
+          <>
+            <span className="mk-num">{label}</span>
+            {title ? <span className="mk-title">{title}</span> : null}
+          </>
+        ) : null}
+      </div>
       <div className="bd">
-        {!LABELS_LIVE_IN_THE_MARGIN && label && <span className="mk-in-prose">{label} </span>}
+        {!LABELS_LIVE_IN_THE_MARGIN && inProse && <span className="mk-in-prose">{inProse} </span>}
         {isUnwritten ? (
           <p className="not-written">Not written yet.</p>
         ) : (
