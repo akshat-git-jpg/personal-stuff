@@ -37,10 +37,9 @@ A hook rewrites shell commands through `rtk` transparently (60–90% token savin
 | Google Drive | `pp-drive --account <email>` or `google-drive` MCP | idempotent find-or-create; `--overwrite` to replace |
 | Hostinger VPS/DNS/snapshots via API | `hostinger` skill → `pp-hostinger` | |
 | Cloudflare D1/KV/DNS ad hoc | `cloudflare` MCP tools | Python pipelines use `common/cloudflare.py` instead |
-| Push notification to phone | `tooling/cli/notify/` — Telegram-first, ntfy as fallback (used by greenlight/overnight) | `pp-ntfy send\|alarm\|test` still works standalone: exit 0 ack, 3 timeout, 2 config/HTTP; topic name IS the secret; server is plain HTTP |
+| Push notification to phone | `tooling/cli/notify/` — Telegram-first, ntfy as fallback (used by greenlight) | `pp-ntfy send\|alarm\|test` still works standalone: exit 0 ack, 3 timeout, 2 config/HTTP; topic name IS the secret; server is plain HTTP |
 | Isolated worktree for an agent run | `tooling/cli/wt/` (pool manager) | managed runs only — owner sessions, deploys, skill edits stay on the main checkout |
 | Land a finished branch hands-free | `tooling/cli/greenlight/` | validation pipeline used by boss; parks merges if main is dirty |
-| Capped autonomous improvement loop | `tooling/cli/overnight/` | one verifiable change per iteration; see its README for the contract |
 | RapidAPI market research | `tooling/cli/rapidapi/pp-rapidapi search\|gaps\|competition` | unofficial, research only |
 | Email routing for a new domain | `node tooling/cli/cf-email/setup-routing.mjs <domain>` | scoped token can't enable routing (error 10000) — one manual dashboard click, or global key |
 | HeyGen avatar generation (web session) | `node tooling/cli/heygen-web/heygen-web.mjs` | ToS-risky; cookies rotate — see HANDOVER.md; usage ledger `infra/secrets/heygen-usage-last.json` |
@@ -68,7 +67,7 @@ A hook rewrites shell commands through `rtk` transparently (60–90% token savin
 
 ## Provenance and maintenance
 
-Router verified against `tooling/cli/*`, `scripts/*`, skill manifests, and owner-session records on 2026-07-05; re-verified 2026-07-12 (added notify/wt/greenlight/overnight rows from `ls tooling/cli/`; skills-status 43 skills 0 problems; doctor.sh still wraps skills-status + check-apps + opt-in probe-sites; shipped `scripts/check-descriptions.sh`). Re-verify:
+Router verified against `tooling/cli/*`, `scripts/*`, skill manifests, and owner-session records on 2026-07-05; re-verified 2026-07-12 (added notify/wt/greenlight rows from `ls tooling/cli/`; the overnight row was dropped 2026-08-23 when the tool was deleted; skills-status 43 skills 0 problems; doctor.sh still wraps skills-status + check-apps + opt-in probe-sites; shipped `scripts/check-descriptions.sh`). Re-verify:
 - CLI inventory: `ls tooling/cli/`
 - Skill inventory: `./scripts/skills-status.sh`
 - doctor.sh still matches the scripts it wraps: read both before trusting after script changes

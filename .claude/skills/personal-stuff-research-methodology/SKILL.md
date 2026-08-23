@@ -70,7 +70,7 @@ The evidence bar for any statement that leaves a session — in docs, skills, `d
 | hyperframes-vs-remotion | Which HTML→video approach for this repo? | Side-by-side experiment builds | HyperFrames path became the live tool (`video/card-library/`); experiment archived with a "don't build new work here" pointer | `pipelines/archive/hyperframes-vs-remotion/` |
 | Devsplainers PoC | Can thin-kit + Antigravity produce graphics at quality? | PoC scored on four quality axes | Failed all four → "keep Antigravity out of the graphics path"; later explicitly overridden for one step with mitigation (plan 047, above) | decisions.md 2026-07-05 + 2026-07-07 |
 | yt-dlp 429s | Why is YouTube blocking transcript fetches? | Root-cause hunt until one mechanism explained every observation | Self-update pre-flight + PO-token plugin; proxy named as agreed next escalation | decisions.md 2026-07-06 |
-| kunchenguid stack | Adopt his agentic-workflow binaries? | Studied the working tools **in source** | **Adapt, don't adopt** — native `wt`/`greenlight`/`overnight`/`captain` builds (captain since deleted, 2026-08-23); exactly one external piece adopted (lavish-axi transport for `/plan-review`) | plans/README.md 033–038 batch note, decisions.md 2026-07-06 |
+| kunchenguid stack | Adopt his agentic-workflow binaries? | Studied the working tools **in source** | **Adapt, don't adopt** — native `wt`/`greenlight`/`overnight`/`captain` builds (overnight and captain since deleted, 2026-08-23); exactly one external piece adopted (lavish-axi transport for `/plan-review`) | plans/README.md 033–038 batch note, decisions.md 2026-07-06 |
 
 ## Where good ideas came from here
 
