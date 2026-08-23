@@ -658,5 +658,32 @@ echo "$l6_out" | grep -q 'CAPPED' || fail "(L6) a 6th transient retry was not ca
 land_reset
 echo "PASS: the transient bound holds"
 
+echo "--- (D1) boss_dep_prelude installs deps for the dirs a command cd's into ---"
+# The verify and the mutation gate run in a POOL slot, not the crew's worktree, and
+# node_modules is per-slot — PR#197 (2026-08-23) read that as a broken mutation
+# recipe for two merge cycles. Presence is tested against the BRANCH so a plan that
+# creates a new app still works. HEAD stands in for the branch here.
+dep_repo=$(mktemp -d); git -C "$dep_repo" init -q
+mkdir -p "$dep_repo/apps/thing" "$dep_repo/tooling/plain"
+echo '{}' > "$dep_repo/apps/thing/package.json"
+echo 'x' > "$dep_repo/tooling/plain/notes.txt"
+git -C "$dep_repo" add -A >/dev/null
+git -C "$dep_repo" -c user.email=t@t -c user.name=t commit -qm init
+( source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+  REPO_ROOT="$dep_repo"
+  out=$(boss_dep_prelude 'cd apps/thing && npm run typecheck && npm test' HEAD)
+  echo "$out" | grep -q 'cd apps/thing && npm install' \
+    || fail "(D1) no install step for a dir that HAS a package.json: [$out]"
+  out=$(boss_dep_prelude 'cd tooling/plain && ./check.sh' HEAD)
+  [ -z "$out" ] || fail "(D1) invented an install step for a dir with NO package.json: [$out]"
+  out=$(boss_dep_prelude 'npm test' HEAD)
+  [ -z "$out" ] || fail "(D1) invented an install step for a command with no cd: [$out]"
+  out=$(boss_dep_prelude 'cd apps/thing && npm test && cd apps/thing && npm run shot' HEAD)
+  [ "$(echo "$out" | grep -c 'npm install')" -eq 1 ] \
+    || fail "(D1) did not de-duplicate a dir named twice: [$out]"
+) || exit 1
+rm -rf "$dep_repo"
+echo "PASS: boss_dep_prelude targets exactly the dirs that need installing"
+
 echo ""
 echo "ALL TESTS PASSED"

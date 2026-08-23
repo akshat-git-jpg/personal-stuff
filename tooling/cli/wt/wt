@@ -28,7 +28,9 @@ function usage() {
   echo "Usage: wt <command> [options]" >&2
   echo "Commands:" >&2
   echo "  get    [--repo <path>] [--holder <label>]" >&2
-  echo "  return <worktree-path> [--force-dirty]" >&2
+  echo "  return <worktree-path> [--force-dirty] [--holder <label>]
+         --holder makes the return REFUSE if the lease names a different holder
+         (a stale path must never clobber a slot someone else now owns)." >&2
   echo "  status [--repo <path>]" >&2
   echo "  prune  [--repo <path>] [--yes]" >&2
   echo "  reap   [--repo <path>] [--ttl-hours <n>] [--yes] [--force-dirty]" >&2
@@ -50,6 +52,7 @@ REPO="."
 HOLDER="unknown"
 PRUNE_YES=0
 TARGET_WT=""
+RETURN_HOLDER=""
 TTL_HOURS="$DEFAULT_TTL_HOURS"
 FORCE_DIRTY=0
 
@@ -71,6 +74,7 @@ case "$CMD" in
     while [[ $# -gt 0 ]]; do
       case "$1" in
         --force-dirty) FORCE_DIRTY=1; shift ;;
+        --holder) RETURN_HOLDER="$2"; shift 2 ;;
         -*) usage ;;
         *) [ -n "$TARGET_WT" ] && usage; TARGET_WT="$1"; shift ;;
       esac
@@ -319,7 +323,25 @@ case "$CMD" in
     n_dir=$(dirname "$wt_path")
     i=$(basename "$n_dir")
     lease_file="$POOL/$i.lease"
-    
+
+    # Custody check. `wt return <path>` freed AND hard-reset a slot no matter who
+    # held the lease, so a caller holding a STALE path clobbered a slot that had
+    # since been re-leased to someone else. On 2026-08-23 boss-merge for PR#195
+    # returned slot 1 from PR#195's old meta; slot 1 was by then leased to PR#197,
+    # whose agy crew was still working in it — the lease was deleted and the
+    # worktree detached under a live crew. The dirty guard below capped the damage
+    # at a stolen slot that day, but the next step is two crews in one directory.
+    # A caller that knows its holder passes it and is refused when the lease
+    # names someone else. Callers that pass nothing keep the old behaviour.
+    if [ -n "$RETURN_HOLDER" ] && [ -f "$lease_file" ]; then
+      cur_holder=$(grep "^holder=" "$lease_file" | cut -d= -f2)
+      if [ "$cur_holder" != "$RETURN_HOLDER" ]; then
+        echo "ERROR: slot $i is leased to '$cur_holder', not '$RETURN_HOLDER' — NOT returned" >&2
+        echo "  The path you passed is stale; that slot belongs to someone else now." >&2
+        exit 3
+      fi
+    fi
+
     lock_pool
     rm -f "$lease_file"
     reset_worktree "$wt_path"

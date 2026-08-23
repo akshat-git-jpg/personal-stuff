@@ -121,7 +121,7 @@ git -C "$wt" fetch -q origin "$branch" main
 if ! git -C "$wt" checkout -B "$branch" "origin/$branch"; then
   gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:ready 2>/dev/null || true
   boss_notify "boss:dispatch-abort PR#$pr — cannot checkout $branch (held by another worktree?); left boss:ready"
-  wt return "$wt"
+  wt return "$wt" --holder "boss-$pr"
   echo "PR#$pr dispatch ABORTED — could not checkout $branch in $wt (branch held by another worktree?)." >&2
   echo "  Free the stale worktree (git -C <wt> checkout --detach; wt return <wt>), then re-dispatch." >&2
   exit 2
@@ -129,7 +129,7 @@ fi
 if ! git -C "$wt" merge --no-edit origin/main; then
   gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:blocked
   boss_notify "boss:blocked PR#$pr — stale, main-merge conflict"
-  wt return "$wt"; echo "PR#$pr blocked (stale)"; exit 2
+  wt return "$wt" --holder "boss-$pr"; echo "PR#$pr blocked (stale)"; exit 2
 fi
 
 # Registry is boss-owned on main. Force the branch's plans/README.md to match

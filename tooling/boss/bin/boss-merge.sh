@@ -11,8 +11,13 @@ test_cmd=$(meta_get "$pr" test_cmd); wt=$(meta_get "$pr" worktree)
 # worktree and checks out $branch) would park with a checkout error while the
 # crew's dispatch worktree still holds it. The crew's commits live on the branch
 # ref, which survives the worktree return, so this is lossless.
+# --holder is load-bearing, not decoration. This path frees a worktree by a path
+# read out of THIS PR's meta, and that meta can be stale: on 2026-08-23 PR#195's
+# merge returned slot 1, which had since been re-leased to PR#197 whose crew was
+# still working in it. With --holder, wt refuses when the lease names someone
+# else, so a stale path can no longer clobber a live crew's slot.
 if [ -n "$wt" ] && [ -d "$wt" ]; then
-  wt return "$wt" 2>/dev/null || true
+  wt return "$wt" --holder "boss-$pr" 2>/dev/null || true
 fi
 # ...and free ANY other worktree still holding the branch. Returning only the
 # dispatch worktree was not enough: three merges in the 2026-08-02 batch parked on
@@ -70,7 +75,7 @@ if [ -f "$plan_file" ] && [ -n "$(fm_get mutation_apply "$plan_file" 2>/dev/null
   if [ -n "$mwt" ] && git -C "$mwt" checkout -q --detach "$branch" 2>/dev/null; then
     echo "PR#$pr: running mutation gate…"
     mut=$(boss_mutation_gate "$branch" "$plan_file" "$mwt")
-    wt return "$mwt" 2>/dev/null || true
+    wt return "$mwt" --holder "boss-mut-$pr" 2>/dev/null || true
     if [ -n "$mut" ]; then
       gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:blocked
       boss_notify "boss:blocked PR#$pr — $(printf '%s' "$mut" | head -1)"
@@ -79,7 +84,7 @@ if [ -f "$plan_file" ] && [ -n "$(fm_get mutation_apply "$plan_file" 2>/dev/null
     fi
     echo "PR#$pr: mutation gate PROVEN (gate fires under its own mutation)"
   else
-    [ -n "$mwt" ] && wt return "$mwt" 2>/dev/null || true
+    [ -n "$mwt" ] && wt return "$mwt" --holder "boss-mut-$pr" 2>/dev/null || true
     echo "WARN: PR#$pr mutation gate skipped — could not lease/checkout a worktree" >&2
   fi
 fi
@@ -97,6 +102,10 @@ branch_slug=$(echo "$branch" | tr '/' '-' | tr -cd 'a-zA-Z0-9-')
 # SIGKILL 30s after SIGTERM in case the hung process ignores the term.
 ttl=$(meta_get "$pr" test_timeout); ttl="${ttl:-600}"
 tbin=$(boss_timeout_bin) || { echo "FATAL: no gtimeout/timeout on PATH — brew install coreutils" >&2; exit 1; }
+# greenlight leases its OWN pool slot, which may never have built this app —
+# prepend the install step derived from test_cmd's own `cd` targets so the verify
+# is runnable in any slot (boss_dep_prelude; PR#197, 2026-08-23).
+test_cmd="$(boss_dep_prelude "$test_cmd" "$branch")$test_cmd"
 verify="$tbin -k 30 ${ttl}s bash -c $(printf '%q' "$test_cmd")"
 # Serialize browser-driving work. Every visuals-flow/card-library test_cmd launches
 # headless Chrome; PR#134 lost a merge cycle to "Chrome dump-dom timeout on
@@ -129,7 +138,23 @@ if [ "$gl_state" != "landed" ]; then
     *)
       gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:blocked
       boss_notify "boss:blocked PR#$pr — greenlight parked (${gl_reason:-$gl_state})"
-      echo "PR#$pr parked by greenlight (${gl_reason:-$gl_state}) — see $gl_root/"; exit 2 ;;
+      echo "PR#$pr parked by greenlight (${gl_reason:-$gl_state}) — see $gl_root/"
+      # Name the real cause when the park is "cannot detach". greenlight reports
+      # the symptom (it cannot move HEAD) while the cause is usually that the
+      # VERIFY ITSELF rewrote tracked files — a test_cmd that regenerates a
+      # committed artifact, e.g. plan 237's `npm run shot` rewriting the two
+      # screenshots it had just committed (PR#198, 2026-08-23). Reading the raw
+      # message sends you hunting a git problem that does not exist.
+      case "${gl_reason:-}" in
+        *"cannot detach"*)
+          if [ -n "$wt" ] && [ -d "$wt" ] && [ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ]; then
+            echo "  CAUSE: the verify left the worktree DIRTY — test_cmd regenerates tracked file(s):" >&2
+            git -C "$wt" status --porcelain >&2
+            echo "  A test_cmd must leave the tree clean. Have it restore what it regenerates" >&2
+            echo "  (e.g. append: && git checkout -- <path>), then re-run the merge." >&2
+          fi ;;
+      esac
+      exit 2 ;;
   esac
 fi
 
@@ -173,6 +198,6 @@ meta_set "$pr" terminal done
 # landing comment — boss:done is the state, closed is the lifecycle.
 gh pr close "$pr" --comment "Landed on main via greenlight (merged directly; closing)." 2>/dev/null \
   || gh pr comment "$pr" --body "Landed on main via greenlight." 2>/dev/null || true
-[ -n "$wt" ] && wt return "$wt" 2>/dev/null || true
+[ -n "$wt" ] && wt return "$wt" --holder "boss-$pr" 2>/dev/null || true
 boss_notify "boss:merged PR#$pr ($slug) landed on main"
 echo "PR#$pr merged. If the plan has a deploy, run: tooling/boss/bin/boss-deploy.sh $pr --yes"
