@@ -1,5 +1,5 @@
 export { ComboSelect } from "./CardDetailUtils";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, ChevronDown } from "lucide-react";
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
@@ -16,6 +16,7 @@ import { inputCls, labelCls, EtaBadge, ComboSelect, ASSIGNEE_COLS, MULTILINE_COL
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LinkStudio } from "./LinkStudio";
 interface CardDetailProps {
   row: BoardRow;
   columns: Column[];
@@ -80,6 +81,9 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
   const [noteTexts, setNoteTexts] = useState<Record<string, string>>({});
   const [actingId, setActingId] = useState<string | null>(null);
   const [showActivity, setShowActivity] = useState(false);
+  // The link generator lives back on the card (it belongs to ONE video), but
+  // folded: the panel's job is the stage work, and the generator is a sub-app.
+  const [showLinks, setShowLinks] = useState(false);
   const [events, setEvents] = useState<CardEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventsLoaded, setEventsLoaded] = useState(false);
@@ -295,6 +299,17 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
           ))} </div>
     ); }
 
+  // Links are only mintable once the video has cleared its way to Upload — before
+  // that there is nothing to describe. Admin-only: the catalog endpoint is too.
+  const uploadStage = pipeline.stages.find((s) => s.id === "upload");
+  const linksReady = isAdmin && !readOnly && !!row.row_id && !!uploadStage
+    && isGateOpen(pipeline, uploadStage, row as Record<string, unknown>);
+  const initialToolsStr = ((row as Record<string, unknown>).video_tools as string) || "[]";
+  const initialTools = useMemo(() => {
+    try { return JSON.parse(initialToolsStr) as unknown[]; } catch { return []; }
+  }, [initialToolsStr]);
+  const toolCount = initialTools.length;
+
   const feedbackBanners = pipeline.stages
     .filter((s) => (showAll || s.id === contextStage.id) && isReviewable(s) && feedbackColOf(s) && colSet.has(feedbackColOf(s)!) && statusOf(s, row) !== "Done")
     .map((s) => ({ stage: s, text: ((row[feedbackColOf(s)! as Column] as string) ?? "").trim() }))
@@ -335,12 +350,18 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
                 <div className="break-words text-red-700 dark:text-red-300">{text}</div> </div> </div>
           ))} {isAdmin && !readOnly && onApplyDefaults && ( <Button type="button" variant="ghost" size="sm" className="h-8 text-muted-foreground hover:text-foreground" title="Fills blank assignees and reviewers from this card's category × subcategory." onClick={onApplyDefaults}>
               <RotateCcw className="size-3.5" /> Apply assignment defaults </Button>
-          )} {isAdmin && !readOnly && <div className="text-sm text-muted-foreground italic mt-6">Affiliate links and the YouTube description live in the Links tab.</div>} {} <div className="space-y-5">
+          )}  {} <div className="space-y-5">
             {sectionsToShow.map((sec) => ( <div key={sec.id} className="space-y-3"> <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sec.label}</div> <div className="space-y-3">{sec.cols.map((c) => renderField(c as Column))}</div>
                 {} {sec.id !== contextStage.id && renderStageActions(sec.id)} </div>
             ))} </div> {isAdmin && ( <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => setShowAll((v) => !v)}> {showAll ? "Show only this stage's fields" : "Show all fields"}
             </button>
-          )} <div className="border-t border-border pt-4"> <button type="button" className="flex items-center gap-1.5 text-sm font-semibold text-foreground" onClick={() => setShowActivity(!showActivity)}>
+          )} {linksReady && ( <div className="mt-6 border-t border-border pt-4"> <button type="button" data-testid="card-links-toggle" className="flex items-center gap-1.5 text-sm font-semibold text-foreground" onClick={() => setShowLinks((v) => !v)}>
+              Affiliate links &amp; description <ChevronDown className={cn("size-4 transition-transform", showLinks && "rotate-180")} /> </button>
+            {!showLinks && <div className="mt-1 text-xs text-muted-foreground">{toolCount > 0 ? `${toolCount} tool${toolCount === 1 ? "" : "s"} picked` : "Pick the tools this video mentions, then mint the links."}</div>}
+            {showLinks && ( <div className="mt-4" data-testid="card-link-studio">
+                <LinkStudio rowId={row.row_id!} videoTitle={row.video_title || row.row_id!} initialTools={initialTools} onSaved={onSaved} /> </div>
+            )} </div>
+        )} <div className="border-t border-border pt-4"> <button type="button" className="flex items-center gap-1.5 text-sm font-semibold text-foreground" onClick={() => setShowActivity(!showActivity)}>
               Activity <ChevronDown className={cn("size-4 transition-transform", showActivity && "rotate-180")} /> </button> {showActivity && ( <div className="mt-4 space-y-4" data-testid="activity-feed">
                 {eventsLoading && <div className="text-xs text-muted-foreground">Loading...</div>} {!eventsLoading && events.length === 0 && eventsError && ( <div className="flex items-center gap-2 text-xs text-destructive">
                     Couldn't load activity <Button type="button" variant="outline" size="sm" className="h-6 px-2 text-[10px]" onClick={() => setEventsLoaded(false)}>
