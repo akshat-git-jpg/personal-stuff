@@ -1,0 +1,16 @@
+{
+  "number": "060",
+  "slug": "060-review-local-desk-human",
+  "title": "review the local desk",
+  "actor": "human",
+  "actorLabel": "[OWNER]",
+  "oneLiner": "You open it on your machine and give feedback.",
+  "consumes": [
+    "script-plan.md"
+  ],
+  "produces": [],
+  "gate": "the script plan reads right in the actual UI",
+  "external": false,
+  "optional": false,
+  "summary": "The owner runs the desk locally against `script-plan.md` on disk and reviews the real UI before anything is published. Added 2026-08-23: until then step 2 published the live freelancer URL BEFORE any owner review, so approval came after the link already existed."
+}

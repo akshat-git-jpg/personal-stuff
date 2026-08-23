@@ -6,9 +6,9 @@
 //   node bin/desk.mjs pull    <key> [--base ...]
 //   node bin/desk.mjs pull    --fixture <file.json> --out <file.md>   # offline, for tests
 //
-// The direction of truth: outline.md in git is upstream, D1 is a copy,
+// The direction of truth: script-plan.md in git is upstream, D1 is a copy,
 // script-draft.md is the record that comes back. `publish` reads the local
-// outline, mints/reuses a link and pushes a snapshot. `pull` brings the
+// script plan, mints/reuses a link and pushes a snapshot. `pull` brings the
 // maker's answers back down and writes videos/<key>/script-draft.md in the
 // exact markdown shape step 3 of the yt-script skill reads.
 
@@ -29,8 +29,8 @@ function isSafeKey(key) {
   return typeof key === 'string' && key.length > 0 && KEY_RE.test(key) && !key.includes('..')
 }
 
-function outlinePath(key) {
-  return join(VIDEOS_ROOT, key, 'outline.md')
+function planPath(key) {
+  return join(VIDEOS_ROOT, key, 'script-plan.md')
 }
 
 function draftOutPath(key) {
@@ -121,12 +121,12 @@ async function cmdPublish(key, base) {
     console.error(`desk.mjs: invalid key ${JSON.stringify(key)}`)
     process.exit(1)
   }
-  const outlineFile = outlinePath(key)
-  if (!existsSync(outlineFile)) {
-    console.error(`desk.mjs: no outline at ${outlineFile}`)
+  const planFile = planPath(key)
+  if (!existsSync(planFile)) {
+    console.error(`desk.mjs: no script plan at ${planFile}`)
     process.exit(1)
   }
-  const { title, beats } = buildBeats(readFileSync(outlineFile, 'utf8'))
+  const { title, beats } = buildBeats(readFileSync(planFile, 'utf8'))
   const res = await fetch(`${base}/api/admin/publish`, {
     method: 'POST',
     headers: adminHeaders(),
@@ -149,14 +149,14 @@ async function cmdPull(key, { base, fixturePath, outPath, force }) {
       console.error(`desk.mjs: invalid key ${JSON.stringify(key)}`)
       process.exit(1)
     }
-    const outlineFile = outlinePath(key)
-    if (!existsSync(outlineFile)) {
-      console.error(`desk.mjs: no outline at ${outlineFile}`)
+    const planFile = planPath(key)
+    if (!existsSync(planFile)) {
+      console.error(`desk.mjs: no script plan at ${planFile}`)
       process.exit(1)
     }
-    // Beat order and titles come from the local outline, not from the D1
+    // Beat order and titles come from the local script plan, not from the D1
     // snapshot — the file is upstream, D1 is a copy.
-    const { title, beats } = buildBeats(readFileSync(outlineFile, 'utf8'))
+    const { title, beats } = buildBeats(readFileSync(planFile, 'utf8'))
     const res = await fetch(`${base}/api/admin/pull?key=${encodeURIComponent(key)}`, { headers: adminHeaders() })
     const pulled = await readJsonOrThrow(res, 'GET /api/admin/pull')
     merged = {

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// One structured beat model for an outline.md, shared by the script desk UI.
+// One structured beat model for a script-plan.md, shared by the script desk UI.
 //
 // This does NOT own a parser. It lifts a typed model on top of the block parser
 // already inside render-worksheet.mjs, so the worksheet and the desk can never
 // disagree about what a beat is.
 //
 //   import { buildBeats } from './lib/beats.mjs'
-//   node lib/beats.mjs <key>            # prints JSON for videos/<key>/outline.md
+//   node lib/beats.mjs <key>            # prints JSON for videos/<key>/script-plan.md
 //
 // The load-bearing rule (decisions.md 2026-08-18): a BODY beat's SAY lane is a
 // short DRAFT PROMPT, not finished copy. It must never reach the maker as
@@ -31,7 +31,7 @@ const BODY_DRAFTS_ARE_INSTRUCTIONS = true
 const BEAT_RE = /^([0-9A-Za-z][0-9A-Za-z.]*)\s*·\s*(.*)$/
 
 // A pre-spec outline uses `### 1. Cold Open` for a beat and `**Voiceover**` /
-// `**Notes**` for its lanes. OUTLINE-INSTRUCTIONS.md settled on `#### 1 · Cold
+// `**Notes**` for its lanes. SCRIPT-PLAN-INSTRUCTIONS.md settled on `#### 1 · Cold
 // Open` with `**SAY**` / `**SHOW**` / `**EDIT**`, and the block parser only
 // knows that spelling. Fed a legacy file it does not fail — it quietly returns
 // whichever stray `####` headings happen to exist, so the desk renders a short,
@@ -58,7 +58,7 @@ function legacyCounts(md) {
 
 function refuse(found, parsed) {
   throw new LegacyOutlineError(
-    `LEGACY_OUTLINE_FORMAT: this outline predates OUTLINE-INSTRUCTIONS.md — ` +
+    `LEGACY_OUTLINE_FORMAT: this outline predates SCRIPT-PLAN-INSTRUCTIONS.md — ` +
       `found ${found.beats} legacy "### N. Title" beats and ${found.lanes} ` +
       `"**Voiceover**"/"**Notes**" lanes, but parsed ${parsed} beats. ` +
       `Rewrite it as "#### N · Title" with **SAY** / **SHOW** / **EDIT** lanes, ` +
@@ -196,12 +196,12 @@ export function buildBeats(md) {
 function main(argv) {
   const arg = argv[0]
   if (!arg) {
-    console.error('usage: node lib/beats.mjs <key|path/to/outline.md>')
+    console.error('usage: node lib/beats.mjs <key|path/to/script-plan.md>')
     process.exit(1)
   }
   const inPath = arg.endsWith('.md')
     ? resolve(arg)
-    : join(HERE, '..', 'videos', arg, 'outline.md')
+    : join(HERE, '..', 'videos', arg, 'script-plan.md')
   if (!existsSync(inPath)) {
     console.error(`no outline at ${inPath}`)
     process.exit(1)

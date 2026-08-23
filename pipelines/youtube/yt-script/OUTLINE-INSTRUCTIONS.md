@@ -1,163 +1,102 @@
 # Outline instructions
 
-The outline is a **read-only recording reference for a remote tutorial maker**.
-He reads the intro and conclusion aloud as written, walks the body beat by beat
-recording his screen, and freestyles the demo. He does not edit this file — he
-copies the body into his own doc to draft script.
-
-He receives a **PDF**. The markdown here is the source; `render-outline.mjs`
-turns it into the styled HTML and PDF he actually opens.
+The outline is **one page that says what the video is and what order it happens
+in**. Nothing else. It exists so the owner can approve the video's *direction*
+before anyone writes a word of script.
 
 ```
-outline.md  →  node render-outline.mjs <slug>  →  outline.html + outline.pdf
+knowledge.md  ->  outline.md  ->  script-plan.md  ->  the script desk
+                  (this file)     (the beat doc)      (what the maker opens)
 ```
 
-Two halves, two standards:
+## Why this file exists
 
-- **Intro and conclusion — finished verbatim copy.** Nothing left to decide.
-- **Body — lane blocks.** Every beat carries the same lanes in the same order,
-  so his eye learns one position and never asks "is this something I say?"
+Until 2026-08-23 the first thing written after `knowledge.md` was the beat-level
+document — verbatim intro copy, 25+ beats, lanes, verdicts, tables — and it was
+called `outline.md`. Approving the direction therefore meant reading a finished
+draft script. If the section order was wrong, or a section should not have
+existed, all of it was rewritten.
 
----
+This file is the cheap gate. A wrong running order costs one page here and a
+whole document there.
 
-## The markdown is parsed, not just rendered
+## Shape
 
-`render-outline.mjs` is a parser. It recognises the exact forms below. Anything
-it does not recognise falls through to plain prose — **silently**, with no
-error and no lane. Getting a form wrong does not fail the build; it produces a
-worse outline that still looks fine at a glance.
+Markdown, **one screen**. Three parts, always in this order.
 
-Every form is valid markdown, so the raw file still previews acceptably
-anywhere.
+```markdown
+# <the video's working title>
 
-| Write this | Get this |
-|---|---|
-| `# Title` | Document title |
-| `## 1 · INTRODUCTION` | A numbered part |
-| `### SECTION: Live Demo` | A section inside the body (`SECTION:` is stripped) |
-| `#### 2.3 · HeyGen` | A beat |
-| `**SAY**` alone on a line, then a `>` blockquote | Amber chip, serif text, amber rail |
-| `**SHOW**` alone on a line, then plain lines | Teal chip, sans text, teal rail |
-| `**EDIT**` alone on a line, then plain lines | Rose chip, sans text, rose rail |
-| `**FACTS**` alone on a line, then plain lines | Slate chip, sans text — numbers for this beat |
-| `**SAY** — lip-sync` | Same, with a small caption under the chip |
-| `> **RULES — WHOLE SECTION**` then `> - item` lines | Red rules box |
-| `> **VERDICT:** ...` | Slate verdict block |
-| A pipe table | A real scrollable table |
+## Intro
+- hook: <one line — what makes someone stay past 5 seconds>
+- credibility: <one line — what you actually did>
+- roadmap: names the body sections below, in order
 
-**The lane label must sit alone on its own line.** `SAY: "..."` on one line is
-not recognised. Blank lines between the label and its content are fine.
+## Body
+1. <Section name> — <one line on what it covers>
+2. <Section name> — <one line>
+3. <Section name> — <one line>
 
-**Spoken copy goes in a blockquote; instructions do not.** That indent is the
-only signal telling him what to read aloud. Quoting a SHOW or EDIT line breaks
-the one rule the whole document rests on.
-
-For multi-paragraph spoken copy, keep every line inside the blockquote and
-separate paragraphs with a bare `>`.
-
----
-
-## The FACTS lane
-
-A beat may carry a `**FACTS**` lane: the numbers, prices, limits and product
-names that beat depends on, lifted from `knowledge.md`. Plain lines, never a
-blockquote — it is not spoken.
-
-```
-**FACTS**
-Higgsfield Soul ID trains once, about 5 minutes.
-Midjourney needs the reference URL pasted into every prompt.
+## Conclusion
+- <one line — what the verdict is organised by>
 ```
 
-It exists so the script desk can put a beat's numbers beside that beat instead
-of making the maker hunt through the whole knowledge file. It is optional: an
-outline with no FACTS lanes parses fine and the desk simply shows no facts.
+A real one:
 
-**FACTS is never spoken copy.** Putting it in a blockquote makes the parser
-treat it as prose, and the desk will not show it.
+```markdown
+# Best Realistic AI Avatar Generator for Online Courses & Training
 
-## The rules box
+## Intro
+- hook: $300 and a studio day, versus a few dollars and a few minutes
+- credibility: same script, same voice, same lesson through all five tools
+- roadmap: names the six sections below
 
-Anything true for a whole section goes in a `RULES` blockquote directly under
-the section heading — **stated once**, never repeated inside each beat.
+## Body
+1. Quick Overview — who each of the five tools is actually built for
+2. Live Demo — the same script through all five, generated before any is shown
+3. Realism — lip-sync, expressions, gestures, judged over a full lesson
+4. Features for Course Creators — templates, editing, branding, fixing a line later
+5. Pricing & Value — real numbers, not the "starting at" line
+6. Summary Scorecard — every score in one table
 
-This is the single biggest readability fix. A rule like "never play a finished
-output in this section" is the instruction that breaks the video if missed.
-Buried in a paragraph it gets skimmed; restated in all five beats it becomes
-wallpaper.
+## Conclusion
+- verdict split by budget and by what kind of course you are building
+```
 
-If an instruction appears in more than one beat of a section, it belongs in the
-rules box instead.
+## Rules
 
-## The intro — verbatim, 130–160 words
+- **One line per section. Never two.** The moment a section gets a paragraph,
+  this has stopped being an outline.
+- **No spoken copy anywhere.** Not one sentence the maker would read aloud. That
+  is `script-plan.md`'s job and duplicating it here is how the two documents
+  drift.
+- **No lanes.** No `SAY`, `SHOW`, `EDIT`, `FACTS`, no blockquotes, no verdicts,
+  no tables. Those are all script-plan forms.
+- **Section names are final once approved.** `script-plan.md`'s `### SECTION:`
+  headings and the intro roadmap must match these word for word, so renaming one
+  later means editing three places.
+- **Every section traces to `knowledge.md`.** A section the knowledge cannot
+  support is a gap to raise with the owner, not a section to invent.
+- **Body sections are numbered; intro and conclusion are bullets.** The numbers
+  are the running order and the owner reorders by moving them.
 
-Six beats in order, no skipping, no reordering:
+## For a comparison video
 
-1. **Who it's for** — the viewer's exact situation, so they recognise
-   themselves in the first sentence.
-2. **Credibility** — what you actually did. Specific beats vague.
-3. **Promise** — what they walk away knowing.
-4. **Roadmap** — name the body sections out loud, in order. These must match
-   the `### SECTION:` headings **exactly**.
-5. **Links in description** — always present.
-6. **Transition** into the body.
+Organise **by factor with every tool swept inside each factor** — one "Pricing"
+section covering all five tools, never one section per tool. Per-tool sections
+make the viewer hold five separate verdicts in their head and make the scorecard
+impossible to build.
 
-Where the video opens cold, that beat gets its own `####` heading naming the
-shot, e.g. `#### Cold open — HeyGen avatar, temp human voice`.
+## For a tutorial
 
-Never open with "In this video, we will…" or "Hey guys, welcome back."
+Sections are the phases of the job, in the order the maker performs them.
 
-## The conclusion — verbatim, 80–100 words
+## What the owner does with it
 
-Five beats in order: wrap signal → deals and free-trial links in the
-description → thanks → a comment prompt that asks something answerable →
-subscribe and sign off. Both monetisation beats always appear.
+Reads it, and either approves the direction or reorders/renames/cuts sections.
+This is the last cheap moment to change what the video is about. Once it is
+approved, `script-plan.md` is written against it and the section names are
+locked.
 
-## The body
-
-### Sections
-
-Named exactly as the intro's roadmap named them. Section count follows the
-material.
-
-For a comparison, organise **by factor with every tool swept inside each
-factor** — one Features section covering all tools, not one section per tool.
-For a tutorial, sections are phases of the job in the order he performs them.
-
-Every section closes with a `> **VERDICT:**` line.
-
-### Beats
-
-One beat per feature — one thing he can show and explain in a continuous
-stretch. Not one click, not a whole tool.
-
-The `SAY` lane holds real spoken copy, written as a draft. He refines it into
-final script after exploring the tool, so give him something to react to rather
-than a blank page.
-
-### The proof insert
-
-Where a section explains how to do something impressive, the first beat shows
-the **result** — the finished output, the real example. Motivation before
-mechanics.
-
-### On-screen tables
-
-A `SHOW` lane saying "on-screen graphic:" followed by a pipe table, then a
-following beat that walks the rows — one `**SAY** — <row>` lane per row. The
-table is what the viewer sees; the lanes under it are what he says while it's
-up.
-
----
-
-## Hard rules
-
-- **Intro and conclusion are finished copy. Body beats are lanes.** Never mix.
-- **Lane labels sit alone on their line**, or the parser drops the lane.
-- **Spoken copy is always a blockquote. Nothing else is.**
-- **Repeated instruction means it belongs in the rules box.**
-- **Intro roadmap and section headings match word for word.**
-- **Every claim traces to `knowledge.md`.** No support, no line — raise the gap.
-- **No section without a verdict.**
-- **Never commit the generated `outline.html` / `outline.pdf`** — they are
-  gitignored. The markdown is the source; regenerate on demand.
+This file is **not** parsed by anything. It is read by the owner and by whoever
+writes `script-plan.md` next. Keep it readable rather than machine-shaped.

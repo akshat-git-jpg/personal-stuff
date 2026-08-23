@@ -101,7 +101,7 @@ test('a body SAY draft becomes an instruction, never spoken copy', () => {
 
 test('no real outline puts a body draft into say', () => {
   for (const key of REAL) {
-    const md = readFileSync(join(VIDEOS, key, 'outline.md'), 'utf8')
+    const md = readFileSync(join(VIDEOS, key, 'script-plan.md'), 'utf8')
     for (const b of buildBeats(md).beats) {
       if (b.partKind === 'body' && b.say !== null && b.angle === null) {
         assert.ok(
@@ -161,7 +161,7 @@ test('a verdict attaches to the beat it follows', () => {
 
 test('every real outline parses and every beat has a num and a title', () => {
   for (const key of REAL) {
-    const md = readFileSync(join(VIDEOS, key, 'outline.md'), 'utf8')
+    const md = readFileSync(join(VIDEOS, key, 'script-plan.md'), 'utf8')
     const { beats } = buildBeats(md)
     assert.ok(beats.length > 5, `${key}: expected more than 5 beats, got ${beats.length}`)
     for (const b of beats) {
@@ -174,7 +174,7 @@ test('every real outline parses and every beat has a num and a title', () => {
 
 test('the worksheet is still byte-identical after the parser change', () => {
   for (const key of REAL) {
-    const md = readFileSync(join(VIDEOS, key, 'outline.md'), 'utf8')
+    const md = readFileSync(join(VIDEOS, key, 'script-plan.md'), 'utf8')
     const onDisk = join(VIDEOS, key, 'script-worksheet.md')
     let expected
     try {
@@ -232,7 +232,7 @@ test('a legacy "### N. Title" outline is refused, not half-parsed', () => {
 
 test('every real spec-format outline still parses', () => {
   for (const key of REAL) {
-    const md = readFileSync(join(VIDEOS, key, 'outline.md'), 'utf8')
+    const md = readFileSync(join(VIDEOS, key, 'script-plan.md'), 'utf8')
     const out = buildBeats(md)
     assert.ok(out.beats.length > 0, `${key}: expected beats, got none`)
   }

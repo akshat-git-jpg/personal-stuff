@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Zero-dependency local backend for the script desk. Reads outline.md through
+// Zero-dependency local backend for the script desk. Reads script-plan.md through
 // plan 231's buildBeats() and persists the maker's typed answers to
 // videos/<key>/desk-draft.json. Plan 234's Cloudflare Worker serves the same
 // contract (src/api.ts) in production — keep both in sync.
@@ -31,7 +31,7 @@ function draftPath(key) {
 }
 
 function outlinePath(key) {
-  return join(VIDEOS_ROOT, key, 'outline.md')
+  return join(VIDEOS_ROOT, key, 'script-plan.md')
 }
 
 function readDraft(key) {

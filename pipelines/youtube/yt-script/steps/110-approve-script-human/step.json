@@ -1,0 +1,16 @@
+{
+  "number": "110",
+  "slug": "110-approve-script-human",
+  "title": "approve the final script",
+  "actor": "human",
+  "actorLabel": "[OWNER]",
+  "oneLiner": "You read what changed and approve.",
+  "consumes": [
+    "script.md"
+  ],
+  "produces": [],
+  "gate": "the final script is right and the changes to his draft were justified",
+  "external": false,
+  "optional": false,
+  "summary": "The owner reads the diff report from 100 - every line reworded, respelled or cut - and approves `script.md` and `script.vo.txt`. Last gate before anything is spoken aloud."
+}

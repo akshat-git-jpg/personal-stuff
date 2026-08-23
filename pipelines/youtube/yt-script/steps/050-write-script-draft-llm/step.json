@@ -1,0 +1,19 @@
+{
+  "number": "050",
+  "slug": "050-write-script-draft-llm",
+  "title": "write the script plan",
+  "actor": "llm",
+  "actorLabel": "[LLM]",
+  "oneLiner": "Expands the approved outline into the full beat-by-beat draft.",
+  "consumes": [
+    "knowledge.md",
+    "outline.md"
+  ],
+  "produces": [
+    "script-plan.md"
+  ],
+  "gate": null,
+  "external": false,
+  "optional": false,
+  "summary": "The approved `outline.md` + `knowledge.md` -> `videos/<key>/script-plan.md`, following `SCRIPT-PLAN-INSTRUCTIONS.md`. Two halves at two standards: intro and conclusion are finished verbatim copy; the body is beats carrying `SAY`/`SHOW`/`EDIT`/`FACTS` lanes. Was called `outline.md` until 2026-08-23."
+}
