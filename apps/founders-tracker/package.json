@@ -8,6 +8,7 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "preview": "vite preview",
+    "shot": "node scripts/shot.mjs",
     "deploy": "npm run build && wrangler deploy",
     "db:local": "wrangler d1 execute founders-db --local --file=schema.sql",
     "db:remote": "wrangler d1 execute founders-db --remote --file=schema.sql"
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.45.0",
     "@cloudflare/workers-types": "^5.20260716.1",
+    "@playwright/test": "^1.62.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",

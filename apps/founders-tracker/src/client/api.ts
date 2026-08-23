@@ -1,4 +1,5 @@
 import type {
+  HabitToday,
   Scoreboard,
   Task,
   TaskInput,
@@ -12,6 +13,7 @@ import type {
 export interface BootstrapData {
   tasks: Task[];
   templates: Template[];
+  habits: HabitToday[];
   scoreboard: Scoreboard;
 }
 
@@ -55,4 +57,6 @@ export const api = {
   patchTemplate: (id: number, patch: Partial<TemplateInput>) =>
     req<Template>("PATCH", `/templates/${id}`, patch),
   deleteTemplate: (id: number) => req<{ ok: true }>("DELETE", `/templates/${id}`),
+  toggleHabit: (templateId: number) =>
+    req<HabitToday>("POST", `/habits/${templateId}/toggle`),
 };

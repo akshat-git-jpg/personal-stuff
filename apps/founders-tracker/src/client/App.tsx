@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import type { Owner, Task, TaskPatch } from "../shared";
+import type { HabitToday, Owner, Task, TaskPatch } from "../shared";
 import { api, type BootstrapData } from "./api";
+import { todayIST } from "./dates";
 import { TaskList } from "./TaskList";
 import { RecurringScreen } from "./RecurringScreen";
+import { HabitStrip } from "./HabitStrip";
 
 type Screen = "tracker" | "recurring";
 
@@ -11,11 +13,34 @@ export function App() {
   const [err, setErr] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>("tracker");
   const [tab, setTab] = useState<Owner>("khushi");
+  const [habitBusy, setHabitBusy] = useState<Set<number>>(new Set());
+
+  const todayYmd = todayIST();
+  const todayLabel = new Date(`${todayYmd}T12:00:00Z`).toLocaleDateString("en-GB", {
+    timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short",
+  });
 
   async function reload() {
     try { setData(await api.bootstrap()); } catch (e) { setErr(String(e)); }
   }
   useEffect(() => { reload(); }, []);
+
+  async function toggleHabit(h: HabitToday) {
+    if (habitBusy.has(h.templateId)) return;
+    setHabitBusy((s) => new Set(s).add(h.templateId));
+    try {
+      await api.toggleHabit(h.templateId);
+      await reload();
+    } catch (e) {
+      alert(String(e));
+    } finally {
+      setHabitBusy((s) => {
+        const next = new Set(s);
+        next.delete(h.templateId);
+        return next;
+      });
+    }
+  }
 
   if (err) return <div className="app"><div className="errbox">{err}</div></div>;
   if (!data) return <div className="app"><p className="empty">Opening the ledger…</p></div>;
@@ -79,6 +104,8 @@ export function App() {
         <RecurringScreen templates={data.templates} onChanged={reload} />
       ) : (
         <>
+          <HabitStrip habits={data.habits ?? []} todayLabel={todayLabel}
+            onToggle={toggleHabit} busy={habitBusy} />
           <div className="ownerbar">
             {(["khushi", "kushal"] as Owner[]).map((o) => {
               const openCount = data.tasks.filter((t) => t.owner === o && t.status === "open").length;
@@ -90,7 +117,7 @@ export function App() {
               );
             })}
           </div>
-          <TaskList owner={tab} tasks={ownTasks} templates={data.templates}
+          <TaskList owner={tab} tasks={ownTasks} templates={data.templates} todayYmd={todayYmd}
             onReorder={reorder} onAdd={addTask} onToggleDone={toggleDone} onSetEta={setEta}
             onSaveEdit={saveEdit} onDelete={del} />
         </>
