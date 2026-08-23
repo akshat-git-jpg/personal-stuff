@@ -41,6 +41,12 @@ case "$1:$2" in
   pr:list) echo "[]" ;;
   pr:comment) exit 0 ;;
   label:create) exit 0 ;;
+  api:user)
+    # boss_assert_gh runs `gh api user -q .login` before anything else. Without this
+    # case the stub fell through to `*) exit 0`, printed nothing, and every test after
+    # boss_assert_gh failed with "gh active account is 'none'" — so the whole suite was
+    # red and boss had no usable merge gate.
+    echo "${BOSS_GH_USER:-akshat-git-jpg}" ;;
   *) exit 0 ;;
 esac
 GHEOF
@@ -220,7 +226,8 @@ echo "test brief content" > "$test_brief"
   # We need to make the executor use our test state dir
   # The executor hardcodes STATE_DIR from BOSS_HOME. We need a temp boss home.
   FAKE_BOSS="$TMP/fake-boss"
-  mkdir -p "$FAKE_BOSS/state" "$FAKE_BOSS/executors"
+  mkdir -p "$FAKE_BOSS/state" "$FAKE_BOSS/executors" "$FAKE_BOSS/bin"
+  cp "$BOSSDIR/bin/boss-lib.sh" "$FAKE_BOSS/bin/"
   cp "$BOSSDIR/executors/claude-p.sh" "$FAKE_BOSS/executors/"
   cp "$TEST_STATE/200.meta" "$FAKE_BOSS/state/200.meta"
   "$FAKE_BOSS/executors/claude-p.sh" dispatch 200 "$test_brief"
@@ -278,6 +285,10 @@ mkdir -p "$TMP/merge-wt"
 
 (
   export GH_STUB_BRANCH="boss/300-test"
+  export GREENLIGHT_STATE_ROOT="$TMP/gl"
+  mkdir -p "$GREENLIGHT_STATE_ROOT/run-boss-300-test"
+  echo "landed" > "$GREENLIGHT_STATE_ROOT/run-boss-300-test/state"
+
   bash "$MERGE_BOSS/bin/boss-merge.sh" 300
 ) || fail "(6) boss-merge failed"
 
@@ -292,7 +303,8 @@ echo "PASS: boss-merge invokes greenlight correctly"
 echo "--- (7) agy dispatch + head-advanced guard ---"
 
 AGY_BOSS="$TMP/agy-boss"
-mkdir -p "$AGY_BOSS/state" "$AGY_BOSS/executors"
+mkdir -p "$AGY_BOSS/state" "$AGY_BOSS/executors" "$AGY_BOSS/bin"
+  cp "$BOSSDIR/bin/boss-lib.sh" "$AGY_BOSS/bin/"
 
 # Only test agy if the file exists (plan 040 creates it)
 if [ -f "$BOSSDIR/executors/agy.sh" ]; then
