@@ -1,0 +1,18 @@
+name = "yt-script-desk"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DESK_DB"
+database_name = "script-desk-db"
+# Owner step: `wrangler d1 create script-desk-db`, then paste the returned id here.
+database_id = "PLACEHOLDER-SET-BY-OWNER"
+
+[[routes]]
+pattern = "script-desk.agrolloo.com"
+custom_domain = true
