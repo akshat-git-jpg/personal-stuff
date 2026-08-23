@@ -53,8 +53,17 @@ echo "== in-flight (local state/) =="
 # may still need it) but is boss:done/closed — not in-flight — so skip those.
 for m in "$STATE_DIR"/*.meta; do
   [ -e "$m" ] || continue; n=$(basename "$m" .meta)
+  # Local terminal marker: skip with no network call. This is what makes startup O(1)
+  # in the number of long-finished PRs.
+  [ -n "$(meta_get "$n" terminal 2>/dev/null)" ] && continue
   st=$(gh pr view "$n" --json state,labels -q '"\(.state) \(.labels[].name)"' 2>/dev/null)
-  case "$st" in *boss:done*|CLOSED*|MERGED*) continue;; esac
+  case "$st" in
+    *boss:done*|CLOSED*|MERGED*)
+      # Back-fill the marker we just learned, so this meta costs nothing next time.
+      # No pruning: boss-deploy.sh still needs a landed PR's meta.
+      meta_set "$n" terminal done
+      continue ;;
+  esac
   "$BOSS_HOME/bin/boss-state.sh" "$n"
 done
 # Orphan check: a PR is boss:in-progress on GitHub but has no local meta — its crew

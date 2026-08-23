@@ -4,7 +4,11 @@ set -uo pipefail
 BOSS_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BOSS_HOME="$(cd "$BOSS_BIN/.." && pwd)"
 REPO_ROOT="$(cd "$BOSS_HOME/../.." && pwd)"   # tooling/boss -> repo root
-STATE_DIR="$BOSS_HOME/state"; mkdir -p "$STATE_DIR"
+# Overridable so a different KIND of boss task can get its own namespace. Every
+# `state/*.meta` glob (boss_crews_running, the session-start in-flight loop, and any
+# future one) then simply never sees it — patching those call sites one at a time is
+# how a second site gets missed. Byte-identical behaviour when BOSS_STATE_DIR is unset.
+STATE_DIR="${BOSS_STATE_DIR:-$BOSS_HOME/state}"; mkdir -p "$STATE_DIR"
 
 meta_get()    { local f="$STATE_DIR/$1.meta"; [ -f "$f" ] || return 1; grep "^$2=" "$f" | tail -1 | cut -d= -f2-; }
 meta_set()    { echo "$2=$3" >> "$STATE_DIR/$1.meta"; }
@@ -153,14 +157,27 @@ boss_chrome_lock_acquire() {
       echo "boss: reaping stale chrome lock (owner=$owner)" >&2; rm -rf "$lock"; continue
     fi
     [ "$waited" -ge $((BOSS_CHROME_WAIT_MIN * 60)) ] && {
-      echo "boss: chrome lock held by $owner for >${BOSS_CHROME_WAIT_MIN}m — proceeding anyway" >&2
-      return 0; }
+      echo "boss: chrome lock held by $owner for >${BOSS_CHROME_WAIT_MIN}m — proceeding WITHOUT it" >&2
+      # Return non-zero so the caller knows it never held the lock and must not
+      # release it on exit. Returning 0 here made a timed-out caller delete the real
+      # holder's lock, which is the one situation the lock exists for.
+      return 1; }
     [ "$waited" = 0 ] && echo "boss: waiting for chrome lock (held by $owner)…" >&2
     sleep 15; waited=$((waited + 15))
   done
   echo "$who" > "$lock/owner"; echo $$ > "$lock/pid"
 }
-boss_chrome_lock_release() { rm -rf "$BOSS_LOCK_DIR/chrome.lock" 2>/dev/null || true; }
+# Only remove a lock this process owns. A blind rm -rf let a caller that timed out
+# (and therefore never held it) delete the real holder's lock on its way out.
+boss_chrome_lock_release() {
+  local lock="$BOSS_LOCK_DIR/chrome.lock" owner_pid
+  owner_pid=$(cat "$lock/pid" 2>/dev/null || echo "")
+  if [ -n "$owner_pid" ] && [ "$owner_pid" != "$$" ]; then
+    echo "boss: refusing to release a chrome lock owned by pid $owner_pid (we are $$)" >&2
+    return 0
+  fi
+  rm -rf "$lock" 2>/dev/null || true
+}
 
 # boss_crews_running — echo "pr:executor" for every dispatched crew whose pid is
 # still alive. Used to keep merges off the browser while crews hold it.
