@@ -36,6 +36,10 @@ export async function runGenerator(db: D1Database): Promise<number> {
   const templates = (await listTemplates(db)).filter((t) => t.active);
   let inserted = 0;
   for (const t of templates) {
+    // HABIT_NEVER_GENERATES_TASKS — daily and weekly templates are habits: they
+    // are ticked in habit_logs and must never mint a row in `tasks`. Only
+    // monthly templates generate real, deadline-bearing work items.
+    if (t.cadence !== "monthly") continue;
     const pk = periodKey(t.cadence, today);
     const exists = await db
       .prepare("SELECT 1 FROM tasks WHERE template_id = ? AND period_key = ? LIMIT 1")
