@@ -1007,3 +1007,31 @@ are still exposed.
 The mirror direction is deliberate. `~/printing-press/library/paypal-txns/` stays the working
 copy because that is where Printing Press expects to run and where `make install` puts the
 binary on PATH. Building out of the repo copy would leave two trees claiming to be the CLI.
+
+## 2026-08-23 — the `--table` fix landed but nothing told a session to use it
+
+Two fixes went into `paypal-txns-pp-cli` for the month-by-program income shape, and the format
+still drifted every time it was asked for. Neither fix was wrong. Both were in the wrong layer.
+
+The CLI was fine. `b919d275` added `--table`, the binary was current, and running it by hand
+produced exactly the wanted shape. What was missing was any instruction a session would ever
+read. A `SKILL.md` for `pp-paypal-txns` existed in `~/printing-press/library/paypal-txns/` and in
+the repo mirror, but a `SKILL.md` sitting in a source tree is not an installed skill. It was in
+no manifest and no `skills/` dir, so it loaded nowhere. Compare `pp-impact`, which is installed
+and whose queries never drifted.
+
+Two things compounded it. The table only prints to a TTY, and an agent's stdout is a pipe — so
+the default path for a session was raw JSON plus an invented layout. And the un-installed
+SKILL.md actively pointed at `--agent`, which implies `--json`. Installing it unchanged would
+still have produced the wrong shape.
+
+The skill is now repo-scoped, not account-scoped: source in
+`pipelines/.claude/skills/pp-paypal-txns/`, symlinked into `.claude/skills/`. The account
+manifests (`tooling/claude-skills/manifest/*.txt`) were deliberately NOT used. Those scope by
+account, and this account is the work one — a manifest entry would have loaded a personal-finance
+skill into every ZluriHQ repo session. Repo-scoping is what "personal-stuff only, never a work
+repo" actually means here. Any future personal-finance or income skill goes the same way.
+
+The generalisable bit: a fix to a tool is not a fix to how the tool gets called. When the
+complaint is "the output shape keeps changing", check whether anything in the session's load path
+states the shape, before touching the tool again.
