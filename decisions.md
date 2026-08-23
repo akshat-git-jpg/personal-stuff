@@ -728,3 +728,72 @@ This does not reopen the 2026-07-08 rejection of a repo-wide `SessionStart` hook
 was rejected because it would have run boss's `session-start` (gh label and PR calls) on
 every personal-stuff session. This hook makes no network call, does nothing at all outside
 `tooling/boss`, and returns in under a second.
+## 2026-08-23 — land reliability: silence, coverage, and a real auto-commit guarantee
+
+An Opus 5 review of the auto-commit design found three shipped defects that outranked the
+question it was asked. All six of its recommendations are now in.
+
+**1. greenlight was pinging Telegram on every land.** `greenlight` notified on land, park and
+stage failure, and `infra/secrets/telegram.env` is live — so with auto-commit now the default,
+that is a phone ping per turn. 12 lands in the afternoon it was found. The owner ruled out
+notifications outright, so this was a live violation of his hardest-stated constraint, made
+10x worse by that morning's work. All three call sites now route through a `notify_send`
+wrapper that no-ops when `GREENLIGHT_QUIET=1`; `pp-land` sets it, nothing else does, so boss
+keeps its pings for PR merges the owner is watching.
+
+**2. Only 19.5% of the repo was tested at land time.** Measured: 825 of 4228 tracked files
+match a prefix in `verify-map.tsv`, and 6 of 12 lands that day ran no suite at all. The worst
+case was this system's own security hook — `.claude/hooks/no-history-in-main.sh` landed four
+times, each time also ADDING cases to its own harness, and the lander never ran that harness
+because `.claude/hooks/` was not in the map. Added `.claude/hooks/`, `.claude/skills/` and
+`tooling/claude-skills/`, and gave `pp-land` a repo-wide fallback
+(`scripts/check-repo-hygiene.sh`) so "no verify suite matched" can no longer mean "nothing
+ran". The fallback is a floor, not a substitute: the fix for an unmapped path is to map it.
+
+**3. A workspace that leaves its manifest branch drops out of the system, silently.**
+`post-commit` only fires the lander for `work/*|subject/*` and used to `exit 0` in silence
+otherwise. Measured: `script-desk-plans` sat on `boss/235-…` with one commit, no land.log
+entry at all, and `reap` refusing it forever as unmerged — 137 MB pinned. The hook now
+records the skip in the workspace's own log, and `pp-work list`/`reap` flag
+`BRANCH-MISMATCH`. Note the wall cannot prevent the cause: it only blocks branch switches in
+the MAIN checkout.
+
+**4. Auto-commit now has a mechanical half.** `.claude/skills/commit-now` declares
+auto-commit the default, but a skill is an instruction the model can skip — the owner asked
+directly whether that meant his work might just not be committed, and the answer was yes. The
+premise that a hook could not help was wrong: this build supports `Stop` and `SubagentStop`,
+and a Stop hook can BLOCK with a reason. So `.claude/hooks/commit-before-stop.sh` refuses to
+end a turn while a pp-work workspace is dirty, and the model still authors the message. That
+resolves the tension that made auto-commit an instruction in the first place. It honours
+`stop_hook_active`, so a turn that legitimately must not commit (a red check) is nagged once,
+never trapped. 10 cases in `.claude/hooks/test-commit-before-stop.sh`.
+
+**5. `pp-work list --dirty`, and it runs BEFORE reap at session start.** The previous claim
+that boss surfaced dirty workspaces was false: `boss-session-start.sh` only called `reap`,
+and `reap` checks idleness first — so anything touched in the last 4h printed "in use" and
+never mentioned uncommitted work. The freshest, most-likely-forgotten work was the only work
+that screen was silent about.
+
+**6. Rescue snapshots, not rescue commits.** The remaining hole is a session that dies
+mid-turn, which no in-process hook can catch (`SessionEnd` does not fire on SIGKILL or a
+closed window, and both existing sweeps are event-driven off other work). `pp-work snapshot`
+closes it — and deliberately does NOT commit, because a commit inside a workspace IS a
+trigger here (post-commit to pp-land to a push to main), and the VPS pulls this repo every 15
+minutes, so a "just in case" commit ships half-finished work to production. It records the
+tree as a ref under `refs/pp-work/snap/<slug>/<epoch>`.
+
+Built on a throwaway index (`read-tree` + `add -A` + `write-tree` + `commit-tree` against
+`GIT_INDEX_FILE`), NOT `stash create`. The first implementation used `stash create` and
+silently omitted brand-new untracked files — the single most likely thing to lose. Verified
+it disturbs nothing: HEAD, working tree, real index and stash stack all unchanged.
+`scripts/install-snapshot-timer.sh` installs a launchd agent every 30 min; removal is
+`--uninstall`.
+
+Mutation-gated: 4 mutations, each caught by a specific assertion — neutering the Stop hook's
+dirty check, removing its loop guard, reverting the snapshot to `stash create`, and dropping
+the BRANCH-MISMATCH flag.
+
+Rejected: the sweep-that-commits design originally proposed to the owner. It would have
+pushed unreviewed, untested work to main across a verify surface covering one fifth of the
+repo, and it aimed at the least-guaranteed layer while a real guarantee (the Stop hook) was
+available all along.

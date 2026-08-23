@@ -323,5 +323,94 @@ if ! run_guarded env PPWORK_GRACE_SECS=0 "$PPWORK" remove "$out_r" >/dev/null 2>
 fi
 [ -d "$out_r" ] && fail "(15) remove reported success but the directory remains"
 
+# -----------------------------------------------------------------------------
+# 16. BRANCH-MISMATCH: a workspace whose HEAD left its manifest branch.
+#
+# The wall only blocks checkout/switch in the MAIN checkout, so a session inside a workspace
+# can freely retarget its branch. When it does, `post-commit` stops firing the lander (it
+# only fires for work/*|subject/*), so every commit there is unlanded — and ws_is_merged then
+# refuses to reclaim the workspace forever. Measured 2026-08-23: `script-desk-plans` sat on
+# `boss/235-…` with one commit and no land.log entry at all.
+# -----------------------------------------------------------------------------
+out_m=$(run_guarded "$PPWORK" claim --kind code --slug mismatch-test)
+( cd "$out_m" && git checkout -q -b boss/999-elsewhere \
+  && echo m > m.txt && git add m.txt && git commit -qm "on the wrong branch" ) >/dev/null 2>&1
+
+list_out=$("$PPWORK" list 2>/dev/null) || fail "(16) list failed on a mismatched workspace"
+echo "$list_out" | grep -q "mismatch-test .* BRANCH-MISMATCH manifest:work/mismatch-test" \
+  || fail "(16) list did not flag the branch mismatch: $(echo "$list_out" | grep mismatch-test | head -1)"
+
+reap_out=$(run_guarded env PPWORK_GRACE_SECS=0 "$PPWORK" reap 2>&1)
+echo "$reap_out" | grep -q "keep mismatch-test — BRANCH-MISMATCH" \
+  || fail "(16) reap did not refuse the mismatched workspace by name: $reap_out"
+[ -d "$out_m" ] || fail "(16) reap DELETED a workspace whose commits can never land"
+
+# 17. --dirty prints only rows that need a human, and never hides one that does.
+dirty_out=$("$PPWORK" list --dirty 2>/dev/null) || fail "(17) list --dirty failed"
+echo "$dirty_out" | grep -q "mismatch-test" \
+  || fail "(17) --dirty omitted a BRANCH-MISMATCH workspace"
+# test3 carries an uncommitted file (case 10), so it must appear too.
+echo "$dirty_out" | grep -q "test3" \
+  || fail "(17) --dirty omitted a workspace with uncommitted work"
+# zzz-media was left clean and landed by case 12b, so it must NOT appear.
+if echo "$dirty_out" | grep -q "zzz-media"; then
+  fail "(17) --dirty listed a clean, landed workspace: $dirty_out"
+fi
+
+# -----------------------------------------------------------------------------
+# 18. snapshot: captures UNTRACKED files, and disturbs nothing.
+#
+# The first implementation used `stash create`, which records tracked modifications only —
+# it silently omitted two brand-new files, which is the single most likely thing to lose.
+# It must also leave the tree, the index, the stash stack and HEAD exactly as they were: a
+# rescue that interferes with a live session is worse than no rescue.
+# -----------------------------------------------------------------------------
+out_s=$(run_guarded "$PPWORK" claim --kind code --slug snap-test)
+printf 'tracked change\n' >> "$out_s/file.txt"
+printf 'brand new\n' > "$out_s/never-added.txt"
+mkdir -p "$out_s/junk" && printf 'x\n' > "$out_s/render.mp4"
+
+s_head_before=$(git -C "$out_s" rev-parse HEAD)
+s_dirty_before=$(git -C "$out_s" status --porcelain | grep -c . || true)
+s_stash_before=$(git -C "$out_s" stash list | grep -c . || true)
+s_staged_before=$(git -C "$out_s" diff --cached --name-only | grep -c . || true)
+
+run_guarded "$PPWORK" snapshot "$out_s" >/dev/null 2>&1 \
+  || fail "(18) snapshot failed on a dirty workspace"
+
+s_ref=$(git -C "$MAIN_DIR" for-each-ref --format='%(refname)' refs/pp-work/snap/snap-test/ | tail -1)
+[ -n "$s_ref" ] || fail "(18) snapshot wrote no ref under refs/pp-work/snap/snap-test/"
+
+s_files=$(git -C "$out_s" diff --name-only HEAD "$s_ref")
+echo "$s_files" | grep -qx 'file.txt' \
+  || fail "(18) the snapshot missed the modified TRACKED file"
+echo "$s_files" | grep -qx 'never-added.txt' \
+  || fail "(18) the snapshot missed the UNTRACKED new file — this is the stash-create bug"
+if echo "$s_files" | grep -q 'render.mp4'; then
+  fail "(18) the snapshot captured gitignored media"
+fi
+
+[ "$(git -C "$out_s" rev-parse HEAD)" = "$s_head_before" ] \
+  || fail "(18) snapshot moved HEAD"
+[ "$(git -C "$out_s" status --porcelain | grep -c . || true)" = "$s_dirty_before" ] \
+  || fail "(18) snapshot changed the working tree"
+[ "$(git -C "$out_s" stash list | grep -c . || true)" = "$s_stash_before" ] \
+  || fail "(18) snapshot pushed onto the stash stack"
+[ "$(git -C "$out_s" diff --cached --name-only | grep -c . || true)" = "$s_staged_before" ] \
+  || fail "(18) snapshot wrote to the real index"
+
+# a clean workspace yields nothing rather than an empty snapshot
+out_c=$(run_guarded "$PPWORK" claim --kind code --slug snap-clean)
+clean_out=$(run_guarded "$PPWORK" snapshot "$out_c" 2>&1 || true)
+echo "$clean_out" | grep -q "nothing to snapshot" \
+  || fail "(18) snapshot did not skip a clean workspace: $clean_out"
+[ -z "$(git -C "$MAIN_DIR" for-each-ref --format='%(refname)' refs/pp-work/snap/snap-clean/)" ] \
+  || fail "(18) snapshot wrote a ref for a clean workspace"
+
+# list reports the count
+list_out=$("$PPWORK" list 2>/dev/null) || fail "(18) list failed after a snapshot"
+echo "$list_out" | grep -q "snap-test .* snaps:1" \
+  || fail "(18) list did not report snaps:1: $(echo "$list_out" | grep snap-test | head -1)"
+
 echo ""
 echo "ALL TESTS PASSED"

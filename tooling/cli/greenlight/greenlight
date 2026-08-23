@@ -4,6 +4,21 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NOTIFY_BIN="$SCRIPT_DIR/../notify/notify"
 
+# Every notification in this script goes through here so ONE switch can silence them.
+#
+# Why the switch exists (2026-08-23): greenlight pings Telegram on every land, park and
+# stage failure. That is right for a boss-driven PR merge, which the owner is watching. It
+# is wrong for a `pp-land` land, because pp-land runs on EVERY workspace commit and the
+# owner ruled out notifications outright. With auto-commit now the default in this repo
+# that is a ping per turn — 12 lands in one afternoon on the day this was found.
+#
+# pp-land sets GREENLIGHT_QUIET=1. Nothing else does, so boss keeps its pings.
+notify_send() {
+  [ "${GREENLIGHT_QUIET:-0}" = "1" ] && return 0
+  "$NOTIFY_BIN" send "$1" || true
+  return 0
+}
+
 # --- JSON Envelope from `claude -p` ---
 # Text result: .result
 # Input tokens: .usage.input_tokens
@@ -252,7 +267,7 @@ print(json.dumps(obj) if obj is not None else "")
   log "ERROR: agent stage $stage failed after 2 attempts"
   echo "failed" > "$STATE_DIR/state"
   # Notify (Telegram-first, ntfy fallback)
-  "$NOTIFY_BIN" send "greenlight: stage $stage failed for $BRANCH" || true
+  notify_send "greenlight: stage $stage failed for $BRANCH"
   exit 1
 }
 
@@ -273,7 +288,7 @@ function park() {
   log "Parking: $reason"
   echo "parked" > "$STATE_DIR/state"
   echo "$reason" > "$STATE_DIR/parked-reason"
-  "$NOTIFY_BIN" send "greenlight: $BRANCH parked — $reason" || true
+  notify_send "greenlight: $BRANCH parked — $reason"
   exit 0
 }
 
@@ -444,4 +459,4 @@ else
 fi
 
 echo "landed" > "$STATE_DIR/state"
-"$NOTIFY_BIN" send "greenlight: $BRANCH landed on main (risk $risk_level)" || true
+notify_send "greenlight: $BRANCH landed on main (risk $risk_level)"
