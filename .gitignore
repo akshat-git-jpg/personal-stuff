@@ -91,3 +91,8 @@ infra/escrow/out/
 # never a real *.env (see decisions.md 2026-08-03).
 tooling/claude-skills/*/references/*.env
 !tooling/claude-skills/*/references/*.env.example
+
+# Generated flow diagrams. Self-contained HTML with the data inlined, so each one
+# is megabytes — tutorial-tracker-flow.html alone is 2.2 MB, over pp-push's 1 MB
+# cap. Rebuildable, and this repo is PUBLIC. Regenerate rather than commit.
+apps/*/docs/flow/*.html
