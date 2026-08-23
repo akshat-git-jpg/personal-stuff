@@ -5,13 +5,13 @@ A simple, bash-based managed pool of git worktrees. This provides detached-HEAD 
 ## Policy: Managed Runs Only
 
 **Owner interactive sessions, deploys, VPS/cron ops, and skill edits stay on the main checkout.**
-The `wt` tool is strictly for parallel agent runs (e.g., plan validation, captain orchestrators) which require isolation.
+The `wt` tool is strictly for parallel agent runs (e.g., plan validation, boss crews) which require isolation.
 
 ## Commands
 
 - **`wt get [--force-dirty]`**: Acquire a worktree lease, reset it, run bootstrap hook, and print its path. Skips an unleased slot that still holds uncommitted work unless `--force-dirty`.
   ```bash
-  path=$(wt get --holder captain)
+  path=$(wt get --holder boss)
   ```
 - **`wt return <path> [--force-dirty]`**: Release a lease and reset the worktree, marking it free. Refuses a dirty worktree unless `--force-dirty`.
   ```bash

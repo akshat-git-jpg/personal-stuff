@@ -3,7 +3,7 @@
 
 Compensating control for --dangerously-skip-permissions on headless agy runs
 (a workspace-unbound agy roamed into ~/.gemini key files, 2026-07-06 — see
-tooling/captain/references/antigravity-cli-findings.md). Contract: hook JSON
+docs/archive/captain-references/antigravity-cli-findings.md). Contract: hook JSON
 on stdin -> {"decision": "allow"|"deny", "reason": ...} on stdout.
 """
 import json, re, sys

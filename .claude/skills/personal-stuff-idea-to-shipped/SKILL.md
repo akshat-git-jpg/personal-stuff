@@ -55,7 +55,7 @@ Small single-session work you're doing yourself → inline, no plan. Multi-step 
 3. **boss dispatch** — a session in `tooling/boss/` leases a `wt` worktree, runs the executor (`claude-p`/sonnet default, `agy` per `tooling/boss/data/rules.md`), verifies via the plan's `test_cmd`, lands via `greenlight`, closes the PR. A dirty main checkout blocks dispatch (enforced 2026-07-08; `--force` overrides).
 4. **deploy** — the one hard per-item gate, always owner-triggered. Since 2026-07-11 boss holds STANDING permission to carry the owner-side deploy chain itself once the owner says "deploy": wrangler secret put/deploy, VPS SSH cron wiring (`timeout`, NOT `gtimeout` — the VPS is Linux), vps-crons repo commits, 3-copy VPS-CRONS.md sync. Exclusions: interactive OAuth consent, destructive credential deletion (decisions.md 2026-07-11).
 
-**captain (`tooling/captain/`) is frozen/deprecated — never route new work to it**; boss is the successor and shares no code with it.
+**captain (`tooling/captain/`) was DELETED 2026-08-23** (deprecated 2026-07-07); boss is the successor and shares no code with it. Do not look for `tooling/captain/` — it is gone.
 
 Ledger nuance: the `plans/README.md` status TABLE goes stale — executors don't reliably flip rows (011 looked unfinished until verified DONE 2026-07-12; the 043 and 056–059 rows still said TODO after all had landed via boss). Truth = the `## boss-landed` section at the bottom of `plans/README.md` + `git log`. Also: plan NUMBERS collide (two independent 044/045 batches exist, 2026-07-07) — disambiguate by slug, never by number.
 
@@ -82,7 +82,7 @@ Retire steps live in **personal-stuff-hosting-inventory**; the extra discipline:
 ## Provenance and maintenance
 
 Placement rules, the boss chain (Station 4: dirty-main guard + `--force` in `bin/boss-dispatch.sh`, secretary stages only the plan file, greenlight land + boss closes the PR, `data/rules.md` exists, deploy standing-permission), asset-hub row, skill-budget guard, ledger nuance, and all sibling cross-refs (incl. **video-and-tts-reference**) verified against root CLAUDE.md rule 5, `tooling/boss/README.md` + `CLAUDE.md`, `tooling/claude-skills/secretary/SKILL.md`, `plans/README.md`, and decisions.md (2026-07-11 boss deploy permission, 2026-07-12 asset hubs) on 2026-07-12. House-stack/UI-standard reference apps verified 2026-07-12; auth model last verified 2026-07-05. Re-verify:
-- Ship chain still boss-shaped: `head -35 tooling/boss/README.md`; captain still frozen: `grep -n frozen tooling/boss/README.md`
+- Ship chain still boss-shaped: `head -35 tooling/boss/README.md`; captain gone: `test ! -d tooling/captain`
 - Landed truth vs table: `grep -A20 "## boss-landed" plans/README.md` + `git log --oneline -10`
 - House-stack reference app still current: `ls apps/lists-app/`
 - Placement rules: root `CLAUDE.md` "Where does a new thing go?"
