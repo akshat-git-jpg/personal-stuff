@@ -13,7 +13,7 @@ The `wt` tool is strictly for parallel agent runs (e.g., plan validation, captai
   ```bash
   path=$(wt get --holder captain)
   ```
-- **`wt return`**: Release a lease and reset the worktree, marking it free.
+- **`wt return <path> [--force-dirty]`**: Release a lease and reset the worktree, marking it free. Refuses a dirty worktree unless `--force-dirty`.
   ```bash
   wt return /Users/kbtg/kb-scratch/worktrees/personal-stuff-hash/1/personal-stuff
   ```
@@ -57,11 +57,24 @@ Three layers now stop it:
    the PR's **state**, never its labels: PR#152 and #153 were both `MERGED` and still
    labelled `boss:in-progress`, so a label check would have called them live.
 
-**A dirty worktree is never freed silently.** `reap` and `release` both refuse a stale lease
-whose worktree holds uncommitted work; they name the path and stop. A mid-flight kill
-routinely leaves a complete-but-uncommitted implementation (see `decisions.md` 2026-08-02),
-and losing a slot is far cheaper than losing that work. `--force-dirty` is the explicit
-opt-in that discards it.
+**A dirty worktree is never freed silently.** All four commands that reset a worktree —
+`get`, `return`, `reap` and `release` — refuse one that holds uncommitted work; they name the
+path and stop. A mid-flight kill routinely leaves a complete-but-uncommitted implementation
+(see `decisions.md` 2026-08-02), and losing a slot is far cheaper than losing that work.
+`--force-dirty` is the explicit opt-in that discards it, on every one of the four.
+
+Until 2026-08-23 only `reap` and `release` honoured that rule. `wt return` printed
+`WARNING: worktree is dirty` and then wiped the tree anyway, and `wt get` reclaimed an
+unleased-but-dirty slot with the message `uncommitted work discarded`. Both now stop instead:
+`return` exits non-zero, and `get` skips that slot and moves to the next one.
+
+**The pool lock can no longer wedge the tool.** The lock is a `mkdir` on `.lock.d` released
+by an `EXIT` trap, and `SIGKILL` skips traps — so one killed `wt` used to make every later
+`wt` call spin forever with no timeout and no message. `lock_pool` now records its pid in the
+lock, breaks a lock whose recorded holder is gone (or that has no pid and is older than
+`LOCK_WAIT_SECS`, 30s), and after `LOCK_WAIT_SECS` of a provably *live* holder it fails
+loudly with the lock path rather than hanging. `unlock_pool` only removes a lock this process
+actually owns.
 
 ## Bootstrap Hook (`bootstrap.d`)
 
