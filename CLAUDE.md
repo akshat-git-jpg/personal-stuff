@@ -63,3 +63,5 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 - `VPS-CRONS.md` — cron architecture (Pattern B). It's a runbook, not auto-loaded; open it only for cron work.
 - `my-hosted-sites.md` — flat index of every live URL across this repo, including `pipelines/`.
 - Skills under `tooling/claude-skills/` are the single source, symlinked into both accounts via `scripts/relink.sh`. Never edit a symlinked copy elsewhere — edit here.
+- **Changing tracked files? Claim a workspace first.** `cd "$(pp-work claim --kind code --slug <task>)"` — the main checkout refuses to record git history (`.claude/hooks/no-history-in-main.sh`).
+- Talking, reading and one-off file edits on main are fine; only `commit`/`add`/`merge`/`switch` move.
