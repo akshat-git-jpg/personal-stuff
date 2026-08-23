@@ -50,6 +50,7 @@ REAL_CAP="${BOSS_LAND_REAL_CAP:-2}"
 TRANSIENT_CAP="${BOSS_LAND_TRANSIENT_CAP:-5}"
 TRANSIENT_WINDOW="${BOSS_LAND_TRANSIENT_WINDOW:-86400}"
 LOCK_HELD=0
+DISPATCHED_THIS_RUN=0
 
 log()  { printf 'boss-land-sweep: %s\n' "$1" >&2; }
 say()  { printf '%s\n' "$1"; }
@@ -356,6 +357,7 @@ sweep_one() {
   elif [ "$lock_ok" -eq 1 ]; then
     boss_chrome_lock_release
   fi
+  DISPATCHED_THIS_RUN=1
   say "DISPATCHED land-$slug — fix-up in $ws (real $real/$REAL_CAP, transient $tr/$TRANSIENT_CAP) — $reason"
   return 0
 }
@@ -372,7 +374,18 @@ main() {
   done
   for f in "$LANDS_DIR"/land-*.blocked; do
     [ -f "$f" ] || continue
-    n=$((n + 1)); sweep_one "$f"
+    n=$((n + 1))
+    # At most ONE dispatch per run. The fix-up we just launched now holds the chrome
+    # lock for its whole life, so a second dispatch in this run would either sit in
+    # boss_chrome_lock_acquire or race the browser — and a lock-busy skip would burn a
+    # transient attempt for a land that has not actually failed. The queue drains
+    # instead: pp-land calls this after every commit, the fix-up's own commit fires one,
+    # and session start is the backstop.
+    if [ "$DISPATCHED_THIS_RUN" -eq 1 ]; then
+      say "DEFERRED   $(basename "$f" .blocked) — one fix-up per sweep; the next sweep takes this one"
+      continue
+    fi
+    sweep_one "$f"
   done
   [ "$n" -eq 0 ] && say "none — no blocked lands"
   lock_release
