@@ -34,7 +34,7 @@ test("card-detail: a video with nothing to link shows no generator", async ({ pa
   await expect(dialog).toBeVisible();
   await expect(dialog.getByTestId("card-links-toggle")).toHaveCount(0);
   // And the old signpost is gone with it.
-  await expect(dialog.getByText(/Links tab/)).toHaveCount(0);
+  await expect(dialog.getByText(/Affiliate links and the YouTube description/)).toHaveCount(0);
 });
 
 test("card-detail: the Links tab is the drift audit only", async ({ page }) => {

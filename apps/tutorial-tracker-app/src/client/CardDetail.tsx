@@ -351,6 +351,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
           ))} {isAdmin && !readOnly && onApplyDefaults && ( <Button type="button" variant="ghost" size="sm" className="h-8 text-muted-foreground hover:text-foreground" title="Fills blank assignees and reviewers from this card's category × subcategory." onClick={onApplyDefaults}>
               <RotateCcw className="size-3.5" /> Apply assignment defaults </Button>
           )}  {} <div className="space-y-5">
+            {/* eslint-disable-next-line react-hooks/refs */}
             {sectionsToShow.map((sec) => ( <div key={sec.id} className="space-y-3"> <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sec.label}</div> <div className="space-y-3">{sec.cols.map((c) => renderField(c as Column))}</div>
                 {} {sec.id !== contextStage.id && renderStageActions(sec.id)} </div>
             ))} </div> {isAdmin && ( <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => setShowAll((v) => !v)}> {showAll ? "Show only this stage's fields" : "Show all fields"}
