@@ -158,6 +158,13 @@ Either of these works in one command, from any directory:
   cd "\$(pp-work claim --kind code --slug <short-task-name>)" && <your git command>
   git -C <workspace-path> <your git command>
 
+WRITE THE PATH LITERALLY. A path held in a variable is NOT resolved, so this is
+refused even though it targets a workspace:
+  WS=<workspace-path>; git -C "\$WS" commit ...
+Any path containing \$, a backtick, * or ? cannot be judged without running the
+shell, so it falls back to this directory and is treated as main. Paste the path.
+(One exception, already handled: cd "\$(pp-work claim ...)" is recognised by shape.)
+
 Deliberate one-off: GUARD_OK=1 <your command>
 (Prefer the two forms above. This repo's change-control skill keeps GUARD_OK at zero
 call sites on purpose, and the forms above exist so you never need it.)

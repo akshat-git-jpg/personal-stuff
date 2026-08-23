@@ -1069,3 +1069,25 @@ subcommand on `impact-pp-cli` mirroring the PayPal one. Not done here: the impac
 `~/printing-press/library/impact/` is still not mirrored into any git repo, so that work starts
 with the mirror, the way `tooling/press-clis/paypal-txns/` did. Recorded as a known gap in the
 skill body rather than left implicit.
+
+## 2026-08-23 — the wall's variable-path refusal is correct; the message was the bug
+
+`git -C "$WS" commit` from a main-cwd session is blocked. The reason is deliberate:
+`resolve_effective_dir` refuses any path containing `$`, a backtick, `*` or `?`, because
+knowing its value would mean running the shell. It falls back to the session cwd, judges that
+as main, and blocks. Fail-closed — if it guessed, a command genuinely targeting main could pass.
+
+The behaviour was right and the code comment said so. The user-facing message did not: it listed
+three allowed forms and never mentioned variables, so the block read like a false positive.
+Assigning the workspace path to a variable is the obvious thing to write, so this recurred.
+
+Fixed by extending the block message, `commit-now` Step 1, and this skill to state the rule and
+show the refused form. No logic change: a 5-case harness confirms variable-path and bare-main
+still block, and literal `cd`, literal `git -C`, and `cd "$(pp-work claim ...)"` still pass.
+
+Explicitly rejected: teaching the wall to expand simple `WS=<literal>` assignments. That starts
+it emulating shell semantics, which is the one thing it refuses to do, and every extra form it
+understands is another way to fool it. A confusing error is cheaper to fix than a porous guard.
+
+The generalisable bit: when a guard is right but keeps being fought, fix what it SAYS before
+touching what it DOES.
