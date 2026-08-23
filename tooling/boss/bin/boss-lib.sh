@@ -4,7 +4,11 @@ set -uo pipefail
 BOSS_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BOSS_HOME="$(cd "$BOSS_BIN/.." && pwd)"
 REPO_ROOT="$(cd "$BOSS_HOME/../.." && pwd)"   # tooling/boss -> repo root
-STATE_DIR="$BOSS_HOME/state"; mkdir -p "$STATE_DIR"
+# Overridable so a different KIND of boss task can get its own namespace. Every
+# `state/*.meta` glob (boss_crews_running, the session-start in-flight loop, and any
+# future one) then simply never sees it — patching those call sites one at a time is
+# how a second site gets missed. Byte-identical behaviour when BOSS_STATE_DIR is unset.
+STATE_DIR="${BOSS_STATE_DIR:-$BOSS_HOME/state}"; mkdir -p "$STATE_DIR"
 
 meta_get()    { local f="$STATE_DIR/$1.meta"; [ -f "$f" ] || return 1; grep "^$2=" "$f" | tail -1 | cut -d= -f2-; }
 meta_set()    { echo "$2=$3" >> "$STATE_DIR/$1.meta"; }
