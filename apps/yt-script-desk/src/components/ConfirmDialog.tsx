@@ -8,7 +8,7 @@ type ConfirmDialogProps = {
 }
 
 // Owner reduced this to exactly: a lock icon, one heading, No / Yes. No
-// explanation paragraph, no preview of the line, no reason field.
+// explanation paragraph, no preview of the line, no "why" field.
 export function ConfirmDialog({ open, onConfirm, onCancel }: ConfirmDialogProps) {
   const yesRef = useRef<HTMLButtonElement>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
