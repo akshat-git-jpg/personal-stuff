@@ -71,7 +71,7 @@ test('every owner gate in the table is a human step, and every human step is in 
   const skill = readFileSync(SKILL, 'utf8')
   const humanOnDisk = stepDirs().filter((d) => d.endsWith('-human'))
 
-  const gateLine = skill.match(/Five owner gates: ([^.]+)\./)
+  const gateLine = skill.match(/\b[A-Z][a-z]+ owner gates: ([^.]+)\./)
   assert.ok(gateLine, 'STEP_TABLE_DRIFT: SKILL.md no longer states which steps are the owner gates')
   const gateNums = gateLine[1].match(/\d{3}/g) ?? []
 

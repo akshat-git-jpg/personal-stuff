@@ -1,6 +1,6 @@
 ---
 name: yt-script
-description: Turn owner-supplied knowledge into a YouTube outline, then a beat-by-beat script plan, then a VO-ready final script. Twelve numbered steps with five owner gates, tabulated in the skill body, each with its own folder under pipelines/youtube/yt-script/steps/. Triggers on "yt-script", "outline for <video>", "write the outline", "write the script plan", "publish to the desk", "here's the completed draft", "finalise the script", "make it VO-ready".
+description: Turn owner-supplied knowledge into a YouTube outline, then a beat-by-beat script plan, then a VO-ready final script. Thirteen numbered steps with six owner gates, tabulated in the skill body, each with its own folder under pipelines/youtube/yt-script/steps/. Triggers on "yt-script", "outline for <video>", "write the outline", "write the script plan", "publish to the desk", "here's the completed draft", "finalise the script", "make it VO-ready".
 user-invocable: true
 metadata:
   author: kbtg
@@ -11,7 +11,7 @@ metadata:
 
 Working folder: `pipelines/youtube/yt-script/`
 
-**The flow is twelve numbered steps, each a folder under `steps/`.** The table
+**The flow is thirteen numbered steps, each a folder under `steps/`.** The table
 below is the contract. Every step's folder holds a `step.json` (the machine
 record) and a `README.md` (what to actually do). Read the step's README before
 running it — this file deliberately does not repeat them.
@@ -30,6 +30,7 @@ knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  scri
 | `030-write-outline-llm` | [LLM] | One page: sections and headings only, no script |
 | `040-approve-outline-human` | **[OWNER]** | You approve the direction, while it is cheap to change |
 | `050-write-script-draft-llm` | [LLM] | Expands the approved outline into the full beat-by-beat draft |
+| `055-review-plan-md-human` | **[OWNER]** | You read the raw markdown and get your edits in cheap |
 | `060-review-local-desk-human` | **[OWNER]** | You open it on your machine and give feedback |
 | `070-publish-desk-run` | [RUN] | Publishes and prints the freelancer URL |
 | `080-freelancer-writes-human` | **[OWNER]** | He records, writes his lines, tells you he is done |
@@ -41,7 +42,7 @@ knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  scri
 `ls steps/` is the check that keeps this table honest. A step on disk that is not
 in this table, or a row here with no folder, is a bug in the docs.
 
-**Five owner gates: 020, 040, 060, 080, 110. None is skippable.** The owner drives
+**Six owner gates: 020, 040, 055, 060, 080, 110. None is skippable.** The owner drives
 every transition — never advance a step on your own, and never treat "it looks
 fine" as approval.
 
@@ -63,6 +64,11 @@ Three things, all owner decisions:
    from the flow. The script desk replaced the outline PDF as the handoff, and the
    VO engine reads `script.vo.txt`, so nothing read the script PDF any more. The
    scripts still exist in the folder; the flow does not call them.
+
+4. **The markdown gets read before the desk boots (added 2026-08-23).** Step 055
+   is a plain read of `script-plan.md` in an editor — no server, no browser. The
+   wording and the section order settle there, cheaply, and 060 is left to ask the
+   only question the markdown cannot answer: does it work in the two-track UI.
 
 ## If the desk is down
 
@@ -114,7 +120,7 @@ question for him, never a cue to go find the answer.
 
 ## Hard rules
 
-- **Never skip a gate.** 020, 040, 060, 080, 110. "The outline is obviously fine"
+- **Never skip a gate.** 020, 040, 055, 060, 080, 110. "The outline is obviously fine"
   is not approval.
 - **Never publish before 060.** Publishing mints a live secret URL. Reviewing
   after that is reviewing something already shipped.

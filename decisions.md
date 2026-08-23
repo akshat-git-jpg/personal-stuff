@@ -924,3 +924,4 @@ Worth noting how close this came to shipping broken: the hook, its test and the 
 all green, and nothing in any suite exercises `boss-merge`'s registry commit against a real
 pre-commit hook. The catch came from grepping for other main-checkout committers before
 arming it, not from a gate.
+- **2026-08-23** — `yt-script` gained step `055-review-plan-md-human`, a markdown read of `script-plan.md` before the local desk at 060. Owner's reason: opening a file is faster than booting the desk, so wording and section-order fixes should not cost a server start; 060 now owns only the two-track-UI question. Six owner gates, thirteen steps.

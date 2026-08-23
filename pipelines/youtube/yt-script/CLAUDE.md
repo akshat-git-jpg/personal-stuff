@@ -4,21 +4,22 @@ The flow itself lives in the skill: `pipelines/.claude/skills/yt-script/SKILL.md
 This file is the folder map. Read the skill first — it owns the step table and
 the gates; this only says where things are.
 
-## The flow is twelve step folders
+## The flow is thirteen step folders
 
 ```
 steps/
   010-take-knowledge-llm/        020-approve-knowledge-human/
   030-write-outline-llm/         040-approve-outline-human/
-  050-write-script-draft-llm/    060-review-local-desk-human/
-  070-publish-desk-run/          080-freelancer-writes-human/
-  090-pull-draft-run/            100-write-script-llm/
-  110-approve-script-human/      120-voiceover-run/
+  050-write-script-draft-llm/    055-review-plan-md-human/
+  060-review-local-desk-human/   070-publish-desk-run/
+  080-freelancer-writes-human/   090-pull-draft-run/
+  100-write-script-llm/          110-approve-script-human/
+  120-voiceover-run/
 ```
 
 Each holds a `step.json` (the machine record — actor, what it reads, what it
 writes) and a `README.md` (what to actually do). Kinds are `llm`, `run`, `human`.
-Five human gates: 020, 040, 060, 080, 110.
+Six human gates: 020, 040, 055, 060, 080, 110.
 
 **Changing a step is local.** Edit its README. Adding one is a new folder plus a
 row in SKILL.md's table — `test/steps.test.mjs` fails if the two disagree.
@@ -52,7 +53,7 @@ lib/beats.mjs                 script-plan.md -> the typed beat model the desk re
 render-worksheet.mjs          script-plan.md -> script-worksheet.md (voiceover only) — desk-down fallback
 render-outline.mjs            RETIRED 2026-08-23 — not called by any step
 render-script.mjs             RETIRED 2026-08-23 — not called by any step
-steps/                        the twelve step folders
+steps/                        the thirteen step folders
 test/                         beats, worksheet, steps, desk-docs
 videos/<key>/                 one folder per video
 ```
@@ -63,7 +64,7 @@ videos/<key>/                 one folder per video
 knowledge.md        010 — every source, as TEXT. The only input later steps read
 sources/            010 — the originals. Provenance, tracked
 outline.md          030 — one page, sections + one line each. The direction
-script-plan.md      050 — the beat-by-beat document the desk publishes
+script-plan.md      050 — the beat-by-beat document; reviewed as markdown at 055, published by the desk
 script-worksheet.md fallback only, if the desk is down
 desk-draft.json     local-mode scratch, gitignored
 script-draft.md     090 — the maker's completed work, verbatim. Provenance, tracked
