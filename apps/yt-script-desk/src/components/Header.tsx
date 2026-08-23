@@ -5,16 +5,28 @@ type HeaderProps = {
   totalWritable: number
   tab: 'write' | 'full'
   onTabChange: (tab: 'write' | 'full') => void
+  fullScriptWords?: number
 }
 
-export function Header({ title, beatCount, writtenCount, totalWritable, tab, onTabChange }: HeaderProps) {
+export function Header({
+  title,
+  beatCount,
+  writtenCount,
+  totalWritable,
+  tab,
+  onTabChange,
+  fullScriptWords = 0,
+}: HeaderProps) {
   const pct = totalWritable === 0 ? 0 : Math.round((writtenCount / totalWritable) * 100)
+  const readMinutes = Math.max(1, Math.round(fullScriptWords / 150))
+  const subtitle =
+    tab === 'full' ? `Full script · ${beatCount} beats · about ${readMinutes} min read aloud` : `Beats 1–${beatCount} · voiceover script`
 
   return (
     <header className="header">
       <div>
         <div className="header-title">{title}</div>
-        <div className="header-subtitle">Beats 1–{beatCount} · voiceover script</div>
+        <div className="header-subtitle">{subtitle}</div>
       </div>
 
       <div className="tabs" role="tablist">

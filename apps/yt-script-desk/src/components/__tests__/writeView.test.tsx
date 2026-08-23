@@ -4,7 +4,14 @@ import { WriteView } from '../WriteView'
 import { makeReadBeat, makeWriteBeat } from '../../test/fixtures'
 import type { Prefs } from '../../hooks/usePrefs'
 
-const allOnPrefs: Prefs = { showRecording: true, showEdit: true, showFacts: true, notesTrack: true }
+const allOnPrefs: Prefs = {
+  showRecording: true,
+  showEdit: true,
+  showFacts: true,
+  notesTrack: true,
+  beatLabels: true,
+  scriptNotes: false,
+}
 
 function noop() {}
 

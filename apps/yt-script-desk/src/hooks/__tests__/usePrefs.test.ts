@@ -41,4 +41,13 @@ describe('usePrefs', () => {
     const stored = JSON.parse(localStorage.getItem('script-desk:prefs') ?? '{}')
     expect(stored.showEdit).toBe(true)
   })
+
+  it('merges new pref keys over an old stored shape without losing what was saved', () => {
+    localStorage.setItem('script-desk:prefs', JSON.stringify({ showFacts: false }))
+
+    const { result } = renderHook(() => usePrefs())
+
+    expect(result.current.prefs.beatLabels).toBe(true)
+    expect(result.current.prefs.showFacts).toBe(false)
+  })
 })

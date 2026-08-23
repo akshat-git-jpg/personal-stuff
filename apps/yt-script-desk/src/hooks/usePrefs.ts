@@ -5,9 +5,18 @@ export type Prefs = {
   showEdit: boolean
   showFacts: boolean
   notesTrack: boolean // the whole right track
+  beatLabels: boolean // the grey margin labels in the full script view
+  scriptNotes: boolean // reserved; renders nothing yet
 }
 
-const DEFAULTS: Prefs = { showRecording: true, showEdit: false, showFacts: true, notesTrack: true }
+const DEFAULTS: Prefs = {
+  showRecording: true,
+  showEdit: false,
+  showFacts: true,
+  notesTrack: true,
+  beatLabels: true,
+  scriptNotes: false,
+}
 
 const STORAGE_KEY = 'script-desk:prefs'
 
