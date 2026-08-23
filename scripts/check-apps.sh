@@ -54,6 +54,20 @@ for dir in "$APPS_DIR"/*; do
     continue
   fi
 
+  # An app with no node_modules cannot be verified — every script would fail on
+  # missing deps, not on a real defect. `node_modules` is gitignored and is per
+  # working tree, so a FRESH checkout (a `wt` leased slot, a clone, CI) has none for
+  # any app. Measured 2026-08-23 in slot 4: 16 [FAIL] rows across 8 apps, all of them
+  # nothing but an empty node_modules, while the owner's main checkout had all 13 apps
+  # built and was green. A red exit code must mean "an app is broken", never "you are
+  # in a fresh copy" — a check that cries wolf gets ignored. SKIP, and do NOT set
+  # FAILED. Behaviour on a built checkout is unchanged.
+  if [ ! -d "$dir/node_modules" ]; then
+    echo "[-_-_] $app_name : SKIP (no node_modules — run 'cd apps/$app_name && npm install' to verify)"
+    RESULTS+=("$app_name : all scripts -> SKIP (no node_modules — deps never installed here)")
+    continue
+  fi
+
   # We check these scripts in order
   for script in "typecheck" "check" "lint" "test"; do
     if has_script "$dir" "$script"; then
