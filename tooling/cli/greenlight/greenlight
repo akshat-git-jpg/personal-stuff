@@ -124,7 +124,10 @@ log "Worktree acquired: $WT_PATH"
 
 function cleanup() {
   log "Releasing worktree..."
-  "$WT_BIN" return "$WT_PATH"
+  # `wt return` refuses a dirty worktree (plan 222) so a killed run's uncommitted work
+  # survives. This trap must not turn that refusal into a non-zero exit for an otherwise
+  # successful land — boss reads this script's exit code.
+  "$WT_BIN" return "$WT_PATH" || log "WARN: worktree NOT returned (dirty?) — slot stays leased: $WT_PATH"
 }
 trap cleanup EXIT
 

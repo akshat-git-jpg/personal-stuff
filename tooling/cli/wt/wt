@@ -17,11 +17,18 @@ set -euo pipefail
 # does not guess at it.
 DEFAULT_TTL_HOURS=24
 
+# Bounded wait for the pool lock. Pre-2026-08-23 `lock_pool` was an unbounded
+# `until mkdir` spin released only by an EXIT trap — and SIGKILL skips traps, so a
+# single killed `wt` wedged EVERY later `wt` call forever, with no timeout and no
+# message. There is no diagnostic that leads anyone to the lock dir, so the fix is
+# to break a provably-dead lock, bound the wait, and fail loudly.
+LOCK_WAIT_SECS=30
+
 function usage() {
   echo "Usage: wt <command> [options]" >&2
   echo "Commands:" >&2
   echo "  get    [--repo <path>] [--holder <label>]" >&2
-  echo "  return <worktree-path>" >&2
+  echo "  return <worktree-path> [--force-dirty]" >&2
   echo "  status [--repo <path>]" >&2
   echo "  prune  [--repo <path>] [--yes]" >&2
   echo "  reap   [--repo <path>] [--ttl-hours <n>] [--yes] [--force-dirty]" >&2
@@ -61,8 +68,14 @@ case "$CMD" in
     done
     ;;
   return)
-    if [ $# -ne 1 ]; then usage; fi
-    TARGET_WT="$1"
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --force-dirty) FORCE_DIRTY=1; shift ;;
+        -*) usage ;;
+        *) [ -n "$TARGET_WT" ] && usage; TARGET_WT="$1"; shift ;;
+      esac
+    done
+    [ -n "$TARGET_WT" ] || usage
     ;;
   *)
     usage
@@ -87,13 +100,45 @@ LOCK_DIR="$POOL/.lock.d"
 
 function lock_pool() {
   mkdir -p "$POOL"
-  until mkdir "$LOCK_DIR" 2>/dev/null; do
-    sleep 0.2
+  local iters=0 max_iters=$((LOCK_WAIT_SECS * 5)) owner_pid now mtime
+  while ! mkdir "$LOCK_DIR" 2>/dev/null; do
+    owner_pid=$(cat "$LOCK_DIR/pid" 2>/dev/null || echo "")
+    # A recorded holder that no longer exists was killed before its trap ran.
+    if [ -n "$owner_pid" ] && ! kill -0 "$owner_pid" 2>/dev/null; then
+      echo "wt: breaking stale pool lock (holder pid $owner_pid is gone)" >&2
+      rm -rf "$LOCK_DIR"; continue
+    fi
+    # No pid file at all: either a lock created before this fix, or a holder killed
+    # between `mkdir` and the pid write. Break it on age alone.
+    if [ -z "$owner_pid" ]; then
+      now=$(date +%s)
+      mtime=$(stat -f %m "$LOCK_DIR" 2>/dev/null || echo "$now")
+      if [ $((now - mtime)) -ge "$LOCK_WAIT_SECS" ]; then
+        echo "wt: breaking stale pool lock (no pid recorded, ${LOCK_WAIT_SECS}s+ old)" >&2
+        rm -rf "$LOCK_DIR"; continue
+      fi
+    fi
+    if [ "$iters" -ge "$max_iters" ]; then
+      echo "ERROR: pool lock held >${LOCK_WAIT_SECS}s by live pid ${owner_pid:-unknown}" >&2
+      echo "  Not breaking a lock whose holder is alive. Inspect that process, or if it is" >&2
+      echo "  wedged, remove: $LOCK_DIR" >&2
+      exit 1
+    fi
+    sleep 0.2; iters=$((iters + 1))
   done
+  printf '%s\n' "$$" > "$LOCK_DIR/pid"
 }
 
+# Only remove a lock this process actually owns. The EXIT trap fires on every exit
+# path, including ones where lock_pool was never called or gave up — a blind rmdir
+# there lets a process that never held the lock free someone else's.
 function unlock_pool() {
-  rmdir "$LOCK_DIR" 2>/dev/null || true
+  local owner_pid
+  owner_pid=$(cat "$LOCK_DIR/pid" 2>/dev/null || echo "")
+  if [ -n "$owner_pid" ] && [ "$owner_pid" != "$$" ]; then
+    return 0
+  fi
+  rm -rf "$LOCK_DIR" 2>/dev/null || true
 }
 
 trap unlock_pool EXIT
@@ -178,9 +223,14 @@ case "$CMD" in
       
       if [ -d "$wt_path" ]; then
         if [ ! -f "$lease_file" ]; then
-          # Check if clean
-          if [ -n "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
-            echo "wt: reclaimed dirty orphaned slot $wt_path (crashed holder, uncommitted work discarded)" >&2
+          if ! wt_is_clean "$wt_path"; then
+            if [ "$FORCE_DIRTY" -ne 1 ]; then
+              echo "wt: slot $i unleased but DIRTY — skipped, NOT reclaimed" >&2
+              echo "  Uncommitted work is still there: $wt_path" >&2
+              echo "  Rescue it, or discard it with: wt get --force-dirty" >&2
+              continue
+            fi
+            echo "wt: reclaimed dirty orphaned slot $wt_path (--force-dirty: uncommitted work discarded)" >&2
           fi
           reset_worktree "$wt_path"
           allocated_path="$wt_path"
@@ -254,8 +304,16 @@ case "$CMD" in
     if [ -n "$(git -C "$wt_path" log --oneline @{u}..HEAD 2>/dev/null)" ]; then
       echo "WARNING: worktree has unpushed commits" >&2
     fi
-    if [ -n "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
-      echo "WARNING: worktree is dirty" >&2
+    if ! wt_is_clean "$wt_path"; then
+      if [ "$FORCE_DIRTY" -ne 1 ]; then
+        echo "ERROR: worktree is DIRTY — NOT returned" >&2
+        echo "  A mid-flight kill routinely leaves a complete-but-uncommitted implementation;" >&2
+        echo "  losing a slot is far cheaper than losing that work (decisions.md 2026-08-02)." >&2
+        echo "  $wt_path" >&2
+        echo "  Rescue it, or discard it with: wt return --force-dirty $wt_path" >&2
+        exit 1
+      fi
+      echo "wt: returning a DIRTY worktree (--force-dirty: uncommitted work discarded)" >&2
     fi
     
     n_dir=$(dirname "$wt_path")
