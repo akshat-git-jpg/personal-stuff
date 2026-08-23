@@ -28,6 +28,26 @@ Append (newest at top, format `YYYY-MM-DD — <decision> — <why>`) when you ma
 
 New folder? Route via the placement rule (apps/ = personal products incl. all deployable Workers; pipelines/ = money-making projects, register in `pipelines/CLAUDE.md`'s map; tooling/ = agent surface). Full lifecycle: **personal-stuff-idea-to-shipped**. Every new folder gets `README.md` + `CLAUDE.md` from day one.
 
+## commit-now in this repo
+
+The shared `commit-now` skill (lives in both work and personal accounts) defers to a repo's own
+rules via its constraint #8. These are personal-stuff's overrides:
+
+1. **Branch naming is not yours.** `pp-work claim` creates and names the branch (`work/<slug>` or
+   `subject/<slug>`). Do not rename it to `feature/<name>`, and do not create a branch as part of
+   the commit flow. Shared constraint #7 does not apply here.
+2. **Claim a workspace before staging.** The main checkout refuses history-recording git verbs
+   (`.claude/hooks/no-history-in-main.sh`). Run `cd "$(pp-work claim --kind code --slug <task>)"`
+   first and commit there. **Do not reach for `GUARD_OK=1`** — every use of it trains the override
+   on, and there are deliberately zero call sites in the repo.
+3. **The commit still does not push — but it does land.** `commit-now` never pushes, exactly as
+   the shared skill says. A `post-commit` hook then verifies and merges the commit to `main` on
+   its own. Do not push, do not open a PR, and do not treat "not pushed" as "not going anywhere".
+4. **Merges and conflicts are not yours.** `pp-land` performs the merge and the boss land sweep
+   resolves a blocked one. The shared skill's "Merge & conflict-resolution commits" section does
+   not apply here; do not finish a conflicted merge by hand in a workspace unless a land brief
+   explicitly asks for it.
+
 ## The non-negotiables (rule — rationale — incident)
 
 | Rule | Rationale | Incident behind it |
