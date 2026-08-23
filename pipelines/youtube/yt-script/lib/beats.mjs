@@ -30,7 +30,60 @@ const BODY_DRAFTS_ARE_INSTRUCTIONS = true
 // `#### 2.9 · Remembering the character next week` -> ['2.9', 'Remembering …']
 const BEAT_RE = /^([0-9A-Za-z][0-9A-Za-z.]*)\s*·\s*(.*)$/
 
+// A pre-spec outline uses `### 1. Cold Open` for a beat and `**Voiceover**` /
+// `**Notes**` for its lanes. OUTLINE-INSTRUCTIONS.md settled on `#### 1 · Cold
+// Open` with `**SAY**` / `**SHOW**` / `**EDIT**`, and the block parser only
+// knows that spelling. Fed a legacy file it does not fail — it quietly returns
+// whichever stray `####` headings happen to exist, so the desk renders a short,
+// plausible, WRONG script. Measured 2026-08-23: ai-avatar-online-courses came
+// back as 5 beats instead of 13, and ai-video-tools-comparison as 0.
+// Refuse instead. A wrong script that looks right is the worst outcome here.
+const LEGACY_BEAT_RE = /^###\s+\d+[.)]\s+\S/gm
+const LEGACY_LANE_RE = /^\*\*(Voiceover|Notes)\*\*\s*$/gm
+
+export class LegacyOutlineError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = 'LegacyOutlineError'
+    this.code = 'LEGACY_OUTLINE_FORMAT'
+  }
+}
+
+function legacyCounts(md) {
+  return {
+    beats: (md.match(LEGACY_BEAT_RE) ?? []).length,
+    lanes: (md.match(LEGACY_LANE_RE) ?? []).length,
+  }
+}
+
+function refuse(found, parsed) {
+  throw new LegacyOutlineError(
+    `LEGACY_OUTLINE_FORMAT: this outline predates OUTLINE-INSTRUCTIONS.md — ` +
+      `found ${found.beats} legacy "### N. Title" beats and ${found.lanes} ` +
+      `"**Voiceover**"/"**Notes**" lanes, but parsed ${parsed} beats. ` +
+      `Rewrite it as "#### N · Title" with **SAY** / **SHOW** / **EDIT** lanes, ` +
+      `or the desk will show a short, plausible, wrong script.`,
+  )
+}
+
+// Runs BEFORE bodyPartIndex: a legacy file usually also trips NO_BODY_PART, and
+// that message sends you hunting for a missing heading instead of the format.
+function assertNotLegacyLanes(md) {
+  const found = legacyCounts(md)
+  if (found.lanes === 0) return
+  refuse(found, 0)
+}
+
+// Runs after: catches a file that uses legacy headings but no legacy lane names.
+function assertNotLegacyBeats(md, beats) {
+  const found = legacyCounts(md)
+  if (found.beats <= beats.length) return
+  refuse(found, beats.length)
+}
+
 export function buildBeats(md) {
+  assertNotLegacyLanes(md)
+
   const blocks = parse(md)
   const bodyIdx = bodyPartIndex(blocks)
   const title = blocks.find((b) => b.t === 'title')?.text ?? 'Untitled'
@@ -133,6 +186,8 @@ export function buildBeats(md) {
   }
 
   flush()
+  assertNotLegacyBeats(md, beats)
+
   return { title, beats }
 }
 
