@@ -289,5 +289,39 @@ if echo "$broken_row" | grep -qE '\|[[:space:]]*(branch|ahead|uncommitted|size):
 fi
 rename_path "$out_b/.git-disabled" "$out_b/.git"
 
+# -----------------------------------------------------------------------------
+# 15. A REBASED land still counts as merged.
+#
+# pp-land lands through greenlight, which rebases the branch onto main, so the commits
+# that reach main carry new SHAs. `merge-base --is-ancestor` then says "not merged" for a
+# branch whose every line IS on main. With that as the gate, no workspace that landed
+# after main had moved could ever be removed -- they would accumulate forever while reap
+# reported "not merged" on each pass. Measured on two live workspaces on 2026-08-23.
+# -----------------------------------------------------------------------------
+out_r=$(run_guarded "$PPWORK" claim --kind code --slug rebased-land)
+( cd "$out_r" && echo "mine" > mine.txt && git add mine.txt && git commit -m "mine" >/dev/null )
+r_sha=$(git -C "$out_r" rev-parse HEAD)
+
+# main moves on independently, so the land below cannot be a fast-forward.
+( cd "$MAIN_DIR" && echo "theirs" > theirs.txt && git add theirs.txt \
+  && git commit -m "theirs" >/dev/null && git push origin main >/dev/null 2>&1 )
+# The land itself: the same change, replayed onto main under a NEW sha.
+( cd "$MAIN_DIR" && git cherry-pick "$r_sha" >/dev/null 2>&1 && git push origin main >/dev/null 2>&1 ) \
+  || fail "(15) fixture setup failed — could not replay the commit onto main"
+
+git -C "$MAIN_DIR" merge-base --is-ancestor work/rebased-land origin/main 2>/dev/null \
+  && fail "(15) fixture is vacuous — the branch IS an ancestor, so the old gate would have passed anyway"
+[ "$(git -C "$MAIN_DIR" cherry origin/main work/rebased-land | grep -c '^+' || true)" -eq 0 ] \
+  || fail "(15) fixture is wrong — the commit is not actually applied on main"
+
+list_out=$("$PPWORK" list 2>/dev/null) || fail "(15) list failed"
+echo "$list_out" | grep -q "rebased-land .* unlanded:0" \
+  || fail "(15) list still counts a rebased-and-landed commit as pending: $(echo "$list_out" | grep rebased-land | head -1)"
+
+if ! run_guarded env PPWORK_GRACE_SECS=0 "$PPWORK" remove "$out_r" >/dev/null 2>&1; then
+  fail "(15) remove refused a workspace whose work is fully on main via a rebased land"
+fi
+[ -d "$out_r" ] && fail "(15) remove reported success but the directory remains"
+
 echo ""
 echo "ALL TESTS PASSED"
