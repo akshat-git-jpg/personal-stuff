@@ -436,3 +436,22 @@ Do NOT "simplify" this back to one flow. Both flows are wanted: plans 218-220.
   `pipelines/video/card-library/catalog.json`. Full entry and the accepted
   truncation cost: `pipelines/video/visuals-flow/decisions.md`, same date.
   Plans 228, 229.
+- 2026-08-23 — **`branch-guard.sh` retired for a wall on history-recording git verbs
+  (`.claude/hooks/no-history-in-main.sh`, plan 227).** The 2026-08-22 incident was a
+  correctly-scoped `git add decisions.md` that swallowed a concurrent session's unrelated
+  36-line edit, so the old guard could never have caught it: it covered only
+  `switch`/`checkout`, its regex `git\s+(switch|checkout)\s+[^-]` let **any flag** through
+  (`git checkout -q main`, `-b`, `switch -c`), and it fired only when another session's
+  transcript had been touched in the last 5 minutes — probabilistic enforcement of a
+  deterministic invariant. Its `MAIN_CHECKOUT` was hardcoded to this Mac and
+  `.claude/settings.json` is tracked, so the copy that shipped to the VPS matched nothing.
+  The replacement denies `add|commit|stash|rebase|merge|switch|checkout|reset|cherry-pick|am|apply|revert|tag`
+  when cwd is the MAIN worktree, decided by `git rev-parse --path-format=absolute --git-dir
+  --git-common-dir` being equal — the normalisation is load-bearing, because raw output is
+  absolute for `--git-dir` but relative for `--git-common-dir` below the toplevel, which
+  fails open in every subdirectory. Repo identity is self-identifying (the hook looks for
+  its own file in the resolved main worktree), so it works on a fresh clone and on the VPS
+  and never fires in a ZluriHQ repo. Reading and writing stay free — both sessions were
+  entitled to write that file; the commit is the chokepoint. Zero `GUARD_OK=1` call sites
+  by design; the override is for a human's deliberate one-off only. Pinned by
+  `.claude/hooks/test-no-history-in-main.sh` (14 behavioural cases).
