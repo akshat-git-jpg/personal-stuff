@@ -51,7 +51,7 @@ streaks, tasks earn on-time percentage.
 `migrations/` holds one-shot SQL applied after a schema change:
 
 ```bash
-npm run db:remote                                        # create/alter tables
+npm run db:remote                                        # create/alter tables (e.g. habit_logs)
 npx wrangler d1 execute founders-db --remote --file=migrations/2026-08-23-habits.sql
 ```
 
