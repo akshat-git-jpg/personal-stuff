@@ -25,7 +25,39 @@ PPPUSH_SIZE_CAP=$((4 * 1024 * 1024))   # 4 MB per path
 SECRET_GLOBS=( '*.env' '.env' '.env.*' '*.local.json' 'credentials.json' 'token.json' 'client_secret*.json' '*.pem' '*.key' '*.p12' '*.keystore' '.dev.vars' '.dev.vars.*' '*.gpg'
 )
 
+# The ONE exemption from SECRET_GLOBS (owner call 2026-08-23, to unpark PR#195): a
+# `*.example` template may be committed, so `.dev.vars.example` can ship a placeholder.
+#
+# This narrows the list above, which that comment tells you never to do — so it is
+# deliberately NOT filename-only. A bare filename exemption would be precisely the
+# "edit the example in place and forget" leak it is named after, and this repo is
+# PUBLIC with no branch protection. The exemption therefore holds only while the file
+# carries placeholders; an example that actually contains a credential is still refused,
+# by PPPUSH-EXAMPLE-VALUE below. Same one-line array shape as SECRET_GLOBS, for the same
+# reason: a `#` inside a compound assignment comments to end of line only.
+SECRET_VALUE_PREFIXES=( 'gho_' 'ghp_' 'github_pat_' 'sk-' 'sk_live_' 'AKIA' 'AIza' 'xoxb-' 'xoxp-' '-----BEGIN' 'eyJ'
+)
+
 die() { echo "pp-push: $*" >&2; exit 1; }
+
+# 0 = every value is a placeholder, 1 = holds something credential-shaped,
+# 2 = blob unreadable (deleted in range). 2 grants NO exemption — it falls through to
+# the normal glob check, which fails closed.
+example_is_placeholder_only() {
+  local path="$1" ref="$2" body line value p
+  body=$(git -C "$REPO" cat-file -p "$ref:$path" 2>/dev/null) || return 2
+  while IFS= read -r line; do
+    case "$line" in '' | '#'*) continue ;; esac
+    value=${line#*=}
+    [ "$value" = "$line" ] && continue          # no '=' on this line at all
+    for p in "${SECRET_VALUE_PREFIXES[@]}"; do
+      case "$value" in "$p"*) return 1 ;; esac
+    done
+    # A real credential is long and unbroken; a placeholder is short, or has spaces.
+    if [ "${#value}" -ge 24 ] && [[ "$value" != *[[:space:]]* ]]; then return 1; fi
+  done <<< "$body"
+  return 0
+}
 
 # ---------------------------------------------------------------------------
 # Self-checks. Each answers "is the guard really the guard?", and each FAILS
@@ -127,14 +159,33 @@ done < <( { git -C "$REPO" diff --name-only "$base".."$local_ref" 2>/dev/null ||
 for path in "${changed[@]:-}"; do
   [ -n "$path" ] || continue
   base_name=$(basename "$path")
-  for g in "${SECRET_GLOBS[@]}"; do
-    # shellcheck disable=SC2053
-    if [[ "$base_name" == $g ]]; then
-      die "PPPUSH-SECRET refusing to push: '$path' matches the secret pattern '$g'.
+
+  # A `*.example` template is exempt from SECRET_GLOBS, but ONLY while it holds
+  # placeholders. See SECRET_VALUE_PREFIXES above for why the pairing is load-bearing.
+  exempt=0
+  if [[ "$base_name" == *.example ]]; then
+    example_is_placeholder_only "$path" "$local_ref"
+    case $? in
+      0) exempt=1 ;;
+      1) die "PPPUSH-EXAMPLE-VALUE refusing to push: '$path' is a *.example template but
+  holds a value that looks like a real credential, not a placeholder. A *.example file is
+  exempt from the secret list only while it stays a template. Replace the value with a
+  placeholder (e.g. change-me) or drop the file. This repo is PUBLIC and main has no
+  branch protection, so a push here is irreversible." ;;
+      *) exempt=0 ;;   # unreadable blob: no exemption, fall through and fail closed
+    esac
+  fi
+
+  if [ "$exempt" -eq 0 ]; then
+    for g in "${SECRET_GLOBS[@]}"; do
+      # shellcheck disable=SC2053
+      if [[ "$base_name" == $g ]]; then
+        die "PPPUSH-SECRET refusing to push: '$path' matches the secret pattern '$g'.
   This repo is PUBLIC and main has no branch protection, so a push here is irreversible.
   Remove it from the commit range ${base}..${local_ref} and try again."
-    fi
-  done
+      fi
+    done
+  fi
   size=$(git -C "$REPO" cat-file -s "$local_ref:$path" 2>/dev/null || echo 0)
   if [ "$size" -gt "$PPPUSH_SIZE_CAP" ]; then
     die "PPPUSH-SIZE refusing to push: '$path' is $size bytes, over the ${PPPUSH_SIZE_CAP}-byte cap.

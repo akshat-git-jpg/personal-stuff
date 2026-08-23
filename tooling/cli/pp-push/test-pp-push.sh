@@ -108,6 +108,34 @@ set +e; "$GATE" --repo "$BASE/wt" origin HEAD:main >/dev/null 2>&1; rc=$?; set -
 git reset -q --hard HEAD~2
 ok "a secret added and deleted within one push range is refused"
 
+# 2c. a `*.example` TEMPLATE is allowed through (owner call 2026-08-23) — the exemption
+#     that unparked PR#195's `.dev.vars.example`.
+git fetch -q origin
+printf 'DESK_ADMIN_TOKEN=change-me\n' > .dev.vars.example
+git add -f .dev.vars.example; git commit -qm "add dev vars example"
+"$GATE" --repo "$BASE/wt" origin HEAD:main >/dev/null 2>&1 \
+  || fail "pp-push REFUSED a placeholder-only *.example template"
+ok "a placeholder-only *.example template is allowed"
+
+# 2d. ...but a `*.example` holding a REAL credential is still REFUSED. Without this the
+#     exemption above is just the "edit the example in place and forget" leak.
+git fetch -q origin
+printf 'DESK_ADMIN_TOKEN=gho_16C7e42F292c6912E7710c838347Ae178B4a\n' > .dev.vars.example
+git add -f .dev.vars.example; git commit -qm "oops, real token in the example"
+set +e; "$GATE" --repo "$BASE/wt" origin HEAD:main >/dev/null 2>&1; rc=$?; set -e
+[ "$rc" -ne 0 ] || fail "pp-push PUSHED a *.example holding a real credential"
+git reset -q --hard HEAD~1
+ok "a *.example holding a real credential is refused"
+
+# 2e. the exemption is *.example ONLY — a real .dev.vars is still refused.
+git fetch -q origin
+printf 'DESK_ADMIN_TOKEN=change-me\n' > .dev.vars
+git add -f .dev.vars; git commit -qm "add real dev vars"
+set +e; "$GATE" --repo "$BASE/wt" origin HEAD:main >/dev/null 2>&1; rc=$?; set -e
+[ "$rc" -ne 0 ] || fail "pp-push PUSHED a real .dev.vars — the exemption leaked past *.example"
+git reset -q --hard HEAD~1
+ok "the exemption does not extend to a real .dev.vars"
+
 # 3. an oversized file is REFUSED
 git fetch -q origin
 mkdir -p big; dd if=/dev/zero of=big/blob.bin bs=1024 count=5000 2>/dev/null
