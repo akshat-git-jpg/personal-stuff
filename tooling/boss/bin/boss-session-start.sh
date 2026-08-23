@@ -109,3 +109,11 @@ done < <(wt status --repo "$REPO_ROOT" 2>/dev/null)
 # nothing it writes shows up in the in-flight loop above.
 echo "== blocked lands (fix-ups dispatched into the workspace that already exists) =="
 "$BOSS_HOME/bin/boss-land-sweep.sh" 2>&1 | sed 's/^/  /'
+
+# Idle workspaces (2026-08-23). A land no longer removes the workspace it came from --
+# one session commits many times into one workspace -- so reclaiming is a separate, later
+# step. Running it HERE makes it the catch-up path as well: a workspace whose session died
+# is reclaimed the next time boss opens. reap refuses anything dirty, unmerged, holding
+# renders, or touched inside the grace window, so it can never take live work.
+echo "== idle workspaces (reclaimed only when clean, merged and untouched) =="
+"$REPO_ROOT/tooling/cli/pp-work/pp-work" reap 2>&1 | sed 's/^/  /' || true
