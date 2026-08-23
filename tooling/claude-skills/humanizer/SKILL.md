@@ -1,18 +1,17 @@
 ---
 name: humanizer
 description: |
-  Use when producing, rewriting, or auditing text that a THIRD PARTY will
-  read: Slack message, email, Jira comment, PR description, README,
-  Notion/Confluence page, design doc, social post, blog/ebook chapter,
-  marketing copy, pin description, video script. Triggers on "write a
-  message", "draft an email", "reframe this for slack", "update the ticket",
-  "write the chapter", "make a post", "humanize this", "make it sound
-  natural", "is this AI slop", "does this read as AI", "audit this draft",
-  or any draft carrying AI tells (em dashes, "delve", rule of three,
-  promotional filler). NOT for text addressed to the person asking:
-  explanations, instructions, summaries, plans, and status reports delivered
-  in this session belong to i-have-adhd. Also excluded: code, code comments,
-  commit messages, config files, CLI output.
+  Use when producing, rewriting, or auditing text a THIRD PARTY
+  will read: Slack message, email, Jira comment, PR description,
+  README, Notion/Confluence page, design doc, social post,
+  blog/ebook chapter, marketing copy, pin description, video
+  script. Triggers on "draft an email", "reframe this for slack",
+  "update the ticket", "make a post", "humanize this", "is this AI
+  slop", "audit this draft", or any draft carrying AI tells (em
+  dashes, "delve", rule of three). NOT for text addressed to the
+  person asking - explanations, instructions, summaries, plans and
+  status reports belong to i-have-adhd. Also excluded: code,
+  commit messages, config, CLI output.
 user-invocable: true
 allowed-tools:
   - Read
