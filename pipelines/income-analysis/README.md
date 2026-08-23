@@ -19,7 +19,7 @@ The plan: every income source gets its own CLI or MCP that reads its data, and t
 ### impact.com (affiliate)
 
 - Account: Agrollo (media-partner 4809503), currency INR.
-- Tool: `impact-pp-cli` plus the `pp-impact` Claude skill. Built with Printing Press. The CLI lives in `~/printing-press/library/impact/` (binary at `~/go/bin/impact-pp-cli`); the skill is in `personal-stuff/tooling/claude-skills/pp-impact/`.
+- Tool: `impact-pp-cli` plus the `pp-impact` Claude skill. Built with Printing Press. The CLI lives in `~/printing-press/library/impact/` (binary at `~/go/bin/impact-pp-cli`); the skill is `pp-impact`, source in `pipelines/.claude/skills/pp-impact/`, symlinked into `.claude/skills/`. Repo-scoped on purpose, so it loads in personal-stuff sessions and never in a work repo. Its "Output contract" section pins the month-then-program shape and explains why the per-month loop is unavoidable — read it before changing how income is reported.
 - Reads: earnings by program/software, earnings by day or month, programs I've joined, per-conversion commissions, invoices (payouts), and contracts.
 - How to query: in Claude, just ask ("my impact.com income by program last month") and the pp-impact skill handles it. By hand: source the creds and run the CLI.
 - Notes: local-only. The account id is baked into the URL so it can't be published. The token sits in `personal-stuff/infra/secrets/impact.env` (gitignored) and I can revoke it from impact.com settings anytime. Read-only reporting.
