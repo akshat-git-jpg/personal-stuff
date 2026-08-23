@@ -33,9 +33,16 @@ Thumbs.db
 *.swo
 *~
 
-# Local Claude permission overrides (each project may keep its own)
-# NOTE: project .claude/settings.local.json is allowed (per-project overrides),
-# only ignore stray runtime files
+# Local Claude permission overrides and per-session worktrees.
+# These were previously protected ONLY by .git/info/exclude (lines 11 and 18), which is
+# per-clone and machine-local — so a fresh clone or the VPS had no protection at all, on a
+# PUBLIC repo, for a file that holds a live GH_TOKEN and is rewritten by Claude Code on
+# every permission save. The old note here said settings.local.json was "allowed"; nothing
+# is or was tracked (`git ls-files | grep settings.local.json` is empty), so ignoring it
+# costs nothing. If a specific override file is ever genuinely wanted in git, add it by
+# name with `git add -f`.
+.claude/settings.local.json
+.claude/worktrees/
 .claude/cache/
 .claude/logs/
 
@@ -63,6 +70,11 @@ infra/docker/ntfy/data/etc/users.db
 
 # Rendered/generated media — outputs are rebuildable, never commit
 pipelines/video/voice/**/output/
+# The tree moved under archive/ and this rule did not follow, so it matched nothing and
+# 37 rendered files are already tracked beneath it. Both spellings are kept: the archive
+# path is where the files actually live, the original is harmless and covers a restore.
+pipelines/archive/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.mp4
+pipelines/archive/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.webm
 pipelines/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.mp4
 pipelines/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.webm
 docs/voice-pipeline-test/
