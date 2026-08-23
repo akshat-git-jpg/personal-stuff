@@ -96,13 +96,30 @@ fi
 git -C "$REPO" rev-parse --verify --quiet "$base" >/dev/null \
   || die "cannot resolve a base ref to diff against ($base). Refusing to push blind."
 
+# Every path this range EVER introduced, not just the net change.
+#
+# `diff --name-only A..B` compares two POINTS, so a secret added in one commit and deleted
+# in the next is invisible to it — while remaining readable forever from the pushed history.
+# Proved on 2026-08-23 in a throwaway repo: commit 1 adds `.env`, commit 2 removes it, both
+# pushed together. The two-point diff reported NO files; `git show <mid>:.env` still printed
+# the token. That is not a corner case here: `pp-land` coalesces commits, so multi-commit
+# pushes are the norm, and this repo is public with no branch protection.
+#
+# `log --diff-filter=A` lists additions across every commit in the range, so the add-then-
+# delete pair is caught. `--pretty=format:` keeps commit headers out of the path list, and
+# the ADDITION filter is the right one: a path that only ever existed inside the range is
+# exactly what a net diff loses.
+#
 # A while-read loop, not `mapfile`: the system bash on this Mac is 3.2, which has no
 # mapfile, and the gate must run under whichever bash `env` finds.
 changed=()
 while IFS= read -r _p; do
   [ -n "$_p" ] || continue
   changed+=("$_p")
-done < <(git -C "$REPO" diff --name-only "$base".."$local_ref" 2>/dev/null || true)
+done < <( { git -C "$REPO" diff --name-only "$base".."$local_ref" 2>/dev/null || true
+            git -C "$REPO" log --diff-filter=A --name-only --pretty=format: \
+                "$base".."$local_ref" 2>/dev/null || true
+          } | sort -u )
 
 # ---------------------------------------------------------------------------
 # The gate.
