@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
-const LANE_RE = /^\*\*(SAY|SHOW|EDIT)\*\*(?:\s*[—-]\s*(.*))?$/i
+const LANE_RE = /^\*\*(SAY|SHOW|EDIT|FACTS)\*\*(?:\s*[—-]\s*(.*))?$/i
 
 // Strip the blockquote marker, keeping everything after ONE optional space so a
 // continuation line's own indentation survives.
@@ -91,7 +91,7 @@ export function parse(md) {
     if (/^>/.test(line)) {
       const raw = flushQuote()
       const head = raw[0] ?? ''
-      if (/^\*\*RULES\b/i.test(head)) blocks.push({ t: 'rules' })
+      if (/^\*\*RULES\b/i.test(head)) blocks.push({ t: 'rules', raw })
       else if (/^\*\*VERDICT/i.test(head)) {
         blocks.push({
           t: 'verdict',

@@ -39,6 +39,7 @@ anywhere.
 | `**SAY**` alone on a line, then a `>` blockquote | Amber chip, serif text, amber rail |
 | `**SHOW**` alone on a line, then plain lines | Teal chip, sans text, teal rail |
 | `**EDIT**` alone on a line, then plain lines | Rose chip, sans text, rose rail |
+| `**FACTS**` alone on a line, then plain lines | Slate chip, sans text — numbers for this beat |
 | `**SAY** — lip-sync` | Same, with a small caption under the chip |
 | `> **RULES — WHOLE SECTION**` then `> - item` lines | Red rules box |
 | `> **VERDICT:** ...` | Slate verdict block |
@@ -55,6 +56,25 @@ For multi-paragraph spoken copy, keep every line inside the blockquote and
 separate paragraphs with a bare `>`.
 
 ---
+
+## The FACTS lane
+
+A beat may carry a `**FACTS**` lane: the numbers, prices, limits and product
+names that beat depends on, lifted from `knowledge.md`. Plain lines, never a
+blockquote — it is not spoken.
+
+```
+**FACTS**
+Higgsfield Soul ID trains once, about 5 minutes.
+Midjourney needs the reference URL pasted into every prompt.
+```
+
+It exists so the script desk can put a beat's numbers beside that beat instead
+of making the maker hunt through the whole knowledge file. It is optional: an
+outline with no FACTS lanes parses fine and the desk simply shows no facts.
+
+**FACTS is never spoken copy.** Putting it in a blockquote makes the parser
+treat it as prose, and the desk will not show it.
 
 ## The rules box
 
