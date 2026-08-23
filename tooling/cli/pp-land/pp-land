@@ -22,6 +22,14 @@ set -uo pipefail
 # NOT `set -e`: greenlight exits 0 when it parks, the mutex must be released on every
 # path, and a tolerated failure (pp-work refusing an unmerged workspace) is normal.
 
+# The trigger is a `post-commit` hook, and git runs hooks with GIT_DIR, GIT_INDEX_FILE and
+# friends pointing at the COMMITTING worktree. Those override every `git -C <path>` below,
+# so a land inherited from a hook would operate on the workspace's git dir and index — the
+# landing tree comes back with the whole repo staged as deleted and the rebase "conflicts"
+# with nothing. Every path below resolves its repo explicitly, so drop them all.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR \
+      GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES 2>/dev/null || true
+
 log() {
   local line="[$(date +'%Y-%m-%d %H:%M:%S')] pp-land: $1"
   printf '%s\n' "$line" >&2
@@ -302,7 +310,7 @@ do_one_land() {
   fi
   provision_landing_tree
 
-  if ! git -C "$MAIN" update-ref -f "refs/heads/$land_branch" "$sha"; then
+  if ! git -C "$MAIN" update-ref "refs/heads/$land_branch" "$sha"; then
     write_blocked "$ws" "$branch" "cannot create the landing ref $land_branch" "$land_branch"
     return 0
   fi

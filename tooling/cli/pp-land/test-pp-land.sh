@@ -22,9 +22,14 @@ TMO="timeout"
 command -v gtimeout >/dev/null 2>&1 && TMO="gtimeout"
 tmo() { "$TMO" -k 10 120 "$@"; }
 
-SANDBOX=$(mktemp -d)
+SANDBOX=$(cd "$(mktemp -d)" && pwd -P)
 cleanup_sandbox() {
-  # Give any detached lander a moment, then take the whole sandbox with us.
+  # PPLAND_TEST_KEEP=1 leaves the sandbox behind. A land runs detached, so its log is the
+  # only account of what happened, and a failure is undiagnosable without it.
+  if [ -n "${PPLAND_TEST_KEEP:-}" ]; then
+    echo "sandbox kept at $SANDBOX" >&2
+    return 0
+  fi
   rm -rf "$SANDBOX" 2>/dev/null || true
 }
 trap cleanup_sandbox EXIT
@@ -175,6 +180,18 @@ wait_land_done() {
   return 1
 }
 
+# pp-work resolves its roots from the CWD, so a claim must run from inside the sandbox
+# checkout. Getting this wrong once created a workspace and a branch in the REAL repo.
+claim() {   # claim <slug>
+  local out
+  out=$( cd "$MAIN" && tmo "$PPWORK" claim --kind code --slug "$1" 2>/dev/null ) || return 1
+  case "$out" in
+    "$HOME/kb-scratch/workspaces/personal-stuff-$HASH8/"*) ;;
+    *) fail "pp-work claim escaped the sandbox: $out" ;;
+  esac
+  printf '%s\n' "$out"
+}
+
 commit_in() {   # commit_in <workspace> <relpath> <content> <msg>
   local ws="$1" rel="$2" content="$3" msg="$4"
   mkdir -p "$(dirname "$ws/$rel")"
@@ -187,7 +204,7 @@ commit_in() {   # commit_in <workspace> <relpath> <content> <msg>
 echo "1. a workspace commit lands on main"
 # ===========================================================================
 before=$(remote_main)
-ws1=$(tmo "$PPWORK" claim --kind code --slug land-one) || fail "pp-work claim failed"
+ws1=$(claim land-one) || fail "pp-work claim failed"
 [ -d "$ws1" ] || fail "claim returned a path that is not a directory: $ws1"
 
 commit_out=$(commit_in "$ws1" "src/one.txt" "one" "add one" 2>&1) \
@@ -226,7 +243,7 @@ note "no land fired, origin/main unchanged"
 # ===========================================================================
 echo "3. the dispatcher writes zero bytes"
 # ===========================================================================
-ws3=$(tmo "$PPWORK" claim --kind code --slug silent) || fail "pp-work claim failed"
+ws3=$(claim silent) || fail "pp-work claim failed"
 hook_out=$( cd "$ws3" && bash "$HOOKS/post-commit" 2>&1 )
 [ -z "$hook_out" ] || fail "the post-commit dispatcher wrote output: [$hook_out]"
 wait_land_done || fail "the no-op land never finished"
@@ -237,7 +254,7 @@ echo "4. a failing verify writes land-<slug>.blocked and publishes nothing"
 # ===========================================================================
 before=$(remote_main)
 : > "$SANDBOX/verify-fail"
-ws4=$(tmo "$PPWORK" claim --kind code --slug failing-verify) || fail "pp-work claim failed"
+ws4=$(claim failing-verify) || fail "pp-work claim failed"
 commit_in "$ws4" "src/bad.txt" "bad" "add bad" >/dev/null 2>&1 || fail "commit failed"
 wait_mutex_appear || fail "no land started for the failing-verify workspace"
 wait_land_done || fail "the failing land never finished"
@@ -273,7 +290,7 @@ echo keep > "$LANDING/node_modules/keep.txt"
 echo keep > "$LANDING/ignored-keep.txt"
 
 before=$(remote_main)
-ws5=$(tmo "$PPWORK" claim --kind code --slug provisioned) || fail "pp-work claim failed"
+ws5=$(claim provisioned) || fail "pp-work claim failed"
 commit_in "$ws5" "src/five.txt" "five" "add five" >/dev/null 2>&1 || fail "commit failed"
 wait_mutex_appear || fail "no land started for the provisioned workspace"
 wait_land_done || fail "the land never finished"
@@ -290,7 +307,7 @@ echo "6. a commit made during a land is coalesced, not dropped"
 before=$(remote_main)
 runs_before=$(verify_runs)
 echo 4 > "$SANDBOX/verify-sleep"
-ws6=$(tmo "$PPWORK" claim --kind code --slug coalesce) || fail "pp-work claim failed"
+ws6=$(claim coalesce) || fail "pp-work claim failed"
 
 commit_in "$ws6" "src/c1.txt" "c1" "add c1" >/dev/null 2>&1 || fail "first commit failed"
 wait_mutex_appear || fail "no land started for the coalesce workspace"
@@ -372,7 +389,7 @@ note "pool lease taken and returned, verify ran exactly once"
 # ===========================================================================
 echo "8. a deploy-live conflict is never auto-resolved"
 # ===========================================================================
-ws8=$(tmo "$PPWORK" claim --kind code --slug deploy-live) || fail "pp-work claim failed"
+ws8=$(claim deploy-live) || fail "pp-work claim failed"
 commit_in "$ws8" "infra/deploy.sh" "echo deploy from the workspace" "workspace edits infra" \
   >/dev/null 2>&1 || fail "commit failed"
 
