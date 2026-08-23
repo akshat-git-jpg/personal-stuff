@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { RotateCcw, AlertTriangle } from "lucide-react";
-import { linkDrift, linkResync, type DriftRow, type BoardRow } from "./api";
+import { linkDrift, linkResync, type DriftRow } from "./api";
 import { Button } from "@/components/ui/button";
-import { LinkStudio } from "./LinkStudio";
-import { pipeOf, isGateOpen } from "./stages";
 
 export function LinkDriftPanel() {
   const [driftRows, setDriftRows] = useState<DriftRow[]>([]);
@@ -113,65 +111,18 @@ export function LinkDriftPanel() {
   );
 }
 
-export function LinksTab({ rows, onSaved }: { rows: BoardRow[], onSaved: () => void }) {
-  const uploadRows = rows.filter((r) => {
-    const p = pipeOf(r as Record<string, unknown>);
-    const uploadStage = p.stages.find(s => s.id === "upload");
-    if (!uploadStage) return false;
-    return isGateOpen(p, uploadStage, r as Record<string, unknown>);
-  });
-
-  const [selectedRowId, setSelectedRowId] = useState<string>(() => {
-    return uploadRows.length > 0 ? uploadRows[0].row_id! : "";
-  });
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!selectedRowId && uploadRows.length > 0) setSelectedRowId(uploadRows[0].row_id!);
-  }, [uploadRows, selectedRowId]);
-
-  const selectedRow = uploadRows.find((r) => r.row_id === selectedRowId);
-  const initialToolsStr = selectedRow ? ((selectedRow as Record<string, unknown>).video_tools as string) || "[]" : "[]";
-  const initialTools = React.useMemo(() => {
-    try {
-      return JSON.parse(initialToolsStr);
-    } catch {
-      return [];
-    }
-  }, [initialToolsStr]);
-
+/**
+ * The Links tab is the CROSS-VIDEO audit, and only that: which already-minted
+ * links no longer match the affiliate sheet.
+ *
+ * Minting links for one video went back to that video's own card, where the
+ * video is already in front of you. Doing it here meant picking a video from a
+ * dropdown you had just opened a card for — the same choice made twice.
+ */
+export function LinksTab() {
   return (
-    <div className="space-y-8 max-w-4xl py-4">
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Generate Links</h2>
-        <div>
-          <label htmlFor="video-picker" className="block text-sm font-medium text-foreground/80 mb-1.5">Select a video to generate links for</label>
-          <select
-            id="video-picker"
-            className="flex h-9 w-full max-w-md rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
-            value={selectedRowId}
-            onChange={(e) => setSelectedRowId(e.target.value)}
-          >
-            <option value="">— Select a video —</option>
-            {uploadRows.map((r) => (
-              <option key={r.row_id} value={r.row_id}>{r.video_title || r.row_id}</option>
-            ))}
-          </select>
-        </div>
-        
-        {selectedRow && (
-          <LinkStudio
-            rowId={selectedRow.row_id!}
-            videoTitle={selectedRow.video_title || selectedRow.row_id!}
-            initialTools={initialTools}
-            onSaved={onSaved}
-          />
-        )}
-      </div>
-
-      <div className="border-t border-border pt-4">
-        <LinkDriftPanel />
-      </div>
+    <div className="max-w-4xl py-4">
+      <LinkDriftPanel />
     </div>
   );
 }

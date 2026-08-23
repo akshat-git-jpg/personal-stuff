@@ -9,7 +9,7 @@
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "npm install && vitest run",
     "seed:local": "tsx scripts/seed-local.ts",
     "dev:api": "wrangler dev --port ${API_PORT:-8787}",
     "dev:web": "vite",
