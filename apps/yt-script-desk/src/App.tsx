@@ -25,9 +25,11 @@ export function App() {
   const key = getKeyFromUrl()
 
   const fetchDoc = useCallback(() => {
-    setLoadError(null)
     getVideo(key)
-      .then(setDoc)
+      .then((d) => {
+        setDoc(d)
+        setLoadError(null)
+      })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err)
         setLoadError(/-> 404/.test(msg) ? 'notfound' : 'network')
