@@ -23,7 +23,9 @@
 .full-script-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* flex-end, not space-between: the beat counter that used to sit on the left
+     is gone (owner 2026-08-23), and space-between would strand the lone button. */
+  justify-content: flex-end;
   margin: 0 44px;
   padding: 18px 0 34px;
   border-top: 1px solid var(--rule);

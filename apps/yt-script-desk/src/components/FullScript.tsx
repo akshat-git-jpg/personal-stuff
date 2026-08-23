@@ -42,7 +42,7 @@ export function FullScript({ doc, loadError, beatLabels, onRetry, onFinish }: Fu
     return (
       <>
         <p className="full-script-message">This outline has no beats.</p>
-        <FullScriptFooter written={0} total={0} finished={false} disabled onFinish={onFinish} />
+        <FullScriptFooter finished={false} disabled onFinish={onFinish} />
       </>
     )
   }
@@ -58,8 +58,6 @@ export function FullScript({ doc, loadError, beatLabels, onRetry, onFinish }: Fu
         ))}
       </div>
       <FullScriptFooter
-        written={stats.writtenCount}
-        total={stats.totalBeats}
         finished={doc.finished}
         disabled={!allWritten}
         onFinish={onFinish}
@@ -104,23 +102,16 @@ function BeatRows({ beat, doc, beatLabels }: { beat: Beat; doc: VideoDoc; beatLa
 }
 
 function FullScriptFooter({
-  written,
-  total,
   finished,
   disabled,
   onFinish,
 }: {
-  written: number
-  total: number
   finished: boolean
   disabled: boolean
   onFinish: () => Promise<void> | void
 }) {
   return (
     <div className="full-script-footer">
-      <span className="full-script-count">
-        {written} of {total} beats written
-      </span>
       {finished ? (
         <span className="chip-finished">
           <Check size={14} /> Script finished

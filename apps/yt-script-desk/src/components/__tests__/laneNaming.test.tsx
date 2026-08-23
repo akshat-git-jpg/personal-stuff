@@ -156,3 +156,27 @@ describe('no length number appears on either screen', () => {
     expect(document.body.textContent ?? '').not.toMatch(/\bwords\b/i)
   })
 })
+
+// Outline authors write "**This is the one demo block of the video.**" in a
+// RULES lane. The instruction track printed the asterisks literally, which read
+// as broken text in the middle of General Notes (seen live 2026-08-23).
+describe('markdown emphasis in an instruction line', () => {
+  it('renders bold instead of printing asterisks', () => {
+    const beat = makeWriteBeat({
+      rules: ['**This is the one demo block.** Everything else references it.'],
+      facts: [],
+      angle: [],
+      show: [],
+      edit: [],
+    })
+    renderView([beat])
+
+    const cell = document.querySelector('[data-testid="right-cell"]')
+    expect(
+      cell?.textContent ?? '',
+      'RAW_MARKDOWN_SHOWN: literal ** asterisks reached the instruction track',
+    ).not.toContain('**')
+    expect(cell?.querySelector('strong')?.textContent).toBe('This is the one demo block.')
+    expect(cell?.textContent).toContain('Everything else references it.')
+  })
+})
