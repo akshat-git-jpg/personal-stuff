@@ -18,13 +18,14 @@ steps**, each gated on the owner asking for the next one.
 | 3 | the maker's completed draft back | `script.md` + `script.vo.txt` |
 | 4 | `script.vo.txt` | voiceover audio — **not wired yet** |
 
-The hinge is step 3. The outline PDF goes out to a remote tutorial maker, who
-records his screen and writes the demo-specific lines the outline could not know.
-What comes back is **his draft**. Step 3 does not write a script — it finalises
-his, for an AI voiceover engine: pronunciation, spelling, pacing punctuation,
-clear headings, and a hard split between spoken words and production notes. The
-incoming draft is stored untouched as `script-draft.md`; every edit lands in
-`script.md`.
+The hinge is step 3. The outline PDF is now a fallback, and instead you publish to the desk:
+`cd apps/yt-script-desk && DESK_ADMIN_TOKEN=… node bin/desk.mjs publish <key>`.
+What comes back is **his draft**, pulled via:
+`cd apps/yt-script-desk && DESK_ADMIN_TOKEN=… node bin/desk.mjs pull <key>`.
+Step 3 does not write a script — it finalises his, for an AI voiceover engine:
+pronunciation, spelling, pacing punctuation, clear headings, and a hard split
+between spoken words and production notes. The incoming draft is stored untouched
+as `script-draft.md`; every edit lands in `script.md`.
 
 Step 4 is deliberately open (2026-08-18) — the owner supplies the VO API. Until
 then, stop after step 3 and say so. Do not pick an engine, and do not reach for
@@ -59,7 +60,8 @@ videos/<key>/
 ├── outline.md             step 2 — the source of truth
 ├── outline.html           generated, gitignored
 ├── outline.pdf            generated, gitignored — this is what the maker gets
-├── script-worksheet.md    step 2 — the write file. Pre-filled copy + empty slots
+├── script-worksheet.md    step 2 — fallback only, if desk is down
+├── desk-draft.json        local-mode scratch, gitignored
 ├── script-draft.md        step 3 INPUT — the maker's draft, stored untouched
 ├── script.md              step 3 — the final VO script, human-readable
 ├── script.vo.txt          step 3 — the engine feed. Step 4's only input.
@@ -163,10 +165,14 @@ supplying the knowledge directly. The two share no files.
   to camera. Do not route spoken copy through a paragraph-joining helper —
   `render-outline.mjs`'s `splitParas` joins lines with a space, which is correct
   for HTML and fatal here. The `PREFILLED_DRIFT` test is the guard.
-- **The worksheet is SCRIPT ONLY** (owner decision 2026-08-18). No SHOW, no EDIT,
-  no rules boxes, no reference draft, no facts. Reference and facts were built and
-  then removed: reprinting the outline's draft made it read as finished copy the
-  maker could paste, defeating the point of asking him to write from screen time.
-  He reads `outline.pdf` for the angle and the numbers. Tests assert their absence.
+- **Instructions never enter the script track.** The desk splits every beat into
+  two columns: the words that will be spoken on the left, and the recording
+  notes, edit notes and facts on the right. That separation is the whole reason
+  the desk exists — the old `outline.pdf` mixed all four in one vertical stream
+  and the maker could not tell content from instruction at a glance.
+- A body beat's `SAY` lane is still a short draft prompt, never finished copy. In
+  the desk it appears in the RIGHT track, labelled **Angle** — an instruction he
+  reads, not a line he can paste (decisions.md 2026-08-18; enforced by a test in
+  `lib/beats.mjs`).
 - **`--force` loses work.** The word targets in a worksheet are stamped by hand by
   the step-2 session and are not regenerable.

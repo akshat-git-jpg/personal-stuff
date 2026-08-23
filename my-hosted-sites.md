@@ -15,3 +15,4 @@
 - Claude usage - http://localhost:4319/ (ccu-dash)
 - Timeblock day planner — https://timeblock.agrolloo.com (password-gated: APP_PASSWORD/SESSION_SECRET); Worker + KV (BLOCKS_KV), static `public/`; app at `apps/timeblock`
 - Closet (wear counter + outfit gallery) — https://closet.agrolloo.com (password-gated) — two tabs: Clothes (tap photo = +1 wear, ↺ washed = reset to 0, 10s Undo) and Looks (tagged outfit photos, AND-filter chips); installable PWA; Worker + D1 (closet-db) + R2 (closet-photos); app at `apps/closet-app`
+- Script desk (freelancer script-writing page) — https://script-desk.agrolloo.com (secret-link only, per video)

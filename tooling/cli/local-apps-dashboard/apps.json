@@ -106,6 +106,15 @@
       "port": 4322,
       "ports": [4322],
       "url": "http://localhost:4322"
+    },
+    {
+      "id": "script-desk",
+      "name": "script desk",
+      "cwd": "apps/yt-script-desk",
+      "start": "npm run dev:local",
+      "port": 5175,
+      "ports": [5175, 4327],
+      "url": "http://localhost:5175/?key=character-consistency-ai"
     }
   ]
 }
