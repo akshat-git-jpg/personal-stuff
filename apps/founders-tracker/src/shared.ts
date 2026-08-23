@@ -82,3 +82,21 @@ export interface Scoreboard {
   khushi: OwnerScore;
   kushal: OwnerScore;
 }
+
+/** One habit as the client renders it for the current period. */
+export interface HabitToday {
+  templateId: number;
+  title: string;
+  owner: Owner;
+  cadence: "daily" | "weekly";
+  /** First day of the current period ('YYYY-MM-DD', IST). */
+  anchorYmd: string;
+  /** True when the current period has been ticked. */
+  keptNow: boolean;
+  /** Consecutive kept periods (grace: an unticked current period does not break it). */
+  streak: number;
+  /** Longest streak ever recorded for this habit. */
+  best: number;
+  /** Total kept periods, all time. */
+  total: number;
+}
