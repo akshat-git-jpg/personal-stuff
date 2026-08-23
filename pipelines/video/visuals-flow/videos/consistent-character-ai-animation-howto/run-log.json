@@ -1,6 +1,6 @@
 {
   "video": "consistent-character-ai-animation-howto",
-  "updated": "2026-08-12T07:50:08.164Z",
+  "updated": "2026-08-22T18:58:36.267Z",
   "steps": {
     "020-transcribe-run": {
       "status": "done",
@@ -81,6 +81,76 @@
       "issues": "W7 flush-cut: span s07 starts at a sentence start with only 0.02s of silence before it — the cut reads as mid-sentence; prefer the neighbouring sentence with a real breath before it  |  W7 flush-cut: span s09 starts at a sentence start with only -0.04s of silence before it — the cut reads as mid-sentence; prefer the neighbouring sentence with a real breath before it  |  W5 short-screen: 1.9s of screen (segment screen-01) is short — consider absorbing or extending it  |  W5 short-screen: 2.2s of screen (segment screen-02) is short — consider absorbing or extending it  |  W5 short-screen: 4.0s of screen (segment screen-04) is short — consider absorbing or extending it  |  W5 short-screen: 0.5s of screen (segment screen-07) is short — consider absorbing or extending it  |  W3 u-curve: no span reaches the last 15% of the video — land on the host  |  W4 span-cadence: 330s without full-screen host between s03 and s06 (max 180s) — add a short mid-video host beat  |  (+1 more warning/error lines — re-run the verb to see all)",
       "output": "no artifact — check only",
       "ended": "2026-08-12T07:49:54.831Z"
+    },
+    "340-approve-storyboard-human": {
+      "status": "done",
+      "started": "2026-08-22T15:14:20.231Z",
+      "issues": "waiting on the owner to approve the avatar shots",
+      "ended": "2026-08-22T15:14:21.679Z",
+      "did": "Owner approved the storyboard composition: graphics and avatar shots.",
+      "output": "cues.json + shots.json approved=true"
+    },
+    "410-render-graphics-run": {
+      "status": "done",
+      "started": "2026-08-22T16:01:18.814Z",
+      "did": "Rendered every approved cue to a clip and wrote the editor manifest.",
+      "output": "renders/ + manifest.md",
+      "issues": "none found",
+      "ended": "2026-08-22T16:01:21.491Z"
+    },
+    "420-propose-avatar-human": {
+      "status": "done",
+      "ended": "2026-08-22T15:23:43.499Z",
+      "started": "2026-08-22T15:23:43.499Z",
+      "did": "Owner approved the avatar spend: girl-1 on heygen3 (7 clips, 108.8s).",
+      "output": "avatar-plan.json approved=true, character=girl-1, model=heygen3",
+      "issues": "none found"
+    },
+    "430-render-avatar-run": {
+      "status": "done",
+      "started": "2026-08-22T15:54:30.096Z",
+      "issues": "exited 1, see terminal",
+      "did": "Downloaded the finished HeyGen avatar clips.",
+      "output": "avatar clips in kb-scratch + avatar-manifest.md",
+      "ended": "2026-08-22T15:55:55.994Z"
+    },
+    "450-plan-sound-run": {
+      "status": "done",
+      "started": "2026-08-22T15:50:55.179Z",
+      "ended": "2026-08-22T15:50:55.619Z",
+      "did": "Planned the sound design from the resolved cues and effects.",
+      "output": "sound.json",
+      "issues": "none found"
+    },
+    "460-mix-audio-run": {
+      "status": "done",
+      "started": "2026-08-22T15:51:06.566Z",
+      "ended": "2026-08-22T15:52:18.003Z",
+      "did": "Mixed the master: voiceover, planned effects and music, loudness-normalised and pinned to the voiceover length.",
+      "output": "master.wav",
+      "issues": "none found"
+    },
+    "510-assemble-video-run": {
+      "status": "blocked",
+      "started": "2026-08-22T16:03:45.340Z",
+      "ended": "2026-08-22T16:03:45.641Z",
+      "issues": "Error: missing intro film: /Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow/videos/consistent-character-ai-animation-howto/intro-film/out/intro.mp4 — run.sh consistent-character-ai-animation-howto intro-s"
+    },
+    "115-author-intro-simple-llm": {
+      "status": "done",
+      "started": "2026-08-22T17:41:56.301Z",
+      "ended": "2026-08-22T18:58:36.267Z",
+      "did": "Authored the simple intro cut list: 34 beats tiling the whole 106.3s intro, 20 card beats and 14 avatar beats, built from two of the seven locked kit cards (18 statement, 2 checklist). Every on-screen word was pulled out of transcript.json by word index through a generator rather than typed, so the words on a card are literally the words being spoken in that beat's own window, and each card's beat boundary was pushed out until its last word holds the screen for at least 0.46s after landing. Cards carry the hook, the three-item 'same character / multiple scenes / consistent start to finish' verdict list, the crossed-out 'studio / animation software / team' list, the four problem statements, the OpenArt turn, the five-step table of contents and the description CTA. Trailing sentence punctuation is trimmed off the last word of each card to match the kit's own convention.",
+      "issues": "Deliberately did NOT use five of the seven cards. shot-float and ui-mock both need image assets and the kit only ships four generic stock mockups (chat/code/dashboard/social) that have nothing to do with character animation; chain needs a thumbnail per item and renders an accent-outlined empty box without one, which is exactly the placeholder look TASTE-SIMPLE S-T7 forbids; lower-third is for a presenter name and role, and the transcript never says who the presenter is. logo-grid was authored, rendered, and then REMOVED after reading its frame: the kit's logo set has only one real rival for this video (higgsfield), so the crowd would have been five unrelated tools, and the owner has already rejected exactly that on best-no-code-automation-tool ('you showed n8n and flowise only, it's better not to show anything'). That beat is a statement card now. Also steered around three known ASR problems the 030 pass left in place rather than putting them on screen: 'chomping between tools' at 56.5s (garble for chopping/jumping, so that card says only 'one platform'), 'worth praying for or paying for' at 92.7s (duplicated phrase, so that card stops at 'a breakdown of the pricing'), and the duplicated-retake stretch.",
+      "output": "intro-simple/cutlist.json — 34 beats, avatar+overlay share 36.6% (38.9s of 106.3s), pacing lint clean (0 errors, S1-S7); snapshotted to intro-simple/cutlist.llm.json before the gate"
+    },
+    "135-render-intro-simple-run": {
+      "status": "done",
+      "started": "2026-08-22T17:49:59.040Z",
+      "ended": "2026-08-22T18:57:16.871Z",
+      "issues": "Two real renderer bugs had to be fixed before this could render at all, both first exposed by this video. (1) BLOCKING: four of the seven kit cards reach their assets through a symlink (logo-grid/logos, shot-float/shots, ui-mock and chain both), and fs.cpSync's dereference flag only covers the top-level src, so the link survived staging as an absolute link to a directory and hashRenderInputs' walk() readFileSync'd it and died with EISDIR. Every logo/shot/ui/chain beat crashed the render; statement, checklist and lower-third have no symlink, which is why the flow looked healthy until now. Fixed with a materializeAssetLinks() pass over the staged card, mutation-tested, and the existing good.json fixture test was RED before this fix. (2) render-simple never put the beat's duration into vars.json, so every kit card's DURATION block fell back to its 3.5s default and ran a 3.5s stagger and drift schedule inside a clip of a different length — clip LENGTH was never wrong (the rewritten static data-duration governs that), only the motion. Both fixes are in lib/intro-kit/render-simple.mjs with one new regression test; 27/27 intro-kit tests pass. Left unfixed and worth a fold item: the checklist card's panel is a fixed height, so a 3-row list leaves its lower half empty and the panel does not sit centred in frame. Also the intro is rendered against the STATIC stand-in avatar because avatar.mp4 does not exist yet, so all 14 avatar beats are one frozen portrait with black side bars — 445 re-renders those once the real avatar is downloaded.",
+      "did": "Rendered the 34-beat cut list to intro-film/out/intro.mp4 — exactly 106.333s, 1920x1080 h264 with an aac track muxed from master.wav, so gate 125 can be judged by ear as well as by eye. Verified every one of the 20 card clips renders at its own beat length, and read all 20 cards back as frames: each card shows its full line with the last word landing at least 0.46s before the cut.",
+      "output": "intro-film/out/intro.mp4 — 106.333s with audio; intro-simple/renders/ — 20 card clips; intro-simple/render.json"
     }
   }
 }

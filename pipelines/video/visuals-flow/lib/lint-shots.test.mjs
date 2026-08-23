@@ -331,3 +331,105 @@ test('without a filmSpan E8 behaves exactly as before — the default path is un
   assert.ok(lintShots({ shotsResolved: late, resolvedCues: [], words, catalog: mockCatalog }).errors.some((e) => e.startsWith('E8')));
   assert.ok(!lintShots({ shotsResolved: early, resolvedCues: [], words, catalog: mockCatalog }).errors.some((e) => e.startsWith('E8')));
 });
+
+// ---------------------------------------------------------------------------
+// E9 tail-speech-uncovered
+//
+// The defect it exists for (opusclip-vs-submagic, shipped 2026-08-01, caught by
+// the owner on review 2026-08-22): the transcript put the video's last word
+// "Goodbye." at 1074.31-1074.83, so span s10 resolved to end at 1074.83.
+// Acoustically the word runs 1074.889-1075.377. avatar-render slices vo.mp3 with
+// `-ss start -to end`, so the word was never in the driving audio and the HeyGen
+// render could not say it. The voice said goodbye; the avatar sat still.
+//
+// The check is deliberately scoped to the LAST span and only when that span is
+// tail-adjacent (within SNAP_EDGE of the transcript's end). Mid-video spans hand
+// off to screen narration immediately, so "speech continues after this span" is
+// normal there and would be a constant false positive.
+// ---------------------------------------------------------------------------
+
+// vo.mp3's real acoustic tail for that video.
+const opusTailSpeech = {
+  duration: 1076.35,
+  speech: [{ start: 1070.152771, end: 1074.647792 }, { start: 1074.889271, end: 1075.377396 }],
+};
+const opusWords = [
+  { text: 'have', start: 1073.15, end: 1073.73 },
+  { text: 'a', start: 1073.73, end: 1073.85 },
+  { text: 'great', start: 1073.85, end: 1074.01 },
+  { text: 'day', start: 1074.01, end: 1074.31 },
+  { text: 'goodbye', start: 1074.31, end: 1074.83 },
+];
+
+test('E9: the real opusclip-vs-submagic tail — span ends 0.55s before the voice does', () => {
+  const shotsResolved = { spans: [{ id: 's10', start: 1053.97, end: 1074.83, duration: 20.86, mode: 'full' }] };
+  const { errors } = lintShots({
+    shotsResolved, resolvedCues: [], words: opusWords, catalog: mockCatalog,
+    voSpeech: opusTailSpeech,
+  });
+  const e9 = errors.find((e) => e.startsWith('E9'));
+  assert.ok(e9, `expected E9, got: ${JSON.stringify(errors)}`);
+  // The message has to carry the number the author needs to fix the anchor.
+  assert.match(e9, /s10/);
+  assert.match(e9, /1075\.38/);
+});
+
+test('E9: a last span that reaches the end of speech is clean', () => {
+  const shotsResolved = { spans: [{ id: 's10', start: 1053.97, end: 1075.38, duration: 21.41, mode: 'full' }] };
+  const { errors } = lintShots({
+    shotsResolved, resolvedCues: [], words: opusWords, catalog: mockCatalog,
+    voSpeech: opusTailSpeech,
+  });
+  assert.ok(!errors.some((e) => e.startsWith('E9')), JSON.stringify(errors));
+});
+
+test('E9: overshooting the end of speech is fine — the slice just carries silence', () => {
+  const shotsResolved = { spans: [{ id: 's10', start: 1053.97, end: 1076.0, duration: 22.03, mode: 'full' }] };
+  const { errors } = lintShots({
+    shotsResolved, resolvedCues: [], words: opusWords, catalog: mockCatalog,
+    voSpeech: opusTailSpeech,
+  });
+  assert.ok(!errors.some((e) => e.startsWith('E9')), JSON.stringify(errors));
+});
+
+test('E9: a mid-video last span is not the tail — screen narration follows, no error', () => {
+  // words run to 1200, so a span ending at 600 is nowhere near the tail.
+  const shotsResolved = { spans: [{ id: 's4', start: 570, end: 600, duration: 30, mode: 'full' }] };
+  const { errors } = lintShots({
+    shotsResolved, resolvedCues: [], words, catalog: mockCatalog,
+    voSpeech: { duration: 1200, speech: [{ start: 0, end: 1199 }] },
+  });
+  assert.ok(!errors.some((e) => e.startsWith('E9')), JSON.stringify(errors));
+});
+
+test('E9: drift under the tolerance does not fire', () => {
+  const shotsResolved = { spans: [{ id: 's10', start: 1053.97, end: 1075.3, duration: 21.33, mode: 'full' }] };
+  const { errors } = lintShots({
+    shotsResolved, resolvedCues: [], words: opusWords, catalog: mockCatalog,
+    voSpeech: opusTailSpeech,
+  });
+  assert.ok(!errors.some((e) => e.startsWith('E9')), JSON.stringify(errors));
+});
+
+// Without the probe there is nothing to compare against. It must not silently
+// read as "clean" — lint-shots' main() says so out loud instead.
+test('E9: no voSpeech means no E9 and no crash', () => {
+  const shotsResolved = { spans: [{ id: 's10', start: 1053.97, end: 1074.83, duration: 20.86, mode: 'full' }] };
+  const { errors } = lintShots({ shotsResolved, resolvedCues: [], words: opusWords, catalog: mockCatalog });
+  assert.ok(!errors.some((e) => e.startsWith('E9')), JSON.stringify(errors));
+});
+
+// E7 already counts "the video edge" as a legal sentence end (it seeds
+// sentenceEnds with the transcript total T). Once resolve-shots snaps the tail
+// to the ACOUSTIC end of vo.mp3, that acoustic end IS the video edge — so E7
+// has to accept it, or the resolver would emit a plan its own lint rejects.
+// Caught 2026-08-22 the moment the two fixes met on the real video.
+test('E7: a span ending at the acoustic end of speech is a legal sentence end', () => {
+  const shotsResolved = { spans: [{ id: 's10', start: 1053.97, end: 1075.38, duration: 21.41, mode: 'full' }] };
+  const { errors } = lintShots({
+    shotsResolved, resolvedCues: [], words: opusWords, catalog: mockCatalog,
+    voSpeech: opusTailSpeech,
+  });
+  const e7end = errors.filter((e) => e.startsWith('E7') && e.includes('ends at'));
+  assert.deepEqual(e7end, [], `unexpected E7 end error: ${JSON.stringify(e7end)}`);
+});

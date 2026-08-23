@@ -2,7 +2,7 @@
 
 Master timeline = voiceover (1076.4s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: master.wav throughout — screen and avatar audio muted. Whip transitions at the listed boundaries; hard cuts elsewhere. Captions burned on screen segments. Effects/sound are Final-Cut-reviewed.
 
-Output: /Users/kbtg/kb-scratch/video/visuals-flow/opusclip-vs-submagic/final.mp4
+Output: /Users/kbtg/kb-scratch/video/visuals-flow/opusclip-vs-submagic/versions/v13.mp4
 
 ## Base track
 
@@ -53,7 +53,7 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow/opusclip-vs-submagic/final.mp4
 | 17:22.7 | 17:29.7 | graphic | z12 |
 | 17:29.7 | 17:34.0 | screen | screen-22 |
 | 17:34.0 | 17:54.8 | avatar | s10 |
-| 17:54.8 | 17:56.4 | screen | screen-23 |
+| 17:54.8 | 17:56.4 | freeze | screen-23 |
 
 ## Overlays (composited on top)
 
@@ -100,7 +100,6 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow/opusclip-vs-submagic/final.mp4
 | 16:35.8 | right | s09 | screen-20 |
 | 16:43.0 | right | screen-20 | z09 |
 | 17:22.7 | right | screen-21 | z12 |
-| 17:54.8 | right | s10 | screen-23 |
 | 00:30.7 | lift | n/a | n/a |
 | 01:52.3 | drop | n/a | n/a |
 | 02:31.2 | lift | n/a | n/a |

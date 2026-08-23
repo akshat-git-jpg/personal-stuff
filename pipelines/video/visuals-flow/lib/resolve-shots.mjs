@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { normWord, findPhrase } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
+import { probeVoSpeech, lastSpeechEnd } from './vo-speech.mjs';
 import { pathToFileURL } from 'node:url';
 export const ENGINE_MODES = ['test', 'production'];
 export const SNAP_EDGE = 1.5;
@@ -9,7 +10,9 @@ export const SNAP_EDGE = 1.5;
 // Spans are matched with the same forward-cursor discipline as cues: each
 // span's from_anchor is searched after the previous span's to_anchor, so
 // repeated phrases resolve in transcript order.
-export function resolveShots(shotsFile, words) {
+// `voSpeechEnd` is the acoustic end of speech in vo.mp3 (lib/vo-speech.mjs).
+// Passed in rather than probed here so this stays a pure function.
+export function resolveShots(shotsFile, words, { voSpeechEnd = null } = {}) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
   const total = W.length > 0 ? W[W.length - 1].end : 0;
   const errors = [];
@@ -49,7 +52,15 @@ export function resolveShots(shotsFile, words) {
       snapped = true;
     }
     if (total - end < SNAP_EDGE) {
-      end = total;
+      // The snap means "run to the end of the video". `total` is the last
+      // TRANSCRIPT word's end, and the transcript is a Whisper pass over the
+      // screen recording — but avatar-render slices vo.mp3. On
+      // opusclip-vs-submagic the transcript ended at 1074.83 while the voice ran
+      // to 1075.38, so this snapped 0.55s short and s10's slice never held
+      // "Goodbye": the render physically could not say the word. Snap to the
+      // real audio when we know it. Only ever EXTEND — a voSpeechEnd earlier
+      // than the transcript would otherwise clip a span that was already fine.
+      end = +Math.max(total, voSpeechEnd ?? total).toFixed(2);
       snapped = true;
     }
     const spanObj = {
@@ -74,7 +85,13 @@ async function main() {
   const shotsFile = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.json'), 'utf8'));
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
 
-  const { spans, errors } = resolveShots(shotsFile, words);
+  // The tail snap targets the audio that actually gets sliced, not the
+  // transcript's idea of where speech stops. No vo.mp3 yet (a plan resolved
+  // before the voiceover exists) simply falls back to the old behaviour.
+  const voPath = path.join(workdir, 'vo.mp3');
+  const voSpeechEnd = fs.existsSync(voPath) ? lastSpeechEnd(probeVoSpeech(voPath)) : null;
+
+  const { spans, errors } = resolveShots(shotsFile, words, { voSpeechEnd });
   if (errors.length) {
     for (const e of errors) console.error(e);
     process.exit(1);

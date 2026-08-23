@@ -1,0 +1,987 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "mode": "simple",
+  "span": {
+    "start": 0,
+    "end": 106.333
+  },
+  "approved": false,
+  "beats": [
+    {
+      "id": "b01",
+      "kind": "card",
+      "t_start": 0,
+      "t_end": 4,
+      "card": "statement",
+      "vars": {
+        "text": "What you're watching right now was made entirely with AI",
+        "accent": "entirely with AI",
+        "beats": [
+          {
+            "text": "What",
+            "accent": false,
+            "at": 0.54
+          },
+          {
+            "text": "you're",
+            "accent": false,
+            "at": 0.68
+          },
+          {
+            "text": "watching",
+            "accent": false,
+            "at": 0.92
+          },
+          {
+            "text": "right",
+            "accent": false,
+            "at": 1.26
+          },
+          {
+            "text": "now",
+            "accent": false,
+            "at": 1.56
+          },
+          {
+            "text": "was",
+            "accent": false,
+            "at": 1.82
+          },
+          {
+            "text": "made",
+            "accent": false,
+            "at": 2.1
+          },
+          {
+            "text": "entirely",
+            "accent": true,
+            "at": 2.48
+          },
+          {
+            "text": "with",
+            "accent": true,
+            "at": 2.98
+          },
+          {
+            "text": "AI",
+            "accent": true,
+            "at": 3.38
+          }
+        ]
+      }
+    },
+    {
+      "id": "b02",
+      "kind": "card",
+      "t_start": 4,
+      "t_end": 7.5,
+      "card": "checklist",
+      "vars": {
+        "icon": "check-circle",
+        "rows": [
+          {
+            "text": "Same character",
+            "mark": "yes"
+          },
+          {
+            "text": "Multiple scenes",
+            "mark": "yes"
+          },
+          {
+            "text": "Consistent start to finish",
+            "mark": "yes"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b03",
+      "kind": "card",
+      "t_start": 7.5,
+      "t_end": 11,
+      "card": "checklist",
+      "vars": {
+        "icon": "check-circle",
+        "rows": [
+          {
+            "text": "Studio",
+            "mark": "no"
+          },
+          {
+            "text": "Animation software",
+            "mark": "no"
+          },
+          {
+            "text": "Team",
+            "mark": "no"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b04",
+      "kind": "avatar",
+      "t_start": 11,
+      "t_end": 14
+    },
+    {
+      "id": "b05",
+      "kind": "card",
+      "t_start": 14,
+      "t_end": 17,
+      "card": "statement",
+      "vars": {
+        "text": "from scratch using OpenArt",
+        "accent": "OpenArt",
+        "beats": [
+          {
+            "text": "from",
+            "accent": false,
+            "at": 0.44
+          },
+          {
+            "text": "scratch",
+            "accent": false,
+            "at": 0.68
+          },
+          {
+            "text": "using",
+            "accent": false,
+            "at": 1.02
+          },
+          {
+            "text": "OpenArt",
+            "accent": true,
+            "at": 1.68
+          }
+        ]
+      }
+    },
+    {
+      "id": "b06",
+      "kind": "avatar",
+      "t_start": 17,
+      "t_end": 20.4
+    },
+    {
+      "id": "b07",
+      "kind": "card",
+      "t_start": 20.4,
+      "t_end": 23.3,
+      "card": "statement",
+      "vars": {
+        "text": "already know what the biggest problem is",
+        "accent": "the biggest problem",
+        "beats": [
+          {
+            "text": "already",
+            "accent": false,
+            "at": 0.24
+          },
+          {
+            "text": "know",
+            "accent": false,
+            "at": 0.52
+          },
+          {
+            "text": "what",
+            "accent": false,
+            "at": 0.96
+          },
+          {
+            "text": "the",
+            "accent": true,
+            "at": 1.42
+          },
+          {
+            "text": "biggest",
+            "accent": true,
+            "at": 1.62
+          },
+          {
+            "text": "problem",
+            "accent": true,
+            "at": 1.84
+          },
+          {
+            "text": "is",
+            "accent": false,
+            "at": 2.24
+          }
+        ]
+      }
+    },
+    {
+      "id": "b08",
+      "kind": "card",
+      "t_start": 23.3,
+      "t_end": 27,
+      "card": "statement",
+      "vars": {
+        "text": "Your character looks completely different from one scene to the next",
+        "accent": "completely different",
+        "beats": [
+          {
+            "text": "Your",
+            "accent": false,
+            "at": 0.02
+          },
+          {
+            "text": "character",
+            "accent": false,
+            "at": 0.18
+          },
+          {
+            "text": "looks",
+            "accent": false,
+            "at": 0.46
+          },
+          {
+            "text": "completely",
+            "accent": true,
+            "at": 0.8
+          },
+          {
+            "text": "different",
+            "accent": true,
+            "at": 1.36
+          },
+          {
+            "text": "from",
+            "accent": false,
+            "at": 1.84
+          },
+          {
+            "text": "one",
+            "accent": false,
+            "at": 2.1
+          },
+          {
+            "text": "scene",
+            "accent": false,
+            "at": 2.38
+          },
+          {
+            "text": "to",
+            "accent": false,
+            "at": 2.6
+          },
+          {
+            "text": "the",
+            "accent": false,
+            "at": 2.82
+          },
+          {
+            "text": "next",
+            "accent": false,
+            "at": 2.94
+          }
+        ]
+      }
+    },
+    {
+      "id": "b09",
+      "kind": "avatar",
+      "t_start": 27,
+      "t_end": 29.8
+    },
+    {
+      "id": "b10",
+      "kind": "card",
+      "t_start": 29.8,
+      "t_end": 32.3,
+      "card": "statement",
+      "vars": {
+        "text": "the whole visual consistency falls apart",
+        "accent": "falls apart",
+        "beats": [
+          {
+            "text": "the",
+            "accent": false,
+            "at": 0.04
+          },
+          {
+            "text": "whole",
+            "accent": false,
+            "at": 0.14
+          },
+          {
+            "text": "visual",
+            "accent": false,
+            "at": 0.36
+          },
+          {
+            "text": "consistency",
+            "accent": false,
+            "at": 0.72
+          },
+          {
+            "text": "falls",
+            "accent": true,
+            "at": 1.24
+          },
+          {
+            "text": "apart",
+            "accent": true,
+            "at": 1.66
+          }
+        ]
+      }
+    },
+    {
+      "id": "b11",
+      "kind": "avatar",
+      "t_start": 32.3,
+      "t_end": 35.3
+    },
+    {
+      "id": "b12",
+      "kind": "card",
+      "t_start": 35.3,
+      "t_end": 39,
+      "card": "statement",
+      "vars": {
+        "text": "most frustrating things about working with AI",
+        "accent": "most frustrating",
+        "beats": [
+          {
+            "text": "most",
+            "accent": true,
+            "at": 0.66
+          },
+          {
+            "text": "frustrating",
+            "accent": true,
+            "at": 0.92
+          },
+          {
+            "text": "things",
+            "accent": false,
+            "at": 1.32
+          },
+          {
+            "text": "about",
+            "accent": false,
+            "at": 1.74
+          },
+          {
+            "text": "working",
+            "accent": false,
+            "at": 1.96
+          },
+          {
+            "text": "with",
+            "accent": false,
+            "at": 2.24
+          },
+          {
+            "text": "AI",
+            "accent": false,
+            "at": 2.5
+          }
+        ]
+      }
+    },
+    {
+      "id": "b13",
+      "kind": "avatar",
+      "t_start": 39,
+      "t_end": 41.4
+    },
+    {
+      "id": "b14",
+      "kind": "card",
+      "t_start": 41.4,
+      "t_end": 44.4,
+      "card": "statement",
+      "vars": {
+        "text": "genuinely solves this",
+        "accent": "genuinely solves",
+        "beats": [
+          {
+            "text": "genuinely",
+            "accent": true,
+            "at": 0.12
+          },
+          {
+            "text": "solves",
+            "accent": true,
+            "at": 0.58
+          },
+          {
+            "text": "this",
+            "accent": false,
+            "at": 1.24
+          }
+        ]
+      }
+    },
+    {
+      "id": "b15",
+      "kind": "avatar",
+      "t_start": 44.4,
+      "t_end": 46.4
+    },
+    {
+      "id": "b16",
+      "kind": "card",
+      "t_start": 46.4,
+      "t_end": 49.4,
+      "card": "statement",
+      "vars": {
+        "text": "building a full animated video",
+        "accent": "full animated video",
+        "beats": [
+          {
+            "text": "building",
+            "accent": false,
+            "at": 0.2
+          },
+          {
+            "text": "a",
+            "accent": false,
+            "at": 0.64
+          },
+          {
+            "text": "full",
+            "accent": true,
+            "at": 0.98
+          },
+          {
+            "text": "animated",
+            "accent": true,
+            "at": 1.48
+          },
+          {
+            "text": "video",
+            "accent": true,
+            "at": 2.34
+          }
+        ]
+      }
+    },
+    {
+      "id": "b17",
+      "kind": "card",
+      "t_start": 49.4,
+      "t_end": 52.9,
+      "card": "statement",
+      "vars": {
+        "text": "multiple scenes, consistent characters throughout",
+        "accent": "consistent characters",
+        "beats": [
+          {
+            "text": "multiple",
+            "accent": false,
+            "at": 0.5
+          },
+          {
+            "text": "scenes,",
+            "accent": false,
+            "at": 1.02
+          },
+          {
+            "text": "consistent",
+            "accent": true,
+            "at": 1.76
+          },
+          {
+            "text": "characters",
+            "accent": true,
+            "at": 2.12
+          },
+          {
+            "text": "throughout",
+            "accent": false,
+            "at": 2.66
+          }
+        ]
+      }
+    },
+    {
+      "id": "b18",
+      "kind": "avatar",
+      "t_start": 52.9,
+      "t_end": 55.2
+    },
+    {
+      "id": "b19",
+      "kind": "card",
+      "t_start": 55.2,
+      "t_end": 58.2,
+      "card": "statement",
+      "vars": {
+        "text": "one platform",
+        "accent": "platform",
+        "beats": [
+          {
+            "text": "one",
+            "accent": false,
+            "at": 0.16
+          },
+          {
+            "text": "platform",
+            "accent": true,
+            "at": 0.52
+          }
+        ]
+      }
+    },
+    {
+      "id": "b20",
+      "kind": "avatar",
+      "t_start": 58.2,
+      "t_end": 61.2
+    },
+    {
+      "id": "b21",
+      "kind": "card",
+      "t_start": 61.2,
+      "t_end": 64.7,
+      "card": "statement",
+      "vars": {
+        "text": "a quick overview of OpenArt as a main tool",
+        "accent": "OpenArt",
+        "beats": [
+          {
+            "text": "a",
+            "accent": false,
+            "at": 0.62
+          },
+          {
+            "text": "quick",
+            "accent": false,
+            "at": 0.68
+          },
+          {
+            "text": "overview",
+            "accent": false,
+            "at": 0.88
+          },
+          {
+            "text": "of",
+            "accent": false,
+            "at": 1.34
+          },
+          {
+            "text": "OpenArt",
+            "accent": true,
+            "at": 1.62
+          },
+          {
+            "text": "as",
+            "accent": false,
+            "at": 2.42
+          },
+          {
+            "text": "a",
+            "accent": false,
+            "at": 2.68
+          },
+          {
+            "text": "main",
+            "accent": false,
+            "at": 2.78
+          },
+          {
+            "text": "tool",
+            "accent": false,
+            "at": 2.98
+          }
+        ]
+      }
+    },
+    {
+      "id": "b22",
+      "kind": "avatar",
+      "t_start": 64.7,
+      "t_end": 67.7
+    },
+    {
+      "id": "b23",
+      "kind": "card",
+      "t_start": 67.7,
+      "t_end": 71.3,
+      "card": "statement",
+      "vars": {
+        "text": "creating a long animation video with consistent characters",
+        "accent": "consistent characters",
+        "beats": [
+          {
+            "text": "creating",
+            "accent": false,
+            "at": 0.52
+          },
+          {
+            "text": "a",
+            "accent": false,
+            "at": 0.86
+          },
+          {
+            "text": "long",
+            "accent": false,
+            "at": 1.12
+          },
+          {
+            "text": "animation",
+            "accent": false,
+            "at": 1.28
+          },
+          {
+            "text": "video",
+            "accent": false,
+            "at": 1.68
+          },
+          {
+            "text": "with",
+            "accent": false,
+            "at": 1.72
+          },
+          {
+            "text": "consistent",
+            "accent": true,
+            "at": 2.68
+          },
+          {
+            "text": "characters",
+            "accent": true,
+            "at": 3.14
+          }
+        ]
+      }
+    },
+    {
+      "id": "b24",
+      "kind": "card",
+      "t_start": 71.3,
+      "t_end": 74.8,
+      "card": "statement",
+      "vars": {
+        "text": "step one is to create and lock in a consistent character",
+        "accent": "consistent character",
+        "beats": [
+          {
+            "text": "step",
+            "accent": false,
+            "at": 0.02
+          },
+          {
+            "text": "one",
+            "accent": false,
+            "at": 0.78
+          },
+          {
+            "text": "is",
+            "accent": false,
+            "at": 0.96
+          },
+          {
+            "text": "to",
+            "accent": false,
+            "at": 1.14
+          },
+          {
+            "text": "create",
+            "accent": false,
+            "at": 1.24
+          },
+          {
+            "text": "and",
+            "accent": false,
+            "at": 1.56
+          },
+          {
+            "text": "lock",
+            "accent": false,
+            "at": 1.74
+          },
+          {
+            "text": "in",
+            "accent": false,
+            "at": 1.96
+          },
+          {
+            "text": "a",
+            "accent": false,
+            "at": 2.12
+          },
+          {
+            "text": "consistent",
+            "accent": true,
+            "at": 2.18
+          },
+          {
+            "text": "character",
+            "accent": true,
+            "at": 2.5
+          }
+        ]
+      }
+    },
+    {
+      "id": "b25",
+      "kind": "avatar",
+      "t_start": 74.8,
+      "t_end": 77.5
+    },
+    {
+      "id": "b26",
+      "kind": "card",
+      "t_start": 77.5,
+      "t_end": 80.4,
+      "card": "statement",
+      "vars": {
+        "text": "across multiple scenes without losing consistency",
+        "accent": "without losing consistency",
+        "beats": [
+          {
+            "text": "across",
+            "accent": false,
+            "at": 0.08
+          },
+          {
+            "text": "multiple",
+            "accent": false,
+            "at": 0.4
+          },
+          {
+            "text": "scenes",
+            "accent": false,
+            "at": 0.72
+          },
+          {
+            "text": "without",
+            "accent": true,
+            "at": 1.12
+          },
+          {
+            "text": "losing",
+            "accent": true,
+            "at": 1.32
+          },
+          {
+            "text": "consistency",
+            "accent": true,
+            "at": 1.64
+          }
+        ]
+      }
+    },
+    {
+      "id": "b27",
+      "kind": "avatar",
+      "t_start": 80.4,
+      "t_end": 83.4
+    },
+    {
+      "id": "b28",
+      "kind": "card",
+      "t_start": 83.4,
+      "t_end": 86.9,
+      "card": "statement",
+      "vars": {
+        "text": "string everything together into a long cohesive animation",
+        "accent": "long cohesive animation",
+        "beats": [
+          {
+            "text": "string",
+            "accent": false,
+            "at": 0.9
+          },
+          {
+            "text": "everything",
+            "accent": false,
+            "at": 1.1
+          },
+          {
+            "text": "together",
+            "accent": false,
+            "at": 1.1
+          },
+          {
+            "text": "into",
+            "accent": false,
+            "at": 1.88
+          },
+          {
+            "text": "a",
+            "accent": false,
+            "at": 2.3
+          },
+          {
+            "text": "long",
+            "accent": true,
+            "at": 2.5
+          },
+          {
+            "text": "cohesive",
+            "accent": true,
+            "at": 2.72
+          },
+          {
+            "text": "animation",
+            "accent": true,
+            "at": 3.04
+          }
+        ]
+      }
+    },
+    {
+      "id": "b29",
+      "kind": "avatar",
+      "t_start": 86.9,
+      "t_end": 89.4
+    },
+    {
+      "id": "b30",
+      "kind": "card",
+      "t_start": 89.4,
+      "t_end": 92.9,
+      "card": "statement",
+      "vars": {
+        "text": "a breakdown of the pricing",
+        "accent": "pricing",
+        "beats": [
+          {
+            "text": "a",
+            "accent": false,
+            "at": 0.92
+          },
+          {
+            "text": "breakdown",
+            "accent": false,
+            "at": 0.92
+          },
+          {
+            "text": "of",
+            "accent": false,
+            "at": 1.44
+          },
+          {
+            "text": "the",
+            "accent": false,
+            "at": 1.64
+          },
+          {
+            "text": "pricing",
+            "accent": true,
+            "at": 1.74
+          }
+        ]
+      }
+    },
+    {
+      "id": "b31",
+      "kind": "avatar",
+      "t_start": 92.9,
+      "t_end": 96.5
+    },
+    {
+      "id": "b32",
+      "kind": "card",
+      "t_start": 96.5,
+      "t_end": 100.2,
+      "card": "statement",
+      "vars": {
+        "text": "you can replicate this workflow yourself",
+        "accent": "replicate",
+        "beats": [
+          {
+            "text": "you",
+            "accent": false,
+            "at": 1.6
+          },
+          {
+            "text": "can",
+            "accent": false,
+            "at": 1.7
+          },
+          {
+            "text": "replicate",
+            "accent": true,
+            "at": 1.86
+          },
+          {
+            "text": "this",
+            "accent": false,
+            "at": 2.2
+          },
+          {
+            "text": "workflow",
+            "accent": false,
+            "at": 2.6
+          },
+          {
+            "text": "yourself",
+            "accent": false,
+            "at": 2.94
+          }
+        ]
+      }
+    },
+    {
+      "id": "b33",
+      "kind": "card",
+      "t_start": 100.2,
+      "t_end": 104.1,
+      "card": "statement",
+      "vars": {
+        "text": "my link to OpenArt is in the description below",
+        "accent": "description below",
+        "beats": [
+          {
+            "text": "my",
+            "accent": false,
+            "at": 1.64
+          },
+          {
+            "text": "link",
+            "accent": false,
+            "at": 1.92
+          },
+          {
+            "text": "to",
+            "accent": false,
+            "at": 2.14
+          },
+          {
+            "text": "OpenArt",
+            "accent": false,
+            "at": 2.3
+          },
+          {
+            "text": "is",
+            "accent": false,
+            "at": 2.66
+          },
+          {
+            "text": "in",
+            "accent": false,
+            "at": 2.82
+          },
+          {
+            "text": "the",
+            "accent": false,
+            "at": 2.96
+          },
+          {
+            "text": "description",
+            "accent": true,
+            "at": 3
+          },
+          {
+            "text": "below",
+            "accent": true,
+            "at": 3.3
+          }
+        ]
+      }
+    },
+    {
+      "id": "b34",
+      "kind": "avatar",
+      "t_start": 104.1,
+      "t_end": 106.333
+    }
+  ]
+}

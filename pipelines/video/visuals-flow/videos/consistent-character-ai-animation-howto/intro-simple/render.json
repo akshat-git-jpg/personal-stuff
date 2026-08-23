@@ -1,0 +1,211 @@
+{
+  "standIn": true,
+  "audioFrom": "master.wav",
+  "renderedAt": "2026-08-22T18:09:33.104Z",
+  "beats": [
+    {
+      "id": "b01",
+      "kind": "card",
+      "card": "statement",
+      "duration": 4
+    },
+    {
+      "id": "b02",
+      "kind": "card",
+      "card": "checklist",
+      "duration": 3.5
+    },
+    {
+      "id": "b03",
+      "kind": "card",
+      "card": "checklist",
+      "duration": 3.5
+    },
+    {
+      "id": "b04",
+      "kind": "avatar",
+      "card": null,
+      "duration": 3
+    },
+    {
+      "id": "b05",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3
+    },
+    {
+      "id": "b06",
+      "kind": "avatar",
+      "card": null,
+      "duration": 3.4
+    },
+    {
+      "id": "b07",
+      "kind": "card",
+      "card": "statement",
+      "duration": 2.9
+    },
+    {
+      "id": "b08",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3.7
+    },
+    {
+      "id": "b09",
+      "kind": "avatar",
+      "card": null,
+      "duration": 2.8
+    },
+    {
+      "id": "b10",
+      "kind": "card",
+      "card": "statement",
+      "duration": 2.5
+    },
+    {
+      "id": "b11",
+      "kind": "avatar",
+      "card": null,
+      "duration": 3
+    },
+    {
+      "id": "b12",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3.7
+    },
+    {
+      "id": "b13",
+      "kind": "avatar",
+      "card": null,
+      "duration": 2.4
+    },
+    {
+      "id": "b14",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3
+    },
+    {
+      "id": "b15",
+      "kind": "avatar",
+      "card": null,
+      "duration": 2
+    },
+    {
+      "id": "b16",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3
+    },
+    {
+      "id": "b17",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3.5
+    },
+    {
+      "id": "b18",
+      "kind": "avatar",
+      "card": null,
+      "duration": 2.3
+    },
+    {
+      "id": "b19",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3
+    },
+    {
+      "id": "b20",
+      "kind": "avatar",
+      "card": null,
+      "duration": 3
+    },
+    {
+      "id": "b21",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3.5
+    },
+    {
+      "id": "b22",
+      "kind": "avatar",
+      "card": null,
+      "duration": 3
+    },
+    {
+      "id": "b23",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3.6
+    },
+    {
+      "id": "b24",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3.5
+    },
+    {
+      "id": "b25",
+      "kind": "avatar",
+      "card": null,
+      "duration": 2.7
+    },
+    {
+      "id": "b26",
+      "kind": "card",
+      "card": "statement",
+      "duration": 2.9
+    },
+    {
+      "id": "b27",
+      "kind": "avatar",
+      "card": null,
+      "duration": 3
+    },
+    {
+      "id": "b28",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3.5
+    },
+    {
+      "id": "b29",
+      "kind": "avatar",
+      "card": null,
+      "duration": 2.5
+    },
+    {
+      "id": "b30",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3.5
+    },
+    {
+      "id": "b31",
+      "kind": "avatar",
+      "card": null,
+      "duration": 3.6
+    },
+    {
+      "id": "b32",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3.7
+    },
+    {
+      "id": "b33",
+      "kind": "card",
+      "card": "statement",
+      "duration": 3.9
+    },
+    {
+      "id": "b34",
+      "kind": "avatar",
+      "card": null,
+      "duration": 2.233
+    }
+  ]
+}

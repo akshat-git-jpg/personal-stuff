@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-08-01T08:52:09.879Z",
+  "updated": "2026-08-22T16:28:22.051Z",
   "steps": {
     "235-build-card-plan-run": {
       "status": "done",
@@ -115,28 +115,28 @@
       "ended": "2026-07-31T17:15:46.610Z"
     },
     "510-assemble-video-run": {
-      "status": "blocked",
-      "started": "2026-07-31T17:59:57.133Z",
-      "did": "Assembled the screen recording, graphics, avatar clips and mastered audio into a draft cut.",
-      "output": "final-draft.mp4 + assembly.md",
-      "issues": "exited 1, see terminal",
-      "ended": "2026-07-31T17:59:57.602Z"
+      "status": "done",
+      "started": "2026-08-22T15:01:18.699Z",
+      "did": "Re-cut the already-approved v11/v12 plan to fix the FPS frame-drift desync the owner reported. Ran current assemble (which carries the framesUntil/-frames:v fix) against the frozen resolved.json via --force, so the approved cue and shot plan was reused byte-for-byte and only the encoder changed. Current main cannot assemble this video unmodified: introSpan() now claims 0-117.6s for an intro film this pre-plan-192 video never had, which would have deleted cues z01-z08, so the run used a scratch copy of lib/ with filmSpan forced to null. No repo code was changed and no HeyGen clip was re-rendered (zero spend).",
+      "output": "versions/v13.mp4 (606175677 bytes, 17:56.4) in the kb-scratch cut folder. Video stream 1076.367s / 32291 frames against a 1076.352s master - a 0.015s gap, under one frame at 30fps, down from 0.985s in the delivered v12. All 10 avatar spans land within the file's 0.1s display precision of avatar-jobs.json. Uploaded to Drive Output/ as opusclip-vs-submagic-final-syncfixed.mp4 alongside the original, which was left untouched.",
+      "issues": "Two visual deltas beyond the sync fix, both from fixes that landed after delivery. The last 1.6s tail (17:54.8-17:56.4) is now a freeze on the host instead of a cut to a Submagic dashboard screen recording (freezeTrailingGap, a20de115) and the whip at 1074.8 is dropped with it - an improvement, but it is a change to an approved cut and needs the owner's eye. Separately, on current main this video no longer resolves at all: a new E12 frame-gate fails z14 (like-subscribe - Subscribe/Subscribed labels 100% cover #ripple), and re-resolving would also shift c16 +0.98s and c18 +2.12s. None of that was applied here.",
+      "ended": "2026-08-22T15:22:36.675Z"
     },
     "530-approve-final-cut-human": {
       "status": "done",
-      "ended": "2026-08-01T08:36:03.623Z",
+      "ended": "2026-08-22T16:25:29.105Z",
       "started": "2026-08-01T08:36:03.623Z",
-      "did": "Owner approved the final cut (version v11) in chat: full-screen tape-board intro + all-Avatar-IV host clips.",
+      "did": "Owner reviewed the sync-fixed re-cut on the board and approved v15 in chat ('apporved'). Two rounds of ending feedback got there: v13 froze on the host for 1.5s, v14 trimmed into the word, v15 fades to black during the natural pause so the goodbye plays over black with the voice fully intact.",
       "issues": "none found",
-      "output": "final-cut.json approved=true, version v11"
+      "output": "final-cut.json approved=true version=v15"
     },
     "620-deliver-drive-run": {
       "status": "done",
       "started": "2026-08-01T08:39:42.595Z",
-      "ended": "2026-08-01T08:52:09.879Z",
-      "did": "Uploaded the approved full-resolution final to the video's Drive Output folder.",
-      "output": "Output/<slug>-final.mp4 on Drive",
-      "issues": "none found"
+      "ended": "2026-08-22T16:28:22.051Z",
+      "did": "Uploaded the approved v15 to the video's Drive Output folder, overwriting the superseded v12 in place so the existing share link still resolves. Then deleted the interim syncfixed upload on the owner's instruction, leaving exactly one file in Output/.",
+      "output": "Output/ holds one file: opusclip-vs-submagic-final.mp4 = v15, 151231277 bytes, id 1gciLjszXw3IiMBWP8EuGC3P3zPgPbsGz. v12 and v13 preserved locally in the kb-scratch versions folder.",
+      "issues": "none found. The Drive delete is permanent rather than a trash, so the target was verified by id, name and byte size first, and the local versions/v13.mp4 was confirmed byte-identical before removal - the deleted cut is still recoverable from kb-scratch."
     }
   }
 }

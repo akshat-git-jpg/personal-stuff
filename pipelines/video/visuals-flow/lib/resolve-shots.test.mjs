@@ -161,3 +161,51 @@ test('mode: "bogus" -> error mentioning bogus', () => {
   assert.ok(errors[0].includes('bogus'));
   assert.equal(spans.length, 0);
 });
+
+// ---------------------------------------------------------------------------
+// Tail snap target: vo.mp3, not the transcript.
+//
+// SNAP_EDGE exists so a span that lands near the end means "run to the end of
+// the video". It used to snap to the transcript's last word end — but the
+// transcript is a Whisper pass over the SCREEN RECORDING, while avatar-render
+// slices vo.mp3. On opusclip-vs-submagic the transcript ended at 1074.83 and the
+// voice kept going to 1075.38, so the snap landed 0.55s short and s10's HeyGen
+// slice never contained "Goodbye". Passing the acoustic end makes the snap mean
+// what it says.
+// ---------------------------------------------------------------------------
+
+test('tail snap extends to the acoustic end of speech when it is later than the transcript', () => {
+  const { spans, errors } = resolveShots({
+    engineMode: 'test',
+    spans: [{ id: 's10', purpose: 'avatar-full', mode: 'full', from_anchor: 'w108 w109 w110', to_anchor: 'w117 w118 w119' }],
+  }, words, { voSpeechEnd: 121.4 });
+  assert.deepEqual(errors, []);
+  assert.equal(spans[0].end, 121.4);
+  assert.equal(spans[0].snapped, true);
+});
+
+test('tail snap never SHORTENS a span when the audio stops before the transcript claims', () => {
+  const { spans } = resolveShots({
+    engineMode: 'test',
+    spans: [{ id: 's10', purpose: 'avatar-full', mode: 'full', from_anchor: 'w108 w109 w110', to_anchor: 'w117 w118 w119' }],
+  }, words, { voSpeechEnd: 119.2 });
+  // transcript total is 120; the snap keeps it rather than clipping to 119.2.
+  assert.equal(spans[0].end, 120);
+});
+
+test('no voSpeechEnd → tail snap behaves exactly as before (transcript total)', () => {
+  const { spans } = resolveShots({
+    engineMode: 'test',
+    spans: [{ id: 's10', purpose: 'avatar-full', mode: 'full', from_anchor: 'w108 w109 w110', to_anchor: 'w117 w118 w119' }],
+  }, words);
+  assert.equal(spans[0].end, 120);
+});
+
+test('a mid-video span is untouched by voSpeechEnd', () => {
+  const { spans } = resolveShots({
+    engineMode: 'test',
+    spans: [{ id: 's01', purpose: 'avatar-full', mode: 'full', from_anchor: 'w10 w11 w12', to_anchor: 'w19 w20 w21' }],
+  }, words, { voSpeechEnd: 121.4 });
+  assert.equal(spans[0].end, 22);
+  assert.equal(spans[0].snapped, undefined);
+});

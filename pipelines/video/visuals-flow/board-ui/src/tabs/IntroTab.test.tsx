@@ -150,6 +150,31 @@ describe('IntroTab — simple-flow gate (125)', () => {
     expect(el.textContent).toContain('≤ 5.0s');
   });
 
+  // Gate 125 reviews a video, so its feedback must be TIMESTAMPED like the
+  // Final Cut tab — pause, comment, the comment carries the moment. It shipped
+  // as a bare <video> plus one autosaved box per beat, which made the owner
+  // translate "this card is late" into a beat id by hand (owner report
+  // 2026-08-22). Without these two assertions the surface can silently revert:
+  // the beat table, pacing strip and Approve button all still pass their own
+  // tests either way.
+  it('reviews the cut through the shared timestamped ReviewSurface, not per-beat boxes', async () => {
+    const cutlist = oneBeatCutlist(false);
+    const el = await renderTab({
+      present: false, mode: 'simple', cutlist,
+      pacing: { avatarShare: 0.3, cuts: 1, longestAvatarHold: 2.5 },
+    });
+    expect(
+      el.querySelector('.rs-container'),
+      'SIMPLE-INTRO: the shared ReviewSurface (timestamped player + comment composer) is not mounted',
+    ).toBeTruthy();
+    expect(
+      el.querySelectorAll('.intro-simple-beat-feedback').length,
+      'SIMPLE-INTRO: the per-beat feedback boxes are back — feedback must be timestamped, not per-beat',
+    ).toBe(0);
+    // the beat table stays as a reference strip under the player
+    expect(el.querySelector('.intro-simple-beat-row')).toBeTruthy();
+  });
+
   // Regression guard (plan 221 STOP condition: the two existing complex-flow
   // branches must not be touched). Driven through the real fetch → state →
   // render path, same as the simple-gate cases above, not through props —

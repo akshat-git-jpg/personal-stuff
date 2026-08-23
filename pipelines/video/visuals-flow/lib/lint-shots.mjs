@@ -4,6 +4,8 @@ import { resolveWorkdir } from './workdir.mjs';
 import { planSegments } from './assemble.mjs';
 import { SHOT_CONSTANTS as SC } from './shot-constants.mjs';
 import { introSpan } from './intro-modes.mjs';
+import { lastSpeechEnd, probeVoSpeech } from './vo-speech.mjs';
+import { SNAP_EDGE } from './resolve-shots.mjs';
 import { writeCheckReport } from './checks.mjs';
 import { pathToFileURL } from 'node:url';
 
@@ -23,6 +25,12 @@ const BACK_ZONE = SC.BACK_ZONE.value;
 const GAP_AVATAR_MAX = SC.GAP_AVATAR_MAX.value;
 const INTRO_HOST_BY = SC.INTRO_HOST.value;
 
+// How far past a span's end the voice may still be heard before E9 calls it a
+// clipped word. 0.12s is ~3.5 frames at 30fps: under that the slice loses only
+// a word's release, which HeyGen renders indistinguishably. The bug this
+// catches overshot by 0.55s.
+const TAIL_SPEECH_TOL = 0.12;
+
 // Raised 2.5→6 / 5→8 with SLIVER_GRAPHIC (owner final-v1:3, 2026-07-31):
 // screen time under 6s shows nothing meaningful. Graphic-adjacent slivers are
 // auto-absorbed at assembly; between two avatars nothing can absorb, so the
@@ -32,7 +40,7 @@ const MIN_SCREEN_WARN = 8;
 
                                     //     presence mid-video, not just the U-curve ends)
 
-export function lintShots({ shotsResolved, resolvedCues, words, catalog, filmSpan = null }) {
+export function lintShots({ shotsResolved, resolvedCues, words, catalog, filmSpan = null, voSpeech = null }) {
   const errors = [];
   const warnings = [];
   if (!words || words.length === 0) return { errors, warnings };
@@ -108,7 +116,12 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog, filmSpa
     // SNAP_EDGE of the video edge to exactly 0, which can sit BEFORE the
     // first word's start (s00, 2026-07-31).
     const sentenceStarts = [{ t: 0, gap: Infinity }, { t: words[0].start, gap: Infinity }];
-    const sentenceEnds = [T];
+    // T is the transcript's last word end; when vo.mp3 says the voice runs
+    // later, THAT is the video's real closing edge and resolve-shots snaps the
+    // tail span to it. Both count as sentence ends or the resolver's own
+    // output would fail this gate.
+    const voEndForE7 = lastSpeechEnd(voSpeech);
+    const sentenceEnds = voEndForE7 !== null ? [T, voEndForE7] : [T];
     for (let i = 0; i < words.length - 1; i++) {
       if (/[.!?]["')\]]?$/.test(wordText(words[i]).trim())) {
         sentenceEnds.push(words[i].end);
@@ -238,6 +251,33 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog, filmSpa
     }
   }
 
+  // E9 tail-speech-uncovered — the LAST span must actually contain the last
+  // thing the host says.
+  //
+  // Every time above this line comes from transcript.json. The HeyGen slice is
+  // cut from vo.mp3 (`avatar-render.mjs`: -ss start -to end), and the two
+  // disagree by up to ~0.7s. On opusclip-vs-submagic the transcript put
+  // "Goodbye." at 1074.31-1074.83 so s10 ended at 1074.83, while the word
+  // acoustically runs 1074.889-1075.377: the slice never held the word, so the
+  // render could not say it. Nothing downstream can fix that — the audio the
+  // avatar was driven by simply did not contain the goodbye.
+  //
+  // Scoped to the last span AND only when it is tail-adjacent (resolve-shots'
+  // SNAP_EDGE window). Mid-video a span hands straight off to screen narration,
+  // so "speech continues after this span" is the normal case there.
+  if (voSpeech && spans.length) {
+    const last = spans[spans.length - 1];
+    const voEnd = lastSpeechEnd(voSpeech);
+    if (voEnd !== null && T - last.end < SNAP_EDGE && voEnd - last.end > TAIL_SPEECH_TOL) {
+      errors.push(
+        `E9 tail-speech-uncovered: span ${last.id} ends at ${last.end.toFixed(2)}s but the voiceover `
+        + `keeps speaking until ${voEnd.toFixed(2)}s — the last ${(voEnd - last.end).toFixed(2)}s of speech `
+        + `is outside the span, so avatar-render will slice vo.mp3 without it and the host cannot say it. `
+        + `Extend ${last.id} to ${voEnd.toFixed(2)}s (transcript word times drift from vo.mp3; trust the audio).`,
+      );
+    }
+  }
+
   return { errors, warnings };
 }
 
@@ -255,7 +295,15 @@ async function main() {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
 
-  const { errors, warnings } = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog, filmSpan: introSpan(workdir) });
+  // E9 needs the real audio, not the transcript. A missing vo.mp3 must announce
+  // itself: silently passing the tail check is how a gate stops being a gate
+  // (LESSONS 2026-07-21).
+  const voPath = path.join(workdir, 'vo.mp3');
+  const voMissing = !fs.existsSync(voPath);
+  const voSpeech = voMissing ? null : probeVoSpeech(voPath);
+
+  const { errors, warnings } = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog, filmSpan: introSpan(workdir), voSpeech });
+  if (voMissing) warnings.push(`W9 tail-speech-unchecked: no vo.mp3 in ${workdir} — E9 could not verify that the last span covers the final words`);
   
   writeCheckReport(workdir, 'shots', { errors, warnings });
   

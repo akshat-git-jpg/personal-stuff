@@ -218,3 +218,10 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/best-no-code-automation-tool-s17--29764701431c471a8ee46451fc8f24ce) | 403f1f8c49d64c58bd3168f99a58bb0a | s17.mp3 | `29764701431c471a8ee46451fc8f24ce` |
 | [heygen link](https://app.heygen.com/videos/best-no-code-automation-tool-s07--62f5b10f335f474794bc8303aa4b9126) | 403f1f8c49d64c58bd3168f99a58bb0a | s07.mp3 | `62f5b10f335f474794bc8303aa4b9126` |
 | [heygen link](https://app.heygen.com/videos/bnat-intro-avatar--02c4acacc57f44ff810e6cf4577271b8) | 403f1f8c49d64c58bd3168f99a58bb0a | intro-vo.mp3 | `02c4acacc57f44ff810e6cf4577271b8` |
+| [heygen link](https://app.heygen.com/videos/consistent-character-ai-animation-howto-s03--9c972990ee78483ba75a043d45c68986) | 7629dffbebe141eb8f701630948bd707 | s03.mp3 | `9c972990ee78483ba75a043d45c68986` |
+| [heygen link](https://app.heygen.com/videos/consistent-character-ai-animation-howto-s06--70a90a12676f47f68e15e0568056bd53) | 7629dffbebe141eb8f701630948bd707 | s06.mp3 | `70a90a12676f47f68e15e0568056bd53` |
+| [heygen link](https://app.heygen.com/videos/consistent-character-ai-animation-howto-s07--5bc3762e24a64ed684c24db2ac35dd89) | 7629dffbebe141eb8f701630948bd707 | s07.mp3 | `5bc3762e24a64ed684c24db2ac35dd89` |
+| [heygen link](https://app.heygen.com/videos/consistent-character-ai-animation-howto-s09--8dd0150560b64dd0978cc179c37c8f4d) | 7629dffbebe141eb8f701630948bd707 | s09.mp3 | `8dd0150560b64dd0978cc179c37c8f4d` |
+| [heygen link](https://app.heygen.com/videos/consistent-character-ai-animation-howto-s11--2ed194593ba9430c9673f283df50a386) | 7629dffbebe141eb8f701630948bd707 | s11.mp3 | `2ed194593ba9430c9673f283df50a386` |
+| [heygen link](https://app.heygen.com/videos/consistent-character-ai-animation-howto-s01--2dc28310aa004a368390daea43537de7) | 7629dffbebe141eb8f701630948bd707 | s01.mp3 | `2dc28310aa004a368390daea43537de7` |
+| [heygen link](https://app.heygen.com/videos/consistent-character-ai-animation-howto-s08--adeaf10fd31841999d66ba9b01990170) | 7629dffbebe141eb8f701630948bd707 | s08.mp3 | `adeaf10fd31841999d66ba9b01990170` |

@@ -45,6 +45,16 @@ videos/*/intro-film/review/
 videos/*/intro-film/renders/
 videos/*/intro-film/out/
 
+# The SIMPLE intro flow's generated media (plan 220). Same rule as the film
+# folder above, and it needed its own lines because intro-simple/ matched none
+# of them: the first real simple intro left 45MB of clips untracked, which a
+# `git add -A` would have swept straight into a commit. cutlist.json and
+# render.json are the RECORD of the cut and stay committed; the mp4s beside them
+# all reappear from `run.sh <slug> intro-simple-render`.
+videos/*/intro-simple/renders/
+videos/*/intro-simple/render-cache/
+videos/*/intro-simple/stand-in-avatar.mp4
+
 # Generated review output, both cut from renders/ which is already ignored.
 # .posters/ is JPEGs ffmpeg cuts on demand for the Storyboard tiles; checks/ is
 # the machine-readable report each -run review step writes. Neither is input to

@@ -1,0 +1,91 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "template": "girl-1",
+  "engineMode": "test",
+  "jobs": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "start": 4.22,
+      "end": 16.26,
+      "duration": 12.04,
+      "audio": "slices-avatar/s01.mp3",
+      "video_id": "2dc28310aa004a368390daea43537de7",
+      "status": "submitted",
+      "submitted_at": "2026-08-22T15:48:58.027Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-character-ai-animation-howto/s01.mp4"
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "start": 151.2,
+      "end": 161.86,
+      "duration": 10.66,
+      "audio": "slices-avatar/s03.mp3",
+      "video_id": "9c972990ee78483ba75a043d45c68986",
+      "status": "submitted",
+      "submitted_at": "2026-08-22T15:28:23.474Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-character-ai-animation-howto/s03.mp4"
+    },
+    {
+      "id": "s06",
+      "purpose": "avatar-full",
+      "start": 492.32,
+      "end": 505.9,
+      "duration": 13.58,
+      "audio": "slices-avatar/s06.mp3",
+      "video_id": "70a90a12676f47f68e15e0568056bd53",
+      "status": "submitted",
+      "submitted_at": "2026-08-22T15:30:41.404Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-character-ai-animation-howto/s06.mp4"
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "start": 666.22,
+      "end": 677.8,
+      "duration": 11.58,
+      "audio": "slices-avatar/s07.mp3",
+      "video_id": "5bc3762e24a64ed684c24db2ac35dd89",
+      "status": "submitted",
+      "submitted_at": "2026-08-22T15:32:31.167Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-character-ai-animation-howto/s07.mp4"
+    },
+    {
+      "id": "s08",
+      "purpose": "avatar-full",
+      "start": 702.76,
+      "end": 714.98,
+      "duration": 12.22,
+      "audio": "slices-avatar/s08.mp3",
+      "video_id": "adeaf10fd31841999d66ba9b01990170",
+      "status": "submitted",
+      "submitted_at": "2026-08-22T15:50:17.363Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-character-ai-animation-howto/s08.mp4"
+    },
+    {
+      "id": "s09",
+      "purpose": "avatar-full",
+      "start": 827.48,
+      "end": 839.98,
+      "duration": 12.5,
+      "audio": "slices-avatar/s09.mp3",
+      "video_id": "8dd0150560b64dd0978cc179c37c8f4d",
+      "status": "submitted",
+      "submitted_at": "2026-08-22T15:46:39.380Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-character-ai-animation-howto/s09.mp4"
+    },
+    {
+      "id": "s11",
+      "purpose": "avatar-full",
+      "start": 855.52,
+      "end": 891.74,
+      "duration": 36.22,
+      "audio": "slices-avatar/s11.mp3",
+      "video_id": "2ed194593ba9430c9673f283df50a386",
+      "status": "submitted",
+      "submitted_at": "2026-08-22T15:48:02.895Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-character-ai-animation-howto/s11.mp4"
+    }
+  ]
+}

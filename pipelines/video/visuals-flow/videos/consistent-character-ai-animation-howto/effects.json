@@ -1,0 +1,226 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "approved": true,
+  "instances": [
+    {
+      "id": "whip-16.3",
+      "type": "whip",
+      "at": 16.26,
+      "direction": "right",
+      "fromIdx": 1,
+      "toIdx": 2,
+      "style": "blur",
+      "enabled": true
+    },
+    {
+      "id": "whip-26.8",
+      "type": "whip",
+      "at": 26.78,
+      "direction": "right",
+      "fromIdx": 2,
+      "toIdx": 3,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-40.7",
+      "type": "whip",
+      "at": 40.7,
+      "direction": "right",
+      "fromIdx": 4,
+      "toIdx": 5,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-58.2",
+      "type": "whip",
+      "at": 58.24,
+      "direction": "right",
+      "fromIdx": 6,
+      "toIdx": 7,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-70.7",
+      "type": "whip",
+      "at": 70.72,
+      "direction": "right",
+      "fromIdx": 8,
+      "toIdx": 9,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-108.3",
+      "type": "whip",
+      "at": 108.28,
+      "direction": "right",
+      "fromIdx": 10,
+      "toIdx": 11,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-143.7",
+      "type": "whip",
+      "at": 143.66,
+      "direction": "right",
+      "fromIdx": 13,
+      "toIdx": 14,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-161.9",
+      "type": "whip",
+      "at": 161.86,
+      "direction": "right",
+      "fromIdx": 16,
+      "toIdx": 17,
+      "style": "blur",
+      "enabled": true
+    },
+    {
+      "id": "whip-426.4",
+      "type": "whip",
+      "at": 426.42,
+      "direction": "right",
+      "fromIdx": 17,
+      "toIdx": 18,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-483.6",
+      "type": "whip",
+      "at": 483.58,
+      "direction": "right",
+      "fromIdx": 19,
+      "toIdx": 20,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-505.9",
+      "type": "whip",
+      "at": 505.9,
+      "direction": "right",
+      "fromIdx": 21,
+      "toIdx": 22,
+      "style": "blur",
+      "enabled": true
+    },
+    {
+      "id": "whip-608.5",
+      "type": "whip",
+      "at": 608.54,
+      "direction": "right",
+      "fromIdx": 22,
+      "toIdx": 23,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-677.8",
+      "type": "whip",
+      "at": 677.8,
+      "direction": "right",
+      "fromIdx": 25,
+      "toIdx": 26,
+      "style": "blur",
+      "enabled": true
+    },
+    {
+      "id": "whip-715.0",
+      "type": "whip",
+      "at": 714.98,
+      "direction": "right",
+      "fromIdx": 27,
+      "toIdx": 28,
+      "style": "blur",
+      "enabled": true
+    },
+    {
+      "id": "whip-840.0",
+      "type": "whip",
+      "at": 839.98,
+      "direction": "right",
+      "fromIdx": 29,
+      "toIdx": 30,
+      "style": "blur",
+      "enabled": true
+    },
+    {
+      "id": "whip-906.0",
+      "type": "whip",
+      "at": 905.96,
+      "direction": "right",
+      "fromIdx": 32,
+      "toIdx": 33,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-964.3",
+      "type": "whip",
+      "at": 964.3,
+      "direction": "right",
+      "fromIdx": 34,
+      "toIdx": 35,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-985.3",
+      "type": "whip",
+      "at": 985.34,
+      "direction": "right",
+      "fromIdx": 36,
+      "toIdx": 37,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1103.3",
+      "type": "whip",
+      "at": 1103.32,
+      "direction": "right",
+      "fromIdx": 38,
+      "toIdx": 39,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1143.7",
+      "type": "whip",
+      "at": 1143.72,
+      "direction": "right",
+      "fromIdx": 40,
+      "toIdx": 41,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-reg-37.0",
+      "type": "whip",
+      "at": 36.96,
+      "direction": "lift",
+      "style": "register",
+      "enabled": true
+    },
+    {
+      "id": "captions",
+      "type": "captions",
+      "enabled": true,
+      "fontPx": 44,
+      "yFrac": 0.87
+    },
+    {
+      "id": "bubble",
+      "type": "bubble",
+      "enabled": true
+    }
+  ]
+}

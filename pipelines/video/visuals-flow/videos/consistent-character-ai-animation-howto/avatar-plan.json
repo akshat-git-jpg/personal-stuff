@@ -1,0 +1,32 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "character": "girl-1",
+  "model": "heygen3",
+  "clips": 7,
+  "seconds": 108.8,
+  "candidates": [
+    {
+      "id": "girl-1",
+      "description": "Girl — soft-voice tutorial template (avatar bubble + background), 16:9. THE girl template (owner 2026-08-02).",
+      "hasTemplate": true,
+      "hasImage": false
+    },
+    {
+      "id": "specs-man",
+      "description": "Man with Specs Black Shirt — THE man template (owner 2026-07-28, reaffirmed 2026-08-02). Named \"man\" in the HeyGen space.",
+      "hasTemplate": true,
+      "hasImage": true
+    },
+    {
+      "id": "side-avatar",
+      "description": "Side-view 'working at laptop' woman for the fal-lipsync flow — carries NO HeyGen id of any kind (HeyGen can't hold this pose), so the 2026-08-02 id cull left it alone. Pose variants + scripts in fal-lipsync/; candidate base loop kling-base-v4-pingpong.mp4 in ~/kb-scratch/video/heygen/_test/fal-lipsync/",
+      "hasTemplate": false,
+      "hasImage": true
+    }
+  ],
+  "models": [
+    "heygen3",
+    "heygen4"
+  ],
+  "approved": true
+}
