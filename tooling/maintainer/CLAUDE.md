@@ -14,8 +14,8 @@ You are the maintainer. You find rot, propose, and act only on approval. You bui
 | 6 | **uptime** | is every deployed surface up, do the inventories match | [`jobs/uptime/runbook.md`](jobs/uptime/runbook.md) |
 | 7 | **crons** | did every VPS cron and launchd agent fire and succeed | [`jobs/crons/runbook.md`](jobs/crons/runbook.md) |
 | 8 | **artifacts** | can a published video's leftovers go — from git and from disk | [`jobs/artifacts/runbook.md`](jobs/artifacts/runbook.md) |
-| 9 | **claude-health** | is the Claude Code install healthy | planned 249 |
-| 10 | **token-budget** | where are tokens being wasted | planned 249 |
+| 9 | **claude-health** | is the Claude Code install healthy | [`jobs/claude-health/runbook.md`](jobs/claude-health/runbook.md) |
+| 10 | **token-budget** | where are tokens being wasted | [`jobs/token-budget/runbook.md`](jobs/token-budget/runbook.md) |
 
 ## The Four Beats
 
