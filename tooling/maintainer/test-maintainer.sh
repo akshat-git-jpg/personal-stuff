@@ -20,7 +20,7 @@ export MAINT_DIR
 
 # We will test lib.sh functions by sourcing it in a subshell
 jobs="$(bash -c "source $MAINT_DIR/bin/lib.sh; discover_jobs" | sort | tr '\n' ' ')"
-if [ "$jobs" != "mcp memory routing skills " ]; then
+if [ "$jobs" != "bigfiles mcp memory routing skills " ]; then
   if [ -z "$jobs" ]; then
     fail "job discovery found no jobs"
   else
@@ -154,5 +154,24 @@ echo "$fix_out" | grep -q 'refusing to regenerate' || fail "mcp fix did not expl
 real="$(bash "$MAINT_DIR/jobs/mcp/check.sh" 2>&1)"
 echo "$real" | grep -q 'unbound variable' && fail "mcp check hit an unbound variable on the real repo"
 echo "$real" | grep -q 'DROPPED-BY-REGEN' && fail "regen-mcp-json.sh still drops a live server"
+
+# --- bigfiles job: a real little git repo with a seeded oversized file ------
+BFIX="$TMP/bigfix"; mkdir -p "$BFIX"
+( cd "$BFIX" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p sub
+  dd if=/dev/zero of=sub/large.bin bs=1024 count=200 2>/dev/null
+  printf 'small\n' > sub/small.txt
+  git add -A && git commit -qm seed )
+
+out="$(BIGFILES_ROOT="$BFIX" BIGFILES_MAX_KB=100 bash "$MAINT_DIR/jobs/bigfiles/check.sh" 2>&1)"
+echo "$out" | grep -q 'BIG-TRACKED sub/large.bin' || fail "bigfiles check did not report the seeded oversized tracked file"
+echo "$out" | grep -q 'BIG-TRACKED sub/small.txt' && fail "bigfiles check flagged a small file"
+echo "$out" | grep -q 'history scan skipped'       || fail "bigfiles check ran the slow scan by default"
+
+# the rewrite generator must not change the pack
+before="$(git count-objects -vH | grep size-pack)"
+bash "$MAINT_DIR/jobs/bigfiles/rewrite-plan.sh" >/dev/null
+after="$(git count-objects -vH | grep size-pack)"
+[ "$before" = "$after" ] || fail "rewrite-plan.sh changed the pack — it must only write a plan"
 
 echo "ALL PASS"
