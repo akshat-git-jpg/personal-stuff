@@ -160,12 +160,29 @@ for path in "${changed[@]:-}"; do
   [ -n "$path" ] || continue
   base_name=$(basename "$path")
 
+  # The path is GONE at the tip. Two very different cases hide behind that:
+  #   * it also exists at $base  -> the remote already has it, so removing it leaks
+  #     nothing new. Waving it through is what lets a secret-shaped file ever be
+  #     deleted; without this, `git rm .dev.vars.example` could never be pushed.
+  #   * it does NOT exist at $base -> it was added AND deleted inside this range, so
+  #     it stays readable from the pushed history. Fall through to the gate (case 2b).
+  if ! git -C "$REPO" cat-file -e "$local_ref:$path" 2>/dev/null \
+     && git -C "$REPO" cat-file -e "$base:$path" 2>/dev/null; then
+    continue
+  fi
+
   # A `*.example` template is exempt from SECRET_GLOBS, but ONLY while it holds
   # placeholders. See SECRET_VALUE_PREFIXES above for why the pairing is load-bearing.
   exempt=0
   if [[ "$base_name" == *.example ]]; then
-    example_is_placeholder_only "$path" "$local_ref"
-    case $? in
+    # Call it guarded. Under `set -e` a BARE call that returns non-zero kills the
+    # gate before `case $?` can read the code — silently, exit 2, empty log. That is
+    # exactly what a DELETED *.example produces: `cat-file` cannot read the blob, the
+    # function returns 2, and every land that removes an example file parks with no
+    # reason. Hit 2026-08-24 by the skill-scope migration.
+    ex_rc=0
+    example_is_placeholder_only "$path" "$local_ref" || ex_rc=$?
+    case $ex_rc in
       0) exempt=1 ;;
       1) die "PPPUSH-EXAMPLE-VALUE refusing to push: '$path' is a *.example template but
   holds a value that looks like a real credential, not a placeholder. A *.example file is
