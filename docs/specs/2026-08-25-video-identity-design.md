@@ -5,8 +5,8 @@
 **Supersedes nothing. Amends:** `decisions.md` 2026-08-09 (the video-registry entry).
 
 One video should have one name, from the moment its card is created to the row that
-counts its affiliate clicks. Today it has four, and the one that touches money is
-joined by title string.
+counts its affiliate clicks. Today it has four, and nothing records that they are
+the same video.
 
 ---
 
@@ -24,27 +24,42 @@ A video passes through, at minimum:
 `pipelines/video-registry/` already unified the two pipeline *folder* spaces
 (`yt-script/videos/` and `visuals-flow/videos/`). The other three are unlinked.
 
-### The part that costs money
+### What is NOT wrong (checked 2026-08-25)
 
-`pipelines/youtube/yt-analysis/process_yt_tracker.py:84`:
+An earlier draft of this design claimed a live attribution bug in the affiliate chain.
+**That claim was wrong.** The check is recorded here so nobody re-derives it.
 
-```python
-def _existing_video_code_for_title(d1, title):
-    rows = d1.query("SELECT video_code FROM videos WHERE video_title = ? LIMIT 1", [title])
-    return rows[0]["video_code"] if rows else None
+**The live path is guarded.** `apps/tutorial-tracker-app/src/worker/index.ts:1025`:
+
+```ts
+let videoCode = (target.video_code as string)?.trim();
+if (!videoCode) {
+  const dbCode = await clickstore.videoCodeForTitle(c.env.DB, title);
+  if (dbCode) { videoCode = dbCode; }
+  else {
+    videoCode = generateVideoCode(await clickstore.existingCodes(c.env.DB));
+    await clickstore.insertVideo(c.env.DB, videoCode, title);
+  }
+  await getStore(c.env).updateCells(rowId, { video_code: videoCode });
+}
 ```
 
-An exact string match on the title. No match means `generate_video_code()` mints a
-**new random code**. So a retitled video can fork into two `videos` rows with two sets
-of short links, splitting click attribution and showing the same video twice in
-`analytics-app`.
+The card persists its own `video_code` and it is read back **first**. The title lookup
+in `clickstore.ts:15` fires only for a card that has no code yet — a backfill path for
+cards predating the column. Once a code is assigned it is written back to the card, so
+**a retitle cannot fork a video into two rows.**
 
-Titles are retitled on purpose — the CTR loop in
-`.claude/skills/personal-stuff-video-automation-campaign/` exists to do exactly that.
+**And `process_yt_tracker.py` is deprecated dead code.** Its own header says so
+(`DEPRECATED (2026-06-15)` … "retained for reference only and is no longer
+maintained"), its logic was ported to the Worker as `linkgen.ts`, and
+`.claude/skills/personal-stuff-failure-archaeology/SKILL.md:19` records the whole
+Sheets backend as **SETTLED**, with the instruction "never code against it".
 
-**Not yet verified:** whether that step actually re-runs after a retitle. The plan must
-confirm this before claiming a live bug was fixed. The title-based join is real
-regardless and is removed either way.
+**What remains is a cleanup, not a fix.** Once `video_code` IS the canonical slug, the
+`videoCodeForTitle` fallback has nothing left to resolve and can be deleted.
+
+**Lesson for the next design in this repo:** the failure-archaeology skill exists for
+exactly this. Run it before asserting anything here is broken.
 
 ---
 
@@ -251,9 +266,9 @@ mid-statement. D1 enforces foreign keys; whether `PRAGMA defer_foreign_keys` is
 honoured inside a D1 batch must be **verified against D1's current behaviour, not
 assumed**.
 
-**Then the title join goes away.** `process_yt_tracker.py` stops calling
-`_existing_video_code_for_title`; `video_code` *is* the key, so there is no lookup to
-perform.
+**Then the title lookup goes away.** `clickstore.videoCodeForTitle` becomes
+unreachable once `video_code` IS the canonical key, and is deleted. This is a dead-path
+removal, not a behaviour change — see the check in §1.
 
 ### 4.5 Existing state
 
@@ -284,7 +299,7 @@ before aliasing anything.
 | 2 | slug is create-only | **shape assertion** — present in `createFields`, absent from `briefFields`. Never a wording assertion |
 | 3 | slug uniqueness | the index rejects a duplicate insert |
 | 4 | `vreg sync` | mints when missing; no write when present; skips a card with no slug; second run is a no-op |
-| 5 | no second `videos` row after a retitle | the money-chain regression |
+| 5 | a retitle does not create a second `videos` row | pins the guard the card-stored `video_code` already provides, so a refactor cannot lose it |
 
 `test_cmd` extends `scripts/check.sh`, the existing repo-wide gate, rather than adding a
 parallel runner.
@@ -351,8 +366,9 @@ The rule against a *pipeline* owning naming stands unchanged.
 
 ## 8. Open points for plan readiness
 
-1. **Does `process_yt_tracker.py` re-run for an already-processed video?** Determines
-   whether the title join is a live bug or a latent one. One code-path check.
+1. ~~Does `process_yt_tracker.py` re-run for an already-processed video?~~
+   **Resolved 2026-08-25.** It is deprecated dead code, and the live Worker path is
+   already guarded by the card-stored `video_code`. See §1.
 2. **Does D1 honour `PRAGMA defer_foreign_keys` inside a batch?** Decides the exact
    migration mechanics in §4.4.
 3. **Backfill for the two unregistered folders** needs a content read (outline plus
