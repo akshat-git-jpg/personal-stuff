@@ -89,42 +89,87 @@ REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
 source "$SCRIPTS_DIR/lib/guard-install.sh"
 guard_install "$REPO_ROOT" || true
 
-# --- one memory store for this repo, shared by both accounts -----------------
-# A memory store's path is <config dir>/projects/<repo path with / as ->/memory,
-# so two config dirs mean two stores for the same repo and nothing syncs them.
-# By 2026-08-24 they had drifted into 22 files on work and 8 on personal, with
-# the personal side still describing the deleted `captain` orchestrator. Pointing
-# personal at work's directory makes drift impossible rather than merely fixed.
+# --- ONE memory store for this repo, everywhere ------------------------------
+# A memory store lives at <config dir>/projects/<cwd with / as ->/memory, keyed by
+# the exact directory a session was launched in. So the same repo gets a SEPARATE
+# store per account AND per subfolder AND per worktree:
+#
+#   ~/.claude-work/projects/-Users-kbtg-codebase-personal-stuff/            <- root
+#   ~/.claude-work/projects/-Users-kbtg-codebase-personal-stuff-tooling-boss/
+#   ~/.claude-personal/projects/-Users-kbtg-codebase-personal-stuff/
+#   ~/.claude-work/projects/-Users-kbtg-kb-scratch-worktrees-...-personal-stuff/
+#
+# That is ~17 possible stores for one repo. Nothing syncs them: by 2026-08-24 the
+# two account-level stores had already drifted to 22 files vs 8, with the personal
+# side still describing the `captain` orchestrator deleted the day before. A boss
+# session in tooling/boss/ writing a lesson is the same failure along another axis.
+#
+# So every store for this repo is symlinked to ONE canonical directory - the work
+# account's root store. Drift stops being something to fix and becomes impossible.
+#
 # Dual-account machines only: a bare `claude` reads ~/.claude and has one store.
+# Only directories that already exist are linked, so a brand-new worktree gets its
+# own store until the next relink. Worktrees are short-lived and reaped, so that is
+# accepted rather than solved.
 link_shared_memory() {
-  local main_root slug work_mem pers_proj pers_mem
-  # The store is keyed by the SESSION's cwd, which is the main checkout - not a
-  # pp-work workspace. `git worktree list` puts the main worktree first, so this
-  # links the right slug even when relink is run from a leased workspace.
+  local main_root slug base canon acct proj name mem linked=0 refused=0
+
+  # The slug is keyed off the MAIN checkout, not a pp-work workspace: `git worktree
+  # list` puts the main worktree first, so this is right even when run from a lease.
   main_root="$(git -C "$REPO_ROOT" worktree list 2>/dev/null | head -1 | awk '{print $1}')"
   [[ -n "$main_root" ]] || main_root="$REPO_ROOT"
   slug="$(printf '%s' "$main_root" | sed 's|/|-|g')"
-  work_mem="${CLAUDE_WORK_CONFIG_DIR:-$HOME/.claude-work}/projects/$slug/memory"
-  pers_proj="${CLAUDE_PERSONAL_CONFIG_DIR:-$HOME/.claude-personal}/projects/$slug"
-  pers_mem="$pers_proj/memory"
+  base="$(basename "$main_root")"
 
-  mkdir -p "$work_mem" "$pers_proj"
+  canon="${CLAUDE_WORK_CONFIG_DIR:-$HOME/.claude-work}/projects/$slug/memory"
+  mkdir -p "$canon"
 
-  if [[ -L "$pers_mem" ]]; then
-    [[ "$(readlink "$pers_mem")" == "$work_mem" ]] && return 0
-    rm "$pers_mem"
-  elif [[ -d "$pers_mem" ]]; then
-    # A real directory with memories in it is somebody's work. Never clobber it.
-    if [[ -n "$(ls -A "$pers_mem")" ]]; then
-      echo "memory: $pers_mem is a non-empty real directory." >&2
-      echo "        Merge its files into $work_mem, then rerun." >&2
-      return 1
-    fi
-    rmdir "$pers_mem"
+  for acct in "${CLAUDE_WORK_CONFIG_DIR:-$HOME/.claude-work}" \
+              "${CLAUDE_PERSONAL_CONFIG_DIR:-$HOME/.claude-personal}"; do
+    [[ -d "$acct/projects" ]] || continue
+
+    for proj in "$acct"/projects/*; do
+      [[ -d "$proj" ]] || continue
+      name="$(basename "$proj")"
+
+      # Does this project directory belong to this repo?
+      case "$name" in
+        "$slug")    : ;;   # the repo root itself
+        "$slug"-*)  : ;;   # a subfolder of the repo (tooling-boss, apps-gym-app, ...)
+        *-"$base")  : ;;   # another checkout of the same repo (wt slot, pp-work lease)
+        *) continue ;;
+      esac
+
+      mem="$proj/memory"
+
+      # The canonical store must never be linked to itself.
+      [[ -d "$mem" && "$mem" -ef "$canon" ]] && continue
+
+      if [[ -L "$mem" ]]; then
+        [[ "$(readlink "$mem")" == "$canon" ]] && continue
+        rm "$mem"
+      elif [[ -d "$mem" ]]; then
+        # A real directory with memories in it is somebody's work. Never clobber it.
+        if [[ -n "$(ls -A "$mem")" ]]; then
+          echo "memory: $mem is a non-empty real directory." >&2
+          echo "        Merge its files into $canon, then rerun." >&2
+          refused=1
+          continue
+        fi
+        rmdir "$mem"
+      fi
+
+      ln -s "$canon" "$mem"
+      linked=$((linked + 1))
+    done
+  done
+
+  if [[ "$linked" -gt 0 ]]; then
+    echo "memory: linked $linked store(s) -> $canon"
+  else
+    echo "memory: all stores already point at $canon"
   fi
-
-  ln -s "$work_mem" "$pers_mem"
-  echo "memory: personal store -> $work_mem"
+  return "$refused"
 }
 
 if [[ "$USING_DUAL_ACCOUNT" -eq 1 ]]; then
