@@ -4,7 +4,7 @@ description: Use when planning a NEW build (feature, tool, script, small app) as
 user-invocable: true
 metadata:
   author: kbtg
-  version: 2.5.0
+  version: 2.6.0
 ---
 
 # Orchestrate
@@ -77,18 +77,38 @@ Check for `plans/WORKFLOW.md` and `plans/_TEMPLATE.md` in the repo root.
   If the repo already uses `improve`, reuse its `references/plan-template.md`
   structure so the two skills stay consistent.
 
-### Step 1 — Clarify the requirements (brainstorm if fuzzy)
+### Step 1 — Clarify the requirements (default: assume fuzzy)
 
-Judge how well-specified the ask is.
+Judge how well-specified the ask is. **The default is fuzzy.** A new build in a
+repo you have not read yet is fuzzy until proven otherwise.
 
-- **Fuzzy** ("I want an app that tracks X", no concrete scope/acceptance):
-  **invoke `superpowers:brainstorming`** and work through intent, requirements,
-  constraints, and acceptance criteria with the user. Stop when you can name the
-  scope, the tech, and what "done" means. Do not start planning mid-brainstorm.
-- **Already specific** (clear feature in a known repo with obvious conventions):
-  skip brainstorming; resolve remaining gaps from the codebase, and ask the user
-  only the few things the code can't answer — one question at a time, each with a
-  recommended default.
+- **Fuzzy** — unnamed scope, no acceptance criteria, or a design space with real
+  forks in it. **Invoke `superpowers:brainstorming`** and work through intent,
+  requirements, constraints, and acceptance criteria with the user. Stop when you
+  can name the scope, the tech, and what "done" means. Do not start planning
+  mid-brainstorm.
+- **Already specific** — the user handed you scope, acceptance criteria, AND the
+  approach, in a repo whose conventions answer the rest. Skip brainstorming and go
+  straight to Step 2.
+
+**Skipping brainstorming never skips Step 2.5.** The decision checkpoint is
+mandatory on every path. That is the trade this skill makes: a light Step 1 is
+allowed *because* every assumption and fork gets surfaced at 2.5 anyway.
+
+Do not drip-feed questions here. Recon (Step 2) answers most of them for free and
+Step 2.5 batches the rest into one message. Ask now only what would change *what
+you recon*.
+
+**Red flags — these thoughts mean you are about to under-ask:**
+
+| Thought | Reality |
+|---|---|
+| "It's specific enough, I'll fill the gaps from the codebase" | The codebase answers HOW this repo does things. It never answers WHAT the owner wants. |
+| "I'll decide it myself — Step 3.5 demands zero open decisions" | 3.5 says the EXECUTOR never decides. It never said *you* decide silently. Surface it at 2.5. |
+| "Asking will slow this down" | A wrong guess costs a plan, a PR, an executor run and a review. A question costs one message. |
+| "There are no real decisions in this one" | A new build always has at least three: where it lives, what it's called, what's out of scope. |
+| "I'll note the assumption in the plan's Summary" | The Summary is read after the plan is written. Assumptions get confirmed BEFORE, not disclosed after. |
+| "Brainstorming already covered this" | Brainstorming ran before recon. Recon always turns up forks brainstorming could not see. |
 
 ### Step 2 — Recon the target repo (light)
 
@@ -117,6 +137,60 @@ Before writing steps, learn what the executor must match:
 Keep this proportional — a new small tool needs a lighter pass than a feature
 inside a large app.
 
+### Step 2.5 — Decision checkpoint (MANDATORY — never skipped, never empty)
+
+<HARD-GATE>
+Do NOT create or modify a single plan file until the user has answered this
+checkpoint. It fires on EVERY path — including "already specific", including
+after a finished `superpowers:brainstorming` session, including a one-plan build,
+including a build the user described in detail. No exceptions, no "this one is
+obvious".
+</HARD-GATE>
+
+Recon is done, so you now know where the real forks are. Put them in front of the
+user in **one batched message**. That batching is the point of this gate: the
+owner does not want brainstorming's one-question-per-message interrogation, but
+does want to be in the loop on anything actually being decided or assumed.
+
+**What the checkpoint must contain — these three things and nothing else:**
+
+1. **Assumptions** — anything you are about to bake into a plan as fact that the
+   user never said and the repo does not prove. One line each.
+2. **Forks** — every point where two or more reasonable options exist, each with
+   your recommendation and a one-line why. A fork is real if a competent executor
+   handed the other option would produce a defensibly correct but *different*
+   build.
+3. **Scope line** — what you are NOT building, in one line, so an unwanted
+   omission is caught here instead of at review.
+
+No recon dump, no plan preview, no progress narration, no restating the ask.
+
+**Format:**
+
+- **1–4 forks** → use the `AskUserQuestion` tool, one question per fork, your
+  recommendation listed first and labelled `(Recommended)`. The assumptions and
+  the scope line go in the surrounding message.
+- **5+ forks, or assumptions that have no clean option split** → a numbered table
+  in chat with columns `#` / `Decision` / `My call` / `Why`. State that the user
+  can reply "all good" to take every default, or name only the numbers they want
+  changed.
+
+**Sizing the gate.** Cap it at decisions that change the SHAPE of the build.
+Anything the repo's conventions already settle is recon, not a decision — never
+pad the checkpoint with it. If you surface more than roughly eight real forks, the
+build is under-specified: say so and go back to `superpowers:brainstorming`.
+
+**The checkpoint is never empty.** If you think there is nothing to ask, you have
+already decided silently. Re-read your own recon notes for choices you made
+without noticing: where the thing lives, what it is named, which exemplar file you
+are matching, the data shape, what happens on the empty/error path, which
+verification counts as "done", and what you quietly cut.
+
+**After the user answers:** restate each call in one short line, then go to Step 3.
+Their answers are load-bearing. They go into the plan as facts and into the
+Summary's **Decisions confirmed** list. A decision the owner made is never
+re-opened by you, and never left open for the executor.
+
 ### Step 3 — Write the plan(s)
 
 Record `git rev-parse --short HEAD` first — every plan stamps the commit it was
@@ -130,6 +204,10 @@ execution order and note dependencies. Write each with `plans/_TEMPLATE.md`.
   scrolling:
   - **Problem statement** — what's broken/missing, 1–2 sentences.
   - **Goals** — bulleted, what this plan achieves.
+  - **Decisions confirmed** — the Step 2.5 calls the owner made, one line
+    each (`<fork> -> <chosen option>`). This is the record of what was chosen
+    deliberately, so neither a later reader nor the executor re-litigates it.
+    A plan with an empty list did not run the checkpoint — that is a bug.
   - **Executor proposed** — the executor AND model (e.g. `agy` / Claude
     Sonnet), one line, matching Step 3.5's difficulty grading.
   - **Done criteria** — tersely restated (full detail lives in the Done
@@ -177,6 +255,10 @@ decide — only do and verify**. Self-check every plan:
 1. **Zero open decisions.** No "choose an appropriate…", "design a…", "as
    needed", "pick a sensible…" left in any step. Every decision is made here,
    by you, and inlined as a fact the executor obeys.
+   **Rider:** "made by you" means *decided and surfaced at Step 2.5* — never
+   decided silently. This item closes the executor's freedom, not the owner's
+   visibility. If a decision reached the plan without appearing in the
+   checkpoint, the gate failed: go back to 2.5 with it before handing off.
 2. **The intelligence-heavy bits are IN the plan.** If one function/algorithm/
    schema is the hard part, write that exact snippet into the plan yourself —
    authoring a critical snippet inside a plan is planning, not implementing.
@@ -491,7 +573,11 @@ loop still runs.
         fuzzy idea ──▶ superpowers:brainstorming        (clarify — you INVOKE it, never edit it)
                                 │  clear requirements
                                 ▼
-  orchestrate:  recon repo ──▶ write plan(s) in plans/   (plans/_TEMPLATE.md + WORKFLOW.md — same contract as `improve`)
+  orchestrate:  recon repo ──▶ DECISION CHECKPOINT ──▶ write plan(s) in plans/
+                                (Step 2.5 — owner approves      (plans/_TEMPLATE.md + WORKFLOW.md
+                                 assumptions + forks in ONE       — same contract as `improve`)
+                                 batched message; MANDATORY
+                                 on every path, never empty)
                                 │
                                 ▼
                 dispatch (ag-handoff.sh │ sonnet subagent per plan)
