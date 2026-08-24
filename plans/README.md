@@ -1375,3 +1375,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 245-maintainer-mcp-job — PR#206 245-maintainer-mcp-job: the MCP job, and the generator that silently drops three servers — DONE
 - 246-maintainer-bigfiles-job — PR#207 246-maintainer-bigfiles-job: bigfiles, and a history rewrite that is planned not improvised — DONE
 - 247-maintainer-uptime-and-crons-jobs — PR#208 247-maintainer-uptime-and-crons-jobs: the uptime and crons jobs — DONE
+- 248-maintainer-artifacts-job — PR#209 248-maintainer-artifacts-job: a published video's leftovers — DONE
