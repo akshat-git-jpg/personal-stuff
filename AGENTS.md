@@ -34,9 +34,14 @@ version `.agents/` is the **plugin** root (`~/.agents/plugins/marketplace.json`)
 and `.agents/skills/` is read by nothing — a mirror was briefly built there in
 error and removed the same day (decisions.md 2026-08-24).
 
-`~/.codex/skills/` holds **symlinks** into this repo's `.claude/skills/` and
-`pipelines/.claude/skills/`. One copy of every skill on disk. Edit the real file
-under `.claude/skills/` — never the link.
+`~/.codex/skills/` holds **symlinks** into this repo's `.claude/skills/`. One copy
+of every skill on disk. Edit the real file under `.claude/skills/` — never the link.
+
+It mirrors only the names listed in **`.claude/codex-skills.txt`**, not everything
+in `.claude/skills/`. Claude reads a repo's `.claude/skills/` automatically and so
+gets all 69 for free; Codex has no per-repo path, so anything mirrored here is paid
+for in *every* Codex session, in every project. The list is deliberately short
+(12 as of 2026-08-25). Add a name to it only if you want that skill everywhere.
 
 `scripts/relink.sh` rebuilds that mirror (via
 `scripts/mirror-codex-skills.sh`). Run it after adding, renaming, or deleting
@@ -47,7 +52,7 @@ any skill.
 `skills.read`. Ask for one in plain language — `/yt-video-edit` will never
 autocomplete.
 
-Two consequences of that mirror being **global**: these 35 skills load in every
+Two consequences of that mirror being **global**: these 12 skills load in every
 project, including ZluriHQ work repos where several do not apply; and the links
 point at `/Users/kbtg/codebase/personal-stuff`, so moving or deleting that
 checkout breaks them.
@@ -79,10 +84,12 @@ In Git Bash, from the repo root:
 
 ```bash
 git config core.symlinks true && git checkout -- .   # if the clone already degraded them
-bash scripts/relink.sh                               # rebuilds Claude skills AND this mirror
+bash scripts/relink.sh                               # rebuilds the Codex mirror + push gate
 ```
 
-Re-run `scripts/relink.sh` after any skill is added, renamed, or deleted.
+Re-run `scripts/relink.sh` after changing `.claude/codex-skills.txt`. Adding or
+renaming a skill that is not on that list needs nothing: Claude picks it up from
+`.claude/skills/` on the next session, whichever account is logged in.
 
 Without admin or Developer Mode, MSYS `ln -s` makes an NTFS **junction** rather
 than a symlink. That reads fine, and `scripts/mirror-codex-skills.sh` detects it

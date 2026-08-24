@@ -58,7 +58,7 @@ Full placement decision tree: see **personal-stuff-idea-to-shipped**.
 1. `INFRA.md` lags launches structurally (the triple-update rule slips); its 2026-06/07 drift was repaired 2026-07-12 — before trusting it for anything load-bearing, run the regression check in **personal-stuff-hosting-inventory** (`scripts/verify-inventory.sh`); on DRIFT, trust `apps/*/wrangler.*` + `VPS-CRONS.md` + `my-hosted-sites.md` over it.
 2. `apps/redirector/CLAUDE.md` still references pre-restructure `workers/redirector` paths; several `pipelines/` docs (`archive/rvc-flow/CLAUDE.md`, pinterest/PLAN.md, cf-email README) still say `ty/` or `TY/` — the repo dissolved `ty/` into `pipelines/` on 2026-07-04.
 3. `pipelines/.env.example` under-lists the real key set — never rebuild an env from the example alone; the authoritative key list (21 keys as of 2026-07-12) lives in **personal-stuff-config-and-secrets**.
-4. `tooling/claude-skills/README.md` "Current split" section understates the work/personal manifest split (says 3 work-only / 1 personal-only; actual is 6 / 7 as of 2026-07-12) — trust `manifest/work.txt` + `manifest/personal.txt`, or run `./scripts/skills-status.sh`.
+4. RESOLVED 2026-08-25. The work/personal manifest split no longer exists: `tooling/claude-skills/` and its manifests were deleted and skills became repo-scoped, so there is nothing left to drift. Run `./scripts/skills-status.sh` to see where skills load now.
 5. gym-app and kushal-docs deploy from a Vite-generated `dist/<name>/wrangler.json` that strips routes (and kushal-docs' R2 binding); each app's `scripts/patch-routes.mjs` re-injects them during `npm run deploy` — never bare `wrangler deploy` there (details: **cloudflare-and-vps-reference**).
 
 ## Moving or renaming anything: STOP first
@@ -80,6 +80,6 @@ Facts verified against the repo on 2026-07-12. Re-verify:
 - Bucket layout: `ls` the repo root.
 - Routing table: read root `CLAUDE.md`.
 - Weak-spot #1 (INFRA drift): run `.claude/skills/personal-stuff-hosting-inventory/scripts/verify-inventory.sh` — the drift table itself lives in that skill, not here.
-- Weak-spot #4 (manifest split): `./scripts/skills-status.sh`.
+- Weak-spot #4 (resolved): `./scripts/skills-status.sh` now reports where skills load, not manifest membership.
 - External-toucher list before any move: `scripts/README.md` "External touchpoints" section.
 - Load-bearing list: owner answers recorded 2026-07-05; re-confirm with owner if bets change (`context/bets.md`).

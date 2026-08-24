@@ -9,7 +9,6 @@ If you're orienting from scratch, read `INFRA.md` (what runs where) and `VPS-CRO
 The top level is grouped into buckets. Each bucket and most projects have their own README.
 
 ### `tooling/` — what lets Claude Code drive everything
-- `claude-skills/` — Custom Claude Code skills. The single source; `scripts/relink.sh` symlinks them into both the work and personal accounts.
 - `cli/` — Small command-line tools Claude calls instead of MCP servers: `gmail`, `sheets`, `youtube`, `hostinger`, `ntfy`, `rapidapi`, plus `yt-claude` and a ccusage dashboard. The active surface for Google/YouTube/Hostinger work.
 - `mcp/` — MCP servers. Mostly legacy — only `drive` and `cloudflare` are still used. Shares Google OAuth with `cli/` through `mcp/google-shared` (kept a sibling of `cli/` so that relative path resolves). See `tooling/mcp/README.md`.
 

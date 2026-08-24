@@ -30,11 +30,13 @@ cd ~/codebase/personal-stuff && ./scripts/relink.sh
 ./scripts/skills-status.sh          # membership + symlink health table; exit 1 on any problem
 ```
 
-Dual-account facts: work config `~/.claude-work`, personal `~/.claude-personal`; manifests `tooling/claude-skills/manifest/{work,personal}.txt`; `relink.sh` resolves each name from the store, else `~/.agents/skills` (the printing-press `pp-*` skills live there). Use the `claude-work` / `claude-personal` shell functions to target an account — a bare `claude` alias silently hits work (details: **personal-stuff-debugging-playbook**).
+Skills need NO setup on a new machine: they are repo-scoped, so cloning the repo is the install. `relink.sh` only covers what the repo cannot carry — the Codex mirror (`.claude/codex-skills.txt`), the push gate, and the shared memory store.
+
+Dual-account facts that still matter: work config `~/.claude-work`, personal `~/.claude-personal`, one shared memory store linked by `relink.sh`. Use the `claude-work` / `claude-personal` shell functions to target an account — a bare `claude` alias silently hits work (details: **personal-stuff-debugging-playbook**). Which account you use no longer changes which skills load.
 
 ### Windows / any machine not running the dual-account scheme
 
-`relink.sh` step 2 above still applies verbatim — it detects there's no `~/.claude-work`/`~/.claude-personal` and links `manifest/personal.txt` into plain `~/.claude/skills` instead (decisions.md 2026-08-11; mechanism documented in **claude-router**). Two Windows-specific gotchas it does NOT paper over:
+Nothing special is needed any more. A bare `claude` launched inside the repo reads `.claude/skills` like every other account does, so the old "link `personal.txt` into plain `~/.claude/skills`" fallback (decisions.md 2026-08-11) was deleted with the store on 2026-08-25. `relink.sh` step 2 above still applies verbatim for the Codex mirror and the push gate. Two Windows-specific gotchas it does NOT paper over:
 - **`python3` may not exist** — a stock python.org install only provides `python.exe`, and the Microsoft Store `python3` alias stub fails with "Python was not found". `relink.sh`'s description-cap guard needs a real `python3` on PATH; fix once with a one-line shim (`printf '#!/bin/sh\nexec python "$@"\n' > ~/.local/bin/python3 && chmod +x ~/.local/bin/python3`) and make sure `~/.local/bin` is on PATH (add to `~/.bashrc` if Git Bash has none yet — a fresh Git Bash install may not source anything by default).
 - **`ln -s` on a directory needs admin/Developer Mode privilege**, which most Windows accounts don't have — MSYS silently falls back to an NTFS junction. It works exactly like a symlink for Claude Code (and everything else that just opens paths), but `ls -la`/`[ -L ]` won't show it as one; `skills-status.sh` reports it as `ok(junction)` rather than `ok`, which is correct, not a warning to chase.
 

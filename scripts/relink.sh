@@ -1,91 +1,40 @@
 #!/usr/bin/env bash
-# Recreate the per-account skill symlinks for both Claude accounts from the
-# manifests. Idempotent — safe to run any time; run it after any membership
-# change and as the first step on a new laptop after cloning.
+# Machine-local setup for this repo's skills. Run it after a fresh clone and after
+# any change to what Codex should see.
 #
-# Lives in scripts/; the skill store is tooling/claude-skills/ (resolved relative
-# to this script, so it survives a repo rename/move).
+# SKILLS ARE REPO-SCOPED. Claude Code reads `<repo>/.claude/skills/` automatically
+# for whoever opens the repo, so there is nothing to link for Claude and nothing
+# that depends on which account is logged in. That is the whole point: a session
+# in this repo gets this repo's skills, on any account, on any machine.
+# (2026-08-25 — replaced the per-account manifest+symlink scheme; see decisions.md.)
 #
-#   tooling/claude-skills/manifest/work.txt     -> ~/.claude-work/skills/
-#   tooling/claude-skills/manifest/personal.txt -> ~/.claude-personal/skills/
-#   .claude/skills/                             -> ~/.codex/skills/ (Codex view)
-#   a name in both = shared; in one = exclusive to that account.
-#
-# It also points the PERSONAL account's memory store for this repo at the WORK
-# account's, so both accounts share one store instead of drifting apart.
-#
-# Machines NOT running the Mac dual-account scheme (no ~/.claude-work or
-# ~/.claude-personal, e.g. a bare `claude` launch on Windows/Linux) instead get
-# personal.txt linked straight into the default ~/.claude/skills — see the
-# "default" sync below. This is what keeps a machine like that from silently
-# missing every store skill (decisions.md 2026-08-11).
-#
-# Each skill's SOURCE is auto-resolved: the repo store if present, else
-# ~/.agents/skills (printing-press pp-* skills). The manifest is the source of
-# truth — a managed symlink (pointing into the store or ~/.agents/skills) that
-# is NOT in that account's manifest gets PRUNED. Anything else is left alone.
+# What still needs a machine-local step:
+#   1. Codex has NO per-repo skill path. It reads only $CODEX_HOME/skills, which is
+#      global. `.claude/codex-skills.txt` lists the few skills worth paying for in
+#      every Codex session; mirror-codex-skills.sh symlinks exactly those.
+#   2. The push gate is a copy that must live outside every working tree.
+#   3. Every Claude memory store for this repo points at one canonical directory.
+#   4. Five person-level skills are duplicated into the private work-skills plugin.
 set -euo pipefail
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPTS_DIR/lib/skill-link.sh"
-
-STORE="$(cd "$SCRIPTS_DIR/../tooling/claude-skills" && pwd)"
-
-# Refuse to propagate over-cap descriptions to both accounts (COST-01 guard).
-if [[ "${SKIP_DESC_GUARD:-}" != "1" ]]; then
-  "$SCRIPTS_DIR/check-skill-descriptions.sh" || {
-    echo "relink aborted: a skill description exceeds the 700-char hard cap." >&2
-    echo "Trim it (budget ≤500) or rerun with SKIP_DESC_GUARD=1." >&2
-    exit 1
-  }
-  # Same budget for the repo-level skills in .claude/skills/ (they load into
-  # every repo-root session even though relink doesn't manage them).
-  "$SCRIPTS_DIR/../.claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh" || {
-    echo "relink aborted: a .claude/skills description exceeds the 700-char hard cap." >&2
-    echo "Trim it (budget ≤500) or rerun with SKIP_DESC_GUARD=1." >&2
-    exit 1
-  }
-fi
-WORK_DIR="${CLAUDE_WORK_CONFIG_DIR:-$HOME/.claude-work}/skills"
-PERS_DIR="${CLAUDE_PERSONAL_CONFIG_DIR:-$HOME/.claude-personal}/skills"
-AGENTS_DIR="$HOME/.agents/skills"   # printing-press pp-* skills
-
-# Snapshot BEFORE either sync runs — sync_skills_dir mkdir -p's its target
-# dir as a side effect, so checking this after the work/personal syncs would
-# always see the dirs it just created and never detect a non-dual-account
-# machine correctly.
-USING_DUAL_ACCOUNT=1
-if [[ -z "${CLAUDE_WORK_CONFIG_DIR:-}" && -z "${CLAUDE_PERSONAL_CONFIG_DIR:-}" \
-      && ! -d "$HOME/.claude-work" && ! -d "$HOME/.claude-personal" ]]; then
-  USING_DUAL_ACCOUNT=0
-fi
-
-echo "store:  $STORE"
-echo "agents: $AGENTS_DIR"
+REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
 status=0
 
-if [[ "$USING_DUAL_ACCOUNT" -eq 1 ]]; then
-  sync_skills_dir work     "$WORK_DIR" "$STORE/manifest/work.txt"     "$STORE" "$AGENTS_DIR" || status=$?
-  sync_skills_dir personal "$PERS_DIR" "$STORE/manifest/personal.txt" "$STORE" "$AGENTS_DIR" || status=$?
-else
-  # Fallback for a machine not using the dual-account scheme at all (e.g. a
-  # bare `claude` launch on Windows/Linux, which reads plain ~/.claude): link
-  # personal.txt's skills straight in there instead of creating unused
-  # ~/.claude-work and ~/.claude-personal dirs this machine will never read.
-  DEFAULT_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"
-  sync_skills_dir default "$DEFAULT_DIR" "$STORE/manifest/personal.txt" "$STORE" "$AGENTS_DIR" || status=$?
+# Refuse to publish over-cap descriptions. Every skill now lives in .claude/skills,
+# so this one guard covers the lot (COST-01).
+if [[ "${SKIP_DESC_GUARD:-}" != "1" ]]; then
+  "$REPO_ROOT/.claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh" || {
+    echo "relink aborted: a skill description exceeds the 700-char hard cap." >&2
+    echo "Trim it (budget <=500) or rerun with SKIP_DESC_GUARD=1." >&2
+    exit 1
+  }
 fi
 
-# Publish this repo's skills to Codex. Codex 0.149 reads ONLY $CODEX_HOME/skills
-# (default ~/.codex/skills) — NOT .agents/skills, which is the plugin root and is
-# read by nothing. Symlinks only, so there is one copy on disk (see AGENTS.md).
-# Non-fatal: a broken mirror must not block the Claude-side relink.
+# 1. Codex. Non-fatal: a broken mirror must not block the rest.
 "$SCRIPTS_DIR/mirror-codex-skills.sh" || { echo "codex mirror had problems (non-fatal)" >&2; status=$?; }
 
-# Install the push gate (a copy outside every working tree) and arm the shared
-# .git/hooks pre-push net. Sourced, so it must not abort us: guard_install always
-# returns 0, and the `|| true` is belt-and-braces under `set -e`.
-REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
+# 2. Push gate + pre-push net. guard_install always returns 0.
 source "$SCRIPTS_DIR/lib/guard-install.sh"
 guard_install "$REPO_ROOT" || true
 
@@ -172,9 +121,15 @@ link_shared_memory() {
   return "$refused"
 }
 
-if [[ "$USING_DUAL_ACCOUNT" -eq 1 ]]; then
+if [[ -n "${CLAUDE_WORK_CONFIG_DIR:-}${CLAUDE_PERSONAL_CONFIG_DIR:-}" ]] \
+   || [[ -d "$HOME/.claude-work" && -d "$HOME/.claude-personal" ]]; then
   link_shared_memory || status=$?
 fi
 
-echo "done. Restart any running claude-work / claude-personal / default session to pick up changes."
+# 4. Keep the private work-skills plugin in step with this repo's shared skills.
+"$SCRIPTS_DIR/sync-shared-skills.sh" --check || {
+  echo "shared skills differ from the work-skills plugin — run scripts/sync-shared-skills.sh" >&2
+}
+
+echo "done. Skills load from .claude/skills for any account; restart running sessions."
 exit "$status"

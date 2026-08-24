@@ -32,8 +32,7 @@ set -euo pipefail
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
-MANIFEST="$REPO_ROOT/tooling/claude-skills/manifest/codex.txt"
-STORE="$REPO_ROOT/tooling/claude-skills"
+MANIFEST="$REPO_ROOT/.claude/codex-skills.txt"
 REPO_SKILLS="$REPO_ROOT/.claude/skills"
 DST="${CODEX_HOME:-$HOME/.codex}/skills"
 
@@ -61,8 +60,7 @@ owned_by_repo() {
 linked=0 pruned=0 skipped=0 broken=0 degraded=0
 
 for name in "${WANT[@]}"; do
-  path="$STORE/$name"
-  [[ -e "$path" || -L "$path" ]] || path="$REPO_SKILLS/$name"
+  path="$REPO_SKILLS/$name"
   if [[ ! -e "$path" && ! -L "$path" ]]; then
     echo "  WARN $name listed in codex.txt but not found in the repo" >&2
     continue
@@ -95,8 +93,7 @@ for path in "$DST"/*; do
   owned_by_repo "$path" || continue
   name="$(basename "$path")"
   if ! printf '%s\n' "${WANT[@]}" | grep -qx "$name" \
-     || { [[ ! -e "$STORE/$name" && ! -L "$STORE/$name" ]] \
-          && [[ ! -e "$REPO_SKILLS/$name" && ! -L "$REPO_SKILLS/$name" ]]; }; then
+     || [[ ! -e "$REPO_SKILLS/$name" && ! -L "$REPO_SKILLS/$name" ]]; then
     rm -f "$path"; echo "  pruned: $name"; pruned=$((pruned + 1))
   fi
 done
