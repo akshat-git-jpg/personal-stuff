@@ -11,7 +11,7 @@
  */
 import { useState } from "react";
 import { Trash2, ArrowUp, ArrowDown } from "lucide-react";
-import type { Row } from "../shared/rbac";
+import type { Row } from "../shared/engine/rbac";
 import { statusOf, statusColOf, sinceOf, holderOf, type StageDef, type PipelineDef } from "./stages";
 import { displayName } from "./api";
 import { stageStepState, activeStage, daysSince } from "./pipeline";

@@ -97,10 +97,10 @@ const D = (assignee: string) => ({ status: "Done", assignee });
 
 // ── Demo cards ──────────────────────────────────────────────────────────────
 const CARDS: CardSpec[] = [
-  { pipeline: "standard", title: "How to color grade in DaVinci Resolve", category: "Editing", subcategory: "Color", daysAgo: 3,
+  { pipeline: "standard", title: "How to color grade in DaVinci Resolve", daysAgo: 3,
     notes: "Beginner-friendly walkthrough of the color page — wheels, curves, and a quick LUT.",
     stages: { topic: D(SEAN), script: { status: "To Do", assignee: SAM } } },
-  { pipeline: "standard", title: "Color matching multi-cam footage", category: "Editing", subcategory: "Color", daysAgo: 0,
+  { pipeline: "standard", title: "Color matching multi-cam footage", daysAgo: 0,
     notes: "Match shots across two cameras before grading.",
     stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: { status: "In Review", assignee: JOHN, reviewer: SEAN, link: "https://drive.example.com/final-multicam" } } },
 
@@ -109,7 +109,7 @@ const CARDS: CardSpec[] = [
   //    render the title twice — once actionable, once bare under "Up next".
   //    Upstream links are filled so the editor's detail card has a real Recording
   //    link to read (the column RBAC used to withhold).
-  { pipeline: "standard", title: "Two of my stages — editing now, thumbnail after", category: "Editing", subcategory: "Color", daysAgo: 2,
+  { pipeline: "standard", title: "Two of my stages — editing now, thumbnail after", daysAgo: 2,
     notes: "One person owns both the edit and the thumbnail on this video.",
     stages: {
       topic: D(SEAN),
@@ -120,7 +120,7 @@ const CARDS: CardSpec[] = [
     } },
   // B: Tara owns only the gated Thumbnail — a genuine "Up next" entry, since she
   //    has nothing actionable on this video yet.
-  { pipeline: "standard", title: "Waiting on someone else's edit", category: "Editing", subcategory: "Color", daysAgo: 4,
+  { pipeline: "standard", title: "Waiting on someone else's edit", daysAgo: 4,
     notes: "Thumbnail can't start until the edit is approved.",
     stages: {
       topic: D(SEAN),
@@ -157,8 +157,6 @@ for (const p of Object.values(PIPELINES)) {
       const spec: CardSpec = {
         pipeline: p.id,
         title: `test-${p.id}-${s.id}-${status.toLowerCase().replace(/ /g, "-")}`,
-        category: "Test",
-        subcategory: "Auto",
         daysAgo: 1,
         stages: {}
       };
@@ -208,7 +206,9 @@ function main() {
   subcategory TEXT NOT NULL DEFAULT '', col TEXT NOT NULL, email TEXT NOT NULL,
   PRIMARY KEY (pipeline_id, category, subcategory, col)
 );`);
-  out.push(`INSERT INTO assignment_defaults (pipeline_id, category, subcategory, col, email) VALUES ('standard', 'Editing', 'Color', 'script_writer_email', 'kushalbakliwal25@gmail.com'), ('standard', 'Editing', 'Color', 'tutorial_maker_email', 'khushibakliwal125@gmail.com'), ('standard', 'Editing', 'Color', 'video_editor_email', 'akshatpatidar17@gmail.com'), ('standard', 'Editing', 'Color', 'thumbnail_maker_email', 'tara@dev.local'), ('standard', 'Editing', 'Color', 'uploader_email', 'uma@dev.local');`);
+  // One default set per SYSTEM now — the category/subcategory columns remain in
+  // the schema (they are part of the legacy PK) but are always blank.
+  out.push(`INSERT INTO assignment_defaults (pipeline_id, category, subcategory, col, email) VALUES ('standard', '', '', 'script_writer_email', 'kushalbakliwal25@gmail.com'), ('standard', '', '', 'tutorial_maker_email', 'khushibakliwal125@gmail.com'), ('standard', '', '', 'video_editor_email', 'akshatpatidar17@gmail.com'), ('standard', '', '', 'thumbnail_maker_email', 'tara@dev.local'), ('standard', '', '', 'uploader_email', 'uma@dev.local');`);
 
   out.push("DROP TABLE IF EXISTS card_events;");
   out.push(`CREATE TABLE card_events (

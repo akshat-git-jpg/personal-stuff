@@ -109,6 +109,13 @@ git -C <workspace-path> <git …>                                        # one c
 topical work such as one video (`subject/<slug>`). Re-claiming the same slug returns the
 same folder, which is how a new session picks up yesterday's work.
 
+**Write the workspace path literally — never via a variable.** The wall resolves the
+target directory from the command text, and it cannot expand a variable without running
+the shell. So `WS=<path>` followed by `git -C "$WS" commit` is **refused**: any path
+containing `$`, a backtick, `*` or `?` falls back to the session cwd and is judged as
+main. Paste the absolute path into each command. (`cd "$(pp-work claim ...)"` is the one
+substitution the wall recognises by shape, which is why that form is allowed.)
+
 **Pick ONE form per command; never mix them.** The wall resolves a single leading `cd` or a
 single `git -C`, and fail-closes on anything ambiguous. So
 `cd <ws> && git -C <ws> add …` is **refused** — two retargeting constructs that could

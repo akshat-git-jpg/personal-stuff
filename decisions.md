@@ -924,3 +924,184 @@ Worth noting how close this came to shipping broken: the hook, its test and the 
 all green, and nothing in any suite exercises `boss-merge`'s registry commit against a real
 pre-commit hook. The catch came from grepping for other main-checkout committers before
 arming it, not from a gate.
+- **2026-08-23** — `yt-script` gained step `055-review-plan-md-human`, a markdown read of `script-plan.md` before the local desk at 060. Owner's reason: opening a file is faster than booting the desk, so wording and section-order fixes should not cost a server start; 060 now owns only the two-track-UI question. Six owner gates, thirteen steps.
+
+## 2026-08-23 — `paypal-txns-pp-cli income` counts payments, not balance movement
+
+The `income` command summed every positive amount in the transaction feed, which on a
+multi-currency Business account roughly doubled the number. One USD payout is recorded three
+times: the payment in (`T00xx`), a currency conversion out of USD and into INR at one shared
+timestamp (`T02xx`, a debit and a credit), and the bank withdrawal (`T04xx`). The INR
+conversion credit is positive, so it was being counted as a second income event.
+
+The rule now is: income is the `T00xx` family only, net of the `fee_amount` PayPal reports on
+the same record. Everything else is the same money moving.
+
+That left the bank leg unattributed, because conversions and withdrawals carry no `payer_info`.
+Sweeps are matched back to income lots FIFO, and the settled amount is split pro-rata across
+the lots a sweep drained — necessary because PayPal bundles several payouts into one sweep when
+they land close together (2026-06-01 swept Book Bolt 172.52 + HeyGen 18.62 as a single
+191.14 → ₹17,464.93). A blank bank amount means the money has not been withdrawn yet, and
+anything never converted is reported under `unsettled`.
+
+Output is grouped month → program, since "which program paid me what, and what actually hit the
+bank" is the question this gets asked. Fetching now uses `fields=all`; `transaction_info` alone
+omits the payer, so there is no cheaper way to get the program name.
+
+## 2026-08-23 — the two guards only protected a session that had already claimed
+
+The wall and the Stop hook were built as a pair, and between them they left the one hole
+that matters. `no-history-in-main.sh` fires on a history-recording git verb. `commit-before-
+stop.sh` fired only inside a linked pp-work worktree — its own header argued that nagging in
+main is "a dead end" because nothing can be committed there anyway.
+
+Both true, and together they meant: claim a workspace and you are held to account; skip the
+claim and edit main directly and NOTHING fires. The wall waits for a verb that never comes,
+and the Stop hook exits early. Silence, which is exactly the state the whole system exists to
+prevent.
+
+It happened that afternoon. A session answered a read-only PayPal reporting question, grew
+into a Go fix plus two doc edits, appended to `decisions.md` in the main checkout, and ended.
+At that moment another session's four `apps/tutorial-tracker-app/` files were sitting STAGED
+in the same index — they were not there when the session started. One `git add decisions.md
+&& git commit` and 2026-08-22 repeats verbatim. The wall would have caught that, but only at
+the last possible second, and only because a git verb happened to be involved.
+
+Two fixes, because the failure had two halves:
+
+- **Mechanical.** The Stop hook now nags in main too. It cannot ask for a commit (impossible
+  there), so it asks the session to move its own work into a workspace, or to say in one line
+  that none of the dirty files are its. It also cannot know WHICH files belong to the session
+  — main is shared and git records no author for a working-tree edit — so it lists them and
+  lets the session judge. That means false positives whenever another session leaves main
+  dirty, which is often. One extra turn is the price; the silent hole was the alternative.
+- **Textual.** `CLAUDE.md` said both "claim a workspace first" and "one-off file edits on main
+  are fine", three lines apart, and the session followed the second. The permissive line is
+  now scoped to reads and scratch, plus a note that the claim decision has to be re-asked when
+  a turn grows from a question into a change — the boundary nothing prompts at.
+
+The textual half alone would not have held. This hook's own header already makes the argument:
+*a skill is an instruction the model can skip.* So is a CLAUDE.md line. The mechanical half is
+what holds; the wording removes the excuse.
+
+## 2026-08-23 — the PayPal CLI's income table was invisible to every Claude session
+
+`paypal-txns-pp-cli income` prints a month-by-program table with the USD received and the INR
+that settled to the bank. Nobody had seen it. `wantsHumanTable` (`internal/cli/helpers.go`)
+ended in `return isTerminal(w)`, and a Claude session always pipes stdout, so every agent run
+fell through to JSON and then reformatted the numbers by hand into a table the CLI already
+knew how to draw.
+
+There was `--json` to force machine output and nothing to force the other direction. Added
+`--table` as a persistent flag, checked after the machine-format flags so `--json`, `--csv`,
+`--compact`, `--quiet`, `--plain` and `--select` still win when both are passed. It applies to
+all four commands that call `wantsHumanTable`: `income`, `history`, `search-get`,
+`balances-get`.
+
+Second thing that surfaced while looking: `~/printing-press/library/` is not a git repo and
+never was. Five generated CLIs, none of their source backed up anywhere, binaries on PATH with
+nothing to rebuild them from. `paypal-txns` source now mirrors into
+`tooling/press-clis/paypal-txns/` (836 KB, no binary, no PII scan artifact). The other four
+are still exposed.
+
+The mirror direction is deliberate. `~/printing-press/library/paypal-txns/` stays the working
+copy because that is where Printing Press expects to run and where `make install` puts the
+binary on PATH. Building out of the repo copy would leave two trees claiming to be the CLI.
+
+## 2026-08-23 — the `--table` fix landed but nothing told a session to use it
+
+Two fixes went into `paypal-txns-pp-cli` for the month-by-program income shape, and the format
+still drifted every time it was asked for. Neither fix was wrong. Both were in the wrong layer.
+
+The CLI was fine. `b919d275` added `--table`, the binary was current, and running it by hand
+produced exactly the wanted shape. What was missing was any instruction a session would ever
+read. A `SKILL.md` for `pp-paypal-txns` existed in `~/printing-press/library/paypal-txns/` and in
+the repo mirror, but a `SKILL.md` sitting in a source tree is not an installed skill. It was in
+no manifest and no `skills/` dir, so it loaded nowhere. Compare `pp-impact`, which is installed
+and whose queries never drifted.
+
+Two things compounded it. The table only prints to a TTY, and an agent's stdout is a pipe — so
+the default path for a session was raw JSON plus an invented layout. And the un-installed
+SKILL.md actively pointed at `--agent`, which implies `--json`. Installing it unchanged would
+still have produced the wrong shape.
+
+The skill is now repo-scoped, not account-scoped: source in
+`pipelines/.claude/skills/pp-paypal-txns/`, symlinked into `.claude/skills/`. The account
+manifests (`tooling/claude-skills/manifest/*.txt`) were deliberately NOT used. Those scope by
+account, and this account is the work one — a manifest entry would have loaded a personal-finance
+skill into every ZluriHQ repo session. Repo-scoping is what "personal-stuff only, never a work
+repo" actually means here. Any future personal-finance or income skill goes the same way.
+
+The generalisable bit: a fix to a tool is not a fix to how the tool gets called. When the
+complaint is "the output shape keeps changing", check whether anything in the session's load path
+states the shape, before touching the tool again.
+
+## 2026-08-23 — personal-finance skills are repo-scoped, never account-scoped
+
+`pp-impact` was in both `tooling/claude-skills/manifest/work.txt` and `personal.txt`, so it
+loaded into every session on both accounts — including every ZluriHQ work repo. That is wrong on
+scope, not just on taste: those manifests scope by Claude ACCOUNT, and the account doing
+personal-stuff work here is the work one. "Only in my personal repo" is not expressible in a
+manifest at all.
+
+Both income skills are now tier 1 (repo-operating): source in `pipelines/.claude/skills/<name>/`,
+symlinked into `.claude/skills/`. They load in any personal-stuff session, on either account, and
+in no other repo. `docs/skill-library-and-infra-handoff.md` tier 2 now says so explicitly.
+
+Removing a name from a manifest is only half the change. `relink.sh` prunes managed symlinks that
+are no longer listed, so `scripts/relink.sh` has to run from the main checkout after this lands or
+`~/.claude-work/skills/pp-impact` dangles at a folder that no longer exists.
+
+## 2026-08-23 — impact.com has no month-by-program report, so the skill loops
+
+The PayPal and impact income skills now state the same output contract — months oldest-first,
+programs largest-first inside each month, subtotals, grand total. Only PayPal can honour it in one
+call: `paypal-txns-pp-cli income --table` does the rollup in the CLI.
+
+impact.com cannot. Checked against the live report list: `partner_performance_by_month` has no
+program dimension, `partner_performance_by_program` has no month dimension, and nothing crosses
+them. So the skill calls `partner_performance_by_program` once per calendar month with
+month-bounded dates and assembles the table from `results.Records[].Campaign` and `.Total_Cost`.
+`Sale_Amount` is the brand's revenue, not ours, and is not income.
+
+That per-caller assembly is exactly why the shape drifted, so the honest fix is an `income`
+subcommand on `impact-pp-cli` mirroring the PayPal one. Not done here: the impact CLI source in
+`~/printing-press/library/impact/` is still not mirrored into any git repo, so that work starts
+with the mirror, the way `tooling/press-clis/paypal-txns/` did. Recorded as a known gap in the
+skill body rather than left implicit.
+
+## 2026-08-23 — the wall's variable-path refusal is correct; the message was the bug
+
+`git -C "$WS" commit` from a main-cwd session is blocked. The reason is deliberate:
+`resolve_effective_dir` refuses any path containing `$`, a backtick, `*` or `?`, because
+knowing its value would mean running the shell. It falls back to the session cwd, judges that
+as main, and blocks. Fail-closed — if it guessed, a command genuinely targeting main could pass.
+
+The behaviour was right and the code comment said so. The user-facing message did not: it listed
+three allowed forms and never mentioned variables, so the block read like a false positive.
+Assigning the workspace path to a variable is the obvious thing to write, so this recurred.
+
+Fixed by extending the block message, `commit-now` Step 1, and this skill to state the rule and
+show the refused form. No logic change: a 5-case harness confirms variable-path and bare-main
+still block, and literal `cd`, literal `git -C`, and `cd "$(pp-work claim ...)"` still pass.
+
+Explicitly rejected: teaching the wall to expand simple `WS=<literal>` assignments. That starts
+it emulating shell semantics, which is the one thing it refuses to do, and every extra form it
+understands is another way to fool it. A confusing error is cheaper to fix than a porous guard.
+
+The generalisable bit: when a guard is right but keeps being fought, fix what it SAYS before
+touching what it DOES.
+
+## 2026-08-23 — an auth 403 on a land is transient, not a push-gate refusal
+
+`pp-land` reports a failed push as `land push refused by the push gate (exit 128)`. When the
+cause is a wrong-account 403, that string matched no case in `land_class` and took the default
+`real`, so the land spent its 2-attempt cap and was then listed as capped forever while its
+verify was passing. Auth failures now classify as **transient** (bounded by `TRANSIENT_CAP`);
+the `pp-push`/secret `never` case is still matched first so a real secret refusal cannot be
+softened. Root cause of the 403 itself: `~/.gitconfig` routes github.com through
+`!gh auth git-credential`, which uses gh's globally-active account — the work account in any
+shell without `GH_TOKEN` (agy crews, the sweep, crons). Pinned per-repo via
+`~/.local/bin/git-credential-pp-personal`, so work repos are unaffected.
+
+- 2026-08-24 — **This repo is now tool-agnostic: Codex reads the same skills and knowledge as Claude, via an adapter layer, not a second copy.** Three files did the work. (1) `AGENTS.md` was a symlink to `CLAUDE.md`, which meant Codex loaded Claude-only paths (`.claude/skills/...`) it cannot use as skills and hook rules that never run for it. It is now a real 54-line adapter: it names `CLAUDE.md` as the single source of truth, carries a path-translation table, and lists what does NOT carry over. (2) `.agents/skills/` (Codex's scan path) holds 35 **symlinks** into `.claude/skills/` and `pipelines/.claude/skills/` — one copy of every skill on disk, so the two tools cannot drift. The alternative, real copies, was rejected: 35 duplicate folders to re-sync on every skill edit is exactly the drift this repo already fights. (3) `.codex/config.toml` is minimal and secret-free (`approval_policy = "on-request"`, `network_access = true` because the pp-* CLIs, wrangler, gh and ssh all need it). `.codex/agents/` is empty **by design** — `.claude/agents/` does not exist, so there are no sub-agents to convert to TOML. `scripts/mirror-codex-skills.sh` rebuilds the mirror and PRUNES stale links; `scripts/relink.sh` calls it non-fatally, so a broken mirror can never block the Claude-side relink. **Two traps worth knowing.** First, the 12 symlinked skills in `.claude/skills/` point at `pipelines/.claude/skills/`, NOT at `~/.agents/skills` — so "Codex already sees those globally" is false and all 35 need mirroring; the mirror reuses each source symlink's own target verbatim so pipelines skills resolve directly instead of through a chain. Second, and the real hazard: **the `no-history-in-main.sh` guard is a Claude hook, so nothing stops a Codex session from committing straight into the main checkout.** Same for rtk, `dcg`, and the dirty-main Stop nag. Under Codex the `pp-work claim` step is manual discipline, not an enforced gate. `AGENTS.md` says so in bold; treat a Codex session in this repo as running without a safety net. Note also that `codex` is not on PATH on this Mac (`~/.codex/auth.json` exists, so it has been used from somewhere else) — the repo layer is ready ahead of the CLI.

@@ -4,7 +4,6 @@ create-feature-plan
 github-router
 humanizer
 improve
-pp-impact
 pp-openrouter
 pp-sentry
 printing-press

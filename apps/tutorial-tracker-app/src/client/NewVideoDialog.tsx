@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { getPipeline, createFieldsOf } from "./stages";
 import { createVideo, resolveDefaults, personLabel } from "./api";
 import type { PipelineSummary } from "./Board";
-import { ComboSelect } from "./CardDetail";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -19,8 +18,6 @@ export interface NewVideoDialogProps {
   onOpenChange: (open: boolean) => void;
   pipelines: PipelineSummary[];
   defaultPipeline: string;
-  categoryOptions: string[];
-  subcategoryOptions: string[];
   names: Record<string, string>;
   memberRoles: Record<string, string>;
   memberships: Record<string, Record<string, string[]>>;
@@ -29,7 +26,7 @@ export interface NewVideoDialogProps {
 
 export function NewVideoDialog({
   open, onOpenChange, pipelines, defaultPipeline,
-  categoryOptions, subcategoryOptions, names, memberRoles, memberships, onCreated
+  names, memberRoles, memberships, onCreated
 }: NewVideoDialogProps) {
   const [nvPipeline, setNvPipeline] = useState<string>(defaultPipeline);
   
@@ -59,34 +56,31 @@ export function NewVideoDialog({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, defaultPipeline]);
 
-  // fetch defaults when category/subcategory changes
-  const category = nv.category ?? "";
-  const subcategory = nv.subcategory ?? "";
-  
+  // Prefill the people from the SYSTEM's default set, as soon as the dialog opens
+  // (it used to wait for a category to be typed — categories are gone).
   useEffect(() => {
-    if (!open || !category) return;
+    if (!open) return;
     let active = true;
     const fetchD = async () => {
       try {
-        const defs = await resolveDefaults(nvPipeline, category, subcategory);
+        const defs = await resolveDefaults(nvPipeline);
         if (!active) return;
+        let any = false;
         setNv(prev => {
           const next = { ...prev };
           let changed = false;
           for (const [col, email] of Object.entries(defs)) {
-            if (!next[col] && email) {
-              next[col] = email;
-              changed = true;
-            }
+            if (!next[col] && email) { next[col] = email; changed = true; }
           }
+          any = changed;
           return changed ? next : prev;
         });
-        setPrefillNotice(`pre-filled from your ${category} defaults`);
+        if (any) setPrefillNotice(`pre-filled from your ${pDef.name} defaults`);
       } catch (e) { console.warn("Failed to fetch defaults:", e); }
     };
-    fetchD();
+    void fetchD();
     return () => { active = false; };
-  }, [open, nvPipeline, category, subcategory]);
+  }, [open, nvPipeline, pDef.name]);
 
   const reqCols = requiredToCreate(pDef);
   const missingCols = reqCols.filter(c => !(nv[c] ?? "").trim());
@@ -160,12 +154,6 @@ export function NewVideoDialog({
                     <label htmlFor={`nv-${f.col}`} className="text-xs font-medium text-foreground/80">{f.label} <span className="text-primary">*</span></label>
                     {f.type === "textarea" ? (
                       <textarea id={`nv-${f.col}`} rows={4} value={nv[f.col] ?? ""} onChange={(e) => set(f.col, e.target.value)} className={inputCls} />
-                    ) : f.type === "combo" ? (
-                      <div className={isMissing ? "rounded-md border-primary/70 ring-2 ring-primary/20" : ""}>
-                        <ComboSelect id={`nv-${f.col}`} value={nv[f.col] ?? ""}
-                          options={f.options === "subcategory" ? subcategoryOptions : categoryOptions}
-                          placeholder={`New ${f.label.toLowerCase()}…`} onChange={(v) => set(f.col, v)} />
-                      </div>
                     ) : (
                       <input id={`nv-${f.col}`} type="text" value={nv[f.col] ?? ""} autoFocus={i === 0} onChange={(e) => set(f.col, e.target.value)} className={inputCls} />
                     )}

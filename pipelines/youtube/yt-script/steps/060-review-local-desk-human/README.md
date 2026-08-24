@@ -29,6 +29,15 @@ Publishing mints a live secret URL. Reviewing after that is reviewing something
 already shipped. This is also the only place a beat that reads fine as markdown
 but badly in two tracks shows up.
 
+## You have already read the words
+
+Step 055 is where you read `script-plan.md` as markdown, so the wording and the
+section order are settled before you get here. This gate asks the narrower
+question: **does it work in the UI?** A beat that splits badly across the two
+tracks, a `SHOW` lane that says nothing on its own, an instruction track he will
+misread. If you find yourself rewriting sentences here, that belonged at 055 —
+still fix it, but the file is the same file.
+
 ## Also registered in localapps
 
 `tooling/cli/local-apps-dashboard/apps.json`, id `script-desk`, ports 5175 + 4327.

@@ -6,7 +6,7 @@
 
 import type { Column } from "../shared/columns";
 import { COLUMNS } from "../shared/columns";
-import type { Row } from "../shared/rbac";
+import type { Row } from "../shared/engine/rbac";
 import { colLetter } from "./google-jwt";
 
 // ---------------------------------------------------------------------------
@@ -30,6 +30,18 @@ interface SheetValuesResponse {
   values?: string[][];
 }
 
+/** A failed Google Sheets call, with the HTTP status kept. */
+export class SheetsError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "SheetsError";
+    this.status = status;
+  }
+  /** Google is rate-limiting us — retryable, and not the caller's fault. */
+  get rateLimited(): boolean { return this.status === 429; }
+}
+
 export async function sheetsGet(token: string, sheetId: string, range: string): Promise<string[][]> {
   const url = `${SHEETS_BASE}/${sheetId}/values/${encodeURIComponent(range)}`;
   const resp = await fetch(url, {
@@ -37,7 +49,10 @@ export async function sheetsGet(token: string, sheetId: string, range: string): 
   });
   if (!resp.ok) {
     const text = await resp.text();
-    throw new Error(`Sheets GET failed (${resp.status}): ${text}`);
+    // Carry the HTTP status on the error so callers can tell "Google is
+    // throttling us" (429) apart from "the sheet moved" (404) or "our service
+    // account lost access" (403) — a bare 500 to the browser told nobody that.
+    throw new SheetsError(resp.status, `Sheets GET failed (${resp.status}): ${text}`);
   }
   const json = (await resp.json()) as SheetValuesResponse;
   return json.values ?? [];

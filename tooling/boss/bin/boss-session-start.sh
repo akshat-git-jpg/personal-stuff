@@ -90,8 +90,18 @@ while IFS= read -r line; do
   case "$line" in ''|N' '*) continue;; esac
   holder=$(echo "$line" | awk '{print $3}')
   case "$holder" in boss-*) ;; *) continue;; esac
-  pr=${holder##*-}
-  case "$pr" in ''|*[!0-9]*) continue;; esac
+  # Take the LAST digit run anywhere in the holder, not the text after the last dash.
+  # ${holder##*-} mapped boss-<pr> and boss-mut-<pr> and SILENTLY skipped anything with
+  # a trailing suffix: on 2026-08-23 boss-197fix and boss-197ver sat on two of eight
+  # slots for five hours while this sweep printed "none — every leased slot belongs to
+  # an open PR". A holder this cannot map is now REPORTED, never skipped in silence,
+  # because a silent skip is indistinguishable from a clean pool.
+  pr=$(printf '%s' "$holder" | grep -oE '[0-9]+' | tail -1)
+  if [ -z "$pr" ]; then
+    lease_sweep_found=1
+    echo "  UNMAPPABLE holder=$holder holds a worktree slot — no PR number in it; check by hand"
+    continue
+  fi
   st=$(gh pr view "$pr" --json state -q .state 2>/dev/null)
   [ -n "$st" ] || continue
   [ "$st" = "OPEN" ] && continue

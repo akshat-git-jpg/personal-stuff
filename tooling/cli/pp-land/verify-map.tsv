@@ -12,4 +12,5 @@ apps/tutorial-tracker-app/	cd apps/tutorial-tracker-app && npm test
 .claude/hooks/	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh
 .claude/skills/	bash .claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh
 tooling/claude-skills/	bash scripts/check-skill-descriptions.sh
+tooling/press-clis/	cd tooling/press-clis/paypal-txns && go build ./... && go test ./...
 .claude/settings.json	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh

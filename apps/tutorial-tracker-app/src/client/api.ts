@@ -1,5 +1,5 @@
 import type { Column } from "../shared/columns";
-import type { Row, Transition } from "../shared/rbac";
+import type { Row, Transition } from "../shared/engine/rbac";
 import type { Holding } from "../shared/engine/holdings";
 
 export type { Holding };
@@ -237,7 +237,7 @@ export async function deleteVideo(row_id: string): Promise<void> {
 
 // ── Assignment defaults (admin) ──────────────────────────────────────────────
 
-export interface AssignmentDefaultRow { pipeline_id?: string; category: string; subcategory: string; col: string; email: string; }
+export interface AssignmentDefaultRow { pipeline_id?: string; col: string; email: string; }
 
 export async function getDefaults(pipeline?: string): Promise<AssignmentDefaultRow[]> {
   const url = pipeline ? `/api/defaults?pipeline=${encodeURIComponent(pipeline)}` : "/api/defaults";
@@ -251,11 +251,11 @@ export async function getDefaultCols(pipeline?: string): Promise<string[]> {
   if (!res.ok) return [];
   return res.json() as Promise<string[]>;
 }
-export async function saveDefaults(input: { pipeline: string; category: string; subcategory: string; assignments: Record<string, string> }): Promise<void> {
+export async function saveDefaults(input: { pipeline: string; assignments: Record<string, string> }): Promise<void> {
   await throwOnError(await postJSON("/api/defaults", input));
 }
-export async function deleteDefault(pipeline: string, category: string, subcategory: string): Promise<void> {
-  await throwOnError(await postJSON("/api/defaults/delete", { pipeline, category, subcategory }));
+export async function deleteDefault(pipeline: string): Promise<void> {
+  await throwOnError(await postJSON("/api/defaults/delete", { pipeline }));
 }
 export async function applyDefaults(row_id: string): Promise<{ applied: Record<string, string> }> {
   const res = await postJSON("/api/apply-defaults", { row_id });
@@ -297,10 +297,9 @@ export async function linkConfirm(row_id: string, plan_hash: string): Promise<Co
 
 export async function linkDrift(): Promise<{ drift: DriftRow[] }> {
   const res = await fetch("/api/link-drift", { credentials: "same-origin" });
-  if (!res.ok) {
-    if (res.status === 401) throw new UnauthorizedError();
-    throw new Error(`Couldn't fetch link drift (HTTP ${res.status})`);
-  }
+  // throwOnError surfaces the server's OWN message. This used to replace it with
+  // "HTTP 500", which hid the real cause (Google rate-limiting the sheet).
+  await throwOnError(res);
   return res.json() as Promise<{ drift: DriftRow[] }>;
 }
 
@@ -332,10 +331,9 @@ export async function getCardEvents(row_id: string): Promise<{ events: CardEvent
   const data = await res.json();
   return data as { events: CardEvent[] };
 }
-export async function resolveDefaults(pipeline: string, category: string, subcategory: string) {
-  const params = new URLSearchParams();
-  if (pipeline) params.set("pipeline", pipeline);
-  if (category) params.set("category", category);
-  if (subcategory) params.set("subcategory", subcategory);
-  return (await fetch(`/api/defaults/resolve?${params.toString()}`).then((r) => r.json())) as Record<string, string>;
+export async function resolveDefaults(pipeline: string) {
+  const params = new URLSearchParams({ pipeline });
+  const res = await fetch(`/api/defaults/resolve?${params}`, { credentials: "same-origin" });
+  if (!res.ok) return {} as Record<string, string>;
+  return (await res.json()) as Record<string, string>;
 }

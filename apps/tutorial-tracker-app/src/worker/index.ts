@@ -20,12 +20,13 @@
  */
 
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { setCookie } from "hono/cookie";
 import type { Env, Variables } from "./auth";
 import { getUser, loginRedirect, logout, oauthCallback, requireSession } from "./auth";
-import { getAccessToken, ConflictError } from "./sheets";
+import { getAccessToken, ConflictError, SheetsError } from "./sheets";
 import { getStore } from "./datastore";
-import { loadAffiliateRecords } from "./affiliate";
+import { loadAffiliateRecords, type AffiliateRecord } from "./affiliate";
 import { resolveSelection, externalCollisions, buildPlan, renderDescription, validateDescription, planHash, generateVideoCode } from "./linkgen";
 import * as clickstore from "./clickstore";
 import {
@@ -72,6 +73,68 @@ async function cachedReadRows(env: Env): Promise<Row[]> {
 async function bustBoardCache(env: Env): Promise<void> {
   await env.SESSIONS.delete(BOARD_CACHE_KEY);
 }
+
+// ---------------------------------------------------------------------------
+// KV-backed cache for the affiliate-programs sheet (~5 min TTL)
+//
+// FIVE endpoints each read this one Google Sheet on every request. Opening the
+// Links tab was enough to get HTTP 429 (rate limited) back from Google, which
+// escaped as a bare 500 — "Couldn't fetch link drift (HTTP 500)" with no clue
+// why. The sheet changes a few times a week, so caching it costs nothing.
+// ---------------------------------------------------------------------------
+
+const AFFILIATE_CACHE_KEY = "affiliates:records";
+const AFFILIATE_CACHE_TTL = 300;
+/** Last-known-good copy, kept far longer than the fresh window. A drift report
+ *  built from a ten-minute-old sheet beats an error page every time. */
+const AFFILIATE_STALE_KEY = "affiliates:records:last";
+const AFFILIATE_STALE_TTL = 604800;   // 7 days
+
+/** Why the affiliate sheet could not be read, in words a person can act on. */
+function sheetFailure(err: unknown): { status: 429 | 502; message: string } {
+  if (err instanceof SheetsError) {
+    if (err.rateLimited) {
+      return { status: 429, message: "Google is rate-limiting the affiliate sheet right now. Try again in a minute." };
+    }
+    if (err.status === 403) {
+      return { status: 502, message: "The tracker's service account can't read the affiliate sheet — re-share it with that account." };
+    }
+    if (err.status === 404) {
+      return { status: 502, message: "The affiliate sheet wasn't found — check AFFILIATE_PROGRAMS_SHEET_URL." };
+    }
+    return { status: 502, message: `The affiliate sheet couldn't be read (Google returned ${err.status}).` };
+  }
+  return { status: 502, message: "The affiliate sheet couldn't be read." };
+}
+
+async function cachedAffiliates(env: Env): Promise<Record<string, AffiliateRecord>> {
+  const fresh = await env.SESSIONS.get(AFFILIATE_CACHE_KEY);
+  if (fresh) {
+    try { return JSON.parse(fresh) as Record<string, AffiliateRecord>; } catch { /* fall through */ }
+  }
+  try {
+    const token = await getAccessToken(env.GOOGLE_SA_JSON);
+    const records = await loadAffiliateRecords(token, env.AFFILIATE_PROGRAMS_SHEET_URL);
+    const body = JSON.stringify(records);
+    await env.SESSIONS.put(AFFILIATE_CACHE_KEY, body, { expirationTtl: AFFILIATE_CACHE_TTL });
+    await env.SESSIONS.put(AFFILIATE_STALE_KEY, body, { expirationTtl: AFFILIATE_STALE_TTL });
+    return records;
+  } catch (err) {
+    // Refresh failed. Serve the last good copy if we have one — being a few
+    // minutes behind is not worth an error page.
+    const stale = await env.SESSIONS.get(AFFILIATE_STALE_KEY);
+    if (stale) {
+      try { return JSON.parse(stale) as Record<string, AffiliateRecord>; } catch { /* fall through */ }
+    }
+    // Nothing cached at all: say exactly what went wrong, in one sentence.
+    const { status, message } = sheetFailure(err);
+    throw new HTTPException(status, {
+      res: Response.json({ error: "affiliate_sheet_unavailable", message }, { status }),
+    });
+  }
+}
+
+
 
 // ---------------------------------------------------------------------------
 // Name helpers
@@ -281,9 +344,7 @@ app.get("/api/defaults/resolve", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({}, 200);
   const pipe = getPipeline(c.req.query("pipeline")).id;
-  const category = (c.req.query("category") ?? "").trim();
-  const subcategory = (c.req.query("subcategory") ?? "").trim();
-  return c.json(await resolveDefaults(c.env.TRACKER_DB, pipe, category, subcategory));
+  return c.json(await resolveDefaults(c.env.TRACKER_DB, pipe));
 });
 
 // The columns a default set can fill (doers + per-stage reviewers) for a pipeline.
@@ -292,10 +353,8 @@ app.get("/api/defaults/cols", (c) => c.json(assignableColsFor(getPipeline(c.req.
 app.post("/api/defaults", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  let body: { pipeline?: string; category?: string; subcategory?: string; assignments?: Record<string, string> };
+  let body: { pipeline?: string; assignments?: Record<string, string> };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
-  const category = (body.category ?? "").trim();
-  if (!category) return c.json({ error: "category is required" }, 400);
   const pipe = getPipeline(body.pipeline);
   // Keep only this system's assignable columns (doers + per-stage reviewers).
   const validCols = new Set(assignableColsFor(pipe));
@@ -303,22 +362,21 @@ app.post("/api/defaults", async (c) => {
   for (const [col, email] of Object.entries(body.assignments ?? {})) {
     if (validCols.has(col)) assignments[col] = (email ?? "").trim();
   }
-  await setDefaults(c.env.TRACKER_DB, pipe.id, category, body.subcategory ?? "", assignments);
+  await setDefaults(c.env.TRACKER_DB, pipe.id, assignments);
   return c.json({ ok: true });
 });
 
 app.post("/api/defaults/delete", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  let body: { pipeline?: string; category?: string; subcategory?: string };
+  let body: { pipeline?: string };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
-  if (!(body.category ?? "").trim()) return c.json({ error: "category is required" }, 400);
-  await deleteDefaults(c.env.TRACKER_DB, getPipeline(body.pipeline).id, body.category!.trim(), body.subcategory ?? "");
+  await deleteDefaults(c.env.TRACKER_DB, getPipeline(body.pipeline).id);
   return c.json({ ok: true });
 });
 
 // POST /api/apply-defaults {row_id} — fill this card's BLANK assignee/reviewer
-// fields from the defaults for its (category, subcategory). Never overwrites.
+// fields from its SYSTEM's default set. Never overwrites.
 app.post("/api/apply-defaults", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
@@ -333,7 +391,7 @@ app.post("/api/apply-defaults", async (c) => {
   if (!target) return c.json({ error: "row not found", row_id: rowId }, 404);
 
   const targetPipe = pipeOf(target);
-  const defaults = await resolveDefaults(c.env.TRACKER_DB, targetPipe.id, (target.category as string) ?? "", (target.subcategory as string) ?? "");
+  const defaults = await resolveDefaults(c.env.TRACKER_DB, targetPipe.id);
   const cardCols = new Set(assignableColsFor(targetPipe)); // only this card's pipeline cols
   const updates: Record<string, string> = {};
   for (const [col, email] of Object.entries(defaults)) {
@@ -835,7 +893,7 @@ app.post("/api/video", async (c) => {
   const firstStage = pipe.stages[0]; // the brief/topic stage
   // Pre-fill assignees/reviewers from the defaults for this (category, subcategory),
   // keeping only columns that exist in THIS pipeline.
-  const defaults = await resolveDefaults(c.env.TRACKER_DB, pipe.id, values.category ?? "", values.subcategory ?? "");
+  const defaults = await resolveDefaults(c.env.TRACKER_DB, pipe.id);
   const cardCols = new Set(assignableColsFor(pipe));
   const filteredDefaults = Object.fromEntries(Object.entries(defaults).filter(([col]) => cardCols.has(col)));
   
@@ -913,8 +971,7 @@ app.post("/api/generate-links", async (c) => {
 app.get("/api/affiliate-catalog", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const affiliates = await cachedAffiliates(c.env);
   const list = Object.values(affiliates).map(a => ({
     slug: a.tool,
     displayName: a.displayName,
@@ -963,8 +1020,7 @@ app.post("/api/link-preview", async (c) => {
   }
   if (!tools || tools.length === 0) return c.json({ error: "no_tools", message: "Select at least one tool for this video, then preview." }, 422);
 
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const affiliates = await cachedAffiliates(c.env);
   const resolved = resolveSelection(tools, affiliates);
   
   let videoCode = (target.video_code as string)?.trim();
@@ -1016,8 +1072,7 @@ app.post("/api/link-confirm", async (c) => {
   let tools: any[] = [];
   try { tools = JSON.parse((target.video_tools as string) || "[]"); } catch (e) { tools = []; }
   
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const affiliates = await cachedAffiliates(c.env);
   const resolved = resolveSelection(tools, affiliates);
   
   let previewVideoCode = (target.video_code as string)?.trim();
@@ -1087,8 +1142,7 @@ app.get("/api/link-drift", async (c) => {
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
   
   const allRows = await cachedReadRows(c.env);
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const affiliates = await cachedAffiliates(c.env);
   
   const drift = [];
   const db = c.env.DB;
@@ -1118,8 +1172,7 @@ app.post("/api/link-resync", async (c) => {
   const linkRow = await db.prepare("SELECT tool FROM links WHERE slug = ?").bind(slug).first<{tool: string}>();
   if (!linkRow) return c.json({ error: "link not found" }, 404);
   
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const affiliates = await cachedAffiliates(c.env);
   
   const rec = affiliates[linkRow.tool];
   if (!rec || !rec.isApproved || !rec.targetUrl.trim()) {

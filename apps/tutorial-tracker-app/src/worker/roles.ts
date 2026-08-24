@@ -12,13 +12,16 @@
  * KV caching is intentionally NOT here — that is wired in Task 6.
  */
 
-import { POLICY } from "../shared/policy";
+// Role names come from the ENGINE, which spans every pipeline. The old
+// source (legacy POLICY keys) only knew the standard system, so a Tut-2-only
+// role would have been rejected as invalid.
+import { allRoles } from "../shared/engine/registry";
 import { sheetsGet } from "./sheets";
 
-// The set of valid role names comes from POLICY keys.
-const VALID_ROLES = new Set(Object.keys(POLICY));
-/** Valid role names (POLICY keys), in declaration order — for team-management validation + UI. */
-export const VALID_ROLE_NAMES: string[] = Object.keys(POLICY);
+// The set of valid role names comes from the engine's pipeline definitions.
+const VALID_ROLES = new Set(allRoles());
+/** Valid role names across every pipeline — team-management validation + UI. */
+export const VALID_ROLE_NAMES: string[] = allRoles();
 
 const EMPLOYEES_RANGE = "Employes!A2:C";
 
@@ -28,7 +31,7 @@ const EMPLOYEES_RANGE = "Employes!A2:C";
 
 /**
  * Parse a comma-separated Role cell into an array of validated role names.
- * Roles not present in POLICY are silently dropped.
+ * Roles no pipeline defines are silently dropped.
  */
 export function parseRoles(cell: string): string[] {
   return cell
@@ -46,7 +49,7 @@ export function parseRoles(cell: string): string[] {
  * `email.toLowerCase().trim()` → validated roles array.
  *
  * - Rows with empty email or empty role are skipped silently.
- * - Rows whose Role contains no valid POLICY key are skipped with a console.warn.
+ * - Rows whose Role contains no valid role name are skipped with a console.warn.
  */
 export async function loadRolesMap(
   token: string,
@@ -102,7 +105,7 @@ export async function lookupRoles(
  * `email.toLowerCase().trim()` → first validated role string.
  *
  * - Rows with empty email or empty role are skipped silently.
- * - Rows whose Role is not a key in POLICY are skipped with a console.warn.
+ * - Rows whose Role is not a known role are skipped with a console.warn.
  *
  * @deprecated Use loadRolesMap for multi-role support.
  */
@@ -153,7 +156,7 @@ export interface TeamMember {
 /**
  * Read the Employes tab (columns: Name, Email, Role) and return an array of
  * team members — only rows with a non-empty email AND at least one valid role
- * in POLICY. The email is trimmed/lowercased.
+ * by a pipeline. The email is trimmed/lowercased.
  */
 export async function loadTeam(
   token: string,

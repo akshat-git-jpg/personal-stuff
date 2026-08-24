@@ -22,6 +22,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Who I am, active bets, product inventory, idea backlog | `context/` (start at [`context/CLAUDE.md`](context/CLAUDE.md)) |
 | A custom Claude skill (source of truth) | cross-repo: `tooling/claude-skills/` (manifest+relink); repo-operating: `.claude/skills/`; pipelines-domain: source in `pipelines/.claude/skills/`, also symlinked into `.claude/skills/` so a root-level session sees them |
 | CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude, cf-email, drive, heygen-web, local-apps-dashboard, flights, flow-queue) | `tooling/cli/` |
+| Printing Press Go CLIs (`paypal-txns-pp-cli`, `impact-pp-cli`, others) and where their source is backed up | `tooling/press-clis/README.md` |
 | Session tags in the Claude Code agents view (ctrl+e / tag view unlock, auto-repatch) | `tooling/cli/pp-claude-tags/README.md` |
 | Send image-gen prompts to Google Flow from any pipeline (approve-the-look gates) | `tooling/cli/flow-queue/README.md` + the browser extension in `pipelines/video/zapi-flow-ext/` |
 | Flight search with live prices | `tooling/cli/flights/README.md` (`pp-flights`) |
@@ -29,6 +30,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Phone notifications (Telegram-first) | tooling/cli/notify/README.md |
 | Visual plan review before dispatch | .claude/skills/plan-review/SKILL.md |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
+| Running this repo under Codex (or any non-Claude agent) — path mapping, what doesn't carry over | [`AGENTS.md`](AGENTS.md) + `scripts/mirror-codex-skills.sh` |
 | A specific app | apps/<name>/ — full list in the README map below; each app folder carries its own operate-doc (README and/or CLAUDE.md) |
 | YouTube / Pinterest / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
 | Worktree pool for agent runs (wt) | [`tooling/cli/wt/README.md`](tooling/cli/wt/README.md) |
@@ -64,4 +66,5 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 - `my-hosted-sites.md` — flat index of every live URL across this repo, including `pipelines/`.
 - Skills under `tooling/claude-skills/` are the single source, symlinked into both accounts via `scripts/relink.sh`. Never edit a symlinked copy elsewhere — edit here.
 - **Changing tracked files? Claim a workspace first.** `cd "$(pp-work claim --kind code --slug <task>)"` — the main checkout refuses to record git history (`.claude/hooks/no-history-in-main.sh`).
-- Talking, reading and one-off file edits on main are fine; only `commit`/`add`/`merge`/`switch` move.
+- **On main: read, talk, and scratch only.** Any edit you intend to KEEP — including a one-line append to `decisions.md` — claims a workspace FIRST. There is no such thing as a safe "one-off" edit here: you cannot commit it in main, so it sits in a tree two sessions share until someone else's commit sweeps it up (2026-08-22) or you lose track of it. The Stop hook now nags on a dirty main checkout, but by then the work is already in the wrong place.
+- **The claim decision gets re-asked when the job grows.** A turn that starts as a question needs no workspace; the moment it turns into an edit you mean to keep, it does. Nothing prompts you at that boundary — 2026-08-23, a PayPal reporting question became a code fix plus two doc edits, all of them landing in main.

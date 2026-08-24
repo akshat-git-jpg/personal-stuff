@@ -30,8 +30,6 @@ interface TeamPanelProps {
   pipelines: PipelineSummary[];
   /** Called after a successful add/edit/remove so the parent can refresh the board's names. */
   onChanged?: () => void;
-  categoryOptions?: string[];
-  subcategoryOptions?: string[];
 }
 
 interface Draft { name: string; email: string; roles: string[]; }
@@ -41,7 +39,7 @@ const rolesIn = (m: TeamMember, sys: string): string[] => m.memberships?.[sys] ?
 const systemCount = (m: TeamMember): number => Object.keys(m.memberships ?? {}).filter((k) => k !== "*").length;
 const isAdminMember = (m: TeamMember): boolean => (m.memberships?.["*"] ?? []).includes("Admin");
 
-export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcategoryOptions = [] }: TeamPanelProps) {
+export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
   const systems = pipelines.length ? pipelines : [{ id: "standard", name: "Standard", stages: [] }];
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [activeSystem, setActiveSystem] = useState<string>(systems[0]?.id ?? "standard");
@@ -431,7 +429,7 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
       )}
 
       <div className="my-2 border-t border-border" />
-      <AssignmentDefaults system={activeSystem} categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions} onChanged={onChanged} />
+      <AssignmentDefaults system={activeSystem} onChanged={onChanged} />
     </div>
   );
 }

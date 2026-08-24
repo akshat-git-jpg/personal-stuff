@@ -40,16 +40,12 @@ test("New video setup guard", async ({ page }) => {
   await page.getByRole("button", { name: "New video" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   
-  // Fill brief to trigger defaults
+  // Defaults are keyed on the SYSTEM now, so they prefill the moment the dialog
+  // opens — there is no category to type first.
+  await expect(page.locator("text=pre-filled from your Standard defaults")).toBeVisible();
+
   await page.getByLabel(/Title/).fill("E2E setup video");
   await page.getByLabel(/Notes/).fill("Do this");
-  
-  // Category is a combobox, we can fill its input
-  await page.getByLabel(/Category/).selectOption("Editing");
-  await page.getByLabel(/Subcategory/).selectOption("Color");
-  
-  // Wait for the defaults to fetch and prefill to appear
-  await expect(page.locator("text=pre-filled from your Editing defaults")).toBeVisible();
   
   // 2. Assert people selects are pre-filled (at least one non-empty)
   // There are selects for each doer role and reviewer.

@@ -67,38 +67,43 @@ test.describe("removing someone who still holds work", () => {
   });
 });
 
-test("team panel and assignment defaults", async ({ page }) => {
+test("team panel lists the roster", async ({ page }) => {
   await loginAs(page, PERSONAS.sean);
-
   await page.getByRole("button", { name: "Team", exact: true }).click();
 
   await expect(page.getByText("Sam", { exact: true })).toBeVisible();
   await expect(page.getByText(/Standard: (Scriptwriter, Recorder|Recorder, Scriptwriter)/)).toBeVisible();
+});
 
-  await expect(page.getByText("Assignment defaults")).toBeVisible();
+// Assignment defaults used to be a list of sets keyed by (category, subcategory).
+// Categories are gone: a system now has exactly ONE set, and each pick saves
+// itself. No "Add default set", no category field, no precedence rule.
+test("assignment defaults are one set per system, saved on pick", async ({ page }) => {
+  await loginAs(page, PERSONAS.sean);
+  await page.getByRole("button", { name: "Team", exact: true }).click();
 
-  await page.getByRole("button", { name: "Add default set" }).click();
+  const panel = page.getByTestId("assignment-defaults");
+  await expect(panel).toBeVisible();
+  await expect(panel.getByText(/A new video in/)).toContainText("Standard");
 
-  // Every SAVED set renders its own "A new video here starts with: …" summary,
-  // and seed-local.ts now seeds one (Editing › Color, added by plan 215). Scope
-  // to the draft editor's live preview or the assertion matches both.
-  const draftPreview = page.getByTestId("defaults-draft-preview");
+  // The old set-based controls are gone.
+  await expect(page.getByRole("button", { name: "Add default set" })).toHaveCount(0);
+  await expect(page.locator("#def-cat")).toHaveCount(0);
 
-  await page.locator("#def-cat").selectOption("__add_new__");
-  await page.locator("#def-cat").fill("Test Category");
+  // One row per assignable role, seeded from the local default set.
+  const row = panel.getByTestId("default-row-script_writer_email");
+  await expect(row).toBeVisible();
+  const select = row.locator("select");
+  await expect(select).toHaveValue(PERSONAS.sam);
 
-  // Scriptwriter label is the field label for script_writer_email
-  await expect(draftPreview).toContainText("no default (scriptwriter)");
+  // Picking saves immediately — no Save button to forget.
+  await select.selectOption("");
+  await expect(panel.getByText("Saved")).toBeVisible();
 
-  await page.getByText("Scriptwriter", { exact: true }).locator("..").locator("select").selectOption("kushalbakliwal25@gmail.com");
-
-  await expect(draftPreview).toContainText("Sam (scriptwriter)");
-
-  await page.getByRole("button", { name: "Save set" }).click();
-
-  await expect(page.getByText("Test Category")).toBeVisible();
-  // The newly saved set now carries the summary; the draft editor is gone.
-  await expect(
-    page.getByTestId("defaults-set-preview").filter({ hasText: "Sam (scriptwriter)" }).first(),
-  ).toBeVisible();
+  // And it stuck: reload the tab and the change is still there.
+  await page.reload();
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "Team", exact: true }).click();
+  await expect(page.getByTestId("assignment-defaults")
+    .getByTestId("default-row-script_writer_email").locator("select")).toHaveValue("");
 });

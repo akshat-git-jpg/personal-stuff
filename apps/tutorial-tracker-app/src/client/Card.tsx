@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Clock, Trash2, Hourglass, Link2, CalendarDays } from "lucide-react";
-import type { Row, Transition } from "../shared/rbac";
+import type { Row, Transition } from "../shared/engine/rbac";
 import {
   pipeOf, stageByStatusColIn, normalizeStatusIn, feedbackColOf, assigneeColOf, sinceOf,
   etaColOf, workLinkColOf, requiredToSubmitFrom, missingColumns,
@@ -113,9 +113,6 @@ export function Card({
   const dwell = showDwell ? daysSince(sinceOf(row as Record<string, unknown>, statusCol)) : null;
 
   const title = row.video_title ?? "(no title)";
-  const cat = row.category ?? "";
-  const sub = row.subcategory ?? "";
-  const catLabel = cat && sub ? `${cat} · ${sub}` : cat || sub;
   const notes = row.video_notes ?? "";
 
   // Need-Changes reason (always present by construction when status is Need Changes).
@@ -131,7 +128,6 @@ export function Card({
   const metaParts: string[] = [];
   if (showStage && stage) metaParts.push(stage.label);
   if (showSystem) metaParts.push(p.name);
-  if (catLabel) metaParts.push(catLabel);
   if (showAssignee && assignee) metaParts.push(displayName(assignee, names));
 
   const locks = (row as Record<string, unknown>)._locks as Record<string, string> | undefined;

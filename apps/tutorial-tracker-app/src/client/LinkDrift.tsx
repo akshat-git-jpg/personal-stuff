@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { RotateCcw, AlertTriangle } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { RotateCcw, AlertTriangle, Link2 } from "lucide-react";
 import { linkDrift, linkResync, type DriftRow, type BoardRow } from "./api";
 import { Button } from "@/components/ui/button";
 import { LinkStudio } from "./LinkStudio";
@@ -113,65 +113,96 @@ export function LinkDriftPanel() {
   );
 }
 
-export function LinksTab({ rows, onSaved }: { rows: BoardRow[], onSaved: () => void }) {
-  const uploadRows = rows.filter((r) => {
-    const p = pipeOf(r as Record<string, unknown>);
-    const uploadStage = p.stages.find(s => s.id === "upload");
-    if (!uploadStage) return false;
-    return isGateOpen(p, uploadStage, r as Record<string, unknown>);
-  });
 
-  const [selectedRowId, setSelectedRowId] = useState<string>(() => {
-    return uploadRows.length > 0 ? uploadRows[0].row_id! : "";
-  });
+/**
+ * The Links tab does two things, in the order you need them:
+ *
+ *   1. Generate — pick any video, choose its tools, mint the links.
+ *   2. Drift     — the cross-video audit of links already minted.
+ *
+ * The video card carries the same generator, but only shows it once a video
+ * has cleared its way to Upload. This tab deliberately has NO such gate:
+ * the server never had one either (/api/link-preview is admin-only and
+ * nothing more), and that client-side gate is what made the generator
+ * impossible to find on a video still in production.
+ */
+export function LinksTab({ rows, onSaved }: { rows: BoardRow[]; onSaved: () => void }) {
+  const [selectedRowId, setSelectedRowId] = useState<string>("");
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!selectedRowId && uploadRows.length > 0) setSelectedRowId(uploadRows[0].row_id!);
-  }, [uploadRows, selectedRowId]);
-
-  const selectedRow = uploadRows.find((r) => r.row_id === selectedRowId);
-  const initialToolsStr = selectedRow ? ((selectedRow as Record<string, unknown>).video_tools as string) || "[]" : "[]";
-  const initialTools = React.useMemo(() => {
-    try {
-      return JSON.parse(initialToolsStr);
-    } catch {
-      return [];
+  // Both groups are pickable. The split is a readiness HINT, not a filter.
+  const { ready, inProgress } = useMemo(() => {
+    const readyRows: BoardRow[] = [];
+    const pendingRows: BoardRow[] = [];
+    for (const row of rows) {
+      if (!row.row_id) continue;
+      const pipe = pipeOf(row as Record<string, unknown>);
+      const upload = pipe.stages.find((s) => s.id === "upload");
+      const open = !!upload && isGateOpen(pipe, upload, row as Record<string, unknown>);
+      (open ? readyRows : pendingRows).push(row);
     }
+    return { ready: readyRows, inProgress: pendingRows };
+  }, [rows]);
+
+  const selectedRow = rows.find((r) => r.row_id === selectedRowId);
+  const initialToolsStr = selectedRow
+    ? ((selectedRow as Record<string, unknown>).video_tools as string) || "[]"
+    : "[]";
+  const initialTools = useMemo(() => {
+    try { return JSON.parse(initialToolsStr) as unknown[]; } catch { return []; }
   }, [initialToolsStr]);
 
+  const opt = (r: BoardRow) => (
+    <option key={r.row_id} value={r.row_id}>{r.video_title || r.row_id}</option>
+  );
+
   return (
-    <div className="space-y-8 max-w-4xl py-4">
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Generate Links</h2>
+    <div className="max-w-4xl space-y-8 py-4" data-testid="links-tab">
+      <section className="space-y-4">
         <div>
-          <label htmlFor="video-picker" className="block text-sm font-medium text-foreground/80 mb-1.5">Select a video to generate links for</label>
+          <h2 className="text-lg font-semibold tracking-tight">Generate affiliate links</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Pick a video, choose the tools it mentions, then mint its links and description.
+            The same tool sits on each video card once that video reaches Upload.
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <label htmlFor="link-video-picker" className="text-xs font-medium text-foreground/80">Video</label>
           <select
-            id="video-picker"
+            id="link-video-picker"
+            data-testid="link-video-picker"
             className="flex h-9 w-full max-w-md rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
             value={selectedRowId}
             onChange={(e) => setSelectedRowId(e.target.value)}
           >
-            <option value="">— Select a video —</option>
-            {uploadRows.map((r) => (
-              <option key={r.row_id} value={r.row_id}>{r.video_title || r.row_id}</option>
-            ))}
+            <option value="">&mdash; Select a video &mdash;</option>
+            {ready.length > 0 && <optgroup label="Ready to publish">{ready.map(opt)}</optgroup>}
+            {inProgress.length > 0 && <optgroup label="Still in production">{inProgress.map(opt)}</optgroup>}
           </select>
+          {rows.length === 0 && (
+            <p className="text-xs text-muted-foreground">No videos on the board yet.</p>
+          )}
         </div>
-        
-        {selectedRow && (
-          <LinkStudio
-            rowId={selectedRow.row_id!}
-            videoTitle={selectedRow.video_title || selectedRow.row_id!}
-            initialTools={initialTools}
-            onSaved={onSaved}
-          />
-        )}
-      </div>
 
-      <div className="border-t border-border pt-4">
+        {selectedRow ? (
+          <div data-testid="link-studio-panel">
+            <LinkStudio
+              rowId={selectedRow.row_id!}
+              videoTitle={selectedRow.video_title || selectedRow.row_id!}
+              initialTools={initialTools}
+              onSaved={onSaved}
+            />
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 rounded-lg border border-dashed border-border bg-muted/20 px-4 py-8 text-sm text-muted-foreground">
+            <Link2 className="size-4 shrink-0" /> Select a video above to pick its tools and mint links.
+          </div>
+        )}
+      </section>
+
+      <section className="border-t border-border pt-2">
         <LinkDriftPanel />
-      </div>
+      </section>
     </div>
   );
 }

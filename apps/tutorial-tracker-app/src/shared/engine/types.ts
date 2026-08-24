@@ -134,8 +134,6 @@ export function workField(s: StageDef): FieldDef | undefined {
 const DEFAULT_CREATE_FIELDS: CreateField[] = [
   { col: "video_title", label: "Title", type: "text" },
   { col: "video_notes", label: "Notes / brief", type: "textarea" },
-  { col: "category", label: "Category", type: "combo", options: "category" },
-  { col: "subcategory", label: "Subcategory", type: "combo", options: "subcategory" },
 ];
 
 /** The new-video form fields for a pipeline (its brief stage's, or the default). */

@@ -1,0 +1,21 @@
+# Codex project config for personal-stuff.
+# Minimal and safe by design. NO SECRETS HERE — this file is committed.
+# Secrets belong in the escrow described in infra/ (see CLAUDE.md routing).
+
+# Ask before anything outside the repo or on the network.
+approval_policy = "on-request"
+
+[sandbox_workspace_write]
+# This repo's tooling shells out to wrangler, gh, ssh, and the pp-* CLIs.
+network_access = true
+
+# Sub-agents: none. This repo defines no Claude sub-agents to convert,
+# so .codex/agents/ is intentionally empty. See AGENTS.md.
+
+# MCP servers: none wired for Codex yet. Claude's servers (drive, cloudflare,
+# indian-railways, mongo, davinci-resolve) are configured per-account outside
+# this repo. Add here only what a Codex session in this repo actually needs:
+#
+# [mcp_servers.cloudflare]
+# command = "npx"
+# args = ["-y", "@cloudflare/mcp-server-cloudflare"]

@@ -96,3 +96,11 @@ tooling/claude-skills/*/references/*.env
 # is megabytes — tutorial-tracker-flow.html alone is 2.2 MB, over pp-push's 1 MB
 # cap. Rebuildable, and this repo is PUBLIC. Regenerate rather than commit.
 apps/*/docs/flow/*.html
+
+# Codex local overrides. AGENTS.override.md shadows AGENTS.md without editing it;
+# config.local.toml holds machine-local Codex settings. Both may carry secrets or
+# per-machine paths, and this repo is PUBLIC.
+AGENTS.override.md
+.codex/config.local.toml
+.codex/auth.json
+CLAUDE.local.md

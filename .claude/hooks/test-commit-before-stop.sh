@@ -115,23 +115,57 @@ expect 0 "$WS" false \
   'FAIL: STOP-GUARD blocked on gitignored output (a render would nag every turn)'
 rm -rf "$WS/ignored-dir" "$WS/render.mp4"
 
-# 7. the MAIN checkout is never nagged: the wall forbids committing there, so a block
-#    would be a dead end with no way out.
-printf 'dirty\n' >> "$MAIN/README.md"
+# 7. a CLEAN main checkout must let the turn end. Main is shared and usually clean-ish;
+#    nagging on nothing would make the whole main-checkout branch pure noise.
 expect 0 "$MAIN" false \
-  'FAIL: STOP-GUARD blocked in the main checkout, where committing is forbidden anyway'
-git -C "$MAIN" checkout -- README.md >/dev/null 2>&1
+  'FAIL: STOP-GUARD blocked in a CLEAN main checkout'
 
-# 8. a linked worktree that is NOT a pp-work workspace (a wt pool slot, the landing tree)
+# 8. a dirty MAIN checkout must nag. Until 2026-08-23 it did not, and that was the hole: a
+#    session that never claimed a workspace tripped NEITHER hook, because the wall waits for
+#    a git verb that never comes and this hook exited early here. The nag asks for
+#    relocation, not a commit — committing in main is still forbidden.
+printf 'dirty\n' >> "$MAIN/README.md"
+expect 2 "$MAIN" false \
+  'FAIL: STOP-GUARD did not nag in a DIRTY main checkout (the silent hole is back)'
+
+# 9. the loop guard has to hold in main too, or a turn whose dirty files ALL belong to
+#    another session could never end.
+expect 0 "$MAIN" true \
+  'FAIL: STOP-GUARD ignored stop_hook_active in main and would trap the turn in a loop'
+
+# 10. an UNTRACKED file in main is work in the wrong place, same as in a workspace.
+git -C "$MAIN" checkout -- README.md >/dev/null 2>&1
+printf 'new\n' > "$MAIN/stray.txt"
+expect 2 "$MAIN" false \
+  'FAIL: STOP-GUARD ignored an untracked file in the main checkout'
+rm -f "$MAIN/stray.txt"
+
+# 11. gitignored output in main must not nag either — a render sitting in main is not work.
+mkdir -p "$MAIN/ignored-dir"
+printf 'x\n' > "$MAIN/ignored-dir/junk"
+printf 'x\n' > "$MAIN/render.mp4"
+expect 0 "$MAIN" false \
+  'FAIL: STOP-GUARD nagged on gitignored output in the main checkout'
+rm -rf "$MAIN/ignored-dir" "$MAIN/render.mp4"
+
+# 12. the main-checkout branch must still be repo-gated. The identity check moved ABOVE the
+#     main-vs-worktree split to cover it; if it ever slips back below, every dirty ZluriHQ
+#     work repo starts nagging.
+printf 'dirty\n' >> "$FOREIGN/README.md"
+expect 0 "$FOREIGN" false \
+  'FAIL: STOP-GUARD nagged in the MAIN checkout of a repo that does not ship it'
+git -C "$FOREIGN" checkout -- README.md >/dev/null 2>&1
+
+# 13. a linked worktree that is NOT a pp-work workspace (a wt pool slot, the landing tree)
 printf 'dirty\n' >> "$PLAIN/README.md"
 expect 0 "$PLAIN" false \
   'FAIL: STOP-GUARD blocked in a non-workspace worktree (wt pool / landing tree)'
 
-# 9. a repo that does not ship this hook must never be affected — ZluriHQ work repos
+# 14. a repo that does not ship this hook must never be affected — ZluriHQ work repos
 expect 0 "$FWS/repo" false \
   'FAIL: STOP-GUARD fired in a repo that does not ship it (work repos would be affected)'
 
-# 10. a cwd that is not a git repo at all
+# 15. a cwd that is not a git repo at all
 expect 0 "$TMP" false \
   'FAIL: STOP-GUARD did not exit cleanly outside a git repository'
 
