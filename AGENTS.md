@@ -20,20 +20,37 @@ Also loaded by Claude and equally binding here: [decisions.md](decisions.md),
 
 | CLAUDE.md says | In Codex, use |
 |---|---|
-| `.claude/skills/<name>/SKILL.md` | `.agents/skills/<name>/SKILL.md` |
-| `pipelines/.claude/skills/<name>` | `.agents/skills/<name>` (already mirrored) |
-| `.claude/settings.json` | `.codex/config.toml` — different format, not portable |
-| `.claude/hooks/` | `.agents/hooks/` + `.agents/hooks.json` |
+| `.claude/skills/<name>/SKILL.md` | `~/.codex/skills/<name>/SKILL.md` |
+| `pipelines/.claude/skills/<name>` | `~/.codex/skills/<name>` (already mirrored) |
+| `.claude/settings.json` | `~/.codex/config.toml` — different format, not portable |
+| `.claude/hooks/` | `~/.codex/hooks.json` |
 | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` |
 | a nested `CLAUDE.md` | the sibling nested `AGENTS.md`, else read the `CLAUDE.md` directly |
 
-`.agents/skills/` holds **symlinks** into `.claude/skills/` and
-`pipelines/.claude/skills/`. There is one copy of every skill on disk. Edit the
-real file under `.claude/skills/` or `pipelines/.claude/skills/` — never the
-symlink path.
+**Skills live in `$CODEX_HOME/skills` (default `~/.codex/skills`), NOT in the
+repo.** Codex 0.149 discovers skills only there and inside installed plugins;
+its own help says "Installs into `$CODEX_HOME/skills/<skill-name>`". In this
+version `.agents/` is the **plugin** root (`~/.agents/plugins/marketplace.json`)
+and `.agents/skills/` is read by nothing — a mirror was briefly built there in
+error and removed the same day (decisions.md 2026-08-24).
 
-`scripts/relink.sh` rebuilds the `.agents/skills/` mirror. Run it after adding,
-renaming, or deleting any skill.
+`~/.codex/skills/` holds **symlinks** into this repo's `.claude/skills/` and
+`pipelines/.claude/skills/`. One copy of every skill on disk. Edit the real file
+under `.claude/skills/` — never the link.
+
+`scripts/relink.sh` rebuilds that mirror (via
+`scripts/mirror-codex-skills.sh`). Run it after adding, renaming, or deleting
+any skill.
+
+**Codex skills are not slash commands.** Claude exposes a skill as
+`/<skill-name>`; Codex injects a name-and-description list the model reads with
+`skills.read`. Ask for one in plain language — `/yt-video-edit` will never
+autocomplete.
+
+Two consequences of that mirror being **global**: these 35 skills load in every
+project, including ZluriHQ work repos where several do not apply; and the links
+point at `/Users/kbtg/codebase/personal-stuff`, so moving or deleting that
+checkout breaks them.
 
 ## What does NOT carry over
 
@@ -51,11 +68,12 @@ renaming, or deleting any skill.
 
 ## On Windows, run the mirror after cloning
 
-`.agents/skills/` is committed as 35 **symlinks**. `git clone` on Windows without
-`core.symlinks` writes each one as a plain TEXT FILE holding its target path, so
-Codex finds no `SKILL.md` and the mirror is silently dead. Same for the 12
-`.claude/skills/` entries that point into `pipelines/`, which breaks Claude there
-too.
+Nothing Codex reads is committed — `~/.codex/skills` is built on each machine —
+so the mirror must be generated after cloning, never assumed.
+
+`git clone` on Windows without `core.symlinks` also writes the 12
+`.claude/skills/` entries that point into `pipelines/` as plain TEXT FILES
+holding their target path, which breaks those skills for **Claude** too.
 
 In Git Bash, from the repo root:
 
