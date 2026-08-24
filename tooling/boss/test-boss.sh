@@ -347,6 +347,103 @@ else
 fi
 
 # -----------------------------------------------------------------------
+# (7b) codex.sh: dispatch meta, the 0-token guard, rc=124 -> truncated, and
+#      thread-id recovery from an archived stream.
+#      The 0-token case is the one that matters: a clean exit whose turn used
+#      no tokens means the CLI never reached the model, and calling that
+#      "done" is exactly the failure agy taught us (LESSONS 2026-07-07).
+# -----------------------------------------------------------------------
+echo "--- (7b) codex dispatch + collect verdicts ---"
+
+if [ -f "$BOSSDIR/executors/codex.sh" ]; then
+  bash -n "$BOSSDIR/executors/codex.sh" || fail "(7b) codex.sh bash -n failed"
+
+  CDX_BOSS="$TMP/codex-boss"
+  mkdir -p "$CDX_BOSS/state" "$CDX_BOSS/executors" "$CDX_BOSS/bin"
+  cp "$BOSSDIR/bin/boss-lib.sh" "$CDX_BOSS/bin/"
+  cp "$BOSSDIR/executors/codex.sh" "$CDX_BOSS/executors/"
+
+  # Stubs. codex.sh APPENDS its fallback PATH entries, so these win.
+  cat > "$STUB_DIR/codex" <<'CDXEOF'
+#!/bin/bash
+echo '{"type":"thread.started","thread_id":"stub-thread-1"}'
+echo '{"type":"turn.completed","usage":{"input_tokens":10,"output_tokens":5}}'
+CDXEOF
+  chmod +x "$STUB_DIR/codex"
+  cat > "$STUB_DIR/gtimeout" <<'GTEOF'
+#!/bin/bash
+# Drop `-k <n>` and the duration, then run the rest.
+[ "$1" = "-k" ] && shift 2
+shift
+exec "$@"
+GTEOF
+  chmod +x "$STUB_DIR/gtimeout"
+
+  cdx_wt="$TMP/codex-wt"
+  mkdir -p "$cdx_wt"
+  git init -q "$cdx_wt"
+  git -C "$cdx_wt" commit -q --allow-empty -m init
+
+  echo "worktree=$cdx_wt" > "$CDX_BOSS/state/500.meta"
+  cdx_brief="$TMP/codex-brief.md"
+  echo "test codex brief" > "$cdx_brief"
+
+  ( export CODEX_DEFAULT_MODEL="test-model"
+    "$CDX_BOSS/executors/codex.sh" dispatch 500 "$cdx_brief" ) \
+    || fail "(7b) codex dispatch failed"
+
+  grep -q "^pid=" "$CDX_BOSS/state/500.meta" || fail "(7b) dispatch did not write pid="
+  grep -q "^head_before=" "$CDX_BOSS/state/500.meta" || fail "(7b) dispatch did not write head_before="
+  grep -q "^rcfile=" "$CDX_BOSS/state/500.meta" || fail "(7b) dispatch did not write rcfile="
+  # The brief the crew actually receives must carry the non-interactive addendum;
+  # without it a mirrored interactive skill can park the crew on a question.
+  grep -q "You are non-interactive" "$CDX_BOSS/state/500.codex.md" \
+    || fail "(7b) codex brief is missing the non-interactive addendum"
+
+  # Let the backgrounded stub finish and write its rc.
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    [ -f "$CDX_BOSS/state/500.rc" ] && break
+    sleep 0.2
+  done
+
+  # HEAD never advanced (the stub commits nothing) -> blocked, never done.
+  result=$("$CDX_BOSS/executors/codex.sh" collect 500 2>/dev/null)
+  echo "$result" | grep -q "^blocked" \
+    || fail "(7b) collect should report blocked when HEAD did not advance, got: $result"
+
+  # thread_id must be pinned onto the meta by collect, so a resume survives the
+  # stream being overwritten.
+  grep -q "^thread_id=stub-thread-1" "$CDX_BOSS/state/500.meta" \
+    || fail "(7b) collect did not pin thread_id onto the meta"
+
+  # rc=124 (gtimeout) is truncated, NOT blocked — it must route to resume.
+  echo 124 > "$CDX_BOSS/state/500.rc"
+  result=$("$CDX_BOSS/executors/codex.sh" collect 500 2>/dev/null)
+  echo "$result" | grep -q "^truncated" \
+    || fail "(7b) rc=124 should report truncated, got: $result"
+
+  # A 0-token turn is never a success, even on a clean exit with commits.
+  echo 0 > "$CDX_BOSS/state/500.rc"
+  printf '%s\n%s\n' '{"type":"thread.started","thread_id":"stub-thread-1"}' \
+                    '{"type":"turn.completed","usage":{}}' > "$CDX_BOSS/state/500.out"
+  git -C "$cdx_wt" commit -q --allow-empty -m "crew work"
+  result=$("$CDX_BOSS/executors/codex.sh" collect 500 2>/dev/null)
+  echo "$result" | grep -q "^dead" \
+    || fail "(7b) a 0-token turn must not be reported as done, got: $result"
+
+  # Same state, real token usage -> done.
+  printf '%s\n%s\n' '{"type":"thread.started","thread_id":"stub-thread-1"}' \
+                    '{"type":"turn.completed","usage":{"input_tokens":10}}' > "$CDX_BOSS/state/500.out"
+  result=$("$CDX_BOSS/executors/codex.sh" collect 500 2>/dev/null)
+  echo "$result" | grep -q "^done" \
+    || fail "(7b) collect should report done when HEAD advanced, got: $result"
+
+  echo "PASS: codex dispatch + collect verdicts"
+else
+  echo "SKIP: codex.sh not present"
+fi
+
+# -----------------------------------------------------------------------
 # (8) boss_stall_check: a RE-DISPATCH must not inherit the previous run's
 #     stall clock. PR#180 (2026-08-22) was re-dispatched twice after its first
 #     crew hung on MCP startup. stall_fp/progress_at survived in the same

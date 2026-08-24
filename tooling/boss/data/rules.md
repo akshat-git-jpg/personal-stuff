@@ -18,6 +18,16 @@ exception for the scenarios below, not the default.
 | quality-setting CONTENT the owner judges by taste — rulebooks, prompts, prose, docs | claude-p | sonnet |
 | plan can't be fully inlined — real judgment/exploration expected mid-execution | claude-p | sonnet |
 | tricky — subtle concurrency, security-sensitive, gnarly refactor needing live judgment | claude-p | opus |
+| owner asks for codex, or a fully-inlined plan you want off the agy queue | codex | (codex default — gpt-5.6-sol) |
+
+**codex is a valid option, not a default (owner decision 2026-08-25).** The OpenAI
+Codex CLI runs on the owner's ChatGPT subscription (`auth_mode=chatgpt`), so like agy its
+tokens are effectively free and it does not share claude-p's Claude usage pool. It earns a
+row rather than the default seat because it has no track record in this repo's boss
+history yet — agy keeps the default until codex has landed real PRs. Pick it when the
+owner names it, or to run a second fully-inlined plan concurrently without queueing behind
+an agy crew. The agy riders below apply to codex unchanged (fully-inlined bar, the
+render+visual-inspection gate on visual output, verify by COMMITS never by the run log).
 
 Riders on the agy default (from LESSONS — they are what makes it safe):
 - The plan must be FULLY inlined (schemas, snippets, exact commands). If Step 3.5 can't

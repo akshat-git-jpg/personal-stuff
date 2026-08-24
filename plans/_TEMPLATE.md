@@ -1,7 +1,7 @@
 <!-- boss frontmatter — fill for plans that boss will run; delete this block for non-boss plans. -->
 ---
-executor: claude-p       # claude-p | agy
-model:                   # blank = executor default (claude-p: sonnet)
+executor: claude-p       # claude-p | agy | codex
+model:                   # blank = executor default (claude-p: sonnet, agy: Gemini 3.1 Pro (High), codex: gpt-5.6-sol)
 test_cmd:                # REQUIRED for boss: one command, exit 0 = pass (this is the merge gate).
                          # It must be able to FAIL on this plan's own deliverable. A repo-wide
                          # suite that passes while the deliverable is broken is not a gate:

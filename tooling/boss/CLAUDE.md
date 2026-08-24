@@ -545,9 +545,44 @@ Scripts in `executors/` implementing three verbs, plus an optional fourth:
 ```
 
 Shipped: `claude-p` (backgrounded `claude -p`, default model sonnet),
-`agy` (Antigravity CLI, default model Gemini 3.1 Pro (High)).
+`agy` (Antigravity CLI, default model Gemini 3.1 Pro (High)),
+`codex` (OpenAI Codex CLI, default model gpt-5.6-sol).
 
-**`resume` is claude-p only** (added 2026-08-24). It reads the `session_id` out of the
+**`codex` (added 2026-08-25).** Backgrounded `codex exec` on the owner's ChatGPT
+subscription — free tokens, same as agy; agy stays the routing default (see
+`data/rules.md`). Three things differ from agy and matter when you read its verdicts:
+
+- **Its `progress` signal is honest and cheap.** `--json` streams a JSONL event per
+  model step into `state/<pr>.out`, so the file GROWS while the crew works. agy needed
+  an `lsof` on its CLI log because its envelope only lands at exit; codex just reports
+  `wc -c`. A stalled byte count is a real stall.
+- **There is no status envelope — the exit code is captured separately.** The dispatch
+  subshell writes the process exit code to `state/<pr>.rc` after `codex exec` returns.
+  `collect` reads that, plus the last `turn.completed` usage out of the JSONL. **A
+  0-token `turn.completed` is a failure**, never a success (the same trap as agy's
+  0-token SUCCESS envelope, LESSONS 2026-07-07): the CLI exited clean without ever
+  reaching the model.
+- **`rc=124` is `truncated`, not `blocked`.** `codex exec` has no timeout flag of its
+  own, so the executor wraps it in `gtimeout ${CODEX_TIMEOUT:-180m}`. A timeout means
+  the budget ran out, not that the work is wrong — continue it with
+  `executors/codex.sh resume <pr#>`, never a fresh `boss-dispatch` (which force-resets
+  the branch to origin and destroys the crew's local commits).
+
+- **A codex crew reads this repo's own skills, and some of them ask questions.**
+  Codex loads `$CODEX_HOME/skills` (the mirror built by
+  `scripts/mirror-codex-skills.sh`). On 2026-08-25 a smoke run read `github-router`,
+  judged the commit account ambiguous, and ended its turn asking *"Should I use the
+  Work, YT, or Personal account?"* — a whole dispatch spent waiting for an answer no
+  one can give. `codex.sh` appends a non-interactive addendum to the brief for this
+  reason. If a codex crew comes back `blocked` with no commits, read
+  `state/<pr>.last` first: a crew that stopped to ask is not a crew that failed, and
+  it re-dispatches cleanly.
+
+Everything else follows agy's doctrine unchanged: **judge by the TREE, not the
+envelope.** HEAD advanced + a clean worktree means the work landed however the CLI
+exited, and a clean exit with no new commit is NOT done.
+
+**`resume` is claude-p and codex only.** For claude-p (added 2026-08-24) it reads the `session_id` out of the
 previous run's own JSON envelope and re-invokes `claude -p --resume <session_id>`, so the
 continuation carries the crew's full prior context. That matters more here than anywhere
 else: boss holds no plan context by design, so a summary brief is the weakest possible
