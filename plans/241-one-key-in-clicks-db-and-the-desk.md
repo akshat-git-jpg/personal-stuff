@@ -3,7 +3,7 @@ executor: claude-p
 model: opus
 test_cmd: cd pipelines/video-registry && node --test registry.test.mjs
 ui:
-deploy:
+deploy: cd pipelines/video-registry && node bin/vreg.mjs migrate-keys --apply
 needs: ["240 (PR#201) must land first — the mapping comes from cards.slug plus the registry card_id"]
 needs_prs: [199, 200, 201]
 touches: [pipelines/video-registry/lib/migrate-keys.mjs, pipelines/video-registry/bin/vreg.mjs, pipelines/video-registry/registry.test.mjs, pipelines/video-registry/CLAUDE.md]
@@ -34,8 +34,8 @@ mutation_timeout: 300
   skill.
 - **Done criteria** (terse): the emitted statement ORDER is unit-pinned; `node --test
   registry.test.mjs` green; a dry run prints the full plan and writes nothing.
-- **Stop conditions** (terse): never run the migration against live D1 — that is the owner's
-  `deploy` gate; never write to `clicks`; never change a `links.slug`.
+- **Stop conditions** (terse): do not run `--apply` yourself — boss runs it post-merge as the
+  `deploy` step once the owner approves; never write to `clicks`; never change a `links.slug`.
 - **Test / verification for success**: `planMigration` is pure and emits `{sql, params}` in
   order; tests assert the exact ordering that keeps foreign keys valid.
 - **Open points for plan readiness**: none.
@@ -176,7 +176,9 @@ hatch is still in use."* Delete it, do not leave it.
 - `apps/tutorial-tracker-app/src/worker/index.ts` — drop its one call site
 
 **Out of scope**:
-- **Running the migration against live D1.** That is the owner's `deploy` gate. See STOP.
+- **Running `--apply` yourself.** boss runs it post-merge as this plan's `deploy` step, and
+  only after the owner approves it — deploy is boss's one hard per-item gate
+  (`tooling/boss/CLAUDE.md`). Your job is to make `--apply` safe, not to fire it. See STOP.
 - `clicks` — never written, never read for this.
 - `links.slug` — never changed. Those strings are in published video descriptions.
 - `videos.token` in the desk — never changed. Shared links resolve by it.
@@ -397,16 +399,22 @@ prove the ordering assertions run at all.
 - [ ] `grep -Ec '\bclicks\b' pipelines/video-registry/lib/migrate-keys.mjs` -> only inside
       `INVARIANT_QUERIES` (a read), never in a planner's emitted SQL
 - [ ] `grep -c 'migrate-keys' pipelines/video-registry/CLAUDE.md` -> at least `1`
-- [ ] **No migration was applied to live D1.** `git log --oneline` contains no commit
-      claiming a live apply, and the branch contains no captured production output.
+- [ ] **You applied no migration to live D1.** `git log --oneline` contains no commit
+      claiming a live apply, and the branch carries no captured production output. boss runs
+      the `deploy` command itself, after the owner approves.
+- [ ] `--apply` refuses and exits non-zero if `COUNT(*) FROM clicks` or
+      `COUNT(DISTINCT slug) FROM links` differs before and after. Prove it with a unit test
+      on the comparison, since boss runs `--apply` without a human watching.
 - [ ] `git diff --name-only e45ff9e7..HEAD` touches only the In-scope list
 
 ## STOP conditions
 
-- **You are about to run the migration against live Cloudflare D1.** Do not. `--apply` exists
-  for the owner's `deploy` gate, which is boss's only hard per-item gate
-  (`tooling/boss/CLAUDE.md`). Your deliverable is the planner, the verb, the tests and a
-  clean `--dry-run`.
+- **You are about to run `--apply` against live Cloudflare D1.** Do not. That statement is
+  this plan's `deploy` command: boss runs it after the merge, and only after asking the
+  owner — deploy is boss's one hard per-item gate (`tooling/boss/CLAUDE.md`). Your
+  deliverable is the planner, the verb, the tests and a clean `--dry-run`. Because boss will
+  run `--apply` unattended, the invariant refusal in Step 3 is not optional: it is the only
+  thing standing between a bad mapping and the click history.
 - **You are about to write to `clicks`, change a `links.slug`, or change a desk `token`.**
   Each one destroys something irrecoverable: click history, a URL inside a published video
   description, or a link already shared with a freelancer.
@@ -426,6 +434,11 @@ prove the ordering assertions run at all.
   claim one video. Report it; do not merge them — merging click history is irreversible.
 
 ## Maintenance notes
+
+- **boss owns the live apply.** `deploy:` carries
+  `node bin/vreg.mjs migrate-keys --apply`, so boss runs it post-merge once the owner says
+  go. That makes the invariant check inside `--apply` the real safety net rather than a
+  human reading the dry-run output.
 
 - After this lands, `video_code` **is** the canonical key, so a new video needs no code
   generation at all. `generateVideoCode` survives only for a card created before its slug
