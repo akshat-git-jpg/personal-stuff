@@ -4,6 +4,12 @@ import {
   ensure, whereIs, unregisteredDirs, REGISTRY_PATH,
 } from '../lib/registry.mjs';
 import { fetchCards, planSync } from '../lib/tracker.mjs';
+import {
+  planClicksDb, planDesk, diffInvariants, partitionCollisions,
+  queryD1, readInvariants, INVARIANT_QUERIES,
+  CLICKS_DB_ID, DESK_DB_ID,
+} from '../lib/migrate-keys.mjs';
+import { TRACKER_DB_ID } from '../lib/tracker.mjs';
 
 const [cmd, ...rest] = process.argv.slice(2);
 
@@ -22,6 +28,7 @@ function usage() {
   console.log('       vreg mint <key> [--title "..."]      register a new key (fails if taken)');
   console.log('       vreg alias <key> <other-name>        point another name at an existing key');
   console.log('       vreg sync [--dry-run]                seed registry from the tracker');
+  console.log('       vreg migrate-keys [--dry-run|--apply] make the registry key canonical in D1');
 }
 
 try {
@@ -92,6 +99,108 @@ try {
       console.error(`stamped ${s.key} with card_id ${s.card_id}`);
     }
     if (plan.mints.length > 0 || plan.stamps.length > 0) save(reg);
+  } else if (cmd === 'migrate-keys') {
+    if (rest.includes('--help') || positional.includes('help')) {
+      usage();
+      process.exit(0);
+    }
+    // Dry run is the DEFAULT. --apply is the only thing that writes, and boss
+    // runs it post-merge as this plan's deploy step, never a crew.
+    const isApply = rest.includes('--apply');
+
+    // clicks-db pairs: the tracker card holds both halves of the mapping.
+    // `slug` is a real column (migration 0003), but `video_code` is NOT — the
+    // tracker keeps it inside the card's extra_json blob (datastore.ts writes
+    // any non-core cell there), so it has to be json_extract-ed out.
+    const cardRows = await queryD1(
+      TRACKER_DB_ID,
+      "SELECT json_extract(extra_json, '$.video_code') AS video_code, slug FROM cards " +
+      "WHERE slug IS NOT NULL AND json_extract(extra_json, '$.video_code') IS NOT NULL",
+    );
+    const clicksPairs = cardRows
+      .map((r) => ({ oldCode: String(r.video_code || '').trim(), newKey: String(r.slug || '').trim() }))
+      .filter((p) => p.oldCode && p.newKey);
+
+    // desk pairs: every desk row's key mapped through the registry (aliases too).
+    const deskRows = await queryD1(DESK_DB_ID, 'SELECT key FROM videos');
+    const reg = load();
+    const deskPairs = [];
+    for (const r of deskRows) {
+      const oldKey = String(r.key || '').trim();
+      if (!oldKey) continue;
+      const canonical = resolveKey(oldKey, reg);
+      if (!canonical) {
+        console.error(`skipped desk key "${oldKey}" (not registered)`);
+        continue;
+      }
+      deskPairs.push({ oldKey, newKey: canonical });
+    }
+
+    // Two old codes claiming one new key means two rows claim one video.
+    // Merging them would merge click history or drop a desk row, and neither is
+    // recoverable. A blocked pair is NEVER planned, in either mode; --apply
+    // additionally refuses outright, because boss runs it with nobody watching.
+    const clicks = partitionCollisions(clicksPairs);
+    const desk = partitionCollisions(deskPairs);
+    const collisions = [...clicks.collisions, ...desk.collisions];
+    for (const c of collisions) {
+      console.error(`E-COLLISION: "${c.newKey}" is claimed by ${c.olds.join(', ')}`);
+    }
+    if (collisions.length) {
+      console.error('two rows claim one video — the owner must resolve the duplicate by hand.');
+      console.error('these keys are excluded from the plan below; nothing is ever merged.');
+      if (isApply) {
+        console.error('refusing to apply while a collision is unresolved');
+        process.exit(1);
+      }
+    }
+
+    const clicksStmts = planClicksDb(clicks.safe);
+    const deskStmts = planDesk(desk.safe);
+
+    const show = (title, stmts) => {
+      console.log(`\n== ${title} (${stmts.length} statement${stmts.length === 1 ? '' : 's'}) ==`);
+      stmts.forEach((st, i) => {
+        console.log(`${String(i + 1).padStart(3)}. ${st.sql}`);
+        console.log(`     params: ${JSON.stringify(st.params)}`);
+        console.log(`     why:    ${st.why}`);
+      });
+    };
+
+    if (!isApply) {
+      show('clicks-db', clicksStmts);
+      show('yt-script-desk', deskStmts);
+      console.log('\n== invariant counts that --apply checks before and after ==');
+      for (const q of INVARIANT_QUERIES) console.log(`  ${q.label}: ${q.sql}`);
+      console.log('\ndry run — nothing was written. Use --apply to run it.');
+      process.exit(0);
+    }
+
+    show('clicks-db', clicksStmts);
+    show('yt-script-desk', deskStmts);
+
+    const before = await readInvariants();
+    console.log('\n== invariants BEFORE ==');
+    for (const [k, v] of Object.entries(before)) console.log(`  ${k}: ${v}`);
+
+    for (const st of clicksStmts) await queryD1(CLICKS_DB_ID, st.sql, st.params);
+    for (const st of deskStmts) await queryD1(DESK_DB_ID, st.sql, st.params);
+
+    const after = await readInvariants();
+    console.log('\n== invariants AFTER ==');
+    for (const [k, v] of Object.entries(after)) console.log(`  ${k}: ${v}`);
+
+    // The only thing standing between a bad mapping and the click history.
+    // boss runs --apply unattended, so drift REFUSES rather than logging on.
+    const violations = diffInvariants(before, after);
+    if (violations.length) {
+      for (const v of violations) {
+        console.error(`E-INVARIANT: ${v.label} was ${v.before}, is now ${v.after}`);
+      }
+      console.error('invariant drift — investigate before touching this database again');
+      process.exit(1);
+    }
+    console.log('\nevery invariant held');
   } else {
     usage();
     process.exit(cmd ? 1 : 0);

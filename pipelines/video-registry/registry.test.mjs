@@ -9,7 +9,8 @@ import {
 } from './lib/registry.mjs';
 import { planSync } from './lib/tracker.mjs';
 import {
-  planClicksDb, planDesk, diffInvariants, findCollisions, INVARIANT_QUERIES,
+  planClicksDb, planDesk, diffInvariants, findCollisions, partitionCollisions,
+  INVARIANT_QUERIES,
 } from './lib/migrate-keys.mjs';
 
 function tmpReg() {
@@ -304,4 +305,28 @@ test("findCollisions is empty for a one-to-one mapping", () => {
     { oldCode: "aB3xY9", newKey: "one-video" },
     { oldCode: "zZ1qQ2", newKey: "two-video" },
   ]), []);
+});
+
+test("partitionCollisions never plans a blocked pair", () => {
+  const pairs = [
+    { oldCode: "aB3xY9", newKey: "one-video" },
+    { oldCode: "zZ1qQ2", newKey: "one-video" },
+    { oldCode: "qQ7wW8", newKey: "two-video" },
+  ];
+  const { safe, blocked, collisions } = partitionCollisions(pairs);
+  assert.deepStrictEqual(safe, [{ oldCode: "qQ7wW8", newKey: "two-video" }]);
+  assert.strictEqual(blocked.length, 2);
+  assert.strictEqual(collisions.length, 1);
+  // the whole point: no emitted statement ever merges the two claimants
+  const sql = planClicksDb(safe).map((s) => JSON.stringify(s.params)).join(" ");
+  assert.ok(!sql.includes("aB3xY9"));
+  assert.ok(!sql.includes("zZ1qQ2"));
+});
+
+test("partitionCollisions passes a clean list through untouched", () => {
+  const pairs = [{ oldKey: "old-slug", newKey: "new-slug" }];
+  const { safe, blocked, collisions } = partitionCollisions(pairs);
+  assert.deepStrictEqual(safe, pairs);
+  assert.deepStrictEqual(blocked, []);
+  assert.deepStrictEqual(collisions, []);
 });

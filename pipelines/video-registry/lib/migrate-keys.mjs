@@ -128,6 +128,27 @@ export function findCollisions(pairs) {
   return out;
 }
 
+/**
+ * Split a pair list into the pairs that are safe to migrate and the ones that
+ * are blocked by a collision. PURE.
+ *
+ * A blocked pair is NEVER planned. Merging two rows onto one key would merge
+ * click history or drop a desk row, and neither is recoverable — the owner has
+ * to resolve the duplicate by hand first.
+ *
+ * @param pairs [{ oldCode, newKey }] or [{ oldKey, newKey }]
+ * @returns { safe, blocked, collisions }
+ */
+export function partitionCollisions(pairs) {
+  const collisions = findCollisions(pairs);
+  const badKeys = new Set(collisions.map((c) => c.newKey));
+  return {
+    safe: pairs.filter((p) => !badKeys.has(p.newKey)),
+    blocked: pairs.filter((p) => badKeys.has(p.newKey)),
+    collisions,
+  };
+}
+
 /** Run one statement against a D1 database over the REST API. */
 export async function queryD1(databaseId, sql, params = [], fetchImpl = fetch, env = process.env) {
   const account = env.CF_ACCOUNT_ID;
@@ -141,9 +162,11 @@ export async function queryD1(databaseId, sql, params = [], fetchImpl = fetch, e
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({ sql, params }),
   });
-  if (!res.ok) throw new Error(`D1 query failed: HTTP ${res.status} (${sql})`);
-  const body = await res.json();
-  if (!body.success) throw new Error(`D1 query failed: ${JSON.stringify(body.errors)} (${sql})`);
+  const body = await res.json().catch(() => null);
+  if (!res.ok || !body?.success) {
+    const detail = body?.errors ? JSON.stringify(body.errors) : `HTTP ${res.status}`;
+    throw new Error(`D1 query failed: ${detail} (${sql})`);
+  }
   return body.result?.[0]?.results ?? [];
 }
 
