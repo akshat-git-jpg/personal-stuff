@@ -1358,3 +1358,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 235-script-desk-wire-into-yt-script — PR#196 235-script-desk-wire-into-yt-script: wire the desk into the skill and the registries — DONE
 - 237-founders-today-strip-and-dense-tracker — PR#198 237-founders-today-strip-and-dense-tracker: founders-tracker — the Today strip and a tracker you can read — DONE
 - 238-video-registry-gate-is-red — PR#199 238-video-registry-gate-is-red: the video-registry gate is red on main and nobody can see it — DONE
+- 239-tracker-mints-the-slug — PR#200 239-tracker-mints-the-slug: the tracker mints a video's canonical slug — DONE
