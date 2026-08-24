@@ -20,7 +20,7 @@ export MAINT_DIR
 
 # We will test lib.sh functions by sourcing it in a subshell
 jobs="$(bash -c "source $MAINT_DIR/bin/lib.sh; discover_jobs" | sort | tr '\n' ' ')"
-if [ "$jobs" != "skills " ]; then
+if [ "$jobs" != "memory skills " ]; then
   if [ -z "$jobs" ]; then
     fail "job discovery found no jobs"
   else
@@ -31,6 +31,7 @@ fi
 # 3. session-start.sh exits 0 and output contains skills
 out="$(bash $MAINT_DIR/bin/session-start.sh)" || fail "session-start.sh failed"
 echo "$out" | grep -q '^skills' || fail "session-start.sh did not print skills row"
+echo "$out" | grep -q '^memory' || fail "session-start.sh did not print memory row"
 
 # 4. session-start.sh prints job discovery found no jobs and exits 2 when jobs/ is empty
 mkdir -p "$TMP/empty_jobs_test/jobs"
@@ -76,5 +77,34 @@ rm -f "$prop"
 # We check this by running check.sh and ensuring it doesn't emit "- zero repo references" or similar
 out="$(bash $MAINT_DIR/jobs/skills/check.sh)"
 echo "$out" | grep -E "^- zero repo references:" && fail "check.sh emitted a finding line for zero-reference skills"
+
+# --- memory job: fixture with a known orphan and a known dead pointer -------
+FIX="$TMP/memfix"
+mkdir -p "$FIX/projects/-tmp-nonexistent-repo/memory"
+M="$FIX/projects/-tmp-nonexistent-repo/memory"
+cat > "$M/MEMORY.md" <<'EOF'
+# Memory Index
+- [Present note](present.md) - indexed and on disk
+- [Missing note](missing.md) - indexed but NOT on disk
+EOF
+printf 'description: a note that is on disk and indexed\n' > "$M/present.md"
+printf 'description: a note on disk that nobody indexed\n' > "$M/orphan.md"
+
+out="$(MEMORY_ROOTS="$FIX" bash "$MAINT_DIR/jobs/memory/check.sh" 2>&1)"
+echo "$out" | grep -q 'ORPHAN' || fail "memory check did not report the seeded orphan"
+echo "$out" | grep -q 'DEAD POINTER' || fail "memory check did not report the seeded dead pointer"
+echo "$out" | grep -q 'dead path' || fail "memory check did not report the seeded dead path"
+
+# age lines must NOT be able to flip the exit code
+MEMORY_ROOTS="$FIX" MEMORY_AGE_DAYS=0 bash "$MAINT_DIR/jobs/memory/check.sh" >/dev/null
+# (exit 1 here is fine — it comes from the orphan, not from age. The next assertion
+#  proves age alone is not a finding.)
+CLEAN="$TMP/memclean"
+mkdir -p "$CLEAN/projects/-tmp-x/memory"
+printf '# Memory Index\n- [Only note](only.md) - fine\n' > "$CLEAN/projects/-tmp-x/memory/MEMORY.md"
+printf 'description: fine\n' > "$CLEAN/projects/-tmp-x/memory/only.md"
+MEMORY_ROOTS="$CLEAN" MEMORY_AGE_DAYS=0 bash "$MAINT_DIR/jobs/memory/check.sh" >/dev/null
+rc=$?
+[ "$rc" -le 1 ] || fail "memory check exited $rc on a clean fixture"
 
 echo "ALL PASS"
