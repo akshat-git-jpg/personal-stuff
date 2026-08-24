@@ -40,8 +40,26 @@ this file was inferred from repo code alone and named the wrong person).
 - **How replies should read**: explanations and status reports addressed to the owner go
   through the `i-have-adhd` skill - action first, short sentences, exact paths. Anything
   drafted for a third party goes through `humanizer` instead.
-- **Cost matters**: batch clarifying questions, avoid re-reading context, and do not
-  duplicate the same content across a spec and a plan.
+- **Cost matters, concretely.** The owner optimises for token cost and speed, and has called
+  a session out for being expensive. Four habits, in order of how often they are missed:
+  - **Batch independent clarifying questions** - up to 4 per `AskUserQuestion` call - rather
+    than one-at-a-time round trips, each of which re-sends the whole context.
+    `superpowers:brainstorming` says ask one at a time; override toward batching when the
+    questions are independent.
+  - **Trust context; do not re-recon.** Re-reading files already sitting in context during
+    `orchestrate` recon is pure waste. Read once.
+  - **Know the one-shot commands.** A PR's contents is `gh pr diff <n>`, not trial-and-error
+    `gh api … | base64 -d`.
+  - **Invoke only skills you will actually use** - each one dumps a large SKILL.md into context.
+- **One home for detailed content.** A plan in `plans/` must be self-contained for a
+  zero-context executor, so it re-inlines the load-bearing prompts, schemas and guard logic. If
+  a design spec in `docs/superpowers/specs/` *also* holds that content verbatim, it gets written
+  and reviewed twice - which happened on the 2026-07-08 dossier build. Decide up front which
+  artifact is the single home. Either **spec-light** (the spec carries decisions and rationale in
+  prose and references where the exact content will live; the plan holds the verbatim strings -
+  best when an independent design review is wanted first, since the reviewer reads intent rather
+  than recopied strings), or **plan-only** (for a well-understood build, skip the spec entirely
+  and let the self-contained plan be the only artifact).
 
 ## Tools & Accounts I Drive Everything With
 - **Hostinger VPS**: 
