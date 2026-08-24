@@ -93,7 +93,7 @@ big enough to deserve a `plans/` file and an orchestrate run.
   (Google tokens per account, VPS Claude login, HeyGen cookies, NotebookLM) and sends an
   ntfy alert on failure — converts silent cron death into a push notification. Effort M. (plan)
 - [ ] **Inventory drift check.** Script that diffs `apps/*/wrangler.*` against `INFRA.md`
-  (Workers, domains, D1/KV bindings) — fold into `audit-repo-route` or `check-apps.sh`.
+  (Workers, domains, D1/KV bindings) — fold into `routing` job or `check-apps.sh`.
   The founders-tracker omission shows the manual convention slips. Effort S–M.
 - [ ] **Plan the recorded security backlog.** SEC-02..07 in `plans/README.md` are
   enumerated but unplanned. Start with SEC-05 (founders non-expiring token) and
@@ -207,7 +207,7 @@ Decide per skill:
 
 **Migration candidates out of the account store (execute in the new session; after moving:
 update manifests, `relink.sh`, restart sessions):**
-- → `personal-stuff/.claude/skills/`: `audit-repo-route`, `dsa-coach`, `orchestrate`
+- → `personal-stuff/.claude/skills/`: `dsa-coach`, `orchestrate`
   (operates on this repo's `plans/`; re-evaluate if another repo adopts the convention).
 - → `pipelines/.claude/skills/`: `yt-style-copy`, `pinterest-make-post`,
   `pinterest-research`, `pinterest-analyze`, `pinterest-board`, `hyperframes-helper`
@@ -235,7 +235,7 @@ the system of record shared:
 3. **Consolidation ritual**: monthly (or when MEMORY.md exceeds ~40 lines), run a session
    that diffs both accounts' stores for the repo, promotes keepers, prunes the rest.
    Candidate: a small `memory-consolidate` skill in tier 2, same on-demand pattern as
-   `audit-repo-route`.
+   the `routing` maintainer job.
 4. **Work repos with Zluri-confidential content**: their memory stays in the work
    account's store only (never in personal git); it rides the encrypted escrow for
    migration.

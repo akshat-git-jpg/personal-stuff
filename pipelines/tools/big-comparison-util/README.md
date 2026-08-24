@@ -4,4 +4,4 @@ A standalone grouping-and-ranking method for comparing many tools at once: group
 
 - `categorization-rule.md` — the rules doc. **Deliberately not a skill** — not auto-discovered, not symlinked. Point Claude at this file each run.
 
-> Stub scaffolded by `/audit-repo-route` — flesh out as needed.
+> Stub scaffolded by the `routing` maintainer job — flesh out as needed.

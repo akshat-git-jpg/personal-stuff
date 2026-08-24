@@ -20,7 +20,7 @@ export MAINT_DIR
 
 # We will test lib.sh functions by sourcing it in a subshell
 jobs="$(bash -c "source $MAINT_DIR/bin/lib.sh; discover_jobs" | sort | tr '\n' ' ')"
-if [ "$jobs" != "memory skills " ]; then
+if [ "$jobs" != "memory routing skills " ]; then
   if [ -z "$jobs" ]; then
     fail "job discovery found no jobs"
   else
@@ -106,5 +106,22 @@ printf 'description: fine\n' > "$CLEAN/projects/-tmp-x/memory/only.md"
 MEMORY_ROOTS="$CLEAN" MEMORY_AGE_DAYS=0 bash "$MAINT_DIR/jobs/memory/check.sh" >/dev/null
 rc=$?
 [ "$rc" -le 1 ] || fail "memory check exited $rc on a clean fixture"
+
+# --- routing job: fixture repo with a seeded unmapped folder + dead link ----
+RFIX="$TMP/routefix"
+mkdir -p "$RFIX/apps/mapped-app" "$RFIX/totally-unmapped" "$RFIX/apps/no-doc-app"
+printf '# x\n' > "$RFIX/apps/mapped-app/README.md"
+cat > "$RFIX/CLAUDE.md" <<'EOF'
+| If the ask is about… | Go to |
+|---|---|
+| the mapped app | [apps/mapped-app](apps/mapped-app) |
+| something deleted | [gone/thing.md](gone/thing.md) |
+EOF
+
+out="$(ROUTING_ROOT="$RFIX" bash "$MAINT_DIR/jobs/routing/check.sh" 2>&1)"
+echo "$out" | grep -q 'UNMAPPED totally-unmapped' || fail "routing check did not report the seeded unmapped folder"
+echo "$out" | grep -q 'DEAD LINK gone/thing.md'   || fail "routing check did not report the seeded dead link"
+echo "$out" | grep -q 'NO OPERATE-DOC'            || fail "routing check did not report the missing operate-doc"
+echo "$out" | grep -q 'NOT CHECKED HERE'          || fail "routing check must say checks 4 and 5 need judgement"
 
 echo "ALL PASS"
