@@ -35,16 +35,15 @@ if [ -n "$(git -C "$REPO" status --porcelain -- .claude/skills 2>/dev/null)" ]; 
   exit 0
 fi
 
-if "$SYNC" --check >/dev/null 2>&1; then
-  say "in sync — nothing to do"
-  exit 0
-fi
-
-say "drift found; syncing"
+# Copy first, ALWAYS, then judge by git state — not by `--check`.
+# `--check` compares file contents, so it reports "in sync" for a skill that was
+# copied across but never committed. Exiting on that left five untracked skills
+# sitting in the plugin repo, unpushed and invisible (hit 2026-08-25, first run).
+# git state is the honest question: is there anything here that is not pushed?
 "$SYNC" || { say "sync failed"; exit 1; }
 
 if [ -z "$(git -C "$PLUGIN" status --porcelain)" ]; then
-  say "sync produced no file change"
+  say "in sync — nothing to commit"
   exit 0
 fi
 
