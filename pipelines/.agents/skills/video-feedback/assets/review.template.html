@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>__LABEL__ — Review</title>
+<style>
+  :root{
+    --raisin:#14121a; --panel:#1b1922; --panel2:#232029; --line:#2e2b37;
+    --silver:#e7e9ee; --body:#9aa0af; --lime:#CFFF05; --lime-ink:#141018; --danger:#ff6b6b;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:"Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--raisin);color:var(--silver);font-family:var(--sans)}
+  #app{display:grid;grid-template-columns:1fr 400px;height:100vh}
+  /* left: player */
+  .stage{display:flex;flex-direction:column;min-width:0;padding:18px 18px 12px}
+  .vidwrap{position:relative;background:#000;border-radius:12px;overflow:hidden;flex:0 0 auto;border:1px solid var(--line)}
+  video{display:block;width:100%;max-height:64vh;background:#000;cursor:crosshair}
+  .pin{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:2px solid var(--lime);
+       background:rgba(207,255,5,.18);pointer-events:none;box-shadow:0 0 0 2px rgba(0,0,0,.4);transition:opacity .3s}
+  /* scrubber with comment pips */
+  .track{position:relative;height:30px;margin:8px 2px 4px;cursor:pointer;touch-action:none;user-select:none}
+  .track .rail{position:absolute;top:13px;left:0;right:0;height:5px;background:var(--panel2);border-radius:3px}
+  .track .played{position:absolute;top:13px;left:0;height:5px;background:var(--lime);border-radius:3px;width:0}
+  .track .pip{position:absolute;top:7px;width:3px;height:16px;background:var(--body);border-radius:2px;transform:translateX(-1px)}
+  .track .pip:hover{background:var(--lime)}
+  .track .head{position:absolute;top:8px;width:15px;height:15px;margin-left:-7.5px;background:var(--silver);border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.5);pointer-events:none;transition:transform .08s}
+  .track:hover .head,.track.dragging .head{transform:scale(1.3)}
+  .track.dragging .head{background:var(--lime)}
+  /* hover-scrub preview thumbnail */
+  #scrubprev{position:absolute;bottom:34px;left:0;transform:translateX(-50%);display:none;pointer-events:none;z-index:30;
+    background:#0c0a11;border:1px solid var(--line);border-radius:9px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+  #scrubprev canvas{display:block;width:192px;height:108px;border-radius:5px;background:#000}
+  #scrubprev .ptime{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--lime);text-align:center;margin-top:3px}
+  .controls{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+  button{font-family:var(--sans);font-weight:600;font-size:13px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--silver);padding:8px 12px;cursor:pointer}
+  button:hover{border-color:#3e3a49}
+  button.primary{background:var(--lime);color:var(--lime-ink);border-color:var(--lime)}
+  button.ghost{background:transparent}
+  .time{font-family:var(--mono);font-size:15px;color:var(--silver);letter-spacing:.02em}
+  .time b{color:var(--lime)}
+  select{font-family:var(--mono);font-size:12px;background:var(--panel2);color:var(--silver);border:1px solid var(--line);border-radius:8px;padding:6px}
+  .hint{color:var(--body);font-size:12px;margin-top:8px;line-height:1.5}
+  .hint kbd{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:11px;color:var(--silver)}
+  /* right: notes */
+  .side{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0}
+  .side h1{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--body);margin:0;padding:16px 16px 10px;font-weight:700}
+  .side h1 span{color:var(--lime)}
+  .list{flex:1;overflow:auto;padding:0 12px 12px}
+  .note{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+  .note:hover{border-color:#3e3a49}
+  .note .row{display:flex;align-items:center;gap:8px}
+  .tc{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--lime);background:rgba(207,255,5,.08);border:1px solid rgba(207,255,5,.25);border-radius:6px;padding:2px 7px}
+  .pos{font-family:var(--mono);font-size:10px;color:var(--body)}
+  .note .txt{margin-top:7px;font-size:13.5px;line-height:1.45;color:var(--silver);white-space:pre-wrap;word-break:break-word}
+  .note .del{margin-left:auto;color:var(--body);background:none;border:none;font-size:16px;padding:0 4px;cursor:pointer}
+  .note .del:hover{color:var(--danger)}
+  /* Claude's reply/status on a note */
+  .note .st{margin-top:7px;font-size:12.5px;line-height:1.45;border-radius:7px;padding:6px 9px;font-family:var(--mono);white-space:pre-wrap;word-break:break-word}
+  .note .st.done{color:var(--lime);background:rgba(207,255,5,.08);border:1px solid rgba(207,255,5,.25)}
+  .note .st.skip{color:var(--body);background:var(--panel);border:1px solid var(--line)}
+  .note .st.ask{color:#ffce5b;background:rgba(255,206,91,.09);border:1px solid rgba(255,206,91,.32)}
+  .note .st.ansd{color:var(--silver);background:var(--panel);border:1px solid var(--line);margin-top:5px}
+  .note .ans{display:flex;gap:6px;margin-top:6px}
+  .note .ans textarea{flex:1;min-height:20px;max-height:100px;resize:none;background:#0f0d14;color:var(--silver);
+    border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-family:var(--sans);font-size:13px;outline:none}
+  .note .ans textarea:focus{border-color:#ffce5b}
+  .note .ans .ansbtn{flex:0 0 auto;font-size:12px;padding:6px 10px;background:#ffce5b;color:#141018;border-color:#ffce5b;font-weight:700}
+  .empty{color:var(--body);font-size:13px;padding:18px 6px;line-height:1.6}
+  /* composer — always visible, always ready */
+  #composer{display:flex;align-items:flex-start;gap:10px;margin-top:12px;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;padding:10px;transition:border-color .15s,box-shadow .15s}
+  #composer.armed{border-color:var(--lime);box-shadow:0 0 0 3px rgba(207,255,5,.10)}
+  #composer .tc{flex:0 0 auto;margin-top:5px}
+  #composer .tc.locked{background:var(--lime);color:var(--lime-ink);border-color:var(--lime)}
+  #composer textarea{flex:1;min-height:26px;max-height:150px;resize:none;background:var(--panel2);color:var(--silver);
+    border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-family:var(--sans);font-size:15px;line-height:1.35;outline:none}
+  #composer textarea:focus{border-color:var(--lime)}
+  #composer textarea::placeholder{color:var(--body)}
+  #composer button{flex:0 0 auto}
+  /* export bar */
+  .export{border-top:1px solid var(--line);padding:12px}
+  .export .btns{display:flex;gap:8px;margin-bottom:8px}
+  .export textarea{width:100%;height:120px;background:#0f0d14;color:var(--body);border:1px solid var(--line);
+    border-radius:9px;padding:10px;font-family:var(--mono);font-size:11.5px;line-height:1.5;resize:vertical}
+  .toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:var(--lime);color:var(--lime-ink);
+    font-weight:700;font-size:13px;padding:9px 16px;border-radius:9px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:40}
+  .toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="stage">
+    <div class="vidwrap">
+      <video id="vid" src="video.mp4" preload="auto" playsinline></video>
+      <div id="pin" class="pin" style="opacity:0"></div>
+    </div>
+    <video id="pvid" muted preload="auto" playsinline style="display:none"></video>
+    <div class="track" id="track">
+      <div class="rail"></div><div class="played" id="played"></div><div class="head" id="head"></div>
+      <div id="scrubprev"><canvas id="pcanvas" width="192" height="108"></canvas><div id="ptime" class="ptime">0:00.0</div></div>
+    </div>
+    <div class="controls">
+      <button id="play" class="primary">▶︎ Play</button>
+      <span class="time"><b id="cur">0:00.0</b> / <span id="dur">0:00.0</span></span>
+      <button data-seek="-5" class="ghost">−5s</button>
+      <button data-seek="5" class="ghost">+5s</button>
+      <button data-frame="-1" class="ghost">◂ frame</button>
+      <button data-frame="1" class="ghost">frame ▸</button>
+      <select id="rate" title="Playback speed">
+        <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option>
+      </select>
+      <select id="ver" title="Version — each keeps its own notes" style="font-family:var(--mono);font-size:12px;background:var(--panel2);color:var(--lime);border:1px solid var(--line);border-radius:8px;padding:6px;font-weight:700"></select>
+      <label class="ghost" style="border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px;font-weight:600">
+        Load video… <input id="file" type="file" accept="video/*" hidden>
+      </label>
+    </div>
+
+    <div id="composer">
+      <span class="tc" id="ctime">0:00.0</span>
+      <textarea id="ctext" rows="1" placeholder="Just start typing to note this moment…    Enter = save · Shift+Enter = new line · Esc = clear"></textarea>
+      <button id="csave" class="primary">Save ⏎</button>
+    </div>
+
+    <div class="hint">
+      <kbd>Space</kbd> play/pause · <kbd>←</kbd><kbd>→</kbd> ±5s · <kbd>⇧</kbd>+<kbd>←</kbd><kbd>→</kbd> step a frame ·
+      <b style="color:var(--silver)">just start typing</b> to note the current moment (the video pauses &amp; the time locks) ·
+      <b style="color:var(--silver)">click the frame</b> to pin a note to that exact spot.
+    </div>
+  </div>
+
+  <div class="side">
+    <h1>Notes · <span id="count">0</span></h1>
+    <div class="list" id="list"></div>
+    <div class="export">
+      <div class="btns">
+        <button id="send" class="primary">✓ Send to Claude</button>
+        <button id="copy" class="ghost">⧉ Copy</button>
+        <button id="dl" class="ghost">.txt</button>
+        <button id="clear" class="ghost" style="margin-left:auto">Clear all</button>
+      </div>
+      <textarea id="out" readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const vid=document.getElementById('vid'), FPS=__FPS__;
+let LABEL=__LABEL_JSON__, PROJECT=__PROJECT_JSON__;
+let KEY='bbreview:'+LABEL;
+let notes=[], pending=null; // pending: {t,x,y}
+
+// ---- seed the two notes already given (only if nothing saved yet) ----
+const SEED=__SEED_JSON__;
+
+function load(){ try{const s=JSON.parse(localStorage.getItem(KEY)); notes = (s&&s.length)?s:SEED.slice();}catch(e){notes=SEED.slice();} }
+function save(){ localStorage.setItem(KEY, JSON.stringify(notes)); render(); sync(); }
+// write the notes to disk (through serve.py) so Claude can read them when Luuk says "feedback done"
+function sync(){
+  try{ fetch('/feedback',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({label:LABEL, project:PROJECT, text:document.getElementById('out').value, notes})}); }catch(e){}
+}
+
+function fmt(t){ if(isNaN(t))t=0; const m=Math.floor(t/60), s=(t%60); return m+':'+(s<10?'0':'')+s.toFixed(1); }
+function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),1400); }
+
+// ---- rendering ----
+function render(){
+  notes.sort((a,b)=>a.t-b.t);
+  document.getElementById('count').textContent=notes.length;
+  const list=document.getElementById('list');
+  if(!notes.length){ list.innerHTML='<div class="empty">No notes yet.<br>Scrub to any moment and <b style="color:#e7e9ee">just start typing</b> — or click a spot on the frame to pin a note to it.</div>'; }
+  else{
+    list.innerHTML=notes.map(n=>{
+      const st=statusMap[n.id]; let s='';
+      if(st&&st.status==='fixed')   s=`<div class="st done">✓ ${esc(st.message||'fixed')}</div>`;
+      else if(st&&st.status==='skipped') s=`<div class="st skip">✗ ${esc(st.message||'skipped')}</div>`;
+      else if(st&&st.status==='question') s=`<div class="st ask">❓ ${esc(st.message||'')}</div>`+
+        (n.answer?`<div class="st ansd">↳ ${esc(n.answer)}</div>`
+                 :`<div class="ans"><textarea class="ansbox" data-id="${n.id}" rows="1" placeholder="Answer Claude… (Enter to send)"></textarea><button class="ansbtn" data-id="${n.id}">Reply ⏎</button></div>`);
+      else if(n.answer) s=`<div class="st ansd">↳ ${esc(n.answer)}</div>`;
+      return `<div class="note" data-t="${n.t}" data-id="${n.id}">
+      <div class="row"><span class="tc">${fmt(n.t)}</span>
+      ${n.x!=null?`<span class="pos">▣ ${Math.round(n.x*100)}% , ${Math.round(n.y*100)}%</span>`:''}
+      <button class="del" data-id="${n.id}" title="Delete">✕</button></div>
+      <div class="txt">${esc(n.text)}</div>${s}</div>`;}).join('');
+  }
+  // pips
+  const dur=vid.duration||1;
+  document.querySelectorAll('.track .pip').forEach(p=>p.remove());
+  const track=document.getElementById('track');
+  notes.forEach(n=>{const d=document.createElement('div');d.className='pip';d.style.left=(n.t/dur*100)+'%';d.title=fmt(n.t);
+    d.onclick=e=>{e.stopPropagation();seek(n.t);};track.appendChild(d);});
+  buildExport();
+}
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+// ---- reverse channel: Claude writes claude_status.json → each note shows ✓ done / ✗ skipped / ❓ question ----
+let statusMap={}, lastStatusJSON='', answering=false;
+async function pollStatus(){
+  if(answering) return;                      // don't wipe an answer you're mid-typing
+  let s=null; try{ s=await (await fetch('claude_status.json?ts='+Date.now())).json(); }catch(e){ return; }
+  if(!s) return;
+  const map = (s.label===LABEL) ? (s.items||{}) : {};
+  const j=JSON.stringify(map);
+  if(j!==lastStatusJSON){ lastStatusJSON=j; statusMap=map; render(); }
+}
+setInterval(pollStatus, 2500);
+function sendAnswer(id,val){ const n=notes.find(x=>x.id==id); if(n&&val.trim()){ n.answer=val.trim(); answering=false; save(); toast('Sent to Claude'); } }
+const listEl=document.getElementById('list');
+listEl.addEventListener('focusin', e=>{ if(e.target.classList.contains('ansbox')) answering=true; });
+listEl.addEventListener('focusout',e=>{ if(e.target.classList.contains('ansbox')) answering=false; });
+listEl.addEventListener('keydown', e=>{ if(e.target.classList.contains('ansbox')&&e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendAnswer(e.target.dataset.id, e.target.value); }});
+
+function buildExport(){
+  const head=`Feedback — ${LABEL}  (${fmt(vid.duration||0)})\n`+'─'.repeat(34)+'\n';
+  const body=notes.map(n=>{
+    let l=`[${fmt(n.t)}]${n.x!=null?` pos ${Math.round(n.x*100)}%,${Math.round(n.y*100)}%`:''} — ${n.text.replace(/\n+/g,' ')}`;
+    if(n.answer) l+=`\n    ↳ answered: ${n.answer.replace(/\n+/g,' ')}`;
+    return l;
+  }).join('\n');
+  document.getElementById('out').value = notes.length? head+body : '(no notes yet)';
+}
+
+// ---- playback / seek ----
+function seek(t){ vid.currentTime=Math.max(0,Math.min(vid.duration||0,t)); }
+let dispTime=0; // mediaTime of the frame actually on screen (accounts for playback pipeline lag)
+const HAS_RVFC='requestVideoFrameCallback' in vid;
+if(HAS_RVFC){ const vf=(now,meta)=>{ dispTime=meta.mediaTime; vid.requestVideoFrameCallback(vf); }; vid.requestVideoFrameCallback(vf); }
+// the timestamp a comment attaches to = the frame you're looking at right now
+function captureTime(){ return (!vid.paused && HAS_RVFC) ? dispTime : vid.currentTime; }
+function paint(){
+  const d=vid.duration||1, t=vid.currentTime;
+  document.getElementById('cur').textContent=fmt(t);
+  document.getElementById('played').style.width=(t/d*100)+'%';
+  document.getElementById('head').style.left=(t/d*100)+'%';
+  // the composer chip follows the live playhead until a note locks it
+  if(!composing){ const c=document.getElementById('ctime'); if(c) c.textContent=fmt(t); }
+}
+function tick(){ paint(); requestAnimationFrame(tick); }
+requestAnimationFrame(tick); // smooth live update when the tab is visible
+// belt-and-suspenders: also update on every playback/seek event so the readout is NEVER stale
+['seeked','timeupdate','pause','play','loadedmetadata','ratechange'].forEach(ev=>vid.addEventListener(ev,paint));
+vid.addEventListener('loadedmetadata',()=>{document.getElementById('dur').textContent=fmt(vid.duration);render();});
+vid.addEventListener('play',()=>document.getElementById('play').textContent='❚❚ Pause');
+vid.addEventListener('pause',()=>document.getElementById('play').textContent='▶︎ Play');
+
+document.getElementById('play').onclick=()=>vid.paused?vid.play():vid.pause();
+document.querySelectorAll('[data-seek]').forEach(b=>b.onclick=()=>seek(vid.currentTime+ +b.dataset.seek));
+document.querySelectorAll('[data-frame]').forEach(b=>b.onclick=()=>{vid.pause();seek(vid.currentTime + (+b.dataset.frame)/FPS);});
+document.getElementById('rate').onchange=e=>vid.playbackRate=+e.target.value;
+
+// scrub on track — click OR drag the playhead
+const track=document.getElementById('track');
+let scrubbing=false, wasPlaying=false;
+function seekToX(clientX){
+  const r=track.getBoundingClientRect();
+  if(!r.width||!isFinite(vid.duration))return;
+  const p=Math.max(0,Math.min(1,(clientX-r.left)/r.width));
+  const t=p*(vid.duration||0);
+  seek(t);
+  document.getElementById('played').style.width=(p*100)+'%';
+  document.getElementById('head').style.left=(p*100)+'%';
+  document.getElementById('cur').textContent=fmt(t);
+  if(!composing){ const c=document.getElementById('ctime'); if(c) c.textContent=fmt(t); }
+}
+track.addEventListener('pointerdown',e=>{
+  if(e.target.classList.contains('pip'))return;
+  scrubbing=true; wasPlaying=!vid.paused; vid.pause();
+  track.classList.add('dragging');
+  try{track.setPointerCapture(e.pointerId);}catch(_){}
+  seekToX(e.clientX); e.preventDefault();
+});
+track.addEventListener('pointermove',e=>{ if(scrubbing) seekToX(e.clientX); });
+function endScrub(e){
+  if(!scrubbing)return; scrubbing=false; track.classList.remove('dragging');
+  try{track.releasePointerCapture(e.pointerId);}catch(_){}
+  if(wasPlaying) vid.play();
+}
+track.addEventListener('pointerup',endScrub);
+track.addEventListener('pointercancel',endScrub);
+
+// ---- hover-scrub preview thumbnail (YouTube-style) ----
+const pvid=document.getElementById('pvid'), pcanvas=document.getElementById('pcanvas'), pctx=pcanvas.getContext('2d');
+const scrubprev=document.getElementById('scrubprev'), ptimeEl=document.getElementById('ptime');
+let pBusy=false, pWanted=null;
+function drawPrev(){ try{ pctx.drawImage(pvid,0,0,pcanvas.width,pcanvas.height); }catch(_){} }
+function seekPrev(t){ if(!isFinite(pvid.duration)){pWanted=t;return;} if(pBusy){ pWanted=t; return; } pBusy=true;
+  try{ pvid.currentTime=Math.max(0,Math.min(pvid.duration||0,t)); }catch(_){ pBusy=false; } }
+pvid.addEventListener('seeked',()=>{ drawPrev(); pBusy=false; if(pWanted!=null){ const t=pWanted; pWanted=null; seekPrev(t); } });
+pvid.addEventListener('loadeddata',()=>{ if(pWanted!=null){ const t=pWanted; pWanted=null; seekPrev(t);} else drawPrev(); });
+function setPvidSrc(u){ if(u && pvid.getAttribute('src')!==u){ pvid.src=u; } }
+function showPrev(clientX){
+  const r=track.getBoundingClientRect(); if(!r.width||!isFinite(vid.duration))return;
+  const p=Math.max(0,Math.min(1,(clientX-r.left)/r.width)), t=p*(vid.duration||0);
+  setPvidSrc(vid.currentSrc||vid.src); seekPrev(t); ptimeEl.textContent=fmt(t);
+  scrubprev.style.display='block';
+  const half=(scrubprev.offsetWidth||202)/2;
+  scrubprev.style.left=Math.max(half,Math.min(r.width-half,clientX-r.left))+'px';
+}
+track.addEventListener('pointermove',e=>{ if(e.pointerType!=='touch') showPrev(e.clientX); });
+track.addEventListener('pointerenter',e=>{ if(e.pointerType!=='touch') showPrev(e.clientX); });
+track.addEventListener('pointerleave',()=>{ scrubprev.style.display='none'; });
+
+// ---- composer: the time follows the video and ONLY locks the instant you actually write ----
+const composer=document.getElementById('composer'), ctext=document.getElementById('ctext'), ctimeEl=document.getElementById('ctime');
+let composing=false, lockedT=0, lockedX=null, lockedY=null;
+
+function showPin(x,y){ const p=document.getElementById('pin'); p.style.left=(x*100)+'%'; p.style.top=(y*100)+'%'; p.style.opacity=1; }
+function autoGrow(){ ctext.style.height='auto'; ctext.style.height=Math.min(150,ctext.scrollHeight)+'px'; }
+
+// lock the note to the current frame — called when real text appears, or on a frame-pin click
+function lockNote(x=null,y=null,reloc=false){
+  if(!composing||reloc){ lockedT=captureTime(); vid.pause(); vid.currentTime=lockedT; }
+  composing=true;
+  if(x!=null){ lockedX=x; lockedY=y; showPin(x,y); }
+  ctimeEl.textContent=fmt(lockedT); ctimeEl.classList.add('locked'); composer.classList.add('armed');
+  if(document.activeElement!==ctext) ctext.focus();
+}
+// release the lock so the chip follows the live playhead again (keeps focus)
+function unlock(){ composing=false; lockedX=null; lockedY=null;
+  ctimeEl.classList.remove('locked'); composer.classList.remove('armed'); document.getElementById('pin').style.opacity=0; }
+function clearNote(){ unlock(); ctext.value=''; autoGrow(); ctext.blur(); }
+
+function onInput(){
+  const has=ctext.value.trim().length>0;
+  if(has && !composing) lockNote();       // first real character → lock to this exact moment
+  else if(!has && composing) unlock();     // emptied → follow the video again
+  autoGrow();
+}
+function saveNote(){
+  const txt=ctext.value.trim(); if(!txt){ clearNote(); return; }
+  const uid=(self.crypto&&crypto.randomUUID)?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2);
+  notes.push({id:uid, t:+lockedT.toFixed(2), x:lockedX, y:lockedY, text:txt});
+  save(); toast('Saved '+fmt(lockedT)); clearNote();
+}
+document.getElementById('csave').onclick=saveNote;
+ctext.addEventListener('input',onInput);
+// clicking a spot ON THE FRAME is an explicit pin → lock there. (Clicking the text box only focuses it — no lock.)
+vid.addEventListener('click',e=>{
+  const r=vid.getBoundingClientRect();
+  lockNote((e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height,true);
+});
+
+// list interactions
+document.getElementById('list').addEventListener('click',e=>{
+  if(e.target.classList.contains('del')){ e.stopPropagation(); notes=notes.filter(n=>n.id!=e.target.dataset.id); save(); return; }
+  if(e.target.classList.contains('ansbtn')){ e.stopPropagation(); const box=e.target.parentElement.querySelector('.ansbox'); sendAnswer(e.target.dataset.id, box?box.value:''); return; }
+  if(e.target.closest('.ans')) return;   // clicks inside the answer box shouldn't seek
+  const card=e.target.closest('.note'); if(card){ const n=notes.find(x=>x.t==card.dataset.t); seek(+card.dataset.t);
+    if(n&&n.x!=null){const pin=document.getElementById('pin');pin.style.left=(n.x*100)+'%';pin.style.top=(n.y*100)+'%';pin.style.opacity=1;setTimeout(()=>pin.style.opacity=0,1600);} }
+});
+
+// export actions
+document.getElementById('send').onclick=()=>{ sync(); toast(notes.length?'Sent ✓ — say “feedback done” to Claude':'No notes yet'); };
+document.getElementById('copy').onclick=async()=>{
+  const t=document.getElementById('out').value;
+  try{ await navigator.clipboard.writeText(t); toast('Copied — paste to Claude'); }
+  catch(e){ const o=document.getElementById('out'); o.focus(); o.select(); document.execCommand('copy'); toast('Copied'); }
+};
+document.getElementById('dl').onclick=()=>{
+  const blob=new Blob([document.getElementById('out').value],{type:'text/plain'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=LABEL+'_feedback.txt'; a.click();
+};
+document.getElementById('clear').onclick=()=>{ if(confirm('Delete all notes for this video?')){ notes=[]; save(); } };
+
+// load another file
+document.getElementById('file').onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  LABEL=f.name.replace(/\.[^.]+$/,''); KEY='bbreview:'+LABEL;
+  vid.src=URL.createObjectURL(f); load(); toast('Loaded '+f.name);
+};
+
+// keyboard
+document.addEventListener('keydown',e=>{
+  // ---- while writing a note: Enter saves, Esc clears, everything else edits text normally ----
+  if(document.activeElement===ctext){
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();saveNote();}
+    else if(e.key==='Escape'){e.preventDefault();clearNote();}
+    return;
+  }
+  if(e.metaKey||e.ctrlKey||e.altKey)return;                        // leave real browser shortcuts alone
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return; // e.g. focus in the export box
+  // ---- transport ----
+  if(e.code==='Space'){e.preventDefault();vid.paused?vid.play():vid.pause();return;}
+  if(e.key==='ArrowLeft'){e.preventDefault(); if(e.shiftKey){vid.pause();seek(vid.currentTime-1/FPS);} else seek(vid.currentTime-5); return;}
+  if(e.key==='ArrowRight'){e.preventDefault(); if(e.shiftKey){vid.pause();seek(vid.currentTime+1/FPS);} else seek(vid.currentTime+5); return;}
+  // ---- any printable key: jump into the note field and type it (which locks the moment) ----
+  if(e.key.length===1){ e.preventDefault(); ctext.focus(); ctext.value+=e.key; onInput(); }
+});
+
+// ---- version control: one reviewer per project, switch versions (each keeps its own notes) ----
+function setVersion(v){
+  LABEL = PROJECT+' · '+v.label; KEY = 'review:'+PROJECT+':'+v.label;
+  statusMap={}; lastStatusJSON='';   // each version has its own Claude statuses
+  document.title = PROJECT+' '+v.label+' — Review';
+  const t=vid.currentTime||0;
+  vid.src = v.file + '?ts='+Date.now();
+  vid.addEventListener('loadedmetadata',()=>{ if(t && t<vid.duration) seek(t); },{once:true});
+  load(); render(); toast('Loaded '+v.label);
+}
+async function loadVersions(){
+  const sel=document.getElementById('ver');
+  let vers=[];
+  try{ vers = await (await fetch('versions.json?ts='+Date.now())).json(); }catch(e){ vers=[]; }
+  if(!vers.length){ sel.style.display='none'; load(); render(); return; }   // single-file fallback
+  sel.innerHTML = vers.map((v,i)=>`<option value="${i}">${v.label}${i===0?'  · latest':''}</option>`).join('');
+  sel.onchange = ()=> setVersion(vers[+sel.value]);
+  setVersion(vers[0]);   // newest first
+}
+loadVersions();
+</script>
+</body>
+</html>

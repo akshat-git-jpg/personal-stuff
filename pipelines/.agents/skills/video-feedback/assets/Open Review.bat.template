@@ -1,0 +1,10 @@
+@echo off
+rem Loop Studio reviewer — Windows launcher (double-click me)
+cd /d "%~dp0"
+start "" http://localhost:__PORT__/review.html
+python serve.py
+if errorlevel 1 (
+  echo.
+  echo Python not found. Install it from https://python.org (check "Add to PATH"), then run me again.
+  pause
+)

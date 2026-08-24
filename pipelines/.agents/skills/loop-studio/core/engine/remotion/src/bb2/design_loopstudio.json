@@ -1,0 +1,146 @@
+[
+ {
+  "id": 1,
+  "beat": "HOOK",
+  "start": 0.0,
+  "end": 5.06,
+  "narration": "Be honest, you clicked because you don't think AI could actually edit this entire video.",
+  "register": "dark",
+  "mode": "full",
+  "object": "Talking head full-screen in the raisin void (grid faint), a direct-address taunt",
+  "action": "Cold open on the full-screen face in the dark register for the direct challenge. A kinetic silver headline types into the lower-left negative space; the two-layer lime Marker wipes on EDIT exactly on the spoken 'edit' (~3.6) — the doubt is the only lime on screen. A small mono 'REC' timecode sits top-right. Nothing else; tension, not decoration.",
+  "copy": { "headline": "AI CAN'T EDIT THIS?", "marker": "EDIT", "rec": true },
+  "sync": [
+   { "at": 0.2, "event": "full face cut in, dark void + faint grid" },
+   { "at": 1.4, "event": "headline 'AI CAN'T EDIT THIS?' types in silver" },
+   { "at": 3.6, "event": "Marker lime-wipes EDIT on 'edit'" }
+  ]
+ },
+ {
+  "id": 2,
+  "beat": "TURN",
+  "start": 5.36,
+  "end": 10.36,
+  "narration": "Good, because I'm about to build this entire video, the one you're currently watching, in front of you.",
+  "register": "dark->light (crossfade on 'build')",
+  "mode": "full->panel",
+  "object": "The white worksheet wipes in; the head docks to the lime-offset panel; THIS video builds as a real player window",
+  "action": "THE PIVOT. On 'Good' the face is still full in the dark. On 'build' (~7.0) the LightBg worksheet crossfades in and the face snaps to the lime-offset panel (x74,y52). A real video-player Win ('this-video.mp4', play glyph, timecode 0:00, a lime '● LIVE' dot) DRAWS in center-left — the video you're watching, assembling in front of you. Headline 'BUILT IN FRONT OF YOU' with Marker on BUILT (~7.0).",
+  "continuity": "The player Win introduced here is the SAME window that becomes the 'finished' cut in beat 3 and the payoff throughout.",
+  "copy": { "headline": "BUILT IN FRONT OF YOU", "marker": "BUILT", "window_title": "this-video.mp4", "live": "● LIVE" },
+  "sync": [
+   { "at": 6.6, "event": "worksheet crossfades in, face begins docking to panel" },
+   { "at": 7.0, "event": "player Win draws in; headline Marker-wipes BUILT" },
+   { "at": 8.6, "event": "'● LIVE' dot + timecode tick on 'currently watching'" }
+  ]
+ },
+ {
+  "id": 3,
+  "beat": "SCOPE",
+  "start": 10.46,
+  "end": 14.38,
+  "narration": "All the way from the first raw take to the fully edited video.",
+  "register": "light",
+  "mode": "panel",
+  "object": "A messy raw-take file transforms into the finished player window",
+  "action": "Left column (face stays right panel): a messy RAW file draws — markdown-style file 'raw-take.mp4' with a jagged multi-take waveform and a mono meta '4:18 · 12 takes'. On 'to the fully edited' a CLAUDE arrow fires right and the raw file resolves into the clean 'this-video.mp4' player Win from beat 2, now lime-framed and titled 'final cut · 0:37'. Raw → finished, enacted as one transform. Headline 'RAW TAKE → EDITED', Marker on EDITED (~13.6).",
+  "continuity": "The finished window is beat 2's player Win, promoted; the raw file is the same footage the whole intro rides on.",
+  "copy": { "headline": "RAW → FULLY EDITED", "marker": "EDITED", "raw_file": "raw-take.mp4", "raw_meta": "4:18 · 12 takes", "final_title": "final cut · 0:37" },
+  "sync": [
+   { "at": 10.9, "event": "raw-take.mp4 draws with jagged waveform, left" },
+   { "at": 13.0, "event": "CLAUDE arrow fires; raw resolves into the lime-framed final Win" },
+   { "at": 13.6, "event": "headline Marker-wipes EDITED" }
+  ]
+ },
+ {
+  "id": 4,
+  "beat": "MECH",
+  "start": 14.68,
+  "end": 21.84,
+  "narration": "And here is the best part, I never open an editor, I never touch a timeline, I just talk and give it notes.",
+  "register": "light",
+  "mode": "panel->hidden",
+  "object": "An NLE timeline struck out; a real Claude window taking a typed note",
+  "action": "THE MECHANISM. Face panel for 'best part'. On 'never touch a timeline' (~19.1) a real NLE TIMELINE window (tracks, clips) has already drawn center — a big raisin STRIKE slashes through it, killing it. Face hides; the timeline recedes and a real Claude Win ('claude · loop-studio') takes center, where a NOTE self-types '› tighten the intro, add b-roll on raw take' on 'just talk and give it notes' (~20.4), then a lime '✓ done — re-rendered' stamps. Headline 'NO TIMELINE — JUST NOTES', Marker on NOTES (~21.6). Eyebrow 'THE BEST PART'.",
+  "continuity": "The Claude Win is the same app-window species as the player; this is what 'editing' actually looks like here — a note, not a timeline.",
+  "copy": { "headline": "NO TIMELINE — JUST NOTES", "marker": "NOTES", "eyebrow": "THE BEST PART", "struck": "TIMELINE", "note": "› tighten the intro, add b-roll on raw take", "done": "✓ done — re-rendered" },
+  "sync": [
+   { "at": 15.2, "event": "eyebrow 'THE BEST PART'; timeline window draws center" },
+   { "at": 19.1, "event": "raisin STRIKE slashes the timeline on 'never touch a timeline'" },
+   { "at": 20.2, "event": "face hides; Claude Win takes center, note self-types" },
+   { "at": 21.4, "event": "'✓ done' stamps lime; headline Marker-wipes NOTES" }
+  ]
+ },
+ {
+  "id": 5,
+  "beat": "COST",
+  "start": 22.12,
+  "end": 27.22,
+  "narration": "I used to pay two grand a month for this, but now I pay nothing, only my cloud subscription.",
+  "register": "light->dark (crossfade on 'two grand')",
+  "mode": "hidden",
+  "object": "A big price stat: $2,000/mo struck, replaced by $0",
+  "action": "The register crossfades back to the moody dark for the money reveal. Full-canvas StatBig: eyebrow 'I USED TO PAY' stamps, then '$2,000 / mo' reveals big in silver. On 'nothing' (~25.4) a lime Marker/strike wipes through it and '$0' stamps on a lime plate beside it; a Playfair 'only cloud credits.' breathes in under. Single lime accent = the $0 plate.",
+  "continuity": "First dark beat since the hook — the playful 'how' was light; the economics go serious/dark.",
+  "copy": { "eyebrow": "I USED TO PAY", "stat_before": "$2,000/mo", "stat_after": "$0", "marker": "$0", "sub": "only cloud credits." },
+  "sync": [
+   { "at": 22.5, "event": "crossfade to dark; eyebrow 'I USED TO PAY'" },
+   { "at": 23.2, "event": "'$2,000 / mo' reveals big in silver" },
+   { "at": 25.4, "event": "lime strike wipes it; '$0' stamps on lime plate on 'nothing'" },
+   { "at": 26.6, "event": "Playfair 'only cloud credits.' fades in on 'cloud subscription'" }
+  ]
+ },
+ {
+  "id": 6,
+  "beat": "TEASE",
+  "start": 27.22,
+  "end": 33.42,
+  "narration": "And by the end I will show you why the two grand is actually the least interesting part of this whole thing.",
+  "register": "dark",
+  "mode": "panel",
+  "object": "The $2,000 shrinks to a small greyed residue; a curiosity gap opens forward",
+  "action": "Face returns to the panel for the forward-promise (a human tease beat). The '$2,000' plate from beat 5 SHRINKS and greys into a small residue chip that docks bottom-left with a mono pointer '↑ least interesting' stamping on 'least interesting part' (~31.5). A lime forward-arrow with a '?' draws into the right negative space — something bigger is coming. Headline 'THE LEAST INTERESTING PART', Marker on LEAST (~31.2).",
+  "continuity": "The $2,000 is the exact plate from beat 5, demoted — the money the viewer just saw is literally shrunk to 'the least interesting part'.",
+  "copy": { "headline": "THE LEAST INTERESTING PART", "marker": "LEAST", "residue_chip": "$2,000/mo", "pointer": "↑ least interesting", "gap": "?  →" },
+  "sync": [
+   { "at": 27.8, "event": "face returns to panel; $2,000 plate shrinks toward bottom-left" },
+   { "at": 31.2, "event": "headline Marker-wipes LEAST; pointer '↑ least interesting' stamps" },
+   { "at": 32.4, "event": "lime '?  →' curiosity arrow draws forward" }
+  ]
+ },
+ {
+  "id": 7,
+  "beat": "CRAZY",
+  "start": 33.42,
+  "end": 35.84,
+  "narration": "Because the economics of this are crazy.",
+  "register": "dark",
+  "mode": "hidden",
+  "object": "A lime hockey-stick curve shoots up — the economics going crazy",
+  "action": "Full-canvas: a clean axis draws and a lime hockey-stick curve SHOOTS up and off the top-right on 'economics ... are crazy' (~34.2), a lime end-dot popping. Headline 'THE ECONOMICS ARE CRAZY', Marker on CRAZY exactly on 'crazy' (~35.4). The numbers doing the idea — no labels needed.",
+  "continuity": "The greyed $2,000 residue from beat 6 sits tiny at the curve's flat origin — the small thing the crazy curve leaves behind.",
+  "copy": { "headline": "THE ECONOMICS ARE CRAZY", "marker": "CRAZY" },
+  "sync": [
+   { "at": 33.7, "event": "axis draws; curve begins climbing" },
+   { "at": 34.2, "event": "hockey-stick shoots up and off-frame, lime end-dot pops" },
+   { "at": 35.4, "event": "headline Marker-wipes CRAZY on 'crazy'" }
+  ]
+ },
+ {
+  "id": 8,
+  "beat": "BUTTON",
+  "start": 35.84,
+  "end": 37.18,
+  "narration": "So let's dive in.",
+  "register": "dark",
+  "mode": "hidden",
+  "object": "One big lime plate: LET'S DIVE IN, then a white flash out",
+  "action": "The curve resolves into a single big upright Space Grotesk plate 'LET'S DIVE IN →' on lime, scaling in with a push on 'dive in' (~36.9). A hard lime pre-flash then a white flash blows out on the last frame — the cut into the video body.",
+  "copy": { "plate": "LET'S DIVE IN →" },
+  "sync": [
+   { "at": 36.0, "event": "curve collapses toward the plate" },
+   { "at": 36.9, "event": "'LET'S DIVE IN →' lime plate scales in on 'dive in'" },
+   { "at": 37.0, "event": "lime pre-flash → white flash out" }
+  ]
+ }
+]

@@ -1,0 +1,750 @@
+[
+ {
+  "id": 1,
+  "start": 18.7,
+  "end": 26.4,
+  "archetype": "statement",
+  "spec": {
+   "headline": "BETTER THAN MY COACHES",
+   "markerWord": "BETTER",
+   "sub": "and it picked the one thing I'd never have picked myself",
+   "size": "lg"
+  },
+  "reason": "Closes the cold-open hook by landing the surprise of Claude's answer before we pivot into the problem."
+ },
+ {
+  "id": 2,
+  "start": 26.4,
+  "end": 33.18,
+  "archetype": "sectionOpen",
+  "spec": {
+   "fig": "01",
+   "eyebrow": "THE PROBLEM",
+   "headline": "WHY YOUR SECOND BRAIN CAN'T ANSWER THAT",
+   "markerWord": "CAN'T",
+   "sub": "the thing everyone built last weekend"
+  },
+  "reason": "First section open, anchors FIG.01 as the head of the climbing worksheet spine (01,02,03,04)."
+ },
+ {
+  "id": 3,
+  "start": 33.18,
+  "end": 36.81,
+  "archetype": "statement",
+  "spec": {
+   "headline": "NOT PROMPTS. NOT MODELS.",
+   "markerWord": "NOT",
+   "sub": "never, no matter how hard you push it",
+   "size": "xl"
+  },
+  "reason": "Blunt three-beat claim; marker moved to NOT (a word actually in the headline) so the lime marker renders. The 'never' idea lives in the sub."
+ },
+ {
+  "id": 4,
+  "start": 36.81,
+  "end": 41.71,
+  "archetype": "statement",
+  "spec": {
+   "headline": "TWO THINGS FIRST",
+   "markerWord": "TWO",
+   "sub": "miss these and nothing else you build works",
+   "size": "lg"
+  },
+  "reason": "Setup board promising structure; sub now carries stakes instead of a teaser promise."
+ },
+ {
+  "id": 5,
+  "start": 41.71,
+  "end": 46.53,
+  "archetype": "statement",
+  "spec": {
+   "headline": "YOUR BUSINESS ISN'T INFORMATION",
+   "markerWord": "ISN'T",
+   "sub": "thing one, and it changes everything",
+   "size": "xl"
+  },
+  "reason": "Thesis of the act; marker on ISN'T sets up the CHANGE reveal."
+ },
+ {
+  "id": 6,
+  "start": 46.53,
+  "end": 59.16,
+  "archetype": "drawnConcept",
+  "spec": {
+   "drawing": "folder",
+   "label": "BUSINESS.MD",
+   "sub": "me, priorities, skills, a nice dashboard",
+   "headline": "A FOLDER OF TEXT FILES",
+   "markerWord": "TEXT",
+   "fig": "02"
+  },
+  "reason": "Draws the viewer's own setup; FIG.02 anchors it on the worksheet spine. Marker TEXT is present in headline."
+ },
+ {
+  "id": 7,
+  "start": 59.16,
+  "end": 64.18,
+  "archetype": "drawnConcept",
+  "spec": {
+   "drawing": "files",
+   "label": "\"SECOND BRAIN\"",
+   "sub": "the gurus also call it an AI operating system",
+   "headline": "THEY GAVE IT A NAME",
+   "markerWord": "NAME"
+  },
+  "reason": "Names the trend as a labelled stack; drawing changed from invalid 'stackFiles' to catalog key 'files'."
+ },
+ {
+  "id": 8,
+  "start": 64.18,
+  "end": 67.67,
+  "archetype": "stat",
+  "spec": {
+   "value": "1 WEEKEND",
+   "label": "BUILD TIME",
+   "sub": "a whole business, done by Sunday night"
+  },
+  "reason": "Big-number win before the turn; value uppercased to match the type lock, sub made concrete to quietly seed later absurdity."
+ },
+ {
+  "id": 9,
+  "start": 67.67,
+  "end": 74.11,
+  "archetype": "statement",
+  "spec": {
+   "headline": "A BUSINESS IS CHANGE",
+   "markerWord": "CHANGE",
+   "sub": "not a page of facts, a thing in motion",
+   "size": "xl"
+  },
+  "reason": "The turn: positive restatement of the thesis with the marker finally landing on CHANGE."
+ },
+ {
+  "id": 10,
+  "start": 74.11,
+  "end": 85.67,
+  "archetype": "statement",
+  "spec": {
+   "headline": "ONE WEEK, EVERYTHING MOVES",
+   "markerWord": "MOVES",
+   "sub": "revenue, inquiries, conversations, content, every day",
+   "size": "lg"
+  },
+  "reason": "Lists the moving parts, holding the full stream visual for its designated next beat."
+ },
+ {
+  "id": 11,
+  "start": 85.67,
+  "end": 96.4,
+  "archetype": "stream",
+  "spec": {
+   "headline": "A FILE CAN'T HOLD THIS",
+   "markerWord": "HOLD",
+   "events": [
+    "new order #4471",
+    "payout \u20ac3,900",
+    "DM: still available?",
+    "\u20ac1,240 paid",
+    "+3 subscribers",
+    "refund requested"
+   ],
+   "showRevenue": true,
+   "cantHold": true
+  },
+  "reason": "The designated stream beat; living lime cards flow past a frozen mdfile rendered in raisin ink at reduced opacity (no red). Recurring thin lime stream motif starts here."
+ },
+ {
+  "id": 12,
+  "start": 96.4,
+  "end": 100.88,
+  "archetype": "compare",
+  "spec": {
+   "left": {
+    "drawing": "photo",
+    "label": "A FILE",
+    "sub": "one frozen moment"
+   },
+   "right": {
+    "drawing": "movie",
+    "label": "A BUSINESS",
+    "sub": "all of them, moving"
+   },
+   "connector": "vs",
+   "headline": "PHOTO VERSUS MOVIE",
+   "markerWord": "MOVIE"
+  },
+  "reason": "States the photo-vs-movie analogy plainly as two ink cards, the exact line Luuk speaks."
+ },
+ {
+  "id": 13,
+  "start": 100.88,
+  "end": 107.16,
+  "archetype": "statement",
+  "spec": {
+   "headline": "HONESTLY, I DON'T GET IT",
+   "markerWord": "DON'T",
+   "sub": "maybe I'm missing something, tell me in the comments",
+   "size": "lg"
+  },
+  "reason": "Warm direct aside kept as a plain headline so the genuine question reads as Luuk, not a slide."
+ },
+ {
+  "id": 14,
+  "start": 107.16,
+  "end": 117.04,
+  "archetype": "drawnConcept",
+  "spec": {
+   "drawing": "mdfile",
+   "label": "BUSINESS.MD",
+   "sub": "a new order lands, an email comes in",
+   "headline": "WHO TYPES IT BACK IN?",
+   "markerWord": "WHO"
+  },
+  "reason": "Poses the maintenance question against the frozen file; drawing changed from invalid 'frozenFile' to catalog 'mdfile'."
+ },
+ {
+  "id": 15,
+  "start": 117.04,
+  "end": 123.25,
+  "archetype": "stat",
+  "spec": {
+   "value": "FOREVER?",
+   "label": "EVERY ORDER, EVERY MESSAGE",
+   "sub": "you, retyping your own business into a file"
+  },
+  "reason": "Rhetorical dead-end as one big word; value uppercased for the type lock, sub made concrete to picture the absurd labor."
+ },
+ {
+  "id": 16,
+  "start": 123.25,
+  "end": 131.78,
+  "archetype": "drawnConcept",
+  "spec": {
+   "drawing": "database",
+   "label": "DATABASE",
+   "sub": "the boring tool that solves this in one step",
+   "headline": "THIS ALREADY EXISTS",
+   "markerWord": "EXISTS"
+  },
+  "reason": "First appearance of the DATABASE through-line object as the answer to who-types-it-in; label locked to 'DATABASE' for the whole film. Sub deflates the hype and adds why it matters."
+ },
+ {
+  "id": 17,
+  "start": 131.78,
+  "end": 135.7,
+  "archetype": "statement",
+  "spec": {
+   "headline": "SO WHY IGNORE IT?",
+   "markerWord": "IGNORE",
+   "sub": "every template pretends databases don't exist",
+   "size": "lg"
+  },
+  "reason": "Sharp one-line challenge keeping the database fresh and driving the act toward its close."
+ },
+ {
+  "id": 18,
+  "start": 135.7,
+  "end": 141.79,
+  "archetype": "compare",
+  "spec": {
+   "left": {
+    "drawing": "mdfile",
+    "label": "YOUR FILES",
+    "sub": "frozen"
+   },
+   "right": {
+    "drawing": "stream",
+    "label": "YOUR BUSINESS",
+    "sub": "never still"
+   },
+   "connector": "vs",
+   "headline": "FROZEN VERSUS ALIVE",
+   "markerWord": "ALIVE"
+  },
+  "reason": "Closes Act 1 as a frozen-vs-alive contrast; left drawing fixed from invalid 'frozenFile' to 'mdfile', right 'stream' carries the recurring lime motif."
+ },
+ {
+  "id": 19,
+  "start": 141.79,
+  "end": 148,
+  "archetype": "sectionOpen",
+  "spec": {
+   "fig": "02",
+   "eyebrow": "MISTAKE NO.2",
+   "headline": "YOUR FILES ARE DOING THE WRONG JOB",
+   "markerWord": "WRONG",
+   "sub": "and it gets worse from here"
+  },
+  "reason": "Second section open; FIG renumbered 04\u219202 so the spine climbs by one. The 'NO.2' eyebrow is a separate content counter and stays."
+ },
+ {
+  "id": 20,
+  "start": 148,
+  "end": 151.04,
+  "archetype": "statement",
+  "spec": {
+   "headline": "FILES ARE FOR TASKS, NOT FACTS",
+   "markerWord": "FACTS",
+   "sub": "one is a to-do, the other is the truth",
+   "size": "xl"
+  },
+  "reason": "Core claim of the act; added a Playfair-italic sub so it isn't a bare slab, marker FACTS present in headline."
+ },
+ {
+  "id": 21,
+  "start": 151.04,
+  "end": 158.29,
+  "archetype": "drawnConcept",
+  "spec": {
+   "drawing": "files",
+   "label": "MY DAILY FILES",
+   "headline": "I LIVE IN MARKDOWN FILES",
+   "markerWord": "MARKDOWN",
+   "sub": "so this is not me hating on them"
+  },
+  "reason": "Converted from a second consecutive statement into a drawnConcept for rhythm, and to set up the recipe reveal at 22/23; drawing 'files' is a valid catalog key. Marker MARKDOWN present in headline."
+ },
+ {
+  "id": 22,
+  "start": 158.29,
+  "end": 170.24,
+  "archetype": "drawnConcept",
+  "spec": {
+   "drawing": "mdfile",
+   "label": "INSIDE ONE FILE",
+   "headline": "STEPS. RULES. COMMANDS.",
+   "markerWord": "COMMANDS",
+   "sub": "instructions I wrote once, run forever"
+  },
+  "reason": "Draws the contents of a real file (all instructions, no facts); drawing fixed from invalid 'recipe' to 'mdfile', marker COMMANDS added, sub now describes what's in the file."
+ },
+ {
+  "id": 23,
+  "start": 170.24,
+  "end": 179.39,
+  "archetype": "drawnConcept",
+  "spec": {
+   "drawing": "mdfile",
+   "label": "IT'S A RECIPE",
+   "headline": "ZERO FACTS ABOUT MY BUSINESS",
+   "markerWord": "ZERO",
+   "sub": "no revenue, no customer, nothing that can change"
+  },
+  "reason": "Names the file a recipe; drawing fixed to 'mdfile', orphan inline 'FIG.05' removed from the label to keep FIG tags on section opens only. Marker ZERO lands the absence."
+ },
+ {
+  "id": 24,
+  "start": 179.39,
+  "end": 183.43,
+  "archetype": "statement",
+  "spec": {
+   "headline": "THE DIFFERENCE EVERYONE MISSED",
+   "markerWord": "MISSED",
+   "sub": "nobody teaching this draws the line",
+   "size": "lg"
+  },
+  "reason": "Quiet pivot board; added size 'lg' for weight, sub blames the teachers not the viewer to keep the accusation warm. Sub renders in muted body color, not lime."
+ },
+ {
+  "id": 25,
+  "start": 183.43,
+  "end": 196.58,
+  "archetype": "stat",
+  "spec": {
+   "value": "1 WEEKEND",
+   "label": "BUILT TO BE FINISHED IN",
+   "sub": "a business is never finished"
+  },
+  "reason": "The sharpest idea here as a big-number moment; value uppercased to match beat 8 and the type lock."
+ },
+ {
+  "id": 26,
+  "start": 196.58,
+  "end": 206.33,
+  "archetype": "compare",
+  "spec": {
+   "left": {
+    "drawing": "files",
+    "label": "FILES",
+    "sub": "tell Claude HOW"
+   },
+   "right": {
+    "drawing": "database",
+    "label": "DATABASE",
+    "sub": "tells Claude WHAT is true"
+   },
+   "connector": "\u2192",
+   "headline": "THE FILES, FED BY THE TRUTH",
+   "markerWord": "TRUTH"
+  },
+  "reason": "HOW-vs-WHAT thesis as a two-object compare; left drawing fixed from invalid 'recipe' to 'files', arrow shows the database feeding (not fighting) the files."
+ },
+ {
+  "id": 27,
+  "start": 206.33,
+  "end": 216.66,
+  "archetype": "drawnConcept",
+  "spec": {
+   "drawing": "mdfile",
+   "label": "THE MISTAKE",
+   "headline": "LIVING FACTS, STUFFED IN A RECIPE",
+   "markerWord": "STUFFED",
+   "sub": "the format built for the HOW"
+  },
+  "reason": "Shows living facts crammed into the file; drawing fixed to 'mdfile', marker STUFFED makes the mismatch physical."
+ },
+ {
+  "id": 28,
+  "start": 216.66,
+  "end": 220.9,
+  "archetype": "statement",
+  "spec": {
+   "headline": "MY DATABASE FILLS ITSELF",
+   "markerWord": "ITSELF",
+   "sub": "here is the best part"
+  },
+  "reason": "The turn from problem to payoff; ITSELF marked plants the auto-fill idea. DATABASE keeps the through-line label."
+ },
+ {
+  "id": 29,
+  "start": 220.9,
+  "end": 235.92,
+  "archetype": "stream",
+  "spec": {
+   "headline": "SMALL JOBS, EVERY FEW MINUTES",
+   "markerWord": "EVERY",
+   "sub": "nothing manual, ever",
+   "events": [
+    "new order #4471",
+    "payout \u20ac3,900",
+    "new message \u00b7 support",
+    "signup \u00b7 newsletter",
+    "refund logged"
+   ],
+   "showRevenue": true,
+   "cantHold": false
+  },
+  "reason": "Second stream beat: events flow straight into the DATABASE (cantHold off), the lime stream motif now feeding the base instead of freezing."
+ },
+ {
+  "id": 30,
+  "start": 235.92,
+  "end": 242.34,
+  "archetype": "statement",
+  "spec": {
+   "headline": "ALWAYS UP TO DATE",
+   "markerWord": "ALWAYS",
+   "sub": "so Claude never answers from yesterday"
+  },
+  "reason": "Freshness payoff of the auto-fill loop; ALWAYS marked sells why it matters."
+ },
+ {
+  "id": 31,
+  "start": 242.34,
+  "end": 251.73,
+  "archetype": "stat",
+  "spec": {
+   "value": "START NOW",
+   "label": "THE STARTER VERSION",
+   "sub": "there's a no-code starter you can copy"
+  },
+  "reason": "Converted from a consecutive statement to a stat for rhythm (statement\u2192stat\u2192compare\u2192statement); sub made plain and factual, not teaser-y."
+ },
+ {
+  "id": 32,
+  "start": 251.73,
+  "end": 257.02,
+  "archetype": "compare",
+  "spec": {
+   "left": {
+    "drawing": "files",
+    "label": "FILES",
+    "sub": "hold the recipes"
+   },
+   "right": {
+    "drawing": "database",
+    "label": "DATABASE",
+    "sub": "holds the truth"
+   },
+   "connector": "vs",
+   "headline": "TWO JOBS, TWO TOOLS",
+   "markerWord": "TWO"
+  },
+  "reason": "Act summary as a files-vs-database compare; left drawing fixed from invalid 'recipe' to 'files'."
+ },
+ {
+  "id": 33,
+  "start": 257.02,
+  "end": 263.34,
+  "archetype": "statement",
+  "spec": {
+   "headline": "YOU GET IT NOW",
+   "markerWord": "GET",
+   "sub": "files run the how, the database holds the what"
+  },
+  "reason": "Earned-confidence close; sub swapped from flattery to the actual takeaway so it rewards understanding, not ego."
+ },
+ {
+  "id": 34,
+  "start": 263.34,
+  "end": 267.77,
+  "archetype": "sectionOpen",
+  "spec": {
+   "fig": "03",
+   "eyebrow": "THE MACHINE",
+   "headline": "NOW THE ANSWER, AND THE MACHINE",
+   "markerWord": "MACHINE",
+   "sub": "how the thing is actually built"
+  },
+  "reason": "Third section open; FIG renumbered 06\u219203 to keep the climb. Sub lowercased to match the film's sub style, hype removed."
+ },
+ {
+  "id": 35,
+  "start": 267.77,
+  "end": 276.83,
+  "archetype": "statement",
+  "spec": {
+   "headline": "BUILT INSIDE REAL BUSINESSES NOW",
+   "markerWord": "REAL",
+   "sub": "real revenue, real customers, running today",
+   "size": "lg"
+  },
+  "reason": "Credibility claim (the like/subscribe CTA is saved for the closer); sub lowercased and made specific instead of repeating the headline."
+ },
+ {
+  "id": 36,
+  "start": 276.83,
+  "end": 287.86,
+  "archetype": "queryAnswer",
+  "spec": {
+   "prompt": "so what does this thing actually know about my business?",
+   "answers": [
+    "it knew what I earn on every product",
+    "it knew what my customers complain about",
+    "it knew where my time goes"
+   ],
+   "reveal": true
+  },
+  "reason": "Merged the short contentless callback line into the 'it knew...' reveal (beats 36+37 combined, timing spans both) so no board fights over a pure transition and the statement run breaks. This is the Act-1 payoff the queryAnswer archetype exists for."
+ },
+ {
+  "id": 38,
+  "start": 287.86,
+  "end": 294.13,
+  "archetype": "statement",
+  "spec": {
+   "headline": "I NEVER FED IT ANY OF THAT",
+   "markerWord": "NEVER",
+   "sub": "it pulled all of it straight from the base",
+   "size": "lg"
+  },
+  "reason": "The twist beat; sub lowercased and now adds the mechanism (the database) instead of repeating the headline."
+ },
+ {
+  "id": 39,
+  "start": 294.13,
+  "end": 298.71,
+  "archetype": "statement",
+  "spec": {
+   "headline": "THAT IS THE WHOLE POINT",
+   "markerWord": "WHOLE",
+   "sub": "one database doing all the work",
+   "size": "lg"
+  },
+  "reason": "Turns the realization into a thesis line and previews the machine's core object; sub de-duped from beat 34's hand-off."
+ },
+ {
+  "id": 40,
+  "start": 298.71,
+  "end": 306.51,
+  "archetype": "machine",
+  "spec": {
+   "stage": "core",
+   "caption": "ONE DATABASE \u00b7 LISTS THE AI CAN COUNT AND SEARCH"
+  },
+  "reason": "First machine stage introduces the DATABASE core as the same through-line object from beat 16; caption names it 'DATABASE' explicitly."
+ },
+ {
+  "id": 41,
+  "start": 306.51,
+  "end": 318.22,
+  "archetype": "machine",
+  "spec": {
+   "stage": "core",
+   "caption": "REVENUE \u00b7 MESSAGES \u00b7 CONTENT \u00b7 EVERY JOB \u00b7 EVERYTHING THAT CHANGES HAS A HOME"
+  },
+  "reason": "Same core, now visibly populated with named lists animating in (a second state of the growing object, not a duplicate frame); em dash replaced with middot."
+ },
+ {
+  "id": 42,
+  "start": 318.22,
+  "end": 326.37,
+  "archetype": "machine",
+  "spec": {
+   "stage": "loops",
+   "caption": "SMALL LOOPS \u00b7 EVERY MINUTE, HOUR, DAY, WEEK"
+  },
+  "reason": "Machine gains its orbiting loops layer as the auto-run functions are introduced; a lime stream line runs from the loops into the core."
+ },
+ {
+  "id": 43,
+  "start": 326.37,
+  "end": 341,
+  "archetype": "machine",
+  "spec": {
+   "stage": "loops",
+   "caption": "ONE SAVES EVERY PAYMENT \u00b7 EVERY CHAT \u00b7 EVERY SIGNUP \u00b7 I NEVER TYPE A FACT"
+  },
+  "reason": "Loops layer fills the base automatically, paying off the 'who types it in' thread; em dash replaced with middot, lime stream continues into the core."
+ },
+ {
+  "id": 44,
+  "start": 341,
+  "end": 351.41,
+  "archetype": "machine",
+  "spec": {
+   "stage": "skills",
+   "caption": "SKILL FILES \u00b7 THE RECIPES SIT ON TOP"
+  },
+  "reason": "Adds the skill-files layer as recipes reading facts from the base are introduced."
+ },
+ {
+  "id": 45,
+  "start": 351.41,
+  "end": 356.77,
+  "archetype": "machine",
+  "spec": {
+   "stage": "skills",
+   "caption": "HOW = FILES \u00b7 WHAT = BASE \u00b7 ALWAYS"
+  },
+  "reason": "Converted from a standalone compare into a machine beat so the growing diagram stays one world; highlights the existing skills+core layers with a lime stream from the DATABASE core up into the skill files, landing the HOW/WHAT recap without a floating card."
+ },
+ {
+  "id": 46,
+  "start": 356.77,
+  "end": 364.02,
+  "archetype": "machine",
+  "spec": {
+   "stage": "dashboard",
+   "caption": "ONE DASHBOARD \u00b7 YOUR WHOLE BUSINESS ON ONE SCREEN"
+  },
+  "reason": "Machine gains the dashboard layer as the single-screen view is added."
+ },
+ {
+  "id": 47,
+  "start": 364.02,
+  "end": 368.88,
+  "archetype": "machine",
+  "spec": {
+   "stage": "model",
+   "caption": "THE MODEL COMES LAST \u00b7 THE LEAST IMPORTANT PART"
+  },
+  "reason": "The model-last punchline as its designed machine stage, clicking into place."
+ },
+ {
+  "id": 48,
+  "start": 368.88,
+  "end": 377.38,
+  "archetype": "machine",
+  "spec": {
+   "stage": "complete",
+   "caption": "THIS IS A BUSINESS BRAIN \u00b7 NOT A NOTE ABOUT A BUSINESS"
+  },
+  "reason": "Complete+named stage resolves the full diagram into 'Business Brain' and contrasts it with the template's dead note, closing Act 3."
+ },
+ {
+  "id": 49,
+  "start": 377.38,
+  "end": 383.85,
+  "archetype": "sectionOpen",
+  "spec": {
+   "fig": "04",
+   "eyebrow": "THE UNLOCK",
+   "headline": "NOW FLIP IT AROUND",
+   "markerWord": "FLIP",
+   "sub": "the base was collecting. now it answers back."
+  },
+  "reason": "Fourth and final section open; FIG renumbered 08\u219204 to complete the clean 01,02,03,04 climb."
+ },
+ {
+  "id": 50,
+  "start": 383.85,
+  "end": 390.11,
+  "archetype": "drawnConcept",
+  "spec": {
+   "drawing": "plug",
+   "label": "SUPABASE MCP",
+   "headline": "GIVE CLAUDE THE KEYS",
+   "markerWord": "KEYS",
+   "sub": "one connection and it can read the whole base."
+  },
+  "reason": "Database through-line payoff: Claude plugs into the base via the MCP so the connection is literal. The core 'gets the keys' here, same object grown."
+ },
+ {
+  "id": 51,
+  "start": 390.11,
+  "end": 403.78,
+  "archetype": "queryAnswer",
+  "spec": {
+   "prompt": "how is my business actually doing?",
+   "answers": [
+    "social: reach up, saves up",
+    "revenue: which product earns most",
+    "support: what people keep asking",
+    "and how they connect"
+   ],
+   "reveal": true
+  },
+  "reason": "The 'ask anything' unlock: one plain question pulling social, revenue and support together; fourth answer changed to 'and how they connect' so it doesn't pre-steal the 'one read' punch used next."
+ },
+ {
+  "id": 52,
+  "start": 403.78,
+  "end": 408.16,
+  "archetype": "stat",
+  "spec": {
+   "value": "1 READ",
+   "label": "YOUR WHOLE BUSINESS, ANSWERED IN",
+   "sub": "connected data says what no single file could."
+  },
+  "reason": "The emotional payoff as a big-number moment; empty adjective 'mind-blowing' replaced with a concrete '1 READ' (uppercase, real thing to show)."
+ },
+ {
+  "id": 53,
+  "start": 408.16,
+  "end": 416.65,
+  "archetype": "statement",
+  "spec": {
+   "headline": "COMPANIES PAY PEOPLE FOR THIS",
+   "markerWord": "THIS",
+   "sub": "this reads all your data at once, the thing they hire for",
+   "size": "lg"
+  },
+  "reason": "Frames the value plainly (what businesses hire data scientists for); sub rewritten to match what's actually said and drop the out-of-place photo/movie callback."
+ },
+ {
+  "id": 54,
+  "start": 416.65,
+  "end": 427.54,
+  "archetype": "statement",
+  "spec": {
+   "headline": "BUILD YOUR REAL SECOND BRAIN",
+   "markerWord": "REAL",
+   "sub": "a database, not a folder of dead files.",
+   "size": "xl"
+  },
+  "reason": "The invitation reinforces the thesis instead of pre-firing the CTA; the description CTA is stripped from here and carried once by the closer. Marker REAL calls back the whole thesis."
+ },
+ {
+  "id": 55,
+  "start": 427.54,
+  "end": 431.1,
+  "archetype": "closer",
+  "spec": {
+   "headline": "NOW GO BUILD THE BASE",
+   "sub": "start small, let it fill itself.",
+   "cta": "like + subscribe \u00b7 full system in the description"
+  },
+  "reason": "Single true CTA lives only here; headline ends on the action rather than a canned sign-off, keeping the Playfair sub and the one clean like+subscribe send-off."
+ }
+]

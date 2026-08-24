@@ -1,0 +1,27 @@
+{
+  "scenes": [
+    {
+      "viz": "lineChart",
+      "durationInFrames": 165,
+      "props": {
+        "eyebrow": "Revenue · last 10 months",
+        "title": "Monthly recurring revenue",
+        "points": [11, 14, 13, 21, 18, 26, 24, 33, 38, 46],
+        "xLabels": ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT"],
+        "yMax": 48,
+        "prefix": "€",
+        "suffix": "k",
+        "bg": "grid-light"
+      }
+    },
+    {
+      "viz": "comparison",
+      "durationInFrames": 165,
+      "props": {
+        "left": { "label": "MANUAL", "stat": "8 hrs", "sub": "per task, every week" },
+        "right": { "label": "AUTOMATED", "stat": "12 min", "sub": "set once, runs forever" },
+        "tasks": 5
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+#!/bin/zsh
+cd "$(dirname "$0")"
+if ! curl -s -o /dev/null http://127.0.0.1:__PORT__/review.html; then
+  python3 serve.py >/dev/null 2>&1 &
+  sleep 1
+fi
+open "http://localhost:__PORT__/review.html"
