@@ -9,7 +9,9 @@
     "ai-avatar-online-courses": {
       "title": "Best Realistic AI Avatar Generator for Online Courses & Training",
       "minted": "2026-08-12",
-      "aliases": []
+      "aliases": [
+        "ai-avatar-generator-comparison"
+      ]
     },
     "best-ai-video-generator": {
       "title": "Best AI Video Software — Pictory vs InVideo vs Fliki vs Synthesia vs Lumen5",
@@ -21,6 +23,11 @@
     "best-no-code-automation-tool": {
       "title": "N8n vs Flowise vs Zapier vs Make vs LangChain | Best No-Code Automation Tool",
       "minted": "2026-08-12",
+      "aliases": []
+    },
+    "character-consistency-ai": {
+      "title": "Best AI Tool for Character Consistency in Videos",
+      "minted": "2026-08-24",
       "aliases": []
     },
     "consistent-ai-influencer": {
