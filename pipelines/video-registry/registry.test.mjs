@@ -8,6 +8,9 @@ import {
   ensure, whereIs, unregisteredDirs, PIPELINE_VIDEO_ROOTS,
 } from './lib/registry.mjs';
 import { planSync } from './lib/tracker.mjs';
+import {
+  planClicksDb, planDesk, diffInvariants, findCollisions, INVARIANT_QUERIES,
+} from './lib/migrate-keys.mjs';
 
 function tmpReg() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vreg-'));
@@ -182,4 +185,123 @@ test("a second identical sync is a no-op", () => {
   const rows = [{ id: "row_9", slug: "opusclip-vs-submagic", title: "OpusClip vs Submagic" }];
   const p = planSync(rows, REG, TODAY);
   assert.deepStrictEqual(p, { mints: [], stamps: [], skipped: [] });
+});
+
+// --- plan 241: the ordered key migration for clicks-db and the script desk ---
+// These assertions exist to stop a future refactor reordering the statements.
+// The order is the entire point: it keeps links.video_code -> videos.video_code
+// valid at every single step, so no PRAGMA is needed anywhere.
+
+test("clicks-db: insert must precede the links update", () => {
+  const s = planClicksDb([{ oldCode: "aB3xY9", newKey: "best-ai-video-generator" }]);
+  assert.strictEqual(s.length, 3);
+  assert.match(s[0].sql, /^INSERT INTO videos/);
+  assert.match(s[1].sql, /^UPDATE links SET video_code/);
+  assert.match(s[2].sql, /^DELETE FROM videos/);
+});
+
+test("clicks-db: the order holds across several pairs", () => {
+  const s = planClicksDb([
+    { oldCode: "aB3xY9", newKey: "one-video" },
+    { oldCode: "zZ1qQ2", newKey: "two-video" },
+  ]);
+  assert.strictEqual(s.length, 6);
+  for (const base of [0, 3]) {
+    assert.match(s[base].sql, /^INSERT INTO videos/);
+    assert.match(s[base + 1].sql, /^UPDATE links SET video_code/);
+    assert.match(s[base + 2].sql, /^DELETE FROM videos/);
+  }
+  // every statement of a pair carries that pair's old code, never the other's
+  assert.deepStrictEqual(s[2].params, ["aB3xY9"]);
+  assert.deepStrictEqual(s[5].params, ["zZ1qQ2"]);
+});
+
+test("clicks-db: the new row is inserted before the old one is deleted", () => {
+  const s = planClicksDb([{ oldCode: "aB3xY9", newKey: "best-ai-video-generator" }]);
+  const insertAt = s.findIndex((st) => /^INSERT INTO videos/.test(st.sql));
+  const updateAt = s.findIndex((st) => /^UPDATE links/.test(st.sql));
+  const deleteAt = s.findIndex((st) => /^DELETE FROM videos/.test(st.sql));
+  assert.ok(insertAt < updateAt, "INSERT must come before the links UPDATE");
+  assert.ok(updateAt < deleteAt, "the links UPDATE must come before the DELETE");
+});
+
+test("clicks-db: never writes to clicks and never changes a link slug", () => {
+  const s = planClicksDb([{ oldCode: "aB3xY9", newKey: "x" }]);
+  for (const st of s) {
+    assert.ok(!/\bclicks\b/i.test(st.sql), `statement touches clicks: ${st.sql}`);
+    assert.ok(!/SET\s+slug\s*=/i.test(st.sql), `statement rewrites a link slug: ${st.sql}`);
+  }
+});
+
+test("clicks-db: a code already canonical emits nothing", () => {
+  assert.deepStrictEqual(planClicksDb([{ oldCode: "same-key", newKey: "same-key" }]), []);
+});
+
+test("desk: updates all three tables and never touches token", () => {
+  const s = planDesk([{ oldKey: "old-slug", newKey: "new-slug" }]);
+  assert.strictEqual(s.length, 3);
+  assert.match(s[0].sql, /^UPDATE videos SET key/);
+  assert.match(s[1].sql, /^UPDATE answers SET video_key/);
+  assert.match(s[2].sql, /^UPDATE say_edits SET video_key/);
+  for (const st of s) assert.ok(!/token/i.test(st.sql), `statement touches token: ${st.sql}`);
+});
+
+test("desk: a key already canonical emits nothing", () => {
+  assert.deepStrictEqual(planDesk([{ oldKey: "same-key", newKey: "same-key" }]), []);
+});
+
+test("planners refuse an incomplete pair", () => {
+  assert.throws(() => planClicksDb([{ oldCode: "", newKey: "x" }]));
+  assert.throws(() => planClicksDb([{ oldCode: "x", newKey: "" }]));
+  assert.throws(() => planDesk([{ oldKey: "x", newKey: "" }]));
+  assert.throws(() => planDesk([{ oldKey: "", newKey: "x" }]));
+});
+
+// --- the unattended safety net: boss runs --apply with nobody watching ---
+
+test("diffInvariants passes when every count held", () => {
+  const counts = {};
+  for (const q of INVARIANT_QUERIES) counts[q.label] = 7;
+  assert.deepStrictEqual(diffInvariants(counts, { ...counts }), []);
+});
+
+test("diffInvariants refuses when a single click row moved", () => {
+  const before = {}, after = {};
+  for (const q of INVARIANT_QUERIES) { before[q.label] = 7; after[q.label] = 7; }
+  const label = "clicks rows (must never change)";
+  after[label] = 6;
+  const v = diffInvariants(before, after);
+  assert.strictEqual(v.length, 1);
+  assert.deepStrictEqual(v[0], { label, before: 7, after: 6 });
+});
+
+test("diffInvariants refuses when a published link slug disappeared", () => {
+  const before = {}, after = {};
+  for (const q of INVARIANT_QUERIES) { before[q.label] = 7; after[q.label] = 7; }
+  const label = "distinct link slugs (published URLs)";
+  after[label] = 8;
+  assert.deepStrictEqual(diffInvariants(before, after), [{ label, before: 7, after: 8 }]);
+});
+
+test("diffInvariants refuses a count it could not read at all", () => {
+  const before = {};
+  for (const q of INVARIANT_QUERIES) before[q.label] = 7;
+  // an empty "after" means the post-apply read failed — that is drift, not a pass
+  assert.strictEqual(diffInvariants(before, {}).length, INVARIANT_QUERIES.length);
+});
+
+test("findCollisions reports two old codes claiming one new key", () => {
+  const c = findCollisions([
+    { oldCode: "aB3xY9", newKey: "one-video" },
+    { oldCode: "zZ1qQ2", newKey: "one-video" },
+    { oldCode: "qQ7wW8", newKey: "two-video" },
+  ]);
+  assert.deepStrictEqual(c, [{ newKey: "one-video", olds: ["aB3xY9", "zZ1qQ2"] }]);
+});
+
+test("findCollisions is empty for a one-to-one mapping", () => {
+  assert.deepStrictEqual(findCollisions([
+    { oldCode: "aB3xY9", newKey: "one-video" },
+    { oldCode: "zZ1qQ2", newKey: "two-video" },
+  ]), []);
 });
