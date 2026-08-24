@@ -20,7 +20,7 @@ export MAINT_DIR
 
 # We will test lib.sh functions by sourcing it in a subshell
 jobs="$(bash -c "source $MAINT_DIR/bin/lib.sh; discover_jobs" | sort | tr '\n' ' ')"
-if [ "$jobs" != "artifacts bigfiles crons mcp memory routing skills uptime " ]; then
+if [ "$jobs" != "artifacts bigfiles claude-health crons mcp memory routing skills token-budget uptime " ]; then
   if [ -z "$jobs" ]; then
     fail "job discovery found no jobs"
   else
@@ -35,6 +35,8 @@ echo "$out" | grep -q '^memory' || fail "session-start.sh did not print memory r
 echo "$out" | grep -q '^mcp' || fail "session-start.sh did not print mcp row"
 echo "$out" | grep -q '^uptime' || fail "session-start.sh did not print uptime row"
 echo "$out" | grep -q '^crons' || fail "session-start.sh did not print crons row"
+echo "$out" | grep -q '^claude-health' || fail "session-start.sh did not print claude-health row"
+echo "$out" | grep -q '^token-budget' || fail "session-start.sh did not print token-budget row"
 
 # 4. session-start.sh prints job discovery found no jobs and exits 2 when jobs/ is empty
 mkdir -p "$TMP/empty_jobs_test/jobs"
@@ -230,5 +232,40 @@ EOF
 out2="$(ARTIFACTS_REGISTRY="$AFIX/registry.json" ARTIFACTS_CARDS="$AFIX/cards2.json" \
         bash "$MAINT_DIR/jobs/artifacts/check.sh" 2>&1)"
 echo "$out2" | grep -q 'PUBLISHED shipped-video' && fail "a draft upload was treated as published"
+
+# --- claude-health + token-budget: stubbed CLIs -----------------------------
+cat > "$STUB_DIR/claude" <<'EOF'
+#!/bin/bash
+case "$1" in
+  doctor)    echo "stub doctor: all good"; exit 0 ;;
+  --version) echo "1.2.3 (stub)"; exit 0 ;;
+esac
+exit 0
+EOF
+cat > "$STUB_DIR/rtk" <<'EOF'
+#!/bin/bash
+case "$1" in
+  gain)     echo "Tokens saved: 999 (99.9%)"; exit 0 ;;
+  discover) echo "stub: 2 missed opportunities"; exit 0 ;;
+esac
+exit 0
+EOF
+chmod +x "$STUB_DIR/claude" "$STUB_DIR/rtk"
+
+out="$(PATH="$STUB_DIR:$PATH" bash "$MAINT_DIR/jobs/claude-health/check.sh" 2>&1)"
+echo "$out" | grep -q 'stub doctor: all good' || fail "claude-health did not run claude doctor"
+echo "$out" | grep -q 'SESSION-STEP'          || fail "claude-health must mark /doctor as a session step"
+
+out="$(PATH="$STUB_DIR:$PATH" bash "$MAINT_DIR/jobs/token-budget/check.sh" 2>&1)"
+echo "$out" | grep -q 'Tokens saved'          || fail "token-budget did not run rtk gain"
+echo "$out" | grep -q 'missed opportunities'  || fail "token-budget did not run rtk discover"
+echo "$out" | grep -q 'context breakdown — SESSION-STEP, not automatable' \
+  || fail "token-budget check must mark the context breakdown as a session step"
+
+# neither job may mutate anything
+for j in claude-health token-budget; do
+  grep -qE '\bclaude (update|install)\b|\bplugin (install|uninstall)\b' "$MAINT_DIR/jobs/$j/check.sh" \
+    && fail "$j check.sh contains a mutating command"
+done
 
 echo "ALL PASS"
