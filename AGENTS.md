@@ -39,13 +39,31 @@ of every skill on disk. Edit the real file under `.claude/skills/` — never the
 
 It mirrors only the names listed in **`.claude/codex-skills.txt`**, not everything
 in `.claude/skills/`. Claude reads a repo's `.claude/skills/` automatically and so
-gets all 69 for free; Codex has no per-repo path, so anything mirrored here is paid
+gets all 77 for free; Codex has no per-repo path, so anything mirrored here is paid
 for in *every* Codex session, in every project. The list is deliberately short
 (12 as of 2026-08-25). Add a name to it only if you want that skill everywhere.
 
 `scripts/relink.sh` rebuilds that mirror (via
-`scripts/mirror-codex-skills.sh`). Run it after adding, renaming, or deleting
-any skill.
+`scripts/mirror-codex-skills.sh`). Run it after changing `.claude/codex-skills.txt`.
+
+### The other ~120 skills: read them yourself
+
+**IMPORTANT FOR CODEX.** The 12 mirrored names are a fraction of what this repo has.
+They are the always-on ones, not the useful ones. Everything else is sitting in the
+working tree and Codex will never be told about it:
+
+| Where | Roughly | What is in there |
+|---|---|---|
+| `.claude/skills/` | 77 | repo operation, deploy, commit flow, Cloudflare/Workers, the CLIs |
+| `pipelines/.claude/skills/` | 50 | YouTube, video, Pinterest, TTS, the HyperFrames packs |
+
+So before starting real work in this repo, **list those two directories and read the
+frontmatter `description` of anything that looks relevant** — that is the same
+name-and-description index Claude gets automatically. `.claude/skills/personal-stuff-repo-map/`
+is the best entry point when you do not know which one you want.
+
+Do NOT solve a problem this repo already has a skill for. Deploying a Worker,
+committing, raising a PR, cutting a voiceover and rendering a video all have one.
 
 **Codex skills are not slash commands.** Claude exposes a skill as
 `/<skill-name>`; Codex injects a name-and-description list the model reads with
