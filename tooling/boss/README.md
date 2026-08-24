@@ -29,6 +29,7 @@ tooling/boss/
   executors/
     claude-p.sh          # backgrounded claude -p (default model: sonnet)
     agy.sh               # Antigravity CLI (default model: Gemini 3.1 Pro (High))
+    codex.sh             # OpenAI Codex CLI (default model: gpt-5.6-sol)
   data/
     rules.md             # task-type → executor+model defaults (secretary input)
   state/                 # gitignored: PID cache only

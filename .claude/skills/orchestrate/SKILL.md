@@ -276,15 +276,21 @@ data-loss punt, an invented color scheme, and UA-default controls under
 green gates — all judgment-gap defects.)
 
 **Executor selection (boss taxonomy — this is what goes in the frontmatter).**
-boss runs two executors: `claude-p` (backgrounded `claude -p`; models `sonnet`
-or `opus`) and `agy` (headless Antigravity CLI; cheap tokens; agy runs use
-Gemini 3.1 Pro (High), its default model). **Never pick the executor model unilaterally**
+boss runs three executors: `claude-p` (backgrounded `claude -p`; models `sonnet`
+or `opus`), `agy` (headless Antigravity CLI; cheap tokens; agy runs use
+Gemini 3.1 Pro (High), its default model), and `codex` (headless OpenAI Codex CLI
+on the owner's ChatGPT subscription; cheap tokens; default model `gpt-5.6-sol`).
+**Never pick the executor model unilaterally**
 (owner-confirmed 2026-07-12): the user's explicit choice always wins; otherwise
 routing comes from `tooling/boss/data/rules.md` — **default is `agy`** (Gemini 3.1
 Pro High; owner decision 2026-07-18) for any plan that passes the fully-inlined
 bar, with `claude-p` as the exception: `sonnet` for quality-setting content the
 owner judges by taste (rulebooks, prompts, prose) or plans that can't be fully
-inlined; `opus` for `tricky`. Read rules.md for the riders (render+inspect gate
+inlined; `opus` for `tricky`. **`codex` is a valid option, never the default**
+(owner decision 2026-08-25) — pick it when the owner names it, or to run a second
+fully-inlined plan concurrently without queueing behind an agy crew; it meets the
+same fully-inlined bar and the same verify-by-commits rule as agy. Read rules.md
+for the riders (render+inspect gate
 on visual output; verify agy by commits, never its envelope). (The older
 `antigravity | sonnet | opus` naming belongs to the standalone direct-dispatch
 registry in Step 4 — NOT the frontmatter boss reads.)
@@ -321,7 +327,7 @@ Once plan(s) pass Step 3.5, ask the user how to hand off. Three routes:
 Not on request — always, in the same breath as the link. Take them from the
 plan's frontmatter (`executor:` / `model:`); a blank `model:` means that
 executor's default, so print the resolved name (`agy` -> Gemini 3.1 Pro (High),
-`claude-p` -> Sonnet) rather than a blank cell.
+`claude-p` -> Sonnet, `codex` -> gpt-5.6-sol) rather than a blank cell.
 
 Owner rule (2026-08-23): *"whenever you give me summary on the PRs, I find it
 very annoying that you don't share me what executor have you used for which PR.
@@ -353,6 +359,7 @@ one dispatch script; the run-log, verification, and rounds are executor-agnostic
 | `sonnet` | one Agent-tool subagent **per plan**, `model: sonnet`; orchestrator checkpoints between plans | subagent returns + run-log `PLAN NNN DONE` | harness surfaces a dead subagent immediately |
 | `opus` | one Agent-tool subagent **per plan**, `model: opus` — for `tricky` plans only | same as `sonnet` | same as `sonnet` |
 | `agy` | background Bash per plan: `agy -p "$(cat <prompt-file>)" --dangerously-skip-permissions --add-dir "<working-tree>" --output-format json --print-timeout 180m [--model "<name>"]` with cwd = the working tree (`--add-dir` is mandatory — print mode does not bind cwd; default timeout is 5m); prompt carries the same run-log rules | process exit + run-log `PLAN NNN DONE`; JSON envelope in the captured file has `status`/`usage`/`conversation_id` (resume fix-ups via `--conversation <id>`) | `kill -0 <pid>` — a real process, exact liveness (no heartbeat guessing) |
+| `codex` | background Bash per plan: `codex exec "$(cat <prompt-file>)" --json -o <last-msg-file> --dangerously-bypass-approvals-and-sandbox -C "<working-tree>" -m gpt-5.6-sol < /dev/null` wrapped in `gtimeout -k 30 180m` (codex exec has no timeout flag of its own); `-C` is mandatory and `< /dev/null` is mandatory — without it codex waits on stdin forever | process exit code + run-log `PLAN NNN DONE`; the JSONL stream carries `thread.started` (`thread_id`, for `codex exec resume`) and `turn.completed` (`usage`) | `kill -0 <pid>` — a real process, exact liveness |
 
 Notes:
 - **Antigravity's internal model is set in the app's own model picker** — the
@@ -368,6 +375,14 @@ Notes:
   unilaterally; routing comes from `tooling/boss/data/rules.md` or the user).
   Prefer it over the `antigravity` IDE row for headless plan batches. (The
   gemini CLI is dead for individual accounts since 2026-06-18 — do not spec it.)
+- **`codex` (added 2026-08-25)**: the OpenAI Codex CLI on the owner's ChatGPT
+  subscription (`auth_mode=chatgpt`), so like agy its tokens do not touch the
+  Claude pool. Real headless process, exact death detection, parallelizes per
+  worktree. Its `--json` stream grows continuously while the crew works, which
+  makes progress/stall detection honest without an `lsof`. Two hard flags: `-C`
+  (the working root is NOT bound by cwd) and `< /dev/null` (otherwise it blocks
+  reading stdin). It is a valid option, **never the default** — agy keeps the
+  default seat until codex has a track record here (owner decision 2026-08-25).
 - **One run at a time.** Runs share one working tree and git history —
   never dispatch a second run (any executor) while one is in flight.
 

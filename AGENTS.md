@@ -89,6 +89,22 @@ checkout breaks them.
 - **Skill frontmatter.** Skills are written for Claude. A skill that calls a
   Claude-only tool by name, or relies on a hook, needs judgement under Codex.
 
+## Codex also runs HEADLESS here, as a boss crew
+
+Since 2026-08-25 Codex is one of boss's three executors
+(`tooling/boss/executors/codex.sh`, alongside `claude-p` and `agy`). A plan whose
+frontmatter says `executor: codex` is implemented by a backgrounded `codex exec` in
+a leased worktree. agy stays the default; codex is opted into per plan
+(`tooling/boss/data/rules.md`).
+
+**This changes who is reading a skill.** A crew has no human attached: nothing reads
+its output while it works, and a turn that ends in a question ends the dispatch. A
+mirrored skill that pauses to confirm an account, a destination, or an approval will
+stall a crew rather than prompt anyone — it happened on day one with
+`github-router`. The executor injects a "you are non-interactive" addendum to
+counter it, but when you WRITE or edit a skill that a crew might load, prefer a
+documented default over a question.
+
 ## On Windows, run the mirror after cloning
 
 Nothing Codex reads is committed — `~/.codex/skills` is built on each machine —
