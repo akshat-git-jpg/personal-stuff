@@ -20,7 +20,7 @@ export MAINT_DIR
 
 # We will test lib.sh functions by sourcing it in a subshell
 jobs="$(bash -c "source $MAINT_DIR/bin/lib.sh; discover_jobs" | sort | tr '\n' ' ')"
-if [ "$jobs" != "bigfiles crons mcp memory routing skills uptime " ]; then
+if [ "$jobs" != "artifacts bigfiles crons mcp memory routing skills uptime " ]; then
   if [ -z "$jobs" ]; then
     fail "job discovery found no jobs"
   else
@@ -199,5 +199,36 @@ before="$(git count-objects -vH | grep size-pack)"
 bash "$MAINT_DIR/jobs/bigfiles/rewrite-plan.sh" >/dev/null
 after="$(git count-objects -vH | grep size-pack)"
 [ "$before" = "$after" ] || fail "rewrite-plan.sh changed the pack — it must only write a plan"
+
+# --- artifacts job: fixture registry + fixture cards, no network ------------
+AFIX="$TMP/artfix"; mkdir -p "$AFIX"
+cat > "$AFIX/registry.json" <<'EOF'
+{"version":1,"videos":{
+  "shipped-video":{"title":"Shipped","minted":"2026-07-01","aliases":[],"card_id":"row_1"},
+  "still-editing":{"title":"WIP","minted":"2026-08-01","aliases":[],"card_id":"row_2"},
+  "no-card-video":{"title":"Orphan","minted":"2026-08-01","aliases":[]},
+  "test-01":{"title":"fixture","minted":"2026-07-18","aliases":[],"card_id":"row_3"}
+}}
+EOF
+cat > "$AFIX/cards.json" <<'EOF'
+[ {"id":"row_1","yt_link":"https://youtu.be/abc","yt_upload_status":"Done"},
+  {"id":"row_2","yt_link":"","yt_upload_status":"In Progress"},
+  {"id":"row_3","yt_link":"https://youtu.be/zzz","yt_upload_status":"Done"} ]
+EOF
+
+out="$(ARTIFACTS_REGISTRY="$AFIX/registry.json" ARTIFACTS_CARDS="$AFIX/cards.json" \
+       bash "$MAINT_DIR/jobs/artifacts/check.sh" 2>&1)"
+echo "$out" | grep -q 'PUBLISHED shipped-video' || fail "artifacts check did not report the seeded published video"
+echo "$out" | grep -q 'PUBLISHED still-editing' && fail "artifacts check flagged an unpublished video"
+echo "$out" | grep -q 'PUBLISHED test-01'       && fail "artifacts check flagged the test fixture"
+echo "$out" | grep -q 'NO-CARD no-card-video'   || fail "artifacts check did not report the card-less entry"
+
+# a link with no done status must NOT count as published
+cat > "$AFIX/cards2.json" <<'EOF'
+[ {"id":"row_1","yt_link":"https://youtu.be/abc","yt_upload_status":"In Review"} ]
+EOF
+out2="$(ARTIFACTS_REGISTRY="$AFIX/registry.json" ARTIFACTS_CARDS="$AFIX/cards2.json" \
+        bash "$MAINT_DIR/jobs/artifacts/check.sh" 2>&1)"
+echo "$out2" | grep -q 'PUBLISHED shipped-video' && fail "a draft upload was treated as published"
 
 echo "ALL PASS"
