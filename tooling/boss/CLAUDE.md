@@ -309,8 +309,8 @@ suggestion; a gate is not. `boss-merge` rejects a branch that:
 
 Sixteen hard-won findings that used to live as separate per-session memory notes,
 invisible to a fresh boss session. Each is dated and names the PR that taught it.
-**Every claim below was re-checked against the code on 2026-08-24**; the three
-"still unfixed" notes are marked as such.
+**Every claim below was re-checked against the code on 2026-08-24**; any
+note still describing unfixed behaviour says so in place.
 
 ### A crew looks failed but is not
 
@@ -402,7 +402,13 @@ invisible to a fresh boss session. Each is dated and names the PR that taught it
   parks with `unexpected EOF while looking for matching '`. Write `&&` and `cd` bare — the outer
   `bash -c` handles them. If you inherit a broken meta, fix the `test_cmd=` line in
   `state/<pr>.meta` and re-run `boss-merge`; no re-dispatch, the crew work is fine.
-  **Still unfixed as of 2026-08-24** — `bin/boss-dispatch.sh:150` writes the value raw.
+  **Now gated (2026-08-24).** `boss-dispatch` runs the value through
+  `boss_check_test_cmd` BEFORE it leases a worktree: a multi-line value or an inner
+  `bash -c` / `sh -c` wrapper is refused in about a second, naming the fix, instead of
+  surfacing ten minutes later as a greenlight park. Surrounding whitespace is trimmed,
+  so a `test_cmd: |` block scalar holding one bare line still works. `meta_set` is the
+  second line of defence — it refuses ANY multi-line value rather than corrupting the
+  line-based meta, so a future call site cannot reintroduce this quietly.
   (PR#38, 2026-07-18.)
 
 - **A hand-invoked fix-up brief path must be ABSOLUTE.** The executor `cd`s into the worktree
@@ -430,19 +436,25 @@ invisible to a fresh boss session. Each is dated and names the PR that taught it
   already crew-authored. Reserve the one-fix-up policy for real plan or logic conflicts.
   (Landing #83/#84/#85, 2026-07-22.)
 
-- **The 60-turn cap is really a ~300-line plan ceiling.** `executors/claude-p.sh` hardcodes
-  `--max-turns ${BOSS_MAX_TURNS:-60}`. Measured across all 18 historical claude-p runs, turns
-  used scale with plan size at ~0.15-0.2 turns/line; every success had a plan ≤292 lines, and
-  both `error_max_turns` deaths were 315L and 537L. Dispatch anything over ~300 lines as
-  `BOSS_MAX_TURNS=300 bin/boss-dispatch.sh <pr#>` — the var propagates because dispatch invokes
-  the executor as a plain child, and a cap only ever truncates, so an over-generous budget costs
-  nothing. **Still unfixed as of 2026-08-24** — `executors/claude-p.sh:17` still hardcodes 60.
-  Owner-approved but unimplemented (2026-07-25): auto-size `--max-turns` from the plan's line
-  count; add a `resume` verb using `claude -p --resume <session_id>` (the id is in every `.out`
-  envelope — a continuation must resume the SAME session, because boss holds no plan context by
-  design and a summary brief is the weakest possible handoff); and stop collapsing
-  `error_max_turns` into `blocked`, since truncation is resumable and should not spend the one
-  fix-up meant for real failures. Explicitly NOT doing: a plan-size gate in `orchestrate`.
+- **The turn cap is sized from the plan (fixed 2026-08-24).** `executors/claude-p.sh` used to
+  hardcode `--max-turns ${BOSS_MAX_TURNS:-60}`, which was really a ~300-line plan ceiling:
+  measured across all 18 historical claude-p runs, turns used scale with plan size at
+  ~0.15-0.2 turns/line; every success had a plan ≤292 lines, and both `error_max_turns` deaths
+  were 315L and 537L. The executor now budgets **0.4 turns/line**, clamped to [60, 600] — double
+  the observed worst case, because a cap only ever truncates, so an over-generous budget costs
+  nothing while an exact one kills a run at the finish line. `boss-dispatch` records the plan's
+  size as `plan_lines` in the meta; a DIRECT fix-up dispatch against an older meta falls back to
+  counting the plan in the worktree. It prints the budget it chose, and records it as `max_turns`
+  so a `max-turns` collect message can name both numbers. **`BOSS_MAX_TURNS` still wins**, so
+  `BOSS_MAX_TURNS=300 bin/boss-dispatch.sh <pr#>` pins any value you like.
+  Still owner-approved and unimplemented (2026-07-25): a `resume` verb using
+  `claude -p --resume <session_id>` (the id is in every `.out` envelope — a continuation must
+  resume the SAME session, because boss holds no plan context by design and a summary brief is
+  the weakest possible handoff), and stopping the collapse of `error_max_turns` into `blocked`,
+  since truncation is resumable and should not spend the one fix-up meant for real failures.
+  That second one is deliberately still pending: without the `resume` verb a truncated run has
+  no cheaper recovery than a fix-up dispatch, so relabelling it alone would only lose
+  information. Explicitly NOT doing: a plan-size gate in `orchestrate`.
 
 ### Never write to the owner's checkout
 

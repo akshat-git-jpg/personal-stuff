@@ -9,9 +9,57 @@ REPO_ROOT="$(cd "$BOSS_HOME/../.." && pwd)"   # tooling/boss -> repo root
 # future one) then simply never sees it — patching those call sites one at a time is
 # how a second site gets missed. Byte-identical behaviour when BOSS_STATE_DIR is unset.
 STATE_DIR="${BOSS_STATE_DIR:-$BOSS_HOME/state}"; mkdir -p "$STATE_DIR"
+BOSS_NL=$'\n'   # a literal newline, for the multi-line guards below
 
 meta_get()    { local f="$STATE_DIR/$1.meta"; [ -f "$f" ] || return 1; grep "^$2=" "$f" | tail -1 | cut -d= -f2-; }
-meta_set()    { echo "$2=$3" >> "$STATE_DIR/$1.meta"; }
+# meta_set writes one `key=value` LINE, so a value carrying a newline silently
+# corrupts the file: meta_get's `grep "^key="` returns only the first line, and
+# every following line becomes a bogus key. `test_cmd` is the value that actually
+# arrives multi-line (fm_get resolves a YAML `key: |` block scalar verbatim), and
+# the corruption surfaced far downstream as greenlight parking on `unexpected EOF`.
+# Refuse loudly instead. Callers on the dispatch path check the exit status.
+meta_set()    {
+  case "$3" in
+    *"$BOSS_NL"*)
+      echo "FATAL: meta_set $2 for $1 got a MULTI-LINE value; state/<id>.meta is line-based." >&2
+      echo "  Write it as one bare line (join steps with && ). Value began: $(printf '%s' "$3" | head -1)" >&2
+      return 1 ;;
+  esac
+  echo "$2=$3" >> "$STATE_DIR/$1.meta"
+}
+
+# boss_check_test_cmd <cmd> — echo the cleaned command, or fail with a diagnosis.
+# Two shapes have each cost a merge cycle, and both were documented as prose that
+# was then violated anyway (CLAUDE.md, "Dispatch and merge plumbing"):
+#   1. a MULTI-LINE value corrupts state/<pr>.meta (see meta_set above);
+#   2. an inner `bash -c '...'` double-wraps, because boss-merge already wraps the
+#      value in `gtimeout ... bash -c`, and greenlight parks on `unexpected EOF
+#      while looking for matching quote`.
+# Catching both at dispatch turns a 10-minute merge failure into a 1-second refusal.
+boss_check_test_cmd() {
+  local cmd="$1"
+  # Trim surrounding whitespace. A `key: |` block scalar routinely arrives with a
+  # trailing newline and that alone is harmless, so trim before judging.
+  cmd="${cmd#"${cmd%%[![:space:]]*}"}"
+  cmd="${cmd%"${cmd##*[![:space:]]}"}"
+  case "$cmd" in
+    *"$BOSS_NL"*)
+      echo "REFUSED: test_cmd spans multiple lines." >&2
+      echo "  state/<pr>.meta is line-based, so a multi-line value is silently truncated" >&2
+      echo "  and greenlight parks later on a syntax error. Rewrite the plan frontmatter" >&2
+      echo "  as ONE bare line, joining steps with &&." >&2
+      return 1 ;;
+  esac
+  case "$cmd" in
+    *"bash -c"*|*"sh -c"*)
+      echo "REFUSED: test_cmd contains its own 'bash -c' wrapper." >&2
+      echo "  boss-merge already wraps it in: gtimeout -k 30 <ttl>s bash -c <cmd>." >&2
+      echo "  The inner wrapper double-wraps and greenlight parks with" >&2
+      echo "  'unexpected EOF while looking for matching quote'. Write && and cd bare." >&2
+      return 1 ;;
+  esac
+  printf '%s' "$cmd"
+}
 
 # boss_head_advanced <id> — 0 if the task's worktree HEAD moved since dispatch.
 # A crew that reports success without advancing HEAD produced nothing (or ran on
