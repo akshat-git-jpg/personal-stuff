@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Guard the skill-description token budget for REPO-OPERATING skills in
-# .claude/skills/ — companion to scripts/check-skill-descriptions.sh (repo
-# root), which only scans the tooling/claude-skills/ store and runs inside
-# relink.sh. This one is NOT wired into relink.sh; run it on demand after any
-# .claude/skills description edit. Same thresholds as the store guard
-# (decisions.md 2026-07-04): budget ≤500 chars (WARN above), hard cap 700
-# (FAIL above → exit 1).
+# Guard the skill-description token budget for every skill in .claude/skills/.
+# Since skills became repo-scoped (2026-08-25) this is the ONLY description guard:
+# the store it used to share the job with is gone, and so is its companion
+# scripts/check-skill-descriptions.sh. relink.sh runs this before doing anything,
+# so an oversized description fails the relink. Run it on demand after any
+# description edit too. Thresholds unchanged (decisions.md 2026-07-04): budget
+# ≤500 chars (WARN above), hard cap 700 (FAIL above → exit 1).
 # Follows symlinked skill dirs (pipelines/ skills are symlinked in) but counts
 # each resolved SKILL.md once. Handles both single-line and `description: |`
 # block-scalar YAML.

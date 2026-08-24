@@ -38,48 +38,34 @@ n=$(find "$probe/apps" -maxdepth 2 -name .dev.vars -type l 2>/dev/null | wc -l |
 rm -rf "$probe"
 [ "${n:-0}" -ge 8 ] || fail "HYGIENE-4: bootstrap linked only ${n:-0} app .dev.vars files, expected at least 8"
 
-# HYGIENE-5: manifest entries that resolve to nothing in this repo. ADVISORY, because
-# relink.sh resolves an entry against TWO roots: tooling/claude-skills (this repo) and
-# ~/.agents/skills (the printing-press pp-* skills, which live outside the repo). Only the
-# first is checkable from repo content, so a miss here is a report, not a failure — it found
-# `pp-openrouter` on the first run, which is correctly external, not broken.
-for m in tooling/claude-skills/manifest/work.txt tooling/claude-skills/manifest/personal.txt; do
-  while IFS= read -r skill; do
-    case "$skill" in ''|'#'*) continue ;; esac
-    if [ ! -d "tooling/claude-skills/$skill" ]; then
-      echo "warn HYGIENE-5: $m lists '$skill', absent from tooling/claude-skills — expected to come from ~/.agents/skills" >&2
-    fi
-  done < "$m"
-done
+# HYGIENE-5: the store is gone (2026-08-25). Skills are repo-scoped: Claude Code reads
+# .claude/skills/ for whoever opens the repo, so there is no manifest and no per-account
+# symlink to keep honest. Assert the shape, so a revert to the old scheme is loud.
+[ ! -e tooling/claude-skills ] \
+  || fail "SKILL-SCOPE: tooling/claude-skills/ is back — skills are repo-scoped now; a global store reintroduces the account dependency (decisions.md 2026-08-25)"
+[ -f .claude/codex-skills.txt ] \
+  || fail "SKILL-SCOPE: .claude/codex-skills.txt is missing — Codex has no per-repo skill path and would get nothing"
+while IFS= read -r skill; do
+  case "$skill" in ''|'#'*) continue ;; esac
+  [ -d ".claude/skills/$skill" ] \
+    || fail "SKILL-SCOPE: codex-skills.txt lists '$skill', which is not in .claude/skills"
+done < .claude/codex-skills.txt
 
 # HYGIENE-6: the commit-now split (2026-08-23). personal-stuff commits through a REPO-LEVEL
-# `commit-now` (auto-commit, pp-work workspaces, lands itself); ZluriHQ work repos use the
-# user-level `commit-now-work`. A leftover user-level `commit-now` would shadow the repo-level
-# one from either account and silently reinstate the work rules — `feature/` branch naming and
-# a commit that never lands — inside this repo.
-#
-# These are text/-path assertions rather than behavioural ones because a skill IS text: there
-# is no code to execute. The non-circular part is the SHAPE (which file exists where, and what
-# the manifests point at), not the wording.
+# `commit-now` (auto-commit, pp-work workspaces, lands itself); ZluriHQ work repos use
+# `commit-now-work`, which now ships in the PRIVATE work-skills plugin because this repo is
+# public. A `commit-now-work` here would put the work rules back inside personal-stuff.
 [ -f .claude/skills/commit-now/SKILL.md ] \
   || fail "SKILL-SPLIT: .claude/skills/commit-now/SKILL.md is missing — personal-stuff has no commit flow of its own"
-[ ! -e tooling/claude-skills/commit-now ] \
-  || fail "SKILL-SPLIT: tooling/claude-skills/commit-now/ is back; a user-level commit-now shadows the repo-level one and reimposes the work-repo rules here"
-# commit-now-work moved to the PRIVATE work-skills plugin (this repo is public).
-# Nothing to assert here any more; the gate lives outside this repo.
-for m in tooling/claude-skills/manifest/work.txt tooling/claude-skills/manifest/personal.txt; do
-  grep -qx 'commit-now' "$m" \
-    && fail "SKILL-SPLIT: $m still lists commit-now; it would be linked into the account and shadow the repo-level skill"
-done
-# The installed symlinks. ADVISORY ONLY, deliberately: whether `relink.sh` has been run is
-# machine state, not repo content. Failing on it would block a land on the VPS (no
-# ~/.claude-* dirs at all) and would also make this gate unpassable in the very commit that
-# performs the rename — relink cannot run until the rename is on main.
-for d in "$HOME/.claude-work/skills" "$HOME/.claude-personal/skills"; do
-  [ -d "$d" ] || continue
-  if [ -e "$d/commit-now" ]; then
-    echo "warn SKILL-SPLIT: $d/commit-now is still installed — run scripts/relink.sh" >&2
-  fi
-done
+[ ! -e .claude/skills/commit-now-work ] \
+  || fail "SKILL-SPLIT: .claude/skills/commit-now-work/ is back in the public repo; it belongs to the private work-skills plugin"
+
+# HYGIENE-7: the five person-level skills are duplicated into the private work-skills
+# plugin on purpose (a symlink cannot span a public and a private repo). ADVISORY: the
+# plugin is a separate checkout, so its absence is normal on the VPS and on a fresh clone.
+if [ -x scripts/sync-shared-skills.sh ]; then
+  scripts/sync-shared-skills.sh --check >/dev/null 2>&1 \
+    || echo "warn SKILL-SYNC: shared skills differ from the work-skills plugin — run scripts/sync-shared-skills.sh" >&2
+fi
 
 echo "repo hygiene OK"

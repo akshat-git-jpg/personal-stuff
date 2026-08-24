@@ -22,6 +22,7 @@ one of them, `bt-audio-guard`, with its script unbacked-up anywhere.
 | `com.kbtg.pp-work-snapshot` | Records every `pp-work` workspace's file tree **without committing it**. A commit inside a workspace fires `pp-land`, which rebases, verifies and pushes to `main` — so there is no such thing as a private "just in case" commit here. This is the safety net instead. | every 30 min | `tooling/cli/pp-work/` |
 | `com.kbtg.pp-claude-tags` | Re-patches the Claude Code binary to unlock its built-in session tags. The feature ships but the agents view hardcodes its gate to `false`, so `ctrl+e` is unreachable; this flips one byte and re-signs the binary. Every Claude Code update re-locks it, hence the watch. | every 10 min, and on any write under `~/.local/share/claude/versions` | `tooling/cli/pp-claude-tags/` |
 | `com.kbtg.bt-audio-guard` | On earbud reconnect, switches the audio **input** back to the MacBook microphone. macOS otherwise grabs the earbud mic, which forces the link into HFP call mode — mono 16 kHz, and music sounds broken. | polls every 3s (`KeepAlive`) | `tooling/cli/bt-audio-guard/` |
+| `com.kushal.skills-sync` | Copies the five person-level skills (`claude-router`, `github-router`, `humanizer`, `i-have-adhd`, `session-handoff`) from `.claude/skills/` into the **private** `work-skills` plugin, then commits and pushes it. Backstop: the repo hygiene gate already warns at commit time. Skips a dirty checkout. | daily 04:10 | `scripts/` |
 
 `mega.mac.megaupdater` also sits in `~/Library/LaunchAgents/`. It belongs to the MEGA
 desktop app, not to this repo. Leave it alone.
@@ -35,6 +36,7 @@ desktop app, not to this repo. Leave it alone.
 | pp-work-snapshot | `~/.local/state/pp-work/snapshot-timer.log` |
 | pp-claude-tags | `~/.cache/pp-claude-tags.log` |
 | bt-audio-guard | `~/Library/Logs/bt-audio-guard.log` (and `/tmp/bt-audio-guard.err`) |
+| skills-sync | `~/Library/Logs/skills-sync.log` |
 
 `logger` and `log show` do **not** work for retrieving bt-audio-guard's output on this
 machine — that is why it writes a plain file.

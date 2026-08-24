@@ -14,12 +14,12 @@ Claude drives this repo through CLIs and scripts, each already documented by its
 | Check | Command | Interpretation |
 |---|---|---|
 | Everything at once | `.claude/skills/personal-stuff-diagnostics-and-tooling/scripts/doctor.sh [--with-sites]` | wraps the three below; exit 1 = something failed |
-| Skill symlinks + manifests | `./scripts/skills-status.sh` | markdown table; exit 1 on MISSING/DANGLING/UNRESOLVED/strays |
+| Where skills load (repo / Codex mirror / private plugin) | `./scripts/skills-status.sh` | exit 1 on a dangling link or a shared-skill mismatch; warns on stale account symlinks left by the old store |
 | App typecheck/lint/test | `./scripts/check-apps.sh` | exit 1 on failure; `KNOWN_FAILING` (analytics-app:lint, tutorial-tracker-app:lint) are skipped deliberately |
 | Live URLs | `./scripts/probe-sites.sh [--include-localhost]` | parses `my-hosted-sites.md`; exit 1 + `DOWN_SITES:` line on any unreachable/5xx |
 | Orchestrate run state | `runlog-status.sh` in `.claude/skills/orchestrate/scripts/` (moved from tooling/claude-skills 2026-07-05) | prints one status word (`done` / `blocked <reason>` / `dead <plan>` / `not-started`), **always exit 0** — do not gate on its exit code |
 | Orchestrate run watcher | `watch-run.sh` (same folder) | exit 0=RUN DONE, 2=BLOCKED, 3=stale/dead, 4=never started |
-| Skill-description budget — store | `./scripts/check-skill-descriptions.sh` | scans `tooling/claude-skills/` only; WARN >500 chars, FAIL >700 → exit 1; wired into `scripts/relink.sh` (plan 059) |
+| Shared-skill drift (repo vs private `work-skills` plugin) | `./scripts/sync-shared-skills.sh --check` | exit 1 if the five person-level skills differ; exit 0 when there is no plugin checkout; wired into `relink.sh` and the hygiene gate |
 | Skill-description budget — `.claude/skills/` | `.claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh` | same thresholds, prints a per-skill table; follows symlinks without double-counting; handles `description: \|` blocks. **NOT wired into relink.sh** (run on demand after any `.claude/skills` description edit; wiring it in is a candidate follow-up, not done) |
 
 ## rtk (Rust Token Killer)
@@ -71,4 +71,4 @@ Router verified against `tooling/cli/*`, `scripts/*`, skill manifests, and owner
 - CLI inventory: `ls tooling/cli/`
 - Skill inventory: `./scripts/skills-status.sh`
 - doctor.sh still matches the scripts it wraps: read both before trusting after script changes
-- Run `scripts/check-descriptions.sh` (this skill's folder) after any `.claude/skills` description edit; the store guard `./scripts/check-skill-descriptions.sh` covers `tooling/claude-skills/` via relink.sh
+- Run `scripts/check-descriptions.sh` (this skill's folder) after any skill-description edit. Since 2026-08-25 it covers every skill in the repo — the store and its separate guard are gone — and `relink.sh` runs it before touching anything

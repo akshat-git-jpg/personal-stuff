@@ -7,11 +7,11 @@ tooling/cli/greenlight/	bash tooling/boss/test-boss.sh
 tooling/cli/greenlight/	bash tooling/cli/greenlight/test-greenlight.sh
 scripts/	bash scripts/check-repo-hygiene.sh
 scripts/	bash scripts/test-mirror-codex-skills.sh
+scripts/	bash scripts/test-sync-shared-skills.sh
 pipelines/video/visuals-flow/	cd pipelines/video/visuals-flow && bash scripts/check.sh
 pipelines/video/intro-studio/	cd pipelines/video/intro-studio && bash scripts/check.sh
 apps/tutorial-tracker-app/	cd apps/tutorial-tracker-app && npm test
 .claude/hooks/	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh
 .claude/skills/	bash .claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh
-tooling/claude-skills/	bash scripts/check-skill-descriptions.sh
 tooling/press-clis/	cd tooling/press-clis/paypal-txns && go build ./... && go test ./...
 .claude/settings.json	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh

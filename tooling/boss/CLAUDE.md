@@ -499,7 +499,7 @@ note still describing unfixed behaviour says so in place.
 - **The main checkout does not fast-forward itself** after a `pp-land` lands your commit.
   `origin/main` moves; local `HEAD` stays put. A file you edited in main, committed via a
   workspace, then reset to local `HEAD` goes STALE — which matters for live-read files such as
-  a symlinked skill under `tooling/claude-skills/`. Restore from origin, not HEAD:
+  a skill under `.claude/skills/`. Restore from origin, not HEAD:
   `git show origin/main:<path> > <path>`. Check `git rev-parse HEAD` against `origin/main`
   before trusting anything read out of the main checkout.
 

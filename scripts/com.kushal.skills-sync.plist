@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kushal.skills-sync</string>
+
+  <!-- Copy the five person-level skills from personal-stuff into the PRIVATE
+       work-skills plugin, then commit and push that plugin. Backstop only: the
+       repo hygiene gate already warns at commit time. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/kbtg/codebase/personal-stuff/scripts/skills-sync-job.sh</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <!-- Daily at 04:10. Off the hour so it does not land with every other job. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>4</integer>
+    <key>Minute</key>
+    <integer>10</integer>
+  </dict>
+
+  <!-- Not RunAtLoad: a push on every login is noise, and drift is never urgent. -->
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/kbtg/Library/Logs/skills-sync.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/kbtg/Library/Logs/skills-sync.log</string>
+</dict>
+</plist>

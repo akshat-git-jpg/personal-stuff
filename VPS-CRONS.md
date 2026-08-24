@@ -454,7 +454,7 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 
 ### repo-sync
 
-- **What:** keeps the VPS current for **interactive** Claude (Remote Control / Claude mobile) — `git pull` `personal-stuff` + rebuild `~/.claude/skills` from `manifest/personal.txt`
+- **What:** keeps the VPS current for **interactive** Claude (Remote Control / Claude mobile) — `git pull` `personal-stuff` + install the push gate. It no longer links skills: since 2026-08-25 skills are repo-scoped, so a session running inside the checkout reads `.claude/skills` directly.
 - **When:** every 15 min (`*/15 * * * *` UTC)
 - **Wrapper:** `/srv/crons/repo-sync/run.sh`
 - **Project code:** `/srv/projects/personal-stuff/scripts/vps-sync.sh`

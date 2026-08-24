@@ -22,7 +22,8 @@ Everything live in this repo walked the same path: parked idea → pressure-test
 |---|---|---|
 | Personal product (someone uses it) | `apps/<kebab-name>/` | inventories (station 5) |
 | Money-making / business project | `pipelines/<name>/` | `pipelines/CLAUDE.md` folder map |
-| Skill / CLI / MCP for driving work with Claude | `tooling/` | skill: manifest + `relink.sh`; CLI: **personal-stuff-diagnostics-and-tooling** router |
+| Skill for driving work with Claude | `.claude/skills/` | loads for anyone who opens the repo, on any account; nothing to register |
+| CLI / MCP for driving work with Claude | `tooling/` | **personal-stuff-diagnostics-and-tooling** router |
 | Deployable Worker, even when a pipeline drives it | `apps/` (rule set by the redirector) | inventories |
 | Scheduled job | code in `personal-stuff`, wrapper in `vps-crons` | `VPS-CRONS.md` lifecycle |
 | Voice/avatar reference asset | asset hubs `pipelines/video/tts/` / `pipelines/video/heygen/` (decided 2026-07-12); generated media OUTSIDE the repo in `~/kb-scratch/video/{tts,heygen}/<pipeline>/` | hub manifest (`OUTPUTS.md` / `RENDERS.md`); policy home: **personal-stuff-change-control**; domain knowledge (engines, sync, costs): **video-and-tts-reference** |
@@ -42,7 +43,7 @@ Every new folder gets `README.md` + `CLAUDE.md` from day one (**personal-stuff-d
 
 **New landing page**: assets-only Worker under `apps/pinterest-landing-pages/<niche>/` — copy keto-kitchen's `wrangler.jsonc`; `npx wrangler deploy` auto-creates DNS+SSL.
 
-**New skill**: author in `tooling/claude-skills/<name>/` per `superpowers:writing-skills`, description within budget (rule + rationale: **personal-stuff-change-control**; `scripts/check-skill-descriptions.sh` — wired into `relink.sh` since plan 059 — warns >500 chars, fails >700), add to `manifest/work.txt` and/or `personal.txt`, `./scripts/relink.sh`, restart session. (Repo-operating skills like this library live in `.claude/skills/` instead.)
+**New skill**: author in `.claude/skills/<name>/` — or `pipelines/.claude/skills/<name>/` if it is pipelines-only — per `superpowers:writing-skills`, description within budget (rule + rationale: **personal-stuff-change-control**; `.claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh` warns over 500 chars, fails over 700). Then restart the session; that is the whole flow. There is no manifest to update and no relink needed — skills are repo-scoped, so the folder IS the registration. Two exceptions: add the name to `.claude/codex-skills.txt` only if Codex should carry it globally, and run `./scripts/sync-shared-skills.sh` only if it is one of the five person-level skills duplicated into the private `work-skills` plugin.
 
 **New CLI**: generate with the `printing-press` skill rather than hand-writing.
 
