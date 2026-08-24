@@ -85,6 +85,20 @@ export function buildBeatVars(beat, { workdir, duration }) {
 // against card-library/ — the one catalogue the intro and the body share
 // (plan 229). Mirrors lib/render.mjs's renderOne staging block, verbatim
 // per plan 220's "The render machinery to REUSE" section.
+// Deleting a staging dir must never fail a render that already succeeded.
+// On Windows the dir was a child process's cwd, and the handle can outlive
+// spawnSync's return by longer than a retry budget — rmSync then throws EPERM
+// from a `finally`, which discards a finished render and every other beat in
+// the pool. A leaked temp dir under os.tmpdir() costs nothing and the OS
+// reclaims it; a lost render costs the whole step. (Windows, 2026-08-23.)
+function rmQuiet(dir) {
+  try {
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  } catch (e) {
+    console.warn(`note: could not remove staging dir ${dir} (${e.code ?? e.message}) — left for the OS to reclaim`);
+  }
+}
+
 function renderCardBeat(beat, { renderDir, cacheDir, noCache, workdir, brand }) {
   const stagedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hf-intro-simple-'));
   try {
@@ -134,7 +148,7 @@ function renderCardBeat(beat, { renderDir, cacheDir, noCache, workdir, brand }) 
     }
     return { path: outPath, format };
   } finally {
-    fs.rmSync(stagedDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    rmQuiet(stagedDir);
   }
 }
 
@@ -287,7 +301,7 @@ export async function renderSimple(slugOrWorkdir, { jobs = DEFAULT_JOBS, noCache
     }
     return { path: outPath, standIn };
   } finally {
-    fs.rmSync(cutDir, { recursive: true, force: true });
+    rmQuiet(cutDir);
   }
 }
 

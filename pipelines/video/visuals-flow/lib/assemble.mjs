@@ -46,6 +46,17 @@ function jobKey(args) {
 const EPS = 0.05;
 export const CANVAS = { w: 1920, h: 1080, fps: 30 };
 
+// HeyGen's own audio (and the lips synced to it) consistently arrives 18ms
+// AFTER the master voiceover's matching speech — measured 2026-08-24 by
+// cross-correlating each clip's own audio against master.wav on
+// best-no-code-automation-tool, four clips (s01/s05/s09/s17) spread across the
+// full runtime, all agreeing to within 0.1ms. Fixed offset, not per-clip
+// drift, so one constant corrects it: seek AVATAR_LIPSYNC_LEAD further into
+// the source clip than the naive timeline math gives, so the frame that lands
+// on the master's wall-clock position is the one whose lips are already
+// mid-word rather than the one 18ms behind it.
+export const AVATAR_LIPSYNC_LEAD = 0.018;
+
 // How many frames a concat piece gets, given where it ENDS on the master clock
 // and how many frames the concat has already committed.
 //
@@ -707,7 +718,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         // so this works in both the filter_complex and the plain -vf branch.
         seekArgs = ['-ss', '0', '-t', '0.05'];
       } else {
-        seekArgs = ['-sseof', '-0.05'];
+        // -0.05 (50ms before EOF) sometimes lands past the last decodable
+        // frame on the trailing sliver, and ffmpeg writes a file with NO
+        // video stream at all -- silently, exit 0. The concat demuxer then
+        // drops that entry instead of failing, so the whole cut ships short
+        // by whatever that segment's duration was (best-no-code-automation-tool,
+        // 2026-08-24: 0-byte tail segment, final video 2.34s short of the
+        // audio). -0.5 gives real margin into a decodable frame.
+        seekArgs = ['-sseof', '-0.5'];
       }
     } else if (seg.kind === 'avatar') {
       const job = avatarJobs.find(j => j.id === seg.id);
@@ -719,7 +737,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       } else {
         src = job.file;
         const contentStartTrim = Math.max(0, startTrim - pStart);
-        seekArgs = ['-ss', String(seg.start + pStart - job.start + contentStartTrim)];
+        // + AVATAR_LIPSYNC_LEAD: HeyGen's own audio (and the lips synced to
+        // it) arrives 18ms after this same instant in the master, so the
+        // frame that actually lines up with the master here is 18ms further
+        // into the source than the raw timeline math gives.
+        const seekPos = Math.max(0, seg.start + pStart - job.start + contentStartTrim + AVATAR_LIPSYNC_LEAD);
+        seekArgs = ['-ss', String(seekPos)];
       }
     } else if (seg.kind === 'graphic') {
       const cue = resolved.find(c => c.id === seg.id);
@@ -971,7 +994,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
           });
         });
 
+        // ffmpeg can exit 0 while writing a file with NO video stream at all
+        // -- a seek landing past the last decodable frame does exactly this,
+        // silently. The concat demuxer then drops that entry rather than
+        // failing, so a bad segment ships as missing seconds instead of an
+        // error (best-no-code-automation-tool, 2026-08-24: a 0-byte tail
+        // segment cost 2.34s with no error anywhere). Exit code alone is not
+        // proof of a usable clip -- the file must exist and be non-empty too.
+        const outSize = fs.existsSync(job.outFile) ? fs.statSync(job.outFile).size : 0;
         if (res.code !== 0) failed = { job, err: res.err };
+        else if (outSize === 0) failed = { job, err: `${res.err}\n(ffmpeg exited 0 but wrote a 0-byte file -- likely a seek past the last decodable frame)` };
         else {
           cacheMisses++;
           fs.copyFileSync(job.outFile, cachePath);

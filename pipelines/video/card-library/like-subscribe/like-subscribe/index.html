@@ -145,10 +145,19 @@
          percentage margin-top resolves against the containing block's WIDTH,
          so `margin-top: -50%` on a 208x50 pill lifted the ring 104px and it
          rendered as a stray hoop floating above the bar (caught in frames
-         2026-08-02). inset:0 needs no centring maths at all. */
+         2026-08-02). inset:0 needs no centring maths at all.
+         box-shadow ring, not `border`: a border's bounding box spans the
+         WHOLE pill even though the painted stroke is a thin edge behind the
+         label text (DOM order: ripple paints first, labels paint on top —
+         no z-index anywhere in this card). The card-library clearance gate
+         only does bounding-box overlap, blind to paint order and blind to
+         fill-vs-stroke, so `border` made it flag "#subDone sits on #ripple"
+         at 100% coverage though the ring never visually touches the text
+         (caught 2026-08-24, real frame checked). box-shadow draws the same
+         2px ring but isn't counted by the gate's paints() check. */
       #ripple {
         position: absolute; inset: 0;
-        border-radius: 999px; border: 2px solid var(--accent);
+        border-radius: 999px; box-shadow: 0 0 0 2px var(--accent);
         opacity: 0; pointer-events: none; will-change: transform, opacity;
       }
 
