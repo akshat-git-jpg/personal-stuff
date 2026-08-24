@@ -11,6 +11,9 @@
 #   .claude/skills/                             -> ~/.codex/skills/ (Codex view)
 #   a name in both = shared; in one = exclusive to that account.
 #
+# It also points the PERSONAL account's memory store for this repo at the WORK
+# account's, so both accounts share one store instead of drifting apart.
+#
 # Machines NOT running the Mac dual-account scheme (no ~/.claude-work or
 # ~/.claude-personal, e.g. a bare `claude` launch on Windows/Linux) instead get
 # personal.txt linked straight into the default ~/.claude/skills — see the
@@ -85,6 +88,48 @@ fi
 REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
 source "$SCRIPTS_DIR/lib/guard-install.sh"
 guard_install "$REPO_ROOT" || true
+
+# --- one memory store for this repo, shared by both accounts -----------------
+# A memory store's path is <config dir>/projects/<repo path with / as ->/memory,
+# so two config dirs mean two stores for the same repo and nothing syncs them.
+# By 2026-08-24 they had drifted into 22 files on work and 8 on personal, with
+# the personal side still describing the deleted `captain` orchestrator. Pointing
+# personal at work's directory makes drift impossible rather than merely fixed.
+# Dual-account machines only: a bare `claude` reads ~/.claude and has one store.
+link_shared_memory() {
+  local main_root slug work_mem pers_proj pers_mem
+  # The store is keyed by the SESSION's cwd, which is the main checkout - not a
+  # pp-work workspace. `git worktree list` puts the main worktree first, so this
+  # links the right slug even when relink is run from a leased workspace.
+  main_root="$(git -C "$REPO_ROOT" worktree list 2>/dev/null | head -1 | awk '{print $1}')"
+  [[ -n "$main_root" ]] || main_root="$REPO_ROOT"
+  slug="$(printf '%s' "$main_root" | sed 's|/|-|g')"
+  work_mem="${CLAUDE_WORK_CONFIG_DIR:-$HOME/.claude-work}/projects/$slug/memory"
+  pers_proj="${CLAUDE_PERSONAL_CONFIG_DIR:-$HOME/.claude-personal}/projects/$slug"
+  pers_mem="$pers_proj/memory"
+
+  mkdir -p "$work_mem" "$pers_proj"
+
+  if [[ -L "$pers_mem" ]]; then
+    [[ "$(readlink "$pers_mem")" == "$work_mem" ]] && return 0
+    rm "$pers_mem"
+  elif [[ -d "$pers_mem" ]]; then
+    # A real directory with memories in it is somebody's work. Never clobber it.
+    if [[ -n "$(ls -A "$pers_mem")" ]]; then
+      echo "memory: $pers_mem is a non-empty real directory." >&2
+      echo "        Merge its files into $work_mem, then rerun." >&2
+      return 1
+    fi
+    rmdir "$pers_mem"
+  fi
+
+  ln -s "$work_mem" "$pers_mem"
+  echo "memory: personal store -> $work_mem"
+}
+
+if [[ "$USING_DUAL_ACCOUNT" -eq 1 ]]; then
+  link_shared_memory || status=$?
+fi
 
 echo "done. Restart any running claude-work / claude-personal / default session to pick up changes."
 exit "$status"
