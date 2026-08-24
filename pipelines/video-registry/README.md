@@ -24,7 +24,13 @@ node bin/vreg.mjs where "$KEY"
 
 node bin/vreg.mjs list        # every registered video
 node bin/vreg.mjs check       # fail on any videos/ dir the registry doesn't know
-```
+node bin/vreg.mjs sync        # seed registry from the tracker
+
+## Environment
+
+`sync` requires `CF_ACCOUNT_ID` and `CF_API_TOKEN` to read the tracker database.
+These must be set in `pipelines/.env`.
+
 
 `ensure` is idempotent: whichever pipeline reaches a video first mints the key,
 the other looks it up. Neither owns naming.

@@ -62,6 +62,7 @@ other starts re-slugifying, which is the bug this folder exists to kill.
 | `vreg check` | Exits 1 listing any `videos/` directory the registry does not know. |
 | `vreg mint <key> [--title]` | Register a new key; fails if the name is taken. `ensure` is usually what you want. |
 | `vreg alias <key> <other-name>` | Point another name at an existing key. |
+| `vreg sync [--dry-run]` | Seed registry from the tracker. |
 
 `vreg where` is the cross-pipeline question answered:
 
@@ -121,8 +122,8 @@ No dependencies, `node:` built-ins only. Do not add a `package.json` with deps â
 
 ## Traps
 
-- **Do not add a `stages` or `paths` field to an entry.** The paths are derivable
-  from the key; recording them creates a second source of truth that drifts.
+- **Do not add a `stages`, `paths`, `published`, `stage`, `yt_id`, or `flows` field to an entry.** The paths are derivable
+  from the key; recording them creates a second source of truth that drifts. `card_id` is the ONLY permitted new field, to link the tracker.
 - **Name similarity is not evidence that two videos are one video.**
   `ai-avatar-generators` (HeyGen/Synthesia talking heads) and
   `consistent-ai-influencer` (Nano Banana/Flux image consistency) look like a
