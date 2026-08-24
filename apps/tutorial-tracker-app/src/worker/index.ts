@@ -1037,18 +1037,13 @@ app.post("/api/link-preview", async (c) => {
   
   let videoCode = (target.video_code as string)?.trim();
   if (!videoCode) {
-    const dbCode = await clickstore.videoCodeForTitle(c.env.DB, title);
-    if (dbCode) {
-      videoCode = dbCode;
-    } else {
-      // Reserve a real short-code NOW so the preview (and any copied description)
-      // shows the FINAL links, not a "(new)" placeholder that would break if pasted.
-      // This only creates the videos-table id + stores the code on the card — the
-      // redirects (KV), the links rows, and the description write all still wait
-      // for Confirm & Save. So no money-affecting artifact is created here.
-      videoCode = generateVideoCode(await clickstore.existingCodes(c.env.DB));
-      await clickstore.insertVideo(c.env.DB, videoCode, title);
-    }
+    // Reserve a real short-code NOW so the preview (and any copied description)
+    // shows the FINAL links, not a "(new)" placeholder that would break if pasted.
+    // This only creates the videos-table id + stores the code on the card — the
+    // redirects (KV), the links rows, and the description write all still wait
+    // for Confirm & Save. So no money-affecting artifact is created here.
+    videoCode = generateVideoCode(await clickstore.existingCodes(c.env.DB));
+    await clickstore.insertVideo(c.env.DB, videoCode, title);
     await getStore(c.env).updateCells(rowId, { video_code: videoCode });
     await bustBoardCache(c.env);
   }
@@ -1089,8 +1084,7 @@ app.post("/api/link-confirm", async (c) => {
   
   let previewVideoCode = (target.video_code as string)?.trim();
   if (!previewVideoCode) {
-    const dbCode = await clickstore.videoCodeForTitle(c.env.DB, title);
-    previewVideoCode = dbCode ?? "(new)";
+    previewVideoCode = "(new)";
   }
   const previewItems = buildPlan(resolved, previewVideoCode, c.env.LINK_DOMAIN);
   const hash = await planHash(previewVideoCode, previewItems);

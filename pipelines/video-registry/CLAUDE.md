@@ -63,6 +63,7 @@ other starts re-slugifying, which is the bug this folder exists to kill.
 | `vreg mint <key> [--title]` | Register a new key; fails if the name is taken. `ensure` is usually what you want. |
 | `vreg alias <key> <other-name>` | Point another name at an existing key. |
 | `vreg sync [--dry-run]` | Seed registry from the tracker. |
+| `vreg migrate-keys [--dry-run\|--apply]` | Make the canonical key the primary key in clicks-db and the script desk. **Dry run is the default**; `--apply` writes, and boss runs it as a plan's deploy step, never a crew. |
 
 `vreg where` is the cross-pipeline question answered:
 
@@ -113,12 +114,45 @@ any `test_cmd` yet: a scratch workdir would turn a merge gate red. Once the
 ```
 videos.json            the registry — tracked, hand-editable, sorted by key
 lib/registry.mjs       resolveKey / ensure / mint / addAlias / whereIs / unregisteredDirs
+lib/migrate-keys.mjs   the pure D1 statement planners + the invariant guard
 bin/vreg.mjs           the CLI
 registry.test.mjs      node --test registry.test.mjs
 ```
 
 No dependencies, `node:` built-ins only. Do not add a `package.json` with deps —
 `pipelines/` has no shared Node package root.
+
+## migrate-keys: the statement order is load-bearing
+
+`lib/migrate-keys.mjs` emits, per clicks-db video, exactly three statements in
+exactly this order:
+
+```
+1. INSERT INTO videos ... SELECT ... WHERE video_code = <old>
+2. UPDATE links SET video_code = <new> WHERE video_code = <old>
+3. DELETE FROM videos WHERE video_code = <old>
+```
+
+clicks-db has exactly **one** foreign key: `links.video_code -> videos.video_code`.
+Insert-then-repoint-then-delete keeps that constraint satisfied at every single
+step: after (1) both rows exist, after (2) every child points at a row that is
+already there, and (3) removes a row nothing references any more.
+
+**Any other order transiently violates the foreign key.** The order is chosen
+precisely so that no `PRAGMA foreign_keys` and no `defer_foreign_keys` is needed
+anywhere. If a refactor makes you want to add a pragma, the order was changed —
+put it back instead. `registry.test.mjs` pins the order, and the plan-241 merge
+gate reverses the emitted array to prove those assertions actually run.
+
+Three more things this verb will never do: write to `clicks`, change a
+`links.slug` (those strings are inside published YouTube descriptions), or
+change a desk `videos.token` (shared desk links resolve by it). `--apply` reads
+the `INVARIANT_QUERIES` counts before and after and **exits non-zero** on any
+drift, because boss runs it unattended.
+
+Where the mapping comes from: `cards.slug` is a real tracker column, but
+`video_code` is not — the tracker stores it inside the card's `extra_json` blob,
+so the verb `json_extract`s it out.
 
 ## Traps
 
