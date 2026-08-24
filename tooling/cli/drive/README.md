@@ -17,4 +17,4 @@ All subcommands take `--account EMAIL`.
 
 Idempotent: folders are found-or-created; files are skipped if a same-named file already exists in that folder (`--overwrite` to replace). `root` or omitted `--parent` means My Drive root.
 
-> Stub scaffolded by `/audit-repo-route` — flesh out as needed.
+> Stub scaffolded by the `routing` maintainer job — flesh out as needed.
