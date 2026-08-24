@@ -18,6 +18,8 @@ new_env() {
   rm -rf "$TMP/repo" "$TMP/home" "$TMP/foreign"
   mkdir -p "$TMP/repo/scripts" "$TMP/repo/.claude/skills" "$TMP/home/skills" "$TMP/foreign"
   cp "$MIRROR" "$TMP/repo/scripts/"
+  mkdir -p "$TMP/repo/tooling/claude-skills/manifest"
+  printf 'alpha\nbeta\n' > "$TMP/repo/tooling/claude-skills/manifest/codex.txt"
   mkdir -p "$TMP/repo/.claude/skills/alpha"; echo "# alpha" > "$TMP/repo/.claude/skills/alpha/SKILL.md"
   mkdir -p "$TMP/repo/pipelines/.claude/skills/beta"; echo "# beta" > "$TMP/repo/pipelines/.claude/skills/beta/SKILL.md"
   ln -sfn ../../pipelines/.claude/skills/beta "$TMP/repo/.claude/skills/beta"
@@ -63,7 +65,14 @@ grep -q "degraded symlink" <<<"$out" && ok "degraded source reported" || bad "de
 ( cd "$TMP/repo" && CODEX_HOME="$TMP/home" ./scripts/mirror-codex-skills.sh >/dev/null 2>&1 ) \
   && bad "exits non-zero on degraded" || ok "exits non-zero on degraded"
 
-echo "6. idempotent"
+echo "6. prunes a link once its name leaves codex.txt"
+new_env; run >/dev/null
+printf 'beta\n' > "$TMP/repo/tooling/claude-skills/manifest/codex.txt"
+run >/dev/null
+[[ -e "$TMP/home/skills/alpha" ]] && bad "de-listed link pruned" || ok "de-listed link pruned"
+[[ -f "$TMP/home/skills/beta/SKILL.md" ]] && ok "still-listed link kept" || bad "still-listed link kept"
+
+echo "7. idempotent"
 new_env; run >/dev/null; a="$(run)"; b="$(run)"
 [[ "$a" == "$b" ]] && ok "second run matches first" || bad "second run matches first"
 
