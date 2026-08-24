@@ -18,6 +18,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Commit rules in this repo (branch naming, `commit-now` overrides, plan-vs-inline) | `.claude/skills/personal-stuff-change-control/SKILL.md` |
 | What runs where — Cloudflare + VPS + DNS inventory | [`INFRA.md`](INFRA.md) |
 | Cron architecture (Pattern B) | [`VPS-CRONS.md`](VPS-CRONS.md) |
+| Background jobs on the MacBook (launchd agents) | [`MAC-LAUNCHD.md`](MAC-LAUNCHD.md) |
 | Every live URL across this repo (incl. `pipelines/`) | [`my-hosted-sites.md`](my-hosted-sites.md) |
 | Who I am, active bets, product inventory, idea backlog | `context/` (start at [`context/CLAUDE.md`](context/CLAUDE.md)) |
 | A custom Claude skill (source of truth) | cross-repo: `tooling/claude-skills/` (manifest+relink); repo-operating: `.claude/skills/`; pipelines-domain: source in `pipelines/.claude/skills/`, also symlinked into `.claude/skills/` so a root-level session sees them |
