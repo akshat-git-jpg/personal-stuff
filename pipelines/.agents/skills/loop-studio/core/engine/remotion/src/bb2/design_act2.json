@@ -1,0 +1,745 @@
+[
+ {
+  "id": 1,
+  "start": 0,
+  "end": 2.4,
+  "narration": "But stay with me, because it gets worse.",
+  "mode": "full",
+  "object": "Talking head + the cracked grey business.md left over from Act 1",
+  "action": "Full-screen face for the direct 'stay with me' address. The cracked, frozen business.md from the end of Act 1 lingers small at bottom-left and visibly DIMS to 20% opacity exactly on 'worse' \u2014 the problem literally darkening in the room with him. Silver headline wipes on above it. No eyebrow yet: 'number two' hasn't been spoken, so nothing on canvas may pre-announce it.",
+  "continuity": "Carries the cracked grey business.md exactly where Act 1 left it; nothing else on canvas. Its dimming is the transition into Act 2's deeper problem.",
+  "copy": {
+   "headline": "IT GETS WORSE",
+   "marker": "WORSE",
+   "mono_label": "business.md"
+  },
+  "sync": [
+   {
+    "at": 0.4,
+    "event": "face cut in, cracked business.md visible bottom-left"
+   },
+   {
+    "at": 1.5,
+    "event": "headline 'IT GETS WORSE' marker-wipes on WORSE"
+   },
+   {
+    "at": 2,
+    "event": "business.md dims to 20% opacity on 'worse'"
+   }
+  ]
+ },
+ {
+  "id": 2,
+  "start": 2.4,
+  "end": 6.2,
+  "narration": "Because the files that you have are doing the wrong job. That is number two.",
+  "mode": "panel",
+  "object": "business.md physically failing to hold a money fact",
+  "action": "Face snaps to the lime-offset panel (x74,y52,s0.92); ALL graphics live left of x=52% with 4% clearance. business.md re-lights center-left. A lime money event card ('payout \u20ac3,900') is PRESSED against the file on 'wrong job' \u2014 it cannot grip, SLIDES down the file face and drops off the bottom edge, leaving a grey smear where it touched. The file failing to hold the fact IS 'doing the wrong job'. NumBadge '02' stamps beside it exactly on 'number two' \u2014 the first moment the problem is numbered.",
+  "continuity": "Same cracked business.md from beat 1, re-lit and moved into the left column. The money card is the exact lime-square card species from Act 1's stream.",
+  "copy": {
+   "headline": "THE WRONG JOB",
+   "marker": "WRONG",
+   "num_badge": "02",
+   "event_card": "payout \u20ac3,900",
+   "mono_label": "business.md"
+  },
+  "sync": [
+   {
+    "at": 2.8,
+    "event": "panel snap; business.md re-lights in left column"
+   },
+   {
+    "at": 3.8,
+    "event": "headline 'THE WRONG JOB' marker-wipes on WRONG"
+   },
+   {
+    "at": 4.4,
+    "event": "money card presses against file, slides down and drops off on 'wrong job'"
+   },
+   {
+    "at": 5.5,
+    "event": "NumBadge 02 stamps on 'number two'"
+   }
+  ]
+ },
+ {
+  "id": 3,
+  "start": 6.2,
+  "end": 9.3,
+  "narration": "So files are for tasks, not facts.",
+  "mode": "panel",
+  "object": "business.md accepting a task chip, rejecting a fact chip",
+  "action": "The law, enacted twice in three seconds at the same slot so the contrast is unmissable: a silver task chip ('\u2610 send invoice') slides into business.md and CLICKS flush into a line slot \u2014 lime tick pops on 'tasks'. Then the fact chip ('MRR \u20ac15,240') slides at the SAME slot and BOUNCES off with a small physical recoil \u2014 grey \u2715 stamps on 'facts'. Fit vs no-fit is the whole sentence; the bounced MRR chip drifts to rest at bottom-left instead of vanishing (it gets its payoff in beat 12).",
+  "continuity": "Same business.md in the same left-column position; the fallen money card from beat 2 fades as the two demo chips arrive. The rejected MRR chip PERSISTS bottom-left as an open wound.",
+  "copy": {
+   "headline": "TASKS, NOT FACTS",
+   "marker": "FACTS",
+   "chip_fits": "\u2610 send invoice",
+   "chip_bounces": "MRR \u20ac15,240",
+   "verdicts": [
+    "\u2713",
+    "\u2715"
+   ]
+  },
+  "sync": [
+   {
+    "at": 6.6,
+    "event": "headline 'TASKS, NOT FACTS' on, marker-wipe on FACTS"
+   },
+   {
+    "at": 7.2,
+    "event": "task chip clicks flush, lime tick on 'tasks'"
+   },
+   {
+    "at": 8.3,
+    "event": "fact chip bounces off with recoil, grey \u2715 stamps on 'facts'; chip settles bottom-left"
+   }
+  ]
+ },
+ {
+  "id": 4,
+  "start": 9.3,
+  "end": 16.5,
+  "narration": "Okay, so plot twist. I use markdown files every single day and my whole system is full of them.",
+  "mode": "panel",
+  "object": "The file-browser window (my-second-brain/) bursting open with skill files",
+  "action": "Left column only (hard stop x=52%): on 'plot twist' the established file-browser window card-flips in \u2014 and business.md, the file we just watched fail, is sitting inside it as an ordinary row, ALIVE and lime-ticked. That reversal IS the twist: the villain file is one of his daily drivers. On 'whole system is full of them' the skills/ row expands and rows CASCADE in fast \u2014 video-edit.md, invoice.md, thumbnail.md, deploy.md, broll.md \u2014 while a fixed JetBrains Mono counter tile ticks 4 \u2192 38 FILES. Abundance, not rejection.",
+  "continuity": "business.md and its chips from beat 3 collapse into one row of this same file-browser window \u2014 the abused file lives inside the system we now open. The rejected MRR chip stays parked bottom-left, untouched.",
+  "copy": {
+   "headline": "FULL OF MARKDOWN",
+   "marker": "FULL",
+   "window_title": "my-second-brain/",
+   "rows": [
+    "me.md",
+    "business.md",
+    "priorities.md",
+    "skills/ \u25b8"
+   ],
+   "cascade_rows": [
+    "video-edit.md",
+    "invoice.md",
+    "thumbnail.md",
+    "deploy.md",
+    "broll.md"
+   ],
+   "counter": "38 FILES"
+  },
+  "sync": [
+   {
+    "at": 9.8,
+    "event": "window card-flips in on 'plot twist'; business.md visible inside, alive"
+   },
+   {
+    "at": 11.6,
+    "event": "four base rows settle on 'markdown files'"
+   },
+   {
+    "at": 13,
+    "event": "skills/ row expands"
+   },
+   {
+    "at": 13.6,
+    "event": "rows cascade during 'whole system is full of them'"
+   },
+   {
+    "at": 15.9,
+    "event": "counter ticks up and lands 38 FILES; headline marker-wipes FULL"
+   }
+  ]
+ },
+ {
+  "id": 5,
+  "start": 16.5,
+  "end": 22.8,
+  "narration": "So here's one, and this one is absolutely amazing. It saves me a lot of time. It saves me a lot of money.",
+  "mode": "panel",
+  "object": "invoice.md opening out of the browser into its own window",
+  "action": "One row (invoice.md) gets the two-layer marker wipe on 'here's one', then GROWS out of the list into its own dark app window with title bar + 3 dots \u2014 the browser recedes behind it, still visible. Two receipt chips stamp beside it landing exactly on their words: silver 'SAVES 4 HRS/WK' on 'time', lime-bordered money chip 'SAVES \u20ac400/MO' on 'money'. Genuine praise \u2014 this beat sells the file hard so the betrayal in beats 7-8 lands harder.",
+  "continuity": "Same file-browser window from beat 4; it slides back-left as the invoice.md window opens in front. Counter tile and the parked MRR chip stay put.",
+  "copy": {
+   "headline": "THIS ONE IS AMAZING",
+   "marker": "AMAZING",
+   "window_title": "invoice.md",
+   "chip_time": "SAVES 4 HRS/WK",
+   "chip_money": "SAVES \u20ac400/MO"
+  },
+  "sync": [
+   {
+    "at": 17.2,
+    "event": "invoice.md row marker-wipes lime on 'here's one'"
+   },
+   {
+    "at": 18.2,
+    "event": "row grows into its own window; headline on, marker AMAZING"
+   },
+   {
+    "at": 20.4,
+    "event": "silver time chip stamps on 'time'"
+   },
+   {
+    "at": 21.9,
+    "event": "lime money chip stamps on 'money'"
+   }
+  ]
+ },
+ {
+  "id": 6,
+  "start": 22.8,
+  "end": 28.5,
+  "narration": "But please look what's inside: steps, rules, commands.",
+  "mode": "hidden",
+  "object": "The inside of invoice.md self-writing in three labeled groups",
+  "action": "Full-canvas: the invoice.md window enlarges to hero size, single focal point, and its contents SELF-TYPE in three visually distinct groups, each mono group-label stamping exactly on its spoken word \u2014 numbered lines on 'steps' (1. pull unpaid orders  2. build the PDF  3. send), '>'-prefixed lines on 'rules' (> always reverse-charge VAT), '$'-prefixed lines on 'commands' ($ python invoice.py --send). The viewer literally reads what a skill file is; 'markdown' becomes pictured lines of instruction, never just a named format.",
+  "continuity": "Same invoice.md window from beat 5, promoted to full canvas; the two savings chips shrink and dock into its title bar as small badges. Face hides. Browser window and MRR chip exit softly left.",
+  "copy": {
+   "headline": "LOOK INSIDE",
+   "marker": "INSIDE",
+   "eyebrow": "invoice.md",
+   "group_labels": [
+    "steps",
+    "rules",
+    "commands"
+   ],
+   "sample_lines": [
+    "1. pull unpaid orders",
+    "2. build the PDF",
+    "> always reverse-charge VAT",
+    "$ python invoice.py --send"
+   ]
+  },
+  "sync": [
+   {
+    "at": 23.3,
+    "event": "window enlarges to hero; headline marker-wipes INSIDE"
+   },
+   {
+    "at": 25.4,
+    "event": "'steps' label stamps, numbered lines type in"
+   },
+   {
+    "at": 26.3,
+    "event": "'rules' label stamps, > lines type in"
+   },
+   {
+    "at": 27.1,
+    "event": "'commands' label stamps, $ lines type in"
+   }
+  ]
+ },
+ {
+  "id": 7,
+  "start": 28.5,
+  "end": 33.6,
+  "narration": "It's a recipe, and there are zero facts about my business.",
+  "mode": "hidden",
+  "object": "The file re-framed as a recipe card, then scanned and found factless",
+  "action": "The window's title bar re-stamps with a mono tag 'RECIPE' and a thin card border draws around the contents \u2014 cookbook framing, no line moves (zero reflow). Then a lime scanner line SWEEPS top-to-bottom over every line hunting for facts; the drama is that NOTHING lights up \u2014 the sweep passes clean through all twelve lines and a fixed mono counter tile lands 'FACTS FOUND: 0' exactly on 'zero facts'. Playfair 'just instructions.' breathes in under the card as the quiet counterpoint.",
+  "continuity": "Exact same window and contents from beat 6; only the tag, border, and scan layer are added on top. Docked savings badges persist in the title bar.",
+  "copy": {
+   "headline": "IT'S A RECIPE",
+   "marker": "RECIPE",
+   "tag": "RECIPE",
+   "counter_tile": "FACTS FOUND: 0",
+   "playfair": "just instructions."
+  },
+  "sync": [
+   {
+    "at": 29.2,
+    "event": "'RECIPE' tag stamps on title bar; headline marker-wipes RECIPE"
+   },
+   {
+    "at": 30.2,
+    "event": "cookbook border draws around contents"
+   },
+   {
+    "at": 31.2,
+    "event": "lime scanner sweep begins, lighting nothing"
+   },
+   {
+    "at": 32.6,
+    "event": "counter tile lands 'FACTS FOUND: 0' on 'zero facts'"
+   },
+   {
+    "at": 33.2,
+    "event": "Playfair 'just instructions.' fades in"
+   }
+  ]
+ },
+ {
+  "id": 8,
+  "start": 33.6,
+  "end": 37.6,
+  "narration": "No revenue, no customer, nothing that can change.",
+  "mode": "hidden",
+  "object": "A search bar interrogating the recipe \u2014 a growing column of grey \u2715 chips takes over the frame",
+  "action": "REPLAY SPIKE. The recipe window DIMS to 40% and slides half-back \u2014 the focal point shifts to a mono search field that snaps on top and fires three rapid searches, each landing on its spoken word: types 'revenue' \u2192 grey chip '\u2715 0 RESULTS' punches into a fixed column; 'customer' \u2192 second \u2715 chip; 'anything that changes' \u2192 third \u2715 chip. By the last word the \u2715 column, not the window, owns the frame \u2014 his own best file interrogated with Act 1's NO-ANSWER chip language and found empty three times in four seconds.",
+  "continuity": "Same scanned recipe window from beat 7, pushed back and dimmed; 'FACTS FOUND: 0' tile stays parked and the \u2715 stack builds directly beneath it, extending the same verdict.",
+  "copy": {
+   "headline": "NOTHING THAT CAN CHANGE",
+   "marker": "NOTHING",
+   "searches": [
+    "revenue",
+    "customer",
+    "anything that changes"
+   ],
+   "chips": [
+    "\u2715 0 RESULTS",
+    "\u2715 0 RESULTS",
+    "\u2715 0 RESULTS"
+   ]
+  },
+  "replaySpike": true,
+  "sync": [
+   {
+    "at": 33.9,
+    "event": "window dims and recedes; search bar snaps on, types 'revenue'"
+   },
+   {
+    "at": 34.5,
+    "event": "first \u2715 0 RESULTS chip punches in on 'revenue'"
+   },
+   {
+    "at": 35.3,
+    "event": "types 'customer'; second \u2715 chip punches in"
+   },
+   {
+    "at": 36.4,
+    "event": "types 'anything that changes'; third \u2715 chip punches in"
+   },
+   {
+    "at": 37,
+    "event": "headline marker-wipes NOTHING over the \u2715 column"
+   }
+  ]
+ },
+ {
+  "id": 9,
+  "start": 37.6,
+  "end": 41.6,
+  "narration": "That's the difference everyone missed. And missing it is not your fault.",
+  "mode": "full",
+  "object": "Talking head with the \u2715 residue and a quiet absolution line",
+  "action": "Cut to full face for the empathy beat (Cleo rule). The three \u2715 chips shrink into one small grey residue chip '\u2715 0 FACTS' that docks bottom-left \u2014 the evidence stays in the room while he forgives the viewer. Headline wipes exactly on 'missed'; Playfair italic 'not your fault.' fades in underneath on the words, the only soft element in the act so far.",
+  "continuity": "The \u2715 stack from beat 8 physically shrinks and docks \u2014 the audit result travels with us into the reassurance instead of resetting.",
+  "copy": {
+   "headline": "EVERYONE MISSED THIS",
+   "marker": "MISSED",
+   "residue_chip": "\u2715 0 FACTS",
+   "playfair": "not your fault."
+  },
+  "sync": [
+   {
+    "at": 37.9,
+    "event": "cut to full face; \u2715 chips collapse into one docked chip"
+   },
+   {
+    "at": 38.7,
+    "event": "headline marker-wipes MISSED on 'missed'"
+   },
+   {
+    "at": 40.3,
+    "event": "Playfair 'not your fault.' fades in"
+   }
+  ]
+ },
+ {
+  "id": 10,
+  "start": 41.6,
+  "end": 49.4,
+  "narration": "Those templates are built to be finished in a weekend. So yeah, sure, a few text files you can set up in a weekend.",
+  "mode": "panel",
+  "object": "A template file-browser racing a progress bar toward DONE",
+  "action": "Left column (all graphics left of x=52%): a compact template/ window with 4 rows appears and a progress bar beneath it sweeps fast 0\u219292% on 'built to be finished' \u2014 effortless, almost done. The Act-1 STAT PLATE '1 WEEKEND' clip-reveals on the FIRST 'weekend'. Then the payoff is held for the SECOND 'weekend': the bar snaps 92\u2192100% and a lime 'DONE \u2713' stamps the window shut in the same instant \u2014 completion lands exactly on the word. It really is that easy, and that ease is the trap.",
+  "continuity": "Face returns to the right panel. The docked '\u2715 0 FACTS' residue chip from beat 9 stays bottom-left, silently contradicting the DONE stamp in the same frame.",
+  "copy": {
+   "headline": "BUILT FOR 1 WEEKEND",
+   "marker": "WEEKEND",
+   "window_title": "template/",
+   "rows": [
+    "me.md",
+    "business.md",
+    "goals.md",
+    "notes.md"
+   ],
+   "stat_plate": "1 WEEKEND",
+   "stamp": "DONE \u2713"
+  },
+  "sync": [
+   {
+    "at": 42.2,
+    "event": "template window draws with 4 rows"
+   },
+   {
+    "at": 42.8,
+    "event": "progress bar sweeps 0\u219292% on 'built to be finished'"
+   },
+   {
+    "at": 44.3,
+    "event": "stat plate '1 WEEKEND' clip-reveals on first 'weekend'"
+   },
+   {
+    "at": 46.5,
+    "event": "headline marker-wipes WEEKEND"
+   },
+   {
+    "at": 48.7,
+    "event": "bar snaps to 100% + 'DONE \u2713' stamps on second 'weekend'"
+   }
+  ]
+ },
+ {
+  "id": 11,
+  "start": 49.4,
+  "end": 54.8,
+  "narration": "But a real system, a real second brain for your business, that is not done in a weekend.",
+  "mode": "hidden",
+  "object": "The real system assembling around and dwarfing the finished template window",
+  "action": "Scale reveal. The DONE template window shrinks toward the top-left corner while the REAL world assembles at full canvas around it: the dashed lime stream draws across, the database cylinder rises with rows stacking and its tabular counter ticking to 4,812 ROWS below it, the dashboard window (stat tiles + lime line chart) docks right \u2014 the size difference between the toy and the machine IS the sentence. On 'not done in a weekend' the stat plate physically RE-STAMPS from '1 WEEKEND' to 'NOT A WEEKEND' \u2014 same plate, corrected.",
+  "continuity": "Template window + '1 WEEKEND' plate carried from beat 10; the plate transforms rather than being replaced. Face hides for the scale reveal.",
+  "copy": {
+   "headline": "A REAL SYSTEM",
+   "marker": "REAL",
+   "stat_plate_before": "1 WEEKEND",
+   "stat_plate_after": "NOT A WEEKEND",
+   "db_counter": "4,812 ROWS"
+  },
+  "sync": [
+   {
+    "at": 49.9,
+    "event": "template window shrinks to corner; headline marker-wipes REAL"
+   },
+   {
+    "at": 50.6,
+    "event": "dashed stream draws across canvas"
+   },
+   {
+    "at": 51.6,
+    "event": "database cylinder rises, rows stack, counter ticks to 4,812"
+   },
+   {
+    "at": 52.6,
+    "event": "dashboard window docks on 'for your business'"
+   },
+   {
+    "at": 53.9,
+    "event": "plate re-stamps to 'NOT A WEEKEND' on 'not done in a weekend'"
+   }
+  ]
+ },
+ {
+  "id": 12,
+  "start": 54.8,
+  "end": 64.5,
+  "narration": "So my files tell Claude HOW to do a job. My database tells Claude WHAT is true, and it acts as input for the files.",
+  "mode": "hidden",
+  "object": "Two containers feeding one CLAUDE node \u2014 the act's core diagram",
+  "action": "The scene reorganizes into the law: top-left, a FILES container holding recipe rows fires an arrow into a central dark 'CLAUDE' mono chip, the arrow carrying its stamped tag 'HOW' exactly on the word. Bottom-left, the DATABASE cylinder fires a second arrow into the same node, tag 'WHAT IS TRUE' on the word. Then the payoff callback: on 'input for the files', a lime arrow draws from the cylinder UP into the FILES container and the 'MRR \u20ac15,240' fact chip \u2014 the exact chip that BOUNCED off the file in beat 3 \u2014 rides that arrow and slots cleanly into a recipe line. The fact that had no home now has a legal route. Three arrows, whole architecture, zero jargon.",
+  "continuity": "Cylinder and counter carry directly from beat 11; the template window's rows morph into the FILES container's recipe rows; stream dashes become the arrow strokes. The MRR chip is the resurrected reject from beat 3.",
+  "copy": {
+   "headline": "HOW vs WHAT",
+   "marker": "WHAT",
+   "eyebrow": "THE TWO JOBS",
+   "node": "CLAUDE",
+   "arrow_tags": [
+    "HOW",
+    "WHAT IS TRUE",
+    "input"
+   ],
+   "containers": [
+    "FILES",
+    "DATABASE"
+   ],
+   "callback_chip": "MRR \u20ac15,240"
+  },
+  "sync": [
+   {
+    "at": 55.3,
+    "event": "FILES container settles top-left, CLAUDE node draws center"
+   },
+   {
+    "at": 56.6,
+    "event": "arrow FILES\u2192CLAUDE fires, tag 'HOW' stamps on 'HOW'"
+   },
+   {
+    "at": 59.4,
+    "event": "arrow DATABASE\u2192CLAUDE fires, tag 'WHAT IS TRUE' stamps; headline marker-wipes WHAT"
+   },
+   {
+    "at": 62.6,
+    "event": "lime arrow DATABASE\u2192FILES draws on 'input for the files'"
+   },
+   {
+    "at": 63.4,
+    "event": "MRR \u20ac15,240 chip rides the arrow and slots into a recipe line"
+   }
+  ]
+ },
+ {
+  "id": 13,
+  "start": 64.5,
+  "end": 74.9,
+  "narration": "If you built your second brain with only markdown files, you stuffed all your living facts into the format that was built for the HOW.",
+  "mode": "hidden",
+  "object": "Living fact cards being crammed into the FILES container until it cracks",
+  "action": "The mistake, replayed on the diagram we just learned: the DATABASE cylinder ghosts to a 15% outline with mono label 'no database' on 'only markdown files', and its WHAT arrow withers. Its living event cards ('new order #4471', 'payout \u20ac3,900', 'DM: still there?') get SHOVED one by one into the FILES container on 'stuffed' \u2014 the container visibly BULGES with each card, seams straining \u2014 and on 'HOW' its corner CRACKS grey: the exact Act-1 business.md crack, now at architecture scale. Cause and effect closed in one continuous shot.",
+  "continuity": "Same diagram from beat 12; cylinder ghosts, WHAT arrow withers, FILES container inherits the crack language from Act 1's business.md.",
+  "copy": {
+   "headline": "FACTS STUFFED INTO HOW",
+   "marker": "STUFFED",
+   "event_cards": [
+    "new order #4471",
+    "payout \u20ac3,900",
+    "DM: still there?"
+   ],
+   "ghost_label": "no database"
+  },
+  "sync": [
+   {
+    "at": 66,
+    "event": "cylinder ghosts to outline on 'only markdown files'; WHAT arrow withers"
+   },
+   {
+    "at": 68.3,
+    "event": "first card shoved into FILES container; headline marker-wipes STUFFED"
+   },
+   {
+    "at": 69.5,
+    "event": "second card shoved, container bulges"
+   },
+   {
+    "at": 70.6,
+    "event": "third card shoved, seams strain"
+   },
+   {
+    "at": 73.3,
+    "event": "container corner cracks grey on 'HOW'"
+   }
+  ]
+ },
+ {
+  "id": 14,
+  "start": 74.9,
+  "end": 79.1,
+  "narration": "And here is the best part. My database can fill itself.",
+  "mode": "panel",
+  "object": "The database cylinder healing, then drawing a self-feeding loop arrow around itself",
+  "action": "Tone flip enacted, not wiped: the stuffed cards POP back out of the cracked FILES container and fly into the cylinder as it un-ghosts to full lime in the left column \u2014 the facts land where they belong and the crack heals. Then on 'fill itself' a lime circular LOOP arrow draws clockwise around the cylinder \u2014 the universal self-feeding gesture \u2014 and one new row slides in with no hand, no cursor, nothing pushing it; the counter ticks +1. Face returns to the panel for his delight.",
+  "continuity": "Same cylinder from beats 12-13, restored from ghost to solid; the shoved cards from beat 13 are physically relocated into it \u2014 the fix reverses the mistake with the same objects.",
+  "copy": {
+   "headline": "IT FILLS ITSELF",
+   "marker": "ITSELF",
+   "counter": "4,812 \u2192 4,813",
+   "eyebrow": "THE BEST PART"
+  },
+  "sync": [
+   {
+    "at": 75.3,
+    "event": "cards pop out of cracked container, fly into un-ghosting cylinder; crack heals"
+   },
+   {
+    "at": 77.2,
+    "event": "lime loop arrow draws around cylinder on 'fill itself'; headline marker-wipes ITSELF"
+   },
+   {
+    "at": 78.4,
+    "event": "one row slides in by itself, counter ticks to 4,813"
+   }
+  ]
+ },
+ {
+  "id": 15,
+  "start": 79.1,
+  "end": 93.7,
+  "narration": "I have small automatic jobs that run every hour, or every five minutes. They write down what happened \u2014 new orders, new messages, new numbers \u2014 straight into my database, all without me doing anything manual.",
+  "mode": "hidden",
+  "object": "Clock chips firing event cards down the stream into the stacking database",
+  "action": "REPLAY SPIKE \u2014 the machine, running, full canvas. Two clock chips pulse exactly on their words: 'EVERY 1 HR' and 'EVERY 5 MIN'. Each pulse LAUNCHES an event card onto the dashed lime stream, each landing on its spoken word \u2014 lime money card 'new order #4482' on 'orders', silver 'DM: invoice?' on 'messages', silver 'visits 1,204' on 'numbers' \u2014 and each card rides the stream INTO the cylinder, converting to a lime row bar as the tabular counter runs 4,813\u21924,816 (one tick per card, numbers honest). On 'anything manual' a grey chip stamps: 'MANUAL WORK: \u2715 NONE'. Fourteen seconds of the system visibly doing his job for him.",
+  "continuity": "Same cylinder + loop arrow from beat 14; the loop arrow is revealed to BE the clock cycle. Stream reuses the Act-1 dashed line; cards are the exact Act-1 event-card species.",
+  "copy": {
+   "headline": "AUTOMATIC, EVERY HOUR",
+   "marker": "AUTOMATIC",
+   "clock_chips": [
+    "EVERY 1 HR",
+    "EVERY 5 MIN"
+   ],
+   "event_cards": [
+    "new order #4482",
+    "DM: invoice?",
+    "visits 1,204"
+   ],
+   "counter_run": "4,813 \u2192 4,816",
+   "manual_chip": "MANUAL WORK: \u2715 NONE"
+  },
+  "replaySpike": true,
+  "sync": [
+   {
+    "at": 80.9,
+    "event": "'EVERY 1 HR' clock chip pulses on 'every hour'; headline marker-wipes AUTOMATIC"
+   },
+   {
+    "at": 82.6,
+    "event": "'EVERY 5 MIN' chip pulses on 'five minutes'"
+   },
+   {
+    "at": 85.8,
+    "event": "lime money card 'new order #4482' fires onto stream on 'orders'"
+   },
+   {
+    "at": 87.4,
+    "event": "silver 'DM: invoice?' card fires on 'messages'"
+   },
+   {
+    "at": 88.9,
+    "event": "silver 'visits 1,204' card fires on 'numbers'"
+   },
+   {
+    "at": 89.8,
+    "event": "cards convert to rows, counter runs 4,813\u21924,816 on 'straight into my database'"
+   },
+   {
+    "at": 92.4,
+    "event": "grey chip 'MANUAL WORK: \u2715 NONE' stamps on 'anything manual'"
+   }
+  ]
+ },
+ {
+  "id": 16,
+  "start": 93.7,
+  "end": 100.6,
+  "narration": "And when I open my Claude and ask something about my business, that data is always up to date.",
+  "mode": "hidden",
+  "object": "A query chip firing at the still-running machine and getting a fresh answer",
+  "action": "Payoff of the machine: the clocks keep quietly pulsing (the world never stops), a lime-border QUERY CHIP types 'WHAT'S REVENUE THIS WEEK?' and fires a dashed pulse into the cylinder; the freshest rows \u2014 the ones the viewer just watched arrive \u2014 glow briefly as they're gathered, and an answer tile snaps back with lime tabular '\u20ac3,940'. The killer detail stamps exactly on 'up to date': mono timestamp 'updated 2 min ago'. Direct mirror of Act 1's '\u2715 NO ANSWER' chip \u2014 the same question shape, now answered by the machine still running behind it.",
+  "continuity": "Same running machine from beat 15 \u2014 clocks, stream, cylinder, counter all persist; the answer visibly comes FROM the rows that just landed, closing the loop.",
+  "copy": {
+   "headline": "ALWAYS UP TO DATE",
+   "marker": "ALWAYS",
+   "query_chip": "WHAT'S REVENUE THIS WEEK?",
+   "answer_value": "\u20ac3,940",
+   "timestamp": "updated 2 min ago"
+  },
+  "sync": [
+   {
+    "at": 95.3,
+    "event": "query chip types on 'ask something about my business'"
+   },
+   {
+    "at": 97,
+    "event": "dashed pulse fires into cylinder; freshest rows glow"
+   },
+   {
+    "at": 98,
+    "event": "answer tile snaps back with \u20ac3,940"
+   },
+   {
+    "at": 99.5,
+    "event": "'updated 2 min ago' stamps; headline marker-wipes ALWAYS on 'up to date'"
+   }
+  ]
+ },
+ {
+  "id": 17,
+  "start": 100.6,
+  "end": 109.9,
+  "narration": "And before you think that sounds way too technical, the starter version at the end of this video is one you can start right now. So stay with me for that one.",
+  "mode": "full",
+  "object": "Talking head with a promise chip pointing forward",
+  "action": "Full face for the retention promise (Cleo rule: the tease is a human moment). The \u20ac3,940 answer tile from beat 16 shrinks and docks bottom-left as proof-in-pocket \u2014 the reward stays on screen while he promises it's reachable. A silver mono chip slides in exactly on 'starter version': 'STARTER VERSION \u2192 END' with a small forward arrow; it pulses lime once on 'stay with me' \u2014 the arrow literally pointing at the rest of the video.",
+  "continuity": "Answer tile carried from beat 16 and docked \u2014 the payoff stays visible while he promises the viewer can have it too.",
+  "copy": {
+   "headline": "NOT TOO TECHNICAL",
+   "marker": "TECHNICAL",
+   "promise_chip": "STARTER VERSION \u2192 END",
+   "docked_tile": "\u20ac3,940"
+  },
+  "sync": [
+   {
+    "at": 101,
+    "event": "cut to full face; answer tile docks bottom-left"
+   },
+   {
+    "at": 102.2,
+    "event": "headline marker-wipes TECHNICAL"
+   },
+   {
+    "at": 104.5,
+    "event": "'STARTER VERSION \u2192 END' chip slides in on 'starter version'"
+   },
+   {
+    "at": 108.5,
+    "event": "chip pulses lime on 'stay with me'"
+   }
+  ]
+ },
+ {
+  "id": 18,
+  "start": 109.9,
+  "end": 115.2,
+  "narration": "So to summarize: files hold the recipes, and the database holds the truth.",
+  "mode": "hidden",
+  "object": "The two-column law \u2014 file column vs database column",
+  "action": "Clean full-canvas law card, the act compressed into one screenshot-able freeze-frame. A thin center divider draws vertically on 'summarize'. Left column assembles exactly on 'files hold the recipes': the drawn file outline with recipe rows inside, silver Space Grotesk caps 'RECIPES' stamping BELOW it. Right column assembles exactly on 'database holds the truth': the lime cylinder with stacked rows, lime caps 'TRUTH' stamping BELOW it. Perfect symmetry, single lime accent on the truth side, labels below objects, nothing overlapping.",
+  "continuity": "File outline inherits the invoice.md recipe framing from beat 7; cylinder inherits its 4,816-row count from beat 15. Everything else clears \u2014 this is the distilled residue of the whole act.",
+  "copy": {
+   "headline": "RECIPES AND TRUTH",
+   "marker": "TRUTH",
+   "eyebrow": "THE LAW",
+   "left_label": "files",
+   "left_caps": "RECIPES",
+   "right_label": "database",
+   "right_caps": "TRUTH"
+  },
+  "sync": [
+   {
+    "at": 110.4,
+    "event": "center divider draws; eyebrow 'THE LAW' stamps on 'summarize'"
+   },
+   {
+    "at": 111.7,
+    "event": "left column: file + 'RECIPES' caps stamp on 'recipes'"
+   },
+   {
+    "at": 113.5,
+    "event": "right column: cylinder + 'TRUTH' caps stamp; headline marker-wipes TRUTH"
+   }
+  ]
+ },
+ {
+  "id": 19,
+  "start": 115.2,
+  "end": 121.5,
+  "narration": "You now understand the two things, which honestly means you understand this better than most people online.",
+  "mode": "full",
+  "object": "Talking head earning two badge ticks",
+  "action": "Full face closer. The two-column law shrinks into two mini badges \u2014 file icon + cylinder icon \u2014 that dock bottom-left like earned achievements; a lime tick stamps each exactly on 'the two things' (tick, tick \u2014 two physical beats for two things). Playfair italic counterpoint fades in on the final phrase: 'better than most people online.' The viewer's progress is handed to them physically, and the badges carry forward into Act 3.",
+  "continuity": "The law from beat 18 physically becomes the badges \u2014 knowledge converted into something the viewer now owns, carried toward Act 3.",
+  "copy": {
+   "headline": "YOU UNDERSTAND BOTH",
+   "marker": "BOTH",
+   "badges": [
+    "file \u2713",
+    "database \u2713"
+   ],
+   "playfair": "better than most people online."
+  },
+  "sync": [
+   {
+    "at": 115.6,
+    "event": "cut to full face; law shrinks into two docked badges"
+   },
+   {
+    "at": 117,
+    "event": "lime tick stamps badge 1 then badge 2 on 'the two things'"
+   },
+   {
+    "at": 117.6,
+    "event": "headline marker-wipes BOTH"
+   },
+   {
+    "at": 119.5,
+    "event": "Playfair 'better than most people online.' fades in"
+   }
+  ]
+ }
+]

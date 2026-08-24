@@ -1,0 +1,22 @@
+{
+ "scenes": [
+  {
+   "viz": "keywordPop",
+   "durationInFrames": 90,
+   "props": {
+    "word": "LOOPS",
+    "sub": "not prompts",
+    "anchor": "left"
+   }
+  },
+  {
+   "viz": "cornerCounter",
+   "durationInFrames": 90,
+   "props": {
+    "value": 15380,
+    "label": "agent runs",
+    "anchor": "top-right"
+   }
+  }
+ ]
+}

@@ -1,0 +1,32 @@
+{
+  "$comment": "YOUR BRAND — the SINGLE SOURCE OF TRUTH. The engine (core/engine/remotion/src/bb2/engine.tsx) IMPORTS this file and derives its whole palette from it, so editing the 'colors' below re-skins EVERY scene automatically — no code edits. These are neutral placeholder colours: change them to yours (Claude can interview you). Keep every key present and a valid #rrggbb hex. 'Full creativity' is gated on this: creativity is in IDEAS + MOTION, never in inventing off-brand colours/type.",
+  "owner": "",
+  "names": { "brand": "", "channel": "", "rules": [] },
+  "colors": {
+    "base": "#12141A",
+    "base_elevated": "#1E2230",
+    "steel": "#3A4358",
+    "accent": "#4E9BFF",
+    "accent_on_light": "#2C6FD1",
+    "ink": "#ECEFF3",
+    "ink_soft": "#CDD3DD",
+    "ink_mid": "#A7B0BF",
+    "body": "#6B7383",
+    "light_bg": "#ECEFF3"
+  },
+  "colors_doc": {
+    "base": "darkest background (dark register = problem/tension)",
+    "base_elevated": "raised panels / deep surfaces",
+    "steel": "the blue-grey the dark-UI ramp (panels/borders) derives toward — set near your base's hue",
+    "accent": "your ONE brand colour (Marker word, plates, energy, CTAs)",
+    "accent_on_light": "a darker on-light variant of the accent (the raw accent is usually unreadable on white)",
+    "ink": "primary text/lines on dark", "ink_soft": "secondary", "ink_mid": "tertiary / muted borders",
+    "body": "body/caption text", "light_bg": "light register (solution/build) background"
+  },
+  "accent_rule": "ONE accent only. On a light surface the accent is a PLATE colour, never body text; on the accent plate use base (dark) ink. On dark, contrast is rule #1: ink (silver) or an accent plate, never dark-grey text.",
+  "fonts": { "sans": "Space Grotesk", "mono": "JetBrains Mono", "serif": "Playfair Display", "usage": { "headers": "sans 700/800 uppercase", "labels_eyebrows_timecodes": "mono (tabular-nums)", "editorial_accent": "serif italic (sparingly)" }, "$note": "To change fonts, ALSO swap the 3 @remotion/google-fonts loader imports at the top of engine.tsx — a JSON value alone can't switch the font loader." },
+  "captions": "white fill, heavy weight, dark outline + soft shadow, balanced wrap, no orphan words, synced to real word timings.",
+  "grade": { "lut": "", "feel": "" },
+  "assets_dir": "core/brand/assets/",
+  "engine_palette_source": "engine.tsx imports THIS file and derives all tokens — this file is authoritative."
+}
