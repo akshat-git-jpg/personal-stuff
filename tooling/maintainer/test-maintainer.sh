@@ -259,7 +259,8 @@ echo "$out" | grep -q 'SESSION-STEP'          || fail "claude-health must mark /
 out="$(PATH="$STUB_DIR:$PATH" bash "$MAINT_DIR/jobs/token-budget/check.sh" 2>&1)"
 echo "$out" | grep -q 'Tokens saved'          || fail "token-budget did not run rtk gain"
 echo "$out" | grep -q 'missed opportunities'  || fail "token-budget did not run rtk discover"
-echo "$out" | grep -q 'SESSION-STEP'          || fail "token-budget check must mark the context breakdown as a session step"
+echo "$out" | grep -q 'context breakdown — SESSION-STEP, not automatable' \
+  || fail "token-budget check must mark the context breakdown as a session step"
 
 # neither job may mutate anything
 for j in claude-health token-budget; do
