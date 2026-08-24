@@ -20,7 +20,7 @@ export MAINT_DIR
 
 # We will test lib.sh functions by sourcing it in a subshell
 jobs="$(bash -c "source $MAINT_DIR/bin/lib.sh; discover_jobs" | sort | tr '\n' ' ')"
-if [ "$jobs" != "bigfiles mcp memory routing skills " ]; then
+if [ "$jobs" != "bigfiles crons mcp memory routing skills uptime " ]; then
   if [ -z "$jobs" ]; then
     fail "job discovery found no jobs"
   else
@@ -33,6 +33,8 @@ out="$(bash $MAINT_DIR/bin/session-start.sh)" || fail "session-start.sh failed"
 echo "$out" | grep -q '^skills' || fail "session-start.sh did not print skills row"
 echo "$out" | grep -q '^memory' || fail "session-start.sh did not print memory row"
 echo "$out" | grep -q '^mcp' || fail "session-start.sh did not print mcp row"
+echo "$out" | grep -q '^uptime' || fail "session-start.sh did not print uptime row"
+echo "$out" | grep -q '^crons' || fail "session-start.sh did not print crons row"
 
 # 4. session-start.sh prints job discovery found no jobs and exits 2 when jobs/ is empty
 mkdir -p "$TMP/empty_jobs_test/jobs"
@@ -154,6 +156,30 @@ echo "$fix_out" | grep -q 'refusing to regenerate' || fail "mcp fix did not expl
 real="$(bash "$MAINT_DIR/jobs/mcp/check.sh" 2>&1)"
 echo "$real" | grep -q 'unbound variable' && fail "mcp check hit an unbound variable on the real repo"
 echo "$real" | grep -q 'DROPPED-BY-REGEN' && fail "regen-mcp-json.sh still drops a live server"
+
+# --- crons job: fixture launchd inventory -----------------------------------
+CFIX="$TMP/cronfix"; mkdir -p "$CFIX"
+cat > "$CFIX/MAC-LAUNCHD.md" <<EOF
+## Logs
+| Job | Log |
+|---|---|
+| present-job | \`$CFIX/present.log\` |
+| missing-job | \`$CFIX/definitely-missing.log\` |
+EOF
+printf 'ran\n' > "$CFIX/present.log"
+
+out="$(CRONS_LAUNCHD="$CFIX/MAC-LAUNCHD.md" bash "$MAINT_DIR/jobs/crons/check.sh" 2>&1)"
+echo "$out" | grep -q 'NO-LOG missing-job'  || fail "crons check did not report the launchd job with no log"
+echo "$out" | grep -q 'NO-LOG present-job'  && fail "crons check flagged a job whose log exists"
+echo "$out" | grep -q 'NOT CHECKED'         || fail "crons check must say the VPS half was not checked"
+
+# --- uptime job: fixture inventories, probing disabled ----------------------
+UFIX="$TMP/upfix"; mkdir -p "$UFIX"
+printf '# sites\n- https://a.example\n' > "$UFIX/sites.md"
+printf '# infra\n- https://a.example\n- https://only-in-infra.example\n' > "$UFIX/infra.md"
+out="$(UPTIME_SITES="$UFIX/sites.md" UPTIME_INFRA="$UFIX/infra.md" bash "$MAINT_DIR/jobs/uptime/check.sh" 2>&1)"
+echo "$out" | grep -q 'IN-INFRA-NOT-SITES https://only-in-infra.example' || fail "uptime check did not report inventory drift"
+echo "$out" | grep -q 'skipped' || fail "uptime check must skip the network probe by default"
 
 # --- bigfiles job: a real little git repo with a seeded oversized file ------
 BFIX="$TMP/bigfix"; mkdir -p "$BFIX"

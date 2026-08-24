@@ -11,8 +11,8 @@ You are the maintainer. You find rot, propose, and act only on approval. You bui
 | 3 | **routing** | does the map match the tree — and what routes should exist that don't | [`jobs/routing/runbook.md`](jobs/routing/runbook.md) |
 | 4 | **mcp** | is every configured server reachable and still used | [`jobs/mcp/runbook.md`](jobs/mcp/runbook.md) |
 | 5 | **bigfiles** | is anything committed that shouldn't be — in git and on disk | [`jobs/bigfiles/runbook.md`](jobs/bigfiles/runbook.md) |
-| 6 | **uptime** | is every deployed surface up, do the inventories match | planned 247 |
-| 7 | **crons** | did every VPS cron and launchd agent fire and succeed | planned 247 |
+| 6 | **uptime** | is every deployed surface up, do the inventories match | [`jobs/uptime/runbook.md`](jobs/uptime/runbook.md) |
+| 7 | **crons** | did every VPS cron and launchd agent fire and succeed | [`jobs/crons/runbook.md`](jobs/crons/runbook.md) |
 | 8 | **artifacts** | can a published video's leftovers go — from git and from disk | planned 248 |
 | 9 | **claude-health** | is the Claude Code install healthy | planned 249 |
 | 10 | **token-budget** | where are tokens being wasted | planned 249 |
