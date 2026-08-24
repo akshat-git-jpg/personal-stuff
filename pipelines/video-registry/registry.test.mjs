@@ -7,6 +7,7 @@ import {
   resolveKey, mint, addAlias, list, save, load, isValidKey, namesFor,
   ensure, whereIs, unregisteredDirs, PIPELINE_VIDEO_ROOTS,
 } from './lib/registry.mjs';
+import { planSync } from './lib/tracker.mjs';
 
 function tmpReg() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vreg-'));
@@ -139,4 +140,46 @@ test('the committed registry parses and every entry is well-formed', () => {
     assert.match(v.minted, /^\d{4}-\d{2}-\d{2}$/, `${v.key} has a bad minted date`);
     for (const a of v.aliases) assert.ok(isValidKey(a), `${v.key} has a bad alias: ${a}`);
   }
+});
+
+const REG = {
+  version: 1,
+  videos: {
+    "best-ai-video-generator": { title: "Best AI Video Software", minted: "2026-07-31", aliases: ["ai-video-tools-comparison"] },
+    "opusclip-vs-submagic": { title: "OpusClip vs Submagic", minted: "2026-08-04", aliases: [], card_id: "row_9" },
+  },
+};
+const TODAY = "2026-08-25";
+
+test("mints a card whose slug is unknown", () => {
+  const p = planSync([{ id: "row_1", slug: "brand-new-video", title: "Brand New" }], REG, TODAY);
+  assert.deepStrictEqual(p.mints, [{ key: "brand-new-video", title: "Brand New", card_id: "row_1", minted: TODAY }]);
+});
+
+test("does not re-mint a slug that resolves through an ALIAS", () => {
+  const p = planSync([{ id: "row_2", slug: "ai-video-tools-comparison", title: "x" }], REG, TODAY);
+  assert.deepStrictEqual(p.mints, []);
+});
+
+test("stamps card_id onto an existing entry that has none", () => {
+  const p = planSync([{ id: "row_2", slug: "best-ai-video-generator", title: "x" }], REG, TODAY);
+  assert.deepStrictEqual(p.stamps, [{ key: "best-ai-video-generator", card_id: "row_2" }]);
+});
+
+test("skips a card with no slug", () => {
+  const p = planSync([{ id: "row_3", slug: null, title: "No slug yet" }], REG, TODAY);
+  assert.deepStrictEqual(p, { mints: [], stamps: [], skipped: [] });
+});
+
+test("reports a card_id conflict instead of overwriting", () => {
+  const p = planSync([{ id: "row_99", slug: "opusclip-vs-submagic", title: "x" }], REG, TODAY);
+  assert.strictEqual(p.skipped.length, 1);
+  assert.strictEqual(p.skipped[0].reason, "card_id conflict");
+  assert.deepStrictEqual(p.stamps, []);
+});
+
+test("a second identical sync is a no-op", () => {
+  const rows = [{ id: "row_9", slug: "opusclip-vs-submagic", title: "OpusClip vs Submagic" }];
+  const p = planSync(rows, REG, TODAY);
+  assert.deepStrictEqual(p, { mints: [], stamps: [], skipped: [] });
 });

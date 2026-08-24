@@ -3,6 +3,7 @@ import {
   load, save, mint, addAlias, list, resolveKey,
   ensure, whereIs, unregisteredDirs, REGISTRY_PATH,
 } from '../lib/registry.mjs';
+import { fetchCards, planSync } from '../lib/tracker.mjs';
 
 const [cmd, ...rest] = process.argv.slice(2);
 
@@ -20,6 +21,7 @@ function usage() {
   console.log('       vreg check                           fail on any videos/ dir not registered');
   console.log('       vreg mint <key> [--title "..."]      register a new key (fails if taken)');
   console.log('       vreg alias <key> <other-name>        point another name at an existing key');
+  console.log('       vreg sync [--dry-run]                seed registry from the tracker');
 }
 
 try {
@@ -64,6 +66,32 @@ try {
   } else if (cmd === 'alias') {
     save(addAlias(positional[0], positional[1]));
     console.log(`${positional[1]} -> ${positional[0]}`);
+  } else if (cmd === 'sync') {
+    if (rest.includes('--help') || positional.includes('help')) {
+      usage();
+      process.exit(0);
+    }
+    const isDry = rest.includes('--dry-run');
+    const rows = await fetchCards();
+    const reg = load();
+    const today = new Date().toISOString().slice(0, 10);
+    const plan = planSync(rows, reg, today);
+    if (isDry) {
+      console.log(plan);
+      process.exit(0);
+    }
+    for (const s of plan.skipped) {
+      console.error(`skipped ${s.key} (${s.reason} with id ${s.id})`);
+    }
+    for (const m of plan.mints) {
+      reg.videos[m.key] = { title: m.title, minted: m.minted, aliases: [], card_id: m.card_id };
+      console.error(`minted ${m.key}`);
+    }
+    for (const s of plan.stamps) {
+      reg.videos[s.key].card_id = s.card_id;
+      console.error(`stamped ${s.key} with card_id ${s.card_id}`);
+    }
+    if (plan.mints.length > 0 || plan.stamps.length > 0) save(reg);
   } else {
     usage();
     process.exit(cmd ? 1 : 0);
