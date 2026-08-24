@@ -908,5 +908,131 @@ T2EOF
 ) || exit 1
 echo "PASS: claude-p budgets --max-turns from plan size, with BOSS_MAX_TURNS still winning"
 
+# --- (T3) claude-p `resume` continues the SAME session, bounded ----------------
+# Truncation is not a plan failure, so it must not spend the single fix-up round.
+# The continuation MUST resume the same session id: boss holds no plan context by
+# design, so the model's own prior context is the only strong handoff available.
+# Every case below drives the REAL executor and reads the argv its stub saw.
+(
+  t3="$TMP/t3"; mkdir -p "$t3/wt"
+  git init -q "$t3/wt"
+  git -C "$t3/wt" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+  mkdir -p "$t3/wt/plans"
+  i=0; while [ "$i" -lt 500 ]; do printf 'x\n' >> "$t3/wt/plans/p.md"; i=$((i+1)); done
+
+  cat > "$t3/claude-stub" <<'T3EOF'
+#!/bin/bash
+printf 'ARGV: %s\n' "$*"
+T3EOF
+  chmod +x "$t3/claude-stub"
+
+  SID="a86c2acf-e9a1-40e3-af37-033faf78fbcb"
+
+  # t3_setup <label> [resumes] — build a state dir holding a max-turns envelope.
+  t3_setup() {
+    local label="$1" res="${2:-}"
+    t3sd="$t3/state-$label"
+    rm -rf "$t3sd"; mkdir -p "$t3sd"
+    printf '%s\n' "{\"is_error\":true,\"subtype\":\"error_max_turns\",\"session_id\":\"$SID\",\"result\":\"\"}" \
+      > "$t3sd/900.out"
+    ( export BOSS_STATE_DIR="$t3sd"
+      # shellcheck disable=SC1090
+      source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+      meta_set 900 worktree "$t3/wt"
+      meta_set 900 model sonnet
+      meta_set 900 planpath "plans/p.md"
+      meta_set 900 plan_lines 500
+      meta_set 900 out "$t3sd/900.out"
+      meta_set 900 head_before "deadbeef"
+      meta_set 900 test_cmd 'cd apps/x && npm test'
+      meta_set 900 test_timeout 600
+      [ -n "$res" ] && meta_set 900 resumes "$res"
+      true )
+  }
+  t3_run() {   # t3_run <state-dir> <verb> [env...]
+    local sd="$1" v="$2"; shift 2
+    ( export BOSS_STATE_DIR="$sd" BOSS_CLAUDE_CMD="$t3/claude-stub"
+      for kv in "$@"; do export "$kv"; done
+      bash "$BOSSDIR/executors/claude-p.sh" "$v" 900 2>&1 )
+  }
+  t3_wait_argv() {
+    local f="$1" n=0
+    while [ "$n" -lt 100 ]; do grep -q 'ARGV:' "$f" 2>/dev/null && return 0; n=$((n+1)); command sleep 0.1; done
+    return 1
+  }
+  t3_meta() { sed -n "s/^$2=//p" "$1/900.meta" | tail -1; }
+
+  # -- happy path -------------------------------------------------------------
+  t3_setup happy
+  out=$(t3_run "$t3sd" resume) || fail "(T3) resume failed on a resumable run: $out"
+  t3_wait_argv "$t3sd/900.out" || fail "(T3) the resumed run never invoked claude: $(cat "$t3sd/900.out")"
+  argv=$(cat "$t3sd/900.out")
+  case "$argv" in
+    *"--resume $SID"*) ;;
+    *) fail "(T3) resume did not pass --resume with the envelope's session id: $argv" ;;
+  esac
+  case "$argv" in
+    *"--max-turns 200"*) ;;
+    *) fail "(T3) resume did not size its own turn budget from the plan: $argv" ;;
+  esac
+  case "$argv" in
+    *"--model sonnet"*) ;;
+    *) fail "(T3) resume dropped the recorded model, so a continuation could drift tiers: $argv" ;;
+  esac
+  [ "$(t3_meta "$t3sd" resumes)" = 1 ] \
+    || fail "(T3) resume did not record the round (got '$(t3_meta "$t3sd" resumes)')"
+  [ -f "$t3sd/900.out.r0" ] || fail "(T3) the previous envelope was not kept as .out.r0"
+  grep -q "$SID" "$t3sd/900.out.r0" || fail "(T3) the archived envelope lost the session id"
+  # The baseline for "did this PR produce work at all" must stay the original dispatch.
+  [ "$(t3_meta "$t3sd" head_before)" = deadbeef \
+    ] || fail "(T3) resume rewrote head_before, so a no-op continuation would read as done"
+  # A resume must re-stamp dispatched_at, or boss_stall_check measures idle time from
+  # the PREVIOUS run and can kill a healthy continuation instantly.
+  [ -n "$(t3_meta "$t3sd" dispatched_at)" ] || fail "(T3) resume did not re-stamp dispatched_at"
+
+  # -- refusals ---------------------------------------------------------------
+  t3_setup nosid
+  printf '%s\n' '{"is_error":true,"subtype":"error_max_turns","result":""}' > "$t3sd/900.out"
+  t3_run "$t3sd" resume >/dev/null 2>&1 && fail "(T3) resumed an envelope with no session_id"
+
+  t3_setup capped 2
+  t3_run "$t3sd" resume >/dev/null 2>&1 && fail "(T3) resumed past BOSS_MAX_RESUMES"
+  t3_setup raised 2
+  t3_run "$t3sd" resume BOSS_MAX_RESUMES=3 >/dev/null 2>&1 \
+    || fail "(T3) BOSS_MAX_RESUMES could not raise the bound for one run"
+
+  t3_setup live
+  ( exec sleep 30 ) & livepid=$!
+  disown "$livepid" 2>/dev/null || true
+  ( export BOSS_STATE_DIR="$t3sd"
+    # shellcheck disable=SC1090
+    source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+    meta_set 900 pid "$livepid" )
+  t3_run "$t3sd" resume >/dev/null 2>&1 \
+    && { kill "$livepid" 2>/dev/null; fail "(T3) resume forked a second crew onto a live worktree"; }
+  kill "$livepid" 2>/dev/null
+
+  # -- collect classifies truncation separately from a real failure -----------
+  t3_setup coll
+  got=$(t3_run "$t3sd" collect)
+  case "$got" in
+    truncated*) ;;
+    *) fail "(T3) a max-turns run must collect as 'truncated', not '$got'" ;;
+  esac
+  case "$got" in
+    *"resume 900"*) ;;
+    *) fail "(T3) the truncated message must name the resume command: $got" ;;
+  esac
+
+  # At the cap it becomes a real block: no resume left, so the plan is too big.
+  t3_setup collcap 2
+  got=$(t3_run "$t3sd" collect)
+  case "$got" in
+    blocked*) ;;
+    *) fail "(T3) at the resume cap a max-turns run must collect as 'blocked', got '$got'" ;;
+  esac
+) || exit 1
+echo "PASS: claude-p resumes the same session, bounded, and truncation is not a block"
+
 echo ""
 echo "ALL TESTS PASSED"

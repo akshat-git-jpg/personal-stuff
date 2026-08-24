@@ -193,6 +193,12 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
   environmental and self-clearing, so they must NOT spend the single fix-up round.
   Wait for the window and re-dispatch. (2026-08-02: a 429 killed two crews and was
   reported as "max-turns", pointing the diagnosis at the plan instead of the clock.)
+- **`truncated` is not a failure either** (2026-08-24). A claude-p run that hits its turn
+  cap is resumable, so like `ratelimited` it must NOT spend the single fix-up round: the work
+  is fine, the budget ran out. Continue it with `executors/claude-p.sh resume <pr#>` — never
+  `boss-dispatch`, which force-resets the branch and destroys the partial work. Bounded by
+  `BOSS_MAX_RESUMES` (default 2); at the cap `collect` says `blocked` instead, because a plan
+  that cannot finish in two continuations is too big and wants splitting, not another retry.
 - **`collect` flags uncommitted work.** A crew killed mid-flight often leaves a
   complete implementation uncommitted. Salvage it with a **direct executor
   dispatch** (`executors/<e>.sh dispatch <pr> <ABSOLUTE brief path>`) — never
@@ -447,14 +453,10 @@ note still describing unfixed behaviour says so in place.
   counting the plan in the worktree. It prints the budget it chose, and records it as `max_turns`
   so a `max-turns` collect message can name both numbers. **`BOSS_MAX_TURNS` still wins**, so
   `BOSS_MAX_TURNS=300 bin/boss-dispatch.sh <pr#>` pins any value you like.
-  Still owner-approved and unimplemented (2026-07-25): a `resume` verb using
-  `claude -p --resume <session_id>` (the id is in every `.out` envelope — a continuation must
-  resume the SAME session, because boss holds no plan context by design and a summary brief is
-  the weakest possible handoff), and stopping the collapse of `error_max_turns` into `blocked`,
-  since truncation is resumable and should not spend the one fix-up meant for real failures.
-  That second one is deliberately still pending: without the `resume` verb a truncated run has
-  no cheaper recovery than a fix-up dispatch, so relabelling it alone would only lose
-  information. Explicitly NOT doing: a plan-size gate in `orchestrate`.
+  The other two items from the same 2026-07-25 approval are now done as well: `claude-p.sh`
+  has a `resume` verb (see *Executors*), and `collect` reports a turn-capped run as
+  `truncated` rather than `blocked`, so truncation no longer spends the fix-up round meant
+  for real failures. Explicitly NOT doing: a plan-size gate in `orchestrate`.
 
 ### Never write to the owner's checkout
 
@@ -508,15 +510,29 @@ note still describing unfixed behaviour says so in place.
 
 ## Executors
 
-Scripts in `executors/` implementing three verbs:
+Scripts in `executors/` implementing three verbs, plus an optional fourth:
 ```
 <executor>.sh dispatch <pr#> <brief-path>   # start the work
 <executor>.sh alive    <pr#>                # 0 working, 1 done/idle, 2 dead
-<executor>.sh collect  <pr#>                # print "done|blocked|dead <detail>"
+<executor>.sh collect  <pr#>                # print "done|truncated|ratelimited|blocked|dead <detail>"
+<executor>.sh resume   <pr#>                # optional: continue a turn-capped run
 ```
 
 Shipped: `claude-p` (backgrounded `claude -p`, default model sonnet),
 `agy` (Antigravity CLI, default model Gemini 3.1 Pro (High)).
+
+**`resume` is claude-p only** (added 2026-08-24). It reads the `session_id` out of the
+previous run's own JSON envelope and re-invokes `claude -p --resume <session_id>`, so the
+continuation carries the crew's full prior context. That matters more here than anywhere
+else: boss holds no plan context by design, so a summary brief is the weakest possible
+handoff and the model's own session is the strongest. It re-sizes the turn budget, keeps
+the recorded model (a continuation must not drift tiers), archives the envelope it read as
+`state/<pr>.out.r<n>`, re-stamps `dispatched_at` (or the stall detector measures idle time
+from the previous run and kills a healthy continuation), and deliberately does **not**
+rewrite `head_before` — a continuation is the same task, so the honest baseline for "did
+this PR produce work at all" stays the original dispatch point. It refuses when the crew is
+still alive, when the envelope carries no session id, and past `BOSS_MAX_RESUMES` (default 2).
+agy has no equivalent; a truncated agy run still takes the fix-up path.
 
 ## Blocked lands (`state/lands/`, plan 229)
 
