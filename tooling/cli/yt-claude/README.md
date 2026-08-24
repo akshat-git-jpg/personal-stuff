@@ -85,12 +85,12 @@ worth testing. Run it with `bash tooling/cli/yt-claude/test-prune.sh`.
 > Written for macOS's `/bin/bash`, which is 3.2 — no `mapfile`. Keep it that way;
 > launchd calls `/bin/bash` directly.
 
-### 3. Install the userscript
+### 4. Install the userscript
 1. Install the **Tampermonkey** extension.
 2. Dashboard → **＋ Create new script** → paste `yt-claude-select.user.js` → save.
 3. Reload YouTube. A checkbox appears top-left of every video thumbnail.
 
-### 4. Use it
+### 5. Use it
 - Tick the videos you want (homepage / search / sidebar / channel). A
   **`→ Claude (N)`** pill shows the count.
 - Click it. Each video opens as an Antigravity terminal tab (or Terminal window)
