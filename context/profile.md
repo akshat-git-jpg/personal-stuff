@@ -55,10 +55,14 @@ this file was inferred from repo code alone and named the wrong person).
   - PayPal (Business API reporting).
   - impact.com (Affiliate reporting).
   - gumroad-pp-cli & skool-pp-cli (Gumroad & Skool CLI scripts).
-- **Editors & daily drivers**: Cursor (a VS Code fork) plus Claude Code, used heavily.
-  There is no plain VS Code on this Mac and the `code` CLI is not on `PATH` - point
-  `$EDITOR`/`$VISUAL` at the full binary path inside the Cursor app bundle. The owner
-  dislikes vim.
+- **Editors & daily drivers**: Cursor plus Claude Code, used heavily. Real VS Code is
+  installed as well. Both have shims on `PATH` in `~/.local/bin`, so `code` and `cursor`
+  just work - and `$EDITOR`/`$VISUAL` are already set to `code --wait`, no full bundle
+  path needed. Verified 2026-08-24. Note the app bundles sit in unusual places, which
+  matters because duplicate bundles share bundle IDs and silently break `open`:
+  `code` resolves to `~/Downloads/Visual Studio Code.app` and `cursor` to
+  `~/Desktop/Cursor.app`. Kiro and Codex are also installed, under `/Applications`.
+  The owner dislikes vim.
 - **Claude Code setup**: two separate logins driven by `CLAUDE_CONFIG_DIR` in `~/.zshrc` -
   `claude-work` (`~/.claude-work`, the Zluri login) and `claude-personal`
   (`~/.claude-personal`, the Gmail login). Plain `claude` is aliased to `claude-work`.
