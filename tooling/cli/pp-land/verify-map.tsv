@@ -6,6 +6,9 @@ tooling/cli/pp-land/	bash tooling/cli/pp-land/test-pp-land.sh
 tooling/cli/greenlight/	bash tooling/boss/test-boss.sh
 tooling/cli/greenlight/	bash tooling/cli/greenlight/test-greenlight.sh
 scripts/	bash scripts/check-repo-hygiene.sh
+scripts/	bash scripts/test-mirror-codex-skills.sh
+.agents/	bash scripts/test-mirror-codex-skills.sh
+.codex/	bash scripts/test-mirror-codex-skills.sh
 pipelines/video/visuals-flow/	cd pipelines/video/visuals-flow && bash scripts/check.sh
 pipelines/video/intro-studio/	cd pipelines/video/intro-studio && bash scripts/check.sh
 apps/tutorial-tracker-app/	cd apps/tutorial-tracker-app && npm test

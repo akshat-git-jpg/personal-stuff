@@ -49,6 +49,32 @@ renaming, or deleting any skill.
 - **Skill frontmatter.** Skills are written for Claude. A skill that calls a
   Claude-only tool by name, or relies on a hook, needs judgement under Codex.
 
+## On Windows, run the mirror after cloning
+
+`.agents/skills/` is committed as 35 **symlinks**. `git clone` on Windows without
+`core.symlinks` writes each one as a plain TEXT FILE holding its target path, so
+Codex finds no `SKILL.md` and the mirror is silently dead. Same for the 12
+`.claude/skills/` entries that point into `pipelines/`, which breaks Claude there
+too.
+
+In Git Bash, from the repo root:
+
+```bash
+git config core.symlinks true && git checkout -- .   # if the clone already degraded them
+bash scripts/relink.sh                               # rebuilds Claude skills AND this mirror
+```
+
+Re-run `scripts/relink.sh` after any skill is added, renamed, or deleted.
+
+Without admin or Developer Mode, MSYS `ln -s` makes an NTFS **junction** rather
+than a symlink. That reads fine, and `scripts/mirror-codex-skills.sh` detects it
+(`[ -L ]` alone does not — decisions.md 2026-08-11). Verify with
+`bash scripts/test-mirror-codex-skills.sh`.
+
+Note that the rest of this repo's tooling is macOS-only: `pp-work`, `dcg`, `rtk`,
+the VPS access and the secrets escrow do not run on Windows. Skills and knowledge
+travel; the tooling does not.
+
 ## Local overrides
 
 `AGENTS.override.md` overrides this file without editing it. It is gitignored.
