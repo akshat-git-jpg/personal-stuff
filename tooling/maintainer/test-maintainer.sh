@@ -152,6 +152,7 @@ echo "$fix_out" | grep -q 'refusing to regenerate' || fail "mcp fix did not expl
 
 # the real repo's generator must no longer drop anything
 real="$(bash "$MAINT_DIR/jobs/mcp/check.sh" 2>&1)"
+echo "$real" | grep -q 'unbound variable' && fail "mcp check hit an unbound variable on the real repo"
 echo "$real" | grep -q 'DROPPED-BY-REGEN' && fail "regen-mcp-json.sh still drops a live server"
 
 echo "ALL PASS"

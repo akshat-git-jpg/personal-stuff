@@ -48,19 +48,15 @@ fi
 echo
 
 echo "## 3. env files a server expects that are not there"
-missing_env="$(
-  for py in "$REPO_ROOT"/tooling/mcp/*/server.py; do
-    [ -f "$py" ] || continue
-    "$GREP" -oE '[A-Za-z0-9_./-]+/\.env' "$py" 2>/dev/null | sort -u | while read -r envp; do
-      case "$envp" in /*) abs="$envp" ;; *) abs="$REPO_ROOT/$envp" ;; esac
-      [ -f "$abs" ] || echo "- MISSING-ENVFILE $(basename "$(dirname "$py")") expects $envp"
-    done
-  done
-)"
-if [ -n "$missing_env" ]; then
-  echo "$missing_env"
-  found=1
-fi
+for py in "$REPO_ROOT"/tooling/mcp/*/server.py; do
+  [ -f "$py" ] || continue
+  server_dir="${py%/*}"
+  server="${server_dir##*/}"
+  while read -r envp; do
+    case "$envp" in /*) abs="$envp" ;; *) abs="$REPO_ROOT/$envp" ;; esac
+    [ -f "$abs" ] || note "MISSING-ENVFILE $server expects $envp"
+  done < <("$GREP" -oE '[A-Za-z0-9_./-]+/\.env' "$py" 2>/dev/null | sort -u)
+done
 echo
 
 echo "## 4. documented vs configured - A CANDIDATE LIST, NEVER A VERDICT"
