@@ -102,9 +102,13 @@ Roughly half are `.agents/skills/`, which only a Codex session reads. None of th
 needed by the custody machine. Treat broken symlinks as a separate, lower-priority
 problem: some pipelines skills will not load, and commit custody will work fine anyway.
 
-`pp-work snapshot` is broken on Windows and will stay broken. It calls
-`mktemp -t ppwork-snap-idx`, which is BSD syntax; GNU mktemp wants a template with
-`XXXXXX` and errors out. No other verb is affected.
+`pp-work snapshot` used to be broken on Windows and Linux both, and was fixed on
+2026-08-24. It called `mktemp -t ppwork-snap-idx`, which is BSD syntax; GNU mktemp reads
+`-t` as a name relative to `$TMPDIR` and refuses it for having too few X's. The failure
+was silent in the worst possible direction: `snap_one` returned 1, the caller read that
+as "tree is clean", and the verb printed "nothing to snapshot" over a workspace full of
+unlanded work. If the laptop's clone predates that commit, `git pull` before relying on
+`snapshot`.
 
 ## Before you start
 
