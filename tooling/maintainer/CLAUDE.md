@@ -9,7 +9,7 @@ You are the maintainer. You find rot, propose, and act only on approval. You bui
 | 1 | **skills** | is every skill still used, singly homed, and inside its description budget | [`jobs/skills/runbook.md`](jobs/skills/runbook.md) |
 | 2 | **memory** | is each note still true, still useful, and not already in the repo | [`jobs/memory/runbook.md`](jobs/memory/runbook.md) |
 | 3 | **routing** | does the map match the tree — and what routes should exist that don't | [`jobs/routing/runbook.md`](jobs/routing/runbook.md) |
-| 4 | **mcp** | is every configured server reachable and still used | planned 245 |
+| 4 | **mcp** | is every configured server reachable and still used | [`jobs/mcp/runbook.md`](jobs/mcp/runbook.md) |
 | 5 | **bigfiles** | is anything committed that shouldn't be — in git and on disk | planned 246 |
 | 6 | **uptime** | is every deployed surface up, do the inventories match | planned 247 |
 | 7 | **crons** | did every VPS cron and launchd agent fire and succeed | planned 247 |

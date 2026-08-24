@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # Regenerate .mcp.json at the repo root.
 #
-# .mcp.json is gitignored because it holds machine-absolute paths — each clone
-# generates its own. Only `google-drive` and `cloudflare` are still wired as
-# MCPs; everything else moved to tooling/cli (see tooling/mcp/README.md).
+# .mcp.json is gitignored because it holds machine-absolute paths - each clone
+# generates its own. The five active servers are listed in tooling/mcp/README.md.
 #
 # Run this after cloning, or after the repo moves/renames, so the paths inside
 # .mcp.json point at this machine's tooling/mcp servers.
@@ -31,6 +30,36 @@ cat > "$REPO/.mcp.json" <<JSON
         "$MCP/cloudflare-mcp-server/server.py"
       ],
       "env": {}
+    },
+    "indian-railways": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "$MCP/indian-railways-mcp/build/index.js"
+      ],
+      "env": {}
+    },
+    "davinci-resolve": {
+      "type": "stdio",
+      "command": "$MCP/davinci-resolve-mcp/venv/bin/python",
+      "args": [
+        "$MCP/davinci-resolve-mcp/src/server.py"
+      ],
+      "env": {
+        "RESOLVE_SCRIPT_API": "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting",
+        "RESOLVE_SCRIPT_LIB": "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so",
+        "PYTHONPATH": "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting/Modules"
+      }
+    },
+    "davinci-resolve-advanced": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "$MCP/davinci-resolve-mcp/bin/davinci-resolve-advanced-mcp.mjs"
+      ],
+      "env": {
+        "AAF_PROBE_PYTHON": "$MCP/davinci-resolve-mcp/venv/bin/python"
+      }
     }
   }
 }
