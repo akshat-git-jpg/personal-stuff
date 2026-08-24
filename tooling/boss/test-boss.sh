@@ -1198,6 +1198,37 @@ unset GH_STUB_LABELS BOSS_STATE_DIR
 export GH_STUB_BRANCH="not-a-boss-branch"
 echo "PASS: a second dispatch of a live PR is refused, and abort protects the crew"
 
+# -----------------------------------------------------------------------
+# (T4d) the crew brief fences the crew INTO its worktree.
+#
+# Crews are PLACED in a leased worktree, not walled into one: the
+# no-history-in-main.sh hook only runs for claude-p (it is a Claude hook), agy has
+# no hooks at all, and codex has only dcg. So for two of the three executors the
+# brief is the only thing standing between a crew and the owner's shared main
+# checkout, where a commit can capture another live session's uncommitted work
+# (2026-08-22). The old wording said "outside this repo", which the main checkout
+# is not.
+#
+# LIMIT, stated rather than hidden: this asserts on the heredoc SOURCE, not on a
+# generated brief — no case in this suite drives boss-dispatch far enough to write
+# one (they all stop at a refusal or the abort path). The brief is emitted verbatim
+# from this block, so a deletion is caught; a break in the surrounding heredoc
+# would not be.
+# -----------------------------------------------------------------------
+echo "--- (T4d) crew brief fences the crew into its worktree ---"
+grep -q 'Work ONLY inside this worktree' "$BOSSDIR/bin/boss-dispatch.sh" \
+  || fail "(T4d) the crew brief no longer fences the crew into its worktree"
+grep -q 'Work ONLY inside this worktree: \$wt' "$BOSSDIR/bin/boss-dispatch.sh" \
+  || fail "(T4d) the fence does not name the leased worktree (\$wt must interpolate)"
+grep -q 'NOT in \$REPO_ROOT' "$BOSSDIR/bin/boss-dispatch.sh" \
+  || fail "(T4d) the fence does not name the main checkout (\$REPO_ROOT must interpolate)"
+# The fence must sit in the UNQUOTED heredoc; in a quoted one ('EOF') the crew would
+# be told to avoid the literal strings "$wt" and "$REPO_ROOT".
+awk '/^cat > "\$brief" <<EOF$/,/^EOF$/' "$BOSSDIR/bin/boss-dispatch.sh" \
+  | grep -q 'Work ONLY inside this worktree' \
+  || fail "(T4d) the fence is not inside the interpolating brief heredoc"
+echo "PASS: the crew brief fences the crew into its leased worktree"
+
 # --- (T5) the fix-up bound is persisted, not remembered -----------------------
 # The "one fix-up then blocked" policy lived only in the boss session's working
 # memory. After a compaction it could not tell round 1 from round 3, so the bound

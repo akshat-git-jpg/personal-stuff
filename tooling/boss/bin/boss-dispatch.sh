@@ -210,6 +210,13 @@ Rules:
   Make it pass. If it TIMES OUT, your code is hanging — FIX the hang; never raise
   the timeout, never run test_cmd bare. The test_cmd is: $test_cmd
 - Do NOT push. Do NOT merge. Do NOT deploy. Do NOT edit files outside this repo.
+- **Work ONLY inside this worktree: $wt**
+  Never cd, write, or run git anywhere else — above all NOT in $REPO_ROOT, which is
+  the owner's shared main checkout. A commit made there can capture another live
+  session's uncommitted edits (2026-08-22), and your branch is not checked out there
+  anyway, so the work would be lost as well as damaging. Everything this plan needs
+  is in this worktree. If a path seems to be missing, it is a plan defect — report
+  it and stop; do not go looking for it in another checkout.
 - Do NOT edit plans/README.md — boss owns the plan registry on main; any edit
   you make to it is discarded, and the merge gate REJECTS the branch.
 - Finish with a final commit; the last thing you print is the test_cmd result.
