@@ -95,6 +95,23 @@ npx wrangler dev --port 8787
 - **`wrangler dev` serves a STALE snapshot of `dist/`.** After ANY client (SPA) rebuild you MUST **restart `wrangler dev`** (`pkill -f "wrangler dev"`; `npm run build`; restart) or the browser shows old UI. Worker-only changes hot-reload fine. (This is why design work uses `npm run dev:local`'s Vite :5173 — see `LOCAL-DEV.md`.)
 - The local `.npmrc` pins the public registry — keep it (home `~/.npmrc` points at Zluri CodeArtifact which 401s on public packages).
 - Sheets read range is bounded (`A1:…999`); fine now, but archive/scale needed past ~1000 rows.
+- **A leased `wt` worktree has no `.dev.vars`, and every e2e test needs it.** Every e2e logs in
+  through the `/dev-login` backdoor, which the Worker serves only when `DEV_AUTH === "1"`
+  (`src/worker/index.ts:131`, `src/worker/auth.ts:236`). `.dev.vars` is gitignored
+  (`.gitignore:17`), so a fresh worktree never has it and boss's gate runs after a worktree
+  clean. Three symptoms, all this one cause: `mutation gate: command already fails on CLEAN
+  state — gate unprovable`; every e2e failing inside `loginAs` at `page.waitForURL`; and a
+  `ui: true` screenshot that is a blank white page reading **"Not found"** (that string is the
+  dev-login 404, not a broken app). Fix: write `DEV_AUTH=1` into
+  `<worktree>/apps/tutorial-tracker-app/.dev.vars` before any e2e run. It is a dev-only flag,
+  not real secret material, despite the filename the secrets-guard hook protects. Crews
+  sometimes create it themselves, which is why one worktree can pass while its siblings fail.
+  (PRs #172/#173/#176, 2026-08-21.)
+- **Kill any `:5173` listener before a run you intend to trust.** `playwright.config.ts` pins
+  port 5173 with `reuseExistingServer: true`, so a stale dev server from an earlier run — or
+  from another worktree — is silently reused and the tests run against the WRONG code or env.
+  Both traps here produce failures that point at the crew's code instead of the environment,
+  which burns fix-up rounds on nothing.
 - **Link generation needs the D1 schema in the LOCAL D1.** `wrangler dev` uses an empty *local* D1, not the remote `clicks-db`, so `/api/generate-links` errors with `no such table: videos` until you seed it once: `npx wrangler d1 execute clicks-db --local --file=../redirector/migrations/0001_init.sql`. Production uses the remote `clicks-db` (already has the tables from the redirector in `apps/redirector/` (same repo)).
 
 ## Deploy (only on owner's "final")

@@ -233,8 +233,11 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
   `claude`/`agy` process is running. On 2026-08-02 a second session re-dirtied main
   all afternoon: merges parked repeatedly, one file re-conflicted three times, and
   it landed two main-breaking regressions that blocked an unrelated PR for hours.
-  **Boss auto-commits a dirty main, so it will commit that other session's
-  in-progress work under boss's name** — know what else is running before you start.
+  **Boss no longer auto-commits a dirty main** (corrected 2026-08-24): `boss-dispatch`
+  prints `NOTE — <repo> has uncommitted tracked changes (left untouched)` and continues.
+  The old auto-commit is what committed another session's work under boss's name, twice,
+  on 2026-08-03. If the checkout is dirty, leave it alone and ask the owner — it is
+  probably not yours. Know what else is running before you start.
 
 ### Two properties every `test_cmd` must have (added 2026-08-23, PR#197/#198)
 
@@ -293,6 +296,187 @@ suggestion; a gate is not. `boss-merge` rejects a branch that:
 - **Chrome lock ownership:** `boss_chrome_lock_release` only removes a lock it owns, and `boss_chrome_lock_acquire` returns non-zero (instead of 0) on timeout.
 - **State dir namespaces:** `BOSS_STATE_DIR` overrides the hardcoded `state/` path to allow a different kind of task to get its own namespace.
 - **O(1) Startup:** Terminal PRs are skipped at startup via a local marker (`terminal=done`) which is back-filled on discovery. `state/` is **never** pruned.
+
+## Troubleshooting — read by symptom (consolidated 2026-08-24)
+
+Sixteen hard-won findings that used to live as separate per-session memory notes,
+invisible to a fresh boss session. Each is dated and names the PR that taught it.
+**Every claim below was re-checked against the code on 2026-08-24**; the three
+"still unfixed" notes are marked as such.
+
+### A crew looks failed but is not
+
+- **`blocked agy error` is usually cosmetic.** agy often finishes implementing and
+  committing to its local worktree branch, then dies on its final turn with
+  `status: ERROR` / "The model produced an invalid tool call". Crews never push, so
+  `git log origin/main..origin/<branch>` looks empty even when the work is done — the
+  real state is the LOCAL leased worktree. Before any fix-up: `git log origin/main..HEAD`
+  in the worktree, confirm the new files exist, `git status --porcelain` is clean. If the
+  work is there, go straight to `boss-merge` and let `--verify` arbitrate.
+  (PR#14, #10, #13, 2026-07-11.) The sibling signal `blocked agy reported success but HEAD
+  did not advance (wrong-checkout?)` usually is not wrong-checkout either — agy did the job
+  and never committed. Check `git status --porcelain` in the worktree; boss can review the
+  diff and commit it on the branch itself. Confirm main is untouched first — that is the
+  actual wrong-checkout tell. (PR#106, 2026-07-25.)
+
+- **claude-p `max-turns` often means done-but-uncommitted.** The crew ran out of turns
+  before its final commit. Check `git -C <wt> status --short` and run the plan's `test_cmd`
+  against the worktree before writing it off. Salvage with a **direct executor dispatch** —
+  `executors/claude-p.sh dispatch <pr#> <ABSOLUTE brief path>` with a brief saying "your
+  prior work is already here uncommitted, finish it and commit". Never `boss-dispatch`: it
+  force-resets the branch and destroys the work. (PR#102, 2026-07-24.)
+
+- **A crew can hang forever starting MCP servers.** PR#180 sat 19 minutes on 6.6 CPU-seconds
+  with two `npm exec mongodb-mcp-server` children and never read the plan. Diagnose with
+  `ps -o time=,%cpu= -p <pid>` plus `pgrep -P <pid>`: minutes of elapsed time against seconds
+  of CPU, with `*-mcp-server` children, is a startup hang — not a slow crew and not a bad plan.
+  A real crew accrues CPU steadily. Re-dispatch with MCP off via a wrapper on `BOSS_CLAUDE_CMD`:
+  `exec claude "$@" --strict-mcp-config --mcp-config '{"mcpServers":{}}'`. Crews implementing
+  repo plans have never needed one. Two traps that each cost a crew that day: launch it under
+  `nohup … &` + `disown` (a foreground call dies with the Bash tool call, taking the crew with
+  it), and never `pkill -f mongodb-mcp-server` — that kills your own session's MCP servers too.
+  (2026-08-22.)
+
+### A gate is lying to you
+
+- **`mutation_expect` must be a string that appears ONLY on failure.** Authors keep picking
+  the error-code prefix they also used to name the tests (`INTRO-MODE:`, `S1`), so a fully
+  passing `node --test` run prints it in every `✔` line and `boss-merge` correctly rejects
+  with "already present on CLEAN state — marker proves nothing". A marker present in both
+  states makes the gate unfalsifiable, which is the exact dead-gate class the mutation system
+  exists to catch. Before merging, run the `mutation_command` clean and grep for the marker.
+  Fix it in **`state/<pr>.plan`** — that is what `boss-merge` reads, not the repo plan file.
+  Good failure-only markers for `node --test`: `failing tests`, `ERR_ASSERTION`, a phrase from
+  the assertion message. Do NOT ask the crew to rename its tests. (2 of 4 plans in the 218-221
+  batch, 2026-08-22; plan 221 got it right by putting the marker only inside assertion failure
+  messages.)
+
+- **A `test_cmd` scoped to its own new spec hides regressions.** Plans 213-217 each gated on a
+  single spec, all five passed and landed, and the full suite on the resulting main was
+  5 failed / 12 passed where the pre-batch commit was 9 passed / 0 failed. Two mechanisms, both
+  invisible to a scoped gate: a UI change relocates what older specs look for, and a sibling
+  plan's SEED change breaks another plan's brand-new spec. Sequential landing does not prevent
+  either — the collisions are in rendered text and seed data, not in file lines, so `touches:`
+  overlap checks and ordered dispatch both miss them. **Run the app's FULL suite after any
+  multi-plan batch touching one app.** Note plan 216's prose said its gate was the full suite
+  while its frontmatter ran one spec — read both. (2026-08-22.)
+
+- **A green `test_cmd` is not evidence a `visuals-flow-2` or `card-library` plan is done.**
+  On PRs #105/#106 the crew implemented the feature across every surface, passed the gate, and
+  omitted the one thing each plan named as its headline verification: a pixel-sampled composite
+  assertion. The new filter chain was executed by literally no test. The fix-up was not
+  paperwork — it found that `planSegmentOverlays` never propagated `isStage`/`zone` to the next
+  surface, so stage mode would have shipped silently broken. For these plans, read the
+  `## Done criteria` block too, then: grep the changed test files for the feature keyword (zero
+  hits = not done, whatever colour the gate is); spend the one fix-up on the missing assertion;
+  and **verify it yourself** by mutating the propagation line out and confirming the test fails.
+  An assertion that cannot fail is worth nothing. (2026-07-25.)
+
+- **A killed `boss-merge` leaves the mutation applied.** `boss-merge` applies `mutation_apply`
+  to the leased worktree and only reverts it with `git checkout -- .` *after* the gate finishes.
+  Kill it in between and the edit stays, silently — every later diagnosis then measures mutated
+  code. On PR#165 a foreground merge hit the Bash tool's 600s cap; the leftover edit made
+  `check.sh` fail and the failure was wrongly blamed on flaky headless Chrome, and the next
+  merge could not even lease the worktree. A visuals-flow merge runs a board-ui build plus a
+  Chrome-driven `check.sh` — 10+ minutes — so **being killed is the normal case**. Run long
+  merges detached: `nohup env <vars> bash bin/boss-merge.sh <pr> > <log> 2>&1 &`, then poll the
+  log. Before retrying any merge, `git status --porcelain` the leased worktree; if the only diff
+  is the plan's own `mutation_apply` line, revert it with `git stash push -- <file>` then
+  `git stash drop` (plain `git checkout --` is blocked by the dcg guard). Never read a post-kill
+  test failure as evidence about the crew's code until the tree is clean. (2026-08-17.)
+
+### Dispatch and merge plumbing
+
+- **`test_cmd` must be a bare shell command.** Never wrap it in `bash -c '…'`. `boss-dispatch`
+  writes it into `state/<pr>.meta` as a `key=value` line, so a value containing single quotes
+  loses its closing quote on write; `boss-merge` then wraps the value in its own
+  `gtimeout … bash -c $(printf %q "$test_cmd")`, the inner wrapper double-wraps, and greenlight
+  parks with `unexpected EOF while looking for matching '`. Write `&&` and `cd` bare — the outer
+  `bash -c` handles them. If you inherit a broken meta, fix the `test_cmd=` line in
+  `state/<pr>.meta` and re-run `boss-merge`; no re-dispatch, the crew work is fine.
+  **Still unfixed as of 2026-08-24** — `bin/boss-dispatch.sh:150` writes the value raw.
+  (PR#38, 2026-07-18.)
+
+- **A hand-invoked fix-up brief path must be ABSOLUTE.** The executor `cd`s into the worktree
+  before `cat "$brief"`, so a relative path resolves inside the worktree, is not found, and
+  `claude -p` errors instantly with "Input must be provided" — an empty run that leaves the
+  worktree untouched. Pass `"$(pwd)/state/<pr>.fixup.brief.md"`. This never bites the normal
+  path because `boss-dispatch` always passes an absolute path. An instant-error run is a tooling
+  mistake, not a crew failure — it does NOT consume the one-fix-up budget. (2026-07-17.)
+
+- **"mutation_apply failed to run (stale recipe?)" usually blames the plan for a boss bug.**
+  On 2026-08-20 the recipe was correct and hand-verified; `fm_get` in `bin/boss-lib.sh` could
+  not parse a `|` block scalar and returned the literal `|`, so the gate ran `bash -c "|"`.
+  Fixed the same day by splitting `_fm_scalar` from a new `_fm_block`. This was the **third**
+  false "stale recipe?" of the same shape — the prior two are recorded in the `_fm_scalar`
+  comments (plan 191's trailing-quote truncation, and the origin/$branch wrong-tree bug).
+  So: when boss says this, do NOT rewrite the plan first. Run
+  `source bin/boss-lib.sh; fm_get mutation_apply <plan>` and look at what the parser returns.
+  **Suspect boss before the crew.**
+
+- **`scripts/check.sh` in visuals-flow is a serial-collision hotspot**, like `plans/README.md`.
+  Many plans each append their own gate line to the same few lines, so whichever branch lands
+  second hits a trivial rebase conflict at merge time. This is merge plumbing, not a plan
+  defect: keep BOTH lines inside the leased worktree, `git rebase --continue`, re-run the
+  timeout-wrapped `test_cmd`, re-run `boss-merge`. **No crew fix-up dispatch** — both lines are
+  already crew-authored. Reserve the one-fix-up policy for real plan or logic conflicts.
+  (Landing #83/#84/#85, 2026-07-22.)
+
+- **The 60-turn cap is really a ~300-line plan ceiling.** `executors/claude-p.sh` hardcodes
+  `--max-turns ${BOSS_MAX_TURNS:-60}`. Measured across all 18 historical claude-p runs, turns
+  used scale with plan size at ~0.15-0.2 turns/line; every success had a plan ≤292 lines, and
+  both `error_max_turns` deaths were 315L and 537L. Dispatch anything over ~300 lines as
+  `BOSS_MAX_TURNS=300 bin/boss-dispatch.sh <pr#>` — the var propagates because dispatch invokes
+  the executor as a plain child, and a cap only ever truncates, so an over-generous budget costs
+  nothing. **Still unfixed as of 2026-08-24** — `executors/claude-p.sh:17` still hardcodes 60.
+  Owner-approved but unimplemented (2026-07-25): auto-size `--max-turns` from the plan's line
+  count; add a `resume` verb using `claude -p --resume <session_id>` (the id is in every `.out`
+  envelope — a continuation must resume the SAME session, because boss holds no plan context by
+  design and a summary brief is the weakest possible handoff); and stop collapsing
+  `error_max_turns` into `blocked`, since truncation is resumable and should not spend the one
+  fix-up meant for real failures. Explicitly NOT doing: a plan-size gate in `orchestrate`.
+
+### Never write to the owner's checkout
+
+- **Run `bin/boss-session-start.sh` first, before any dispatch.** It prints labels, ledger and
+  queue, reconciles in-flight PRs, and surfaces the two things that actually bite: a checkout
+  that is dirty or off main, and other live `claude`/`agy` sessions in the same repo.
+
+- **A dirty checkout is not a merge blocker** (corrected 2026-08-04). Since `cbc9e6b7`,
+  greenlight lands from inside the leased worktree and never reads `REPO_TOPLEVEL`. The
+  session-start warning is informational. One real consequence: on a non-main checkout
+  `boss-merge` skips the `plans/README.md` landing record, so the registry drifts until
+  reconciled from main.
+
+- **The main checkout does not fast-forward itself** after a `pp-land` lands your commit.
+  `origin/main` moves; local `HEAD` stays put. A file you edited in main, committed via a
+  workspace, then reset to local `HEAD` goes STALE — which matters for live-read files such as
+  a symlinked skill under `tooling/claude-skills/`. Restore from origin, not HEAD:
+  `git show origin/main:<path> > <path>`. Check `git rev-parse HEAD` against `origin/main`
+  before trusting anything read out of the main checkout.
+
+- **Inspect any boss auto-commit before trusting it.** The dirty-main auto-commit staged
+  everything dirty — tracked and untracked — into one commit whose message named none of it.
+  It swept ~200MB of generated media past a `.gitignore` glob gap (`videos/*/renders/` did not
+  match the new run-scoped `videos/*/renders.run1/`), and separately swept a concurrent
+  session's 29 staged files, producing a 64-file commit labelled
+  `boss: record 210-gym-app-sheets-to-d1 (PR#169) landed`. Always `git show --stat HEAD` after
+  any boss auto-commit and check the file count against what the message claims. A failed-push
+  commit is LOCAL: `git reset --mixed origin/main` unwinds it and keeps the working tree, no
+  force-push. If it swept another session's work, do not unwind unilaterally — report it while
+  it is still unpushed. Prevention: never dispatch from a checkout another session holds.
+  (2026-07-24 and 2026-08-20.)
+
+### Waiting on async state
+
+- **Background a blocking poll; do not guess a `ScheduleWakeup` interval.** For crew state,
+  a merge, or any async condition, run `until <condition>; do sleep Ns; done` via Bash
+  `run_in_background` (or Monitor for repeated events) so it exits the instant the condition
+  flips. A fixed interval either overshoots — the owner notices the crew finished before boss
+  does — or undershoots and burns turns. Reserve `ScheduleWakeup` for cases with no local
+  process to block on. **Gotcha (PR#69):** do not grep `boss-state.sh` output for the word
+  `dead` as the exit condition — `agy.sh collect` prints `dead no output` whenever its `.out`
+  file is empty, which is true for the whole early part of a healthy run.
 
 ## Boundaries
 
