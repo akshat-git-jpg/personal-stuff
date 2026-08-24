@@ -114,7 +114,24 @@ Five changes to `apps/tutorial-tracker-app/`:
 | 5 | `src/shared/engine/definitions/standard.ts` | `slug` in the Topic stage's `createFields`, pre-filled live from the title as you type |
 
 **The slug is create-only.** It lives in `createFields` and is **absent from
-`briefFields`**. It is not "locked" by a rule — it simply does not exist on the edit
+`briefFields`**.
+
+Two mechanics found during plan authoring (2026-08-25), both load-bearing:
+
+- **Two different things are called `briefFields`.** `StageDef.briefFields`
+  (`types.ts:77`) is the *edit* surface; the local `briefFields` inside
+  `requiredToCreate` (`types.ts:149`) is merely the `createFields` column list. They are
+  separate arrays, so "in `createFields`, absent from `StageDef.briefFields`" is a real
+  mechanism, not a contradiction.
+- **`standard.ts` declares no `createFields`**, so it falls back to
+  `DEFAULT_CREATE_FIELDS` (`types.ts:134` — title and notes only). The slug field is
+  therefore added to `DEFAULT_CREATE_FIELDS`, not to `standard.ts`: every pipeline needs
+  video identity, and duplicating the default list into one pipeline invites drift.
+- **Consequence to accept deliberately:** `requiredToCreate` (`types.ts:148`) returns every
+  `createFields` column, so adding `slug` makes it **required to create a video**. That is
+  correct — a video without identity should not exist — but it is a behaviour change: the
+  new-video form will refuse to submit with an empty slug. Since the field is pre-filled
+  from the title, the only way to hit it is an empty title, which is already refused. It is not "locked" by a rule — it simply does not exist on the edit
 surface of a card that already exists. Structurally impossible rather than forbidden.
 
 **The slug never changes after minting.** A title edit does not touch it. The reason is
