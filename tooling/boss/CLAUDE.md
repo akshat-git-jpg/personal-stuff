@@ -219,6 +219,14 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
   via meta `stall_warn`/`stall_kill`, or globally via `BOSS_STALL_WARN_MIN`/`_KILL_MIN`.
 - **gh account auto-asserted** on every write path (session-start/dispatch/merge/
   deploy) — a silent account flip had broken all `gh` calls. Set `BOSS_GH_USER` to override.
+  **It now hands the account back.** `gh auth switch` moves the GLOBAL active
+  account, so until 2026-08-24 every boss write path left the owner switched to
+  `BOSS_GH_USER`, and their next ZluriHQ work-repo `gh` call authenticated as the
+  personal account. `boss_assert_gh` now records the displaced login in
+  `$STATE_DIR/gh_prev`, and all four entry scripts `trap boss_gh_restore EXIT`.
+  `BOSS_GH_KEEP=1` keeps boss active when chaining boss commands by hand. This is
+  orthogonal to the push 403 under *Blocked lands*: `git push` resolves through the
+  repo-local credential helper, not the active gh account.
 
 ### Contention protection (added 2026-08-02)
 

@@ -9,6 +9,7 @@ while [ $# -gt 0 ]; do case "$1" in
   --brief-extra) brief_extra="$2"; shift 2;;
   *) echo "unknown arg $1" >&2; exit 2;; esac; done
 
+trap boss_gh_restore EXIT
 boss_assert_gh || exit 1
 
 # Checkout hygiene (WARN ONLY — never mutate the owner's checkout).

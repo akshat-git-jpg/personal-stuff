@@ -1,6 +1,7 @@
 #!/bin/bash
 # boss-session-start.sh — the session's catch-up surface.
 source "$(dirname "${BASH_SOURCE[0]}")/boss-lib.sh"
+trap boss_gh_restore EXIT
 boss_assert_gh || exit 1
 # test_cmd timeouts need a `timeout`-compatible binary; without it a hanging
 # verify freezes a merge (2026-07-08 incident). Dispatch/merge hard-fail when it's

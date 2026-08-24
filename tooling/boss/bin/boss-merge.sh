@@ -1,6 +1,7 @@
 #!/bin/bash
 # boss-merge.sh <pr#> — land a finished PR via greenlight, record DONE, offer deploy.
 source "$(dirname "${BASH_SOURCE[0]}")/boss-lib.sh"
+trap boss_gh_restore EXIT
 boss_assert_gh || exit 1
 pr="${1:?usage: boss-merge.sh <pr#>}"
 branch=$(meta_get "$pr" branch); slug=$(meta_get "$pr" slug)
