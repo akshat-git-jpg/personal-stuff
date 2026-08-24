@@ -35,9 +35,13 @@ case "$1:$2" in
         # Return a branch name based on an env var, or default non-boss branch
         echo "${GH_STUB_BRANCH:-not-a-boss-branch}" ;;
       title) echo "stub title" ;;
+      labels)
+        # boss-dispatch reads the PR's CURRENT labels as its duplicate-dispatch lock.
+        # The stub ignores -q and prints the already-joined list the caller expects.
+        echo "${GH_STUB_LABELS:-}" ;;
       *) echo "{}" ;;
     esac ;;
-  pr:edit) exit 0 ;;
+  pr:edit) echo "$*" >> "$BOSS_TEST_TMP/gh-edit.log"; exit 0 ;;
   pr:list) echo "[]" ;;
   pr:comment) exit 0 ;;
   label:create) exit 0 ;;
@@ -1033,6 +1037,124 @@ T3EOF
   esac
 ) || exit 1
 echo "PASS: claude-p resumes the same session, bounded, and truncation is not a block"
+
+# --- (T4) duplicate dispatch is refused --------------------------------------
+# boss-dispatch never read the PR's CURRENT labels, so a second dispatch of a live
+# PR flipped labels blindly, leased a SECOND worktree, and then either handed the PR
+# back to boss:ready while crew 1 was still running (inviting a third) or truncated
+# $pr.meta, orphaning crew 1's pid/worktree/head_before beyond recovery.
+# boss:in-progress was designated as the lock and was never checked.
+(
+  t4="$TMP/t4"; mkdir -p "$t4"
+  export BOSS_STATE_DIR="$t4/state"; mkdir -p "$BOSS_STATE_DIR"
+  export GH_STUB_BRANCH="boss/998-dup"
+  real_git4=$(PATH="${PATH#"$STUB_DIR:"}" command -v git)
+  cat > "$STUB_DIR/git" <<GIT4EOF
+#!/bin/bash
+if echo "\$*" | grep -q "show.*:plans/"; then
+  cat <<'PLAN4EOF'
+---
+executor: claude-p
+model: sonnet
+test_cmd: cd apps/x && npm test
+needs: []
+---
+# a valid plan
+PLAN4EOF
+  exit 0
+fi
+exec "$real_git4" "\$@"
+GIT4EOF
+  chmod +x "$STUB_DIR/git"
+  rm -f "$TMP/gh-edit.log"
+
+  # (a) the label IS the lock, and it is now actually read.
+  export GH_STUB_LABELS="type:tool,boss:in-progress"
+  set +e; err=$("$BOSSDIR/bin/boss-dispatch.sh" 998 2>&1); rc=$?; set -e
+  [ "$rc" -eq 3 ] || fail "(T4a) a boss:in-progress PR must be refused with exit 3, got $rc: $err"
+  echo "$err" | grep -q 'already boss:in-progress' \
+    || fail "(T4a) refusal did not name the reason: $err"
+  [ ! -f "$TMP/gh-edit.log" ] || fail "(T4a) a refused dispatch still edited labels: $(cat "$TMP/gh-edit.log")"
+
+  # (b) belt: a live pid refuses even when the label says otherwise.
+  export GH_STUB_LABELS="boss:ready"
+  # The test process itself stands in for a live crew: guaranteed alive for the whole
+  # case, where a backgrounded `sleep` races the two full dispatch runs below.
+  t4pid=$$
+  printf 'pid=%s\n' "$t4pid" > "$BOSS_STATE_DIR/998.meta"
+  set +e; err=$("$BOSSDIR/bin/boss-dispatch.sh" 998 2>&1); rc=$?; set -e
+  [ "$rc" -eq 3 ] || fail "(T4b) a live crew must be refused with exit 3, got $rc: $err"
+  echo "$err" | grep -q 'LIVE crew' || fail "(T4b) refusal did not name the live crew: $err"
+
+  # (c) --force gets past the refusal, and the abort path must NOT hand a PR with a
+  #     live crew back to the ready queue — that is what invited a third dispatch.
+  set +e; err=$("$BOSSDIR/bin/boss-dispatch.sh" 998 --force 2>&1); rc=$?; set -e
+  echo "$err" | grep -q 'leaving boss:in-progress' \
+    || fail "(T4c) the abort path did not protect a live crew: $err"
+  if [ -f "$TMP/gh-edit.log" ]; then
+    grep -q 'add-label boss:ready' "$TMP/gh-edit.log" \
+      && fail "(T4c) abort handed a live PR back to boss:ready: $(cat "$TMP/gh-edit.log")"
+  fi
+  rm -f "$STUB_DIR/git"
+) || { rm -f "$STUB_DIR/git"; exit 1; }
+unset GH_STUB_LABELS BOSS_STATE_DIR
+export GH_STUB_BRANCH="not-a-boss-branch"
+echo "PASS: a second dispatch of a live PR is refused, and abort protects the crew"
+
+# --- (T5) the fix-up bound is persisted, not remembered -----------------------
+# The "one fix-up then blocked" policy lived only in the boss session's working
+# memory. After a compaction it could not tell round 1 from round 3, so the bound
+# was silently unbounded — exactly the failure the policy exists to prevent.
+(
+  t5="$TMP/t5"; mkdir -p "$t5/wt"
+  git init -q "$t5/wt"
+  git -C "$t5/wt" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+  printf 'brief\n' > "$t5/brief.md"
+
+  export BOSS_STATE_DIR="$t5/state"; mkdir -p "$BOSS_STATE_DIR"
+  # shellcheck disable=SC1090
+  source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+  type boss_fixup_claim >/dev/null 2>&1 || fail "(T5) boss_fixup_claim not defined"
+
+  # A FRESH dispatch has no pid yet (boss-dispatch truncates the meta first), so it
+  # is not a fix-up and must not consume anything.
+  meta_set 901 worktree "$t5/wt"
+  boss_fixup_claim 901 2>/dev/null || fail "(T5) a fresh dispatch was counted as a fix-up"
+  [ -z "$(meta_get 901 fixups 2>/dev/null)" ] || fail "(T5) a fresh dispatch wrote a fixup count"
+
+  # A DIRECT executor dispatch runs against a meta that still carries pid => round 1.
+  meta_set 901 pid 1
+  boss_fixup_claim 901 2>/dev/null || fail "(T5) the first fix-up round was refused"
+  [ "$(meta_get 901 fixups)" = 1 ] || fail "(T5) round 1 was not recorded (got '$(meta_get 901 fixups)')"
+  boss_fixup_claim 901 >/dev/null 2>&1 && fail "(T5) a SECOND fix-up round was allowed at BOSS_MAX_FIXUPS=1"
+  ( BOSS_MAX_FIXUPS=2; boss_fixup_claim 901 >/dev/null 2>&1 ) \
+    || fail "(T5) BOSS_MAX_FIXUPS could not raise the bound for one run"
+
+  # Wiring: both executors must claim the budget, and must do it BEFORE they
+  # overwrite head_before — otherwise a refused fix-up has already destroyed the
+  # baseline that tells boss whether the PR ever produced work.
+  for ex in claude-p agy; do
+    sd="$t5/state-$ex"; rm -rf "$sd"; mkdir -p "$sd"
+    ( export BOSS_STATE_DIR="$sd"
+      # shellcheck disable=SC1090
+      source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+      meta_set 902 worktree "$t5/wt"
+      meta_set 902 model sonnet
+      meta_set 902 pid 1
+      meta_set 902 fixups 1
+      meta_set 902 head_before "deadbeef" )
+    set +e
+    ( export BOSS_STATE_DIR="$sd" BOSS_CLAUDE_CMD="$STUB_DIR/claude"
+      bash "$BOSSDIR/executors/$ex.sh" dispatch 902 "$t5/brief.md" >/dev/null 2>&1 )
+    rc=$?
+    set -e
+    [ "$rc" -eq 3 ] || fail "(T5) $ex dispatch past the fix-up cap must exit 3, got $rc"
+    [ "$(sed -n 's/^head_before=//p' "$sd/902.meta" | tail -1)" = deadbeef ] \
+      || fail "(T5) $ex overwrote head_before before claiming the fix-up budget"
+  done
+) || exit 1
+unset BOSS_STATE_DIR
+echo "PASS: the fix-up bound is persisted in the meta and both executors claim it"
 
 echo ""
 echo "ALL TESTS PASSED"

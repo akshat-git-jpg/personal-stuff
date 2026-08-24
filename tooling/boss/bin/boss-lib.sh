@@ -61,6 +61,41 @@ boss_check_test_cmd() {
   printf '%s' "$cmd"
 }
 
+# Fix-up budget, PERSISTED. The "one fix-up then blocked" policy lived only in the
+# boss session's working memory — no `state/*.meta` key ever recorded it. A compacted
+# or restarted boss cannot tell round 1 from round 3, so the bound silently became
+# unbounded, which is exactly the failure shape the policy exists to prevent.
+#
+# The executor's `dispatch` verb is the right choke point: both paths go through it,
+# and they are distinguishable there.
+#   - boss-dispatch.sh truncates $pr.meta before invoking the executor, so there is
+#     no `pid` yet => a FRESH start, counter resets. That is also what gives an
+#     amended plan a clean budget: a full re-dispatch is a fresh start by definition.
+#   - a DIRECT executor dispatch — the correct way to fix up (see CLAUDE.md; never
+#     boss-dispatch, which force-resets the branch and destroys crew commits) — runs
+#     against an existing meta that still carries `pid` => a fix-up round, counted.
+#
+# A `resume` is NOT a dispatch, so a turn-capped continuation never spends this
+# budget. That is deliberate: truncation is not a failure (see claude-p's `resume`).
+# Raise the bound for one run with BOSS_MAX_FIXUPS=2.
+BOSS_MAX_FIXUPS="${BOSS_MAX_FIXUPS:-1}"
+boss_fixup_claim() {
+  local id="$1" prev n
+  prev=$(meta_get "$id" pid 2>/dev/null) || prev=""
+  [ -n "$prev" ] || return 0          # first dispatch of this PR — not a fix-up
+  n=$(meta_get "$id" fixups 2>/dev/null) || n=""
+  case "$n" in ''|*[!0-9]*) n=0 ;; esac
+  n=$(( n + 1 ))
+  if [ "$n" -gt "$BOSS_MAX_FIXUPS" ]; then
+    echo "REFUSED: PR $id has already used $(( n - 1 )) fix-up round(s) (BOSS_MAX_FIXUPS=$BOSS_MAX_FIXUPS)." >&2
+    echo "  Park it as boss:blocked instead of re-dispatching. Override for one run with BOSS_MAX_FIXUPS=$n." >&2
+    return 1
+  fi
+  meta_set "$id" fixups "$n"
+  echo "boss: PR $id fix-up round $n/$BOSS_MAX_FIXUPS" >&2
+  return 0
+}
+
 # boss_head_advanced <id> — 0 if the task's worktree HEAD moved since dispatch.
 # A crew that reports success without advancing HEAD produced nothing (or ran on
 # the wrong checkout); treating that as "done" would make boss's label state lie.

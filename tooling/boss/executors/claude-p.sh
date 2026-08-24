@@ -55,6 +55,10 @@ case "$verb" in
   dispatch)
     brief="${3:?dispatch requires <brief-path>}"
     worktree=$(meta_get "$id" worktree) || { echo "ERROR: no worktree for $id" >&2; exit 1; }
+    # Persisted fix-up budget. A dispatch against a meta that already carries a pid
+    # is a fix-up round by definition; refuse past BOSS_MAX_FIXUPS. Must run BEFORE
+    # head_before/pid are overwritten below.
+    boss_fixup_claim "$id" || exit 3
     out="$STATE_DIR/$id.out"; : > "$out"
     model=$(meta_get "$id" model) || model=""; [ -n "$model" ] || model="sonnet"
     meta_set "$id" head_before "$(git -C "$worktree" rev-parse HEAD 2>/dev/null || echo none)"

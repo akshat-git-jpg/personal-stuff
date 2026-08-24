@@ -115,6 +115,35 @@ fi
 # ui: frontmatter is no longer read — the screenshot gate was removed 2026-07-18 (see decisions.md).
 [ -f "$BOSS_HOME/executors/$executor.sh" ] || { echo "no executor '$executor'" >&2; exit 1; }
 
+# Duplicate-dispatch refusal. boss-dispatch never read the PR's CURRENT labels
+# (only headRefName, and a dependency's state), so a second dispatch of a live PR
+# ran straight through: it flipped the labels blindly, leased a SECOND worktree,
+# and then either
+#   - hit the checkout guard below, whose recovery set the PR back to boss:ready
+#     while crew 1 was still running — inviting a THIRD dispatch, or
+#   - succeeded, and truncated $pr.meta below, orphaning crew 1's pid, worktree and
+#     head_before beyond recovery.
+# boss:in-progress was designated as the lock but was never actually checked.
+# --force overrides (same escape hatch as the needs_prs override above).
+if [ "$force" != "1" ]; then
+  cur_labels=$(gh pr view "$pr" --json labels -q '[.labels[].name]|join(",")' 2>/dev/null || echo "")
+  case ",$cur_labels," in
+    *,boss:in-progress,*)
+      echo "PR#$pr is already boss:in-progress — refusing a second dispatch." >&2
+      echo "  Inspect it first: bin/boss-state.sh $pr" >&2
+      echo "  To FIX UP an existing crew, use a DIRECT executor dispatch — never boss-dispatch," >&2
+      echo "  which force-resets the branch to origin and destroys the crew's local commits." >&2
+      echo "  Pass --force only if you are certain nothing is running." >&2
+      exit 3;;
+  esac
+  live_pid=$(meta_get "$pr" pid 2>/dev/null) || live_pid=""
+  if [ -n "$live_pid" ] && kill -0 "$live_pid" 2>/dev/null; then
+    echo "PR#$pr already has a LIVE crew (pid $live_pid) — refusing a second dispatch." >&2
+    echo "  Fix-ups go through a direct executor dispatch. --force overrides." >&2
+    exit 3
+  fi
+fi
+
 gh pr edit "$pr" --remove-label boss:ready --add-label boss:in-progress
 
 wt=$(wt get --holder "boss-$pr")
@@ -126,7 +155,15 @@ git -C "$wt" fetch -q origin "$branch" main
 # loudly, return the leased worktree, and leave the PR boss:ready (retryable, not
 # blocked — this is an environment snag, not a plan defect).
 if ! git -C "$wt" checkout -B "$branch" "origin/$branch"; then
-  gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:ready 2>/dev/null || true
+  # Only hand the PR back to the ready queue when nothing is actually working on
+  # it. Flipping a PR that still has a LIVE crew back to boss:ready invited a third
+  # dispatch on top of the second. Reachable only via --force now, but the belt stays.
+  abort_pid=$(meta_get "$pr" pid 2>/dev/null) || abort_pid=""
+  if [ -n "$abort_pid" ] && kill -0 "$abort_pid" 2>/dev/null; then
+    echo "PR#$pr: leaving boss:in-progress — crew pid $abort_pid is still alive." >&2
+  else
+    gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:ready 2>/dev/null || true
+  fi
   boss_notify "boss:dispatch-abort PR#$pr — cannot checkout $branch (held by another worktree?); left boss:ready"
   wt return "$wt" --holder "boss-$pr"
   echo "PR#$pr dispatch ABORTED — could not checkout $branch in $wt (branch held by another worktree?)." >&2
