@@ -45,6 +45,7 @@ import {
   getPipeline, stageById, PIPELINES, PROTECTED_ADMIN_EMAIL, pipelineSummaries, DEFAULT_PIPELINE_ID,
   rolesForSystem, WILDCARD_SYSTEM, ADMIN_ROLE,
 } from "../shared/engine/registry";
+import { mintSlug } from "../shared/slug";
 import { derive, statusOf } from "../shared/engine/derive";
 import { colOf, stageHasReviewerSlot, createFieldsOf, requiredToCreate } from "../shared/engine/types";
 import { lifecycle, eventTypeFor } from "../shared/engine/lifecycle";
@@ -877,16 +878,27 @@ app.post("/api/video", async (c) => {
     for (const s of pipe.stages) if (colOf(s, "assignee") === col) return s.role;
     return col;
   };
-  const missing = requiredToCreate(pipe).filter((col) => !String(body[col] ?? "").trim());
+  const missing = requiredToCreate(pipe).filter((col) => col !== "slug" && !String(body[col] ?? "").trim());
   if (missing.length) return c.json({ error: `Missing: ${missing.map(fieldLabel).join(", ")}` }, 400);
+
+  let taken = new Set<string>();
+  if (c.env.TRACKER_DB) {
+    const rows = await c.env.TRACKER_DB.prepare("SELECT slug FROM cards WHERE slug IS NOT NULL").all<{ slug: string }>();
+    taken = new Set(rows.results?.map((r) => r.slug) ?? []);
+  }
 
   // Validate + collect the creation fields from the shared config (control.ts),
   // so the required set can't drift from the client modal.
   const values: Record<string, string> = {};
   for (const f of createFieldsOf(pipe)) {
     const v = (body[f.col] ?? "").trim();
-    if (!v) return c.json({ error: `${f.label} is required`, col: f.col }, 400);
-    values[f.col] = v;
+    if (f.col === "slug") {
+      const id = crypto.randomUUID().slice(0, 8);
+      values.slug = v ? mintSlug(v, taken, id) : mintSlug((body.video_title ?? "").trim(), taken, id);
+    } else {
+      if (!v) return c.json({ error: `${f.label} is required`, col: f.col }, 400);
+      values[f.col] = v;
+    }
   }
 
   const today = new Date().toISOString().slice(0, 10);
@@ -1089,7 +1101,7 @@ app.post("/api/link-confirm", async (c) => {
 
   const db = c.env.DB;
   let finalVideoCode = previewVideoCode;
-  let codeUpdates: any = {};
+  const codeUpdates: any = {};
   
   if (finalVideoCode === "(new)") {
     finalVideoCode = generateVideoCode(await clickstore.existingCodes(db));

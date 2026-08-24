@@ -169,7 +169,7 @@ class D1Store implements DataStore {
     const { card, stages } = decomposeRow(p, row, true);
     const now = new Date().toISOString();
 
-    const cardCols = ["id", "pipeline_id", "title", "notes", "description", "category", "subcategory", "extra_json", "created_at", "updated_at", "status_since"];
+    const cardCols = ["id", "pipeline_id", "title", "slug", "notes", "description", "category", "subcategory", "extra_json", "created_at", "updated_at", "status_since"];
     const stmts: D1PreparedStatement[] = [
       this.db.prepare(`INSERT INTO cards (${cardCols.map((x) => `"${x}"`).join(", ")}) VALUES (${cardCols.map(() => "?").join(", ")})`)
         .bind(id, p.id, card.title ?? "", card.notes ?? "", card.description ?? "", card.category ?? "", card.subcategory ?? "", card.extra_json ?? null, now, now, card.status_since ?? null),
