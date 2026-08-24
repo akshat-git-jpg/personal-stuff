@@ -1,6 +1,6 @@
 # Runbook — Claude/Codex skill maintenance
 
-Sibling of [`memory-maintenance.md`](memory-maintenance.md). That one governs what an
+Sibling of [`../memory/runbook.md`](../memory/runbook.md). That one governs what an
 agent *remembers*; this one governs what an agent *can do*.
 
 Written 2026-08-25, immediately after the migration that made skills repo-scoped. Every
@@ -315,7 +315,7 @@ Ordered by value to a repo-maintainer agent.
    skill. If the same signal is reachable for repo skills, the four-question test becomes
    evidence-based instead of a judgement call.
 5. **A quarterly audit cron** that runs §5 and files findings, the way
-   `memory-maintenance.md` §9 proposes for memory.
+   `../memory/runbook.md` §9 proposes for memory.
 
 ---
 
@@ -333,7 +333,7 @@ That is the whole flow. No manifest, no relink, no account choice.
 
 ## Related
 
-- [`memory-maintenance.md`](memory-maintenance.md) — the same treatment for memory
+- [`../memory/runbook.md`](../memory/runbook.md) — the same treatment for memory
 - `decisions.md` 2026-08-25 — the four decision entries behind this migration
 - `.claude/skills/claude-router/` — the operating skill for creating/installing/removing
 - [`../../AGENTS.md`](../../AGENTS.md) — how Codex is told about all of this

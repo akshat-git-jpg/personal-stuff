@@ -22,7 +22,9 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Every live URL across this repo (incl. `pipelines/`) | [`my-hosted-sites.md`](my-hosted-sites.md) |
 | Who I am, active bets, product inventory, idea backlog | `context/` (start at [`context/CLAUDE.md`](context/CLAUDE.md)) |
 | A custom Claude skill (source of truth) | `.claude/skills/` for anything a root-level session needs; `pipelines/.claude/skills/` for pipelines-domain skills (symlinked up so a root session sees them). Skills are **repo-scoped** — no global store, no per-account manifest (decisions.md 2026-08-25) |
-| Auditing or restructuring skills (where they live, why, the recurring audit) | [`docs/runbooks/skill-maintenance.md`](docs/runbooks/skill-maintenance.md) |
+| Repo hygiene — the maintainer agent, its jobs and how to run one | [`tooling/maintainer/README.md`](tooling/maintainer/README.md) |
+| Auditing or restructuring skills (where they live, why, the recurring audit) | [`tooling/maintainer/jobs/skills/runbook.md`](tooling/maintainer/jobs/skills/runbook.md) |
+| Auditing Claude's file-based memory (what it is for, the four-question test, the audit) | [`tooling/maintainer/jobs/memory/runbook.md`](tooling/maintainer/jobs/memory/runbook.md) |
 | CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude, cf-email, drive, heygen-web, local-apps-dashboard, flights, flow-queue) | `tooling/cli/` |
 | Printing Press Go CLIs (`paypal-txns-pp-cli`, `impact-pp-cli`, others) and where their source is backed up | `tooling/press-clis/README.md` |
 | Session tags in the Claude Code agents view (ctrl+e / tag view unlock, auto-repatch) | `tooling/cli/pp-claude-tags/README.md` |
