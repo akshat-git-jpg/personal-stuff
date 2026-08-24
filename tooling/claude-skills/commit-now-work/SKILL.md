@@ -1,6 +1,12 @@
 ---
 name: commit-now-work
-description: Pre-commit gate for ZluriHQ WORK repos only (personal-stuff has its own repo-level commit-now). Fires for any commit, however phrased — "commit now", "commit this", "commit and push", "push this" (push implies commit), "raise a PR", committing as one step of a larger task, AND merge/revert/conflict-resolution commits ("resolve conflicts", "merge the base branch", "update from develop"). Runs prettier, lint, tsc, and build, auto-fixing what it can; proposes a single-line conventional-commit message (no body, no AI mention) and commits only after the user confirms (unattended sessions skip only the confirmation). NEVER pushes.
+description: >-
+  Pre-commit gate for ZluriHQ WORK repos only (personal-stuff has its own commit-now).
+  Fires for any commit, however phrased — "commit now", "commit and push", "push this",
+  "raise a PR", a commit inside a larger task, AND merge/revert/conflict commits
+  ("resolve conflicts", "merge the base branch"). Runs prettier, lint, tsc and build,
+  auto-fixing what it can, then proposes a single-line conventional-commit message and
+  commits after you confirm. NEVER pushes.
 user-invocable: true
 metadata:
   author: kbtg
