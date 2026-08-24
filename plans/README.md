@@ -1372,3 +1372,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 242-maintainer-frame-and-skills-job — PR#203 242-maintainer-frame-and-skills-job: the maintainer frame, and the skills job end to end — DONE
 - 243-maintainer-memory-job — PR#204 243-maintainer-memory-job: the memory job — DONE
 - 244-maintainer-routing-job — PR#205 244-maintainer-routing-job: three copies of one check become one — DONE
+- 245-maintainer-mcp-job — PR#206 245-maintainer-mcp-job: the MCP job, and the generator that silently drops three servers — DONE
