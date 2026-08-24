@@ -1369,3 +1369,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 239-tracker-mints-the-slug — PR#200 239-tracker-mints-the-slug: the tracker mints a video's canonical slug — DONE
 - 240-vreg-sync-carries-the-slug — PR#201 240-vreg-sync-carries-the-slug: vreg sync carries the tracker's slug into the registry — DONE
 - 241-one-key-in-clicks-db-and-the-desk — PR#202 241-one-key-in-clicks-db-and-the-desk: one key in clicks-db and the script desk — DONE
+- 242-maintainer-frame-and-skills-job — PR#203 242-maintainer-frame-and-skills-job: the maintainer frame, and the skills job end to end — DONE
