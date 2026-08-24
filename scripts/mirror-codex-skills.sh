@@ -32,10 +32,21 @@ set -euo pipefail
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
-SRC="$REPO_ROOT/.claude/skills"
+MANIFEST="$REPO_ROOT/tooling/claude-skills/manifest/codex.txt"
+STORE="$REPO_ROOT/tooling/claude-skills"
+REPO_SKILLS="$REPO_ROOT/.claude/skills"
 DST="${CODEX_HOME:-$HOME/.codex}/skills"
 
-[[ -d "$SRC" ]] || { echo "mirror-codex-skills: no $SRC — nothing to do."; exit 0; }
+[[ -f "$MANIFEST" ]] || { echo "mirror-codex-skills: no $MANIFEST — nothing to do."; exit 0; }
+
+# Codex has NO per-repo skill path, so everything mirrored here is GLOBAL in every
+# Codex project. Only the thin always-on set is listed in codex.txt; repo-specific
+# skills stay in .claude/skills and are surfaced to Codex through each repo AGENTS.md.
+WANT=()
+while IFS= read -r line; do
+  line="${line%%#*}"; line="${line// /}"
+  [[ -n "$line" ]] && WANT+=("$line")
+done < "$MANIFEST"
 mkdir -p "$DST"
 
 # Is $1 a link this script owns? Only if it is a symlink AND resolves inside the repo.
@@ -49,9 +60,13 @@ owned_by_repo() {
 
 linked=0 pruned=0 skipped=0 broken=0 degraded=0
 
-for path in "$SRC"/*; do
-  [[ -e "$path" || -L "$path" ]] || continue
-  name="$(basename "$path")"
+for name in "${WANT[@]}"; do
+  path="$STORE/$name"
+  [[ -e "$path" || -L "$path" ]] || path="$REPO_SKILLS/$name"
+  if [[ ! -e "$path" && ! -L "$path" ]]; then
+    echo "  WARN $name listed in codex.txt but not found in the repo" >&2
+    continue
+  fi
 
   if [[ -L "$path" ]]; then
     target="$(cd "$(dirname "$path")" && cd "$(dirname "$(readlink "$path")")" && pwd)/$(basename "$(readlink "$path")")"
@@ -79,7 +94,9 @@ for path in "$DST"/*; do
   [[ -L "$path" ]] || continue
   owned_by_repo "$path" || continue
   name="$(basename "$path")"
-  if [[ ! -e "$SRC/$name" && ! -L "$SRC/$name" ]]; then
+  if ! printf '%s\n' "${WANT[@]}" | grep -qx "$name" \
+     || { [[ ! -e "$STORE/$name" && ! -L "$STORE/$name" ]] \
+          && [[ ! -e "$REPO_SKILLS/$name" && ! -L "$REPO_SKILLS/$name" ]]; }; then
     rm -f "$path"; echo "  pruned: $name"; pruned=$((pruned + 1))
   fi
 done

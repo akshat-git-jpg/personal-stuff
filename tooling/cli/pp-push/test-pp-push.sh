@@ -136,6 +136,32 @@ set +e; "$GATE" --repo "$BASE/wt" origin HEAD:main >/dev/null 2>&1; rc=$?; set -
 git reset -q --hard HEAD~1
 ok "the exemption does not extend to a real .dev.vars"
 
+# 2f. DELETING a `*.example` must not crash the gate. `cat-file` cannot read a blob that
+#     no longer exists at the tip, so example_is_placeholder_only returns 2. Called bare
+#     under `set -e` that killed pp-push with a silent exit 2 and an empty log, parking
+#     every land that removed an example file (2026-08-24, the skill-scope migration).
+#     (2c left .dev.vars.example tracked at the tip, so this deletes that one.)
+git fetch -q origin
+git rm -q -f .dev.vars.example
+git commit -qm "delete the example"
+set +e; out=$("$GATE" --repo "$BASE/wt" origin HEAD:main 2>&1); rc=$?; set -e
+[ "$rc" -eq 0 ] || fail "pp-push refused a range that DELETES a *.example (rc=$rc, out='$out')"
+ok "deleting a *.example does not crash the gate"
+
+# 2g. an example ADDED and DELETED inside one range never existed on the remote, so it
+#     still reaches the gate. This is the case that actually exercises the `set -e`
+#     guard: example_is_placeholder_only returns 2 on the unreadable blob, and a BARE
+#     call would kill pp-push with a silent exit 2 instead of refusing with a reason.
+git fetch -q origin
+printf 'DESK_ADMIN_TOKEN=gho_16C7e42F292c6912E7710c838347Ae178B4a\n' > .dev.vars.tmp.example
+git add -f .dev.vars.tmp.example; git commit -qm "add a transient example"
+git rm -q -f .dev.vars.tmp.example; git commit -qm "delete the transient example"
+set +e; out=$("$GATE" --repo "$BASE/wt" origin HEAD:main 2>&1); rc=$?; set -e
+[ "$rc" -ne 0 ] || fail "pp-push PUSHED an example added and deleted in one range"
+[ "$rc" -ne 2 ] || fail "pp-push died with the bare-call exit 2 instead of refusing (out='$out')"
+git reset -q --hard HEAD~2
+ok "an example added and deleted in one range is refused with a reason"
+
 # 3. an oversized file is REFUSED
 git fetch -q origin
 mkdir -p big; dd if=/dev/zero of=big/blob.bin bs=1024 count=5000 2>/dev/null

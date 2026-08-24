@@ -65,11 +65,9 @@ done
   || fail "SKILL-SPLIT: .claude/skills/commit-now/SKILL.md is missing — personal-stuff has no commit flow of its own"
 [ ! -e tooling/claude-skills/commit-now ] \
   || fail "SKILL-SPLIT: tooling/claude-skills/commit-now/ is back; a user-level commit-now shadows the repo-level one and reimposes the work-repo rules here"
-[ -f tooling/claude-skills/commit-now-work/SKILL.md ] \
-  || fail "SKILL-SPLIT: tooling/claude-skills/commit-now-work/SKILL.md is missing — ZluriHQ work repos lost their commit gate"
+# commit-now-work moved to the PRIVATE work-skills plugin (this repo is public).
+# Nothing to assert here any more; the gate lives outside this repo.
 for m in tooling/claude-skills/manifest/work.txt tooling/claude-skills/manifest/personal.txt; do
-  grep -qx 'commit-now-work' "$m" \
-    || fail "SKILL-SPLIT: $m does not list commit-now-work"
   grep -qx 'commit-now' "$m" \
     && fail "SKILL-SPLIT: $m still lists commit-now; it would be linked into the account and shadow the repo-level skill"
 done
@@ -81,9 +79,6 @@ for d in "$HOME/.claude-work/skills" "$HOME/.claude-personal/skills"; do
   [ -d "$d" ] || continue
   if [ -e "$d/commit-now" ]; then
     echo "warn SKILL-SPLIT: $d/commit-now is still installed — run scripts/relink.sh" >&2
-  fi
-  if [ ! -e "$d/commit-now-work" ]; then
-    echo "warn SKILL-SPLIT: $d/commit-now-work is not installed yet — run scripts/relink.sh" >&2
   fi
 done
 

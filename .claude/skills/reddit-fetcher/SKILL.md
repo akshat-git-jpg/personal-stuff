@@ -19,7 +19,7 @@ browser header set. Tested and confirmed: User-Agent alone was NOT enough to get
 ## Usage
 
 ```bash
-SKILL_DIR="/Users/kbtg/codebase/personal-stuff/tooling/claude-skills/reddit-fetcher"
+SKILL_DIR="/Users/kbtg/codebase/personal-stuff/.claude/skills/reddit-fetcher"
 "$SKILL_DIR/scripts/fetch.sh" "<reddit-url>" /tmp/reddit.html
 python3 "$SKILL_DIR/scripts/parse.py" /tmp/reddit.html
 ```

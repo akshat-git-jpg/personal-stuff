@@ -10,8 +10,3 @@ roast
 scout
 ui-craft
 ui-craft-dense-dashboard
-notebooklm
-remotion-best-practices
-valyu-best-practices
-pp-openrouter
-pp-sentry
