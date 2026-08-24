@@ -1,6 +1,12 @@
 ---
 name: yt-video-edit-feedback
-description: Close the loop on owner feedback for a yt-video-edit (visuals-flow) video: ingest, root-cause, discuss, then ONE summary for approval before any fix. Wraps the 130 feedback-fold step; the five phases are in the skill body. Triggers on "feedback is done", "I'm done with feedback", "I've finished reviewing", "fold my feedback", "process my feedback", "done with the final cut review", "/yt-video-edit-feedback", "/visuals-flow-feedback" (the old name, still accepted).
+description: >-
+  Close the loop on owner feedback for a yt-video-edit (visuals-flow) video: ingest,
+  root-cause, discuss, then ONE summary for approval before any fix. Wraps the 130
+  feedback-fold step; the five phases are in the skill body. Triggers on "feedback is
+  done", "I'm done with feedback", "I've finished reviewing", "fold my feedback",
+  "process my feedback", "done with the final cut review", "/yt-video-edit-feedback",
+  "/visuals-flow-feedback" (the old name, still accepted).
 user-invocable: true
 ---
 
