@@ -36,6 +36,8 @@ mutation_timeout:        # optional seconds, default 600
 
 - **Problem statement**: <what's broken/missing, 1-2 sentences>
 - **Goals**: <bulleted, what this plan achieves>
+- **Decisions confirmed**: <the Step 2.5 checkpoint calls the owner made, one line each as
+  `<fork> -> <chosen option>`; an empty list means the checkpoint was skipped, which is a bug>
 - **Executor proposed**: <executor AND model, one line, matching Step 3.5's difficulty grading>
 - **Done criteria** (terse — full list below): <one line>
 - **Stop conditions** (terse — full list below): <one line>
