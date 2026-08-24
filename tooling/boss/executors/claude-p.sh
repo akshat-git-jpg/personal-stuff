@@ -12,9 +12,32 @@ case "$verb" in
     out="$STATE_DIR/$id.out"; : > "$out"
     model=$(meta_get "$id" model) || model=""; [ -n "$model" ] || model="sonnet"
     meta_set "$id" head_before "$(git -C "$worktree" rev-parse HEAD 2>/dev/null || echo none)"
+    # Turn cap, sized from the plan. A flat 60 was really a ~300-line plan ceiling:
+    # measured across all 18 historical claude-p runs, turns scale with plan size at
+    # ~0.15-0.2 turns/line; every success had a plan <=292 lines and both
+    # error_max_turns deaths were 315L and 537L. Budget 0.4 turns/line — double the
+    # observed worst case — because a cap only ever TRUNCATES, so an over-generous
+    # budget costs nothing while an exact one kills the run at the finish line.
+    # BOSS_MAX_TURNS still wins, so an operator can pin any value.
+    turns="${BOSS_MAX_TURNS:-}"
+    if [ -z "$turns" ]; then
+      lines=$(meta_get "$id" plan_lines) || lines=""
+      # Fall back to counting the plan in the worktree: a DIRECT fix-up dispatch runs
+      # against a meta written before plan_lines existed.
+      if [ -z "$lines" ]; then
+        pp=$(meta_get "$id" planpath) || pp=""
+        [ -n "$pp" ] && [ -f "$worktree/$pp" ] && lines=$(wc -l < "$worktree/$pp" | tr -d ' ')
+      fi
+      case "$lines" in ''|*[!0-9]*) lines=0 ;; esac
+      turns=$(( lines * 2 / 5 ))
+      [ "$turns" -lt 60 ]  && turns=60
+      [ "$turns" -gt 600 ] && turns=600
+      echo "claude-p: PR $id plan is ${lines}L — budgeting $turns turns" >&2
+    fi
+    meta_set "$id" max_turns "$turns"
     ( cd "$worktree" || exit 1
       exec "${BOSS_CLAUDE_CMD:-claude}" -p "$(cat "$brief")" \
-        --model "$model" --max-turns "${BOSS_MAX_TURNS:-60}" \
+        --model "$model" --max-turns "$turns" \
         --output-format json --dangerously-skip-permissions
     ) > "$out" 2>&1 &
     pid=$!; disown "$pid" 2>/dev/null || true
@@ -74,7 +97,7 @@ PY
         if boss_head_advanced "$id"; then echo "done headless run completed, HEAD advanced"
         else echo "blocked claude reported success but HEAD did not advance (no work / wrong-checkout?)$salvage"; fi ;;
       RATELIMIT) echo "ratelimited claude hit an API rate/session limit ($detail) — environmental, retry when it clears; do NOT spend the fix-up budget$salvage" ;;
-      MAXTURNS)  echo "blocked claude hit max-turns (raise BOSS_MAX_TURNS or split the plan)$salvage" ;;
+      MAXTURNS)  echo "blocked claude hit max-turns at $(meta_get "$id" max_turns 2>/dev/null || echo '?') turns for a $(meta_get "$id" plan_lines 2>/dev/null || echo '?')-line plan — re-dispatch with a higher BOSS_MAX_TURNS, or split the plan$salvage" ;;
       APIERROR)  echo "ratelimited claude API error ($detail) — environmental, retryable$salvage" ;;
       ERROR)     echo "blocked claude run errored$salvage" ;;
       PARSEFAIL) echo "dead unparseable output" ;;

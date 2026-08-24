@@ -65,6 +65,12 @@ else
   model=""
 fi
 test_cmd="$(fm_get test_cmd "$plan_tmp")"
+# Gate the shape BEFORE anything expensive (worktree lease, branch reset, crew).
+# Prose in CLAUDE.md asked for a bare one-line command and got violated anyway.
+if [ -n "$test_cmd" ]; then
+  test_cmd="$(boss_check_test_cmd "$test_cmd")" \
+    || { echo "PR $pr: fix test_cmd in $planpath frontmatter, then re-dispatch." >&2; exit 2; }
+fi
 [ -n "$test_cmd" ] || { echo "PR $pr: test_cmd missing in frontmatter — refusing" >&2; exit 1; }
 # Optional frontmatter `test_timeout` (seconds) — plans with real renders/downloads
 # declare their own budget; everything else gets 600s, which would have caught the
@@ -150,6 +156,9 @@ fi
 meta_set "$pr" branch "$branch"; meta_set "$pr" slug "$slug"; meta_set "$pr" worktree "$wt"
 meta_set "$pr" executor "$executor"; meta_set "$pr" model "$model"; meta_set "$pr" test_cmd "$test_cmd"
 meta_set "$pr" test_timeout "$test_timeout"; meta_set "$pr" planpath "$planpath"
+# Plan size, measured once here where the plan text is already in hand. Executors
+# budget their turn cap from it (see executors/claude-p.sh).
+meta_set "$pr" plan_lines "$(wc -l < "$plan_tmp" | tr -d ' ')"
 [ -n "$touches" ] && meta_set "$pr" touches "$touches"
 
 brief="$STATE_DIR/$pr.brief.md"

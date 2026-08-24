@@ -795,5 +795,118 @@ for _e in boss-session-start boss-dispatch boss-merge boss-deploy; do
 done
 echo "PASS: all four boss entry scripts trap boss_gh_restore on EXIT"
 
+# --- (T1) test_cmd shape is gated at dispatch, not discovered at merge ---------
+# Both shapes below were documented as prose in CLAUDE.md and violated anyway. A
+# multi-line value corrupts the line-based meta silently; an inner `bash -c` gets
+# double-wrapped by boss-merge and parks greenlight on `unexpected EOF`.
+(
+  export BOSS_STATE_DIR="$TMP/t1-state"
+  # shellcheck disable=SC1090
+  source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+  type boss_check_test_cmd >/dev/null 2>&1 || fail "(T1) boss_check_test_cmd not defined"
+
+  got=$(boss_check_test_cmd 'cd apps/x && npm test') \
+    || fail "(T1) refused a perfectly bare one-line command"
+  [ "$got" = 'cd apps/x && npm test' ] || fail "(T1) mangled a bare command: [$got]"
+
+  # A `key: |` block scalar arrives with surrounding whitespace. That alone is fine.
+  got=$(boss_check_test_cmd '   cd apps/x && npm test   ') \
+    || fail "(T1) refused a command that only needed trimming"
+  [ "$got" = 'cd apps/x && npm test' ] || fail "(T1) did not trim: [$got]"
+
+  boss_check_test_cmd "cd apps/x${BOSS_NL}npm test" >/dev/null 2>&1 \
+    && fail "(T1) accepted a MULTI-LINE test_cmd"
+  boss_check_test_cmd "bash -c 'cd apps/x && npm test'" >/dev/null 2>&1 \
+    && fail "(T1) accepted a test_cmd carrying its own bash -c wrapper"
+  boss_check_test_cmd "sh -c 'npm test'" >/dev/null 2>&1 \
+    && fail "(T1) accepted a test_cmd carrying its own sh -c wrapper"
+
+  # meta_set is the second line of defence: even if a future call site skips the
+  # check, a newline must fail loudly rather than corrupt the file.
+  meta_set t1 test_cmd "cd apps/x${BOSS_NL}npm test" >/dev/null 2>&1 \
+    && fail "(T1) meta_set wrote a multi-line value"
+  [ ! -f "$BOSS_STATE_DIR/t1.meta" ] || [ ! -s "$BOSS_STATE_DIR/t1.meta" ] \
+    || fail "(T1) meta_set corrupted the file before refusing: $(cat "$BOSS_STATE_DIR/t1.meta")"
+  meta_set t1 test_cmd 'cd apps/x && npm test' || fail "(T1) meta_set refused a valid value"
+  [ "$(meta_get t1 test_cmd)" = 'cd apps/x && npm test' ] \
+    || fail "(T1) round-trip through the meta lost the value"
+) || exit 1
+echo "PASS: test_cmd shape is refused at dispatch and the meta cannot be corrupted"
+
+# --- (T2) claude-p sizes --max-turns from the plan's line count ----------------
+# A flat 60 was really a ~300-line plan ceiling: across all 18 historical claude-p
+# runs turns scaled at ~0.15-0.2 turns/line, every success had a plan <=292L, and
+# both error_max_turns deaths were 315L and 537L. This drives the REAL executor and
+# reads the argv its stub `claude` received -- not the source text.
+(
+  t2="$TMP/t2"; mkdir -p "$t2/wt"
+  git init -q "$t2/wt"
+  git -C "$t2/wt" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+  mkdir -p "$t2/wt/plans"
+
+  # Stub `claude`: print the argv it was handed. claude-p redirects the run into
+  # $STATE_DIR/$id.out, so that file becomes the assertion surface.
+  cat > "$t2/claude-stub" <<'T2EOF'
+#!/bin/bash
+printf 'ARGV: %s\n' "$*"
+T2EOF
+  chmod +x "$t2/claude-stub"
+  printf 'brief\n' > "$t2/brief.md"
+
+  # t2_turns <label> <plan-lines> [env assignments...] -> echoes the --max-turns value
+  t2_turns() {
+    local label="$1" plines="$2"; shift 2
+    local sd="$t2/state-$label"
+    rm -rf "$sd"; mkdir -p "$sd"
+    if [ "$plines" -gt 0 ]; then
+      : > "$t2/wt/plans/$label.md"
+      local i=0
+      while [ "$i" -lt "$plines" ]; do printf 'x\n' >> "$t2/wt/plans/$label.md"; i=$((i+1)); done
+    fi
+    ( export BOSS_STATE_DIR="$sd" BOSS_CLAUDE_CMD="$t2/claude-stub"
+      # shellcheck disable=SC1090
+      source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+      meta_set 900 worktree "$t2/wt"
+      meta_set 900 model sonnet
+      meta_set 900 planpath "plans/$label.md"
+      [ "$plines" -gt 0 ] && [ "${T2_NO_PLAN_LINES:-0}" != 1 ] && meta_set 900 plan_lines "$plines"
+      true
+    )
+    ( export BOSS_STATE_DIR="$sd" BOSS_CLAUDE_CMD="$t2/claude-stub"
+      for kv in "$@"; do export "$kv"; done
+      bash "$BOSSDIR/executors/claude-p.sh" dispatch 900 "$t2/brief.md" >/dev/null 2>&1 )
+    local n=0
+    while [ "$n" -lt 100 ]; do
+      [ -s "$sd/900.out" ] && grep -q 'ARGV:' "$sd/900.out" && break
+      n=$((n+1)); command sleep 0.1
+    done
+    sed -n 's/.*--max-turns \([0-9]*\).*/\1/p' "$sd/900.out" | head -1
+  }
+
+  got=$(t2_turns floor 100)
+  [ "$got" = 60 ] || fail "(T2) a 100L plan must still get the 60-turn floor, got [$got]"
+
+  got=$(t2_turns scaled 500)
+  [ "$got" = 200 ] || fail "(T2) a 500L plan must scale to 200 turns, got [$got]"
+
+  # The two historical error_max_turns deaths, 315L and 537L, must now clear 60.
+  got=$(t2_turns death315 315)
+  [ "$got" -gt 60 ] || fail "(T2) the 315L plan that died on max-turns still gets 60, got [$got]"
+  got=$(t2_turns death537 537)
+  [ "$got" -gt 60 ] || fail "(T2) the 537L plan that died on max-turns still gets 60, got [$got]"
+
+  got=$(t2_turns cap 2000)
+  [ "$got" = 600 ] || fail "(T2) the upper cap must hold at 600, got [$got]"
+
+  got=$(t2_turns override 500 BOSS_MAX_TURNS=42)
+  [ "$got" = 42 ] || fail "(T2) BOSS_MAX_TURNS must win over the sizing, got [$got]"
+
+  # A DIRECT fix-up dispatch runs against a meta written before plan_lines existed;
+  # the executor must fall back to counting the plan in the worktree.
+  got=$(T2_NO_PLAN_LINES=1 t2_turns fallback 500)
+  [ "$got" = 200 ] || fail "(T2) no plan_lines in the meta must fall back to the plan file, got [$got]"
+) || exit 1
+echo "PASS: claude-p budgets --max-turns from plan size, with BOSS_MAX_TURNS still winning"
+
 echo ""
 echo "ALL TESTS PASSED"
