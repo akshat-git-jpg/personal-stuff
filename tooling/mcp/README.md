@@ -1,6 +1,6 @@
 # MCPs for Claude Code
 
-> **Status (2026):** Mostly legacy. The Gmail / Sheets / YouTube / Hostinger work moved to plain CLIs in `../cli`, which cost tokens only when they run. `google-drive`, `cloudflare`, and `davinci-resolve`(-advanced) are wired into the active `.mcp.json`. This folder stays in place for two reasons: the CLIs in `../cli` borrow their Google OAuth from `mcp/google-shared`, and the VPS `gmail-digest` cron runs `gmail-mcp-server/server.py` directly (see `../../VPS-CRONS.md`). Don't move it without updating those.
+> **Status (2026):** Mostly legacy. The Gmail / Sheets / YouTube / Hostinger work moved to plain CLIs in `../cli`, which cost tokens only when they run. Five servers are wired into the active `.mcp.json`: `google-drive`, `cloudflare`, `indian-railways`, `davinci-resolve`, and `davinci-resolve-advanced`. This folder stays in place for two reasons: the CLIs in `../cli` borrow their Google OAuth from `mcp/google-shared`, and the VPS `gmail-digest` cron runs `gmail-mcp-server/server.py` directly (see `../../VPS-CRONS.md`). Don't move it without updating those.
 
 A bundle of MCP (Model Context Protocol) servers that Claude Code can call as tools while you work in this repo. Examples: read/write Google Sheets, query a Cloudflare D1 database, search YouTube, send a Gmail draft.
 
@@ -48,7 +48,7 @@ After that, every tool call takes an `account: "your_email@gmail.com"` arg so it
 
 ### 3. Cloudflare MCP — env vars
 
-Reads from the project `.env`. You need:
+Reads from `pipelines/.env`. You need:
 
 ```
 CF_API_TOKEN=...           # token with D1 + KV read/write
@@ -63,7 +63,7 @@ This folder has its own `.env` file (gitignored). See the per-folder README or j
 
 ### 5. Register with Claude Code
 
-Create `.mcp.json` (gitignored) with the path to each MCP server you want. Copy `.mcp.json.template` and replace `<PATH_TO_REPO>` with your absolute path to the repository root, then trim it down to the servers you actually use (the active setup is just `google-drive` + `cloudflare`):
+Create `.mcp.json` (gitignored) with the path to each MCP server you want. Copy `.mcp.json.template` and replace `<PATH_TO_REPO>` with your absolute path to the repository root, then trim it down to the servers you actually use. The tracked generator writes the five active servers listed above:
 
 ```bash
 sed "s|<PATH_TO_REPO>|$(cd ../.. && pwd)|g" .mcp.json.template > ../../.mcp.json
@@ -75,7 +75,7 @@ Restart Claude Code. The MCPs should show up in the `/mcp` list.
 
 ## Optional MCPs (skip if you don't need them)
 
-Each entry in `.mcp.json` is independent — delete the ones you don't use. The active default is `google-drive` + `cloudflare` + `davinci-resolve`(-advanced).
+Each entry in `.mcp.json` is independent. Ask before removing one. The active default is the five-server set listed above.
 
 - `indian-railways-mcp/` — Indian Railways timetable, train details and PNR, from [rajprem4214/indian-railways-mcp](https://github.com/rajprem4214/indian-railways-mcp). Active. No key. Chosen over two rival MCPs because it reads erail (a timetable) rather than a booking API, which is the only way unreserved DEMU and passenger trains show up at all. Read `indian-railways-mcp/LOCAL-NOTES.md` and `../../docs/indian-railways-data-sources.md` before extending it.
 - `google-drive-mcp-server/` — Google Drive. Active default.

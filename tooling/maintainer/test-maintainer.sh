@@ -144,6 +144,12 @@ echo "$out" | grep -q 'DROPPED-BY-REGEN orphan' || fail "mcp check did not repor
 echo "$out" | grep -q 'DROPPED-BY-REGEN kept'   && fail "mcp check wrongly flagged a server the generator DOES emit"
 echo "$out" | grep -q 'MISSING-ENTRYPOINT'      || fail "mcp check did not report a missing entrypoint"
 
+before_fix="$(cksum "$MFIX/mcp.json")"
+fix_out="$(MCP_JSON="$MFIX/mcp.json" MCP_REGEN="$MFIX/regen.sh" bash "$MAINT_DIR/jobs/mcp/fix.sh" 2>&1)" \
+  && fail "mcp fix should refuse when the generator would drop a server"
+echo "$fix_out" | grep -q 'refusing to regenerate' || fail "mcp fix did not explain its refusal"
+[ "$(cksum "$MFIX/mcp.json")" = "$before_fix" ] || fail "mcp fix changed config after refusing"
+
 # the real repo's generator must no longer drop anything
 real="$(bash "$MAINT_DIR/jobs/mcp/check.sh" 2>&1)"
 echo "$real" | grep -q 'DROPPED-BY-REGEN' && fail "regen-mcp-json.sh still drops a live server"

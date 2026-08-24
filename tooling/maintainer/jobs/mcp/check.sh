@@ -30,7 +30,7 @@ done
 echo
 
 echo "## 2. server entry points that do not exist on disk"
-python3 -c "
+missing_paths="$(python3 -c "
 import json,io,sys,os
 d=json.load(io.open(sys.argv[1])); srv=d.get('mcpServers') or d
 for name,v in srv.items():
@@ -40,17 +40,27 @@ for name,v in srv.items():
     c=v.get('command','')
     if c.startswith('/') and not os.path.exists(c):
         print('- MISSING-COMMAND %s -> %s' % (name,c))
-" "$CFG" || die "cannot inspect server entry points in $CFG"
+" "$CFG")" || die "cannot inspect server entry points in $CFG"
+if [ -n "$missing_paths" ]; then
+  echo "$missing_paths"
+  found=1
+fi
 echo
 
 echo "## 3. env files a server expects that are not there"
-for py in "$REPO_ROOT"/tooling/mcp/*/server.py; do
-  [ -f "$py" ] || continue
-  "$GREP" -oE '[A-Za-z0-9_./-]+/\.env' "$py" 2>/dev/null | sort -u | while read -r envp; do
-    case "$envp" in /*) abs="$envp" ;; *) abs="$REPO_ROOT/$envp" ;; esac
-    [ -f "$abs" ] || echo "- MISSING-ENVFILE $(basename "$(dirname "$py")") expects $envp"
+missing_env="$(
+  for py in "$REPO_ROOT"/tooling/mcp/*/server.py; do
+    [ -f "$py" ] || continue
+    "$GREP" -oE '[A-Za-z0-9_./-]+/\.env' "$py" 2>/dev/null | sort -u | while read -r envp; do
+      case "$envp" in /*) abs="$envp" ;; *) abs="$REPO_ROOT/$envp" ;; esac
+      [ -f "$abs" ] || echo "- MISSING-ENVFILE $(basename "$(dirname "$py")") expects $envp"
+    done
   done
-done
+)"
+if [ -n "$missing_env" ]; then
+  echo "$missing_env"
+  found=1
+fi
 echo
 
 echo "## 4. documented vs configured - A CANDIDATE LIST, NEVER A VERDICT"
