@@ -300,6 +300,26 @@ Neither was written down, and nine plans in a row satisfied them by luck.
    must restore it (`&& git checkout -- <path>`). boss-merge now names this cause when
    a "cannot detach" park meets a dirty worktree, so read that line before debugging git.
 
+### Worktree custody — boss leases; a crew never claims
+
+**A crew does not create its own worktree and must never try.** `boss-dispatch.sh`
+leases one from the pool (`wt get --holder boss-<pr>`), checks the PR branch out in
+it, records the path as `worktree=` on the meta, and only then invokes the executor,
+which launches the crew inside it (`cd`, plus `--add-dir` for agy and `-C` for
+codex). `boss-merge.sh` returns the lease when the PR lands. `pp-work claim` is the
+*other* custody system, for interactive owner sessions; the two never mix.
+
+**Crews are PLACED in that worktree, not walled into it (2026-08-25).** The
+`no-history-in-main.sh` wall is a *Claude* hook, so it fences a `claude-p` crew and
+nothing else: agy runs with no hooks at all, and codex has only `dcg`. For two of the
+three executors the crew brief is the sole thing standing between a crew and the
+owner's shared main checkout, where a commit can capture another live session's
+uncommitted work. The brief's old wording — "do NOT edit files outside this repo" —
+did not cover it, because the main checkout *is* inside the repo. `boss-dispatch.sh`
+now names the leased worktree and `$REPO_ROOT` explicitly, and `test-boss.sh` (T4d)
+fails if that fence is removed. No crew has been observed straying; this closes the
+path, it does not fix an incident.
+
 ### Worktree custody — pass `--holder` on every `wt return`
 
 `wt return <path>` used to delete the lease and hard-reset the worktree **without
