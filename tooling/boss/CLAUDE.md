@@ -186,6 +186,22 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
 
 - Crew reports blocked, or test_cmd fails at merge, or merge conflicts →
   **one** fix-up dispatch to the same crew → still failing → `boss:blocked` + notify + next PR.
+- **That bound is now ENFORCED, not remembered** (2026-08-25). It used to live only in
+  the boss session's working memory — no `state/*.meta` key recorded it — so a compacted
+  or restarted boss could not tell round 1 from round 3 and "one fix-up" was silently
+  unbounded, which is precisely the failure the policy exists to prevent.
+  `boss_fixup_claim` runs inside the executor's `dispatch` verb, the one choke point both
+  paths share, and it tells them apart: `boss-dispatch.sh` truncates `$pr.meta` first, so
+  there is no `pid` yet → a FRESH start, counter resets (which is also what gives an
+  amended plan a clean budget); a DIRECT executor dispatch runs against a meta that still
+  carries `pid` → a fix-up round, recorded as `fixups=N`. Past the bound the executor
+  prints `REFUSED:` and exits 3 — **that is the signal to park the PR as `boss:blocked`,
+  not to work around it.** For a deliberate extra round:
+  `BOSS_MAX_FIXUPS=2 executors/<e>.sh dispatch <pr> <ABSOLUTE brief>`.
+  A `resume` is not a dispatch, so a turn-capped continuation never spends this budget.
+  **Known limit:** PR#134 legitimately took three rounds and landed, so a flat count is
+  the wrong shape — per-cause bounding on the failure signature is the right design and is
+  NOT built. Raise the bound rather than assume three rounds means a bad plan.
 - Crew dead/timed out → teardown → `boss:blocked` → next.
 - No unbounded retries.
 - **`ratelimited` is not a failure.** Collect now classifies API 429/session-limit
@@ -236,6 +252,16 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
 
 ### Contention protection (added 2026-08-02)
 
+- **Duplicate dispatch is refused** (2026-08-25). `boss-dispatch` read only
+  `headRefName` and a dependency's state — never the PR's CURRENT labels — so a second
+  dispatch of a live PR ran straight through: it flipped the labels blindly, leased a
+  SECOND worktree, and then either hit the checkout guard, whose recovery set the PR back
+  to `boss:ready` **while crew 1 was still running** (inviting a THIRD dispatch), or
+  succeeded and truncated `$pr.meta`, orphaning crew 1's pid, worktree and `head_before`
+  beyond recovery. `boss:in-progress` was designated as the lock and was never checked.
+  It is now, plus a live-pid check, and the abort path leaves a PR with a live crew
+  `boss:in-progress` instead of handing it back to the queue. `--force` is the deliberate
+  override — and the only way to reach that abort branch now.
 - **Chrome is serialized.** Every visuals-flow/card-library `test_cmd` drives headless
   Chrome. `boss-merge` waits for live crews, then holds `state/locks/chrome.lock`
   across the verify. PR#134 lost a merge cycle to `Chrome dump-dom timeout` with 44
