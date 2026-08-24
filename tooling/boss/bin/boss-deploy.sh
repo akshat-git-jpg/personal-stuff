@@ -1,6 +1,7 @@
 #!/bin/bash
 # boss-deploy.sh <pr#> --yes — run the plan's deploy cmd on the main checkout.
 source "$(dirname "${BASH_SOURCE[0]}")/boss-lib.sh"
+trap boss_gh_restore EXIT
 boss_assert_gh || exit 1
 pr="${1:?usage: boss-deploy.sh <pr#> --yes}"
 [ "${2:-}" = "--yes" ] || { echo "refusing: pass --yes (owner-confirmed deploy)"; exit 2; }

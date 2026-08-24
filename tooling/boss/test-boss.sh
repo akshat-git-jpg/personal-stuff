@@ -722,5 +722,78 @@ echo "PASS: boss_dep_prelude targets exactly the dirs that need installing"
 ) || exit 1
 echo "PASS: land_class treats an auth 403 as transient without softening a secret refusal"
 
+# --- boss_gh_restore hands the owner's gh account back on exit ------------------
+# `gh auth switch` moves the GLOBAL active account. Before this, every boss write
+# path (session-start/dispatch/merge/deploy) left the owner switched to
+# BOSS_GH_USER, so their next ZluriHQ work-repo `gh` call authenticated as the
+# personal account. The account is never logged OUT -- only "active" moves -- but
+# it had to be moved back by hand every time.
+(
+  ghT=$(mktemp -d)
+  mkdir -p "$ghT/stub" "$ghT/state"
+  printf 'work-acct' > "$ghT/active"
+  cat > "$ghT/stub/gh" <<'GHR'
+#!/bin/bash
+case "$1:$2" in
+  api:user) cat "$GH_FAKE_HOME/active" ;;
+  auth:switch)
+    shift 2; user=""
+    while [ $# -gt 0 ]; do case "$1" in --user) user="$2"; shift 2 ;; *) shift ;; esac; done
+    printf '%s' "$user" > "$GH_FAKE_HOME/active"
+    printf '%s\n' "$user" >> "$GH_FAKE_HOME/switches.log" ;;
+  *) exit 0 ;;
+esac
+GHR
+  chmod +x "$ghT/stub/gh"
+  export GH_FAKE_HOME="$ghT"
+  export PATH="$ghT/stub:$PATH"
+  export BOSS_STATE_DIR="$ghT/state"
+  # shellcheck disable=SC1090
+  source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+  type boss_gh_restore >/dev/null 2>&1 || fail "(GH) boss_gh_restore not defined"
+
+  boss_assert_gh >/dev/null 2>&1 || fail "(GH) boss_assert_gh failed against the stub"
+  [ "$(cat "$ghT/active")" = "akshat-git-jpg" ] || fail "(GH) did not switch to BOSS_GH_USER"
+  [ "$(cat "$ghT/state/gh_prev" 2>/dev/null)" = "work-acct" ] \
+    || fail "(GH) the displaced account was not recorded in gh_prev"
+
+  boss_gh_restore >/dev/null 2>&1
+  [ "$(cat "$ghT/active")" = "work-acct" ] \
+    || fail "(GH) the owner's account was NOT restored, got [$(cat "$ghT/active")]"
+  [ ! -f "$ghT/state/gh_prev" ] || fail "(GH) gh_prev survived the restore"
+
+  # Idempotent: a second restore (two traps, or a trap after a manual call) is a no-op.
+  boss_gh_restore >/dev/null 2>&1
+  [ "$(cat "$ghT/active")" = "work-acct" ] || fail "(GH) a second restore moved the account"
+
+  # BOSS_GH_KEEP=1 leaves boss's account active for hand-chained commands.
+  boss_assert_gh >/dev/null 2>&1
+  [ "$(cat "$ghT/active")" = "akshat-git-jpg" ] || fail "(GH) re-switch failed"
+  ( export BOSS_GH_KEEP=1; boss_gh_restore >/dev/null 2>&1 )
+  [ "$(cat "$ghT/active")" = "akshat-git-jpg" ] || fail "(GH) BOSS_GH_KEEP=1 still restored"
+  rm -f "$ghT/state/gh_prev"
+
+  # Already-correct account: no switch, nothing recorded, restore is a no-op.
+  printf 'akshat-git-jpg' > "$ghT/active"
+  rm -f "$ghT/switches.log"
+  boss_assert_gh >/dev/null 2>&1 || fail "(GH) assert failed when already correct"
+  [ ! -s "$ghT/switches.log" ] || fail "(GH) switched despite already being correct"
+  [ ! -f "$ghT/state/gh_prev" ] || fail "(GH) wrote gh_prev despite no switch"
+  boss_gh_restore >/dev/null 2>&1
+  [ "$(cat "$ghT/active")" = "akshat-git-jpg" ] || fail "(GH) no-op restore moved the account"
+  rm -rf "$ghT"
+) || exit 1
+echo "PASS: boss_gh_restore returns the owner's gh account after every boss write path"
+
+# --- every boss entry script traps the restore ----------------------------------
+# The helper is useless if an entry script forgets it: boss_assert_gh's switch is
+# what leaks, so a path that asserts without trapping the restore is the whole bug
+# back again on that one path.
+for _e in boss-session-start boss-dispatch boss-merge boss-deploy; do
+  grep -q 'trap boss_gh_restore EXIT' "$BOSSDIR/bin/$_e.sh" \
+    || fail "(GH2) $_e.sh calls boss_assert_gh but never traps boss_gh_restore"
+done
+echo "PASS: all four boss entry scripts trap boss_gh_restore on EXIT"
+
 echo ""
 echo "ALL TESTS PASSED"
