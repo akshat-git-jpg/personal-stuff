@@ -174,6 +174,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 247 | maintainer **uptime** + **crons** jobs — wraps `probe-sites.sh` and `check-apps.sh`, reconciles the inventories, and checks every launchd agent against the log path `MAC-LAUNCHD.md` documents. The VPS half is SSH-gated and says NOT CHECKED rather than staying silent | P2 | M | 242 | TODO |
 | 248 | maintainer **artifacts** job — joins the video registry to the tracker to find published videos, then lists their tracked folders and untracked renders as ARCHIVE candidates. A link without a done status is never proof of publication | P3 | M | 242, 240 | TODO |
 | 249 | maintainer **claude-health** + **token-budget** jobs — `claude doctor`, `rtk gain`, `rtk discover` (325.9M tokens saved so far, and nobody reads it), `ccusage` per account. `/context` has no CLI form, so it is marked a SESSION-STEP rather than faked | P3 | S | 242 | TODO |
+| 250 | **backfill the slug for all 76 live cards** — 0003 added `cards.slug` nullable and 239-241 only mint for NEW cards, so production is still 76 cards / 0 slugs and every slug consumer has nothing to read. One guarded, idempotent migration; the 76-row mapping is generated from the landed `slug.ts` and dry-run verified | P1 | S | none | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
