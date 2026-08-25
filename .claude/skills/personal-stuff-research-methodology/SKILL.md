@@ -82,7 +82,7 @@ The evidence bar for any statement that leaves a session — in docs, skills, `d
 ## When NOT to use this skill
 
 - "Was this already tried/rejected/superseded?" → **personal-stuff-failure-archaeology**
-- The video/TTS domain constraints and settled engine decisions themselves → **video-and-tts-reference**
+- The video/TTS domain constraints and settled engine decisions themselves → `pipelines/video/CLAUDE.md`
 - Gates for adopting/landing the change (plans/ file or inline, secretary raise, boss, deploy gate) → **personal-stuff-change-control**
 - Verification mechanics and test culture — the verification ladder, "is this specific change done/correct?", fresh-context review → **personal-stuff-validation-and-qa**
 - Evaluating an external tool/service/idea for fit against the owner's stack → the `scout` skill (verdict-first)

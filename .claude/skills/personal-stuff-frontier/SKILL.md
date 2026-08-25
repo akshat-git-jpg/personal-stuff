@@ -48,7 +48,7 @@ End state (owner-confirmed 2026-07-12): the pipeline running unattended end-to-e
 
 ## Front 4 — cost: toward <$10/video all-in (beyond-SOTA axis b)
 
-Target owner-confirmed 2026-07-12. Current: **~$48/video at 12/mo**; the reviewer share ($150/mo ÷ volume, script-only) is the only pure volume lever; TTS is already near-floor (done as a lever). Full cost table: **video-and-tts-reference** + `pipelines/youtube/final-workflow/final-workflow-notes.md`. Known levers:
+Target owner-confirmed 2026-07-12. Current: **~$48/video at 12/mo**; the reviewer share ($150/mo ÷ volume, script-only) is the only pure volume lever; TTS is already near-floor (done as a lever). Full cost table: `pipelines/video/CLAUDE.md` + `pipelines/youtube/final-workflow/final-workflow-notes.md`. Known levers:
 
 - **fal-lipsync un-deferral** — validated at ~$0.30–0.40/min (~$1.75/video vs $5, subtracts ~$3.25) but owner-DEFERRED (decisions.md 2026-07-12). Un-deferring is an owner call; don't build ahead of it.
 - **Reviewer-share automation/dilution** — volume alone takes $12.50 → $5 at 30/mo; automating parts of script review is the deeper cut (interacts with Front 1 problem #3's QC gap — don't automate review away while final-video QC is still unowned).

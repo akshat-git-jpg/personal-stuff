@@ -7,3 +7,4 @@ it again.
 | date | job | proposed | approved | applied |
 |---|---|---|---|---|
 | 2026-08-25 | skills | 5 | 5 | archived plan-review, roast, research-critic, scout; improve promoted to job 11 |
+| 2026-08-25 | skills | 2 | 2 | archived valyu-best-practices; video-and-tts-reference promoted to pipelines/video/CLAUDE.md |
