@@ -1,3 +1,7 @@
+> **ARCHIVED 2026-07-04 - do not follow these instructions.** Superseded by
+> [`pipelines/video/card-library/`](../../video/card-library/README.md). Kept for reference only;
+> nothing here runs in production. See `decisions.md` (2026-07-04).
+
 # hyperframes-vs-remotion — prior experiment
 
 A one-off comparison of two HTML→video approaches (Hyperframes vs Remotion). Kept for reference.
