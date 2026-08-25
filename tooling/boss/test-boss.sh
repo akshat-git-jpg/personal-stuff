@@ -1284,5 +1284,58 @@ echo "PASS: the crew brief fences the crew into its leased worktree"
 unset BOSS_STATE_DIR
 echo "PASS: the fix-up bound is persisted in the meta and both executors claim it"
 
+echo "--- (T6) three gates added after the 2026-08-25 batch ---"
+(
+  t6="$TMP/t6"; mkdir -p "$t6"
+  # shellcheck disable=SC1090
+  source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
+
+  # --- T6a: a ui:true plan naming a GITIGNORED image path -------------------
+  # Plan 239 (PR#200) told its crew to commit
+  # apps/tutorial-tracker-app/docs/shots/new-video-slug.png; /docs/shots is
+  # gitignored, so the ui gate could never pass and the crew spent a round on it.
+  printf 'shot at apps/tutorial-tracker-app/docs/shots/new-video-slug.png\n' > "$t6/ui-bad.md"
+  printf 'shot at pipelines/video/visuals-flow/docs/screenshots/186-intro-tab.png\n' > "$t6/ui-ok.md"
+  [ -n "$(boss_ui_ignored_paths "$t6/ui-bad.md")" ] \
+    || fail "(T6a) ui path gate did not flag a gitignored screenshot path"
+  [ -z "$(boss_ui_ignored_paths "$t6/ui-ok.md")" ] \
+    || fail "(T6a) ui path gate flagged a TRACKED screenshot path"
+
+  # --- T6b: the .dev.vars prelude, and it must stay ONE line ----------------
+  # A leased slot has no .dev.vars, so every tracker e2e / ui:true shot renders
+  # "Not found" from the dev-login 404 (tracker CLAUDE.md; PRs #172/#173/#176).
+  pre="$(boss_dep_prelude 'cd apps/tutorial-tracker-app && npm test' origin/main)"
+  case "$pre" in *DEV_AUTH=1*) ;; *) fail "(T6b) prelude did not seed DEV_AUTH for an app shipping .dev.vars.example" ;; esac
+  case "$pre" in *"$BOSS_NL"*) fail "(T6b) prelude is multi-line — meta_set would refuse it" ;; esac
+  meta_set 903 test_cmd "$pre" >/dev/null 2>&1 \
+    || fail "(T6b) meta_set refused the prelude — it must be a single line"
+  pre2="$(boss_dep_prelude 'cd pipelines/video-registry && node --test registry.test.mjs' origin/main)"
+  case "$pre2" in *DEV_AUTH*) fail "(T6b) prelude seeded DEV_AUTH for an app with no .dev.vars.example" ;; esac
+
+  # --- T6c: a migration with no deploy ------------------------------------
+  # Plan 239 landed migrations/0003_card_slug.sql with an empty deploy:, and the
+  # app's `deploy` script runs no migrations. Production `cards` had no slug
+  # column while the landed code wrote one.
+  printf -- '---\ndeploy:\nui:\n---\n' > "$t6/mig-nodeploy.md"
+  printf -- '---\ndeploy: wrangler d1 migrations apply DB --remote\nui:\n---\n' > "$t6/mig-deploy.md"
+  printf -- '---\ndeploy:\nmigration_deploy: external\nui:\n---\n' > "$t6/mig-escape.md"
+  mig_verdict() {
+    local plan="$1" migs mig_deploy mig_esc
+    migs="apps/tutorial-tracker-app/migrations/0003_card_slug.sql"
+    mig_deploy=$(fm_get deploy "$plan" 2>/dev/null)
+    mig_esc=$(fm_get migration_deploy "$plan" 2>/dev/null)
+    case "$mig_esc" in external|manual|done) return 0 ;; esac
+    [ -n "$migs" ] && [ -z "$mig_deploy" ] && echo VIOLATION
+    return 0
+  }
+  [ "$(mig_verdict "$t6/mig-nodeploy.md")" = VIOLATION ] \
+    || fail "(T6c) migration-without-deploy was not reported"
+  [ -z "$(mig_verdict "$t6/mig-deploy.md")" ] \
+    || fail "(T6c) a plan WITH a deploy was wrongly reported"
+  [ -z "$(mig_verdict "$t6/mig-escape.md")" ] \
+    || fail "(T6c) migration_deploy: external did not suppress the report"
+) || exit 1
+echo "PASS: ui-path, dev.vars prelude and migration-deploy gates all fire and stay quiet correctly"
+
 echo ""
 echo "ALL TESTS PASSED"

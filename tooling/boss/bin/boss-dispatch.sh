@@ -72,6 +72,23 @@ if [ -n "$test_cmd" ]; then
     || { echo "PR $pr: fix test_cmd in $planpath frontmatter, then re-dispatch." >&2; exit 2; }
 fi
 [ -n "$test_cmd" ] || { echo "PR $pr: test_cmd missing in frontmatter — refusing" >&2; exit 1; }
+
+# A ui:true plan that names a screenshot path git will not track can never satisfy
+# its own gate. Plan 239 did exactly that (docs/shots is gitignored) and the crew
+# spent a round finding out. Same reasoning as the test_cmd gate above: refuse in a
+# second, before the worktree lease and the crew.
+ui_decl="$(fm_get ui "$plan_tmp" 2>/dev/null)"
+case "$ui_decl" in
+  true|yes|1)
+    ui_bad="$(boss_ui_ignored_paths "$plan_tmp")"
+    if [ -n "$ui_bad" ]; then
+      echo "PR $pr: plan is ui:true but names GITIGNORED image path(s): $ui_bad" >&2
+      echo "  git could never track that file, so the ui gate could never pass." >&2
+      echo "  Fix: point the plan at a tracked directory, or un-ignore the named file." >&2
+      exit 2
+    fi
+    ;;
+esac
 # Optional frontmatter `test_timeout` (seconds) — plans with real renders/downloads
 # declare their own budget; everything else gets 600s, which would have caught the
 # 2026-07-08 hang in 10 minutes instead of 83.

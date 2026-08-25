@@ -340,6 +340,35 @@ holder, and a `boss-*` holder carrying no digits is **printed as UNMAPPABLE** in
 skipped. The silence was the real defect — an unparseable holder and a clean pool looked
 identical from the outside.
 
+### Three gates added 2026-08-25, after the 238-249 batch
+
+Each one replaces a lesson that had to be learned by hand during that run.
+
+- **`ui: true` + a gitignored image path is refused at DISPATCH.** Plan 239 told its
+  crew to commit `apps/tutorial-tracker-app/docs/shots/new-video-slug.png`; `/docs/shots`
+  is gitignored, so the gate it was written for could never pass. `boss_ui_ignored_paths`
+  greps the plan for image paths and runs `git check-ignore --no-index` on each. `--no-index`
+  matters: without it check-ignore stays silent for an already-TRACKED path, and the
+  question is "would git refuse to add this", asked before the file exists.
+- **A migration with no `deploy:` is a merge violation.** Plan 239 landed
+  `migrations/0003_card_slug.sql` with an empty `deploy:`, and that app's `deploy` script
+  is only `build && wrangler deploy`. Production `cards` had no `slug` column while the
+  landed code wrote one — caught by hand, not by a gate. Escape hatch for a migration
+  applied elsewhere: `migration_deploy: external`.
+- **`boss_dep_prelude` seeds `.dev.vars` with `DEV_AUTH=1`.** A leased slot never has one
+  (gitignored, so `wt`'s reset cannot bring it), and every tracker e2e and every `ui: true`
+  screenshot logs in through `/dev-login`, which the Worker serves only when `DEV_AUTH=1`.
+  Without it the page renders the literal text **"Not found"** and the failure reads as a
+  broken app or an unprovable mutation gate. It fires for any app shipping a
+  `.dev.vars.example`, never overwrites an existing file, and must stay ONE line — the
+  prelude is prepended to `test_cmd` and stored as a single `key=value` line that
+  `meta_set` refuses if it spans lines.
+
+All three are pinned by `test-boss.sh` (T6), including their negative cases.
+
+**Still manual:** a leased slot also has no local D1, so a tracker plan needing real data
+still wants the owner's `.wrangler` copied in by hand. Only the `DEV_AUTH` half is automated.
+
 ### Deterministic pre-merge gates
 
 Every rule here was already in the crew brief and was violated anyway. Prose is a
