@@ -186,6 +186,22 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
 
 - Crew reports blocked, or test_cmd fails at merge, or merge conflicts →
   **one** fix-up dispatch to the same crew → still failing → `boss:blocked` + notify + next PR.
+- **That bound is now ENFORCED, not remembered** (2026-08-25). It used to live only in
+  the boss session's working memory — no `state/*.meta` key recorded it — so a compacted
+  or restarted boss could not tell round 1 from round 3 and "one fix-up" was silently
+  unbounded, which is precisely the failure the policy exists to prevent.
+  `boss_fixup_claim` runs inside the executor's `dispatch` verb, the one choke point both
+  paths share, and it tells them apart: `boss-dispatch.sh` truncates `$pr.meta` first, so
+  there is no `pid` yet → a FRESH start, counter resets (which is also what gives an
+  amended plan a clean budget); a DIRECT executor dispatch runs against a meta that still
+  carries `pid` → a fix-up round, recorded as `fixups=N`. Past the bound the executor
+  prints `REFUSED:` and exits 3 — **that is the signal to park the PR as `boss:blocked`,
+  not to work around it.** For a deliberate extra round:
+  `BOSS_MAX_FIXUPS=2 executors/<e>.sh dispatch <pr> <ABSOLUTE brief>`.
+  A `resume` is not a dispatch, so a turn-capped continuation never spends this budget.
+  **Known limit:** PR#134 legitimately took three rounds and landed, so a flat count is
+  the wrong shape — per-cause bounding on the failure signature is the right design and is
+  NOT built. Raise the bound rather than assume three rounds means a bad plan.
 - Crew dead/timed out → teardown → `boss:blocked` → next.
 - No unbounded retries.
 - **`ratelimited` is not a failure.** Collect now classifies API 429/session-limit
@@ -193,6 +209,12 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
   environmental and self-clearing, so they must NOT spend the single fix-up round.
   Wait for the window and re-dispatch. (2026-08-02: a 429 killed two crews and was
   reported as "max-turns", pointing the diagnosis at the plan instead of the clock.)
+- **`truncated` is not a failure either** (2026-08-24). A claude-p run that hits its turn
+  cap is resumable, so like `ratelimited` it must NOT spend the single fix-up round: the work
+  is fine, the budget ran out. Continue it with `executors/claude-p.sh resume <pr#>` — never
+  `boss-dispatch`, which force-resets the branch and destroys the partial work. Bounded by
+  `BOSS_MAX_RESUMES` (default 2); at the cap `collect` says `blocked` instead, because a plan
+  that cannot finish in two continuations is too big and wants splitting, not another retry.
 - **`collect` flags uncommitted work.** A crew killed mid-flight often leaves a
   complete implementation uncommitted. Salvage it with a **direct executor
   dispatch** (`executors/<e>.sh dispatch <pr> <ABSOLUTE brief path>`) — never
@@ -219,9 +241,27 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
   via meta `stall_warn`/`stall_kill`, or globally via `BOSS_STALL_WARN_MIN`/`_KILL_MIN`.
 - **gh account auto-asserted** on every write path (session-start/dispatch/merge/
   deploy) — a silent account flip had broken all `gh` calls. Set `BOSS_GH_USER` to override.
+  **It now hands the account back.** `gh auth switch` moves the GLOBAL active
+  account, so until 2026-08-24 every boss write path left the owner switched to
+  `BOSS_GH_USER`, and their next ZluriHQ work-repo `gh` call authenticated as the
+  personal account. `boss_assert_gh` now records the displaced login in
+  `$STATE_DIR/gh_prev`, and all four entry scripts `trap boss_gh_restore EXIT`.
+  `BOSS_GH_KEEP=1` keeps boss active when chaining boss commands by hand. This is
+  orthogonal to the push 403 under *Blocked lands*: `git push` resolves through the
+  repo-local credential helper, not the active gh account.
 
 ### Contention protection (added 2026-08-02)
 
+- **Duplicate dispatch is refused** (2026-08-25). `boss-dispatch` read only
+  `headRefName` and a dependency's state — never the PR's CURRENT labels — so a second
+  dispatch of a live PR ran straight through: it flipped the labels blindly, leased a
+  SECOND worktree, and then either hit the checkout guard, whose recovery set the PR back
+  to `boss:ready` **while crew 1 was still running** (inviting a THIRD dispatch), or
+  succeeded and truncated `$pr.meta`, orphaning crew 1's pid, worktree and `head_before`
+  beyond recovery. `boss:in-progress` was designated as the lock and was never checked.
+  It is now, plus a live-pid check, and the abort path leaves a PR with a live crew
+  `boss:in-progress` instead of handing it back to the queue. `--force` is the deliberate
+  override — and the only way to reach that abort branch now.
 - **Chrome is serialized.** Every visuals-flow/card-library `test_cmd` drives headless
   Chrome. `boss-merge` waits for live crews, then holds `state/locks/chrome.lock`
   across the verify. PR#134 lost a merge cycle to `Chrome dump-dom timeout` with 44
@@ -233,8 +273,11 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
   `claude`/`agy` process is running. On 2026-08-02 a second session re-dirtied main
   all afternoon: merges parked repeatedly, one file re-conflicted three times, and
   it landed two main-breaking regressions that blocked an unrelated PR for hours.
-  **Boss auto-commits a dirty main, so it will commit that other session's
-  in-progress work under boss's name** — know what else is running before you start.
+  **Boss no longer auto-commits a dirty main** (corrected 2026-08-24): `boss-dispatch`
+  prints `NOTE — <repo> has uncommitted tracked changes (left untouched)` and continues.
+  The old auto-commit is what committed another session's work under boss's name, twice,
+  on 2026-08-03. If the checkout is dirty, leave it alone and ask the owner — it is
+  probably not yours. Know what else is running before you start.
 
 ### Two properties every `test_cmd` must have (added 2026-08-23, PR#197/#198)
 
@@ -257,6 +300,26 @@ Neither was written down, and nine plans in a row satisfied them by luck.
    must restore it (`&& git checkout -- <path>`). boss-merge now names this cause when
    a "cannot detach" park meets a dirty worktree, so read that line before debugging git.
 
+### Worktree custody — boss leases; a crew never claims
+
+**A crew does not create its own worktree and must never try.** `boss-dispatch.sh`
+leases one from the pool (`wt get --holder boss-<pr>`), checks the PR branch out in
+it, records the path as `worktree=` on the meta, and only then invokes the executor,
+which launches the crew inside it (`cd`, plus `--add-dir` for agy and `-C` for
+codex). `boss-merge.sh` returns the lease when the PR lands. `pp-work claim` is the
+*other* custody system, for interactive owner sessions; the two never mix.
+
+**Crews are PLACED in that worktree, not walled into it (2026-08-25).** The
+`no-history-in-main.sh` wall is a *Claude* hook, so it fences a `claude-p` crew and
+nothing else: agy runs with no hooks at all, and codex has only `dcg`. For two of the
+three executors the crew brief is the sole thing standing between a crew and the
+owner's shared main checkout, where a commit can capture another live session's
+uncommitted work. The brief's old wording — "do NOT edit files outside this repo" —
+did not cover it, because the main checkout *is* inside the repo. `boss-dispatch.sh`
+now names the leased worktree and `$REPO_ROOT` explicitly, and `test-boss.sh` (T4d)
+fails if that fence is removed. No crew has been observed straying; this closes the
+path, it does not fix an incident.
+
 ### Worktree custody — pass `--holder` on every `wt return`
 
 `wt return <path>` used to delete the lease and hard-reset the worktree **without
@@ -277,6 +340,35 @@ holder, and a `boss-*` holder carrying no digits is **printed as UNMAPPABLE** in
 skipped. The silence was the real defect — an unparseable holder and a clean pool looked
 identical from the outside.
 
+### Three gates added 2026-08-25, after the 238-249 batch
+
+Each one replaces a lesson that had to be learned by hand during that run.
+
+- **`ui: true` + a gitignored image path is refused at DISPATCH.** Plan 239 told its
+  crew to commit `apps/tutorial-tracker-app/docs/shots/new-video-slug.png`; `/docs/shots`
+  is gitignored, so the gate it was written for could never pass. `boss_ui_ignored_paths`
+  greps the plan for image paths and runs `git check-ignore --no-index` on each. `--no-index`
+  matters: without it check-ignore stays silent for an already-TRACKED path, and the
+  question is "would git refuse to add this", asked before the file exists.
+- **A migration with no `deploy:` is a merge violation.** Plan 239 landed
+  `migrations/0003_card_slug.sql` with an empty `deploy:`, and that app's `deploy` script
+  is only `build && wrangler deploy`. Production `cards` had no `slug` column while the
+  landed code wrote one — caught by hand, not by a gate. Escape hatch for a migration
+  applied elsewhere: `migration_deploy: external`.
+- **`boss_dep_prelude` seeds `.dev.vars` with `DEV_AUTH=1`.** A leased slot never has one
+  (gitignored, so `wt`'s reset cannot bring it), and every tracker e2e and every `ui: true`
+  screenshot logs in through `/dev-login`, which the Worker serves only when `DEV_AUTH=1`.
+  Without it the page renders the literal text **"Not found"** and the failure reads as a
+  broken app or an unprovable mutation gate. It fires for any app shipping a
+  `.dev.vars.example`, never overwrites an existing file, and must stay ONE line — the
+  prelude is prepended to `test_cmd` and stored as a single `key=value` line that
+  `meta_set` refuses if it spans lines.
+
+All three are pinned by `test-boss.sh` (T6), including their negative cases.
+
+**Still manual:** a leased slot also has no local D1, so a tracker plan needing real data
+still wants the owner's `.wrangler` copied in by hand. Only the `DEV_AUTH` half is automated.
+
 ### Deterministic pre-merge gates
 
 Every rule here was already in the crew brief and was violated anyway. Prose is a
@@ -294,6 +386,195 @@ suggestion; a gate is not. `boss-merge` rejects a branch that:
 - **State dir namespaces:** `BOSS_STATE_DIR` overrides the hardcoded `state/` path to allow a different kind of task to get its own namespace.
 - **O(1) Startup:** Terminal PRs are skipped at startup via a local marker (`terminal=done`) which is back-filled on discovery. `state/` is **never** pruned.
 
+## Troubleshooting — read by symptom (consolidated 2026-08-24)
+
+Sixteen hard-won findings that used to live as separate per-session memory notes,
+invisible to a fresh boss session. Each is dated and names the PR that taught it.
+**Every claim below was re-checked against the code on 2026-08-24**; any
+note still describing unfixed behaviour says so in place.
+
+### A crew looks failed but is not
+
+- **`blocked agy error` is usually cosmetic.** agy often finishes implementing and
+  committing to its local worktree branch, then dies on its final turn with
+  `status: ERROR` / "The model produced an invalid tool call". Crews never push, so
+  `git log origin/main..origin/<branch>` looks empty even when the work is done — the
+  real state is the LOCAL leased worktree. Before any fix-up: `git log origin/main..HEAD`
+  in the worktree, confirm the new files exist, `git status --porcelain` is clean. If the
+  work is there, go straight to `boss-merge` and let `--verify` arbitrate.
+  (PR#14, #10, #13, 2026-07-11.) The sibling signal `blocked agy reported success but HEAD
+  did not advance (wrong-checkout?)` usually is not wrong-checkout either — agy did the job
+  and never committed. Check `git status --porcelain` in the worktree; boss can review the
+  diff and commit it on the branch itself. Confirm main is untouched first — that is the
+  actual wrong-checkout tell. (PR#106, 2026-07-25.)
+
+- **claude-p `max-turns` often means done-but-uncommitted.** The crew ran out of turns
+  before its final commit. Check `git -C <wt> status --short` and run the plan's `test_cmd`
+  against the worktree before writing it off. Salvage with a **direct executor dispatch** —
+  `executors/claude-p.sh dispatch <pr#> <ABSOLUTE brief path>` with a brief saying "your
+  prior work is already here uncommitted, finish it and commit". Never `boss-dispatch`: it
+  force-resets the branch and destroys the work. (PR#102, 2026-07-24.)
+
+- **A crew can hang forever starting MCP servers.** PR#180 sat 19 minutes on 6.6 CPU-seconds
+  with two `npm exec mongodb-mcp-server` children and never read the plan. Diagnose with
+  `ps -o time=,%cpu= -p <pid>` plus `pgrep -P <pid>`: minutes of elapsed time against seconds
+  of CPU, with `*-mcp-server` children, is a startup hang — not a slow crew and not a bad plan.
+  A real crew accrues CPU steadily. Re-dispatch with MCP off via a wrapper on `BOSS_CLAUDE_CMD`:
+  `exec claude "$@" --strict-mcp-config --mcp-config '{"mcpServers":{}}'`. Crews implementing
+  repo plans have never needed one. Two traps that each cost a crew that day: launch it under
+  `nohup … &` + `disown` (a foreground call dies with the Bash tool call, taking the crew with
+  it), and never `pkill -f mongodb-mcp-server` — that kills your own session's MCP servers too.
+  (2026-08-22.)
+
+### A gate is lying to you
+
+- **`mutation_expect` must be a string that appears ONLY on failure.** Authors keep picking
+  the error-code prefix they also used to name the tests (`INTRO-MODE:`, `S1`), so a fully
+  passing `node --test` run prints it in every `✔` line and `boss-merge` correctly rejects
+  with "already present on CLEAN state — marker proves nothing". A marker present in both
+  states makes the gate unfalsifiable, which is the exact dead-gate class the mutation system
+  exists to catch. Before merging, run the `mutation_command` clean and grep for the marker.
+  Fix it in **`state/<pr>.plan`** — that is what `boss-merge` reads, not the repo plan file.
+  Good failure-only markers for `node --test`: `failing tests`, `ERR_ASSERTION`, a phrase from
+  the assertion message. Do NOT ask the crew to rename its tests. (2 of 4 plans in the 218-221
+  batch, 2026-08-22; plan 221 got it right by putting the marker only inside assertion failure
+  messages.)
+
+- **A `test_cmd` scoped to its own new spec hides regressions.** Plans 213-217 each gated on a
+  single spec, all five passed and landed, and the full suite on the resulting main was
+  5 failed / 12 passed where the pre-batch commit was 9 passed / 0 failed. Two mechanisms, both
+  invisible to a scoped gate: a UI change relocates what older specs look for, and a sibling
+  plan's SEED change breaks another plan's brand-new spec. Sequential landing does not prevent
+  either — the collisions are in rendered text and seed data, not in file lines, so `touches:`
+  overlap checks and ordered dispatch both miss them. **Run the app's FULL suite after any
+  multi-plan batch touching one app.** Note plan 216's prose said its gate was the full suite
+  while its frontmatter ran one spec — read both. (2026-08-22.)
+
+- **A green `test_cmd` is not evidence a `visuals-flow-2` or `card-library` plan is done.**
+  On PRs #105/#106 the crew implemented the feature across every surface, passed the gate, and
+  omitted the one thing each plan named as its headline verification: a pixel-sampled composite
+  assertion. The new filter chain was executed by literally no test. The fix-up was not
+  paperwork — it found that `planSegmentOverlays` never propagated `isStage`/`zone` to the next
+  surface, so stage mode would have shipped silently broken. For these plans, read the
+  `## Done criteria` block too, then: grep the changed test files for the feature keyword (zero
+  hits = not done, whatever colour the gate is); spend the one fix-up on the missing assertion;
+  and **verify it yourself** by mutating the propagation line out and confirming the test fails.
+  An assertion that cannot fail is worth nothing. (2026-07-25.)
+
+- **A killed `boss-merge` leaves the mutation applied.** `boss-merge` applies `mutation_apply`
+  to the leased worktree and only reverts it with `git checkout -- .` *after* the gate finishes.
+  Kill it in between and the edit stays, silently — every later diagnosis then measures mutated
+  code. On PR#165 a foreground merge hit the Bash tool's 600s cap; the leftover edit made
+  `check.sh` fail and the failure was wrongly blamed on flaky headless Chrome, and the next
+  merge could not even lease the worktree. A visuals-flow merge runs a board-ui build plus a
+  Chrome-driven `check.sh` — 10+ minutes — so **being killed is the normal case**. Run long
+  merges detached: `nohup env <vars> bash bin/boss-merge.sh <pr> > <log> 2>&1 &`, then poll the
+  log. Before retrying any merge, `git status --porcelain` the leased worktree; if the only diff
+  is the plan's own `mutation_apply` line, revert it with `git stash push -- <file>` then
+  `git stash drop` (plain `git checkout --` is blocked by the dcg guard). Never read a post-kill
+  test failure as evidence about the crew's code until the tree is clean. (2026-08-17.)
+
+### Dispatch and merge plumbing
+
+- **`test_cmd` must be a bare shell command.** Never wrap it in `bash -c '…'`. `boss-dispatch`
+  writes it into `state/<pr>.meta` as a `key=value` line, so a value containing single quotes
+  loses its closing quote on write; `boss-merge` then wraps the value in its own
+  `gtimeout … bash -c $(printf %q "$test_cmd")`, the inner wrapper double-wraps, and greenlight
+  parks with `unexpected EOF while looking for matching '`. Write `&&` and `cd` bare — the outer
+  `bash -c` handles them. If you inherit a broken meta, fix the `test_cmd=` line in
+  `state/<pr>.meta` and re-run `boss-merge`; no re-dispatch, the crew work is fine.
+  **Now gated (2026-08-24).** `boss-dispatch` runs the value through
+  `boss_check_test_cmd` BEFORE it leases a worktree: a multi-line value or an inner
+  `bash -c` / `sh -c` wrapper is refused in about a second, naming the fix, instead of
+  surfacing ten minutes later as a greenlight park. Surrounding whitespace is trimmed,
+  so a `test_cmd: |` block scalar holding one bare line still works. `meta_set` is the
+  second line of defence — it refuses ANY multi-line value rather than corrupting the
+  line-based meta, so a future call site cannot reintroduce this quietly.
+  (PR#38, 2026-07-18.)
+
+- **A hand-invoked fix-up brief path must be ABSOLUTE.** The executor `cd`s into the worktree
+  before `cat "$brief"`, so a relative path resolves inside the worktree, is not found, and
+  `claude -p` errors instantly with "Input must be provided" — an empty run that leaves the
+  worktree untouched. Pass `"$(pwd)/state/<pr>.fixup.brief.md"`. This never bites the normal
+  path because `boss-dispatch` always passes an absolute path. An instant-error run is a tooling
+  mistake, not a crew failure — it does NOT consume the one-fix-up budget. (2026-07-17.)
+
+- **"mutation_apply failed to run (stale recipe?)" usually blames the plan for a boss bug.**
+  On 2026-08-20 the recipe was correct and hand-verified; `fm_get` in `bin/boss-lib.sh` could
+  not parse a `|` block scalar and returned the literal `|`, so the gate ran `bash -c "|"`.
+  Fixed the same day by splitting `_fm_scalar` from a new `_fm_block`. This was the **third**
+  false "stale recipe?" of the same shape — the prior two are recorded in the `_fm_scalar`
+  comments (plan 191's trailing-quote truncation, and the origin/$branch wrong-tree bug).
+  So: when boss says this, do NOT rewrite the plan first. Run
+  `source bin/boss-lib.sh; fm_get mutation_apply <plan>` and look at what the parser returns.
+  **Suspect boss before the crew.**
+
+- **`scripts/check.sh` in visuals-flow is a serial-collision hotspot**, like `plans/README.md`.
+  Many plans each append their own gate line to the same few lines, so whichever branch lands
+  second hits a trivial rebase conflict at merge time. This is merge plumbing, not a plan
+  defect: keep BOTH lines inside the leased worktree, `git rebase --continue`, re-run the
+  timeout-wrapped `test_cmd`, re-run `boss-merge`. **No crew fix-up dispatch** — both lines are
+  already crew-authored. Reserve the one-fix-up policy for real plan or logic conflicts.
+  (Landing #83/#84/#85, 2026-07-22.)
+
+- **The turn cap is sized from the plan (fixed 2026-08-24).** `executors/claude-p.sh` used to
+  hardcode `--max-turns ${BOSS_MAX_TURNS:-60}`, which was really a ~300-line plan ceiling:
+  measured across all 18 historical claude-p runs, turns used scale with plan size at
+  ~0.15-0.2 turns/line; every success had a plan ≤292 lines, and both `error_max_turns` deaths
+  were 315L and 537L. The executor now budgets **0.4 turns/line**, clamped to [60, 600] — double
+  the observed worst case, because a cap only ever truncates, so an over-generous budget costs
+  nothing while an exact one kills a run at the finish line. `boss-dispatch` records the plan's
+  size as `plan_lines` in the meta; a DIRECT fix-up dispatch against an older meta falls back to
+  counting the plan in the worktree. It prints the budget it chose, and records it as `max_turns`
+  so a `max-turns` collect message can name both numbers. **`BOSS_MAX_TURNS` still wins**, so
+  `BOSS_MAX_TURNS=300 bin/boss-dispatch.sh <pr#>` pins any value you like.
+  The other two items from the same 2026-07-25 approval are now done as well: `claude-p.sh`
+  has a `resume` verb (see *Executors*), and `collect` reports a turn-capped run as
+  `truncated` rather than `blocked`, so truncation no longer spends the fix-up round meant
+  for real failures. Explicitly NOT doing: a plan-size gate in `orchestrate`.
+
+### Never write to the owner's checkout
+
+- **Run `bin/boss-session-start.sh` first, before any dispatch.** It prints labels, ledger and
+  queue, reconciles in-flight PRs, and surfaces the two things that actually bite: a checkout
+  that is dirty or off main, and other live `claude`/`agy` sessions in the same repo.
+
+- **A dirty checkout is not a merge blocker** (corrected 2026-08-04). Since `cbc9e6b7`,
+  greenlight lands from inside the leased worktree and never reads `REPO_TOPLEVEL`. The
+  session-start warning is informational. One real consequence: on a non-main checkout
+  `boss-merge` skips the `plans/README.md` landing record, so the registry drifts until
+  reconciled from main.
+
+- **The main checkout does not fast-forward itself** after a `pp-land` lands your commit.
+  `origin/main` moves; local `HEAD` stays put. A file you edited in main, committed via a
+  workspace, then reset to local `HEAD` goes STALE — which matters for live-read files such as
+  a skill under `.claude/skills/`. Restore from origin, not HEAD:
+  `git show origin/main:<path> > <path>`. Check `git rev-parse HEAD` against `origin/main`
+  before trusting anything read out of the main checkout.
+
+- **Inspect any boss auto-commit before trusting it.** The dirty-main auto-commit staged
+  everything dirty — tracked and untracked — into one commit whose message named none of it.
+  It swept ~200MB of generated media past a `.gitignore` glob gap (`videos/*/renders/` did not
+  match the new run-scoped `videos/*/renders.run1/`), and separately swept a concurrent
+  session's 29 staged files, producing a 64-file commit labelled
+  `boss: record 210-gym-app-sheets-to-d1 (PR#169) landed`. Always `git show --stat HEAD` after
+  any boss auto-commit and check the file count against what the message claims. A failed-push
+  commit is LOCAL: `git reset --mixed origin/main` unwinds it and keeps the working tree, no
+  force-push. If it swept another session's work, do not unwind unilaterally — report it while
+  it is still unpushed. Prevention: never dispatch from a checkout another session holds.
+  (2026-07-24 and 2026-08-20.)
+
+### Waiting on async state
+
+- **Background a blocking poll; do not guess a `ScheduleWakeup` interval.** For crew state,
+  a merge, or any async condition, run `until <condition>; do sleep Ns; done` via Bash
+  `run_in_background` (or Monitor for repeated events) so it exits the instant the condition
+  flips. A fixed interval either overshoots — the owner notices the crew finished before boss
+  does — or undershoots and burns turns. Reserve `ScheduleWakeup` for cases with no local
+  process to block on. **Gotcha (PR#69):** do not grep `boss-state.sh` output for the word
+  `dead` as the exit condition — `agy.sh collect` prints `dead no output` whenever its `.out`
+  file is empty, which is true for the whole early part of a healthy run.
+
 ## Boundaries
 
 - **Never brainstorm, plan, or write product code.** Crew does that.
@@ -304,15 +585,64 @@ suggestion; a gate is not. `boss-merge` rejects a branch that:
 
 ## Executors
 
-Scripts in `executors/` implementing three verbs:
+Scripts in `executors/` implementing three verbs, plus an optional fourth:
 ```
 <executor>.sh dispatch <pr#> <brief-path>   # start the work
 <executor>.sh alive    <pr#>                # 0 working, 1 done/idle, 2 dead
-<executor>.sh collect  <pr#>                # print "done|blocked|dead <detail>"
+<executor>.sh collect  <pr#>                # print "done|truncated|ratelimited|blocked|dead <detail>"
+<executor>.sh resume   <pr#>                # optional: continue a turn-capped run
 ```
 
 Shipped: `claude-p` (backgrounded `claude -p`, default model sonnet),
-`agy` (Antigravity CLI, default model Gemini 3.1 Pro (High)).
+`agy` (Antigravity CLI, default model Gemini 3.1 Pro (High)),
+`codex` (OpenAI Codex CLI, default model gpt-5.6-sol).
+
+**`codex` (added 2026-08-25).** Backgrounded `codex exec` on the owner's ChatGPT
+subscription — free tokens, same as agy; agy stays the routing default (see
+`data/rules.md`). Three things differ from agy and matter when you read its verdicts:
+
+- **Its `progress` signal is honest and cheap.** `--json` streams a JSONL event per
+  model step into `state/<pr>.out`, so the file GROWS while the crew works. agy needed
+  an `lsof` on its CLI log because its envelope only lands at exit; codex just reports
+  `wc -c`. A stalled byte count is a real stall.
+- **There is no status envelope — the exit code is captured separately.** The dispatch
+  subshell writes the process exit code to `state/<pr>.rc` after `codex exec` returns.
+  `collect` reads that, plus the last `turn.completed` usage out of the JSONL. **A
+  0-token `turn.completed` is a failure**, never a success (the same trap as agy's
+  0-token SUCCESS envelope, LESSONS 2026-07-07): the CLI exited clean without ever
+  reaching the model.
+- **`rc=124` is `truncated`, not `blocked`.** `codex exec` has no timeout flag of its
+  own, so the executor wraps it in `gtimeout ${CODEX_TIMEOUT:-180m}`. A timeout means
+  the budget ran out, not that the work is wrong — continue it with
+  `executors/codex.sh resume <pr#>`, never a fresh `boss-dispatch` (which force-resets
+  the branch to origin and destroys the crew's local commits).
+
+- **A codex crew reads this repo's own skills, and some of them ask questions.**
+  Codex loads `$CODEX_HOME/skills` (the mirror built by
+  `scripts/mirror-codex-skills.sh`). On 2026-08-25 a smoke run read `github-router`,
+  judged the commit account ambiguous, and ended its turn asking *"Should I use the
+  Work, YT, or Personal account?"* — a whole dispatch spent waiting for an answer no
+  one can give. `codex.sh` appends a non-interactive addendum to the brief for this
+  reason. If a codex crew comes back `blocked` with no commits, read
+  `state/<pr>.last` first: a crew that stopped to ask is not a crew that failed, and
+  it re-dispatches cleanly.
+
+Everything else follows agy's doctrine unchanged: **judge by the TREE, not the
+envelope.** HEAD advanced + a clean worktree means the work landed however the CLI
+exited, and a clean exit with no new commit is NOT done.
+
+**`resume` is claude-p and codex only.** For claude-p (added 2026-08-24) it reads the `session_id` out of the
+previous run's own JSON envelope and re-invokes `claude -p --resume <session_id>`, so the
+continuation carries the crew's full prior context. That matters more here than anywhere
+else: boss holds no plan context by design, so a summary brief is the weakest possible
+handoff and the model's own session is the strongest. It re-sizes the turn budget, keeps
+the recorded model (a continuation must not drift tiers), archives the envelope it read as
+`state/<pr>.out.r<n>`, re-stamps `dispatched_at` (or the stall detector measures idle time
+from the previous run and kills a healthy continuation), and deliberately does **not**
+rewrite `head_before` — a continuation is the same task, so the honest baseline for "did
+this PR produce work at all" stays the original dispatch point. It refuses when the crew is
+still alive, when the envelope carries no session id, and past `BOSS_MAX_RESUMES` (default 2).
+agy has no equivalent; a truncated agy run still takes the fix-up path.
 
 ## Blocked lands (`state/lands/`, plan 229)
 

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.kbtg.bt-audio-guard</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/kbtg/.local/bin/bt-audio-guard.sh</string>
+    </array>
+
+    <!-- Persistent watcher: it polls internally every 2s. StartInterval is NOT used
+         because launchd's ThrottleInterval floor (10s) makes it too slow to catch
+         the flip before it is audible. -->
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>LowPriorityIO</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/dev/null</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/bt-audio-guard.err</string>
+</dict>
+</plist>

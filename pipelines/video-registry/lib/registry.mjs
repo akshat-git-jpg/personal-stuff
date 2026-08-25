@@ -59,7 +59,7 @@ export function list(reg = load()) {
   return Object.entries(reg.videos).map(([key, v]) => ({ key, ...v }));
 }
 
-export function mint(key, { title = '', minted, aliases = [] } = {}, reg = load()) {
+export function mint(key, { title = '', minted, aliases = [], card_id } = {}, reg = load()) {
   if (!isValidKey(key)) {
     throw new Error(`E-REGISTRY: "${key}" is not a valid key (lowercase kebab-case, <=60 chars)`);
   }
@@ -69,7 +69,9 @@ export function mint(key, { title = '', minted, aliases = [] } = {}, reg = load(
     const c = resolveKey(a, reg);
     if (c) throw new Error(`E-REGISTRY: alias "${a}" already resolves to "${c}"`);
   }
-  reg.videos[key] = { title, minted: minted ?? new Date().toISOString().slice(0, 10), aliases };
+  const entry = { title, minted: minted ?? new Date().toISOString().slice(0, 10), aliases };
+  if (card_id) entry.card_id = card_id;
+  reg.videos[key] = entry;
   return reg;
 }
 

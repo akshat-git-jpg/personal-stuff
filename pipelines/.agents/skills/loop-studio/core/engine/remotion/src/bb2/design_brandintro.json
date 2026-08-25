@@ -1,0 +1,257 @@
+{
+  "premise": "WINNER: the EDITORIAL spine (a shot list of deliberately composed spreads, hard cuts, one artifact per frame) \u2014 because it is the only one of the three whose structure makes the client's four complaints impossible rather than merely unlikely. Grafted onto it: the ROOM as a third surface and the reserved-slot-for-the-brother motif from GALLERY (the only idea in any of the three that pays off the premise of the actual video), and the same-assets-rearranged finale plus the on-screen SNAP from ASSEMBLY (the strongest motion idea available). Rebuilt from there: the intro is a 15-shot BRAND BOOK IN THREE SURFACES \u2014 a raisin page, a paper page, and the room he is sitting in. Every frame is one artifact with real air around it, held long enough to actually read. There are no world coordinates, no camera path, no shared 3D space, so two things can never land on top of each other. Continuity comes from three motifs \u2014 the square (his avatar shown as a square plate at 620 -> 480 -> 300, ending as one of four kit slots), the accent hairline (drawn four times, and every time it means 'this is one set'), and the reserved slot (opened at 0:15, listed at 0:18, named at 1:03) \u2014 never from literal shared space. The film's last gesture is not the logo; it is an empty square with his brother's name under it, because that is the loop the video actually opens. Total 63.94s, 15 shots, average 4.26s, shortest 1.95s.",
+  "grammar": "SURFACES \u2014 three, and only three, and the register is the argument. (1) RAISIN PAGE: bg_luuk.jpg scaled to cover, luminance crushed to 8% and blurred 40px so no texture pattern survives \u2014 it reads as an even #0F121A page with a faint top-down falloff. Used for claim and tension. (2) PAPER: flat #E9ECED, no texture, no vignette, no gradient. Used for resolution. (3) ROOM: head_4k.mp4 full-bleed, graded to whichever act it sits in (dark act = blacks crushed to #0F121A, sat -8, vignette 18%; light act = blacks lifted toward #1E2434, neutral WB, vignette 6%). Arc: RAISIN 0.00-11.40 (who I am) -> ROOM+PAPER 11.40-19.74 (the promise, a preview of the resolution) -> RAISIN+ROOM 19.74-46.77 (the teaching) -> PAPER+ROOM 46.77-63.94 (the payoff, and it stays light to the end). Three flips, each on a beat that earns it.\n\nNO MARGIN FURNITURE. There are no corner labels, no section names, no page numbers, no watermark, no persistent bug of any kind. The previous design put an 18px mono label on every frame that restated the VO ('RANDOM' under 'random reads as amateur'); it is deleted outright. On-screen type in the whole 63.94s is: one three-word line (S08), one four-line manifest (S06), one closing headline (S15), and three mono captions (S04 sponsor credit, S05 and S15 slot captions). Eleven of fifteen shots carry no authored words at all.\n\nCUTS \u2014 hard, one frame, no dissolves, no fades to black, no whips, no glitch, no RGB split, no light leaks, no grain, no motion-blur transitions. 15 cuts: 12 land inside a VO gap; 2 land in a comma pause inside a beat (2.90 after 'My face,' and \u2014 none other, see shot list); 1 lands ON the word (58.54, into the close, and it is the only one).\n\nMOTION FLOOR \u2014 the fix for both failure modes at once. Any translation moves at least 60px/s (2px/frame at 30fps) or is exactly zero; any scale changes at least 2.0% per second or is exactly zero. Nothing is allowed to creep sub-perceptually: the old 1.03x-over-4s push is both invisible AND the exact rate that shimmers on YouTube compression over 1px UI detail. Slow lateral drift across detailed stills is banned entirely; the one drifting row (S09) moves at 150px/s.\n\nEVENTS \u2014 one sustained move and one discrete event may co-exist; two DISCRETE events never coincide, and two sustained moves never co-exist. Shots under 4.5s get one gesture. Shots at or over 4.5s get exactly two, always sequential. The closing shot gets three. Stillness is a device used in exactly two places (S07's first 3.76s, S13's whole 3.91s) and nowhere else, so it still means something. Easing: cubic-bezier(0.22,1,0.36,1) for arrivals, snaps and draws; linear for sustained pushes.\n\nPLATES \u2014 every real asset is a rectangular plate with a 1px hairline (#B5BFC2 at 30% on raisin, #0F121A at 14% on paper) and NO drop shadow, NO rounded corners, NO glow, NO gradient overlay. Nothing floats. Plates never touch; the minimum clear gap between any two objects anywhere in the film is 84px, and every rect below has been plotted and checked for collision and for frame-clipping.\n\nTYPE \u2014 Space Grotesk 800 uppercase for the two headline-scale moments only (48px in S08, 64px in S15), tracking -0.02em, centred x=960, baselines y=900 and y=980. JetBrains Mono 500, 0.16em tracking, 20-34px for manifest and captions. One accent word maximum: #CFFF05 on raisin, #7A9A00 on paper. Lime is NEVER set as type on paper.\n\nLIME BUDGET \u2014 five places in 63.94s: the avatar's own radial ground (S01, S08, S12, S15), the S02 hairline, bl_mark_lime (S07), the word RECOGNITION (S08), and the swatch_lime card itself (S02, S12, S13, S15). On paper the accent is #7A9A00 and appears twice: the S12/S13 hairline and the word PURPOSE in the closing headline.\n\nCOORDINATES \u2014 all numbers are for a 1920x1080 design frame, rendered at 3840x2160 by scaling x2. Safe type area x:150-1770, y:110-970. Every rect in the shot list sums; the margins stated are the margins that result.",
+  "mark_policy": "The mark appears in exactly TWO shots of fifteen, for 8.10s of 63.94s (12.7%), and it is absent from 13 of 15 frames.\n\n1) S07, 19.74-25.10 (5.36s) \u2014 bl_mark_lime.png at 336x559, dead centre of a completely empty raisin page (x:792-1128, y:261-820, margins 792/792/261/260). It is the largest and longest-held single object in the intro. It sits DEAD STILL for 3.76 seconds \u2014 the film's only long stillness \u2014 and then, exactly on the word 'logo', it scales in place from 559px tall to 96px tall over 900ms and holds tiny and centred for 0.70s while the VO says 'It goes way further.' The demotion is a pure in-place scale: no translation, no corner-parking, no exit through frame edge. (The earlier version flew it to 150,140 \u2014 the exact coordinates of that shot's own label \u2014 and off frame left, reintroducing an overlap and a fly-through inside the one shot built to prove neither can happen. Deleted.) This single shot spends the entire logo budget by arguing with the logo on camera.\n\n2) S15, 61.20-63.94 (2.74s) \u2014 bl_mark_raisin.png at 58x96, centred x=960, y:180-276, as a colophon crest above the closing row (124px of clear paper between crest and row). It fades up over 400ms on the word 'brand' and never moves again. It is a signature on a finished page, not a corner bug, and it is deliberately NOT the last event of the film \u2014 the last event is the brother's reserved slot.\n\nEXPLICITLY ABSENT: bl_mark_silver, bl_mark_steel, bl_mark_white, bl_favicon.png and bl_icon.png appear nowhere. Two colourways, one per surface. Zero tiled marks, zero pattern fields, zero watermarks, zero marks in the background or margin of any other shot, zero marks over the talking head. No Higgsfield logo anywhere \u2014 the sponsor is credited once as a 20px mono line in the bottom-left margin of S04 and never again.",
+  "shots": [
+    {
+      "id": "S01",
+      "beats": "0 + 'My face,' (first phrase of 1)",
+      "start": 0.0,
+      "end": 2.9,
+      "register": "raisin page (dark)",
+      "composition": "COVER. Full-frame raisin #0F121A (bg_luuk.jpg, luminance crushed to 8%, blurred 40px \u2014 an even dark page with a faint top-down falloff, no readable texture). avatar.png as ONE square plate, 620x620, x:650-1270, y:160-780. Margins: 650 left, 650 right, 160 above, 300 below. The avatar's own lime radial ground is the only saturated colour in the frame and it is the only lit object. Nothing else exists: no label, no mark, no rule, no caption, no headline. 300px of dead page under his chin.",
+      "motion": "ONE gesture. Linear scale push on the avatar plate only, 1.000 -> 1.070 across the full 2.90s (2.41%/s, above the motion floor), anchored at plate centre; the page does not move. The frame is fully formed at t=0 \u2014 no fade-up, no light-up. The push begins on the word 'This' (0.00) and runs unbroken into the cut.",
+      "assets": [
+        "avatar.png",
+        "brand/bg_luuk.jpg"
+      ],
+      "dwell": "2.90 uninterrupted seconds of his real channel avatar, alone, unobstructed, the first thing on screen. This is the literal repair of 'the profile picture is only visible for 0.1 seconds': the previously-unreadable asset is now the cover, and nothing shares the frame with it.",
+      "copy": ""
+    },
+    {
+      "id": "S02",
+      "beats": "1 ('my colors, everything I post')",
+      "start": 2.9,
+      "end": 4.86,
+      "register": "raisin page (dark)",
+      "composition": "PALETTE. Same raisin page, so the cut reads as a change of subject, not of place. The three REAL swatch cards (swatch_raisin, swatch_silver, swatch_lime, AR 0.435) stand as one row, each 270x620, bottom-aligned to baseline y=790, tops y=170. Gaps exactly 80px. x: raisin 475-745, silver 825-1095, lime 1175-1445. Group width 970, margins 475 left / 475 right (verified: 475+270+80+270+80+270 = 1445; 1920-1445 = 475). 170px of page above, 290px below. At 620px tall (1240px at 4K) the printed labels \u2014 'Raisin black / Primary / #0F121A' \u2014 are legible, which is the entire reason for the size. No headline, no mark, no caption.",
+      "motion": "ONE gesture. The cards are present and static from the cut \u2014 nothing arrives. A 1px #CFFF05 hairline draws left -> right at y=830 (40px under the shared card baseline) from x=475 to x=1445, 970px over 800ms (1213px/s), beginning on the word 'colors' (2.98). It stops flush with the group and holds. The cards never move.",
+      "assets": [
+        "brand/swatch_raisin.png",
+        "brand/swatch_silver.png",
+        "brand/swatch_lime.png",
+        "brand/bg_luuk.jpg"
+      ],
+      "dwell": "1.96s \u2014 the shortest shot in the film, deliberately, because this is an introduction and not the payoff: swatch_lime returns at hero size for 15.22s across S12/S13/S15. The eye reads three cards on one baseline as ONE object, then watches that object get underlined.",
+      "copy": ""
+    },
+    {
+      "id": "S03",
+      "beats": "2",
+      "start": 4.86,
+      "end": 7.57,
+      "register": "raisin page (dark)",
+      "composition": "PROOF. Raisin page. site/proof_stats.png (3264x368, AR 8.87) as one long plate spanning the full type width: 1620x183, x:150-1770, y:449-632. It is the only object on the page \u2014 449px of empty page above it, 448px below. The strip reads '900+ FOUNDERS HELPED \u00b7 20K YOUTUBE SUBSCRIBERS \u00b7 $310K+ CUSTOMER REVENUE' at full legibility. No headline: the artifact already contains the only words this page needs, and a headline would be a second voice saying the same thing.",
+      "motion": "ONE gesture. The plate is revealed by a hard-edged mask wipe, left -> right, 0 -> 1620px over 1400ms (1157px/s), starting at the cut (4.86) and timed so the last figure \u2014 '$310K+ CUSTOMER REVENUE' \u2014 lands on the word 'make' (6.26). Fully formed and dead still for the final 1.31s, with the eye parked on the revenue number.",
+      "assets": [
+        "site/proof_stats.png",
+        "brand/bg_luuk.jpg"
+      ],
+      "dwell": "2.71s on one line of real numbers, 1.31s of it fully formed and motionless. Nothing competes because there is nothing else on the page.",
+      "copy": ""
+    },
+    {
+      "id": "S04",
+      "beats": "3",
+      "start": 7.57,
+      "end": 11.4,
+      "register": "raisin page (dark)",
+      "composition": "THE PRODUCT. Raisin page. site_1.png as one plate 1240x698 (16:9), x:340-1580, y:150-848, 1px #B5BFC2 30% hairline, no shadow, no rounding. Margins 340/340, 150 above, 232 below. Because the UI is dark with lime accents it reads as a lit rectangle on a dark page. Bottom-left margin, one mono line at x=150, baseline y=940: 'BUILT WITH \u2014 HIGGSFIELD', JetBrains Mono 500, 20px, 0.18em, #B5BFC2 at 50%. That is the entire sponsor presence in the intro: no logo, no lockup, no colour, never repeated. Clearance from plate bottom to credit cap-top: 78px at rest, 55px at full push. Nothing overlaps.",
+      "motion": "ONE gesture. The plate is static for the first 1.03s, then a linear scale push 1.000 -> 1.066 over 2.80s (2.36%/s), anchored at plate centre, beginning on the word 'built' (8.60) and running into the cut. The mono credit is present from frame one of the shot and never animates.",
+      "assets": [
+        "site_1.png",
+        "brand/bg_luuk.jpg"
+      ],
+      "dwell": "3.83s on a real product screen at 1240px wide (2480px at 4K) \u2014 long enough to actually scan the interface. The margin credit is read once, peripherally, the way a book credit is read.",
+      "copy": "BUILT WITH \u2014 HIGGSFIELD"
+    },
+    {
+      "id": "S05",
+      "beats": "4",
+      "start": 11.4,
+      "end": 16.29,
+      "register": "room (bright grade)",
+      "composition": "THE RESERVED SLOT \u2014 first flip out of the dark, on the promise. head_4k.mp4 full bleed, light grade (blacks lifted toward #1E2434, neutral WB, contrast soft, vignette 6%), and the host is graded a further 10% down so he cannot out-shout the graphic. He is framed LEFT: head centred x\u2248620, eyeline y\u2248420, presenting his left cheek to camera (key from camera-right), looking into the empty right of frame. The right void x:1000-1920 is empty room, darkened by one elliptical falloff (-22% luminance, 40% feather, centred on the square, radius 520px) so the graphic sits in the darkest region of the frame. In it hangs the film's spine: an EMPTY SQUARE, 300x300, 3px #E9ECED outline, nothing inside, x:1280-1580, y:390-690. Clear gap from the host's framing edge (x=1000) to the square: 280px. Right margin 340px. One mono caption, left-aligned x=1280, baseline y=736 (46px under the square): 'THE BROTHER \u2014 19', JetBrains Mono 500, 22px, 0.16em, #E9ECED at 75%. One face, one empty square, one caption. Nothing overlaps anything.",
+      "motion": "TWO gestures, strictly sequential. (1) 11.40 -> 14.60: whole-frame push 1.000 -> 1.070 (2.19%/s), ease-out-cubic so it decelerates to a complete rest at 14.60. It begins on the word 'now' (11.60). (2) 14.80, on the words 'little brother': the square's 3px outline DRAWS clockwise from its top-left corner, 1200px of perimeter over 800ms (1500px/s), and the caption fades up inside the last 300ms of the draw as part of the same arrival. Complete at 15.60, then the whole frame is still for 0.69s.",
+      "assets": [
+        "head_4k.mp4"
+      ],
+      "dwell": "Host 4.89s \u2014 his first appearance and long enough to establish him. The empty square is composed and on screen for 1.49s. The premise of the entire video is stated as a hole in a layout rather than as a sentence, and that hole is the same 300x300 square that closes the film at 62.50.",
+      "copy": "THE BROTHER \u2014 19"
+    },
+    {
+      "id": "S06",
+      "beats": "5",
+      "start": 16.29,
+      "end": 19.74,
+      "register": "paper (light)",
+      "composition": "THE MANIFEST. Flat #E9ECED paper. A four-line contents list occupying only the left column: JetBrains Mono 500, 34px, 0.16em, #0F121A, left-aligned x=300, line pitch 88px, baselines y=420 / 508 / 596 / 684. Lines: '01  THE FACE' / '02  THE PALETTE' / '03  THE WORK' / '04' followed by a 3px dashed #0F121A rule running x:380-760 on the y=684 baseline. The right two-thirds of the page, x:900-1770 full height, is COMPLETELY EMPTY paper \u2014 that emptiness is the composition. These four slots map 1:1 onto the four positions of the closing row at 58.54, in the same order, so the film promises a shape and then fills it.",
+      "motion": "ONE gesture. Lines 01, 02 and 03 are present and static from the cut. At 18.30, on the word 'whole', the '04' numeral fades up over 200ms and its dashed rule draws left -> right from x=380 to x=760, 380px over 700ms (543px/s), completing at 19.20. Then 0.54s of a completely settled frame. Nothing else moves at any point.",
+      "assets": [],
+      "dwell": "3.45s. The viewer reads three words and one blank, and understands the shape of the deliverable \u2014 including that one slot is deliberately unfilled. This is the only type-only page in the film and it is placed here precisely because 'the whole system' is a structural promise, not a picture.",
+      "copy": "01 THE FACE / 02 THE PALETTE / 03 THE WORK / 04 \u2014\u2014"
+    },
+    {
+      "id": "S07",
+      "beats": "6, 7",
+      "start": 19.74,
+      "end": 25.1,
+      "register": "raisin page (dark)",
+      "composition": "THE MARK, ALONE \u2014 MARK APPEARANCE 1 OF 2, and the single most important frame in the intro. Full raisin page, absolutely empty. bl_mark_lime.png at 336x559 (AR 0.601), dead centre: x:792-1128, y:261-820. Margins 792 left, 792 right, 261 above, 260 below. There is nothing else in the frame \u2014 no label, no rule, no caption, no headline, no page number. This is the emptiest frame in the film and the mark is the only lit object in it.",
+      "motion": "TWO gestures, and they are the same argument in two stages. (1) 19.74 -> 23.50: DEAD STILL. 3.76 seconds with zero motion of any kind \u2014 no push, no breath, no shimmer \u2014 while the VO says the brand is not the logo. This is the film's only long stillness and it is spent here on purpose. (2) 23.50, exactly on the word 'logo': the mark scales IN PLACE from 559px tall to 96px tall (1.000 -> 0.171) over 900ms, cubic-bezier(0.22,1,0.36,1), anchored on its own centre \u2014 no translation, no fade, no exit, no corner-parking. It lands at 58x96, x:931-989, y:492-588, and holds there, tiny and alone in a vast dark page, for 0.70s under 'It goes way further.'",
+      "assets": [
+        "brand/bl_mark_lime.png",
+        "brand/bg_luuk.jpg"
+      ],
+      "dwell": "5.36s \u2014 the longest hero hold in the film, and the mark gets all of it: 3.76s large and motionless, 0.70s small and motionless. This one shot repays the entire logo budget, which is why the mark is absent from thirteen of fifteen frames.",
+      "copy": ""
+    },
+    {
+      "id": "S08",
+      "beats": "8, 9, 10, 11",
+      "start": 25.1,
+      "end": 30.61,
+      "register": "raisin page (dark)",
+      "composition": "PERCEPTION. Raisin page. avatar.png returns as a square plate at 480x480, dead centre x:720-1200, plate centre y=460, y:220-700. 720px of empty page either side. ONE line of type, bottom-middle: three words on a single baseline y=900, Space Grotesk 800, 48px, uppercase, tracking -0.02em \u2014 'TRUST', 'LIKING', 'RECOGNITION' \u2014 typeset ONCE as a single centred line with 90px word gaps and then revealed word by word IN PLACE, so nothing ever reflows or shifts. TRUST and LIKING in #E9ECED; RECOGNITION in #CFFF05, the only lime type in the film. Clearance from plate bottom (700, or 729 at full push) to the line's cap-top (~866): 137px minimum. The words are the abstraction of the VO's three questions, never a transcription of them.",
+      "motion": "One sustained move plus one discrete pattern, which is legal because they are different orders of event. SUSTAINED: linear push on the avatar plate only, 1.000 -> 1.120 across the full 5.51s (2.18%/s), anchored at plate centre. DISCRETE: each word fades up in place over 250ms, pinned to its own spoken word \u2014 TRUST on 'trust' (27.85), LIKING on 'like' (28.85), RECOGNITION on 'recognize' (29.85). No slides, no crossfades, no stagger inside a word. All three persist to the cut.",
+      "assets": [
+        "avatar.png",
+        "brand/bg_luuk.jpg"
+      ],
+      "dwell": "5.51s of continuous, unobstructed avatar \u2014 the longest look at the profile picture in the film. The type is ONE element that lives for 2.76s in one fixed slot; only the glyphs inside it change, so no element ever enters and exits in under 1.2s.",
+      "copy": "TRUST \u00b7 LIKING \u00b7 RECOGNITION"
+    },
+    {
+      "id": "S09",
+      "beats": "12",
+      "start": 30.61,
+      "end": 35.55,
+      "register": "raisin page (dark)",
+      "composition": "THE COMMODITY SHELF. Raisin page. All eight real thumbnails, thumb_1..thumb_8, in ONE horizontal row at HERO scale \u2014 each 420x236, gaps exactly 48px, row pitch 468, total run 3696px. Tops y=422, baseline y=658; 422px of empty page above the row and 422px below, so the row is exactly centred. The row is far wider than the frame and bleeds off BOTH edges at every moment of the shot, so it never appears to start or end. Nothing else is in frame \u2014 no mark, no label, no headline. At 420px wide (840px at 4K) each thumbnail is genuinely legible; this replaces the 186px eight-up strip, which reduced faces to grey mush and was density pretending to be restraint.",
+      "motion": "One sustained move plus one discrete state change. SUSTAINED: the row translates left at a constant 150px/s (5px/frame at 30fps \u2014 far above the judder floor, and felt rather than seen), 741px of travel across the shot; row origin x0 goes -300 -> -1041, so both frame edges stay covered throughout. DISCRETE: at 33.30, exactly on the word 'isn't', the entire row desaturates to 0% and drops to 30% opacity over 700ms and stays there. The drift continues unchanged through and after the change.",
+      "assets": [
+        "thumb_1.png",
+        "thumb_2.png",
+        "thumb_3.png",
+        "thumb_4.png",
+        "thumb_5.png",
+        "thumb_6.png",
+        "thumb_7.png",
+        "thumb_8.png",
+        "brand/bg_luuk.jpg"
+      ],
+      "dwell": "4.94s. Eight real published thumbnails read as ONE moving texture \u2014 one focal idea, not eight \u2014 and the viewer watches an endless shelf of content quietly lose its colour on the exact word that says content is not the differentiator. Stated once, with nothing else on the page.",
+      "copy": ""
+    },
+    {
+      "id": "S10",
+      "beats": "13, 14",
+      "start": 35.55,
+      "end": 42.1,
+      "register": "room (dark grade, warming)",
+      "composition": "BECAUSE YOU ARE \u2014 the longest shot in the film and its emotional centre. Hard cut from a greyed-out shelf of content straight to a live human face: the maximum available contrast between two adjacent frames. head_4k.mp4 full bleed, dark grade at the cut (blacks crushed to #0F121A, saturation -8, contrast +6, vignette 18%). Framed with his head centred x\u22481180, eyeline y\u2248400; the left third x:0-760 is empty dark room. ABSOLUTELY NO TYPE \u2014 no headline, no caption, no label, no mono line. This is the only shot in the intro with no words on screen of any kind, and the absence is the point: the shot immediately after 'content is interchangeable' contains nothing but the person.",
+      "motion": "ONE gesture, sustained across the whole shot: a linear push 1.000 -> 1.140 over 6.55s (2.14%/s), anchored at (1180, 400) so the move goes toward him and the void narrows, WHILE the grade warms continuously over the same 6.55s \u2014 vignette 18% -> 6%, blacks lifted toward #1E2434, saturation -8 -> +2. Approach and warmth are one gesture, not two. It begins on the word 'Because' (35.66) and never stops.",
+      "assets": [
+        "head_4k.mp4"
+      ],
+      "dwell": "6.55s of the person, alone, slowly approached and slowly warmed. A human face is never a static frame, which is why this is the one long hold that needs no discrete event to stay alive. Screen time is the argument: the film says he is the differentiator and then gives him the biggest single allocation in it.",
+      "copy": ""
+    },
+    {
+      "id": "S11",
+      "beats": "15",
+      "start": 42.1,
+      "end": 46.77,
+      "register": "raisin page (dark)",
+      "composition": "THE SURFACE THEY JUDGE. Raisin page. buildloop_4k.png \u2014 his real live homepage \u2014 as one plate 1500x844, x:210-1710, y:118-962, 1px #B5BFC2 30% hairline, no shadow. Margins 210/210/118/118. It is the largest single artifact in the intro and near-fills the page on purpose, because 'this one thing' is the whole surface. Dark UI, lime accents, unmistakably the same family as the palette, the avatar and the product screen already shown. No headline, no caption, no rule, no mark.",
+      "motion": "TWO gestures, sequential. (1) 42.10 -> 45.10: DEAD STILL for 3.00s. The page is dense and real; the stillness exists so it can actually be read rather than glimpsed. (2) 45.10, on the words 'they judge': a linear push 1.000 -> 1.062 over the remaining 1.67s (3.71%/s), anchored at plate centre, still travelling as the cut lands on 'this one thing'. The push closes on the judged surface and hands straight to the answer.",
+      "assets": [
+        "buildloop_4k.png",
+        "brand/bg_luuk.jpg"
+      ],
+      "dwell": "4.67s on the real homepage, 3.00s of it perfectly still. Nothing to read on top of it, only the thing itself.",
+      "copy": ""
+    },
+    {
+      "id": "S12",
+      "beats": "16, 17",
+      "start": 46.77,
+      "end": 52.68,
+      "register": "paper (light)",
+      "composition": "IT BELONGS TOGETHER \u2014 the flip into the payoff register, which now stays light to the end. Flat #E9ECED paper. THREE real objects, normalised to identical height 300, sharing one baseline y=700, tops y=400, group centred: avatar.png 300x300 at x:394-694; swatch_lime.png (AR 0.435) 131x300 at x:778-909; thumb_3.png (16:9) 533x300 at x:993-1526. Gaps exactly 84px on both sides. Group width 1132; margins 394 left and 394 right (verified: 394+300+84+131+84+533 = 1526; 1920-1526 = 394). 400px of paper above the row, 380px below the baseline. Object centres: (544,550), (843.5,550), (1259.5,550). No headline \u2014 'consistent reads as competent' is the VO's sentence and restating it in type would be the second voice this frame does not need.",
+      "motion": "TWO gestures, sequential, and both are the same idea. (1) 48.60, on the word 'together': a 1px #7A9A00 hairline draws left -> right along the shared baseline y=700 from x=394 to x=1526, 1132px over 1000ms, physically binding the three as one set; completes 49.60. (2) 51.50, on the word 'competent': that same hairline EXTENDS outward from both ends to the full frame width, x:394->0 and x:1526->1920, 394px each side over 700ms (563px/s), completing 52.20 \u2014 the rule turns out to be bigger than the three things sitting on it. Then 0.48s of a completely settled frame. The objects themselves never move.",
+      "assets": [
+        "avatar.png",
+        "brand/swatch_lime.png",
+        "thumb_3.png"
+      ],
+      "dwell": "5.91s. Three objects but ONE focal idea, enforced by identical height, identical baseline and identical gaps: the eye reads the alignment, not the individual cards. These same three assets now carry the entire final 17.17 seconds of the film in three different arrangements, so nothing new has to be introduced at the end.",
+      "copy": ""
+    },
+    {
+      "id": "S13",
+      "beats": "18, 19",
+      "start": 52.68,
+      "end": 56.59,
+      "register": "paper (light)",
+      "composition": "IT DOESN'T \u2014 the same three objects, the same paper, the same source pixels, the same scale reference. ONLY the transforms differ, so the comparison is exact and needs no split screen and no register change (changing the surface would make the viewer read the lighting instead of the layout). From the S12 home centres: avatar rotated -4.2\u00b0, translated (-52,+96) to centre (492,646) \u2014 bbox x:331.5-652.5, y:485.5-806.5; swatch_lime rotated +3.1\u00b0, scaled 0.88, translated (+34,-118) to centre (877.5,432) \u2014 bbox x:813-942.5, y:297-567; thumb_3 rotated -1.8\u00b0, scaled 1.06, translated (+96,+38) to centre (1355.5,588) \u2014 bbox x:1068-1642.9, y:420-755.8. Verified: clear gaps of 160.5px and 125.5px, three different bottom edges (806.5 / 567 / 755.8), three different scales, nothing clipped by any frame edge (max right edge 1642.9 against a 1770 safe margin). Everything remains crisp, well-lit and full resolution \u2014 nothing is damaged, nothing shakes, nothing glitches. The frame is badly laid out, not badly rendered, and that distinction is the whole shot.",
+      "motion": "ONE gesture, and it arrives late. The misaligned state is present ON THE CUT as a state change, not an animation. Then 52.68 -> 55.18 is 2.50s of absolute stillness \u2014 no push, no drift, no arrival \u2014 so the viewer has time to feel that the layout is wrong. At 55.18, exactly on the word 'Even', a 1px #7A9A00 hairline draws left -> right at y=830 across the full frame, 1920px over 900ms (2133px/s), completing 56.08. It passes cleanly BELOW all three bounding boxes (nearest object edge is 23.5px above it) so it never crosses an image \u2014 and the three objects visibly fail to sit on it, floating 23.5px, 263px and 74.2px above the line that bound them fifteen seconds ago.",
+      "assets": [
+        "avatar.png",
+        "brand/swatch_lime.png",
+        "thumb_3.png"
+      ],
+      "dwell": "3.91s of held wrongness \u2014 deliberately 2.00s SHORTER than the correct frame that precedes it, because the argument must not be timed inside-out. The assets are pixel-identical to S12, so the reading is instant and the remaining seconds are discomfort, not explanation.",
+      "copy": ""
+    },
+    {
+      "id": "S14",
+      "beats": "20",
+      "start": 56.59,
+      "end": 58.54,
+      "register": "room (bright grade)",
+      "composition": "THE INVITATION. head_4k.mp4 full bleed, the same light grade as S05, framed as its exact MIRROR: head centred x\u22481300, eyeline y\u2248400, with the empty room filling the LEFT 45% of frame (x:0-860). Nothing hangs in that void \u2014 the reserved square is deliberately withheld here so that its return one shot later is the film's last gesture rather than a repeat. No headline, no caption, no label, no mark. One face and one empty side of a room.",
+      "motion": "ONE gesture: a linear push 1.000 -> 1.042 over 1.95s (2.15%/s), anchored on his eyeline (1300,400), beginning on the word 'follow' (57.20) and running into the cut. Nothing else moves; his own speech is the only other motion in frame.",
+      "assets": [
+        "head_4k.mp4"
+      ],
+      "dwell": "1.95s \u2014 the shortest shot in the film, and its only job is to hand the sentence back to the page mid-clause, on the ellipsis. Third and final host appearance; the two bright-room shots (S05 and S14) mirror each other exactly, so the film rhymes at its two promise beats.",
+      "copy": ""
+    },
+    {
+      "id": "S15",
+      "beats": "21",
+      "start": 58.54,
+      "end": 63.94,
+      "register": "paper (light)",
+      "composition": "THE CLOSE \u2014 MARK APPEARANCE 2 OF 2. Hard cut ON the word (the film's only on-word cut, landing on 'you' at 58.54, because beats 20 and 21 are one continuous sentence with no gap between them). The frame opens on EXACTLY the S13 misaligned state \u2014 same three objects, same transforms \u2014 held for 0.61s, and then fixes itself on camera. FINAL LAYOUT, four positions, height 300, shared baseline y=700, tops y=400, gaps exactly 118px: avatar.png 300x300 at x:151-451; swatch_lime.png 131x300 at x:569-700; thumb_3.png 533x300 at x:818-1351; and the RESERVED SLOT, 300x300, 3px #0F121A outline, nothing inside, at x:1469-1769. Group width 1618; margins 151 left and 151 right (verified: 151+300+118+131+118+533+118+300 = 1769; 1920-1769 = 151). These four positions are the four manifest lines from 16.29, in the same order: FACE, PALETTE, WORK, and 04. Above the row, centred, bl_mark_raisin.png at 58x96, x:931-989, y:180-276 \u2014 124px of clear paper between the crest and the row. Below the reserved slot, one mono caption, left-aligned x=1469, baseline y=744: '04 \u2014 THE BROTHER', JetBrains Mono 500, 22px, 0.16em, #0F121A at 55%. Bottom-middle headline, present and static from the first frame of the shot: 'EVERY PIECE ON PURPOSE', Space Grotesk 800, 64px, uppercase, tracking -0.02em, centred x=960, baseline y=980, set in #0F121A with the single word 'PURPOSE' in #7A9A00 \u2014 the light-register accent, because lime is never type on paper. Clearance from caption to headline cap-top: 184px. Nothing overlaps anything.",
+      "motion": "THREE gestures, strictly sequential, each pinned to a word. (1) 59.15, on the word 'have': the three misaligned objects SNAP \u2014 rotation to 0.0\u00b0, scale to 1.000, and translate to their final row positions \u2014 as one continuous eased move, 620ms, cubic-bezier(0.22,1,0.36,1). Travel: avatar 213.8px, swatch_lime 270.1px, thumb_3 273.7px (345-441px/s, all well above the floor). The S13 hairline at y=830 fades out across the same 620ms as part of the same gesture. Complete at 59.77, leaving a visible empty space at the right of the row. (2) 61.20, on the word 'brand': bl_mark_raisin fades up as the colophon crest over 400ms with zero movement, and never moves again. (3) 62.50, on the word 'exactly': the reserved slot's 3px outline DRAWS clockwise from its top-left corner, 1200px of perimeter over 700ms (1714px/s), and its caption fades up inside the last 250ms of the draw as part of the same arrival. Complete at 63.20. The final 0.74s is a completely frozen frame.",
+      "assets": [
+        "avatar.png",
+        "brand/swatch_lime.png",
+        "thumb_3.png",
+        "brand/bl_mark_raisin.png"
+      ],
+      "dwell": "5.40s. The whole closing spread is composed from assets the viewer has already been taught, so no dwell is spent on recognition: the snap is read in 200ms and everything after it is confirmation. The last thing the film does is not sign itself \u2014 it leaves an empty square with his brother's name under it, which is the loop the video is actually about, opened at 14.80, listed at 18.30, and named at 62.50.",
+      "copy": "EVERY PIECE ON PURPOSE  \u00b7  04 \u2014 THE BROTHER"
+    }
+  ],
+  "cut_list": [
+    "THE FLY-THROUGH WORLD \u2014 deleted entirely, and this is the structural fix every other fix depends on. There are no world coordinates, no shared 3D space, no camera path. Fifteen independently plotted frames and fifteen hard cuts. Assets cannot overlap because they no longer share a space, and no hero can be passed by a camera because the camera never travels between them.",
+    "THE 375-MARK PATTERN FIELD and every repeated-mark background \u2014 deleted. Zero tiled marks, zero wallpaper, zero marks behind other content, zero corner bugs, zero marks on the talking head. The mark appears in 2 shots of 15, for 8.10s (12.7%), and in one of them it is the entire frame.",
+    "bl_mark_silver.png, bl_mark_steel.png, bl_mark_white.png, bl_favicon.png, bl_icon.png \u2014 none appear. Two colourways, one per surface: lime on the dark hero, raisin on the light colophon. Four variants of one mark inside 64 seconds IS the 'too many logos' problem; a mark-inside-a-rounded-square is a second competing form of the same mark.",
+    "MARGIN FURNITURE \u2014 the top-left section label and the bottom-right spread number are deleted from every frame. At 18px and 28% opacity they were too small to be design and too on-the-nose to be writing, and they restated the VO on at least six spreads ('RANDOM' under 'random reads as amateur', 'CONSISTENT' under 'consistent reads as competent'). Eleven of fifteen shots now carry no authored words at all, and the film is no longer self-referential about a page count the audience has no stake in.",
+    "THE MARK'S FLY-OFF DEMOTION \u2014 deleted. The old move translated the mark into (150,140), the exact coordinates of that shot's own label, then flew it off frame left: an overlap and a fly-through inside the one shot built to prove neither can happen. Replaced by a pure in-place scale, 559px -> 96px, anchored on its own centre, on the word 'logo'.",
+    "SUB-PERCEPTUAL MOTION \u2014 deleted by rule. The old 1.000->1.030-over-4s pushes were under 1%/s: simultaneously invisible AND the exact rate that steps and shimmers over 1px UI detail on YouTube compression. Every move in this cut either changes scale by at least 2.0%/s or translates at least 60px/s, or is exactly zero. Slow lateral drift across detailed stills is banned outright; the one drifting row moves at 150px/s.",
+    "THE 2.4-SECOND EMPTY BLACK FRAME at t=42, and every other frame that contains nothing \u2014 deleted. There is no shot anywhere in the film whose composition is an empty page. Stillness now happens only with something on screen worth staring at, and only twice: S07's mark (3.76s) and S13's wrong layout (2.50s).",
+    "THE WIREFRAME BLOCK \u2014 the 24 blank grey rectangles and the eight-plus consecutive seconds of dashed outlines and mono captions with no real asset on screen are deleted. Empty outlines survive in exactly three places and each one MEANS something specific and identical: the reserved slot for the brother (S05 square, S06 manifest line 04, S15 square). Three appearances, three treatments, one meaning. A brief that says 'make it feel finished' cannot be answered with eight seconds of literally unfinished-looking boxes.",
+    "THE 186px EIGHT-UP THUMBNAIL STRIP \u2014 deleted. Thumbnails now appear at 420px wide in a bleeding row (S09) and at 533x300 as a specimen (S12/S13/S15). No 2x4 grid, no mosaic, no scattered wall, no faces reduced to noise. Grids are density, and density is what read as unfinished.",
+    "THUMBNAILS OVER THE AVATAR \u2014 structurally impossible now, twice over. Where they do share the closing row (S12/S13/S15) they sit at fixed rects with verified clear gaps of 84-160px, and every misaligned bounding box in S13 has been plotted for collision. There is no frame in the film where any two objects come closer than 84px.",
+    "book_type.png, site_2.png, and 17 of the 18 branded backgrounds \u2014 cut. book_type needs 3s of dwell to be readable and there is no beat that earns it; used small it becomes a grey texture swatch, which is exactly the unclean-detail note. site_1 and buildloop_4k already carry the product, and a third UI plate makes the piece a portfolio reel. Exactly one background file is used (bg_luuk.jpg, crushed and blurred to a flat falloff, indistinguishable from a plain page) \u2014 liquid texture behind an artifact is a second thing competing for the eye. Texture lives on the swatch cards, where it is the subject.",
+    "THE HIGGSFIELD LOGO \u2014 never shown. Credited once as a 20px mono margin line in S04 and never repeated. A logo would instantly become the second thing to look at on a page whose subject is his product.",
+    "DISSOLVES, FADES TO BLACK, WHIP PANS, LIGHT LEAKS, GLITCH, RGB SPLIT, MOTION-BLUR TRANSITIONS, FILM GRAIN, LENS FLARES, SPRING/BOUNCE EASING, SHAKE, STAGGERED ENTRANCES, COUNTING-UP NUMBERS \u2014 all cut. Two easings only. Groups arrive as one synchronised move, never staggered, because stagger is what read as glitchy. The proof numbers are real and printed, so animating them would make them look invented.",
+    "DROP SHADOWS, GLOWS, ROUNDED CORNERS, GRADIENT SCRIMS OVER ARTWORK \u2014 cut. Every plate is a 1px hairline rectangle sitting flat on a page. No element is ever half-legible over an image.",
+    "HEADLINES ON EVERY SHOT \u2014 cut to one closing headline plus one three-word line. Thirteen of fifteen shots carry no headline. Nothing on screen ever restates the VO: 'TRUST \u00b7 LIKING \u00b7 RECOGNITION' abstracts three questions into three criteria, and 'EVERY PIECE ON PURPOSE' adds a claim the VO does not make.",
+    "ENDING ON THE LOGO \u2014 cut, because it contradicts the film's own thesis. The mark's last appearance is a crest at 61.20; the film's LAST event, at 62.50, is the reserved slot for his brother being drawn and named. The loop the intro opens at 14.80 is the loop it closes on."
+  ]
+}

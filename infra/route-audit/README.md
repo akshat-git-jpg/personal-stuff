@@ -3,6 +3,8 @@
 This is the autonomy pilot: a weekly self-triggered, read-only repo-drift audit reporting to Telegram.
 By policy, self-triggered runs are report-only.
 
+The checks now live in `tooling/maintainer/jobs/routing/runbook.md`.
+
 **Autonomy policy pointer**: See the `decisions.md` entry of the landing date — self-triggered runs are read-only.
 
 ## VPS Cron

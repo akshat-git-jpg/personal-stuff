@@ -1,243 +1,97 @@
 ---
 name: hyperframes-media
-description: Asset preprocessing for HyperFrames compositions — text-to-speech narration (Kokoro), audio/video transcription (Whisper), and background removal for transparent overlays (u2net). Use when generating voiceover from text, transcribing speech for captions, removing the background from a video or image to use as a transparent overlay, choosing a TTS voice or whisper model, or chaining these (TTS → transcribe → captions). Each command downloads its own model on first run.
+description: Audio and media assets for HyperFrames compositions, produced by one shared audio engine (`scripts/audio.mjs`) — multi-provider TTS (HeyGen / ElevenLabs / Kokoro local), background music + sound effects (HeyGen audio-library retrieval by default, with local Lyria / MusicGen BGM generation and a bundled SFX library as the no-credential fallback), Whisper transcription, background removal, and caption authoring. Use for voiceover / TTS, BGM, SFX / sound effects, transcription, captions / subtitles / lyrics / karaoke / per-word styling, voice + provider selection, and music-mood prompting.
 ---
 
-# HyperFrames Media Preprocessing
+# HyperFrames Media
 
-Three CLI commands that produce assets for compositions: `tts` (speech), `transcribe` (timestamps), and `remove-background` (transparent video). Each downloads a model on first run and caches it under `~/.cache/hyperframes/`. Drop the output into the project, then reference it from the composition HTML — see the `hyperframes` skill for the audio/video element conventions.
+Create the audio and media assets a composition needs — voiceover (TTS), background music + sound effects, transcription, captions, background removal — then consume and animate that data in HTML. For placing assets into compositions, see `hyperframes-core`.
 
-## Text-to-Speech (`tts`)
+## The audio engine — one source for TTS · BGM · SFX
 
-Generate speech audio locally with Kokoro-82M. No API key.
-
-```bash
-npx hyperframes tts "Text here" --voice af_nova --output narration.wav
-npx hyperframes tts script.txt --voice bf_emma --output narration.wav
-npx hyperframes tts --list                       # all 54 voices
-```
-
-### Voice Selection
-
-Match voice to content. Default is `af_heart`.
-
-| Content type      | Voice                 | Why                           |
-| ----------------- | --------------------- | ----------------------------- |
-| Product demo      | `af_heart`/`af_nova`  | Warm, professional            |
-| Tutorial / how-to | `am_adam`/`bf_emma`   | Neutral, easy to follow       |
-| Marketing / promo | `af_sky`/`am_michael` | Energetic or authoritative    |
-| Documentation     | `bf_emma`/`bm_george` | Clear British English, formal |
-| Casual / social   | `af_heart`/`af_sky`   | Approachable, natural         |
-
-### Multilingual
-
-Voice IDs encode language in the first letter: `a`=American English, `b`=British English, `e`=Spanish, `f`=French, `h`=Hindi, `i`=Italian, `j`=Japanese, `p`=Brazilian Portuguese, `z`=Mandarin. The CLI auto-detects the phonemizer locale from the prefix — no `--lang` needed when the voice matches the text.
+Workflows do NOT hand-roll audio or vendor a copy. There is one engine — **`scripts/audio.mjs`** — that takes a neutral `audio_request.json` and writes `audio_meta.json` (plus assets under `assets/voice|bgm|sfx`):
 
 ```bash
-npx hyperframes tts "La reunión empieza a las nueve" --voice ef_dora --output es.wav
-npx hyperframes tts "今日はいい天気ですね" --voice jf_alpha --output ja.wav
+# <MEDIA_DIR> = this skill's directory
+node <MEDIA_DIR>/scripts/audio.mjs --request ./audio_request.json --hyperframes . --out ./audio_meta.json
 ```
 
-Use `--lang` only to override auto-detection (stylized accents). Valid codes: `en-us`, `en-gb`, `es`, `fr-fr`, `hi`, `it`, `pt-br`, `ja`, `zh`. Non-English phonemization requires `espeak-ng` system-wide (`brew install espeak-ng` / `apt-get install espeak-ng`).
+All three capabilities degrade on **ONE switch** — whether a HeyGen credential is present (resolved from `$HEYGEN_API_KEY` / `$HYPERFRAMES_API_KEY` / `~/.heygen`, **not** the CLI):
 
-### Speed
+| Capability | HeyGen credential present                          | absent                                               |
+| ---------- | -------------------------------------------------- | ---------------------------------------------------- |
+| TTS        | HeyGen Starfish REST (native word timestamps)      | → ElevenLabs → Kokoro (chain `transcribe` for words) |
+| BGM        | HeyGen music **retrieval**                         | Lyria → MusicGen local **generation** (detached)     |
+| SFX        | HeyGen sound-effects **retrieval** (min_score 0.4) | bundled 21-file library (`assets/sfx/`)              |
 
-- `0.7-0.8` — tutorial, complex content, accessibility
-- `1.0` — natural pace (default)
-- `1.1-1.2` — intros, transitions, upbeat content
-- `1.5+` — rarely appropriate; test carefully
+- **Request** (`audio_request.json`): `{ provider?, lang?, speed?, lines: [{ id, text, sfx?: [names] }], bgm: { mode?, query?, prompt? } }`. `id` joins each line back to the caller's model (a frame number, a scene id, …). `bgm.mode` = `retrieve | generate | none`; omit for auto (retrieve when credentialed, else generate). An **explicit** `retrieve` is strict — it skips rather than starting a detached generate (for callers with no `wait-bgm` step).
+- **Output** (`audio_meta.json`, id-keyed): `{ tts_provider, voice_id, bgm, bgm_pending, …, voices: [{ id, path, duration_s, words }], sfx: [{ id, name, file, source, offset_s, duration_s, volume }], total_duration_s }`.
+- `--only tts,bgm,sfx` runs a subset and **merges** into an existing `--out` (e.g. TTS+BGM early, SFX once cues exist).
+- BGM generate is spawned **detached** (`bgm_pending: true`) — run `scripts/wait-bgm.mjs` before assembling.
+- `scripts/heygen-tts.mjs` is a single-shot CLI over the same code (one text → wav + words) for when you just need HeyGen TTS without a request file.
 
-### Long Scripts
+Full flag list + the `audio_meta.json` schema live in the header of `scripts/audio.mjs`. The references below cover the provider details and edge cases behind each capability.
 
-For more than a few paragraphs, write to a `.txt` file and pass the path. Inputs over ~5 minutes of speech may benefit from splitting into segments.
+## Preflight — show sign-in status before any audio
 
-### Requirements
-
-Python 3.8+ with `kokoro-onnx` and `soundfile` (`pip install kokoro-onnx soundfile`). Model downloads on first use (~311 MB + ~27 MB voices, cached in `~/.cache/hyperframes/tts/`).
-
-## Transcription (`transcribe`)
-
-Produce a normalized `transcript.json` with word-level timestamps.
+**Always run this before generating voice or BGM — inside a full workflow _or_ a one-off "generate me a BGM/voiceover" request.** No HeyGen credential is **not** a reason to silently fall back to local engines: first recommend signing in and let the user decide. Run the shared preflight and **relay its output verbatim** — don't improvise your own "missing key" prompt, and don't offer to write keys into a per-repo `.env`:
 
 ```bash
-npx hyperframes transcribe audio.mp3
-npx hyperframes transcribe video.mp4 --model small --language es
-npx hyperframes transcribe subtitles.srt          # import existing
-npx hyperframes transcribe subtitles.vtt
-npx hyperframes transcribe openai-response.json
+npx hyperframes auth status
 ```
 
-### Language Rule (Non-Negotiable)
+- **Signed in** → it prints the account; proceed.
+- **Not signed in** (`exit 1` is expected here — "not signed in" is a normal state, not a failure) → it prints registration-first guidance. Recommend signing in: `npx hyperframes auth login` is browser OAuth — it **signs in and creates an account** (always available through this repo's CLI). To use an existing HeyGen API key (from app.heygen.com/settings/api), run `npx hyperframes auth login --api-key` — it saves to the shared `~/.heygen` (no per-repo `.env`). The output also lists the local engines voice/BGM will fall back to and a `pip` hint when deps are missing. **Relay this output as-is — don't paraphrase it into your own wording.** Then **STOP and wait** for the user to choose — sign in, or say "go" / "local" to continue offline — **before generating anything.** This is a real decision point, not a passing note: don't fold it into another question, and don't proceed past it on your own. (Exception: in autonomous / non-interactive mode, note the status and continue offline.)
+- `npx hyperframes auth status --json` returns `{ configured, recommended_action, offline_engines }` for deterministic branching.
+- **If the CLI can't run** (not on PATH and `npx` can't fetch it) → still **recommend signing in** (`npx hyperframes auth login`) and **STOP for the user's choice** — don't treat "no credential" as a silent green light for local generation.
 
-**Never use `.en` models unless the user explicitly states the audio is English.** `.en` models (`small.en`, `medium.en`) **translate** non-English audio into English instead of transcribing it. This silently destroys the original language.
+Credential resolution, full key priority, and the local-dependency list are in `references/requirements.md`.
 
-1. Language known and non-English → `--model small --language <code>` (no `.en` suffix)
-2. Language known and English → `--model small.en`
-3. Language unknown → `--model small` (no `.en`, no `--language`) — whisper auto-detects
+## Provider chains (the detail behind the engine)
 
-**Default model is `small`, not `small.en`.**
+**TTS** — first available provider wins (the engine, or `npx hyperframes tts "..."`):
 
-### Model Sizes
+| Order | Provider                      | Detected when                                | Word timestamps                                                  |
+| ----- | ----------------------------- | -------------------------------------------- | ---------------------------------------------------------------- |
+| 1     | HeyGen (Starfish)             | `$HEYGEN_API_KEY` / `hyperframes auth login` | **Yes, native** — pass `--words narration.words.json` to capture |
+| 2     | ElevenLabs                    | `$ELEVENLABS_API_KEY` set                    | No — chain `transcribe` after                                    |
+| 3     | Kokoro-82M (local, 54 voices) | always (no key required)                     | No — chain `transcribe` after                                    |
 
-| Model      | Size   | Speed    | When to use                           |
-| ---------- | ------ | -------- | ------------------------------------- |
-| `tiny`     | 75 MB  | Fastest  | Quick previews, testing pipeline      |
-| `base`     | 142 MB | Fast     | Short clips, clear audio              |
-| `small`    | 466 MB | Moderate | **Default** — most content            |
-| `medium`   | 1.5 GB | Slow     | Important content, noisy audio, music |
-| `large-v3` | 3.1 GB | Slowest  | Production quality                    |
+> The published `hyperframes tts` CLI is often the local-only build (its `--help` says "Kokoro-82M", no `--provider`/`--words`) and silently falls back to Kokoro even with `$HEYGEN_API_KEY` set. That is why the engine's HeyGen path is the self-contained `scripts/heygen-tts.mjs` (REST), NOT the CLI; the CLI is used only for the Kokoro path. See `references/tts.md`.
 
-Music with vocals: start at `medium` minimum; produced tracks often need manual SRT/VTT import. For caption-quality checks (mandatory after every transcription), the cleaning JS, retry rules, and the OpenAI/Groq API import path, see [hyperframes/references/transcript-guide.md](../hyperframes/references/transcript-guide.md).
+**BGM & SFX** — by default **retrieved** from the HeyGen audio library (`/v3/audio/sounds`), same credential as HeyGen TTS, with the no-credential fallback from the switch above:
 
-### Output Shape
+| Asset | HeyGen `type`                   | Lands in                                                   | Fallback (no credential)                                   |
+| ----- | ------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------- |
+| BGM   | `music`                         | `assets/bgm/track.mp3` (retrieve) · `track.wav` (generate) | Lyria / MusicGen generation                                |
+| SFX   | `sound_effects` (min_score 0.4) | `assets/sfx/<slug>.mp3`                                    | bundled 21-file library (`assets/sfx/*` + `manifest.json`) |
 
-Compositions consume a flat array of word objects. The `id` field (`w0`, `w1`, ...) is added during normalization for stable references in caption overrides; it's optional for backwards compatibility.
+See `references/bgm.md` and `references/sfx.md`.
 
-```json
-[
-  { "id": "w0", "text": "Hello", "start": 0.0, "end": 0.5 },
-  { "id": "w1", "text": "world.", "start": 0.6, "end": 1.2 }
-]
-```
+## Routing
 
-## Background Removal (`remove-background`)
+| Task                                                                | Read                                         |
+| ------------------------------------------------------------------- | -------------------------------------------- |
+| The audio engine — request/meta schema, `--only`, the switch        | `scripts/audio.mjs` (header comment)         |
+| `npx hyperframes tts` / `heygen-tts.mjs` — providers, voices, words | `references/tts.md`                          |
+| BGM — HeyGen retrieval + local Lyria / MusicGen generation          | `references/bgm.md`                          |
+| SFX — HeyGen retrieval (min_score 0.4) + bundled local library      | `references/sfx.md`                          |
+| `npx hyperframes transcribe` — Whisper, model rules, output shape   | `references/transcribe.md`                   |
+| `npx hyperframes remove-background` — transparent cutouts           | `references/remove-background.md`            |
+| TTS → transcription → captions (no recorded voiceover)              | `references/tts-to-captions.md`              |
+| Caption authoring — style detection, layout, word grouping, exit    | `references/captions/authoring.md`           |
+| Transcript handling — input formats, quality gates, cleanup, APIs   | `references/captions/transcript-handling.md` |
+| Caption motion — karaoke, marker effects, audio-reactive            | `references/captions/motion.md`              |
+| Model caches, system dependencies, troubleshooting                  | `references/requirements.md`                 |
 
-Remove the background from a video or image so the subject (typically a person — avatar, presenter, talking head) sits as a transparent overlay in a composition.
+## Non-negotiable rules
 
-```bash
-npx hyperframes remove-background subject.mp4 -o transparent.webm  # default: VP9 alpha WebM
-npx hyperframes remove-background subject.mp4 -o transparent.mov   # ProRes 4444 (editing)
-npx hyperframes remove-background portrait.jpg -o cutout.png       # single-image cutout
-npx hyperframes remove-background subject.mp4 -o subject.webm \
-  --background-output plate.webm                                   # both layers in one pass
-npx hyperframes remove-background subject.mp4 -o transparent.webm --device cpu
-npx hyperframes remove-background --info                           # detected providers
-```
-
-Uses `u2net_human_seg` (MIT). First run downloads ~168 MB of weights to `~/.cache/hyperframes/background-removal/models/`.
-
-### Layer separation (`--background-output`)
-
-Pass `--background-output` (or `-b`) to emit a **second** transparent video alongside the cutout: same source RGB, alpha is `255 − mask` instead of `mask`. The cutout is the subject with a transparent background; the plate is the original surroundings with a transparent hole where the subject was.
-
-| File                             | Alpha is…                                                 | Use it for                                                      |
-| -------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------- |
-| `-o subject.webm`                | The mask — subject opaque, background transparent         | Foreground layer, place on top                                  |
-| `--background-output plate.webm` | Inverse — surroundings opaque, subject region transparent | Bottom layer; put text or graphics between this and the subject |
-
-Both outputs share the same `--quality` preset and run from a single inference pass — encode cost roughly doubles, segmentation cost stays the same. Only valid for video inputs and `.webm`/`.mov` outputs.
-
-**Hole-cut plate, not an inpainted clean plate.** The subject region in `plate.webm` is fully transparent — composite something opaque under it to fill the hole. The single test for whether `--background-output` is the right tool: _will anything ever be visible through the subject's silhouette where the subject used to be?_
-
-| Use case                                                                            | Right tool                                                                         |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Text/graphics between the cutout and the plate (this command's reason for existing) | **Hole-cut** (`--background-output`)                                               |
-| Subject onto an unrelated scene                                                     | Just `subject.webm`; ignore the plate                                              |
-| Show the room _without_ the person, alone over no other content                     | **Clean plate** — needs an inpainter (LaMa, ProPainter, E2FGVI). Not this command. |
-| Replace the subject with a different subject                                        | **Clean plate** — same as above                                                    |
-
-If a user asks for "the room with the person removed" and intends to display it standalone, do **not** reach for `--background-output`. Tell them they need an inpainter.
-
-Typical layered composition (the canonical hole-cut use case):
-
-```html
-<!-- z=1 the inverse-alpha plate fills everything except the subject region -->
-<video
-  src="plate.webm"
-  data-start="0"
-  data-duration="6"
-  data-track-index="0"
-  muted
-  playsinline
-></video>
-
-<!-- z=2 graphics / text live between the two layers -->
-<h1 id="headline" style="z-index:2; ...">MAKE IT IN HYPERFRAMES</h1>
-
-<!-- z=3 the cutout floats the subject back over the headline -->
-<div class="cutout-wrap" style="position:absolute;inset:0;z-index:3">
-  <video
-    src="subject.webm"
-    data-start="0"
-    data-duration="6"
-    data-track-index="1"
-    muted
-    playsinline
-  ></video>
-</div>
-```
-
-This is functionally equivalent to the text-behind-subject pattern below, but you don't need the original `presenter.mp4` in the project — the plate replaces it. Useful when you want to ship just the two transparent layers and let the user drop arbitrary content between them.
-
-### Output Format
-
-| Format                | When                                                          |
-| --------------------- | ------------------------------------------------------------- |
-| `.webm` (VP9 + alpha) | Default. Compositions play this directly via `<video>`.       |
-| `.mov` (ProRes 4444)  | Editing in DaVinci/Premiere/FCP. Large files.                 |
-| `.png`                | Single-image cutout (still subject, layered over a backdrop). |
-
-Chrome decodes VP9 alpha natively, so the `.webm` plugs into a composition like any other muted-autoplay video — see the `hyperframes` skill for the `<video>` track conventions.
-
-### Quality presets
-
-`--quality fast|balanced|best` controls only the VP9 encoder's CRF — segmentation quality is fixed.
-
-| Preset     | CRF | When                                                  |
-| ---------- | --- | ----------------------------------------------------- |
-| `fast`     | 30  | Iterating, smaller file, looser color match           |
-| `balanced` | 18  | Default. Visually identical for most uses             |
-| `best`     | 12  | Master / final delivery. Largest file, tightest match |
-
-### Compositing patterns — pick the right one
-
-The cutout webm is a **re-encoded copy** of the source mp4's RGB. That choice has consequences depending on what you put behind it:
-
-| Pattern                                                  | What's behind the cutout                   | Result                                                                                                                                                                                                                            |
-| -------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Cutout over a different scene** (most common)          | Static image, gradient, or unrelated video | Looks great. The cutout's RGB is the only source of the subject — no doubling, no edge halo. This is what `remove-background` is built for.                                                                                       |
-| **Cutout over its own source mp4** (text-behind-subject) | Same mp4 the cutout was generated from     | Two RGB sources for the same person. At default `--quality balanced` (crf 18) the doubling is barely visible; at `--quality fast` (crf 30) you'll see a faint color shift / edge halo. Use `--quality best` (crf 12) for masters. |
-| **Cutout over a _different_ take of the same person**    | Footage of the same subject                | Will look like two separate people overlapping. Don't do this.                                                                                                                                                                    |
-
-**Text-behind-subject** (headline behind a presenter):
-
-```html
-<video
-  src="presenter.mp4"
-  id="bg"
-  data-start="0"
-  data-duration="6"
-  data-track-index="0"
-  muted
-  playsinline
-></video>
-<h1 id="headline" style="z-index:2; ...">MAKE IT IN HYPERFRAMES</h1>
-<div class="cutout-wrap" style="position:absolute;inset:0;z-index:3;opacity:0">
-  <video
-    src="presenter.webm"
-    data-start="0"
-    data-duration="6"
-    data-track-index="1"
-    muted
-    playsinline
-  ></video>
-</div>
-```
-
-Two key rules:
-
-1. **Wrap the cutout video in a non-timed `<div>`** and animate the wrapper's opacity, not the video element's. The framework forces opacity:1 on active clips (any element with `data-start`/`data-duration`), so animating the video's opacity directly is silently overridden. The wrapper has no `data-*` attributes, so it's owned by your CSS/GSAP.
-2. **Both videos use `data-start="0"` and `data-media-start="0"`** so the framework decodes them in sync from t=0. Late-mounting the cutout (`data-start=3.3`) introduces a seek + warm-up that lands a frame off the base mp4 — visible as one frame of misalignment at the cut.
-
-Then GSAP-flip the wrapper opacity at the cut: `tl.set(cutoutWrap, { opacity: 1 }, 3.3)`.
-
-## TTS → Transcribe → Captions
-
-When there's no pre-recorded voiceover, generate one and transcribe it back to get word-level timestamps for captions:
-
-```bash
-npx hyperframes tts script.txt --voice af_heart --output narration.wav
-npx hyperframes transcribe narration.wav   # → transcript.json
-```
-
-Whisper extracts precise word boundaries from the generated audio, so caption timing matches delivery without hand-tuning.
+- **One engine, no vendored copies.** Produce audio via `scripts/audio.mjs` (or `heygen-tts.mjs` for one-shot HeyGen TTS). Don't re-implement TTS/BGM/SFX inside a workflow — write an `audio_request.json` adapter and call the engine.
+- **"HeyGen available" = a resolvable credential, not the CLI.** The whole switch keys off `heygenCredential()`; the published `hyperframes tts` may be Kokoro-only, and there is no `hyperframes bgm` / `hyperframes sfx` command at all.
+- **Voice IDs are provider-specific.** `am_michael` is Kokoro-only; HeyGen UUIDs don't work on Kokoro. If you pass `--voice`, also pin `--provider` to avoid silent provider drift when the user's env changes.
+- **Always pass `--model` to `transcribe`.** The CLI default `small.en` silently translates non-English audio. See `references/transcribe.md` → "Language Rule".
+- **HeyGen returns word timestamps; ElevenLabs / Kokoro do not.** The engine chains `transcribe` automatically for the latter two; standalone, pass `--words` to HeyGen or run `transcribe` against the audio file.
+- **Captions consume the flat word-array format** with `{ id, text, start, end }`. See `references/transcribe.md` → "Output Shape".
+- **`remove-background --background-output` is hole-cut, not inpainted.** For "scene without the person", a different tool is needed. See `references/remove-background.md` → "When NOT the right tool".
+- **BGM/SFX default to HeyGen retrieval; the no-credential fallback is generation (BGM) or the bundled library (SFX).** `/audio/sounds` ranks by a text query — name effects concretely (`glass shatter`, not `dramatic sound`); a no-match **skips**, never blocks the render. SFX sit at volume ~0.35 under voice + BGM. See `references/sfx.md` / `references/bgm.md`.
+- **Treat workflow caption HTML as generated output.** For preset-backed videos, the reusable skin source lives at `.hyperframes/caption-skin.html` and the workflow script writes `compositions/captions.html`; do not edit generated `compositions/captions.html` to fix the skin. Rebuild via the workflow's `captions.mjs`, or use that workflow's explicit overrides mechanism when present.

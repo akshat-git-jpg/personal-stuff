@@ -9,10 +9,7 @@
 # VPS always sees the latest pushed code + skills without a manual pull.
 #
 #   git pull   /srv/projects/personal-stuff
-#   manifest/personal.txt -> ~/.claude/skills   (source: tooling/claude-skills, else ~/.agents/skills)
 #
-# The manifest is the source of truth: a managed symlink (into the store or
-# ~/.agents/skills) that is no longer in the manifest gets pruned.
 set -euo pipefail
 
 # Acquire file lock to prevent overlapping cron executions
@@ -20,10 +17,6 @@ exec 9>/tmp/vps-sync.lock
 flock -n 9 || { echo "another run in progress"; exit 0; }
 
 REPO="${PERSONAL_STUFF_DIR:-/srv/projects/personal-stuff}"
-STORE="$REPO/tooling/claude-skills"
-SKILLS_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"
-AGENTS_DIR="$HOME/.agents/skills"          # printing-press pp-* skills, if installed
-MANIFEST="$STORE/manifest/personal.txt"
 
 echo "repo:   $REPO"
 
@@ -43,17 +36,13 @@ else
   echo "FATAL: $REPO is not a git repo" >&2; exit 1
 fi
 
-[ -f "$MANIFEST" ] || { echo "FATAL: manifest not found at $MANIFEST" >&2; exit 1; }
-
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPTS_DIR/lib/skill-link.sh"
 
 # Same push gate + pre-push net as the Mac gets from relink.sh. guard_install always
 # returns 0, so it can never abort this cron-run script.
 source "$SCRIPTS_DIR/lib/guard-install.sh"
 guard_install "$REPO" || true
 
-status=0
-sync_skills_dir personal "$SKILLS_DIR" "$MANIFEST" "$STORE" "$AGENTS_DIR" || status=$?
+# No skill symlinking any more: skills are repo-scoped, so a VPS session running
+# inside this checkout reads .claude/skills directly (2026-08-25).
 echo "done."
-exit "$status"

@@ -21,6 +21,7 @@ Code fork works as the tab target; Antigravity is just the default.
 | File | What it is |
 |------|-----------|
 | `relay.py` | Localhost HTTP server. POST `/queue` (requires `X-Relay-Token` header) with `{urls:[…]}` → per video: fetch title (oembed) + transcript (`pp-yt-transcript`) → either drop a job file in `~/yt-claude/pending/` (IDE target) or `open` a `run.command` Terminal window (terminal target). |
+| `prune.sh` + `com.kushal.yt-claude-prune.plist` | Weekly launchd job. Deletes `~/yt-claude/<videoid>/` folders older than `YT_PRUNE_DAYS` (default 30). Nothing else ever removed them — 142 had piled up by 2026-08-24. `--dry-run` lists without deleting; `test-prune.sh` covers the refusal cases. |
 | `ide-extension/` | Editor extension for any VS Code fork (Antigravity, VS Code, Cursor). Watches `~/yt-claude/pending/` and opens an integrated terminal tab per job. Installed at `~/.antigravity/extensions/yt-claude/`. |
 | `yt-claude` | Control CLI: `serve`, `ls` (recently opened), `log` (tail relay log). |
 | `yt-claude-select.user.js` | Tampermonkey userscript: checkboxes on thumbnails + the floating send button. |
@@ -61,12 +62,35 @@ job. On another VS Code fork, copy into that editor's extensions dir instead
 (`~/.cursor/extensions/`, `~/.vscode/extensions/`, …). (Skip this step if you set
 `YT_CLAUDE_TARGET=terminal`.)
 
-### 3. Install the userscript
+### 3. Install the weekly prune (optional but recommended)
+```sh
+cp "tooling/cli/yt-claude/com.kushal.yt-claude-prune.plist" ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.kushal.yt-claude-prune.plist
+# logs: ~/Library/Logs/yt-claude-prune.log
+```
+Runs Sunday 03:00 and deletes video folders older than 30 days; change
+`YT_PRUNE_DAYS` in the plist to keep more or less. It is **not** `RunAtLoad`, so
+installing it does not delete anything immediately — check what it would take first:
+
+```sh
+bash tooling/cli/yt-claude/prune.sh --dry-run
+```
+
+Only directories named exactly like an 11-character YouTube id are ever touched, and
+only direct children of `~/yt-claude`. `pinterest-mcp/`, `pending/` and loose files
+are matched by neither rule. `test-prune.sh` exists mainly to pin those refusals —
+it runs unattended and deletes directories, so what it must NOT touch is the part
+worth testing. Run it with `bash tooling/cli/yt-claude/test-prune.sh`.
+
+> Written for macOS's `/bin/bash`, which is 3.2 — no `mapfile`. Keep it that way;
+> launchd calls `/bin/bash` directly.
+
+### 4. Install the userscript
 1. Install the **Tampermonkey** extension.
 2. Dashboard → **＋ Create new script** → paste `yt-claude-select.user.js` → save.
 3. Reload YouTube. A checkbox appears top-left of every video thumbnail.
 
-### 4. Use it
+### 5. Use it
 - Tick the videos you want (homepage / search / sidebar / channel). A
   **`→ Claude (N)`** pill shows the count.
 - Click it. Each video opens as an Antigravity terminal tab (or Terminal window)

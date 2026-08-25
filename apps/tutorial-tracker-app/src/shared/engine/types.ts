@@ -133,6 +133,7 @@ export function workField(s: StageDef): FieldDef | undefined {
 
 const DEFAULT_CREATE_FIELDS: CreateField[] = [
   { col: "video_title", label: "Title", type: "text" },
+  { col: "slug", label: "Slug", type: "text" },
   { col: "video_notes", label: "Notes / brief", type: "textarea" },
 ];
 

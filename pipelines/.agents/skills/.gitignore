@@ -1,0 +1,8 @@
+# Vendor skill packs ship example renders and test output — 48 MB of .mp4 across
+# hyperframes-animation and loop-studio when they were adopted (2026-08-25). Repo
+# policy is that generated media is never committed, and pp-push refuses any single
+# path over 4 MB, so these would park the land. They stay on disk for local use.
+*.mp4
+*.mov
+*.wav
+*.mp3

@@ -1,0 +1,396 @@
+{
+ "scenes": [
+  {
+   "viz": "hero",
+   "durationInFrames": 165,
+   "props": {
+    "eyebrow": "BuildLoop \u00b7 the loop era",
+    "headlineWords": [
+     "STOP",
+     "PROMPTING.",
+     "BUILD",
+     "LOOPS."
+    ],
+    "markIndex": 3,
+    "counterpoint": "The guy who built Claude Code doesn't prompt anymore.",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "loop",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "What replaced the prompt",
+    "label": "AGENT LOOP",
+    "caption": "you write the loop once. it prompts Claude, ships, repeats.",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "automationDead",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "Two years ago I wired n8n",
+    "dead": "AUTOMATION",
+    "alive": "LOOPS",
+    "stamp": "DEAD",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "heatmap",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "7 days of the system running",
+    "total": 15380,
+    "unit": "agent runs",
+    "successPct": 99,
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "strikeList",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "I replaced my entire team",
+    "items": [
+     "MY ASSISTANT",
+     "MY BOOKKEEPER",
+     "MY ADS MANAGER",
+     "MY GHOSTWRITER"
+    ],
+    "replacedBy": "CLAUDE",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "orchestra",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "Orchestration beats agent count",
+    "hub": "ORCHESTRATOR",
+    "agents": 12,
+    "caption": "12 agents \u00b7 half work alone",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "streamsToOne",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "Five businesses, one window",
+    "streams": [
+     "CONTENT",
+     "AGENCY",
+     "EMAIL",
+     "RESTRUCTURE",
+     "DATA"
+    ],
+    "target": "ONE CLAUDE",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "brainBuild",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "Context engineering",
+    "center": "BUSINESS BRAIN",
+    "files": [
+     "MEMORY.md",
+     "KNOWLEDGE",
+     "ME-CONTEXT",
+     "STORY BANK"
+    ],
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "assemblyLine",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "The editing system \u00b7 one folder",
+    "stations": [
+     "THE CUT",
+     "THE B-ROLL",
+     "THE FINISH"
+    ],
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "dualLine",
+   "durationInFrames": 165,
+   "props": {
+    "eyebrow": "Momentum up, revenue flat",
+    "title": "YouTube views vs revenue",
+    "a": {
+     "label": "VIEWS",
+     "points": [
+      20,
+      28,
+      35,
+      52,
+      70,
+      88
+     ]
+    },
+    "b": {
+     "label": "REVENUE",
+     "points": [
+      18,
+      19,
+      17,
+      20,
+      19,
+      18
+     ]
+    },
+    "xLabels": [
+     "JAN",
+     "FEB",
+     "MAR",
+     "APR",
+     "MAY",
+     "JUN"
+    ],
+    "yMax": 100,
+    "bg": "grid-light"
+   }
+  },
+  {
+   "viz": "sourceHeadline",
+   "durationInFrames": 165,
+   "props": {
+    "publication": "The Verge",
+    "date": "DEC 2024",
+    "headline": "Microsoft's CEO says SaaS is dead",
+    "highlight": "SaaS is dead",
+    "dek": "Three words that broke the internet.",
+    "byline": "by the loop era",
+    "bg": "grid-light"
+   }
+  },
+  {
+   "viz": "comparison",
+   "durationInFrames": 155,
+   "props": {
+    "left": {
+     "label": "SAAS INDEX",
+     "stat": "-6.5%",
+     "sub": "since 'SaaS is dead'"
+    },
+    "right": {
+     "label": "S&P 500",
+     "stat": "+18%",
+     "sub": "same window"
+    }
+   }
+  },
+  {
+   "viz": "collapse",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "The vibe-coding cliff",
+    "label": "200 PROMPTS DEEP",
+    "sub": "2 hours became 2 days",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "whackAMole",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "Vibe coding maintenance",
+    "label": "fix one \u2192 another breaks",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "kpiStats",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "The cliff, in numbers",
+    "stats": [
+     {
+      "value": 45,
+      "suffix": "%",
+      "label": "of AI code is vulnerable"
+     },
+     {
+      "value": 200,
+      "label": "prompts deep"
+     },
+     {
+      "value": 2,
+      "label": "days (was 2 hrs)"
+     }
+    ],
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "barChart",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "LinkedIn reach index \u00b7 100 = avg",
+    "bars": [
+     {
+      "label": "POLL",
+      "value": 164
+     },
+     {
+      "label": "CAROUSEL",
+      "value": 145
+     },
+     {
+      "label": "IMAGE",
+      "value": 118
+     },
+     {
+      "label": "VIDEO",
+      "value": 110
+     },
+     {
+      "label": "TEXT",
+      "value": 88
+     }
+    ],
+    "bg": "grid-light"
+   }
+  },
+  {
+   "viz": "grindClock",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "AI made me busier, not freer",
+    "total": 1880,
+    "afterMidnight": 77,
+    "label": "Claude sessions",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "whileYouSleep",
+   "durationInFrames": 165,
+   "props": {
+    "eyebrow": "Claude works the night shift",
+    "tasks": [
+     "Fixed the landing page",
+     "Cleared the inbox",
+     "Shipped the edit",
+     "Updated the ads"
+    ],
+    "label": "you wake up to done",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "scanResolve",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "Apify found my whole audience",
+    "total": 4000,
+    "label": "builders resolved",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "priceDrop",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "The receipt",
+    "from": "$2,000",
+    "to": "$0",
+    "fromLabel": "human editor / mo",
+    "toLabel": "a Claude skill",
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "network",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "Every employee, one brain",
+    "hub": "CLAUDE",
+    "nodes": [
+     "INBOX",
+     "CONTENT",
+     "ADS",
+     "DATA",
+     "SALES",
+     "OPS"
+    ],
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "layerStack",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "Three composable skills",
+    "layers": [
+     {
+      "tag": "03",
+      "name": "video-edit",
+      "sub": "the finish"
+     },
+     {
+      "tag": "02",
+      "name": "broll-ingest",
+      "sub": "the library"
+     },
+     {
+      "tag": "01",
+      "name": "video-cut",
+      "sub": "the cut"
+     }
+    ],
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "processFlow",
+   "durationInFrames": 155,
+   "props": {
+    "eyebrow": "How a loop actually runs",
+    "steps": [
+     {
+      "n": "01",
+      "label": "YOU WRITE THE LOOP"
+     },
+     {
+      "n": "02",
+      "label": "IT PROMPTS CLAUDE"
+     },
+     {
+      "n": "03",
+      "label": "CLAUDE SHIPS"
+     },
+     {
+      "n": "04",
+      "label": "YOU REVIEW"
+     }
+    ],
+    "bg": "grid-dark"
+   }
+  },
+  {
+   "viz": "hero",
+   "durationInFrames": 175,
+   "props": {
+    "eyebrow": "BuildLoop",
+    "headlineWords": [
+     "YOUR",
+     "BUSINESS,",
+     "ON",
+     "LOOP."
+    ],
+    "markIndex": 3,
+    "counterpoint": "Built to run itself.",
+    "buttonLabel": "build-loop.ai \u2192",
+    "bg": "grid-dark"
+   }
+  }
+ ]
+}

@@ -1,7 +1,7 @@
 <!-- boss frontmatter — fill for plans that boss will run; delete this block for non-boss plans. -->
 ---
-executor: claude-p       # claude-p | agy
-model:                   # blank = executor default (claude-p: sonnet)
+executor: claude-p       # claude-p | agy | codex
+model:                   # blank = executor default (claude-p: sonnet, agy: Gemini 3.1 Pro (High), codex: gpt-5.6-sol)
 test_cmd:                # REQUIRED for boss: one command, exit 0 = pass (this is the merge gate).
                          # It must be able to FAIL on this plan's own deliverable. A repo-wide
                          # suite that passes while the deliverable is broken is not a gate:
@@ -36,6 +36,8 @@ mutation_timeout:        # optional seconds, default 600
 
 - **Problem statement**: <what's broken/missing, 1-2 sentences>
 - **Goals**: <bulleted, what this plan achieves>
+- **Decisions confirmed**: <the Step 2.5 checkpoint calls the owner made, one line each as
+  `<fork> -> <chosen option>`; an empty list means the checkpoint was skipped, which is a bug>
 - **Executor proposed**: <executor AND model, one line, matching Step 3.5's difficulty grading>
 - **Done criteria** (terse — full list below): <one line>
 - **Stop conditions** (terse — full list below): <one line>

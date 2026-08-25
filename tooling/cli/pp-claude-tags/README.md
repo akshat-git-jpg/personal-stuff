@@ -48,21 +48,38 @@ If both fire they must agree on the same byte, otherwise nothing is touched.
 **1. Code shape.**
 
 ```
-...capExpanded:X}=hook(M), GATE=!1, [S]=React.useState(()=>make(host,GATE))
+...capExpanded:X}=hook(M), GATE=!1, [S]=useState(()=>make(host,GATE))
 ```
 
 The back-reference — the same variable declared `=!1` and then passed into the
-view store — is what makes this specific enough to patch blind.
+view store — is what makes this specific enough to patch blind. The `useState`
+wrapper is spelled `React.useState(...)` in some builds and as a bare minified
+call in others, so that half is optional.
 
-**2. The property name.** Minification leaves object keys alone, so the store
-call `attachView({groupsEnabled:<gate>})` names the gate exactly. A bare
-`groupsEnabled:` is too loose: it also matches the props it is destructured into
-downstream, which have no declaration. Short names repeat across a 310MB bundle,
-so only a declaration within 12KB of that call counts, and there must be exactly
-one.
+**2. The property name.** Minification leaves object keys alone, so every read
+of the gate is spelled `groupsEnabled:<gate>` and names the variable exactly.
+Each such read is a candidate anchor, and one survives only if the name it
+points at is declared `=!0` / `=!1` within 12KB of it. Reads that are only props
+or function parameters have no declaration nearby and drop out. Short names
+repeat across a 345MB bundle, so the surviving declarations must all land on
+exactly one offset.
 
-Both were verified to agree on 2.1.238 and 2.1.239, and each was verified to
-work with the other disabled.
+Both were verified to agree on 2.1.239, 2.1.240, 2.1.241 and 2.1.243, and each
+was verified to work with the other disabled.
+
+### What 2.1.243 broke
+
+Both anchors failed at once, which is the case the alert exists for.
+
+- The bundle was split into chunks. `attachView({groupsEnabled:X})` moved into a
+  chunk of its own where `X` is only a function parameter, so anchoring on that
+  one call could no longer reach the declaration. Strategy 2 now anchors on
+  every `groupsEnabled:` read instead.
+- `React.useState` was minified down to a bare call, so the shape stopped
+  matching. Strategy 1 now treats the `React.` half as optional.
+
+The gate itself did not move: it is still one `=!1` beside the `capExpanded`
+destructure.
 
 ## When it cannot patch
 

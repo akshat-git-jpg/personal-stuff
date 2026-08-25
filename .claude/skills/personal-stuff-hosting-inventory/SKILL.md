@@ -32,7 +32,7 @@ Not URLs but public surface: `agrolloo.com` apex + `www` → Hostinger **shared 
 
 `timeblock` (plan 054) is **deployed**, not just built — confirmed via `apps/timeblock/wrangler.toml` (`[[routes]] pattern = "timeblock.agrolloo.com"`, `custom_domain = true`) and its row in `my-hosted-sites.md`. Don't describe it as "built but not deployed" without re-checking those two.
 
-Not a hosted surface: **media-board** (`localhost:4100`, via the `media-board` skill) is a local-only gallery over the tts/heygen asset hubs — same non-URL status as `ccu-dash` above. Don't add it to this table or to `my-hosted-sites.md`.
+Retired 2026-08-25: **media-board** (`localhost:4100`) was a local-only gallery over the tts/heygen asset hubs. It was never a hosted surface and is not in `my-hosted-sites.md`. Server archived at `.claude/skills-archive/2026-08-25/media-board/serve.mjs`.
 
 ## Confirming a URL
 

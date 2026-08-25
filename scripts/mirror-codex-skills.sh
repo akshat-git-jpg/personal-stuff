@@ -1,61 +1,102 @@
 #!/usr/bin/env bash
-# Rebuild .agents/skills/ — the Codex-facing view of this repo's skills.
+# Publish this repo's skills to Codex by symlinking them into $CODEX_HOME/skills
+# (default ~/.codex/skills).
 #
-# Codex scans .agents/skills/<name>/SKILL.md; Claude scans .claude/skills/.
-# Rather than keep two copies, every entry here is a SYMLINK to the one real
-# skill folder. So there is exactly one copy of each skill on disk and the two
-# tools can never drift.
+# WHY THERE, and not .agents/skills/: Codex 0.149 discovers skills ONLY under
+# $CODEX_HOME/skills and inside installed plugins. Its own help text says
+# "Installs into `$CODEX_HOME/skills/<skill-name>` (defaults to ~/.codex/skills)".
+# In this version `.agents/` is the PLUGIN root (~/.agents/plugins/marketplace.json)
+# and `.agents/skills/` is read by nothing at all — an earlier mirror there was
+# inert and was removed. See decisions.md 2026-08-24.
 #
-# Sources mirrored (both are repo-owned):
-#   .claude/skills/<name>              -> ../../.claude/skills/<name>
-#   .claude/skills/<name> (a symlink)  -> that symlink's own target, verbatim,
-#                                         so pipelines/ skills resolve directly
-#                                         instead of via a symlink chain.
+# Codex skills are NOT slash commands. They are injected as a name+description
+# list the model reads via `skills.read`, so ask for one in plain language.
 #
-# Idempotent, and it PRUNES: a symlink in .agents/skills/ with no matching
-# .claude/skills/ entry is removed, so a renamed or deleted skill does not linger
-# for Codex. Real directories and files in .agents/skills/ are never touched.
+# $CODEX_HOME/skills is GLOBAL — these skills load in every project, not just
+# this repo. That is the accepted trade-off for Codex having no per-repo skill
+# path short of building a plugin.
+#
+# SAFETY. This writes into a shared directory that already holds skills owned by
+# other tools (symlinks into ~/.claude-personal/skills and ~/.agents/skills, plus
+# real installed directories). So:
+#   * only entries that are symlinks RESOLVING INTO THIS REPO are ever touched;
+#   * a name already taken by anything else is reported and skipped, never
+#     overwritten;
+#   * pruning removes a link only when its source skill is gone from this repo.
+# Windows notes carried over from the previous script: MSYS `ln -s` makes an NTFS
+# junction that `[ -L ]` cannot see, and `git clone` without core.symlinks writes
+# committed symlinks as plain text files (decisions.md 2026-08-11).
 #
 # Run standalone, or let scripts/relink.sh call it.
 set -euo pipefail
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
-SRC="$REPO_ROOT/.claude/skills"
-DST="$REPO_ROOT/.agents/skills"
+MANIFEST="$REPO_ROOT/.claude/codex-skills.txt"
+REPO_SKILLS="$REPO_ROOT/.claude/skills"
+DST="${CODEX_HOME:-$HOME/.codex}/skills"
 
-[[ -d "$SRC" ]] || { echo "mirror-codex-skills: no $SRC — nothing to do."; exit 0; }
+[[ -f "$MANIFEST" ]] || { echo "mirror-codex-skills: no $MANIFEST — nothing to do."; exit 0; }
+
+# Codex has NO per-repo skill path, so everything mirrored here is GLOBAL in every
+# Codex project. Only the thin always-on set is listed in codex.txt; repo-specific
+# skills stay in .claude/skills and are surfaced to Codex through each repo AGENTS.md.
+WANT=()
+while IFS= read -r line; do
+  line="${line%%#*}"; line="${line// /}"
+  [[ -n "$line" ]] && WANT+=("$line")
+done < "$MANIFEST"
 mkdir -p "$DST"
 
-linked=0 pruned=0 broken=0
+# Is $1 a link this script owns? Only if it is a symlink AND resolves inside the repo.
+# Anything else in $DST belongs to another tool and is off limits.
+owned_by_repo() {
+  local path="$1" real
+  [[ -L "$path" ]] || return 1
+  real="$(cd "$(dirname "$path")" && cd "$(dirname "$(readlink "$path")")" 2>/dev/null && pwd)" || return 1
+  [[ "$real" == "$REPO_ROOT"/* ]]
+}
 
-for path in "$SRC"/*; do
-  [[ -e "$path" || -L "$path" ]] || continue
-  name="$(basename "$path")"
-  if [[ -L "$path" ]]; then
-    # Reuse the source symlink's target verbatim. .claude/skills and .agents/skills
-    # sit at the same depth (repo_root/X/skills), so a ../../ relative target is
-    # correct from either one.
-    target="$(readlink "$path")"
-  else
-    target="../../.claude/skills/$name"
+linked=0 pruned=0 skipped=0 broken=0 degraded=0
+
+for name in "${WANT[@]}"; do
+  path="$REPO_SKILLS/$name"
+  if [[ ! -e "$path" && ! -L "$path" ]]; then
+    echo "  WARN $name listed in codex.txt but not found in the repo" >&2
+    continue
   fi
+
+  if [[ -L "$path" ]]; then
+    target="$(cd "$(dirname "$path")" && cd "$(dirname "$(readlink "$path")")" && pwd)/$(basename "$(readlink "$path")")"
+  elif [[ -f "$path" ]]; then
+    echo "  WARN $name is a degraded symlink (git clone without core.symlinks)." >&2
+    echo "       Fix with: git config core.symlinks true && git checkout -- ." >&2
+    degraded=$((degraded + 1)); continue
+  else
+    target="$path"
+  fi
+
+  # Never clobber a name owned by another tool or a real installed skill.
+  if [[ -e "$DST/$name" || -L "$DST/$name" ]] && ! owned_by_repo "$DST/$name"; then
+    echo "  skip $name — already present in $DST and not owned by this repo" >&2
+    skipped=$((skipped + 1)); continue
+  fi
+
   ln -sfn "$target" "$DST/$name"
   linked=$((linked + 1))
   [[ -f "$DST/$name/SKILL.md" ]] || { echo "  WARN broken: $name -> $target" >&2; broken=$((broken + 1)); }
 done
 
-# Prune managed symlinks whose source skill is gone. Only symlinks are considered
-# managed; .agents/hooks/ and friends are real dirs and are left alone.
+# Prune only OUR links whose source skill no longer exists.
 for path in "$DST"/*; do
   [[ -L "$path" ]] || continue
+  owned_by_repo "$path" || continue
   name="$(basename "$path")"
-  if [[ ! -e "$SRC/$name" && ! -L "$SRC/$name" ]]; then
-    rm -f "$path"
-    echo "  pruned: $name"
-    pruned=$((pruned + 1))
+  if ! printf '%s\n' "${WANT[@]}" | grep -qx "$name" \
+     || [[ ! -e "$REPO_SKILLS/$name" && ! -L "$REPO_SKILLS/$name" ]]; then
+    rm -f "$path"; echo "  pruned: $name"; pruned=$((pruned + 1))
   fi
 done
 
-echo "codex mirror: $linked linked, $pruned pruned, $broken broken"
-[[ "$broken" -eq 0 ]] || exit 1
+echo "codex skills: $linked linked, $pruned pruned, $skipped skipped, $broken broken, $degraded degraded -> $DST"
+[[ "$broken" -eq 0 && "$degraded" -eq 0 ]] || exit 1

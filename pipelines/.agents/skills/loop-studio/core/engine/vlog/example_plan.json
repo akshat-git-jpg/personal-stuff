@@ -1,0 +1,435 @@
+{
+ "title": "No Signal \u2014 A Sweden Dopamine Reset",
+ "target_seconds": 150,
+ "music": {
+  "cueA": "bg-ambient-5.mp3",
+  "cueB": "bg-ambient-5.mp3",
+  "crossfade_beat": 99
+ },
+ "beats": [
+  {
+   "section": "hook",
+   "vo": {
+    "clip": "C0677",
+    "seg_in": 2.8,
+    "seg_out": 26.6,
+    "text": "currently in Sweden and last year I've been prompting basically every day and everything I didn't know I just asked to AI and right now we are here without any cell phone, without any signal, I cannot search for anything and the amount of dopamine that is going back into my brain is just insane",
+    "lang": "en",
+    "subtitle": false
+   },
+   "shots": [
+    {
+     "clip": "C0677",
+     "in": 2.8,
+     "out": 4.8,
+     "kind": "face"
+    },
+    {
+     "clip": "C0432",
+     "in": 30.0,
+     "out": 33.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "DJI_0900",
+     "in": 20.0,
+     "out": 23.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0539",
+     "in": 8.0,
+     "out": 11.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0587",
+     "in": 8.0,
+     "out": 11.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0456",
+     "in": 80.0,
+     "out": 83.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0761",
+     "in": 6.4,
+     "out": 8.6,
+     "kind": "broll"
+    }
+   ]
+  },
+  {
+   "section": "hook",
+   "vo": {
+    "clip": "C0677",
+    "seg_in": 33.5,
+    "seg_out": 47.0,
+    "text": "I've been laying here looking at the water as you see right here the water I've just been sitting here and looking at it for I don't know 90 minutes and I didn't feel any boredom",
+    "lang": "en",
+    "subtitle": false,
+    "tail_at": 47.25
+   },
+   "shots": [
+    {
+     "clip": "C0677",
+     "in": 34.5,
+     "out": 36.5,
+     "kind": "face",
+     "hold": 6.5
+    },
+    {
+     "clip": "C0463",
+     "in": 18.0,
+     "out": 21.5
+    },
+    {
+     "clip": "C0560",
+     "in": 0.3,
+     "out": 3.3
+    },
+    {
+     "clip": "C0602",
+     "in": 5.0,
+     "out": 8.5
+    },
+    {
+     "clip": "C0705",
+     "in": 2.0,
+     "out": 5.5
+    },
+    {
+     "clip": "C0745",
+     "in": 0.3,
+     "out": 3.3
+    }
+   ]
+  },
+  {
+   "section": "problem",
+   "vo": {
+    "clip": "C0681",
+    "seg_in": 243.6,
+    "seg_out": 251.8,
+    "text": "I think AI is pretty addicting right now it's so easy to build stuff and every prompt is like a slot machine",
+    "lang": "en",
+    "subtitle": false
+   },
+   "shots": [
+    {
+     "clip": "C0681",
+     "in": 243.6,
+     "out": 245.6,
+     "kind": "face"
+    },
+    {
+     "clip": "C0702",
+     "in": 4.0,
+     "out": 7.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0673",
+     "in": 1.5,
+     "out": 4.0,
+     "kind": "broll"
+    }
+   ]
+  },
+  {
+   "section": "problem",
+   "vo": {
+    "clip": "C0681",
+    "seg_in": 204.4,
+    "seg_out": 215.2,
+    "text": "I found myself going to Quake Dopamine so often YouTube Shorts, check Instagram again, go to LinkedIn again it didn't make sense",
+    "lang": "en",
+    "subtitle": false
+   },
+   "shots": [
+    {
+     "clip": "C0681",
+     "in": 204.4,
+     "out": 206.4,
+     "kind": "face"
+    },
+    {
+     "clip": "C0393",
+     "in": 30.0,
+     "out": 33.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0768",
+     "in": 4.0,
+     "out": 7.0,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0558",
+     "in": 2.0,
+     "out": 5.0,
+     "kind": "broll"
+    }
+   ]
+  },
+  {
+   "section": "problem",
+   "vo": {
+    "clip": "C0680",
+    "seg_in": 40.3,
+    "seg_out": 49.6,
+    "text": "when we have a question we just ask plot or chat GPT and we just get a direct recipe of exactly how we should fix it",
+    "lang": "en",
+    "subtitle": false
+   },
+   "shots": [
+    {
+     "clip": "C0680",
+     "in": 40.3,
+     "out": 42.3,
+     "kind": "face"
+    },
+    {
+     "clip": "C0561",
+     "in": 3.0,
+     "out": 6.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0682",
+     "in": 20.0,
+     "out": 24.0,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0661",
+     "in": 100.0,
+     "out": 103.0,
+     "kind": "broll"
+    }
+   ]
+  },
+  {
+   "section": "experiment",
+   "vo": {
+    "clip": "C0680",
+    "seg_in": 16.5,
+    "seg_out": 28.1,
+    "text": "we are finding out everything ourselves so we did not know how to make fire like it's very unmanly but i know nothing about how to make a shelter how to fish",
+    "lang": "en",
+    "subtitle": false
+   },
+   "shots": [
+    {
+     "clip": "C0680",
+     "in": 16.5,
+     "out": 18.5,
+     "kind": "face"
+    },
+    {
+     "clip": "C0669",
+     "in": 8.0,
+     "out": 11.0,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0465",
+     "in": 8.0,
+     "out": 11.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0691",
+     "in": 3.0,
+     "out": 6.5,
+     "kind": "broll"
+    }
+   ]
+  },
+  {
+   "section": "realization",
+   "vo": {
+    "clip": "C0680",
+    "seg_in": 50.5,
+    "seg_out": 76.7,
+    "text": "I think that feeling of finding out something yourself like really understanding something yourself thinking about how it could work I think that is the thing that energizes a human the most instead of just like brainlessly asking everything and then not even really storing it in your brain",
+    "lang": "en",
+    "subtitle": false
+   },
+   "shots": [
+    {
+     "clip": "C0680",
+     "in": 52.5,
+     "out": 54.5,
+     "kind": "face"
+    },
+    {
+     "clip": "C0601",
+     "in": 65.0,
+     "out": 69.0,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0603",
+     "in": 3.0,
+     "out": 6.0,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0695",
+     "in": 17.0,
+     "out": 20.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0643",
+     "in": 29.0,
+     "out": 32.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0662",
+     "in": 20.0,
+     "out": 23.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0688",
+     "in": 3.0,
+     "out": 6.5,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0575",
+     "in": 6.0,
+     "out": 9.5,
+     "kind": "broll"
+    }
+   ]
+  },
+  {
+   "section": "breather",
+   "vo": null,
+   "shots": [
+    {
+     "clip": "C0696",
+     "in": 30.0,
+     "out": 34.0,
+     "kind": "broll"
+    }
+   ]
+  },
+  {
+   "section": "realization",
+   "vo": {
+    "clip": "C0681",
+    "seg_in": 228.5,
+    "seg_out": 243.6,
+    "text": "seeing what life is actually about you know life is not about sitting behind your laptop you're sitting behind your desk for full hours not standing seeing no sunlight we're not made for that",
+    "lang": "en",
+    "subtitle": false
+   },
+   "shots": [
+    {
+     "clip": "C0681",
+     "in": 228.5,
+     "out": 230.5,
+     "kind": "face"
+    },
+    {
+     "clip": "DJI_0908",
+     "in": 30.0,
+     "out": 34.0,
+     "kind": "broll"
+    },
+    {
+     "clip": "DJI_0909",
+     "in": 20.0,
+     "out": 24.0,
+     "kind": "broll"
+    },
+    {
+     "clip": "C0701",
+     "in": 120.0,
+     "out": 124.0,
+     "kind": "broll",
+     "exposure": -0.22
+    },
+    {
+     "clip": "DJI_0910",
+     "in": 8.0,
+     "out": 12.0,
+     "kind": "broll"
+    }
+   ]
+  },
+  {
+   "section": "takeaway",
+   "vo": {
+    "clip": "C0680",
+    "seg_in": 114.5,
+    "seg_out": 133.2,
+    "text": "you should now really take some of that willpower and make sure that you try to stay as human as possible maybe it sounds a little bit weird but that's really how I look at this right now",
+    "lang": "en",
+    "subtitle": false,
+    "lead_extra": 0.5
+   },
+   "shots": [
+    {
+     "clip": "C0680",
+     "in": 114.5,
+     "out": 116.5,
+     "kind": "face"
+    },
+    {
+     "clip": "C0565",
+     "in": 15.0,
+     "out": 20.5
+    },
+    {
+     "clip": "C0575",
+     "in": 30.0,
+     "out": 33.8
+    },
+    {
+     "clip": "C0598",
+     "in": 10.0,
+     "out": 13.5
+    }
+   ]
+  },
+  {
+   "section": "takeaway",
+   "vo": {
+    "clip": "C0680",
+    "seg_in": 243.0,
+    "seg_out": 252.5,
+    "text": "I think human connection is so so important and it will stay very very important",
+    "lang": "en",
+    "subtitle": false
+   },
+   "shots": [
+    {
+     "clip": "C0680",
+     "in": 295.3,
+     "out": 297.3,
+     "kind": "face"
+    },
+    {
+     "clip": "C0613",
+     "in": 8.0,
+     "out": 11.5
+    },
+    {
+     "clip": "C0567",
+     "in": 4.0,
+     "out": 7.5
+    }
+   ]
+  }
+ ]
+}

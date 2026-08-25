@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.kbtg.pp-work-snapshot</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/kbtg/codebase/personal-stuff/tooling/cli/pp-work/pp-work</string>
+    <string>snapshot</string>
+    <string>--all</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/kbtg/codebase/personal-stuff</string>
+  <key>StartInterval</key><integer>1800</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/Users/kbtg/.local/state/pp-work/snapshot-timer.log</string>
+  <key>StandardErrorPath</key><string>/Users/kbtg/.local/state/pp-work/snapshot-timer.log</string>
+  <key>ProcessType</key><string>Background</string>
+</dict>
+</plist>

@@ -1,0 +1,176 @@
+{
+  "text": " Hey, this is a quick test of our unlimited avatar pipeline, generated and downloaded straight from the command line.",
+  "segments": [
+    {
+      "id": 0,
+      "seek": 0,
+      "start": 0.0,
+      "end": 3.3,
+      "text": " Hey, this is a quick test of our unlimited avatar pipeline,",
+      "tokens": [
+        50365,
+        1911,
+        11,
+        341,
+        307,
+        257,
+        1702,
+        1500,
+        295,
+        527,
+        21950,
+        36205,
+        15517,
+        11,
+        50545
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.182132120485659,
+      "compression_ratio": 1.1958762886597938,
+      "no_speech_prob": 0.054613374173641205,
+      "words": [
+        {
+          "word": " Hey,",
+          "start": 0.0,
+          "end": 0.2,
+          "probability": 0.94580078125
+        },
+        {
+          "word": " this",
+          "start": 0.34,
+          "end": 0.8,
+          "probability": 0.986328125
+        },
+        {
+          "word": " is",
+          "start": 0.8,
+          "end": 0.98,
+          "probability": 0.99365234375
+        },
+        {
+          "word": " a",
+          "start": 0.98,
+          "end": 1.08,
+          "probability": 0.99462890625
+        },
+        {
+          "word": " quick",
+          "start": 1.08,
+          "end": 1.3,
+          "probability": 0.99169921875
+        },
+        {
+          "word": " test",
+          "start": 1.3,
+          "end": 1.6,
+          "probability": 0.99658203125
+        },
+        {
+          "word": " of",
+          "start": 1.6,
+          "end": 1.82,
+          "probability": 0.99609375
+        },
+        {
+          "word": " our",
+          "start": 1.82,
+          "end": 1.94,
+          "probability": 0.99609375
+        },
+        {
+          "word": " unlimited",
+          "start": 1.94,
+          "end": 2.34,
+          "probability": 0.919921875
+        },
+        {
+          "word": " avatar",
+          "start": 2.34,
+          "end": 2.78,
+          "probability": 0.53369140625
+        },
+        {
+          "word": " pipeline,",
+          "start": 2.78,
+          "end": 3.3,
+          "probability": 0.99560546875
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "seek": 0,
+      "start": 3.62,
+      "end": 6.58,
+      "text": " generated and downloaded straight from the command line.",
+      "tokens": [
+        50565,
+        10833,
+        293,
+        21748,
+        2997,
+        490,
+        264,
+        5622,
+        1622,
+        13,
+        50703
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.182132120485659,
+      "compression_ratio": 1.1958762886597938,
+      "no_speech_prob": 0.054613374173641205,
+      "words": [
+        {
+          "word": " generated",
+          "start": 3.62,
+          "end": 4.16,
+          "probability": 0.994140625
+        },
+        {
+          "word": " and",
+          "start": 4.16,
+          "end": 4.68,
+          "probability": 0.99267578125
+        },
+        {
+          "word": " downloaded",
+          "start": 4.68,
+          "end": 5.1,
+          "probability": 0.9951171875
+        },
+        {
+          "word": " straight",
+          "start": 5.1,
+          "end": 5.56,
+          "probability": 0.99609375
+        },
+        {
+          "word": " from",
+          "start": 5.56,
+          "end": 5.88,
+          "probability": 0.998046875
+        },
+        {
+          "word": " the",
+          "start": 5.88,
+          "end": 6.02,
+          "probability": 0.99462890625
+        },
+        {
+          "word": " command",
+          "start": 6.02,
+          "end": 6.26,
+          "probability": 0.97119140625
+        },
+        {
+          "word": " line.",
+          "start": 6.26,
+          "end": 6.58,
+          "probability": 0.97802734375
+        }
+      ]
+    }
+  ],
+  "language": "en"
+}

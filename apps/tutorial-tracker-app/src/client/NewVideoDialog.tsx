@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { holdsRoleInSystem } from "../shared/engine/memberships";
 import { colOf, stageHasReviewerSlot, requiredToCreate, stageKind } from "../shared/engine/types";
+import { slugify } from "../shared/slug";
 import { cn } from "@/lib/utils";
 
 export interface NewVideoDialogProps {
@@ -45,6 +46,7 @@ export function NewVideoDialog({
   const [nvBusy, setNvBusy] = useState(false);
   const [nvError, setNvError] = useState<string | null>(null);
   const [prefillNotice, setPrefillNotice] = useState<string>("");
+  const [slugTouched, setSlugTouched] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -52,6 +54,7 @@ export function NewVideoDialog({
       setNv(Object.fromEntries(nvFields.map(f => [f.col, ""])) as Record<string, string>);
       setNvError(null);
       setPrefillNotice("");
+      setSlugTouched(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, defaultPipeline]);
@@ -111,7 +114,16 @@ export function NewVideoDialog({
     }
   }
 
-  const set = (col: string, val: string) => setNv(prev => ({ ...prev, [col]: val }));
+  const set = (col: string, val: string) => {
+    setNv(prev => {
+      const next = { ...prev, [col]: val };
+      if (col === "video_title" && !slugTouched) {
+        next.slug = slugify(val);
+      }
+      return next;
+    });
+    if (col === "slug") setSlugTouched(true);
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!nvBusy) onOpenChange(o); }}>

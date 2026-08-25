@@ -18,9 +18,13 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Commit rules in this repo (branch naming, `commit-now` overrides, plan-vs-inline) | `.claude/skills/personal-stuff-change-control/SKILL.md` |
 | What runs where — Cloudflare + VPS + DNS inventory | [`INFRA.md`](INFRA.md) |
 | Cron architecture (Pattern B) | [`VPS-CRONS.md`](VPS-CRONS.md) |
+| Background jobs on the MacBook (launchd agents) | [`MAC-LAUNCHD.md`](MAC-LAUNCHD.md) |
 | Every live URL across this repo (incl. `pipelines/`) | [`my-hosted-sites.md`](my-hosted-sites.md) |
 | Who I am, active bets, product inventory, idea backlog | `context/` (start at [`context/CLAUDE.md`](context/CLAUDE.md)) |
-| A custom Claude skill (source of truth) | cross-repo: `tooling/claude-skills/` (manifest+relink); repo-operating: `.claude/skills/`; pipelines-domain: source in `pipelines/.claude/skills/`, also symlinked into `.claude/skills/` so a root-level session sees them |
+| A custom Claude skill (source of truth) | `.claude/skills/` for anything a root-level session needs; `pipelines/.claude/skills/` for pipelines-domain skills (symlinked up so a root session sees them). Skills are **repo-scoped** — no global store, no per-account manifest (decisions.md 2026-08-25) |
+| Repo hygiene — the maintainer agent, its jobs and how to run one | [`tooling/maintainer/README.md`](tooling/maintainer/README.md) |
+| Auditing or restructuring skills (where they live, why, the recurring audit) | [`tooling/maintainer/jobs/skills/runbook.md`](tooling/maintainer/jobs/skills/runbook.md) |
+| Auditing Claude's file-based memory (what it is for, the four-question test, the audit) | [`tooling/maintainer/jobs/memory/runbook.md`](tooling/maintainer/jobs/memory/runbook.md) |
 | CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude, cf-email, drive, heygen-web, local-apps-dashboard, flights, flow-queue) | `tooling/cli/` |
 | Printing Press Go CLIs (`paypal-txns-pp-cli`, `impact-pp-cli`, others) and where their source is backed up | `tooling/press-clis/README.md` |
 | Session tags in the Claude Code agents view (ctrl+e / tag view unlock, auto-repatch) | `tooling/cli/pp-claude-tags/README.md` |
@@ -28,18 +32,17 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Flight search with live prices | `tooling/cli/flights/README.md` (`pp-flights`) |
 | Trains, railway timetables, fares, PNR | [`docs/indian-railways-data-sources.md`](docs/indian-railways-data-sources.md) — read before trusting any train result |
 | Phone notifications (Telegram-first) | tooling/cli/notify/README.md |
-| Visual plan review before dispatch | .claude/skills/plan-review/SKILL.md |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
 | Running this repo under Codex (or any non-Claude agent) — path mapping, what doesn't carry over | [`AGENTS.md`](AGENTS.md) + `scripts/mirror-codex-skills.sh` |
 | A specific app | apps/<name>/ — full list in the README map below; each app folder carries its own operate-doc (README and/or CLAUDE.md) |
-| YouTube / Pinterest / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
+| YouTube / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
 | Worktree pool for agent runs (wt) | [`tooling/cli/wt/README.md`](tooling/cli/wt/README.md) |
 | PR-driven implementation orchestrator — dispatch a crew, verify, merge, deploy (boss) | `tooling/boss/README.md` |
 | YouTube research / scripts / tutorial pipeline | `pipelines/youtube/` |
+| Video/TTS domain theory (voice cloning, sync math, avatar + GPU economics, settled decisions) | [`pipelines/video/CLAUDE.md`](pipelines/video/CLAUDE.md) |
 | Voiceover / TTS (reference voices, engines, voiceover manifest) | `pipelines/video/tts/` |
 | Generate / review / lock a voiceover (any pipeline) | `yt-vo` skill (source: `pipelines/.claude/skills/yt-vo`) |
 | HeyGen / avatar assets (character registry, renders, fal-lipsync) | `pipelines/video/heygen/` |
-| Browse generated media (renders, voiceovers) visually | media-board skill (pipelines/.claude/skills/media-board) |
 | Income tracking across platforms | `pipelines/income-analysis/` |
 | Cross-project research notes, design specs, handoff docs | [`docs/`](docs/README.md) |
 | Implementation plans for executor agents (write or run one) | [`plans/README.md`](plans/README.md) — convention in [`plans/WORKFLOW.md`](plans/WORKFLOW.md) |
@@ -52,7 +55,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 
 - A personal product (app someone uses) → `apps/<kebab-name>/` (+ README.md + CLAUDE.md from day one).
 - A business / money-making project → `pipelines/<name>/` (register it in `pipelines/CLAUDE.md`'s map).
-- A skill, CLI, or MCP for driving work with Claude → `tooling/` (skills need a manifest entry — see `scripts/relink.sh`).
+- A CLI or MCP for driving work with Claude → `tooling/`. A **skill** goes in `.claude/skills/` (loads for anyone who opens this repo, on any account) or `pipelines/.claude/skills/` if it is pipelines-only. Nothing to register.
 - A deployable Worker lives in `apps/` with the rest of the deployables (e.g. the go.agrolloo.com redirector is `apps/redirector/`), even when a business pipeline drives it.
 - `pipelines/` runs on its own CLAUDE.md (Python workspace operating guide); its docs and decisions were merged into the root brain (`docs/`, `decisions.md`) when the ty/ theme-folder was dissolved.
 
@@ -64,7 +67,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 - `INFRA.md` — canonical Cloudflare + VPS + DNS inventory.
 - `VPS-CRONS.md` — cron architecture (Pattern B). It's a runbook, not auto-loaded; open it only for cron work.
 - `my-hosted-sites.md` — flat index of every live URL across this repo, including `pipelines/`.
-- Skills under `tooling/claude-skills/` are the single source, symlinked into both accounts via `scripts/relink.sh`. Never edit a symlinked copy elsewhere — edit here.
+- Skills are **repo-scoped**: Claude Code reads `.claude/skills/` automatically for whoever opens the repo, so nothing depends on which Claude account is logged in. Two exceptions, both machine-local and both handled by `scripts/relink.sh`: Codex has no per-repo skill path (`.claude/codex-skills.txt` lists the few it gets globally), and five person-level skills are duplicated into the private `work-skills` plugin by `scripts/sync-shared-skills.sh`.
 - **Changing tracked files? Claim a workspace first.** `cd "$(pp-work claim --kind code --slug <task>)"` — the main checkout refuses to record git history (`.claude/hooks/no-history-in-main.sh`).
 - **On main: read, talk, and scratch only.** Any edit you intend to KEEP — including a one-line append to `decisions.md` — claims a workspace FIRST. There is no such thing as a safe "one-off" edit here: you cannot commit it in main, so it sits in a tree two sessions share until someone else's commit sweeps it up (2026-08-22) or you lose track of it. The Stop hook now nags on a dirty main checkout, but by then the work is already in the wrong place.
 - **The claim decision gets re-asked when the job grows.** A turn that starts as a question needs no workspace; the moment it turns into an edit you mean to keep, it does. Nothing prompts you at that boundary — 2026-08-23, a PayPal reporting question became a code fix plus two doc edits, all of them landing in main.

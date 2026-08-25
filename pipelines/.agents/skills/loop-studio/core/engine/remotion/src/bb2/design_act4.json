@@ -1,0 +1,419 @@
+[
+ {
+  "id": 1,
+  "start": 0,
+  "end": 3.1,
+  "narration": "So one more thing that this unlocks is the following.",
+  "mode": "full",
+  "object": "STAT PLATE",
+  "action": "Full-screen talking head. On the word 'unlocks' a lime stat plate clip-reveals in the lower third reading 'ONE MORE UNLOCK' \u2014 the reveal is a physical bolt-slide: a small lime bolt glyph at the plate's left edge slides open left-to-right and the raisin CAPS text is unmasked behind it, a literal lock opening. Nothing else on screen; the act's title lives on the face shot. Plate slides out right at 2.9 so the canvas is clean for the machine.",
+  "continuity": "Cold open of the act \u2014 Act 3 ended on the dashboard window; cut to face resets attention. Stat plate is the known Act-1 object ('1 WEEKEND'); the bolt-slide is its 'unlock' variant, used only here.",
+  "copy": {
+   "plate": "ONE MORE UNLOCK",
+   "marker": "UNLOCK"
+  },
+  "sync": [
+   {
+    "at": 0.4,
+    "event": "cut to full talking head, raisin vignette at edges"
+   },
+   {
+    "at": 1.9,
+    "event": "'unlocks' \u2014 bolt glyph slides open, plate 'ONE MORE UNLOCK' unmasks lower-third"
+   },
+   {
+    "at": 2.9,
+    "event": "plate slides out right, clearing the canvas for the machine"
+   }
+  ]
+ },
+ {
+  "id": 2,
+  "start": 3.1,
+  "end": 6.5,
+  "narration": "Once your base is full, you can actually flip the whole thing around.",
+  "mode": "hidden",
+  "object": "THE DATABASE + THE STREAM",
+  "action": "The established machine redraws full-canvas: lime cylinder at left-center (x30), packed with stacked lime row-bars to the brim, tabular counter '12,4xx rows' below it, dashed lime stream arrows all pointing INTO it \u2014 exactly as the viewer left it. On 'full' the top row-bar glints and the counter does one last tick, the stack visibly at the brim. Then on 'flip', every arrowhead on the stream rotates 180 degrees in one hard snap: the pipes that fed the cylinder now point OUT of it toward deliberately empty space at right. A small mono tag 'IN \u2192 OUT' stamps below the stream line at the snap. Direction reversal IS the sentence.",
+  "continuity": "Database + stream carry over from Acts 1-3 at the same position; only arrow direction changes. From this beat to the end of the machine sequence the arrows stay OUT \u2014 nothing flows inward again. Right half left clear for Claude next beat.",
+  "copy": {
+   "headline": "FLIP IT AROUND",
+   "marker": "FLIP",
+   "counter": "12,4xx rows",
+   "labels": [
+    "IN \u2192 OUT"
+   ]
+  },
+  "sync": [
+   {
+    "at": 3.4,
+    "event": "database cylinder + inbound dashed stream redraw, counter settles at 12,4xx rows"
+   },
+   {
+    "at": 4.3,
+    "event": "'full' \u2014 top row-bar glints at the brim, counter does one final tick"
+   },
+   {
+    "at": 4.9,
+    "event": "'flip' \u2014 all arrowheads snap 180\u00b0, stream now points OUT; mono tag 'IN \u2192 OUT' stamps below the stream (REPLAY SPIKE)"
+   },
+   {
+    "at": 5.8,
+    "event": "headline 'FLIP IT AROUND' wipes on top, two-layer marker on FLIP"
+   }
+  ],
+  "replaySpike": true
+ },
+ {
+  "id": 3,
+  "start": 6.5,
+  "end": 10,
+  "narration": "You can give Claude \u2014 or ChatGPT \u2014 access to all your data,",
+  "mode": "hidden",
+  "object": "MODEL TILE (new: dark rounded tile, mono label \u2014 introduced with a draw-on, reused for rest of act)",
+  "action": "In the cleared right half (x72), a dark rounded tile draws on with mono label 'CLAUDE' exactly as the name is spoken; a second ghosted tile 'CHATGPT' stacks half-behind it on its name, then dims \u2014 CLAUDE stays the hero. On 'access to all your data' a dashed lime connector starts drawing from the database's out-facing arrowheads across the canvas toward the tile: access being granted is literally a line being drawn to the model. Labels sit below their tiles.",
+  "continuity": "Database (left, arrows OUT) persists unmoved from beat 2; the out-pointing arrows finally get a destination \u2014 the connector extends them toward the new model tile. Headline from beat 2 exits as the tile draws.",
+  "copy": {
+   "headline": "GIVE CLAUDE ACCESS",
+   "marker": "ACCESS",
+   "tiles": [
+    "CLAUDE",
+    "CHATGPT"
+   ]
+  },
+  "sync": [
+   {
+    "at": 7,
+    "event": "'Claude' \u2014 CLAUDE tile draws on at right, mono label below"
+   },
+   {
+    "at": 8.2,
+    "event": "'ChatGPT' \u2014 ghosted CHATGPT tile stacks half-behind, then dims"
+   },
+   {
+    "at": 8.9,
+    "event": "'access to all your data' \u2014 dashed lime connector begins drawing from database toward the tile; headline 'GIVE CLAUDE ACCESS' wipes on, marker on ACCESS"
+   }
+  ]
+ },
+ {
+  "id": 4,
+  "start": 10,
+  "end": 12.7,
+  "narration": "using the Supabase MCP for example.",
+  "mode": "hidden",
+  "object": "MCP CONNECTOR (the dashed line from beat 3, now named)",
+  "action": "The connector completes and PLUGS into the CLAUDE tile with a socket-click: a tiny plug head docks into a drawn socket notch on the tile's edge, the dashed line snaps solid lime for one pulse, and a mono tag 'supabase-mcp' stamps onto the middle of the cable like a label on a wire. A quiet silver mono sub-line fades in below the tag: 'a cable AI can plug into' \u2014 the jargon is a physical plug plus a six-word plain-English translation, never just a name.",
+  "continuity": "Same canvas: database left, CLAUDE tile right; the in-progress connector from beat 3 finishes its journey, docks, and gets its nameplate. The plugged cable is now permanent infrastructure for beats 5-8.",
+  "copy": {
+   "headline": "ONE PLUG: SUPABASE MCP",
+   "marker": "MCP",
+   "tag": "supabase-mcp",
+   "subline": "a cable AI can plug into"
+  },
+  "sync": [
+   {
+    "at": 10.3,
+    "event": "'Supabase MCP' \u2014 mono tag 'supabase-mcp' stamps mid-cable"
+   },
+   {
+    "at": 11.2,
+    "event": "plug head docks into CLAUDE tile with a socket-click, dashes snap solid, one lime pulse travels DB \u2192 tile"
+   },
+   {
+    "at": 11.9,
+    "event": "silver sub-line 'a cable AI can plug into' fades under the tag; headline 'ONE PLUG: SUPABASE MCP' wipes on, marker on MCP"
+   }
+  ]
+ },
+ {
+  "id": 5,
+  "start": 12.7,
+  "end": 16.5,
+  "narration": "And then whatever question you have, you can just ask it.",
+  "mode": "hidden",
+  "object": "QUERY CHIP",
+  "action": "A lime-border mono query chip types itself out character-by-character just below the CLAUDE tile: 'WHAT SHOULD I FOCUS ON?'. On 'just ask it', the chip fires LEFT along the plugged cable \u2014 riding the reversed pipeline into the database, whose rim flashes lime on impact. The flip pays off: the question travels the exact pipe the data came in on, in the new direction.",
+  "continuity": "Cable, tiles and database all persist. The query chip is the known Act-1 object (it once got '\u2715 NO ANSWER'); here it finally has somewhere to go \u2014 it rides the beat-4 cable for the first time. Beat-4 headline and sub-line exit as the chip starts typing.",
+  "copy": {
+   "headline": "ASK IT ANYTHING",
+   "marker": "ANYTHING",
+   "chip": "WHAT SHOULD I FOCUS ON?"
+  },
+  "sync": [
+   {
+    "at": 13,
+    "event": "query chip types on below CLAUDE tile: 'WHAT SHOULD I FOCUS ON?'"
+   },
+   {
+    "at": 15,
+    "event": "'just ask it' \u2014 chip fires left along the cable toward the database"
+   },
+   {
+    "at": 15.9,
+    "event": "chip absorbed, database rim flashes lime once; headline 'ASK IT ANYTHING' on, marker on ANYTHING"
+   }
+  ]
+ },
+ {
+  "id": 6,
+  "start": 16.5,
+  "end": 22.3,
+  "narration": "It can combine all of your data and really get an understanding of everything that is happening:",
+  "mode": "hidden",
+  "object": "THE DATABASE (rows thinking)",
+  "action": "Inside the cylinder the absorbed question goes to work: a thin lime scan line sweeps top-to-bottom over the stacked row-bars on 'combine', and as it passes, thin hairlines flicker between distant rows \u2014 the base cross-referencing itself, connections forming where none were drawn before. By 'everything that is happening' the rows settle into a low steady glow (understanding, not yet the answer \u2014 the climax is saved for beat 8). Single slow camera push-in on the cylinder, no other element moves.",
+  "continuity": "Same scene, one camera move. The query chip from beat 5 is now inside \u2014 the scan is what its arrival triggered. Cable to CLAUDE tile stays visible at right, waiting.",
+  "copy": {
+   "headline": "IT SEES EVERYTHING",
+   "marker": "EVERYTHING",
+   "counter": "12,4xx rows"
+  },
+  "sync": [
+   {
+    "at": 16.8,
+    "event": "'combine' \u2014 scan line begins sweeping the cylinder top to bottom"
+   },
+   {
+    "at": 18.5,
+    "event": "hairline links flicker between distant rows as the scan passes"
+   },
+   {
+    "at": 20.4,
+    "event": "'everything that is happening' \u2014 rows settle into a low steady glow; headline 'IT SEES EVERYTHING' wipes on, marker on EVERYTHING"
+   }
+  ]
+ },
+ {
+  "id": 7,
+  "start": 22.3,
+  "end": 26.4,
+  "narration": "all your social media data, all your revenue data, all your support data.",
+  "mode": "hidden",
+  "object": "DATA BANDS (the cylinder's rows partition into three labeled sectors)",
+  "action": "The data is already inside \u2014 so the list is shown as what the base CONTAINS, not new feeds (arrows still point OUT; nothing flows inward after the flip). Two thin lime divider lines slide across the stack, partitioning the rows into three bands. On each spoken word its band flashes bright and one representative event card pops OUT of that band beside the cylinder, hovers a half-second, and tucks back in: top band on 'social media data' ejects silver chip 'DM: still there?'; middle band on 'revenue data' ejects the lime-square money chip 'payout \u20ac3,900'; bottom band on 'support data' ejects silver chip 'ticket #218: refund?'. Below the cylinder a three-slot mono label row (SOCIAL \u00b7 REVENUE \u00b7 SUPPORT) lights up slot by slot in step.",
+  "continuity": "The glowing cylinder from beat 6 stays put; its own rows reorganize \u2014 no new inbound streams, honoring the beat-2 flip. Event cards are the known Act-1 chips, briefly resurfacing from inside the base. Headline 'IT SEES EVERYTHING' exits as the dividers slide in. Cable to CLAUDE still waiting at right.",
+  "copy": {
+   "headline": "ALL YOUR DATA",
+   "marker": "ALL",
+   "bandLabels": [
+    "SOCIAL",
+    "REVENUE",
+    "SUPPORT"
+   ],
+   "cards": [
+    "DM: still there?",
+    "payout \u20ac3,900",
+    "ticket #218: refund?"
+   ]
+  },
+  "sync": [
+   {
+    "at": 22.6,
+    "event": "'social media data' \u2014 dividers slide in; top band flashes, silver card 'DM: still there?' pops out and tucks back; SOCIAL label lights below"
+   },
+   {
+    "at": 23.9,
+    "event": "'revenue data' \u2014 middle band flashes, lime money card 'payout \u20ac3,900' pops out and tucks back; REVENUE label lights"
+   },
+   {
+    "at": 25.2,
+    "event": "'support data' \u2014 bottom band flashes, silver card 'ticket #218: refund?' pops out and tucks back; SUPPORT label lights; headline 'ALL YOUR DATA' on, marker on ALL"
+   }
+  ]
+ },
+ {
+  "id": 8,
+  "start": 26.4,
+  "end": 30.8,
+  "narration": "It can combine all of that and give you an answer that is mind-blowing.",
+  "mode": "hidden",
+  "object": "ANSWER CARD (new: large lime-offset card, the big sibling of the event chips \u2014 born from the CLAUDE tile, reused through beat 10)",
+  "action": "THE payoff. On 'combine all of that' each of the three bands emits one bright thread; the threads braid into a single bright line that exits the cylinder and travels the cable toward CLAUDE \u2014 three feeds in, one line out. On 'answer' the line hits the tile and the CLAUDE tile itself UNFURLS into the large lime-offset ANSWER CARD (the tile grows into the card, Claude visibly producing the answer rather than being replaced), carrying one concrete mono insight: 'focus: fix checkout \u2192 +\u20ac3.9k/mo' \u2014 the same \u20ac3,900 the viewer just saw pop out of the revenue band. Card glow-pulses once on 'mind-blowing'.",
+  "continuity": "Bands, cylinder and cable all carry over; the braid rides the exact cable the query chip rode in beat 5, in the opposite direction \u2014 the beat-2 flip completes its round trip. The \u20ac3.9k on the card is the beat-7 money chip, transformed into advice.",
+  "copy": {
+   "headline": "ONE ANSWER",
+   "marker": "ANSWER",
+   "cardBody": "focus: fix checkout \u2192 +\u20ac3.9k/mo"
+  },
+  "sync": [
+   {
+    "at": 26.7,
+    "event": "'combine all of that' \u2014 three band-threads braid into one bright line exiting the cylinder along the cable"
+   },
+   {
+    "at": 28.3,
+    "event": "'answer' \u2014 braid hits the tile; CLAUDE tile unfurls into the ANSWER CARD: 'focus: fix checkout \u2192 +\u20ac3.9k/mo' (REPLAY SPIKE)"
+   },
+   {
+    "at": 29.9,
+    "event": "'mind-blowing' \u2014 card glow pulses once; headline 'ONE ANSWER' wipes on, marker on ANSWER"
+   }
+  ],
+  "replaySpike": true
+ },
+ {
+  "id": 9,
+  "start": 30.8,
+  "end": 36,
+  "narration": "But also think about all the businesses that are hiring data scientists for stuff like this.",
+  "mode": "panel",
+  "object": "PRICE TAG (grey stat plate hung off the answer card)",
+  "action": "Mode shift at the boundary: footage panel enters at right-center (x74,y52,s0.92) for the aside; the answer card scales down and glides to rest in the left column (well left of x52, 4% clearance), sole survivor of the machine scene. On 'data scientists' a grey price tag swings down from the card's corner on a short string \u2014 like a tag on store merchandise \u2014 reading 'DATA SCIENTIST', and on the next phrase its tabular mono value ticks up 0 \u2192 '\u20ac90,000/yr'. The insight literally gets a market price hung on it.",
+  "continuity": "The answer card carries over from beat 8 \u2014 same card, same body text, now priced. Machine scene retires behind it; only the card survives the transition. Tag placement leaves room directly beneath for beat 10's counter-plate (no reflow later).",
+  "copy": {
+   "headline": "THE \u20ac90K QUESTION",
+   "marker": "\u20ac90K",
+   "tagLabel": "DATA SCIENTIST",
+   "tagValue": "\u20ac90,000/yr"
+  },
+  "sync": [
+   {
+    "at": 30.8,
+    "event": "footage panel in at right-center; answer card glides into left column"
+   },
+   {
+    "at": 32.6,
+    "event": "'data scientists' \u2014 grey price tag swings down from the card corner: 'DATA SCIENTIST'"
+   },
+   {
+    "at": 34,
+    "event": "tag value ticks up in tabular mono to \u20ac90,000/yr; headline 'THE \u20ac90K QUESTION' on, marker on \u20ac90K"
+   }
+  ]
+ },
+ {
+  "id": 10,
+  "start": 36,
+  "end": 39.3,
+  "narration": "Business owners will do everything for insights like that.",
+  "mode": "panel",
+  "object": "STAT PLATE (lime counter-tag)",
+  "action": "Directly beneath the grey \u20ac90k tag \u2014 in the slot reserved in beat 9 \u2014 a lime stat plate clip-reveals: 'YOUR BRAIN: \u20ac0'. A two-layer marker strike-through then wipes across the grey \u20ac90,000/yr value: the comparison resolves physically \u2014 same insight, price crossed out. A quiet Playfair italic line 'the same insight.' fades in beneath the pair as the counterpoint.",
+  "continuity": "Answer card + grey price tag persist exactly in place from beat 9; the lime plate stacks into the pre-reserved slot beneath them (zero reflow). Footage panel unchanged at right.",
+  "copy": {
+   "plate": "YOUR BRAIN: \u20ac0",
+   "strikethrough": "\u20ac90,000/yr",
+   "counterpoint": "the same insight."
+  },
+  "sync": [
+   {
+    "at": 36.3,
+    "event": "lime plate clips on beneath the tag: 'YOUR BRAIN: \u20ac0'"
+   },
+   {
+    "at": 37.6,
+    "event": "two-layer marker strike-through wipes across \u20ac90,000/yr on the grey tag"
+   },
+   {
+    "at": 38.5,
+    "event": "Playfair italic 'the same insight.' fades in quietly below the pair"
+   }
+  ]
+ },
+ {
+  "id": 11,
+  "start": 39.3,
+  "end": 43.7,
+  "narration": "So if you want to get started with this, make sure to check the links in the description.",
+  "mode": "full",
+  "object": "LINK CHIP (mono chip with a bobbing down-arrow)",
+  "action": "Cut to full talking head for the CTA \u2014 the human carries this. On 'links in the description' a single mono chip drops into the lower third: '\u2193 LINKS IN DESCRIPTION', its down-arrow bobbing twice, pointing off the bottom of the frame at the actual description. One object, one gesture, aimed exactly where the viewer must look.",
+  "continuity": "Price-tag stack and panel exit at the boundary; clean face shot. The chip borrows the event-card chip language the viewer has seen all video.",
+  "copy": {
+   "chip": "\u2193 LINKS IN DESCRIPTION"
+  },
+  "sync": [
+   {
+    "at": 39.5,
+    "event": "cut to full talking head, graphics cleared"
+   },
+   {
+    "at": 40.9,
+    "event": "'links in the description' \u2014 chip drops into lower third, arrow bobs twice toward frame bottom"
+   },
+   {
+    "at": 43.3,
+    "event": "chip holds steady through beat end"
+   }
+  ]
+ },
+ {
+  "id": 12,
+  "start": 43.7,
+  "end": 50.2,
+  "narration": "It's my full system, and you can get started right now and slowly build up your actual second brain.",
+  "mode": "panel",
+  "object": "FILE-BROWSER WINDOW (my-second-brain/)",
+  "action": "Footage panel stays at right (x74,y52,s0.92); in the left column the familiar file-browser window redraws \u2014 'my-second-brain/' title bar with 3 dots \u2014 empty on 'my full system'. Then on 'slowly build up' its rows populate ONE at a time: me.md, business.md, priorities.md, skills/. Beneath the window the mini database counter fast-ticks '0 rows' \u2192 '12,4xx rows'. Building the brain is the folder filling in real time \u2014 the whole video's journey replayed in four rows and one counter.",
+  "continuity": "Link chip exits at boundary. The file-browser window and row counter are the Act-1 origin objects returning for the bookend; the 12,4xx figure is the same number the act opened on, closing the loop.",
+  "copy": {
+   "headline": "YOUR SECOND BRAIN",
+   "marker": "BRAIN",
+   "windowTitle": "my-second-brain/",
+   "rows": [
+    "me.md",
+    "business.md",
+    "priorities.md",
+    "skills/"
+   ],
+   "counter": "0 \u2192 12,4xx rows"
+  },
+  "sync": [
+   {
+    "at": 44,
+    "event": "'my full system' \u2014 file-browser window draws in left column, empty"
+   },
+   {
+    "at": 46.2,
+    "event": "'slowly build up' \u2014 me.md row lands"
+   },
+   {
+    "at": 47,
+    "event": "business.md row lands"
+   },
+   {
+    "at": 47.8,
+    "event": "priorities.md row lands"
+   },
+   {
+    "at": 48.5,
+    "event": "skills/ row lands; headline 'YOUR SECOND BRAIN' on, marker on BRAIN"
+   },
+   {
+    "at": 49.2,
+    "event": "counter below fast-ticks 0 \u2192 12,4xx rows"
+   }
+  ]
+ },
+ {
+  "id": 13,
+  "start": 50.2,
+  "end": 53.6,
+  "narration": "Make sure to like and subscribe, and we'll see each other in my next video.",
+  "mode": "full",
+  "object": "LIKE + SUBSCRIBE CHIPS",
+  "action": "Full talking head for the closer. Two chips pop into the lower third exactly on their words: a chip with a drawn thumbs-up glyph labeled 'LIKE' pops and fills lime on 'like'; a 'SUBSCRIBE' chip pops and fills on 'subscribe'. Both drift down and out by 'next video', ending on a clean face shot \u2014 the human says goodbye, not a graphic.",
+  "continuity": "Window and panel exit at boundary. Chips reuse the event-card chip language one final time; canvas ends empty, mirroring the act's clean open.",
+  "copy": {
+   "chips": [
+    "LIKE",
+    "SUBSCRIBE"
+   ]
+  },
+  "sync": [
+   {
+    "at": 50.6,
+    "event": "'like' \u2014 thumbs-up LIKE chip pops and fills lime"
+   },
+   {
+    "at": 51.4,
+    "event": "'subscribe' \u2014 SUBSCRIBE chip pops and fills"
+   },
+   {
+    "at": 52.6,
+    "event": "both chips drift out; clean face shot to end of act"
+   }
+  ]
+ }
+]

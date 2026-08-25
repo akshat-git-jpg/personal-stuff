@@ -25,12 +25,14 @@ else
   fail "skills-status" "scripts/skills-status.sh exited non-zero — run it to see the broken row"
 fi
 
-# --- 3. Manifests exist (work + personal) ------------------------------------
-MAN="$REPO/tooling/claude-skills/manifest"
-if [ -f "$MAN/work.txt" ] && [ -f "$MAN/personal.txt" ]; then
-  pass "manifests ($(grep -c . "$MAN/work.txt") work / $(grep -c . "$MAN/personal.txt") personal entries)"
+# --- 3. Skills are present in the repo, and Codex has a list --------------
+# Skills are repo-scoped since 2026-08-25: no store, no per-account manifest. The
+# only list left is the Codex one, because Codex has no per-repo skill path.
+N_SKILLS=$(find "$REPO/.claude/skills" -maxdepth 1 -mindepth 1 \( -type d -o -type l \) 2>/dev/null | wc -l | tr -d ' ')
+if [ "$N_SKILLS" -gt 0 ] && [ -f "$REPO/.claude/codex-skills.txt" ]; then
+  pass "skills ($N_SKILLS in .claude/skills, $(grep -c . "$REPO/.claude/codex-skills.txt") mirrored to codex)"
 else
-  fail "manifests" "tooling/claude-skills/manifest/{work,personal}.txt missing"
+  fail "skills" ".claude/skills is empty, or .claude/codex-skills.txt is missing"
 fi
 
 # --- 4. regen-mcp-json.sh still wires only google-drive + cloudflare ---------

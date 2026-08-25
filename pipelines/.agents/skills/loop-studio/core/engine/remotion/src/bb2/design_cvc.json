@@ -1,0 +1,187 @@
+{
+  "concept": {
+    "thesis": "The video you are watching IS the blind test — one of two rival AI editors cut it, even the host doesn't know which, and the whole video exists to unmask the editor.",
+    "digestible_frame": "AI editing made visible: a 3D timeline being cut around the host in real time — then the contest: two sealed cards, one arena, and a playhead seam dividing the two possible editors.",
+    "throughline": "THE PLAYHEAD (the edit itself): planted in the hook as the lime playhead sweeping a 3D timeline that wraps around the host while AI slices clips; returns at the end as the giant seam splitting the screen into the two contenders' fields. The suspect cards carry the middle (flip to '?', shuffle, arena).",
+    "recurring_grammar": [
+      "the redacted ████ bar",
+      "the two suspect cards (clay-orange Claude vs OpenAI blossom)",
+      "dark=mystery / light=the fair test",
+      "one lime accent per beat",
+      "mono chips for diegetic facts (REC, iteration pips, prompt chip)"
+    ]
+  },
+  "beats": [
+    {
+      "id": 1,
+      "beat": "HOOK",
+      "start": 0.0,
+      "end": 3.98,
+      "narration": "The intro you're watching right now was fully edited by AI.",
+      "register": "dark",
+      "mode": "full",
+      "object": "A 3D perspective editing timeline materializes around the full-screen host; clips fly onto tracks; the lime playhead sweeps; on 'edited by AI' an unseen editor SLICES a clip in two",
+      "action": "Cold open, face full-screen, dark. A timeline plane in 3D perspective (rotateX, receding to the right) draws behind/beside him; clip blocks (a-roll.mp4, broll_04.mp4, captions.srt, music.wav) fly in and snap onto two tracks one by one; the lime playhead sweeps left→right. On 'edited' (2.62) the playhead stops on the a-roll clip and SLICES it — the two halves separate with a flash; on 'AI' (3.36) a small clay+blossom double-glint passes along the cut. High polish: depth blur on the far end, soft glow, parallax drift. NO text, NO REC.",
+      "copy": {},
+      "sync": [
+        {
+          "at": 0.4,
+          "event": "timeline plane draws in perspective; first clip flies on"
+        },
+        {
+          "at": 1.2,
+          "event": "more clips snap onto tracks; playhead begins sweeping"
+        },
+        {
+          "at": 2.62,
+          "event": "playhead SLICES the a-roll clip on 'edited'"
+        },
+        {
+          "at": 3.36,
+          "event": "cut halves separate; glint on 'AI'"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "beat": "SUSPECTS",
+      "start": 3.98,
+      "end": 6.96,
+      "narration": "Either by Fable 5, or Sol 5.6.",
+      "register": "dark->light (crossfade on 'Either')",
+      "mode": "full->panel",
+      "object": "Timeline flies past camera; two DESCRIPTIVE suspect cards slam in; host docks to a VERTICAL portrait cam, exactly card-height",
+      "action": "On 'Either' the register turns light and the timeline planes exit past the lens. Card L slams on 'Fable 5' (clay-orange mark + FABLE 5 + 'by Anthropic · video editor'), card R on 'Sol 5.6' (OpenAI blossom + SOL 5.6 + 'by OpenAI · video editor'). The host snaps into a VERTICAL portrait cam on the right, same height as the cards, aligned to their row.",
+      "continuity": "The suspect cards are literally the split halves of beat 1's redaction bar.",
+      "copy": {
+        "card_l": "FABLE 5",
+        "card_r": "SOL 5.6"
+      },
+      "sync": [
+        {
+          "at": 4.1,
+          "event": "register crossfades to light; face docks to panel; bar splits"
+        },
+        {
+          "at": 4.74,
+          "event": "left suspect card slams — Claude clay-orange + FABLE 5"
+        },
+        {
+          "at": 5.68,
+          "event": "right suspect card slams — OpenAI blossom + SOL 5.6"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "beat": "SEALED",
+      "start": 6.96,
+      "end": 12.6,
+      "narration": "And I am not going to tell you which one, because I don't know yet. We'll figure that out in this video.",
+      "register": "light",
+      "mode": "panel",
+      "object": "Both suspect cards FLIP face-down and three-card-monte SHUFFLE — sealed beyond even the host's knowledge",
+      "action": "On 'not going to tell you' (8.14) both cards FLIP face-down in one snap — backs are clean raisin with a soft big '?' — sealed identity. On 'I don't know yet' (10.34) the two face-down cards SHUFFLE positions — a quick three-card-monte swap, twice — so even the host visibly loses track: the not-knowing is enacted, not claimed. On 'figure that out in this video' (11.28) the cards settle side-by-side and a thin lime progress track draws forward beneath them toward off-screen right — the investigation ahead.",
+      "continuity": "Same two cards; the redaction bar now rides their backs. The lime track plants the 'journey to the reveal'.",
+      "copy": {},
+      "sync": [
+        {
+          "at": 8.14,
+          "event": "both cards FLIP face-down on 'not going to tell you'"
+        },
+        {
+          "at": 10.34,
+          "event": "cards three-card-monte SHUFFLE on 'I don't know yet'"
+        },
+        {
+          "at": 11.28,
+          "event": "cards settle; lime progress track draws forward"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "beat": "ARENA",
+      "start": 12.86,
+      "end": 15.58,
+      "narration": "I will be testing both models head to head.",
+      "register": "light",
+      "mode": "panel->hidden",
+      "object": "The face-down cards fly to opposite corners; the frame splits into a versus arena",
+      "action": "On 'testing both models' the two face-down cards FLY apart to the left and right thirds; a center hairline splits the canvas into two lanes. On 'head to head' (14.72) a raisin 'VS' plate slams center with a tiny impact shake — the arena is set. Face hides; the contest owns the frame.",
+      "continuity": "Same cards, now contestants; the split-screen geometry plants the format of the whole video.",
+      "copy": {
+        "vs": "VS"
+      },
+      "sync": [
+        {
+          "at": 13.18,
+          "event": "cards fly to opposite lanes; hairline splits the frame"
+        },
+        {
+          "at": 14.72,
+          "event": "'VS' plate slams center on 'head to head'"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "beat": "RULES",
+      "start": 15.68,
+      "end": 18.68,
+      "narration": "Starting with the same prompt, and a maximum of three iterations.",
+      "register": "light",
+      "mode": "hidden",
+      "object": "ONE prompt chip duplicates identically into both lanes; three iteration pips stamp per side",
+      "action": "FAIRNESS, enacted. On 'same prompt' (16.4) a mono terminal chip '› edit this intro' appears center, then DUPLICATES — two identical copies slide one into each lane (same input, provably). On 'three iterations' (18.02) three round pips stamp under each lane, one-two-three, mirrored both sides. The rules of the duel, visible.",
+      "continuity": "The lanes from beat 4 receive the identical inputs — the arena now has rules.",
+      "copy": {
+        "prompt_chip": "› edit this intro",
+        "pips": "○ ○ ○"
+      },
+      "sync": [
+        {
+          "at": 16.4,
+          "event": "prompt chip appears center, duplicates into both lanes on 'same prompt'"
+        },
+        {
+          "at": 18.02,
+          "event": "3 iteration pips stamp under each lane, mirrored"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "beat": "QUESTION+BUTTON",
+      "start": 19.2,
+      "end": 24.55,
+      "narration": "All of this to answer one question: which AI is actually better at video editing?",
+      "register": "light->dark (crossfade on 'one question')",
+      "mode": "hidden",
+      "object": "ALL-OUT face-off: the frame splits into the two contenders' fields along a giant lime PLAYHEAD seam; the reveal-promise plate slams across it",
+      "action": "On 'one question' the arena clears and the screen SPLITS: left field washes clay-orange with the giant Fable mark pushing toward center, right field deep raisin-blue with the giant OpenAI blossom pushing back — clashing at a vertical LIME PLAYHEAD seam (triangle head, glow) that calls back the hook. On 'better' the seam flashes and both fields shove. On 'video editing' the lime plate 'REVEALED AT THE END →' slams across the seam. Soft bloom out.",
+      "continuity": "The exact credit plate from the hook, promoted to the payoff promise; the suspects flank their sealed name.",
+      "copy": {
+        "plate": "REVEALED AT THE END →"
+      },
+      "sync": [
+        {
+          "at": 20.2,
+          "event": "screen splits into the two fields along the lime playhead seam"
+        },
+        {
+          "at": 22.8,
+          "event": "seam flashes; fields shove on 'better'"
+        },
+        {
+          "at": 23.42,
+          "event": "'REVEALED AT THE END →' slams across the seam"
+        },
+        {
+          "at": 24.2,
+          "event": "bloom out"
+        }
+      ]
+    }
+  ]
+}

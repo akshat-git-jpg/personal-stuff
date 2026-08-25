@@ -1,1 +1,53 @@
 decisions.md merge=union
+
+# --- Line endings -------------------------------------------------------------
+# Windows git defaults to core.autocrlf=true, which rewrites LF to CRLF on
+# checkout. A shell script checked out that way dies on its shebang:
+#   /usr/bin/env: 'bash\r': No such file or directory
+# Every hook, guard and CLI in this repo is bash, so that single default would
+# silently disable the whole custody + auto-commit chain on a Windows clone.
+# These rules pin LF regardless of the client's autocrlf setting.
+* text=auto eol=lf
+
+*.sh      text eol=lf
+*.bash    text eol=lf
+*.py      text eol=lf
+*.js      text eol=lf
+*.mjs     text eol=lf
+*.cjs     text eol=lf
+*.ts      text eol=lf
+*.json    text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.md      text eol=lf
+*.toml    text eol=lf
+*.env     text eol=lf
+Makefile  text eol=lf
+
+# Extensionless executables (pp-work, pp-land, pp-push, ...). Git cannot infer
+# these from a suffix, so name them.
+tooling/cli/*/pp-*        text eol=lf
+tooling/press-clis/**     text eol=lf
+scripts/*                 text eol=lf
+.claude/hooks/*           text eol=lf
+
+# --- Binary: never touch ------------------------------------------------------
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.pdf  binary
+*.mp4  binary
+*.mov  binary
+*.webm binary
+*.wav  binary
+*.mp3  binary
+*.m4a  binary
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.zip  binary
+*.gz   binary

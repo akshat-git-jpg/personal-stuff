@@ -5,7 +5,7 @@ import { effectiveRoles, holdsRoleInSystem, systemsForRole } from "../src/shared
 import { workerStagesForMemberships, reviewQueueForMemberships, type Row, cardStagesForUser, upcomingStagesForUser, canSeeRow, visibleColsForRoles, canEditForRoles } from "../src/shared/engine/rbac";
 import { showColumns } from "../src/shared/engine/control";
 import { lifecycle } from "../src/shared/engine/lifecycle";
-import { createFieldsOf, type PipelineDef, colOf, stageHasReviewerSlot } from "../src/shared/engine/types";
+import { createFieldsOf, type PipelineDef } from "../src/shared/engine/types";
 
 describe("pipeline definitions", () => {
   it("validate clean", () => {
@@ -23,7 +23,7 @@ describe("createFieldsOf", () => {
   it("returns default fields for standard and tut-2", () => {
     // Category/subcategory were dropped from the create form — nobody filled them
     // in, and assignment defaults are keyed on the SYSTEM now.
-    const defaultCols = ["video_title", "video_notes"];
+    const defaultCols = ["video_title", "slug", "video_notes"];
     expect(createFieldsOf(getPipeline("standard")).map((f) => f.col)).toEqual(defaultCols);
     expect(createFieldsOf(getPipeline("tut-2")).map((f) => f.col)).toEqual(defaultCols);
   });

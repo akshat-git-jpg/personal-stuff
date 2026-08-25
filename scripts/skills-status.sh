@@ -1,199 +1,84 @@
 #!/usr/bin/env bash
-# Read-only skill symlink status script.
-# Prints a markdown table of account membership, link health, and source.
-
+# Where this repo's skills load, and whether that is healthy. Exit 1 on a real problem.
+#
+# Skills are REPO-SCOPED (2026-08-25). Claude Code reads `<repo>/.claude/skills/`
+# automatically for whoever opens the repo, so most of what the old version of this
+# script checked — per-account manifests and symlinks — no longer exists. What is
+# left worth checking is the machine-local edges: the Codex mirror, the private
+# work-skills plugin copy, and account skill dirs that should now be empty of
+# anything belonging to this repo.
 set -uo pipefail
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STORE="$(cd "$SCRIPTS_DIR/../tooling/claude-skills" && pwd)"
-WORK_DIR="${CLAUDE_WORK_CONFIG_DIR:-$HOME/.claude-work}/skills"
-PERS_DIR="${CLAUDE_PERSONAL_CONFIG_DIR:-$HOME/.claude-personal}/skills"
-AGENTS_DIR="$HOME/.agents/skills"
-MANIFEST_WORK="$STORE/manifest/work.txt"
-MANIFEST_PERS="$STORE/manifest/personal.txt"
+REPO="$(cd "$SCRIPTS_DIR/.." && pwd)"
+status=0
+note() { printf '  %-10s %s\n' "$1" "$2"; }
 
-# Same fallback condition as relink.sh: a machine with neither dual-account
-# dir (e.g. a bare `claude` launch on Windows) links personal.txt into plain
-# ~/.claude/skills instead — check that target here too.
-USING_DEFAULT=0
-if [[ -z "${CLAUDE_WORK_CONFIG_DIR:-}" && -z "${CLAUDE_PERSONAL_CONFIG_DIR:-}" \
-      && ! -d "$HOME/.claude-work" && ! -d "$HOME/.claude-personal" ]]; then
-  USING_DEFAULT=1
+echo "repo: $REPO"
+echo
+
+# --- 1. the repo's own skills: the only thing Claude needs -------------------
+n_root=$(find "$REPO/.claude/skills" -maxdepth 1 -mindepth 1 \( -type d -o -type l \) 2>/dev/null | wc -l | tr -d ' ')
+n_pipe=$(find "$REPO/pipelines/.claude/skills" -maxdepth 1 -mindepth 1 \( -type d -o -type l \) 2>/dev/null | wc -l | tr -d ' ')
+echo "repo-scoped (load automatically, any account):"
+note "ok" ".claude/skills            $n_root"
+note "ok" "pipelines/.claude/skills  $n_pipe"
+[ "$n_root" -gt 0 ] || { note "FAIL" ".claude/skills is empty"; status=1; }
+
+# A dangling symlink here is invisible to the eye and silently drops a skill.
+broken=0
+while IFS= read -r l; do [ -e "$l" ] || { note "FAIL" "broken link: $l"; broken=1; }; done < <(
+  find "$REPO/.claude/skills" "$REPO/pipelines/.claude/skills" -maxdepth 1 -type l 2>/dev/null)
+[ "$broken" -eq 0 ] || status=1
+echo
+
+# --- 2. Codex: no per-repo path, so it needs an explicit global mirror -------
+echo "codex (global — it has no per-repo skill path):"
+CODEX="${CODEX_HOME:-$HOME/.codex}/skills"
+want=$(grep -cve '^\s*$' -e '^\s*#' "$REPO/.claude/codex-skills.txt" 2>/dev/null || echo 0)
+if [ -d "$CODEX" ]; then
+  have=0
+  while IFS= read -r s; do
+    case "$s" in ''|'#'*) continue ;; esac
+    if [ -e "$CODEX/$s" ]; then have=$((have+1)); else note "warn" "$s not mirrored — run scripts/relink.sh"; fi
+  done < "$REPO/.claude/codex-skills.txt"
+  note "ok" "$have/$want mirrored into $CODEX"
+else
+  note "skip" "$CODEX does not exist (codex not installed here)"
 fi
-DEFAULT_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"
+echo
 
-resolve_src() {
-  local name="$1"
-  if   [ -d "$STORE/$name" ];      then echo "$STORE/$name"
-  elif [ -d "$AGENTS_DIR/$name" ]; then echo "$AGENTS_DIR/$name"
-  else return 1; fi
-}
-
-is_managed() {
-  local link="$1"
-  local target
-  target="$(readlink "$link" 2>/dev/null || echo "")"
-  case "$target" in
-    "$STORE"/*|"$AGENTS_DIR"/*) return 0 ;;
-    *)
-      # readlink returns nothing for a Windows junction (MSYS doesn't surface
-      # IO_REPARSE_TAG_MOUNT_POINT via readlink the way it does true
-      # symlinks) — a non-admin `ln -s` on a directory falls back to a
-      # junction, so presence of the skill's own file is the best signal we
-      # have that this is the store-managed link, not a stray real folder.
-      [ -f "$link/SKILL.md" ]
-      ;;
-  esac
-}
-
-# Reports "ok" / "ok(junction)" / "DANGLING" / "MISSING" for name under dir.
-# Windows without symlink privilege makes `ln -s` on a directory create an
-# NTFS junction instead of a true symlink; MSYS's `-L` test does not
-# recognize junctions, so a plain existence + SKILL.md check is the fallback.
-link_state() {
-  local dir="$1" name="$2" path
-  path="$dir/$name"
-  if [ -L "$path" ]; then
-    if [ -e "$path" ]; then echo "ok"; else echo "DANGLING"; fi
-  elif [ -d "$path" ] && [ -f "$path/SKILL.md" ]; then
-    echo "ok(junction)"
+# --- 3. the private work-skills plugin ---------------------------------------
+echo "private work-skills plugin:"
+PLUGIN="${WORK_SKILLS_DIR:-$HOME/codebase/work-skills}"
+if [ -d "$PLUGIN/skills" ]; then
+  note "ok" "$(find "$PLUGIN/skills" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ') skills at $PLUGIN"
+  if "$SCRIPTS_DIR/sync-shared-skills.sh" --check >/dev/null 2>&1; then
+    note "ok" "shared skills in sync"
   else
-    echo "MISSING"
+    note "FAIL" "shared skills DIFFER — run scripts/sync-shared-skills.sh"; status=1
   fi
-}
-
-in_manifest() {
-  local name="$1"
-  local manifest="$2"
-  [ -f "$manifest" ] || return 1
-  grep -v '^\s*#' "$manifest" | grep -qxF "$name"
-}
-
-ALL_SKILLS_RAW=""
-if [ -f "$MANIFEST_WORK" ]; then
-  ALL_SKILLS_RAW+=$(grep -v '^\s*#' "$MANIFEST_WORK" | grep -v '^\s*$')
-  ALL_SKILLS_RAW+=$'\n'
+else
+  note "skip" "no checkout at $PLUGIN"
 fi
-if [ -f "$MANIFEST_PERS" ]; then
-  ALL_SKILLS_RAW+=$(grep -v '^\s*#' "$MANIFEST_PERS" | grep -v '^\s*$')
-  ALL_SKILLS_RAW+=$'\n'
-fi
+echo
 
-declare -a SORTED_SKILLS
-if [ -n "$ALL_SKILLS_RAW" ]; then
-  IFS=$'\n'
-  SORTED_SKILLS=($(echo "$ALL_SKILLS_RAW" | grep -v '^\s*$' | sort -u))
-  unset IFS
-fi
-
-echo "| Skill | Accounts | Work link | Personal link | Default link | Source |"
-echo "|---|---|---|---|---|---|"
-
-count_both=0
-count_work=0
-count_pers=0
-problems=0
-
-for name in "${SORTED_SKILLS[@]:-}"; do
-  has_w=0
-  has_p=0
-  if in_manifest "$name" "$MANIFEST_WORK"; then has_w=1; fi
-  if in_manifest "$name" "$MANIFEST_PERS"; then has_p=1; fi
-  
-  if [ "$has_w" -eq 1 ] && [ "$has_p" -eq 1 ]; then
-    acc="both"
-    count_both=$((count_both + 1))
-  elif [ "$has_w" -eq 1 ]; then
-    acc="work"
-    count_work=$((count_work + 1))
-  else
-    acc="personal"
-    count_pers=$((count_pers + 1))
-  fi
-
-  src_txt="UNRESOLVED"
-  if resolve_src "$name" >/dev/null; then
-    src_path="$(resolve_src "$name")"
-    if [[ "$src_path" == "$STORE/"* ]]; then src_txt="store"
-    elif [[ "$src_path" == "$AGENTS_DIR/"* ]]; then src_txt="agents"
-    fi
-  else
-    problems=$((problems + 1))
-  fi
-
-  w_link="-"
-  if [ "$has_w" -eq 1 ] && [ "$USING_DEFAULT" -eq 0 ]; then
-    w_link="$(link_state "$WORK_DIR" "$name")"
-    case "$w_link" in MISSING|DANGLING) problems=$((problems + 1)) ;; esac
-  elif [ "$has_w" -eq 1 ]; then
-    w_link="n/a"
-  fi
-
-  p_link="-"
-  if [ "$has_p" -eq 1 ] && [ "$USING_DEFAULT" -eq 0 ]; then
-    p_link="$(link_state "$PERS_DIR" "$name")"
-    case "$p_link" in MISSING|DANGLING) problems=$((problems + 1)) ;; esac
-  elif [ "$has_p" -eq 1 ]; then
-    p_link="n/a"
-  fi
-
-  d_link="-"
-  if [ "$USING_DEFAULT" -eq 1 ] && [ "$has_p" -eq 1 ]; then
-    d_link="$(link_state "$DEFAULT_DIR" "$name")"
-    case "$d_link" in MISSING|DANGLING) problems=$((problems + 1)) ;; esac
-  fi
-
-  echo "| $name | $acc | $w_link | $p_link | $d_link | $src_txt |"
+# --- 4. account dirs: nothing of ours should be left there -------------------
+# ADVISORY. A leftover link into this repo still loads in every session on that
+# account, which is exactly the account dependency the repo-scoped model removes.
+echo "account skill dirs (should hold nothing from this repo):"
+for d in "$HOME/.claude-work/skills" "$HOME/.claude-personal/skills" "$HOME/.claude/skills"; do
+  [ -d "$d" ] || continue
+  leak=0
+  while IFS= read -r l; do
+    t="$(readlink "$l" 2>/dev/null)" || continue
+    case "$t" in "$REPO"/*|*/personal-stuff/*) note "warn" "$(basename "$l") -> $t"; leak=$((leak+1)) ;; esac
+  done < <(find "$d" -maxdepth 1 -type l 2>/dev/null)
+  n=$(find "$d" -maxdepth 1 -mindepth 1 | wc -l | tr -d ' ')
+  [ "$leak" -eq 0 ] && note "ok" "$(basename "$(dirname "$d")")  $n entries, none from this repo" \
+                    || note "warn" "$(basename "$(dirname "$d")")  $leak stale link(s) from this repo"
 done
 
-total=${#SORTED_SKILLS[@]}
-echo ""
-echo "$total skills — $count_both both / $count_work work-only / $count_pers personal-only; problems: $problems"
-
-STRAYS=()
-
-check_strays() {
-  local dir="$1"
-  local manifest="$2"
-  [ -d "$dir" ] || return
-  for e in "$dir"/*; do
-    [ -e "$e" ] || [ -L "$e" ] || continue
-    [ -L "$e" ] || continue
-    local base="$(basename "$e")"
-    
-    if is_managed "$e"; then
-      if ! in_manifest "$base" "$manifest"; then
-        if [ ! -e "$e" ]; then
-          STRAYS+=("$dir/$base (stray and dangling)")
-        else
-          STRAYS+=("$dir/$base (stray, not in manifest)")
-        fi
-        problems=$((problems + 1))
-      else
-        if [ ! -e "$e" ]; then
-          STRAYS+=("$dir/$base (dangling)")
-        fi
-      fi
-    fi
-  done
-}
-
-if [ "$USING_DEFAULT" -eq 1 ]; then
-  check_strays "$DEFAULT_DIR" "$MANIFEST_PERS"
-else
-  check_strays "$WORK_DIR" "$MANIFEST_WORK"
-  check_strays "$PERS_DIR" "$MANIFEST_PERS"
-fi
-
-if [ "${#STRAYS[@]}" -gt 0 ]; then
-  echo ""
-  echo "## Strays / dangling"
-  for s in "${STRAYS[@]}"; do
-    echo "- $s"
-  done
-fi
-
-if [ "$problems" -gt 0 ]; then
-  exit 1
-fi
-exit 0
+echo
+[ "$status" -eq 0 ] && echo "skills status OK" || echo "skills status: problems above" >&2
+exit "$status"

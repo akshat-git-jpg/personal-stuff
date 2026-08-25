@@ -9,6 +9,7 @@ while [ $# -gt 0 ]; do case "$1" in
   --brief-extra) brief_extra="$2"; shift 2;;
   *) echo "unknown arg $1" >&2; exit 2;; esac; done
 
+trap boss_gh_restore EXIT
 boss_assert_gh || exit 1
 
 # Checkout hygiene (WARN ONLY — never mutate the owner's checkout).
@@ -64,7 +65,30 @@ else
   model=""
 fi
 test_cmd="$(fm_get test_cmd "$plan_tmp")"
+# Gate the shape BEFORE anything expensive (worktree lease, branch reset, crew).
+# Prose in CLAUDE.md asked for a bare one-line command and got violated anyway.
+if [ -n "$test_cmd" ]; then
+  test_cmd="$(boss_check_test_cmd "$test_cmd")" \
+    || { echo "PR $pr: fix test_cmd in $planpath frontmatter, then re-dispatch." >&2; exit 2; }
+fi
 [ -n "$test_cmd" ] || { echo "PR $pr: test_cmd missing in frontmatter — refusing" >&2; exit 1; }
+
+# A ui:true plan that names a screenshot path git will not track can never satisfy
+# its own gate. Plan 239 did exactly that (docs/shots is gitignored) and the crew
+# spent a round finding out. Same reasoning as the test_cmd gate above: refuse in a
+# second, before the worktree lease and the crew.
+ui_decl="$(fm_get ui "$plan_tmp" 2>/dev/null)"
+case "$ui_decl" in
+  true|yes|1)
+    ui_bad="$(boss_ui_ignored_paths "$plan_tmp")"
+    if [ -n "$ui_bad" ]; then
+      echo "PR $pr: plan is ui:true but names GITIGNORED image path(s): $ui_bad" >&2
+      echo "  git could never track that file, so the ui gate could never pass." >&2
+      echo "  Fix: point the plan at a tracked directory, or un-ignore the named file." >&2
+      exit 2
+    fi
+    ;;
+esac
 # Optional frontmatter `test_timeout` (seconds) — plans with real renders/downloads
 # declare their own budget; everything else gets 600s, which would have caught the
 # 2026-07-08 hang in 10 minutes instead of 83.
@@ -108,6 +132,35 @@ fi
 # ui: frontmatter is no longer read — the screenshot gate was removed 2026-07-18 (see decisions.md).
 [ -f "$BOSS_HOME/executors/$executor.sh" ] || { echo "no executor '$executor'" >&2; exit 1; }
 
+# Duplicate-dispatch refusal. boss-dispatch never read the PR's CURRENT labels
+# (only headRefName, and a dependency's state), so a second dispatch of a live PR
+# ran straight through: it flipped the labels blindly, leased a SECOND worktree,
+# and then either
+#   - hit the checkout guard below, whose recovery set the PR back to boss:ready
+#     while crew 1 was still running — inviting a THIRD dispatch, or
+#   - succeeded, and truncated $pr.meta below, orphaning crew 1's pid, worktree and
+#     head_before beyond recovery.
+# boss:in-progress was designated as the lock but was never actually checked.
+# --force overrides (same escape hatch as the needs_prs override above).
+if [ "$force" != "1" ]; then
+  cur_labels=$(gh pr view "$pr" --json labels -q '[.labels[].name]|join(",")' 2>/dev/null || echo "")
+  case ",$cur_labels," in
+    *,boss:in-progress,*)
+      echo "PR#$pr is already boss:in-progress — refusing a second dispatch." >&2
+      echo "  Inspect it first: bin/boss-state.sh $pr" >&2
+      echo "  To FIX UP an existing crew, use a DIRECT executor dispatch — never boss-dispatch," >&2
+      echo "  which force-resets the branch to origin and destroys the crew's local commits." >&2
+      echo "  Pass --force only if you are certain nothing is running." >&2
+      exit 3;;
+  esac
+  live_pid=$(meta_get "$pr" pid 2>/dev/null) || live_pid=""
+  if [ -n "$live_pid" ] && kill -0 "$live_pid" 2>/dev/null; then
+    echo "PR#$pr already has a LIVE crew (pid $live_pid) — refusing a second dispatch." >&2
+    echo "  Fix-ups go through a direct executor dispatch. --force overrides." >&2
+    exit 3
+  fi
+fi
+
 gh pr edit "$pr" --remove-label boss:ready --add-label boss:in-progress
 
 wt=$(wt get --holder "boss-$pr")
@@ -119,7 +172,15 @@ git -C "$wt" fetch -q origin "$branch" main
 # loudly, return the leased worktree, and leave the PR boss:ready (retryable, not
 # blocked — this is an environment snag, not a plan defect).
 if ! git -C "$wt" checkout -B "$branch" "origin/$branch"; then
-  gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:ready 2>/dev/null || true
+  # Only hand the PR back to the ready queue when nothing is actually working on
+  # it. Flipping a PR that still has a LIVE crew back to boss:ready invited a third
+  # dispatch on top of the second. Reachable only via --force now, but the belt stays.
+  abort_pid=$(meta_get "$pr" pid 2>/dev/null) || abort_pid=""
+  if [ -n "$abort_pid" ] && kill -0 "$abort_pid" 2>/dev/null; then
+    echo "PR#$pr: leaving boss:in-progress — crew pid $abort_pid is still alive." >&2
+  else
+    gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:ready 2>/dev/null || true
+  fi
   boss_notify "boss:dispatch-abort PR#$pr — cannot checkout $branch (held by another worktree?); left boss:ready"
   wt return "$wt" --holder "boss-$pr"
   echo "PR#$pr dispatch ABORTED — could not checkout $branch in $wt (branch held by another worktree?)." >&2
@@ -149,6 +210,9 @@ fi
 meta_set "$pr" branch "$branch"; meta_set "$pr" slug "$slug"; meta_set "$pr" worktree "$wt"
 meta_set "$pr" executor "$executor"; meta_set "$pr" model "$model"; meta_set "$pr" test_cmd "$test_cmd"
 meta_set "$pr" test_timeout "$test_timeout"; meta_set "$pr" planpath "$planpath"
+# Plan size, measured once here where the plan text is already in hand. Executors
+# budget their turn cap from it (see executors/claude-p.sh).
+meta_set "$pr" plan_lines "$(wc -l < "$plan_tmp" | tr -d ' ')"
 [ -n "$touches" ] && meta_set "$pr" touches "$touches"
 
 brief="$STATE_DIR/$pr.brief.md"
@@ -163,6 +227,13 @@ Rules:
   Make it pass. If it TIMES OUT, your code is hanging — FIX the hang; never raise
   the timeout, never run test_cmd bare. The test_cmd is: $test_cmd
 - Do NOT push. Do NOT merge. Do NOT deploy. Do NOT edit files outside this repo.
+- **Work ONLY inside this worktree: $wt**
+  Never cd, write, or run git anywhere else — above all NOT in $REPO_ROOT, which is
+  the owner's shared main checkout. A commit made there can capture another live
+  session's uncommitted edits (2026-08-22), and your branch is not checked out there
+  anyway, so the work would be lost as well as damaging. Everything this plan needs
+  is in this worktree. If a path seems to be missing, it is a plan defect — report
+  it and stop; do not go looking for it in another checkout.
 - Do NOT edit plans/README.md — boss owns the plan registry on main; any edit
   you make to it is discarded, and the merge gate REJECTS the branch.
 - Finish with a final commit; the last thing you print is the test_cmd result.

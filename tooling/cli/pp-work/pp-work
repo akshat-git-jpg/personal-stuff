@@ -7,6 +7,16 @@
 # workspace.
 set -euo pipefail
 
+# Portable sha256. macOS ships `shasum` (a perl script); Git Bash on Windows ships
+# `sha256sum` (coreutils) and often NOT `shasum`. Both print `<hex>  <name>`, and both
+# hash stdin when given no file argument, so one wrapper covers every call site here.
+_sha256() {
+  if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$@"
+  elif command -v sha256sum >/dev/null 2>&1; then sha256sum "$@"
+  else echo "no sha256 tool on PATH (need shasum or sha256sum)" >&2; return 1; fi
+}
+
+
 die() { echo "pp-work: $*" >&2; exit 1; }
 
 # Absolute path to this script, for `reap` to re-enter itself. Taken from BASH_SOURCE
@@ -21,7 +31,7 @@ resolve() {
     || die "not inside a git repository: $dir"
   MAIN=$(dirname "$common")
   REPO_NAME=$(basename "$MAIN")
-  HASH8=$(echo -n "$MAIN" | shasum -a 256 | cut -c 1-8)
+  HASH8=$(echo -n "$MAIN" | _sha256 | cut -c 1-8)
   WS_ROOT="$HOME/kb-scratch/workspaces/$REPO_NAME-$HASH8"
   WT_POOL="$HOME/kb-scratch/worktrees/$REPO_NAME-$HASH8"
   LANDING="$HOME/kb-scratch/landing/$REPO_NAME-$HASH8"
@@ -511,9 +521,20 @@ EOF
     # touches neither the real index, the working tree, the stash stack, nor any branch.
     # commit-tree writes a commit object directly, so no hook fires.
     snap_one() {
-      local wt="$1" slug="$2" idx tree obj
+      local wt="$1" slug="$2" idx tree obj tmpd
       [ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] || return 1
-      idx=$(mktemp -t ppwork-snap-idx) || return 1
+      # An explicit template, NOT `mktemp -t <prefix>`. `-t` means two different things:
+      # BSD appends the X's for you, GNU reads the argument as a name relative to $TMPDIR
+      # and refuses it for having too few X's. So `mktemp -t ppwork-snap-idx` exits 1 on
+      # GNU coreutils, which is every Linux box and Git Bash on Windows.
+      #
+      # And it fails as a LIE, not as an error: snap_one returns 1, which the caller reads
+      # as "tree is clean", so `snapshot` prints "nothing to snapshot" over a workspace full
+      # of uncommitted work. The one verb whose whole job is rescuing unlanded work reported
+      # success while rescuing nothing. A template containing a slash is honoured verbatim
+      # by both implementations.
+      tmpd="${TMPDIR:-/tmp}"; tmpd="${tmpd%/}"
+      idx=$(mktemp "$tmpd/ppwork-snap-idx.XXXXXX") || return 1
       rm -f "$idx"
       if ! GIT_INDEX_FILE="$idx" git -C "$wt" read-tree HEAD 2>/dev/null; then
         rm -f "$idx"; return 1

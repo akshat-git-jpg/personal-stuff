@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "typecheck": "tsc",
-    "deploy": "wrangler deploy"
+    "dev": ". ../../scripts/node22-path.sh && wrangler dev",
+    "typecheck": ". ../../scripts/node22-path.sh && tsc",
+    "deploy": ". ../../scripts/node22-path.sh && wrangler deploy"
   },
   "dependencies": {
     "hono": "^4.12.23"

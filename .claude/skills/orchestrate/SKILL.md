@@ -1,10 +1,10 @@
 ---
 name: orchestrate
-description: Use when planning a NEW build (feature, tool, script, small app) as a self-contained plan in plans/ that a cheaper executor runs — you orchestrate, never implement. New-work sibling of `improve`, which audits EXISTING code. Triggers on "let's build X", "implement Y", "add a feature", "orchestrate this", "hand this off", "spec this out for an executor", "run the plans", "execute the batch". Not for auditing existing code (use `improve`) or tiny one-off edits.
+description: Use when planning a NEW build (feature, tool, script, small app) as a self-contained plan in plans/ that a cheaper executor runs — you orchestrate, never implement. New-work sibling of the maintainer's `improve` job, which audits EXISTING code. Triggers on "let's build X", "implement Y", "add a feature", "orchestrate this", "spec this out for an executor", "run the plans", "execute the batch". Not for auditing existing code (maintainer job `improve`) or tiny one-off edits.
 user-invocable: true
 metadata:
   author: kbtg
-  version: 2.5.0
+  version: 2.6.0
 ---
 
 # Orchestrate
@@ -18,7 +18,8 @@ default executor is **Antigravity**) does the execution.
 
 **The plan is the product.** Its quality decides whether the executor succeeds.
 
-This is the mirror image of the `improve` skill: `improve` audits *existing* code
+This is the mirror image of the maintainer's `improve` job
+(`tooling/maintainer/jobs/improve/`, a skill until 2026-08-25): `improve` audits *existing* code
 and emits improvement plans; `orchestrate` takes a *new* build and emits a build
 plan. Both write into the same `plans/` contract (see `plans/WORKFLOW.md`), so an
 executor treats their output identically.
@@ -36,7 +37,7 @@ executor treats their output identically.
    one-directional and read-only.
 3. **One plan = one reviewable unit of work.** If the build is large, split it
    into ordered plans (`001-…`, `002-…`) with explicit dependencies, exactly like
-   `improve` and the migration plans do — don't write one 40-step mega-plan.
+   the `improve` job and the migration plans do — don't write one 40-step mega-plan.
 4. **Every plan is self-contained.** The executor has not seen this conversation.
    Inline the file paths, current-code excerpts, conventions, exact commands, and
    verification. "As discussed above" is a bug.
@@ -49,7 +50,7 @@ executor treats their output identically.
 | The user wants to… | Use |
 |---|---|
 | Build/implement a NEW feature, tool, component, script, or small app | **this skill** |
-| Audit / improve / find bugs in EXISTING code, or "what should I build next" | `improve` |
+| Audit / improve / find bugs in EXISTING code, or "what should I build next" | maintainer job `improve` |
 | Just think through a fuzzy idea, no plan yet | `superpowers:brainstorming` directly |
 | A trivial one-off edit you'd finish faster than writing a plan | just do it — don't over-orchestrate |
 
@@ -74,21 +75,41 @@ Check for `plans/WORKFLOW.md` and `plans/_TEMPLATE.md` in the repo root.
   - `_TEMPLATE.md` — the plan skeleton (see "Plan shape" below).
   - `README.md` — the index: an execution-order/status table + a dependency notes
     section.
-  If the repo already uses `improve`, reuse its `references/plan-template.md`
+  Reuse `tooling/maintainer/jobs/improve/references/plan-template.md`
   structure so the two skills stay consistent.
 
-### Step 1 — Clarify the requirements (brainstorm if fuzzy)
+### Step 1 — Clarify the requirements (default: assume fuzzy)
 
-Judge how well-specified the ask is.
+Judge how well-specified the ask is. **The default is fuzzy.** A new build in a
+repo you have not read yet is fuzzy until proven otherwise.
 
-- **Fuzzy** ("I want an app that tracks X", no concrete scope/acceptance):
-  **invoke `superpowers:brainstorming`** and work through intent, requirements,
-  constraints, and acceptance criteria with the user. Stop when you can name the
-  scope, the tech, and what "done" means. Do not start planning mid-brainstorm.
-- **Already specific** (clear feature in a known repo with obvious conventions):
-  skip brainstorming; resolve remaining gaps from the codebase, and ask the user
-  only the few things the code can't answer — one question at a time, each with a
-  recommended default.
+- **Fuzzy** — unnamed scope, no acceptance criteria, or a design space with real
+  forks in it. **Invoke `superpowers:brainstorming`** and work through intent,
+  requirements, constraints, and acceptance criteria with the user. Stop when you
+  can name the scope, the tech, and what "done" means. Do not start planning
+  mid-brainstorm.
+- **Already specific** — the user handed you scope, acceptance criteria, AND the
+  approach, in a repo whose conventions answer the rest. Skip brainstorming and go
+  straight to Step 2.
+
+**Skipping brainstorming never skips Step 2.5.** The decision checkpoint is
+mandatory on every path. That is the trade this skill makes: a light Step 1 is
+allowed *because* every assumption and fork gets surfaced at 2.5 anyway.
+
+Do not drip-feed questions here. Recon (Step 2) answers most of them for free and
+Step 2.5 batches the rest into one message. Ask now only what would change *what
+you recon*.
+
+**Red flags — these thoughts mean you are about to under-ask:**
+
+| Thought | Reality |
+|---|---|
+| "It's specific enough, I'll fill the gaps from the codebase" | The codebase answers HOW this repo does things. It never answers WHAT the owner wants. |
+| "I'll decide it myself — Step 3.5 demands zero open decisions" | 3.5 says the EXECUTOR never decides. It never said *you* decide silently. Surface it at 2.5. |
+| "Asking will slow this down" | A wrong guess costs a plan, a PR, an executor run and a review. A question costs one message. |
+| "There are no real decisions in this one" | A new build always has at least three: where it lives, what it's called, what's out of scope. |
+| "I'll note the assumption in the plan's Summary" | The Summary is read after the plan is written. Assumptions get confirmed BEFORE, not disclosed after. |
+| "Brainstorming already covered this" | Brainstorming ran before recon. Recon always turns up forks brainstorming could not see. |
 
 ### Step 2 — Recon the target repo (light)
 
@@ -117,6 +138,60 @@ Before writing steps, learn what the executor must match:
 Keep this proportional — a new small tool needs a lighter pass than a feature
 inside a large app.
 
+### Step 2.5 — Decision checkpoint (MANDATORY — never skipped, never empty)
+
+<HARD-GATE>
+Do NOT create or modify a single plan file until the user has answered this
+checkpoint. It fires on EVERY path — including "already specific", including
+after a finished `superpowers:brainstorming` session, including a one-plan build,
+including a build the user described in detail. No exceptions, no "this one is
+obvious".
+</HARD-GATE>
+
+Recon is done, so you now know where the real forks are. Put them in front of the
+user in **one batched message**. That batching is the point of this gate: the
+owner does not want brainstorming's one-question-per-message interrogation, but
+does want to be in the loop on anything actually being decided or assumed.
+
+**What the checkpoint must contain — these three things and nothing else:**
+
+1. **Assumptions** — anything you are about to bake into a plan as fact that the
+   user never said and the repo does not prove. One line each.
+2. **Forks** — every point where two or more reasonable options exist, each with
+   your recommendation and a one-line why. A fork is real if a competent executor
+   handed the other option would produce a defensibly correct but *different*
+   build.
+3. **Scope line** — what you are NOT building, in one line, so an unwanted
+   omission is caught here instead of at review.
+
+No recon dump, no plan preview, no progress narration, no restating the ask.
+
+**Format:**
+
+- **1–4 forks** → use the `AskUserQuestion` tool, one question per fork, your
+  recommendation listed first and labelled `(Recommended)`. The assumptions and
+  the scope line go in the surrounding message.
+- **5+ forks, or assumptions that have no clean option split** → a numbered table
+  in chat with columns `#` / `Decision` / `My call` / `Why`. State that the user
+  can reply "all good" to take every default, or name only the numbers they want
+  changed.
+
+**Sizing the gate.** Cap it at decisions that change the SHAPE of the build.
+Anything the repo's conventions already settle is recon, not a decision — never
+pad the checkpoint with it. If you surface more than roughly eight real forks, the
+build is under-specified: say so and go back to `superpowers:brainstorming`.
+
+**The checkpoint is never empty.** If you think there is nothing to ask, you have
+already decided silently. Re-read your own recon notes for choices you made
+without noticing: where the thing lives, what it is named, which exemplar file you
+are matching, the data shape, what happens on the empty/error path, which
+verification counts as "done", and what you quietly cut.
+
+**After the user answers:** restate each call in one short line, then go to Step 3.
+Their answers are load-bearing. They go into the plan as facts and into the
+Summary's **Decisions confirmed** list. A decision the owner made is never
+re-opened by you, and never left open for the executor.
+
 ### Step 3 — Write the plan(s)
 
 Record `git rev-parse --short HEAD` first — every plan stamps the commit it was
@@ -130,6 +205,10 @@ execution order and note dependencies. Write each with `plans/_TEMPLATE.md`.
   scrolling:
   - **Problem statement** — what's broken/missing, 1–2 sentences.
   - **Goals** — bulleted, what this plan achieves.
+  - **Decisions confirmed** — the Step 2.5 calls the owner made, one line
+    each (`<fork> -> <chosen option>`). This is the record of what was chosen
+    deliberately, so neither a later reader nor the executor re-litigates it.
+    A plan with an empty list did not run the checkpoint — that is a bug.
   - **Executor proposed** — the executor AND model (e.g. `agy` / Claude
     Sonnet), one line, matching Step 3.5's difficulty grading.
   - **Done criteria** — tersely restated (full detail lives in the Done
@@ -177,6 +256,10 @@ decide — only do and verify**. Self-check every plan:
 1. **Zero open decisions.** No "choose an appropriate…", "design a…", "as
    needed", "pick a sensible…" left in any step. Every decision is made here,
    by you, and inlined as a fact the executor obeys.
+   **Rider:** "made by you" means *decided and surfaced at Step 2.5* — never
+   decided silently. This item closes the executor's freedom, not the owner's
+   visibility. If a decision reached the plan without appearing in the
+   checkpoint, the gate failed: go back to 2.5 with it before handing off.
 2. **The intelligence-heavy bits are IN the plan.** If one function/algorithm/
    schema is the hard part, write that exact snippet into the plan yourself —
    authoring a critical snippet inside a plan is planning, not implementing.
@@ -276,15 +359,21 @@ data-loss punt, an invented color scheme, and UA-default controls under
 green gates — all judgment-gap defects.)
 
 **Executor selection (boss taxonomy — this is what goes in the frontmatter).**
-boss runs two executors: `claude-p` (backgrounded `claude -p`; models `sonnet`
-or `opus`) and `agy` (headless Antigravity CLI; cheap tokens; agy runs use
-Gemini 3.1 Pro (High), its default model). **Never pick the executor model unilaterally**
+boss runs three executors: `claude-p` (backgrounded `claude -p`; models `sonnet`
+or `opus`), `agy` (headless Antigravity CLI; cheap tokens; agy runs use
+Gemini 3.1 Pro (High), its default model), and `codex` (headless OpenAI Codex CLI
+on the owner's ChatGPT subscription; cheap tokens; default model `gpt-5.6-sol`).
+**Never pick the executor model unilaterally**
 (owner-confirmed 2026-07-12): the user's explicit choice always wins; otherwise
 routing comes from `tooling/boss/data/rules.md` — **default is `agy`** (Gemini 3.1
 Pro High; owner decision 2026-07-18) for any plan that passes the fully-inlined
 bar, with `claude-p` as the exception: `sonnet` for quality-setting content the
 owner judges by taste (rulebooks, prompts, prose) or plans that can't be fully
-inlined; `opus` for `tricky`. Read rules.md for the riders (render+inspect gate
+inlined; `opus` for `tricky`. **`codex` is a valid option, never the default**
+(owner decision 2026-08-25) — pick it when the owner names it, or to run a second
+fully-inlined plan concurrently without queueing behind an agy crew; it meets the
+same fully-inlined bar and the same verify-by-commits rule as agy. Read rules.md
+for the riders (render+inspect gate
 on visual output; verify agy by commits, never its envelope). (The older
 `antigravity | sonnet | opus` naming belongs to the standalone direct-dispatch
 registry in Step 4 — NOT the frontmatter boss reads.)
@@ -321,7 +410,7 @@ Once plan(s) pass Step 3.5, ask the user how to hand off. Three routes:
 Not on request — always, in the same breath as the link. Take them from the
 plan's frontmatter (`executor:` / `model:`); a blank `model:` means that
 executor's default, so print the resolved name (`agy` -> Gemini 3.1 Pro (High),
-`claude-p` -> Sonnet) rather than a blank cell.
+`claude-p` -> Sonnet, `codex` -> gpt-5.6-sol) rather than a blank cell.
 
 Owner rule (2026-08-23): *"whenever you give me summary on the PRs, I find it
 very annoying that you don't share me what executor have you used for which PR.
@@ -353,6 +442,7 @@ one dispatch script; the run-log, verification, and rounds are executor-agnostic
 | `sonnet` | one Agent-tool subagent **per plan**, `model: sonnet`; orchestrator checkpoints between plans | subagent returns + run-log `PLAN NNN DONE` | harness surfaces a dead subagent immediately |
 | `opus` | one Agent-tool subagent **per plan**, `model: opus` — for `tricky` plans only | same as `sonnet` | same as `sonnet` |
 | `agy` | background Bash per plan: `agy -p "$(cat <prompt-file>)" --dangerously-skip-permissions --add-dir "<working-tree>" --output-format json --print-timeout 180m [--model "<name>"]` with cwd = the working tree (`--add-dir` is mandatory — print mode does not bind cwd; default timeout is 5m); prompt carries the same run-log rules | process exit + run-log `PLAN NNN DONE`; JSON envelope in the captured file has `status`/`usage`/`conversation_id` (resume fix-ups via `--conversation <id>`) | `kill -0 <pid>` — a real process, exact liveness (no heartbeat guessing) |
+| `codex` | background Bash per plan: `codex exec "$(cat <prompt-file>)" --json -o <last-msg-file> --dangerously-bypass-approvals-and-sandbox -C "<working-tree>" -m gpt-5.6-sol < /dev/null` wrapped in `gtimeout -k 30 180m` (codex exec has no timeout flag of its own); `-C` is mandatory and `< /dev/null` is mandatory — without it codex waits on stdin forever | process exit code + run-log `PLAN NNN DONE`; the JSONL stream carries `thread.started` (`thread_id`, for `codex exec resume`) and `turn.completed` (`usage`) | `kill -0 <pid>` — a real process, exact liveness |
 
 Notes:
 - **Antigravity's internal model is set in the app's own model picker** — the
@@ -368,6 +458,14 @@ Notes:
   unilaterally; routing comes from `tooling/boss/data/rules.md` or the user).
   Prefer it over the `antigravity` IDE row for headless plan batches. (The
   gemini CLI is dead for individual accounts since 2026-06-18 — do not spec it.)
+- **`codex` (added 2026-08-25)**: the OpenAI Codex CLI on the owner's ChatGPT
+  subscription (`auth_mode=chatgpt`), so like agy its tokens do not touch the
+  Claude pool. Real headless process, exact death detection, parallelizes per
+  worktree. Its `--json` stream grows continuously while the crew works, which
+  makes progress/stall detection honest without an `lsof`. Two hard flags: `-C`
+  (the working root is NOT bound by cwd) and `< /dev/null` (otherwise it blocks
+  reading stdin). It is a valid option, **never the default** — agy keeps the
+  default seat until codex has a track record here (owner decision 2026-08-25).
 - **One run at a time.** Runs share one working tree and git history —
   never dispatch a second run (any executor) while one is in flight.
 
@@ -470,13 +568,17 @@ permission), stop at the plan and produce the copy-paste handoff prompt — the
 prompt content is identical, only the paste is manual. The watcher + verify
 loop still runs.
 
-## Relationship to superpowers and improve (the clean composition)
+## Relationship to superpowers and the improve job (the clean composition)
 
 ```
         fuzzy idea ──▶ superpowers:brainstorming        (clarify — you INVOKE it, never edit it)
                                 │  clear requirements
                                 ▼
-  orchestrate:  recon repo ──▶ write plan(s) in plans/   (plans/_TEMPLATE.md + WORKFLOW.md — same contract as `improve`)
+  orchestrate:  recon repo ──▶ DECISION CHECKPOINT ──▶ write plan(s) in plans/
+                                (Step 2.5 — owner approves      (plans/_TEMPLATE.md + WORKFLOW.md
+                                 assumptions + forks in ONE       — same contract as `improve`)
+                                 batched message; MANDATORY
+                                 on every path, never empty)
                                 │
                                 ▼
                 dispatch (ag-handoff.sh │ sonnet subagent per plan)
@@ -494,7 +596,7 @@ loop still runs.
   framework — a fork would be clobbered on update).
 - **orchestrate owns "turn clear requirements into an executor-ready plan +
   handoff."**
-- **improve owns the same for existing code.** orchestrate and improve share the
+- **The `improve` job owns the same for existing code.** orchestrate and improve share the
   `plans/` + `WORKFLOW.md` output contract, so the executor treats both the same.
 
 ## Tone
@@ -505,7 +607,7 @@ too small to orchestrate — just make the edit," say so.
 
 ## When NOT to use
 
-- Auditing / improving EXISTING code, or "what should I build next" → `improve`
+- Auditing / improving EXISTING code, or "what should I build next" → maintainer job `improve`
 - Tiny one-off edits → do them inline; **personal-stuff-change-control** Gate 1
   (small, single-session, doing-it-yourself work needs no plan file)
 - Raising the finished plan as a boss PR → `secretary` (`/secretary raise`) —

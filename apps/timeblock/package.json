@@ -3,11 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "check": "tsc --noEmit && vitest run",
-    "deploy": "wrangler deploy"
+    "dev": ". ../../scripts/node22-path.sh && wrangler dev",
+    "typecheck": ". ../../scripts/node22-path.sh && tsc --noEmit",
+    "test": ". ../../scripts/node22-path.sh && vitest run",
+    "check": ". ../../scripts/node22-path.sh && tsc --noEmit && vitest run",
+    "deploy": ". ../../scripts/node22-path.sh && wrangler deploy"
   },
   "dependencies": {
     "hono": "^4"

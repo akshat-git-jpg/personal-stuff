@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kushal.yt-claude-prune</string>
+
+  <!-- Delete ~/yt-claude/<videoid>/ folders older than YT_PRUNE_DAYS.
+       Edit the path if you move the repo. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/kbtg/codebase/personal-stuff/tooling/cli/yt-claude/prune.sh</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <!-- How long a summarised video stays re-openable. -->
+    <key>YT_PRUNE_DAYS</key>
+    <string>30</string>
+  </dict>
+
+  <!-- Weekly: Sunday 03:00. If the Mac is asleep then, launchd runs it on wake. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key>
+    <integer>0</integer>
+    <key>Hour</key>
+    <integer>3</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <!-- Not RunAtLoad: a prune on every login is noise, and never urgent. -->
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/kbtg/Library/Logs/yt-claude-prune.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/kbtg/Library/Logs/yt-claude-prune.log</string>
+</dict>
+</plist>

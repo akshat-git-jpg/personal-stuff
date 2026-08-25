@@ -1,0 +1,697 @@
+[
+ {
+  "id": 1,
+  "start": 0,
+  "end": 4.4,
+  "narration": "So here is what you have been waiting for: the answer, and the machine behind all of this.",
+  "mode": "full",
+  "object": "Two mono chips in the lower-third \u2014 lime-border chip 'THE MACHINE' (left) and silver chip 'THE ANSWER' (right) \u2014 joined by a lime wire that PRODUCES.",
+  "action": "Each chip draws on exactly on its spoken word ('THE ANSWER' pops first in its right-hand slot, 'THE MACHINE' pops second in its left-hand slot). Then on 'behind all of this' a thin lime wire draws from MACHINE toward ANSWER and a single pulse travels along it, lighting the ANSWER chip's border lime for a beat \u2014 the machine visibly MAKES the answer, causation shown as direction, not just connection.",
+  "continuity": "Cold open on full-screen talking head (carrying the footage register from Act 2's close). No graphics on canvas yet; these two chips are the only marks and they persist into beat 2 as a tiny act-map.",
+  "copy": {
+   "chips": [
+    "THE MACHINE",
+    "THE ANSWER"
+   ],
+   "chipStyle": "JetBrains Mono CAPS; MACHINE = lime border, ANSWER = silver border until the pulse lights it (one lime accent)",
+   "wire": "thin lime connector, draws MACHINE \u2192 ANSWER; one traveling pulse"
+  },
+  "sync": [
+   {
+    "at": 1.9,
+    "event": "silver chip 'THE ANSWER' pops in right slot on 'the answer'"
+   },
+   {
+    "at": 2.9,
+    "event": "lime chip 'THE MACHINE' pops in left slot on 'the machine'"
+   },
+   {
+    "at": 3.6,
+    "event": "wire draws MACHINE\u2192ANSWER and pulse lights ANSWER on 'behind all of this'"
+   }
+  ]
+ },
+ {
+  "id": 2,
+  "start": 4.4,
+  "end": 13.5,
+  "narration": "If this is useful, make sure to like and subscribe, because I am building this inside real businesses right now. And I am pretty sure that you can do the same.",
+  "mode": "full",
+  "object": "Two tiny mono chips \u2014 'LIKE' (thumb glyph) and 'SUBSCRIBE' \u2014 bottom-left, plus a small mono tag 'REAL BUSINESSES \u00b7 LIVE' with a pulsing lime dot.",
+  "action": "Face beat (Cleo Abram rule \u2014 the ask is human). LIKE chip taps itself (press-down bounce) on 'like', SUBSCRIBE chip flips from grey outline to lime fill on 'subscribe'. On 'right now' the LIVE tag's lime dot starts pulsing at heartbeat tempo \u2014 'right now' shown as a live heartbeat, not said. On 'you can do the same' the chips fade but the pulsing dot lingers alone for a second: the claim stays alive quietly.",
+  "continuity": "The MACHINE/ANSWER chips from beat 1 shrink and park top-left as a tiny act-map (ANSWER's pulse-lit border dims to 'delivered next', MACHINE waits). Like/subscribe chips are new but disposable \u2014 gone by beat 3.",
+  "copy": {
+   "chips": [
+    "LIKE",
+    "SUBSCRIBE"
+   ],
+   "tag": "REAL BUSINESSES \u00b7 LIVE",
+   "tagStyle": "JetBrains Mono, silver, lime pulsing dot"
+  },
+  "sync": [
+   {
+    "at": 6.6,
+    "event": "LIKE chip self-taps on 'like'"
+   },
+   {
+    "at": 7.2,
+    "event": "SUBSCRIBE chip fills lime on 'subscribe'"
+   },
+   {
+    "at": 9.8,
+    "event": "'REAL BUSINESSES \u00b7 LIVE' tag pulses on 'right now'"
+   },
+   {
+    "at": 12.4,
+    "event": "chips fade, pulse dot lingers alone on 'you can do the same'"
+   }
+  ]
+ },
+ {
+  "id": 3,
+  "start": 13.5,
+  "end": 18.2,
+  "narration": "So back to the start. Here's the answer that my Claude actually gave me.",
+  "mode": "panel",
+  "object": "The QUERY CHIP from Act 1 \u2014 lime-border mono chip 'WHAT SHOULD I FOCUS ON?' \u2014 with the grey '\u2715 NO ANSWER' chip still hanging beneath it, exactly as the viewer last saw it.",
+  "action": "On 'back to the start' the frame does a fast 0.3s rewind-scrub (2 grey frame-ghosts) and the Act-1 query chip lands at the top of the left column \u2014 the literal unresolved object from the start of the film returns. On 'the answer that my Claude actually gave me' the grey '\u2715 NO ANSWER' chip cracks down the middle and drops away, and a lime '\u25cf ANSWERED' tab slides into the empty slot. Act 1's open wound physically closes.",
+  "continuity": "Mode shifts full\u2192panel at boundary: footage docks to the lime-offset panel at right-center (x74,y52,s0.92); left column opens for graphics with hard 4% clearance of x=52%. The beat-2 act-map chips exit. Query chip + ANSWERED tab persist into beats 4-5 as the anchor of the answer scene.",
+  "copy": {
+   "queryChip": "WHAT SHOULD I FOCUS ON?",
+   "oldTab": "\u2715 NO ANSWER",
+   "newTab": "\u25cf ANSWERED",
+   "style": "query chip lime border mono; ANSWERED tab lime fill, raisin text"
+  },
+  "sync": [
+   {
+    "at": 13.7,
+    "event": "rewind scrub, Act-1 query chip lands top of left column on 'back to the start'"
+   },
+   {
+    "at": 15.8,
+    "event": "grey '\u2715 NO ANSWER' cracks and drops on 'the answer'"
+   },
+   {
+    "at": 17,
+    "event": "lime '\u25cf ANSWERED' tab slides in on 'actually gave me'"
+   }
+  ]
+ },
+ {
+  "id": 4,
+  "start": 18.2,
+  "end": 24.5,
+  "narration": "It knew what I earn on every product. It knew what my customers complain about. It knew where my time goes.",
+  "mode": "panel",
+  "object": "THE ANSWER CARD \u2014 a dark card unfolding downward from the ANSWERED tab like a receipt printing, receiving three CONCRETE fact-rows (real values, not labels).",
+  "action": "The card extends from the ANSWERED tab. Three rows slam in complete \u2014 no spinner, no cursor lag, because 'knowing' means already-printed \u2014 each ON its clause, each carrying an actual fact plus a micro-graphic: margin row shows three tabular euro figures with a tiny 3-bar micro-chart (one bar clearly tallest); complaint row shows a quoted snippet 'slow email replies'; time row shows 'EMAIL \u2014 11 H/WK' with a small filled bar. Each row ends with a lime \u2713 stamp. The specificity IS the proof it knew \u2014 the viewer reads real answers, not the word 'known'.",
+  "continuity": "Query chip + ANSWERED tab from beat 3 stay pinned at top of left column; the card grows out of them. All graphics stay left of x=52%. Card and its three fact-rows persist into beat 5, where they get traced back to the database.",
+  "copy": {
+   "rows": [
+    "MARGIN / PRODUCT \u2014 \u20ac31 \u00b7 \u20ac58 \u00b7 \u20ac124 \u2713",
+    "TOP COMPLAINT \u2014 'slow email replies' \u2713",
+    "TIME SINK \u2014 EMAIL, 11 H/WK \u2713"
+   ],
+   "style": "JetBrains Mono tabular rows in fixed tiles; micro-chart / quote / bar inline per row; \u2713 = lime stamp; no headline (the card is the object)"
+  },
+  "sync": [
+   {
+    "at": 18.4,
+    "event": "card unfolds from ANSWERED tab"
+   },
+   {
+    "at": 19,
+    "event": "margin row slams in with euro figures + micro-bars + \u2713 on 'earn on every product'"
+   },
+   {
+    "at": 21.2,
+    "event": "complaint row slams in with quote + \u2713 on 'complain about'"
+   },
+   {
+    "at": 23.3,
+    "event": "time row slams in with hours bar + \u2713 on 'where my time goes'"
+   }
+  ]
+ },
+ {
+  "id": 5,
+  "start": 24.5,
+  "end": 30.8,
+  "narration": "And I did not feed it any of that \u2014 today, yesterday, or the week before. It was all already there.",
+  "mode": "hidden",
+  "replaySpike": true,
+  "object": "THE DATABASE cylinder (known object) rising beneath the answer card, plus three grey calendar chips 'TODAY / YESTERDAY / LAST WEEK'.",
+  "action": "Full-canvas. The three calendar chips fly toward the card as if to feed it \u2014 and each one bounces off and falls away grey, on its spoken word: nothing was fed. Then, on 'it was all already there', three lime threads SNAP simultaneously from the three fact-rows down into three specific rows inside the database cylinder, and those rows flash \u2014 the euro figures, the quote, the hours are shown to BE pre-existing rows, not fresh input. This triple snap is the replay spike.",
+  "continuity": "Mode shifts panel\u2192hidden at boundary; footage exits, answer card + query chip slide up-left as one group to make room. The database cylinder with its tabular '4,812 ROWS' counter below rises from the bottom \u2014 the same cylinder the viewer knows from Act 1. Everything on canvas carries into beat 6's collapse.",
+  "copy": {
+   "headline": "ALREADY THERE",
+   "marker": "ALREADY (two-layer lime marker wipe)",
+   "calendarChips": [
+    "TODAY",
+    "YESTERDAY",
+    "LAST WEEK"
+   ],
+   "counter": "4,812 ROWS"
+  },
+  "sync": [
+   {
+    "at": 25.4,
+    "event": "'TODAY' chip flies in, bounces off card, falls grey"
+   },
+   {
+    "at": 26.6,
+    "event": "'YESTERDAY' chip bounces off, falls grey"
+   },
+   {
+    "at": 27.6,
+    "event": "'LAST WEEK' chip bounces off, falls grey"
+   },
+   {
+    "at": 29,
+    "event": "REPLAY SPIKE: three lime threads snap from fact-rows into cylinder rows; rows flash"
+   },
+   {
+    "at": 29.9,
+    "event": "headline 'ALREADY THERE' + marker wipe on 'already there'"
+   }
+  ]
+ },
+ {
+  "id": 6,
+  "start": 30.8,
+  "end": 35.4,
+  "narration": "And that is the real point. So let me show you how it is actually built.",
+  "mode": "full",
+  "object": "Talking head full-screen; behind him the whole answer scene collapses into a single small lime blueprint dot.",
+  "action": "Face beat \u2014 the pivot from payoff to mechanism is delivered human. On 'the real point' the answer card, threads, chips and cylinder compress into one lime dot that holds center-frame behind him (nothing just disappears \u2014 it all funnels IN). On 'how it is actually built' the dot emits a faint blueprint grid pulse across the canvas \u2014 the promise that the dot is about to be unpacked into a machine.",
+  "continuity": "Everything from beat 5 collapses INTO the dot. The dot and the primed grid carry directly into beat 7, where the dot expands back into the database cylinder at the exact same center coordinates.",
+  "copy": {
+   "microLabel": "HOW IT'S BUILT",
+   "style": "single mono tag under the dot, silver"
+  },
+  "sync": [
+   {
+    "at": 31.6,
+    "event": "answer scene compresses into lime dot on 'the real point'"
+   },
+   {
+    "at": 33.5,
+    "event": "blueprint grid pulse on 'actually built'"
+   },
+   {
+    "at": 34.8,
+    "event": "mono tag 'HOW IT'S BUILT' fades in under dot"
+   }
+  ]
+ },
+ {
+  "id": 7,
+  "start": 35.4,
+  "end": 43.2,
+  "narration": "At the core: one database. Think about it as a set of lists and data the AI can actually count and search.",
+  "mode": "hidden",
+  "object": "THE DATABASE cylinder, dead center \u2014 the machine's first and only anchor, with its tabular row counter below.",
+  "action": "MACHINE ASSEMBLY stage 1. The lime dot from beat 6 expands into the drawn cylinder on 'one database'. Then the two verbs get enacted literally: on 'count', the mono counter beneath the cylinder ticks rows visibly upward (4,812 \u2192 4,815) while rows pulse one-by-one in rhythm with the ticks; on 'search', a lime highlight bar sweeps down the stacked rows and locks onto one row, which pops slightly. Counting and searching are performed, not claimed.",
+  "continuity": "Dot from beat 6 = seed; it grows into the cylinder in place (same center coordinates). The cylinder + counter now stay fixed center for the entire assembly (beats 8-20) and the counter only ever climbs \u2014 one monotonic number across the whole act. Reserved zones: canvas top is kept clear for the file window (beat 14), canvas right for the dashboard (beat 17).",
+  "copy": {
+   "headline": "ONE DATABASE",
+   "marker": "ONE (marker wipe)",
+   "counter": "4,812 \u2192 4,815 ROWS",
+   "counterStyle": "JetBrains Mono tabular, fixed tile below cylinder"
+  },
+  "sync": [
+   {
+    "at": 35.8,
+    "event": "dot expands into cylinder on 'one database'"
+   },
+   {
+    "at": 36.4,
+    "event": "headline 'ONE DATABASE' + marker wipe"
+   },
+   {
+    "at": 40.6,
+    "event": "row counter ticks 4,812\u21924,815, rows pulse per tick, on 'count'"
+   },
+   {
+    "at": 41.6,
+    "event": "lime search-bar sweeps rows and locks one, on 'search'"
+   }
+  ]
+ },
+ {
+  "id": 8,
+  "start": 43.2,
+  "end": 50.4,
+  "narration": "Mine has a list for revenue, a list for messages, a list for content, a list for every job my system runs.",
+  "mode": "hidden",
+  "object": "FOUR LIST STACKS \u2014 mini row-stacks that drawer out of the cylinder to four fixed sockets on the LEFT and LOWER arc (left, upper-left, lower-left, lower-right), each with a mono label below.",
+  "action": "Each list physically slides OUT of the cylinder like a drawer, on its spoken word, trailing a thin lime wire back to the cylinder \u2014 the lists are shown as parts of the one database, not separate things. Rows inside each stack are visible tiny lime bars. One new element per word; nothing else moves (no reflow). The sockets deliberately hug the left/lower arc so the canvas top and right stay empty \u2014 real estate the machine will claim later without pushing anything.",
+  "continuity": "Cylinder from beat 7 stays center, counter stays below. Headline 'ONE DATABASE' shrinks and ABSORBS into the cylinder's rim as a small etched tag (top of canvas must stay clear for beat 14's window). The four list sockets persist for the whole assembly \u2014 beats 9 and 11 write into them.",
+  "copy": {
+   "labels": [
+    "revenue",
+    "messages",
+    "content",
+    "jobs"
+   ],
+   "labelStyle": "JetBrains Mono lowercase, silver, below each stack",
+   "wires": "thin lime, list \u2192 cylinder",
+   "sockets": "left, upper-left, lower-left, lower-right \u2014 top and right of canvas reserved"
+  },
+  "sync": [
+   {
+    "at": 44.3,
+    "event": "'revenue' list drawers out to left socket on 'revenue'"
+   },
+   {
+    "at": 45.6,
+    "event": "'messages' list drawers out to upper-left on 'messages'"
+   },
+   {
+    "at": 46.8,
+    "event": "'content' list drawers out to lower-left on 'content'"
+   },
+   {
+    "at": 48.4,
+    "event": "'jobs' list drawers out to lower-right on 'every job my system runs'"
+   }
+  ]
+ },
+ {
+  "id": 9,
+  "start": 50.4,
+  "end": 54.9,
+  "narration": "Basically everything that changes in my business has a home over there.",
+  "mode": "hidden",
+  "object": "EVENT CARDS on THE STREAM \u2014 the known lime-offset chips ('new order #4471' money-lime, 'DM: still there?' silver, 'video published' silver) riding the dashed lime line.",
+  "action": "The dashed stream draws in from off-canvas bottom-left and three familiar event cards ride it, each peeling off and sliding INTO its matching list stack \u2014 order\u2192revenue, DM\u2192messages, video\u2192content \u2014 where it compresses into one new row (stack grows by one bar, cylinder counter +1 each: 4,816, 4,817, 4,818). 'Has a home' is enacted as cards literally docking into their drawer.",
+  "continuity": "Lists and cylinder from beat 8 unchanged and fixed. The stream is the same stream object from Act 1, entering along the bottom-left where the sockets live. It stays faintly visible as the machine's input rail through beat 13.",
+  "copy": {
+   "headline": "EVERYTHING HAS A HOME",
+   "marker": "HOME (marker wipe)",
+   "eventCards": [
+    "new order #4471",
+    "DM: still there?",
+    "video published"
+   ],
+   "counterTick": "+1 per docking, tabular: 4,816 / 4,817 / 4,818"
+  },
+  "sync": [
+   {
+    "at": 50.6,
+    "event": "stream draws in from bottom-left, three cards riding"
+   },
+   {
+    "at": 51.6,
+    "event": "order card docks into 'revenue', row appears, counter 4,816"
+   },
+   {
+    "at": 52.6,
+    "event": "DM card docks into 'messages', counter 4,817"
+   },
+   {
+    "at": 53.8,
+    "event": "video card docks into 'content' on 'a home over there'; counter 4,818; headline + marker wipe"
+   }
+  ]
+ },
+ {
+  "id": 10,
+  "start": 54.9,
+  "end": 63,
+  "narration": "And around this one database: small loops. Functions that run every hour, every minute, every day, or every week.",
+  "mode": "hidden",
+  "object": "FOUR LOOP RINGS \u2014 small circular-arrow glyphs with tiny clock badges, orbiting the cylinder+lists cluster on a faint orbital path (new object; drawn on, reused through beat 20).",
+  "action": "On 'small loops' a faint circular orbit path draws around the cluster. Then four small loop rings pop onto the path, each ON its cadence word, each with a mono clock badge showing its interval \u2014 and each clock hand visibly ticks at a genuinely different speed: the MINUTE hand spins fast, the HOUR hand steps, the DAY hand creeps, the WEEK hand is nearly frozen. 'Functions' \u2014 the jargon \u2014 is childproofed by what the rings DO next beat (they visibly do one job per tick); here their cadence is shown as literal clock speed, side by side.",
+  "continuity": "Cylinder, four lists, and stream from beat 9 all fixed. The orbit path + four loop rings persist and keep ticking at their four distinct speeds through beats 11-19 \u2014 the machine visibly runs from here on and never pauses.",
+  "copy": {
+   "headline": "SMALL LOOPS",
+   "marker": "LOOPS (marker wipe)",
+   "clockBadges": [
+    "EVERY HOUR",
+    "EVERY MINUTE",
+    "EVERY DAY",
+    "EVERY WEEK"
+   ],
+   "badgeStyle": "JetBrains Mono micro-caps under each ring"
+  },
+  "sync": [
+   {
+    "at": 56.2,
+    "event": "orbit path draws around cluster on 'small loops'; headline + marker"
+   },
+   {
+    "at": 58.8,
+    "event": "'EVERY HOUR' ring pops, hand stepping hourly-slow"
+   },
+   {
+    "at": 59.7,
+    "event": "'EVERY MINUTE' ring pops, hand spinning fast"
+   },
+   {
+    "at": 60.5,
+    "event": "'EVERY DAY' ring pops, hand creeping"
+   },
+   {
+    "at": 61.7,
+    "event": "'EVERY WEEK' ring pops, hand nearly still"
+   }
+  ]
+ },
+ {
+  "id": 11,
+  "start": 63,
+  "end": 70,
+  "narration": "One writes down every payment, one saves every conversation, one writes down all my YouTube subscribers.",
+  "mode": "hidden",
+  "object": "THREE NAMED LOOPS \u2014 the existing rings get mono name-tags and each performs one visible write: tick \u2192 fire card \u2192 dock row.",
+  "action": "Each loop, on its clause, does a full working cycle: the ring flashes lime, fires a tiny event card along a short wire into its target list, and a new row-bar drops in \u2014 payments-loop\u2192revenue (money card, lime square), conversations-loop\u2192messages (silver card), yt-subs-loop\u2192content (silver card '+12 subs'). 'Writes down' is enacted as the tick-fire-dock cycle, three times, three targets \u2014 this is also the moment 'functions' becomes concrete: a function is a ring that does one job every tick.",
+  "continuity": "Same rings from beat 10, now named \u2014 nothing new spawns except name-tags and the fired cards. Lists receive rows in the sockets established in beat 8; cylinder counter ticks +1 per dock: 4,819, 4,820, 4,821.",
+  "copy": {
+   "loopNames": [
+    "payments-loop",
+    "conversations-loop",
+    "yt-subs-loop"
+   ],
+   "firedCards": [
+    "payout \u20ac3,900",
+    "convo saved",
+    "+12 subs"
+   ],
+   "style": "loop names mono lowercase; payout card lime-bordered (money), others silver"
+  },
+  "sync": [
+   {
+    "at": 63.6,
+    "event": "payments-loop ticks, fires 'payout \u20ac3,900' into revenue, row drops, counter 4,819"
+   },
+   {
+    "at": 65.8,
+    "event": "conversations-loop ticks, fires 'convo saved' into messages, counter 4,820"
+   },
+   {
+    "at": 68,
+    "event": "yt-subs-loop ticks, fires '+12 subs' into content, counter 4,821"
+   }
+  ]
+ },
+ {
+  "id": 12,
+  "start": 70,
+  "end": 73.3,
+  "narration": "All these loops actually fill the base automatically.",
+  "mode": "hidden",
+  "object": "THE WHOLE ORBIT running at speed \u2014 all four loops ticking in overlapping rhythm; the tabular row counter as the star.",
+  "action": "All loops fire together in a staggered drumroll \u2014 rapid tick-fire-dock cycles in ~2.5s \u2014 and the tabular counter under the cylinder visibly spins up (4,821 \u2192 4,829). 'Fills automatically' is the machine running with no hand touching it: nothing enters from outside the orbit, every card comes from a ticking ring. On 'automatically' a lime micro-tag 'AUTOMATIC' stamps under the counter.",
+  "continuity": "Zero new objects \u2014 this beat is the beat-10/11 system simply running at speed. The counter momentum carries directly into beat 13, where it becomes the live half of the two-counter contrast.",
+  "copy": {
+   "counter": "4,821 \u2192 4,829 ROWS",
+   "microTag": "AUTOMATIC",
+   "microTagStyle": "mono micro-caps, lime, appears under counter"
+  },
+  "sync": [
+   {
+    "at": 70.2,
+    "event": "staggered all-loop drumroll begins on 'all these loops'"
+   },
+   {
+    "at": 71.7,
+    "event": "counter spin-up visibly accelerates on 'fill the base'"
+   },
+   {
+    "at": 72.5,
+    "event": "'AUTOMATIC' micro-tag stamps under counter on 'automatically'"
+   }
+  ]
+ },
+ {
+  "id": 13,
+  "start": 73.3,
+  "end": 76.4,
+  "narration": "I never have to type any fact into my business.",
+  "mode": "hidden",
+  "object": "A twin mono tile 'TYPED BY ME: 0' pinned beside the climbing row counter \u2014 two counters, one alive, one dead.",
+  "action": "A second tabular tile pins to the right of the row counter reading 'TYPED BY ME: 0' \u2014 and it stays frozen at 0 while the row counter, still fed by the ticking loops, visibly ticks again (4,830, 4,831) right next to it. The sentence becomes arithmetic the viewer can check live: machine writes, human writes nothing. No other change on canvas \u2014 the stillness of the 0 against the moving number is the whole beat.",
+  "continuity": "Machine keeps running underneath (loops ticking, counter climbing \u2014 the world never pauses). The 'TYPED BY ME: 0' tile persists beside the counter through beat 16, then retires.",
+  "copy": {
+   "zeroTile": "TYPED BY ME: 0",
+   "liveCounter": "4,830 \u2192 4,831 ROWS",
+   "style": "both JetBrains Mono tabular in fixed tiles; zero tile silver, frozen"
+  },
+  "sync": [
+   {
+    "at": 73.9,
+    "event": "'TYPED BY ME: 0' tile pins, frozen, on 'never have to type'"
+   },
+   {
+    "at": 75.4,
+    "event": "row counter ticks 4,831 while 0 stays 0 \u2014 contrast held in one glance"
+   }
+  ]
+ },
+ {
+  "id": 14,
+  "start": 76.4,
+  "end": 78.7,
+  "narration": "And on top of all of that: my skill files,",
+  "mode": "hidden",
+  "object": "The FILE-BROWSER WINDOW (known: my-second-brain/ with me.md, business.md, priorities.md, skills/) docking into the reserved top-center zone.",
+  "action": "The known file-browser window slides down from off-canvas top and docks \u2014 literally 'on top of' the machine, position enacting the phrase \u2014 into the empty top-center zone that has been kept clear since beat 7. Nothing shifts to make room; the space was always waiting. On 'skill files' the 'skills/' row glows lime.",
+  "continuity": "This is the exact window from Act 1, re-entering unchanged. It stays docked top for beats 15-20 as one endpoint of the HOW wire. Machine below keeps ticking throughout.",
+  "copy": {
+   "fileWindow": [
+    "my-second-brain/",
+    "me.md",
+    "business.md",
+    "priorities.md",
+    "skills/"
+   ],
+   "highlight": "skills/ row, lime"
+  },
+  "sync": [
+   {
+    "at": 77,
+    "event": "file-browser window slides down and docks top-center on 'on top of all of that'"
+   },
+   {
+    "at": 78.2,
+    "event": "'skills/' row glows lime on 'skill files'"
+   }
+  ]
+ },
+ {
+  "id": 15,
+  "start": 78.7,
+  "end": 88.1,
+  "narration": "my recipes. When Claude edits a video or drafts a reply, it reads the recipe from a file and the facts from the base.",
+  "mode": "hidden",
+  "object": "A TASK CHIP ('TASK: edit video') between the file window and the cylinder, fed by TWO ARROWS \u2014 one down from skills/, one up from the database.",
+  "action": "On 'recipes', two file rows fan out of skills/ ('edit-video.md', 'draft-reply.md') and edit-video.md briefly opens a corner-peek showing three tiny numbered step-lines \u2014 a recipe pictured as steps, not just named. On 'edits a video' a lime-border task chip 'TASK: edit video' appears in the open mid space between window and cylinder. Then the reading is enacted as two draws: on 'reads the recipe from a file' an arrow draws DOWN from edit-video.md into the chip and a tiny numbered-steps page glyph travels along it; on 'the facts from the base' a second arrow draws UP from the cylinder and three tiny row-bars travel along it. The chip flashes lime \u2713 when both arrive: one task, two visible inputs.",
+  "continuity": "File window (top, from beat 14) and cylinder (center) are the two endpoints \u2014 no new geography, the arrows connect what already exists. Task chip + both arrows persist into beat 16 where they get named HOW/WHAT.",
+  "copy": {
+   "recipeFiles": [
+    "edit-video.md",
+    "draft-reply.md"
+   ],
+   "recipePeek": "corner-peek of edit-video.md: '1. \u2026  2. \u2026  3. \u2026' micro step-lines",
+   "taskChip": "TASK: edit video",
+   "travelers": "numbered-steps page glyph (from file) / 3 row-bars (from base)"
+  },
+  "sync": [
+   {
+    "at": 79,
+    "event": "recipe files fan out of skills/, edit-video.md corner-peeks its 3 steps, on 'my recipes'"
+   },
+   {
+    "at": 81.3,
+    "event": "task chip 'TASK: edit video' appears on 'edits a video'"
+   },
+   {
+    "at": 84.6,
+    "event": "arrow file\u2192chip draws, steps-glyph travels, on 'reads the recipe from a file'"
+   },
+   {
+    "at": 86.5,
+    "event": "arrow base\u2192chip draws, row-bars travel, on 'facts from the base'"
+   },
+   {
+    "at": 87.5,
+    "event": "task chip flashes lime \u2713 as both inputs land"
+   }
+  ]
+ },
+ {
+  "id": 16,
+  "start": 88.1,
+  "end": 93.4,
+  "narration": "So the HOW comes from the files, and the WHAT comes from the base. Always.",
+  "mode": "hidden",
+  "object": "TWO PERMANENT ARROW LABELS \u2014 'HOW' stamped on the file\u2192chip arrow, 'WHAT' stamped on the base\u2192chip arrow.",
+  "action": "The two arrows from beat 15 thicken into permanent wiring and each receives a Space Grotesk 800 CAPS label ON its word: 'HOW' locks onto the file arrow, 'WHAT' locks onto the base arrow \u2014 the rule becomes part of the machine's anatomy, not a caption. On 'Always' a small lime plate 'ALWAYS' stamps at the junction with a marker wipe, and both arrows do one synchronized pulse (a glyph and a row-bar travel simultaneously, once more, silently).",
+  "continuity": "Exactly the beat-15 scene, hardened: temp arrows \u2192 permanent wires. 'TYPED BY ME: 0' tile retires here (fades). The labeled HOW/WHAT wiring stays visible in the full diagram through beat 19.",
+  "copy": {
+   "headline": "HOW = FILES \u00b7 WHAT = BASE",
+   "marker": "ALWAYS (marker wipe on the stamp plate)",
+   "arrowLabels": [
+    "HOW",
+    "WHAT"
+   ],
+   "plate": "ALWAYS"
+  },
+  "sync": [
+   {
+    "at": 88.4,
+    "event": "'HOW' label locks onto file arrow on 'HOW'"
+   },
+   {
+    "at": 90.3,
+    "event": "'WHAT' label locks onto base arrow on 'WHAT'"
+   },
+   {
+    "at": 92.4,
+    "event": "'ALWAYS' plate stamps + marker wipe + both arrows pulse once in sync"
+   }
+  ]
+ },
+ {
+  "id": 17,
+  "start": 93.4,
+  "end": 100.7,
+  "narration": "And then one dashboard that reads all of that live. So I see my whole business on one screen.",
+  "mode": "hidden",
+  "object": "THE DASHBOARD WINDOW (known: dark window, title bar + 3 dots, stat tiles + lime line chart + bars) docking into the reserved right zone.",
+  "action": "The dashboard window slides in and docks into the empty canvas-right zone (reserved since beat 7 \u2014 nothing moves, zero reflow) on 'one dashboard'. A lime wire connects cylinder\u2192dashboard on 'reads all of that', and the window fills itself LIVE in reading order: stat tiles count up (tabular), the lime line chart draws left-to-right, bars rise \u2014 and mid-draw one orbiting loop ticks and the chart visibly extends by one point: 'live' proven as the picture moving because the machine ticked.",
+  "continuity": "Machine cluster untouched \u2014 the right dock was kept empty from the start, so the dashboard arrives without a single element shifting. Dashboard persists into beats 18-20 as the machine's face; its '4,832 ROWS' tile matches the cylinder counter exactly.",
+  "copy": {
+   "headline": "WHOLE BUSINESS. ONE SCREEN.",
+   "marker": "ONE SCREEN (marker wipe)",
+   "statTiles": [
+    "\u20ac14,910 MRR",
+    "312 MSGS",
+    "4,832 ROWS"
+   ],
+   "tileStyle": "JetBrains Mono tabular in fixed tiles"
+  },
+  "sync": [
+   {
+    "at": 94,
+    "event": "dashboard window docks into reserved right zone on 'one dashboard'"
+   },
+   {
+    "at": 95.2,
+    "event": "lime wire cylinder\u2192dashboard on 'reads all of that'"
+   },
+   {
+    "at": 96,
+    "event": "tiles count up + line chart draws on 'live'"
+   },
+   {
+    "at": 98.4,
+    "event": "a loop ticks and the chart extends one point (live proof)"
+   },
+   {
+    "at": 99.4,
+    "event": "headline + marker wipe on 'one screen'"
+   }
+  ]
+ },
+ {
+  "id": 18,
+  "start": 100.7,
+  "end": 105.5,
+  "narration": "And then the AI model comes last. But honestly, that is the least important part.",
+  "mode": "hidden",
+  "object": "THE MODEL CHIP \u2014 a deliberately tiny mono chip 'AI MODEL' \u2014 plugging into one small socket beside the task chip.",
+  "action": "A tiny chip drifts in slowly and clicks into a small socket beside the task chip on 'comes last' \u2014 visibly the SMALLEST object on the canvas, dwarfed by the cylinder, windows and loops the viewer just watched get built. On 'least important part' a thin silver measuring bracket flashes against it for half a second (its smallness made explicit, measured) and a quiet Playfair italic aside settles beneath it. The size hierarchy IS the argument: sixty seconds of machine, one second of plug.",
+  "continuity": "Nothing else changes or moves \u2014 the full machine from beat 17 holds still and keeps ticking; the chip is the single new element and the last part ever added. Full diagram now complete for the naming in beat 19.",
+  "copy": {
+   "chip": "AI MODEL",
+   "chipStyle": "smallest chip on canvas, silver border, mono",
+   "aside": "the least important part",
+   "asideStyle": "Playfair italic, silver, small, below the chip"
+  },
+  "sync": [
+   {
+    "at": 101.6,
+    "event": "tiny 'AI MODEL' chip clicks into socket on 'comes last'"
+   },
+   {
+    "at": 103.4,
+    "event": "silver measuring bracket flashes against the chip"
+   },
+   {
+    "at": 104.2,
+    "event": "Playfair aside fades in on 'least important part'"
+   }
+  ]
+ },
+ {
+  "id": 19,
+  "start": 105.5,
+  "end": 107.8,
+  "narration": "This right here is a business brain.",
+  "mode": "hidden",
+  "replaySpike": true,
+  "object": "THE COMPLETE MACHINE \u2014 cylinder, four lists, four ticking loops, file window with HOW wire, dashboard with WHAT wire, tiny model chip \u2014 bracketed and NAMED.",
+  "action": "REPLAY SPIKE. The camera pulls back ~12% so the entire assembly fits with air; every lime wire in the diagram does one synchronized pulse traveling outward from the cylinder \u2014 one heartbeat through the whole organism; a lime corner-bracket draws around everything and the STAT PLATE clip-reveals beneath: 'A BUSINESS BRAIN'. The sixty-second build gets its name in one frame \u2014 the shot the viewer rewinds to.",
+  "continuity": "This is every object from beats 7-18, untouched, seen whole for the first time. The named, bracketed diagram is exactly what beat 20 greys out \u2014 maximum contrast set up here.",
+  "copy": {
+   "plate": "A BUSINESS BRAIN",
+   "plateStyle": "STAT PLATE \u2014 lime box, raisin Space Grotesk 800 CAPS, clip-reveal",
+   "marker": "BRAIN (plate reveal lands on the word)"
+  },
+  "sync": [
+   {
+    "at": 105.6,
+    "event": "camera pull-back, full diagram in frame on 'this right here'"
+   },
+   {
+    "at": 106.1,
+    "event": "one lime pulse travels outward through every wire \u2014 single heartbeat"
+   },
+   {
+    "at": 106.8,
+    "event": "bracket completes + STAT PLATE 'A BUSINESS BRAIN' clip-reveals on 'business brain'"
+   }
+  ]
+ },
+ {
+  "id": 20,
+  "start": 107.8,
+  "end": 114,
+  "narration": "And what the templates online sell you is a note about a business \u2014 not a complete second brain.",
+  "mode": "hidden",
+  "object": "THE MACHINE, GREYED \u2014 everything freezes and dims except the small file-browser window, which detaches and slides out alone into empty space.",
+  "action": "On 'the templates online sell you', the entire brain freezes mid-tick and greys out (the business.md-crack grey the viewer knows) \u2014 loop hands stop, counter stops at 4,832, chart flatlines grey. Only the little file window stays lit; every wire it had snaps off grey and it slides alone into the empty left half of the canvas, small and unconnected. Beneath it, Playfair italic: 'a note about a business.' On 'not a complete second brain' the greyed machine behind it flashes its outline once, silver \u2014 the ghost of everything the note is missing. Hold, settle to black.",
+  "continuity": "Direct inversion of beat 19: the exact diagram just named 'A BUSINESS BRAIN' is now the grey backdrop, and one of its own parts \u2014 the file window from Act 1 \u2014 is revealed as ALL the templates ever sold. Nothing new is drawn; the argument is made entirely by subtraction.",
+  "copy": {
+   "headline": "A NOTE. NOT A BRAIN.",
+   "marker": "NOTE (marker wipe)",
+   "aside": "a note about a business.",
+   "asideStyle": "Playfair italic, silver",
+   "greyRule": "all lime desaturates to grey except the lone file window; counter freezes at 4,832"
+  },
+  "sync": [
+   {
+    "at": 108.6,
+    "event": "machine freezes mid-tick and greys on 'templates online sell you'"
+   },
+   {
+    "at": 110.2,
+    "event": "file window detaches, wires snap grey, slides out alone on 'a note'"
+   },
+   {
+    "at": 111.2,
+    "event": "Playfair 'a note about a business.' + headline 'A NOTE. NOT A BRAIN.' with marker wipe"
+   },
+   {
+    "at": 112.6,
+    "event": "grey machine outline flashes silver once on 'complete second brain'"
+   },
+   {
+    "at": 113.7,
+    "event": "hold, settle to black"
+   }
+  ]
+ }
+]

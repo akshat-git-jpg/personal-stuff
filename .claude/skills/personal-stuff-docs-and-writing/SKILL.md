@@ -28,13 +28,13 @@ Every fact has exactly ONE home; everything else links to it. A doc that drifts 
 - Every new folder: `README.md` (orients a human) + `CLAUDE.md` (tells Claude how to operate there) from day one. Sub-folder CLAUDE.mds are not auto-loaded.
 - **CLAUDE.md must not import/duplicate its README** (plan 026 removed that pattern). Keep CLAUDE.md operational: rules, gotchas, commands. Target ≤12KB (plan 028 trimmed tracker-app's for this).
 - Superseded design belongs in a `HISTORY.md` marked "never code against it" (tracker-app pattern), not inline in CLAUDE.md.
-- Stub marker convention: `<!-- stub: flesh out -->` — leave it when scaffolding, so the `audit-repo-route` skill can find unfinished docs.
+- Stub marker convention: `<!-- stub: flesh out -->` — leave it when scaffolding, so the routing maintainer job can find unfinished docs.
 - Skill frontmatter descriptions: ≤500 chars (see **personal-stuff-change-control**).
 - Date-stamp volatile facts ("as of YYYY-MM-DD") — counts, URLs, versions, statuses.
 
 ## Routing-map maintenance
 
-Mechanical drift in the root "Find it fast" table, dead links, missing READMEs → run the existing `audit-repo-route` skill (personal account) rather than hand-auditing; review its fixes via `git diff`.
+Mechanical drift in the root "Find it fast" table, dead links, missing READMEs → run the existing `routing` maintainer job rather than hand-auditing; review its fixes via `git diff`.
 
 ## Prose → humanizer or i-have-adhd, by audience
 

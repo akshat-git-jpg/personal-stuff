@@ -1,0 +1,93 @@
+{
+  "scenes": [
+    {
+      "viz": "hero",
+      "durationInFrames": 150,
+      "props": {
+        "eyebrow": "BuildLoop — Fig. 01 · Motion Kit",
+        "headlineWords": ["EVERY", "CONCEPT,", "MADE", "VISUAL."],
+        "markIndex": 3,
+        "counterpoint": "The motion kit — on brand, and built live.",
+        "buttonLabel": "Press play →",
+        "bg": "grid-dark"
+      }
+    },
+    {
+      "viz": "network",
+      "durationInFrames": 165,
+      "props": {
+        "eyebrow": "Your agents, one loop",
+        "hub": "Command",
+        "nodes": ["INBOX", "CONTENT", "SALES", "OPS", "RESEARCH", "FINANCE"],
+        "bg": "grid-dark"
+      }
+    },
+    {
+      "viz": "lineChart",
+      "durationInFrames": 165,
+      "props": {
+        "eyebrow": "Revenue · last 10 months",
+        "title": "Monthly recurring revenue",
+        "points": [11, 14, 13, 21, 18, 26, 24, 33, 38, 46],
+        "xLabels": ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT"],
+        "yMax": 48,
+        "prefix": "€",
+        "suffix": "k",
+        "bg": "grid-light"
+      }
+    },
+    {
+      "viz": "barChart",
+      "durationInFrames": 159,
+      "props": {
+        "eyebrow": "Hours saved / week by routine",
+        "bars": [
+          { "label": "EMAIL", "value": 4 },
+          { "label": "CONTENT", "value": 7 },
+          { "label": "SALES", "value": 5 },
+          { "label": "REPORTS", "value": 9 },
+          { "label": "ADMIN", "value": 12 },
+          { "label": "SUPPORT", "value": 6 }
+        ],
+        "bg": "grid-light"
+      }
+    },
+    {
+      "viz": "kpiStats",
+      "durationInFrames": 150,
+      "props": {
+        "eyebrow": "Make the numbers land",
+        "stats": [
+          { "value": 4000, "suffix": "+", "label": "builders shipping" },
+          { "value": 55, "suffix": " min", "label": "to first ship" },
+          { "value": 12, "label": "routines running" },
+          { "value": 0, "label": "black boxes" }
+        ],
+        "bg": "grid-dark"
+      }
+    },
+    {
+      "viz": "layerStack",
+      "durationInFrames": 165,
+      "props": {
+        "eyebrow": "How the system stacks up",
+        "layers": [
+          { "tag": "04", "name": "INTERFACE", "sub": "what you see" },
+          { "tag": "03", "name": "AGENTS", "sub": "the workers" },
+          { "tag": "02", "name": "MEMORY", "sub": "what it knows" },
+          { "tag": "01", "name": "DATA", "sub": "the source of truth" }
+        ],
+        "bg": "grid-dark"
+      }
+    },
+    {
+      "viz": "comparison",
+      "durationInFrames": 165,
+      "props": {
+        "left": { "label": "MANUAL", "stat": "8 hrs", "sub": "per task, every week" },
+        "right": { "label": "AUTOMATED", "stat": "12 min", "sub": "set once, runs forever" },
+        "tasks": 5
+      }
+    }
+  ]
+}

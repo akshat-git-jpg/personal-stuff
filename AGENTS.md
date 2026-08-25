@@ -20,20 +20,60 @@ Also loaded by Claude and equally binding here: [decisions.md](decisions.md),
 
 | CLAUDE.md says | In Codex, use |
 |---|---|
-| `.claude/skills/<name>/SKILL.md` | `.agents/skills/<name>/SKILL.md` |
-| `pipelines/.claude/skills/<name>` | `.agents/skills/<name>` (already mirrored) |
-| `.claude/settings.json` | `.codex/config.toml` — different format, not portable |
-| `.claude/hooks/` | `.agents/hooks/` + `.agents/hooks.json` |
+| `.claude/skills/<name>/SKILL.md` | `~/.codex/skills/<name>/SKILL.md` |
+| `pipelines/.claude/skills/<name>` | `~/.codex/skills/<name>` (already mirrored) |
+| `.claude/settings.json` | `~/.codex/config.toml` — different format, not portable |
+| `.claude/hooks/` | `~/.codex/hooks.json` |
 | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` |
 | a nested `CLAUDE.md` | the sibling nested `AGENTS.md`, else read the `CLAUDE.md` directly |
 
-`.agents/skills/` holds **symlinks** into `.claude/skills/` and
-`pipelines/.claude/skills/`. There is one copy of every skill on disk. Edit the
-real file under `.claude/skills/` or `pipelines/.claude/skills/` — never the
-symlink path.
+**Skills live in `$CODEX_HOME/skills` (default `~/.codex/skills`), NOT in the
+repo.** Codex 0.149 discovers skills only there and inside installed plugins;
+its own help says "Installs into `$CODEX_HOME/skills/<skill-name>`". In this
+version `.agents/` is the **plugin** root (`~/.agents/plugins/marketplace.json`)
+and `.agents/skills/` is read by nothing — a mirror was briefly built there in
+error and removed the same day (decisions.md 2026-08-24).
 
-`scripts/relink.sh` rebuilds the `.agents/skills/` mirror. Run it after adding,
-renaming, or deleting any skill.
+`~/.codex/skills/` holds **symlinks** into this repo's `.claude/skills/`. One copy
+of every skill on disk. Edit the real file under `.claude/skills/` — never the link.
+
+It mirrors only the names listed in **`.claude/codex-skills.txt`**, not everything
+in `.claude/skills/`. Claude reads a repo's `.claude/skills/` automatically and so
+gets all 77 for free; Codex has no per-repo path, so anything mirrored here is paid
+for in *every* Codex session, in every project. The list is deliberately short
+(12 as of 2026-08-25). Add a name to it only if you want that skill everywhere.
+
+`scripts/relink.sh` rebuilds that mirror (via
+`scripts/mirror-codex-skills.sh`). Run it after changing `.claude/codex-skills.txt`.
+
+### The other ~120 skills: read them yourself
+
+**IMPORTANT FOR CODEX.** The 12 mirrored names are a fraction of what this repo has.
+They are the always-on ones, not the useful ones. Everything else is sitting in the
+working tree and Codex will never be told about it:
+
+| Where | Roughly | What is in there |
+|---|---|---|
+| `.claude/skills/` | 77 | repo operation, deploy, commit flow, Cloudflare/Workers, the CLIs |
+| `pipelines/.claude/skills/` | 50 | YouTube, video, Pinterest, TTS, the HyperFrames packs |
+
+So before starting real work in this repo, **list those two directories and read the
+frontmatter `description` of anything that looks relevant** — that is the same
+name-and-description index Claude gets automatically. `.claude/skills/personal-stuff-repo-map/`
+is the best entry point when you do not know which one you want.
+
+Do NOT solve a problem this repo already has a skill for. Deploying a Worker,
+committing, raising a PR, cutting a voiceover and rendering a video all have one.
+
+**Codex skills are not slash commands.** Claude exposes a skill as
+`/<skill-name>`; Codex injects a name-and-description list the model reads with
+`skills.read`. Ask for one in plain language — `/yt-video-edit` will never
+autocomplete.
+
+Two consequences of that mirror being **global**: these 12 skills load in every
+project, including ZluriHQ work repos where several do not apply; and the links
+point at `/Users/kbtg/codebase/personal-stuff`, so moving or deleting that
+checkout breaks them.
 
 ## What does NOT carry over
 
@@ -48,6 +88,51 @@ renaming, or deleting any skill.
   any Codex needs under `[mcp_servers]` in `.codex/config.toml`.
 - **Skill frontmatter.** Skills are written for Claude. A skill that calls a
   Claude-only tool by name, or relies on a hook, needs judgement under Codex.
+
+## Codex also runs HEADLESS here, as a boss crew
+
+Since 2026-08-25 Codex is one of boss's three executors
+(`tooling/boss/executors/codex.sh`, alongside `claude-p` and `agy`). A plan whose
+frontmatter says `executor: codex` is implemented by a backgrounded `codex exec` in
+a leased worktree. agy stays the default; codex is opted into per plan
+(`tooling/boss/data/rules.md`).
+
+**This changes who is reading a skill.** A crew has no human attached: nothing reads
+its output while it works, and a turn that ends in a question ends the dispatch. A
+mirrored skill that pauses to confirm an account, a destination, or an approval will
+stall a crew rather than prompt anyone — it happened on day one with
+`github-router`. The executor injects a "you are non-interactive" addendum to
+counter it, but when you WRITE or edit a skill that a crew might load, prefer a
+documented default over a question.
+
+## On Windows, run the mirror after cloning
+
+Nothing Codex reads is committed — `~/.codex/skills` is built on each machine —
+so the mirror must be generated after cloning, never assumed.
+
+`git clone` on Windows without `core.symlinks` also writes the 12
+`.claude/skills/` entries that point into `pipelines/` as plain TEXT FILES
+holding their target path, which breaks those skills for **Claude** too.
+
+In Git Bash, from the repo root:
+
+```bash
+git config core.symlinks true && git checkout -- .   # if the clone already degraded them
+bash scripts/relink.sh                               # rebuilds the Codex mirror + push gate
+```
+
+Re-run `scripts/relink.sh` after changing `.claude/codex-skills.txt`. Adding or
+renaming a skill that is not on that list needs nothing: Claude picks it up from
+`.claude/skills/` on the next session, whichever account is logged in.
+
+Without admin or Developer Mode, MSYS `ln -s` makes an NTFS **junction** rather
+than a symlink. That reads fine, and `scripts/mirror-codex-skills.sh` detects it
+(`[ -L ]` alone does not — decisions.md 2026-08-11). Verify with
+`bash scripts/test-mirror-codex-skills.sh`.
+
+Note that the rest of this repo's tooling is macOS-only: `pp-work`, `dcg`, `rtk`,
+the VPS access and the secrets escrow do not run on Windows. Skills and knowledge
+travel; the tooling does not.
 
 ## Local overrides
 

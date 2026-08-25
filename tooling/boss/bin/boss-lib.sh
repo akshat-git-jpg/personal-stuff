@@ -9,9 +9,92 @@ REPO_ROOT="$(cd "$BOSS_HOME/../.." && pwd)"   # tooling/boss -> repo root
 # future one) then simply never sees it — patching those call sites one at a time is
 # how a second site gets missed. Byte-identical behaviour when BOSS_STATE_DIR is unset.
 STATE_DIR="${BOSS_STATE_DIR:-$BOSS_HOME/state}"; mkdir -p "$STATE_DIR"
+BOSS_NL=$'\n'   # a literal newline, for the multi-line guards below
 
 meta_get()    { local f="$STATE_DIR/$1.meta"; [ -f "$f" ] || return 1; grep "^$2=" "$f" | tail -1 | cut -d= -f2-; }
-meta_set()    { echo "$2=$3" >> "$STATE_DIR/$1.meta"; }
+# meta_set writes one `key=value` LINE, so a value carrying a newline silently
+# corrupts the file: meta_get's `grep "^key="` returns only the first line, and
+# every following line becomes a bogus key. `test_cmd` is the value that actually
+# arrives multi-line (fm_get resolves a YAML `key: |` block scalar verbatim), and
+# the corruption surfaced far downstream as greenlight parking on `unexpected EOF`.
+# Refuse loudly instead. Callers on the dispatch path check the exit status.
+meta_set()    {
+  case "$3" in
+    *"$BOSS_NL"*)
+      echo "FATAL: meta_set $2 for $1 got a MULTI-LINE value; state/<id>.meta is line-based." >&2
+      echo "  Write it as one bare line (join steps with && ). Value began: $(printf '%s' "$3" | head -1)" >&2
+      return 1 ;;
+  esac
+  echo "$2=$3" >> "$STATE_DIR/$1.meta"
+}
+
+# boss_check_test_cmd <cmd> — echo the cleaned command, or fail with a diagnosis.
+# Two shapes have each cost a merge cycle, and both were documented as prose that
+# was then violated anyway (CLAUDE.md, "Dispatch and merge plumbing"):
+#   1. a MULTI-LINE value corrupts state/<pr>.meta (see meta_set above);
+#   2. an inner `bash -c '...'` double-wraps, because boss-merge already wraps the
+#      value in `gtimeout ... bash -c`, and greenlight parks on `unexpected EOF
+#      while looking for matching quote`.
+# Catching both at dispatch turns a 10-minute merge failure into a 1-second refusal.
+boss_check_test_cmd() {
+  local cmd="$1"
+  # Trim surrounding whitespace. A `key: |` block scalar routinely arrives with a
+  # trailing newline and that alone is harmless, so trim before judging.
+  cmd="${cmd#"${cmd%%[![:space:]]*}"}"
+  cmd="${cmd%"${cmd##*[![:space:]]}"}"
+  case "$cmd" in
+    *"$BOSS_NL"*)
+      echo "REFUSED: test_cmd spans multiple lines." >&2
+      echo "  state/<pr>.meta is line-based, so a multi-line value is silently truncated" >&2
+      echo "  and greenlight parks later on a syntax error. Rewrite the plan frontmatter" >&2
+      echo "  as ONE bare line, joining steps with &&." >&2
+      return 1 ;;
+  esac
+  case "$cmd" in
+    *"bash -c"*|*"sh -c"*)
+      echo "REFUSED: test_cmd contains its own 'bash -c' wrapper." >&2
+      echo "  boss-merge already wraps it in: gtimeout -k 30 <ttl>s bash -c <cmd>." >&2
+      echo "  The inner wrapper double-wraps and greenlight parks with" >&2
+      echo "  'unexpected EOF while looking for matching quote'. Write && and cd bare." >&2
+      return 1 ;;
+  esac
+  printf '%s' "$cmd"
+}
+
+# Fix-up budget, PERSISTED. The "one fix-up then blocked" policy lived only in the
+# boss session's working memory — no `state/*.meta` key ever recorded it. A compacted
+# or restarted boss cannot tell round 1 from round 3, so the bound silently became
+# unbounded, which is exactly the failure shape the policy exists to prevent.
+#
+# The executor's `dispatch` verb is the right choke point: both paths go through it,
+# and they are distinguishable there.
+#   - boss-dispatch.sh truncates $pr.meta before invoking the executor, so there is
+#     no `pid` yet => a FRESH start, counter resets. That is also what gives an
+#     amended plan a clean budget: a full re-dispatch is a fresh start by definition.
+#   - a DIRECT executor dispatch — the correct way to fix up (see CLAUDE.md; never
+#     boss-dispatch, which force-resets the branch and destroys crew commits) — runs
+#     against an existing meta that still carries `pid` => a fix-up round, counted.
+#
+# A `resume` is NOT a dispatch, so a turn-capped continuation never spends this
+# budget. That is deliberate: truncation is not a failure (see claude-p's `resume`).
+# Raise the bound for one run with BOSS_MAX_FIXUPS=2.
+BOSS_MAX_FIXUPS="${BOSS_MAX_FIXUPS:-1}"
+boss_fixup_claim() {
+  local id="$1" prev n
+  prev=$(meta_get "$id" pid 2>/dev/null) || prev=""
+  [ -n "$prev" ] || return 0          # first dispatch of this PR — not a fix-up
+  n=$(meta_get "$id" fixups 2>/dev/null) || n=""
+  case "$n" in ''|*[!0-9]*) n=0 ;; esac
+  n=$(( n + 1 ))
+  if [ "$n" -gt "$BOSS_MAX_FIXUPS" ]; then
+    echo "REFUSED: PR $id has already used $(( n - 1 )) fix-up round(s) (BOSS_MAX_FIXUPS=$BOSS_MAX_FIXUPS)." >&2
+    echo "  Park it as boss:blocked instead of re-dispatching. Override for one run with BOSS_MAX_FIXUPS=$n." >&2
+    return 1
+  fi
+  meta_set "$id" fixups "$n"
+  echo "boss: PR $id fix-up round $n/$BOSS_MAX_FIXUPS" >&2
+  return 0
+}
 
 # boss_head_advanced <id> — 0 if the task's worktree HEAD moved since dispatch.
 # A crew that reports success without advancing HEAD produced nothing (or ran on
@@ -261,6 +344,19 @@ boss_dep_prelude() {
     seen="$seen $dir"
     git -C "$REPO_ROOT" cat-file -e "$branch:$dir/package.json" 2>/dev/null || continue
     prelude="${prelude}(cd $dir && npm install --no-audit --no-fund --silent) && "
+    # A leased slot has no .dev.vars — it is gitignored, so `wt`'s reset never
+    # brings one. Every tracker e2e and every ui:true shot logs in through
+    # /dev-login, which the Worker serves ONLY when DEV_AUTH=1, so without it the
+    # page renders the literal text "Not found" and the failure reads as a broken
+    # app or an unprovable mutation gate (tracker CLAUDE.md, PRs #172/#173/#176).
+    # Seed it wherever the app ships a .dev.vars.example. DEV_AUTH is a dev-only
+    # flag, not secret material, and an existing file is never overwritten.
+    if git -C "$REPO_ROOT" cat-file -e "$branch:$dir/.dev.vars.example" 2>/dev/null; then
+      # `echo`, not a printf escape: this prelude is prepended to test_cmd and stored
+      # as ONE key=value line in state/<pr>.meta, and meta_set refuses a multi-line
+      # value. An escape that expands at build time would corrupt that line.
+      prelude="${prelude}(cd $dir && { [ -f .dev.vars ] || echo DEV_AUTH=1 > .dev.vars; }) && "
+    fi
   done <<EOF
 $(printf '%s' "$cmd" | grep -oE '\bcd[[:space:]]+[^&|;[:space:]]+' | sed -E 's/^cd[[:space:]]+//' | sed -E 's/[\"'"'"']//g')
 EOF
@@ -292,6 +388,25 @@ boss_hygiene_gate() {
     *) arts=$(echo "$files" | grep -E '(^|/)run-log\.json$' || true) ;;
   esac
   [ -n "$arts" ] && echo "commits regenerated artifact(s): $(echo "$arts" | tr '\n' ' ')"
+
+  # 4. A migration nobody applies. Plan 239 (PR#200) landed
+  #    apps/tutorial-tracker-app/migrations/0003_card_slug.sql with an empty
+  #    `deploy:`, and `npm run deploy` there is only "build && wrangler deploy" —
+  #    no migration step. Production `cards` had no `slug` column while the landed
+  #    code wrote one; it was caught by hand, not by a gate. A schema change is a
+  #    deploy by definition, so the frontmatter must say how it ships.
+  #    Escape hatch for a migration that is genuinely applied elsewhere:
+  #    `migration_deploy: external` in the plan.
+  local migs mig_deploy mig_esc
+  migs=$(echo "$files" | grep -E '(^|/)migrations/[^/]+\.sql$' || true)
+  if [ -n "$migs" ] && [ -n "$planfile" ] && [ -f "$planfile" ]; then
+    mig_deploy=$(fm_get deploy "$planfile" 2>/dev/null)
+    mig_esc=$(fm_get migration_deploy "$planfile" 2>/dev/null)
+    case "$mig_esc" in
+      external|manual|done) : ;;
+      *) [ -z "$mig_deploy" ] && echo "adds migration(s) but frontmatter has no deploy: $(echo "$migs" | tr '\n' ' ') — set deploy: (the command that applies it) or migration_deploy: external" ;;
+    esac
+  fi
   return 0
 }
 
@@ -307,7 +422,37 @@ boss_ui_gate() {
   case "$ui" in true|yes|1) ;; *) return 0 ;; esac
   git -C "$REPO_ROOT" diff --name-only "origin/main...$branch" 2>/dev/null \
     | grep -qiE '\.(png|jpg|jpeg|webp|gif)$' && return 0
+  local hint
+  hint=$(boss_ui_ignored_paths "$plan")
+  if [ -n "$hint" ]; then
+    echo "plan is ui:true but the branch commits no image — and the path(s) it names are GITIGNORED, so the crew could never have committed one: $hint"
+    return 0
+  fi
   echo "plan is ui:true but the branch commits no image (screenshot evidence missing)"
+}
+
+# boss_ui_ignored_paths <planfile> — echo any image path the plan names that
+# git would refuse to track. PR#200/plan 239 told its crew to commit
+# apps/tutorial-tracker-app/docs/shots/new-video-slug.png; /docs/shots is
+# gitignored (.gitignore:24), so `ui: true` could never pass from that path and
+# the crew burned a round discovering it. Cheap to check, so check it at
+# DISPATCH — before a crew runs — not only in the merge message.
+boss_ui_ignored_paths() {
+  local plan="$1" p out=""
+  [ -f "$plan" ] || return 0
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    p="${p#./}"
+    # --no-index is required: without it check-ignore stays silent for a path that
+    # is already TRACKED, and the question here is "would git refuse to add this
+    # file", asked before the crew has created it. The cost is that a deliberately
+    # force-added file still reports — accepted, because the alternative is the
+    # gate saying nothing in exactly the case it exists for.
+    git -C "$REPO_ROOT" check-ignore -q --no-index "$p" 2>/dev/null && out="$out $p"
+  done <<EOF
+$(grep -oE '[A-Za-z0-9_./-]+\.(png|jpg|jpeg|webp|gif)' "$plan" 2>/dev/null | sort -u)
+EOF
+  printf '%s' "${out# }"
 }
 
 # boss_mutation_gate <branch> <planfile> <worktree> — THE fix for the 2026-08-02
@@ -419,10 +564,31 @@ BOSS_GH_USER="${BOSS_GH_USER:-akshat-git-jpg}"
 boss_assert_gh() {
   local u; u=$(gh api user -q .login 2>/dev/null)
   [ "$u" = "$BOSS_GH_USER" ] && return 0
+  # Remember whose gh session we are taking over so boss_gh_restore can hand it
+  # back on exit. `gh auth switch` changes the GLOBAL active account, so without
+  # this every boss write path left the owner switched to BOSS_GH_USER and they
+  # had to re-switch by hand before any unrelated (e.g. ZluriHQ work-repo) gh
+  # call. The work account stays logged in throughout -- only "active" moves.
+  if [ -n "$u" ]; then printf '%s' "$u" > "$STATE_DIR/gh_prev"; else rm -f "$STATE_DIR/gh_prev"; fi
   gh auth switch --hostname github.com --user "$BOSS_GH_USER" >/dev/null 2>&1
   u=$(gh api user -q .login 2>/dev/null)
   [ "$u" = "$BOSS_GH_USER" ] || { echo "FATAL: gh active account is '${u:-none}', need $BOSS_GH_USER (run: gh auth switch --user $BOSS_GH_USER)" >&2; return 1; }
-  echo "boss: gh account auto-switched to $BOSS_GH_USER" >&2
+  echo "boss: gh account auto-switched to $BOSS_GH_USER (restores on exit)" >&2
+}
+
+# Hand the owner's gh account back. Idempotent and safe to call unconditionally --
+# a no-op when boss never switched. Every boss entry script traps this on EXIT.
+# Set BOSS_GH_KEEP=1 to leave boss's account active (handy when chaining boss
+# commands by hand and you don't want a switch-and-restore on every call).
+boss_gh_restore() {
+  [ "${BOSS_GH_KEEP:-0}" = "1" ] && return 0
+  local prev; prev=$(cat "$STATE_DIR/gh_prev" 2>/dev/null) || return 0
+  rm -f "$STATE_DIR/gh_prev"
+  [ -n "$prev" ] || return 0
+  [ "$prev" = "$BOSS_GH_USER" ] && return 0
+  gh auth switch --hostname github.com --user "$prev" >/dev/null 2>&1 \
+    && echo "boss: gh account restored to $prev" >&2
+  return 0
 }
 
 # --- stall detection (fix: `alive` only proves the PID exists; a process blocked

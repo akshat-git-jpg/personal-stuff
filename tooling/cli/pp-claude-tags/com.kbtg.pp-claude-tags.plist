@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kbtg.pp-claude-tags</string>
+
+  <!-- Claude Code can update and restart itself with no shell involved, which
+       reverts the agents-view tag patch. WatchPaths reacts to a new build
+       landing; StartInterval is the backstop for the case where the watch fires
+       while a ~310MB binary is still being written (the patch is skipped then,
+       and the next tick picks it up). Once patched, each run is a ~0.06s no-op
+       because the stamp matches, so the interval costs nothing. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/kbtg/.local/bin/pp-claude-tags</string>
+  </array>
+
+  <key>WatchPaths</key>
+  <array>
+    <string>/Users/kbtg/.local/share/claude/versions</string>
+  </array>
+
+  <key>StartInterval</key>
+  <integer>600</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/kbtg/.cache/pp-claude-tags.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/kbtg/.cache/pp-claude-tags.log</string>
+</dict>
+</plist>

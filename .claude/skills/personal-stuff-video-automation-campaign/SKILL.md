@@ -8,7 +8,7 @@ description: >-
 
 **Attended sessions only.** Phases 1c, 2, 3, and 4 carry OWNER GATE markers — explicit owner decisions recorded in `decisions.md` before their plan is written. If running unattended (cron, boss crew, `claude -p`): execute only up to the next OWNER GATE, then stop and report — never guess the owner's answer to unblock yourself.
 
-**Background first:** if you're new to this domain (voice-cloning, why the sync math works, lip-sync/GPU economics), read the sibling skill `video-and-tts-reference` before executing. That skill is the theory; this one is the executable campaign.
+**Background first:** if you're new to this domain (voice-cloning, why the sync math works, lip-sync/GPU economics), read `pipelines/video/CLAUDE.md` before executing. That doc is the theory; this one is the executable campaign.
 
 ## What changed (why this skill was rewritten 2026-07-12)
 
@@ -27,7 +27,7 @@ The campaign target is now **scaling `pipelines/youtube/final-workflow/`** — t
 | $/video | ~$48 at 12/mo (→ $43.83 at 18, $40.50 at 30 — reviewer share is the volume lever) | cost table in final-workflow-notes.md |
 | Processor-hours/video | unmeasured — **baseline it via the protocol below before claiming any improvement** | "Processor time log" table in final-workflow-notes.md (protocol below) |
 
-Cost context (as of 2026-07-12): ~$48/video at 12/mo; reviewer share ($150/mo ÷ volume) is the only pure volume lever; target <$10/video. Full cost table: **video-and-tts-reference** + `pipelines/youtube/final-workflow/final-workflow-notes.md`. If fal-lipsync is ever adopted, subtract ~$3.25/video — but see the fence below.
+Cost context (as of 2026-07-12): ~$48/video at 12/mo; reviewer share ($150/mo ÷ volume) is the only pure volume lever; target <$10/video. Full cost table: `pipelines/video/CLAUDE.md` + `pipelines/youtube/final-workflow/final-workflow-notes.md`. If fal-lipsync is ever adopted, subtract ~$3.25/video — but see the fence below.
 
 **Exit horizon (owner-calibrated 2026-07-12):** "beyond state of the art" for this project = autonomy + cost, not raw throughput. After videos/mo unsticks, the promotion path is (a) **autonomy** — widen past the read-only-first unattended policy (decisions.md 2026-07-11) only after ≥4 clean weeks, one class at a time; and (b) **cost** — toward <$10/video, where fal-lipsync un-deferral is the primary lever but remains OWNER-DEFERRED as of 2026-07-12: keep it fenced, do not build it; re-raise it only as a decision for the owner.
 
@@ -125,8 +125,8 @@ Three sub-builds (each its own plan; independent, any order):
 
 ## When NOT to use this skill
 
-- Domain theory — voice-cloning, why the sync math works this way, lip-sync/GPU economics → **video-and-tts-reference** (sibling skill; this campaign only executes against those decisions)
-- Hyperframes authoring mechanics → the pipelines-scoped `hyperframes*` skills; browsing generated media → `media-board` (localhost:4100)
+- Domain theory — voice-cloning, why the sync math works this way, lip-sync/GPU economics → `pipelines/video/CLAUDE.md` (the domain doc; this campaign only executes against those decisions)
+- Hyperframes authoring mechanics → the pipelines-scoped `hyperframes*` skills
 - Script/style generation for a specific channel → `yt-style-copy` + `pipelines/youtube/competitor-styles/`
 - "What's open across the whole repo / what next overall" → **personal-stuff-frontier**
 - De-risking an unproven external service/model → **personal-stuff-research-methodology**

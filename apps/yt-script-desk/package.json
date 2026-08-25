@@ -4,13 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5175",
+    "dev": ". ../../scripts/node22-path.sh && vite --port 5175",
     "dev:api": "node server/local.mjs",
     "dev:local": "concurrently -k -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev\"",
-    "build": "tsc -b && vite build",
-    "typecheck": "tsc -b",
+    "build": ". ../../scripts/node22-path.sh && tsc -b && vite build",
+    "typecheck": ". ../../scripts/node22-path.sh && tsc -b",
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": ". ../../scripts/node22-path.sh && vitest run",
     "shot": "node scripts/shot.mjs"
   },
   "dependencies": {

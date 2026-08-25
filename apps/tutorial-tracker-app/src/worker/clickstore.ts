@@ -12,14 +12,6 @@ export async function existingCodes(db: D1Database): Promise<Set<string>> {
   return new Set((results ?? []).map((r) => r.video_code));
 }
 
-export async function videoCodeForTitle(db: D1Database, title: string): Promise<string | null> {
-  const row = await db
-    .prepare("SELECT video_code FROM videos WHERE video_title = ? LIMIT 1")
-    .bind(title)
-    .first<{ video_code: string }>();
-  return row?.video_code ?? null;
-}
-
 export async function existingSlugs(db: D1Database, videoCode: string): Promise<Set<string>> {
   const { results } = await db
     .prepare("SELECT slug FROM links WHERE video_code = ?")
