@@ -1378,3 +1378,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 247-maintainer-uptime-and-crons-jobs — PR#208 247-maintainer-uptime-and-crons-jobs: the uptime and crons jobs — DONE
 - 248-maintainer-artifacts-job — PR#209 248-maintainer-artifacts-job: a published video's leftovers — DONE
 - 249-maintainer-claude-health-and-token-budget — PR#210 249-maintainer-claude-health-and-token-budget: the claude-health and token-budget jobs — DONE
+- 250-backfill-card-slugs — PR#211 250-backfill-card-slugs: backfill the slug for all 76 live cards — DONE
