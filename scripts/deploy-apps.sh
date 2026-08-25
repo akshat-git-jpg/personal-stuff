@@ -21,6 +21,11 @@ done
 APPS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../apps" && pwd)"
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Every app's own `deploy` script ends in wrangler, which refuses Node < 22 while the
+# machine default is deliberately Node 20. Fail here with an actionable message rather
+# than part-way through a multi-app deploy. See scripts/node22-path.sh.
+. "$SCRIPTS_DIR/node22-path.sh" || exit 1
+
 if [ "$SKIP_CHECKS" -eq 0 ]; then
   if ! "$SCRIPTS_DIR/check-apps.sh"; then
     echo "gate FAILED — no deploys"

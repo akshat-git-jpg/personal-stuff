@@ -3,11 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "typecheck": "tsc -b",
-    "preview": "vite preview",
-    "deploy": "npm run build && node scripts/patch-routes.mjs && wrangler deploy",
+    "dev": ". ../../scripts/node22-path.sh && vite",
+    "build": ". ../../scripts/node22-path.sh && tsc -b && vite build",
+    "typecheck": ". ../../scripts/node22-path.sh && tsc -b",
+    "preview": ". ../../scripts/node22-path.sh && vite preview",
+    "deploy": ". ../../scripts/node22-path.sh && npm run build && node scripts/patch-routes.mjs && wrangler deploy",
     "icons": "node scripts/make-icons.mjs"
   },
   "dependencies": {
