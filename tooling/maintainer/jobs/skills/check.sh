@@ -23,6 +23,8 @@ for d in "$HOME/.claude-work/skills" "$HOME/.claude-personal/skills" "$HOME/.cod
          ".claude/skills" "pipelines/.claude/skills"; do
   [ -d "$d" ] || continue
   for f in "$d"/*; do
+    # an empty dir leaves the glob unexpanded; that is not a dangling link
+    [ -e "$f" ] || [ -L "$f" ] || continue
     [ -e "$f" ] || note "dangling link: $f"
   done
 done

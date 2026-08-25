@@ -13,6 +13,9 @@ git rev-parse --git-dir >/dev/null 2>&1 || die "$ROOT is not a git repo"
 
 found=0
 note() { echo "- $1"; found=1; }
+# Subshell loops below cannot set `found`; they append to this instead.
+FOUND_FLAG="$(mktemp -t bigfiles-found)"
+trap '/bin/rm -f "$FOUND_FLAG"' EXIT
 
 echo "# bigfiles findings — $(today)"
 echo
@@ -27,12 +30,19 @@ echo "  shrink a clone; only a history rewrite does, and this job never performs
 echo
 
 echo "## 2. tracked files over ${MAXKB} KB"
+# Both loops below are `| while`, i.e. subshells, so a plain `found=1` inside
+# one is lost on the way out and the job reports "clean" while printing
+# findings. They raise the flag through a file instead.
+# Do NOT "simplify" either into $(...): a case pattern's unbalanced `)` closes
+# the command substitution early and the script stops parsing.
 git ls-tree -r -l HEAD | while read -r _ _ _ size path; do
   case "$size" in ''|*[!0-9]*) continue ;; esac
   if [ "$size" -gt $((MAXKB * 1024)) ]; then
     echo "- BIG-TRACKED $path ($((size / 1024)) KB)"
+    echo x >> "$FOUND_FLAG"
   fi
 done
+[ -s "$FOUND_FLAG" ] && found=1
 echo
 
 echo "## 3. tracked media — A CANDIDATE LIST, NEVER A VERDICT"
@@ -48,8 +58,12 @@ echo "## 4. untracked local junk (candidates for the archive, NOT for rm)"
 git status --porcelain --ignored 2>/dev/null | "$AWK" '$1=="!!"{print $2}' | while read -r p; do
   [ -f "$p" ] || continue
   kb=$(( $("$STAT" -f %z "$p" 2>/dev/null || echo 0) / 1024 ))
-  [ "$kb" -gt "$MAXKB" ] && echo "- LOCAL-JUNK $p (${kb} KB, gitignored)"
+  if [ "$kb" -gt "$MAXKB" ]; then
+    echo "- LOCAL-JUNK $p (${kb} KB, gitignored)"
+    echo x >> "$FOUND_FLAG"
+  fi
 done
+[ -s "$FOUND_FLAG" ] && found=1
 echo
 echo "  A gitignored file has NO copy in git. Removing one is a MOVE to"
 echo "  $ARCHIVE_ROOT/<date>-bigfiles/, never an rm."
