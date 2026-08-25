@@ -37,23 +37,31 @@ CONFIGS = [
 _ID = rb"[A-Za-z_$][\w$]*"
 
 # Strategy 1 — code shape:
-#   ...capExpanded:X}=hook(M), GATE=!1, [S]=React.useState(()=>make(host,GATE))
+#   ...capExpanded:X}=hook(M), GATE=!1, [S]=useState(()=>make(host,GATE))
+# The useState wrapper is `React.useState(...)` in some builds and a bare
+# minified call in others (2.1.243), so the `React.` half is optional.
 # The back-reference ties the flag to the store it is passed into, which is what
 # makes this specific enough to patch blind.
 BY_SHAPE = re.compile(
     rb"capExpanded:" + _ID + rb"\}=" + _ID + rb"\(" + _ID + rb"\),"
     rb"(" + _ID + rb")=!([01]),"
-    rb"\[" + _ID + rb"\]=" + _ID + rb"\.useState\(\(\)=>" + _ID + rb"\(" + _ID + rb",\1\)\)"
+    rb"\[" + _ID + rb"\]=(?:" + _ID + rb"\.)?" + _ID + rb"\(\(\)=>" + _ID + rb"\(" + _ID + rb",\1\)\)"
 )
 
 # Strategy 2 — the property name Anthropic wrote, which minification leaves
-# alone: the view store is told whether groups are on via
-# `attachView({groupsEnabled:<gate>})`. That names the gate variable exactly.
-# A bare `groupsEnabled:` is too loose (it also matches the props it is
-# destructured into downstream, which have no declaration), so the store call is
-# the anchor. Short minified names repeat across a 310MB bundle, so only a
-# declaration close to that call counts, and there must be exactly one.
-BY_PROP = re.compile(rb"attachView\(\{groupsEnabled:(" + _ID + rb")\}")
+# alone: the gate is handed around as `{groupsEnabled:<gate>}`. That names the
+# gate variable exactly, wherever it is read.
+#
+# It used to be enough to anchor on the store call `attachView({groupsEnabled:X})`
+# and look for X's declaration beside it. 2.1.243 split the bundle into chunks
+# and moved that call into a chunk of its own, where X is only a function
+# parameter — the declaration now lives in the caller. So every `groupsEnabled:`
+# read is treated as a candidate anchor instead, and only the ones with a
+# `<name>=!0/!1` declaration within NEAR bytes survive. Reads that are merely
+# props or parameters have no declaration nearby and drop out. Short minified
+# names repeat across a 344MB bundle, so the surviving declarations must all
+# point at exactly one offset.
+BY_PROP = re.compile(rb"groupsEnabled:(" + _ID + rb")[,}]")
 NEAR = 12_000
 
 QUIET = "-q" in sys.argv or "--quiet" in sys.argv
@@ -118,19 +126,23 @@ def _by_shape(mm):
 
 
 def _by_prop(mm):
-    uses = list(BY_PROP.finditer(mm))
-    if len(uses) != 1:
+    """Every `groupsEnabled:<name>` read, kept only if <name> is declared nearby.
+
+    The declaration is searched inside a window around the read rather than
+    across the whole binary: a 344MB scan per candidate takes minutes, and a
+    match that far away would be a different `F` anyway.
+    """
+    found = {}
+    size = len(mm)
+    for use in BY_PROP.finditer(mm):
+        decl = re.compile(rb"[^\w$.]" + re.escape(use.group(1)) + rb"=!([01])[,;)]")
+        lo = max(0, use.start() - NEAR)
+        window = mm[lo:min(size, use.start() + NEAR)]
+        for m in decl.finditer(window):
+            found[lo + m.start(1)] = m.group(1).decode()
+    if len(found) != 1:
         return None
-    use = uses[0]
-    decl = re.compile(rb"[^\w$]" + re.escape(use.group(1)) + rb"=!([01])[,;)]")
-    near = [
-        (m.start(1), m.group(1).decode())
-        for m in decl.finditer(mm)
-        if abs(m.start() - use.start()) < NEAR
-    ]
-    if len(near) != 1:
-        return None
-    return near[0]
+    return next(iter(found.items()))
 
 
 def find_gate(path):
