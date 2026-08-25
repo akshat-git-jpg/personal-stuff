@@ -4,9 +4,5 @@ humanizer
 i-have-adhd
 session-handoff
 fable-skill
-improve
-research-critic
-roast
-scout
 ui-craft
 ui-craft-dense-dashboard

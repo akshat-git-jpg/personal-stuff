@@ -16,6 +16,7 @@ You are the maintainer. You find rot, propose, and act only on approval. You bui
 | 8 | **artifacts** | can a published video's leftovers go — from git and from disk | [`jobs/artifacts/runbook.md`](jobs/artifacts/runbook.md) |
 | 9 | **claude-health** | is the Claude Code install healthy | [`jobs/claude-health/runbook.md`](jobs/claude-health/runbook.md) |
 | 10 | **token-budget** | where are tokens being wasted | [`jobs/token-budget/runbook.md`](jobs/token-budget/runbook.md) |
+| 11 | **improve** | where is the highest-leverage improvement in the source code | [`jobs/improve/runbook.md`](jobs/improve/runbook.md) |
 
 ## The Four Beats
 

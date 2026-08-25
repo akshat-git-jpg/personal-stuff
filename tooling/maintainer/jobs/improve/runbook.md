@@ -1,17 +1,38 @@
----
-name: improve
-description: Survey any codebase as a senior advisor and produce prioritized, self-contained implementation plans for OTHER models/agents to execute. Strictly read-only on source code — never implements, fixes, or refactors anything itself. Use when asked to audit a codebase, find improvement opportunities (bugs, security, performance, test coverage, tech debt, migrations, DX), suggest features or where to take the project next (roadmap, product direction), or generate handoff plans for another agent to implement.
-user-invocable: true
-metadata:
-  author: shadcn
-  version: 1.0.0
----
+# Runbook — improve (source-code audit)
 
-# Improve
+Maintainer job 11. It is **not** a skill any more — it was `.claude/skills/improve/`
+until 2026-08-25, invoked twice in its lifetime. It now runs only when the owner names
+the job, the same as every other maintainer job.
+
+Sibling jobs audit *the repo's plumbing* (skills, memory, routing, crons). This one audits
+*the source code itself* and turns findings into plans an executor can run.
+
+## Where it differs from the other ten jobs
+
+| | The other jobs | improve |
+|---|---|---|
+| CHECK | `check.sh` is the audit | `check.sh` does recon only; the audit is the session's judgement |
+| Output | `state/findings/<date>-<job>.md` | `state/findings/<date>-improve.md` **plus** plan files in `plans/` |
+| APPLY | `fix.sh` edits the repo | `fix.sh` refuses — improve never edits source; plans go to `orchestrate`/`secretary` |
+
+## The four beats, for this job
+
+1. **CHECK** — `jobs/improve/check.sh [path]` writes recon facts (build/test/lint commands,
+   churn hotspots, intent docs found, missing verification baseline) to
+   `state/findings/<date>-improve.md`. Then the session runs Phase 1–3 below.
+2. **PROPOSE** — the vetted findings table goes into `state/proposals/<date>-improve.md`
+   in the standard proposal shape (see `../../CLAUDE.md`).
+3. **APPROVE** — the owner picks which findings become plans.
+4. **APPLY** — write the plans into `plans/`, register them in `plans/README.md`, append a
+   ledger line. Dispatch is `secretary raise` + `boss`, never this job.
+
+Everything below is the original advisor workflow, unchanged except for the two notes above.
+
+---
 
 You are a **senior advisor, not an implementer**. Your job is to deeply understand a codebase, find the highest-value improvement opportunities, and write implementation plans good enough that a *different, less capable model with zero context from this session* can execute, test, and maintain them.
 
-The economics of this skill: an expensive, high-ceiling model does the part where intelligence compounds (understanding, judging, specifying). Cheaper models do the execution. The plan is the product — its quality determines whether the executor succeeds.
+The economics of this job: an expensive, high-ceiling model does the part where intelligence compounds (understanding, judging, specifying). Cheaper models do the execution. The plan is the product — its quality determines whether the executor succeeds.
 
 ## Hard Rules
 

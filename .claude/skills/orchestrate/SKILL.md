@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Use when planning a NEW build (feature, tool, script, small app) as a self-contained plan in plans/ that a cheaper executor runs — you orchestrate, never implement. New-work sibling of `improve`, which audits EXISTING code. Triggers on "let's build X", "implement Y", "add a feature", "orchestrate this", "hand this off", "spec this out for an executor", "run the plans", "execute the batch". Not for auditing existing code (use `improve`) or tiny one-off edits.
+description: Use when planning a NEW build (feature, tool, script, small app) as a self-contained plan in plans/ that a cheaper executor runs — you orchestrate, never implement. New-work sibling of the maintainer's `improve` job, which audits EXISTING code. Triggers on "let's build X", "implement Y", "add a feature", "orchestrate this", "spec this out for an executor", "run the plans", "execute the batch". Not for auditing existing code (maintainer job `improve`) or tiny one-off edits.
 user-invocable: true
 metadata:
   author: kbtg
@@ -18,7 +18,8 @@ default executor is **Antigravity**) does the execution.
 
 **The plan is the product.** Its quality decides whether the executor succeeds.
 
-This is the mirror image of the `improve` skill: `improve` audits *existing* code
+This is the mirror image of the maintainer's `improve` job
+(`tooling/maintainer/jobs/improve/`, a skill until 2026-08-25): `improve` audits *existing* code
 and emits improvement plans; `orchestrate` takes a *new* build and emits a build
 plan. Both write into the same `plans/` contract (see `plans/WORKFLOW.md`), so an
 executor treats their output identically.
@@ -36,7 +37,7 @@ executor treats their output identically.
    one-directional and read-only.
 3. **One plan = one reviewable unit of work.** If the build is large, split it
    into ordered plans (`001-…`, `002-…`) with explicit dependencies, exactly like
-   `improve` and the migration plans do — don't write one 40-step mega-plan.
+   the `improve` job and the migration plans do — don't write one 40-step mega-plan.
 4. **Every plan is self-contained.** The executor has not seen this conversation.
    Inline the file paths, current-code excerpts, conventions, exact commands, and
    verification. "As discussed above" is a bug.
@@ -49,7 +50,7 @@ executor treats their output identically.
 | The user wants to… | Use |
 |---|---|
 | Build/implement a NEW feature, tool, component, script, or small app | **this skill** |
-| Audit / improve / find bugs in EXISTING code, or "what should I build next" | `improve` |
+| Audit / improve / find bugs in EXISTING code, or "what should I build next" | maintainer job `improve` |
 | Just think through a fuzzy idea, no plan yet | `superpowers:brainstorming` directly |
 | A trivial one-off edit you'd finish faster than writing a plan | just do it — don't over-orchestrate |
 
@@ -74,7 +75,7 @@ Check for `plans/WORKFLOW.md` and `plans/_TEMPLATE.md` in the repo root.
   - `_TEMPLATE.md` — the plan skeleton (see "Plan shape" below).
   - `README.md` — the index: an execution-order/status table + a dependency notes
     section.
-  If the repo already uses `improve`, reuse its `references/plan-template.md`
+  Reuse `tooling/maintainer/jobs/improve/references/plan-template.md`
   structure so the two skills stay consistent.
 
 ### Step 1 — Clarify the requirements (default: assume fuzzy)
@@ -567,7 +568,7 @@ permission), stop at the plan and produce the copy-paste handoff prompt — the
 prompt content is identical, only the paste is manual. The watcher + verify
 loop still runs.
 
-## Relationship to superpowers and improve (the clean composition)
+## Relationship to superpowers and the improve job (the clean composition)
 
 ```
         fuzzy idea ──▶ superpowers:brainstorming        (clarify — you INVOKE it, never edit it)
@@ -595,7 +596,7 @@ loop still runs.
   framework — a fork would be clobbered on update).
 - **orchestrate owns "turn clear requirements into an executor-ready plan +
   handoff."**
-- **improve owns the same for existing code.** orchestrate and improve share the
+- **The `improve` job owns the same for existing code.** orchestrate and improve share the
   `plans/` + `WORKFLOW.md` output contract, so the executor treats both the same.
 
 ## Tone
@@ -606,7 +607,7 @@ too small to orchestrate — just make the edit," say so.
 
 ## When NOT to use
 
-- Auditing / improving EXISTING code, or "what should I build next" → `improve`
+- Auditing / improving EXISTING code, or "what should I build next" → maintainer job `improve`
 - Tiny one-off edits → do them inline; **personal-stuff-change-control** Gate 1
   (small, single-session, doing-it-yourself work needs no plan file)
 - Raising the finished plan as a boss PR → `secretary` (`/secretary raise`) —
