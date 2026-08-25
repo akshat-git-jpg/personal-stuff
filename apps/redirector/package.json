@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "test": "vitest run --passWithNoTests",
-    "typecheck": "tsc --noEmit"
+    "dev": ". ../../scripts/node22-path.sh && wrangler dev",
+    "deploy": ". ../../scripts/node22-path.sh && wrangler deploy",
+    "test": ". ../../scripts/node22-path.sh && vitest run --passWithNoTests",
+    "typecheck": ". ../../scripts/node22-path.sh && tsc --noEmit"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250101.0",
