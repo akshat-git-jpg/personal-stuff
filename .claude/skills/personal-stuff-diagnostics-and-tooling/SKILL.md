@@ -62,7 +62,8 @@ A hook rewrites shell commands through `rtk` transparently (60–90% token savin
 ## When NOT to use this skill
 
 - Tool exists but misbehaves → **personal-stuff-debugging-playbook**
-- Choosing whether to adopt an external tool at all → existing `scout` skill
+- Choosing whether to adopt an external tool at all → `personal-stuff-research-methodology`
+  (the `scout` skill was retired 2026-08-25; archived under `.claude/skills-archive/`)
 - Secrets/creds for a tool → **personal-stuff-config-and-secrets**
 
 ## Provenance and maintenance

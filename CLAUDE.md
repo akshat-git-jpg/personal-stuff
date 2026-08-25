@@ -32,7 +32,6 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Flight search with live prices | `tooling/cli/flights/README.md` (`pp-flights`) |
 | Trains, railway timetables, fares, PNR | [`docs/indian-railways-data-sources.md`](docs/indian-railways-data-sources.md) — read before trusting any train result |
 | Phone notifications (Telegram-first) | tooling/cli/notify/README.md |
-| Visual plan review before dispatch | .claude/skills/plan-review/SKILL.md |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
 | Running this repo under Codex (or any non-Claude agent) — path mapping, what doesn't carry over | [`AGENTS.md`](AGENTS.md) + `scripts/mirror-codex-skills.sh` |
 | A specific app | apps/<name>/ — full list in the README map below; each app folder carries its own operate-doc (README and/or CLAUDE.md) |
