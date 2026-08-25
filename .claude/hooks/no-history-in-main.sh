@@ -16,8 +16,32 @@ set -u
 
 INPUT="$(cat)"
 
+# A JSON runtime, resolved once. macOS ships python3; Git Bash on Windows usually ships
+# NEITHER python3 nor python, but every Claude Code install carries node, so node is the
+# reliable fallback there. `py` is the Windows Python launcher.
+JSON_RT=""; JSON_KIND=""
+for c in python3 python py; do
+  command -v "$c" >/dev/null 2>&1 && { JSON_RT="$c"; JSON_KIND=py; break; }
+done
+if [ -z "$JSON_RT" ] && command -v node >/dev/null 2>&1; then
+  JSON_RT=node; JSON_KIND=node
+fi
+
+# Fail CLOSED. With no runtime this wall cannot read the command it is meant to judge,
+# and a silently-absent wall is exactly the failure it exists to prevent: main would
+# accept commits again with nothing on screen to say so. Refusing one command is loud,
+# recoverable, and tells the operator what to install.
+if [ -z "$JSON_RT" ]; then
+  echo "no-history-in-main: no JSON runtime on PATH (need python3, python, py or node)." >&2
+  echo "  This repo's main-checkout wall cannot run without one, so it is refusing the" >&2
+  echo "  command rather than passing it silently. Install Node or Python, then retry." >&2
+  echo "  Deliberate one-off override: prefix the command with GUARD_OK=1" >&2
+  exit 2
+fi
+
 json_field() {
-  printf '%s' "$INPUT" | python3 -c "
+  if [ "$JSON_KIND" = py ]; then
+    printf '%s' "$INPUT" | "$JSON_RT" -c "
 import json,sys
 try:
     d = json.load(sys.stdin)
@@ -28,10 +52,27 @@ for k in sys.argv[1].split('.'):
     v = v.get(k, {}) if isinstance(v, dict) else {}
 print(v if isinstance(v, str) else '')
 " "$1" 2>/dev/null
+  else
+    printf '%s' "$INPUT" | "$JSON_RT" -e '
+let s="";
+process.stdin.on("data",d=>s+=d).on("end",()=>{
+  let v; try { v = JSON.parse(s); } catch (e) { return; }
+  for (const k of process.argv[1].split(".")) {
+    v = (v && typeof v === "object") ? v[k] : undefined;
+  }
+  console.log(typeof v === "string" ? v : "");
+});' "$1" 2>/dev/null
+  fi
 }
 
 CMD="$(json_field tool_input.command)"
 CWD="$(json_field cwd)"
+
+# Git Bash on Windows receives a native path (C:\Users\x\repo) that bash cannot use for
+# `[ -f ... ]` or `cd`. cygpath rewrites it to /c/Users/x/repo. Absent off Windows.
+if [ -n "$CWD" ] && command -v cygpath >/dev/null 2>&1; then
+  CWD="$(cygpath -u "$CWD" 2>/dev/null || printf '%s' "$CWD")"
+fi
 [ -n "$CMD" ] || exit 0
 
 # --- cheapest test first: does this even look like a history-recording git verb? ---

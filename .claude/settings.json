@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/no-history-in-main.sh\""
+            "command": "bash \"$(cygpath -u \"$CLAUDE_PROJECT_DIR\" 2>/dev/null || printf %s \"$CLAUDE_PROJECT_DIR\")/.claude/hooks/no-history-in-main.sh\""
           }
         ]
       }
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/commit-before-stop.sh\""
+            "command": "bash \"$(cygpath -u \"$CLAUDE_PROJECT_DIR\" 2>/dev/null || printf %s \"$CLAUDE_PROJECT_DIR\")/.claude/hooks/commit-before-stop.sh\""
           }
         ]
       }
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/commit-before-stop.sh\""
+            "command": "bash \"$(cygpath -u \"$CLAUDE_PROJECT_DIR\" 2>/dev/null || printf %s \"$CLAUDE_PROJECT_DIR\")/.claude/hooks/commit-before-stop.sh\""
           }
         ]
       }

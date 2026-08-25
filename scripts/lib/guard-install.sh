@@ -7,6 +7,15 @@
 # would silently stop the VPS skill relink on its 15-minute cron from the second run
 # onward. So every path here returns 0.
 
+# Portable sha256. macOS ships `shasum` (a perl script); Git Bash on Windows ships
+# `sha256sum` (coreutils) and often NOT `shasum`. Both print `<hex>  <name>`, and both
+# hash stdin when given no file argument, so one wrapper covers every call site here.
+_sha256() {
+  if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$@"
+  elif command -v sha256sum >/dev/null 2>&1; then sha256sum "$@"
+  else echo "no sha256 tool on PATH (need shasum or sha256sum)" >&2; return 1; fi
+}
+
 guard_install() {
   local repo="${1:-}"
   [ -n "$repo" ] || { echo "guard_install: no repo path given" >&2; return 0; }
@@ -20,7 +29,7 @@ guard_install() {
   # branches it guards and vanishes on a checkout of an older commit.
   if [ -f "$src" ]; then
     cp -f "$src" "$libexec/pp-push" && chmod +x "$libexec/pp-push"
-    shasum -a 256 "$libexec/pp-push" > "$libexec/pp-push.sha256"
+    _sha256 "$libexec/pp-push" > "$libexec/pp-push.sha256"
     echo "guard: installed pp-push -> $libexec/pp-push"
   else
     echo "guard: WARNING $src missing; pp-push not installed" >&2
@@ -43,6 +52,7 @@ guard_install() {
 # that does not call the gate. Untracked and in the SHARED .git/hooks, so it is
 # present in every linked worktree regardless of which commit is checked out.
 set -uo pipefail
+
 GATE="$HOME/.local/libexec/pp-push"
 [ -x "$GATE" ] || { echo "pre-push: $GATE missing — run scripts/relink.sh" >&2; exit 1; }
 # pp-push itself sets PPPUSH_LOCK_HELD; if it is set, this push already came through

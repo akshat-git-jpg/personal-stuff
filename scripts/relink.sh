@@ -131,5 +131,16 @@ fi
   echo "shared skills differ from the work-skills plugin — run scripts/sync-shared-skills.sh" >&2
 }
 
+# 5. Portability doctor. Non-fatal, and last, so it reports on the state relink just
+#    produced. On macOS this is a formality; on a second machine it is the only thing
+#    that turns a silently-dead guard into a printed FAIL. See the script's header.
+if [[ "${SKIP_PORTABILITY_DOCTOR:-}" != "1" ]]; then
+  echo
+  "$SCRIPTS_DIR/doctor-portability.sh" || {
+    echo "portability doctor reported failures — the custody/auto-commit chain is NOT fully armed." >&2
+    echo "Re-run it on its own with: bash scripts/doctor-portability.sh" >&2
+  }
+fi
+
 echo "done. Skills load from .claude/skills for any account; restart running sessions."
 exit "$status"
