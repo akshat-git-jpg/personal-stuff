@@ -1,3 +1,8 @@
+> **ARCHIVED 2026-07-04 - do not follow these instructions.** The Remotion side of a one-off
+> Hyperframes-vs-Remotion comparison. The live tool is
+> [`pipelines/video/card-library/`](../../../video/card-library/README.md). Kept for reference
+> only; nothing here runs in production. See `decisions.md` (2026-07-04).
+
 # yt-visuals — cutaway video generator (Remotion)
 
 Generates the **full-screen cutaway clips** for a comparison video — title cards, table of contents, section dividers, comparison tables, pricing bar charts, verdict cards, and CTA / discount-code cards. Each cutaway renders as its own lossless MP4 that the video editor drops onto their NLE timeline next to the tutorial-maker's screen recording.

@@ -1,3 +1,9 @@
+> **ARCHIVED 2026-08-25 - do not follow these instructions.** The Pinterest bet was abandoned
+> and this pipeline was retired; its four `pinterest-*` skills are in
+> `.claude/skills-archive/2026-08-25/`. Kept for reference only; nothing here runs.
+> Note: `apps/pinterest-landing-pages/` is deliberately NOT archived - `keto-kitchen.agrolloo.com`
+> and `bridebestie.com` are still live Workers. See `decisions.md` (2026-08-25).
+
 # pinterest — Claude Code guide
 
 The per-niche Pinterest PDF business (keto, wedding). One folder per niche; shared playbooks at this level.
