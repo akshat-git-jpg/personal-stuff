@@ -1,6 +1,6 @@
 # pipelines — Python Workspace operating guide
 
-This workspace holds the content and automation pipelines sharing a single Python runtime and the `common/` package (e.g. YouTube research, scripting, recording prep, Pinterest pin generation, TTS voiceover + avatar asset hubs, bank statement parser, and income analysis).
+This workspace holds the content and automation pipelines sharing a single Python runtime and the `common/` package (e.g. YouTube research, scripting, recording prep, TTS voiceover + avatar asset hubs, bank statement parser, and income analysis).
 
 ## Getting started
 
@@ -50,7 +50,7 @@ npx ts-node run.ts --niche <slug>
 - **Node subprojects** (`youtube/yt-research/`) keep their own `package.json` + `node_modules/` because npm expects them there.
 - **No per-folder `.env`, `credentials.json`, `venv/`, or `requirements.txt`.** Ever.
 - **Browser UIs are component apps (root decisions.md 2026-07-31).** A pipeline tool's web UI with more than one view, saving state, or real growth is a Vite+React+TS app like `video/visuals-flow/board-ui/` (own `package.json`, `dist/` gitignored, served by its owning server) — never a new hand-rolled HTML-template-string server. Trivial single-view static reports are the only exception.
-- **Generated media never lives in the repo — it flows through the asset hubs.** Voiceovers and avatar renders go to `~/kb-scratch/video/{tts,heygen}/<your-pipeline>/` (`_test/` if tied to no pipeline) plus a manifest row in the hub (`video/tts/OUTPUTS.md` / `video/heygen/RENDERS.md`). Reference assets (ref voices, character images/ids) are owned by the hubs — resolve a slug from `video/heygen/registry.json` / `video/tts/REFERENCES.md`, never copy assets into your pipeline folder. Browse it all with the `media-board` skill. (decisions.md 2026-07-12)
+- **Generated media never lives in the repo — it flows through the asset hubs.** Voiceovers and avatar renders go to `~/kb-scratch/video/{tts,heygen}/<your-pipeline>/` (`_test/` if tied to no pipeline) plus a manifest row in the hub (`video/tts/OUTPUTS.md` / `video/heygen/RENDERS.md`). Reference assets (ref voices, character images/ids) are owned by the hubs — resolve a slug from `video/heygen/registry.json` / `video/tts/REFERENCES.md`, never copy assets into your pipeline folder. (decisions.md 2026-07-12)
 
 ## Folder map
 
@@ -70,7 +70,6 @@ npx ts-node run.ts --niche <slug>
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/dossiers/`](youtube/dossiers/CLAUDE.md) | Persistent per-software research library — one dossier per tool, accumulated from every fetched video transcript | Python + Claude skill |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/open-source/`](youtube/open-source/README.md) | Self-hosted alternatives exploration (the avatar/HeyGen-replacement work moved to `video/heygen/fal-lipsync/` 2026-07-12) | Research/handoff docs |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/final-workflow/`](youtube/final-workflow/final-workflow-notes.md) | Multi-channel production workflow + per-video cost model (notes) | Markdown |
-| [`pinterest/`](pinterest/PLAN.md) | Pinterest pin data and generators (Keto, Wedding brands) | Python |
 | [`fb-ads/`](fb-ads/fb-ads-notes.md) | Facebook ads playbook notes (page warm-up, ABO→CBO budget ladder) | Markdown |
 | [`income-analysis/`](income-analysis/README.md) | Gumroad/Skool income snapshot retrieval CLIs | Python |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script. | Python |

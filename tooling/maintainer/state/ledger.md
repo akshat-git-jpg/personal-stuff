@@ -8,3 +8,4 @@ it again.
 |---|---|---|---|---|
 | 2026-08-25 | skills | 5 | 5 | archived plan-review, roast, research-critic, scout; improve promoted to job 11 |
 | 2026-08-25 | skills | 2 | 2 | archived valyu-best-practices; video-and-tts-reference promoted to pipelines/video/CLAUDE.md |
+| 2026-08-25 | skills | 5 | 5 | archived media-board + 4 pinterest skills; pipelines/pinterest -> pipelines/archive/ |

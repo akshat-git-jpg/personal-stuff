@@ -21,7 +21,7 @@ This document lists the active business, content, and career bets being pursued 
 ## 2. Pinterest Digital Products
 - **Thesis**: Publish and promote PDFs and digital products in lifestyle niches (such as Keto and Wedding Planner brands) using automated Pinterest pins and landing page funnels.
 - **Where it lives**:
-  - Funnel assets, scripts & pins: [pipelines/pinterest/](file:///Users/kbtg/codebase/personal-stuff/pipelines/pinterest/PLAN.md)
+  - **ABANDONED 2026-08-25** — owner dropped Pinterest entirely. Pin data and generators archived at `pipelines/archive/pinterest/`; all four `pinterest-*` skills archived. The two landing-page Workers (`keto-kitchen.agrolloo.com`, `bridebestie.com`) are still deployed and untouched.
   - Deployable landing pages: `apps/pinterest-landing-pages/`
   - Main brand domains: `bridebestie.com`, `keto-kitchen.ag` (see [my-hosted-sites.md](file:///Users/kbtg/codebase/personal-stuff/my-hosted-sites.md))
 - **Status & Metrics**:
