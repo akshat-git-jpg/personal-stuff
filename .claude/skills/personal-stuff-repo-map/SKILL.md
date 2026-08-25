@@ -48,7 +48,7 @@ Full placement decision tree: see **personal-stuff-idea-to-shipped**.
 
 ## Structural changes this week (2026-07-12)
 
-- **Asset hubs + media-outside-repo:** reference assets live in `pipelines/video/tts/` (ref voices, REFERENCES.md, OUTPUTS.md) and `pipelines/video/heygen/` (characters/, registry.json, RENDERS.md); generated media lives OUTSIDE the repo at `~/kb-scratch/video/{tts,heygen}/<consuming-pipeline>/`. Browse it with the **media-board** skill (`pipelines/.claude/skills/media-board/`, symlinked into `.claude/skills/`).
+- **Asset hubs + media-outside-repo:** reference assets live in `pipelines/video/tts/` (ref voices, REFERENCES.md, OUTPUTS.md) and `pipelines/video/heygen/` (characters/, registry.json, RENDERS.md); generated media lives OUTSIDE the repo at `~/kb-scratch/video/{tts,heygen}/<consuming-pipeline>/`. Browse it in `~/kb-scratch/video/` directly — the media-board skill was retired 2026-08-25.
 - **boss supersedes captain:** orchestration is `tooling/boss/` (PR-driven); `tooling/captain/` was DELETED 2026-08-23 and is out of the root routing table. Only `docs/archive/captain-references/` survives.
 - **New app:** `apps/timeblock` (timeblock.agrolloo.com, KV-backed day planner).
 - **Move:** Devsplainers now lives at `pipelines/youtube/competitor-styles/channels/devsplainers/`.

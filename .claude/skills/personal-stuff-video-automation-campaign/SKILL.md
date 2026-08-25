@@ -126,7 +126,7 @@ Three sub-builds (each its own plan; independent, any order):
 ## When NOT to use this skill
 
 - Domain theory — voice-cloning, why the sync math works this way, lip-sync/GPU economics → `pipelines/video/CLAUDE.md` (the domain doc; this campaign only executes against those decisions)
-- Hyperframes authoring mechanics → the pipelines-scoped `hyperframes*` skills; browsing generated media → `media-board` (localhost:4100)
+- Hyperframes authoring mechanics → the pipelines-scoped `hyperframes*` skills
 - Script/style generation for a specific channel → `yt-style-copy` + `pipelines/youtube/competitor-styles/`
 - "What's open across the whole repo / what next overall" → **personal-stuff-frontier**
 - De-risking an unproven external service/model → **personal-stuff-research-methodology**

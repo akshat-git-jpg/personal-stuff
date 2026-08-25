@@ -27,7 +27,7 @@ own avatar assets themselves. Created 2026-07-12 (consolidated from `video/voice
 (the pre-hub heygen-web renders and fal test clips live in `_test/`; the old
 `~/kb-scratch/heygen-web-renders` path is now a symlink to `_test/`). Every render gets a
 `RENDERS.md` row pointing at its file.
-Browse everything visually with the media-board skill ("open my media board" → localhost:4100).
+Renders live in `~/kb-scratch/video/heygen/`. (The media-board gallery was retired 2026-08-25.)
 
 ## How to generate
 
