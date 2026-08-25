@@ -15,7 +15,7 @@ p="$(proposal_file "$job")"
 {
   echo "# $job — $(today)"
   echo
-  echo "_Raw findings: $f_"
+  echo "_Raw findings: ${f}_"
   echo
   echo "## Fix (mechanical, no judgement)"
   echo "## Archive (recoverable — moves, nothing is deleted)"
@@ -28,5 +28,6 @@ p="$(proposal_file "$job")"
   echo
   echo "<!-- The owner's answer goes on ONE line below, starting 'Decision:'."
   echo "     Until that line exists, apply.sh refuses. -->"
-} > "$p"
+} > "$p.tmp" || { rm -f "$p.tmp"; die "could not scaffold $p"; }
+mv "$p.tmp" "$p"
 echo "proposal scaffolded -> $p"

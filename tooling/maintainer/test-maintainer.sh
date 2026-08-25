@@ -206,6 +206,19 @@ BFIX="$TMP/bigfix"; mkdir -p "$BFIX"
 
 out="$(BIGFILES_ROOT="$BFIX" BIGFILES_MAX_KB=100 bash "$MAINT_DIR/jobs/bigfiles/check.sh" 2>&1)"
 echo "$out" | grep -q 'BIG-TRACKED sub/large.bin' || fail "bigfiles check did not report the seeded oversized tracked file"
+
+# A finding MUST flip the exit code, or run-job.sh prints "clean" and never
+# routes the owner to propose.sh. Both reporting loops are `| while` subshells,
+# so `found=1` inside one does not survive; they flag through a file.
+BIGFILES_ROOT="$BFIX" BIGFILES_MAX_KB=100 bash "$MAINT_DIR/jobs/bigfiles/check.sh" >/dev/null 2>&1
+rc=$?
+[ "$rc" = "1" ] || fail "bigfiles found an oversized file but exited $rc (must be 1)"
+
+# ...and a repo with nothing oversized must still exit 0.
+BIGFILES_ROOT="$BFIX" BIGFILES_MAX_KB=999999 bash "$MAINT_DIR/jobs/bigfiles/check.sh" >/dev/null 2>&1
+rc=$?
+[ "$rc" = "0" ] || fail "bigfiles found nothing but exited $rc (must be 0)"
+
 echo "$out" | grep -q 'BIG-TRACKED sub/small.txt' && fail "bigfiles check flagged a small file"
 echo "$out" | grep -q 'history scan skipped'       || fail "bigfiles check ran the slow scan by default"
 
@@ -280,5 +293,49 @@ for j in claude-health token-budget; do
   grep -qE '\bclaude (update|install)\b|\bplugin (install|uninstall)\b' "$MAINT_DIR/jobs/$j/check.sh" \
     && fail "$j check.sh contains a mutating command"
 done
+
+# ---------------------------------------------------------------------------
+# The propose -> approve -> apply loop.
+#
+# This block exists because propose.sh shipped with an unbound `$f_` under
+# `set -u`. It crashed on EVERY job, left a 2-line stub behind, and then
+# refused to regenerate it (the "a proposal already exists" guard). The whole
+# approval loop was dead on arrival and every other test in this file passed.
+# ---------------------------------------------------------------------------
+SANDBOX="$(mktemp -d)"
+FAKE_MAINT="$SANDBOX/maintainer"
+mkdir -p "$FAKE_MAINT/bin" "$FAKE_MAINT/jobs/probe"
+cp "$MAINT_DIR/bin/lib.sh" "$MAINT_DIR/bin/propose.sh" "$MAINT_DIR/bin/apply.sh" \
+   "$MAINT_DIR/bin/run-job.sh" "$FAKE_MAINT/bin/"
+printf '#!/bin/bash\necho "- PROBE finding"\nexit 1\n' > "$FAKE_MAINT/jobs/probe/check.sh"
+chmod +x "$FAKE_MAINT/jobs/probe/check.sh"
+
+bash "$FAKE_MAINT/bin/run-job.sh" probe >/dev/null 2>&1
+rc=$?
+[ "$rc" = "1" ] || fail "run-job.sh must exit 1 when a check reports findings (got $rc)"
+
+out="$(bash "$FAKE_MAINT/bin/propose.sh" probe 2>&1)" || fail "propose.sh failed: $out"
+case "$out" in *"unbound variable"*) fail "propose.sh has an unbound variable" ;; esac
+
+prop="$(ls "$FAKE_MAINT"/state/proposals/*-probe.md 2>/dev/null | head -1)"
+[ -n "$prop" ] || fail "propose.sh wrote no proposal file"
+for section in 'Raw findings' '## Fix' '## Ask' '## Not touching' 'Decision:'; do
+  grep -q "$section" "$prop" || fail "proposal missing '$section' — it was written truncated"
+done
+
+# THE safety property this whole agent rests on: with no Decision line, apply
+# must refuse, loudly, and non-zero. Never soften this assertion.
+bash "$FAKE_MAINT/bin/apply.sh" probe >/dev/null 2>&1
+rc=$?
+[ "$rc" = "2" ] || fail "apply.sh did NOT refuse an unapproved proposal (exit $rc)"
+
+/bin/rm -r "$SANDBOX"
+
+# Every shipped script must be executable. Every doc here says `bin/run-job.sh
+# <job>`, and the whole set landed mode 644 — the suite missed it because the
+# verify-map row and the internal callers both say `bash <script>`.
+while IFS= read -r f; do
+  [ -x "$f" ] || fail "not executable: $f (the docs invoke it directly)"
+done < <(/usr/bin/find "$MAINT_DIR" -name '*.sh')
 
 echo "ALL PASS"
