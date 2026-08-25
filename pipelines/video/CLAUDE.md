@@ -1,9 +1,20 @@
----
-name: video-and-tts-reference
-description: Use when reasoning about TTS voiceover, voice cloning, audio↔video sync, Whisper transcription, avatar/lip-sync generation, or GPU-vs-local placement in personal-stuff — picking a TTS engine, explaining why swapping narration desyncs a video, estimating per-video costs, weighing HeyGen vs fal-lipsync, or deciding whether a step needs Modal GPU. Also use when a TTS/avatar "improvement" idea might re-litigate a settled decision (VO-first, IndexTTS-2, fal-lipsync deferral).
----
+# pipelines/video — the operate-doc
 
-# Video + TTS reference (the theory as used HERE)
+The domain theory behind every video pipeline in this repo: voice cloning, audio-video
+sync math, avatar/lip-sync economics, GPU placement, Whisper.
+
+Was the `video-and-tts-reference` **skill** until 2026-08-25. It was retired as a skill
+(1 invocation in its lifetime) and became this folder's operate-doc, which is where a
+repo convention says a folder's how-to-operate knowledge belongs. Nothing was cut.
+
+**Read this before** proposing any TTS / avatar / sync / GPU change — several ideas that
+look obvious here are already-settled decisions (VO-first, IndexTTS-2, fal-lipsync
+deferred), and re-litigating them is the recurring failure in this domain.
+
+Sub-folders carry their own operate-docs: `tts/CLAUDE.md`, `heygen/CLAUDE.md`.
+This file is the theory; those are the day-to-day mechanics.
+
+---
 
 ## Overview
 
@@ -93,7 +104,7 @@ Full derivation: `pipelines/video/tts/SYNC-PROBLEM.md` (header marks it answered
 - VO-first removes Whisper from the new-video pipeline entirely (script locked before recording); it remains only for dubbing pre-existing recordings.
 - Existing Whisper assets (script, venv, ~2.9 GB large-v3 model): `~/kb-scratch/voice-pipeline-test/`.
 
-## When NOT to use this skill
+## Not this doc — where else to look
 
 - Operating the pipelines day-to-day (running synth, generating a render) → `pipelines/CLAUDE.md`, then `pipelines/video/tts/CLAUDE.md` / `pipelines/video/heygen/CLAUDE.md`
 - Executing the scale-up campaign (productizing the processor, thumbnails, QC) → **personal-stuff-video-automation-campaign**

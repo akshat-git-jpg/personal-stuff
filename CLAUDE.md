@@ -39,6 +39,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Worktree pool for agent runs (wt) | [`tooling/cli/wt/README.md`](tooling/cli/wt/README.md) |
 | PR-driven implementation orchestrator — dispatch a crew, verify, merge, deploy (boss) | `tooling/boss/README.md` |
 | YouTube research / scripts / tutorial pipeline | `pipelines/youtube/` |
+| Video/TTS domain theory (voice cloning, sync math, avatar + GPU economics, settled decisions) | [`pipelines/video/CLAUDE.md`](pipelines/video/CLAUDE.md) |
 | Voiceover / TTS (reference voices, engines, voiceover manifest) | `pipelines/video/tts/` |
 | Generate / review / lock a voiceover (any pipeline) | `yt-vo` skill (source: `pipelines/.claude/skills/yt-vo`) |
 | HeyGen / avatar assets (character registry, renders, fal-lipsync) | `pipelines/video/heygen/` |

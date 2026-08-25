@@ -160,6 +160,6 @@ problem and the rejected approaches are recorded there.
 
 - `pipelines/video/tts/CLAUDE.md` — engine benchmarks, why IndexTTS-2, reference-voice
   catalog. Read before proposing an engine change.
-- `video-and-tts-reference` skill — cost model, engine trade-offs, settled decisions.
+- `pipelines/video/CLAUDE.md` — cost model, engine trade-offs, settled decisions.
   Read before re-litigating VO-first or the fal-lipsync deferral.
 - `pipelines/youtube/tutorial-pipeline-3/steps/050-voiceover/README.md` — the step.

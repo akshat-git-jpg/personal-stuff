@@ -368,6 +368,10 @@ npx --registry=https://registry.npmjs.org <command>
 ## Sample dialogues
 
 ### "Install valyu-best-practices"
+
+> Retired from this repo on 2026-08-25 (0 invocations ever; archived at
+> `.claude/skills-archive/2026-08-25/valyu-best-practices/`). Kept here as the
+> worked example for installing ANY `npx skills add` package.
 1. Ask which repo it should fire in. "Both accounts" is no longer a thing — the account does not decide.
 2. Run `npx --registry=https://registry.npmjs.org skills add valyuAI/skills`. Tell user: select "Claude Code" in agent picker, choose "user scope".
 3. After it lands at `~/.agents/skills/valyu-best-practices/`, copy it into that repo:

@@ -26,7 +26,7 @@ Everything live in this repo walked the same path: parked idea → pressure-test
 | CLI / MCP for driving work with Claude | `tooling/` | **personal-stuff-diagnostics-and-tooling** router |
 | Deployable Worker, even when a pipeline drives it | `apps/` (rule set by the redirector) | inventories |
 | Scheduled job | code in `personal-stuff`, wrapper in `vps-crons` | `VPS-CRONS.md` lifecycle |
-| Voice/avatar reference asset | asset hubs `pipelines/video/tts/` / `pipelines/video/heygen/` (decided 2026-07-12); generated media OUTSIDE the repo in `~/kb-scratch/video/{tts,heygen}/<pipeline>/` | hub manifest (`OUTPUTS.md` / `RENDERS.md`); policy home: **personal-stuff-change-control**; domain knowledge (engines, sync, costs): **video-and-tts-reference** |
+| Voice/avatar reference asset | asset hubs `pipelines/video/tts/` / `pipelines/video/heygen/` (decided 2026-07-12); generated media OUTSIDE the repo in `~/kb-scratch/video/{tts,heygen}/<pipeline>/` | hub manifest (`OUTPUTS.md` / `RENDERS.md`); policy home: **personal-stuff-change-control**; domain knowledge (engines, sync, costs): `pipelines/video/CLAUDE.md` |
 
 Every new folder gets `README.md` + `CLAUDE.md` from day one (**personal-stuff-docs-and-writing**).
 
@@ -82,7 +82,7 @@ Retire steps live in **personal-stuff-hosting-inventory**; the extra discipline:
 
 ## Provenance and maintenance
 
-Placement rules, the boss chain (Station 4: dirty-main guard + `--force` in `bin/boss-dispatch.sh`, secretary stages only the plan file, greenlight land + boss closes the PR, `data/rules.md` exists, deploy standing-permission), asset-hub row, skill-budget guard, ledger nuance, and all sibling cross-refs (incl. **video-and-tts-reference**) verified against root CLAUDE.md rule 5, `tooling/boss/README.md` + `CLAUDE.md`, `tooling/claude-skills/secretary/SKILL.md`, `plans/README.md`, and decisions.md (2026-07-11 boss deploy permission, 2026-07-12 asset hubs) on 2026-07-12. House-stack/UI-standard reference apps verified 2026-07-12; auth model last verified 2026-07-05. Re-verify:
+Placement rules, the boss chain (Station 4: dirty-main guard + `--force` in `bin/boss-dispatch.sh`, secretary stages only the plan file, greenlight land + boss closes the PR, `data/rules.md` exists, deploy standing-permission), asset-hub row, skill-budget guard, ledger nuance, and all sibling cross-refs (incl. `pipelines/video/CLAUDE.md`) verified against root CLAUDE.md rule 5, `tooling/boss/README.md` + `CLAUDE.md`, `tooling/claude-skills/secretary/SKILL.md`, `plans/README.md`, and decisions.md (2026-07-11 boss deploy permission, 2026-07-12 asset hubs) on 2026-07-12. House-stack/UI-standard reference apps verified 2026-07-12; auth model last verified 2026-07-05. Re-verify:
 - Ship chain still boss-shaped: `head -35 tooling/boss/README.md`; captain gone: `test ! -d tooling/captain`
 - Landed truth vs table: `grep -A20 "## boss-landed" plans/README.md` + `git log --oneline -10`
 - House-stack reference app still current: `ls apps/lists-app/`
