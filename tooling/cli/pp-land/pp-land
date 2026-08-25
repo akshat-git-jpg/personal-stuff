@@ -19,6 +19,16 @@
 # the reset becomes data loss.
 set -uo pipefail
 
+# Portable sha256. macOS ships `shasum` (a perl script); Git Bash on Windows ships
+# `sha256sum` (coreutils) and often NOT `shasum`. Both print `<hex>  <name>`, and both
+# hash stdin when given no file argument, so one wrapper covers every call site here.
+_sha256() {
+  if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$@"
+  elif command -v sha256sum >/dev/null 2>&1; then sha256sum "$@"
+  else echo "no sha256 tool on PATH (need shasum or sha256sum)" >&2; return 1; fi
+}
+
+
 # NOT `set -e`: greenlight exits 0 when it parks, the mutex must be released on every
 # path, and a tolerated failure (pp-work refusing an unmerged workspace) is normal.
 
@@ -66,7 +76,7 @@ COMMON=$(git -C "$WORKSPACE" rev-parse --path-format=absolute --git-common-dir 2
   || die "not inside a git repository: $WORKSPACE"
 MAIN=$(dirname "$COMMON")
 REPO_NAME=$(basename "$MAIN")
-HASH8=$(printf '%s' "$MAIN" | shasum -a 256 | cut -c 1-8)
+HASH8=$(printf '%s' "$MAIN" | _sha256 | cut -c 1-8)
 
 LANDING="${PPLAND_LANDING:-$HOME/kb-scratch/landing/$REPO_NAME-$HASH8}"
 STATE="${PPLAND_STATE_ROOT:-$HOME/.local/state/pp-land}/$REPO_NAME-$HASH8"

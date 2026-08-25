@@ -36,8 +36,22 @@ set -u
 
 INPUT="$(cat)"
 
+# A JSON runtime, resolved once. See no-history-in-main.sh for why node is the fallback.
+# This hook fails OPEN where the wall fails closed: it cannot read `stop_hook_active`
+# without a runtime either, and a hook that blocks a turn it can never unblock would
+# trap the session in a loop. The loud check lives in scripts/relink.sh instead.
+JSON_RT=""; JSON_KIND=""
+for c in python3 python py; do
+  command -v "$c" >/dev/null 2>&1 && { JSON_RT="$c"; JSON_KIND=py; break; }
+done
+if [ -z "$JSON_RT" ] && command -v node >/dev/null 2>&1; then
+  JSON_RT=node; JSON_KIND=node
+fi
+[ -n "$JSON_RT" ] || exit 0
+
 json_field() {
-  printf '%s' "$INPUT" | python3 -c "
+  if [ "$JSON_KIND" = py ]; then
+    printf '%s' "$INPUT" | "$JSON_RT" -c "
 import json,sys
 try:
     d = json.load(sys.stdin)
@@ -49,6 +63,16 @@ elif v is False: print('false')
 elif isinstance(v, str): print(v)
 else: print('')
 " "$1" 2>/dev/null
+  else
+    printf '%s' "$INPUT" | "$JSON_RT" -e '
+let s="";
+process.stdin.on("data",d=>s+=d).on("end",()=>{
+  let d2; try { d2 = JSON.parse(s); } catch (e) { return; }
+  const v = d2[process.argv[1]];
+  console.log(v === true ? "true" : v === false ? "false"
+              : (typeof v === "string" ? v : ""));
+});' "$1" 2>/dev/null
+  fi
 }
 
 # The loop guard. The harness sets this when it is re-running us after a block, and without
@@ -60,6 +84,11 @@ esac
 
 CWD="$(json_field cwd)"
 [ -n "$CWD" ] || exit 0
+
+# Git Bash on Windows hands us a native path; bash needs the /c/... form.
+if command -v cygpath >/dev/null 2>&1; then
+  CWD="$(cygpath -u "$CWD" 2>/dev/null || printf '%s' "$CWD")"
+fi
 git -C "$CWD" rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
 
 read -r GD GCD < <(git -C "$CWD" rev-parse --path-format=absolute --git-dir --git-common-dir 2>/dev/null | tr '\n' ' ')
