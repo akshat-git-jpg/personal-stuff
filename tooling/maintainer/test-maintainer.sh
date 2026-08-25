@@ -154,10 +154,23 @@ fix_out="$(MCP_JSON="$MFIX/mcp.json" MCP_REGEN="$MFIX/regen.sh" bash "$MAINT_DIR
 echo "$fix_out" | grep -q 'refusing to regenerate' || fail "mcp fix did not explain its refusal"
 [ "$(cksum "$MFIX/mcp.json")" = "$before_fix" ] || fail "mcp fix changed config after refusing"
 
-# the real repo's generator must no longer drop anything
+# The real repo run. A CRASH here is a code defect and stays fatal.
+#
+# Drift is NOT. `.mcp.json` is gitignored and, inside a worktree, a symlink to the
+# owner's live file — it changes whenever a session adds or drops an MCP server.
+# This suite is in tooling/cli/pp-land/verify-map.tsv, so a fatal drift assertion
+# makes an unrelated land fail at random and spends the land sweep's real_attempts
+# (capped at 2). Observed on PR#206: the same commit failed two different ways and
+# then passed five times in a row.
+#
+# Reporting that drift is the mcp JOB's work, and it already does it. The suite's
+# job is to prove the checker itself is sound, so drift is advisory here.
 real="$(bash "$MAINT_DIR/jobs/mcp/check.sh" 2>&1)"
 echo "$real" | grep -q 'unbound variable' && fail "mcp check hit an unbound variable on the real repo"
-echo "$real" | grep -q 'DROPPED-BY-REGEN' && fail "regen-mcp-json.sh still drops a live server"
+if echo "$real" | grep -q 'DROPPED-BY-REGEN'; then
+  echo "NOTE: regen-mcp-json.sh would drop a live server — run the mcp job. Not a test failure:"
+  echo "$real" | grep 'DROPPED-BY-REGEN' | sed 's/^/      /'
+fi
 
 # --- crons job: fixture launchd inventory -----------------------------------
 CFIX="$TMP/cronfix"; mkdir -p "$CFIX"

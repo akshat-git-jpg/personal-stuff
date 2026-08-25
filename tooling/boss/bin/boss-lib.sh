@@ -344,6 +344,19 @@ boss_dep_prelude() {
     seen="$seen $dir"
     git -C "$REPO_ROOT" cat-file -e "$branch:$dir/package.json" 2>/dev/null || continue
     prelude="${prelude}(cd $dir && npm install --no-audit --no-fund --silent) && "
+    # A leased slot has no .dev.vars — it is gitignored, so `wt`'s reset never
+    # brings one. Every tracker e2e and every ui:true shot logs in through
+    # /dev-login, which the Worker serves ONLY when DEV_AUTH=1, so without it the
+    # page renders the literal text "Not found" and the failure reads as a broken
+    # app or an unprovable mutation gate (tracker CLAUDE.md, PRs #172/#173/#176).
+    # Seed it wherever the app ships a .dev.vars.example. DEV_AUTH is a dev-only
+    # flag, not secret material, and an existing file is never overwritten.
+    if git -C "$REPO_ROOT" cat-file -e "$branch:$dir/.dev.vars.example" 2>/dev/null; then
+      # `echo`, not a printf escape: this prelude is prepended to test_cmd and stored
+      # as ONE key=value line in state/<pr>.meta, and meta_set refuses a multi-line
+      # value. An escape that expands at build time would corrupt that line.
+      prelude="${prelude}(cd $dir && { [ -f .dev.vars ] || echo DEV_AUTH=1 > .dev.vars; }) && "
+    fi
   done <<EOF
 $(printf '%s' "$cmd" | grep -oE '\bcd[[:space:]]+[^&|;[:space:]]+' | sed -E 's/^cd[[:space:]]+//' | sed -E 's/[\"'"'"']//g')
 EOF
@@ -375,6 +388,25 @@ boss_hygiene_gate() {
     *) arts=$(echo "$files" | grep -E '(^|/)run-log\.json$' || true) ;;
   esac
   [ -n "$arts" ] && echo "commits regenerated artifact(s): $(echo "$arts" | tr '\n' ' ')"
+
+  # 4. A migration nobody applies. Plan 239 (PR#200) landed
+  #    apps/tutorial-tracker-app/migrations/0003_card_slug.sql with an empty
+  #    `deploy:`, and `npm run deploy` there is only "build && wrangler deploy" —
+  #    no migration step. Production `cards` had no `slug` column while the landed
+  #    code wrote one; it was caught by hand, not by a gate. A schema change is a
+  #    deploy by definition, so the frontmatter must say how it ships.
+  #    Escape hatch for a migration that is genuinely applied elsewhere:
+  #    `migration_deploy: external` in the plan.
+  local migs mig_deploy mig_esc
+  migs=$(echo "$files" | grep -E '(^|/)migrations/[^/]+\.sql$' || true)
+  if [ -n "$migs" ] && [ -n "$planfile" ] && [ -f "$planfile" ]; then
+    mig_deploy=$(fm_get deploy "$planfile" 2>/dev/null)
+    mig_esc=$(fm_get migration_deploy "$planfile" 2>/dev/null)
+    case "$mig_esc" in
+      external|manual|done) : ;;
+      *) [ -z "$mig_deploy" ] && echo "adds migration(s) but frontmatter has no deploy: $(echo "$migs" | tr '\n' ' ') — set deploy: (the command that applies it) or migration_deploy: external" ;;
+    esac
+  fi
   return 0
 }
 
@@ -390,7 +422,37 @@ boss_ui_gate() {
   case "$ui" in true|yes|1) ;; *) return 0 ;; esac
   git -C "$REPO_ROOT" diff --name-only "origin/main...$branch" 2>/dev/null \
     | grep -qiE '\.(png|jpg|jpeg|webp|gif)$' && return 0
+  local hint
+  hint=$(boss_ui_ignored_paths "$plan")
+  if [ -n "$hint" ]; then
+    echo "plan is ui:true but the branch commits no image — and the path(s) it names are GITIGNORED, so the crew could never have committed one: $hint"
+    return 0
+  fi
   echo "plan is ui:true but the branch commits no image (screenshot evidence missing)"
+}
+
+# boss_ui_ignored_paths <planfile> — echo any image path the plan names that
+# git would refuse to track. PR#200/plan 239 told its crew to commit
+# apps/tutorial-tracker-app/docs/shots/new-video-slug.png; /docs/shots is
+# gitignored (.gitignore:24), so `ui: true` could never pass from that path and
+# the crew burned a round discovering it. Cheap to check, so check it at
+# DISPATCH — before a crew runs — not only in the merge message.
+boss_ui_ignored_paths() {
+  local plan="$1" p out=""
+  [ -f "$plan" ] || return 0
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    p="${p#./}"
+    # --no-index is required: without it check-ignore stays silent for a path that
+    # is already TRACKED, and the question here is "would git refuse to add this
+    # file", asked before the crew has created it. The cost is that a deliberately
+    # force-added file still reports — accepted, because the alternative is the
+    # gate saying nothing in exactly the case it exists for.
+    git -C "$REPO_ROOT" check-ignore -q --no-index "$p" 2>/dev/null && out="$out $p"
+  done <<EOF
+$(grep -oE '[A-Za-z0-9_./-]+\.(png|jpg|jpeg|webp|gif)' "$plan" 2>/dev/null | sort -u)
+EOF
+  printf '%s' "${out# }"
 }
 
 # boss_mutation_gate <branch> <planfile> <worktree> — THE fix for the 2026-08-02
