@@ -143,6 +143,7 @@ test('no migrated taste rule has leaked back into a format file', () => {
   const MIGRATED = [
     ['T2', 'Casual-professional'],
     ['T3', 'earned, not sponsored'],
+    ['T4', 'Give every option credit before naming its limit'],
     ['T4', 'earn the criticism after'],
     ['T4', 'never the reverse order'],
     ['T5', 'not "it depends"'],
