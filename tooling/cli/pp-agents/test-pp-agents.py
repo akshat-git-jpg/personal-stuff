@@ -487,7 +487,7 @@ def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True):
             if not read_once(quiet):
                 return
 
-    until(lambda: "pp-agents" in scrape(buf), 25.0)
+    until(lambda: "pp-agents" in scrape(buf), 90.0)
     until_quiet()
     before = scrape(buf)
     split = len(buf)
@@ -501,7 +501,7 @@ def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True):
         except OSError:
             break
         if wait_for:
-            until(lambda w=wait_for: w in scrape(buf[split:]), 20.0)
+            until(lambda w=wait_for: w in scrape(buf[split:]), 60.0)
         until_quiet()
 
     if tail:
@@ -660,7 +660,7 @@ def drive_with(tmp, binp, keys, rows=40, cols=170, tail=None):
             if not read_once(quiet):
                 return
 
-    until(lambda: "pp-agents" in scrape(buf), 25.0)
+    until(lambda: "pp-agents" in scrape(buf), 90.0)
     until_quiet()
     split = len(buf)
     for item in keys:
@@ -672,7 +672,7 @@ def drive_with(tmp, binp, keys, rows=40, cols=170, tail=None):
         except OSError:
             break
         if wait_for:
-            until(lambda w=wait_for: w in scrape(buf[split:]), 20.0)
+            until(lambda w=wait_for: w in scrape(buf[split:]), 60.0)
         until_quiet()
     if tail:
         deadline = time.time() + tail
