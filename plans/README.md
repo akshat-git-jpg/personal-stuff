@@ -1383,3 +1383,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 249-maintainer-claude-health-and-token-budget — PR#210 249-maintainer-claude-health-and-token-budget: the claude-health and token-budget jobs — DONE
 - 250-backfill-card-slugs — PR#211 250-backfill-card-slugs: backfill the slug for all 76 live cards — DONE
 - 251-extract-shared-vo-lib — PR#212 251-extract-shared-vo-lib: Extract the shared voiceover lib into the TTS hub — DONE
+- 252-yt-script-wire-voiceover — PR#213 252-yt-script-wire-voiceover: Wire yt-script step 120 to the yt-vo engine — DONE
