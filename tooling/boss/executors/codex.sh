@@ -29,7 +29,7 @@ set -uo pipefail
 # an override. Prepending them would make the real binaries beat anything the caller
 # put on PATH first — including test-boss.sh's stubs, which is how this executor
 # would become the one part of boss with no hermetic test.
-export PATH="$PATH:/opt/homebrew/bin:$HOME/.npm-global/bin"   # gtimeout, codex
+export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin:$HOME/.npm-global/bin:$HOME/.local/bin"   # timeout/gtimeout, codex
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../bin" && pwd)/boss-lib.sh"
 verb="${1:?usage: codex.sh <dispatch|resume|alive|progress|collect> <pr#> [brief]}"
 id="${2:?usage: codex.sh <verb> <pr#> [brief]}"
@@ -114,7 +114,7 @@ _launch() {
   local worktree="$1" out="$2" rcf="$3" last="$4"; shift 4
   : > "$out"; rm -f "$rcf"
   ( cd "$worktree" || exit 1
-    gtimeout -k 30 "$CODEX_TIMEOUT" codex exec "$@" \
+    "$(boss_timeout_bin)" -k 30 "$CODEX_TIMEOUT" codex exec "$@" \
       --json -o "$last" \
       --dangerously-bypass-approvals-and-sandbox < /dev/null
     echo "$?" > "$rcf"
@@ -129,7 +129,7 @@ case "$verb" in
   dispatch)
     brief="${3:?dispatch requires <brief-path>}"
     command -v codex >/dev/null || { echo "ERROR: codex not installed" >&2; exit 1; }
-    command -v gtimeout >/dev/null || { echo "ERROR: gtimeout not installed (brew install coreutils)" >&2; exit 1; }
+    boss_timeout_bin >/dev/null || { echo "ERROR: no timeout binary on PATH (macOS: brew install coreutils; Linux: apt install coreutils)" >&2; exit 1; }
     worktree=$(meta_get "$id" worktree) || { echo "ERROR: no worktree for $id" >&2; exit 1; }
     # Persisted fix-up budget. A dispatch against a meta that already carries a pid
     # is a fix-up round by definition; refuse past BOSS_MAX_FIXUPS. Must run BEFORE

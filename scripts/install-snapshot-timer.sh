@@ -1,4 +1,15 @@
 #!/usr/bin/env bash
+# PLATFORM: macOS only. launchd does not exist elsewhere; on Linux or WSL2 the same
+# rescue-snapshot cadence is a cron entry or a systemd timer calling
+# `pp-work snapshot --all`. Guarded here so a non-Mac run says that instead of
+# emitting `launchctl: command not found` three times and half-installing a plist.
+if [ "$(uname -s)" != "Darwin" ]; then
+  echo "install-snapshot-timer.sh: macOS only (needs launchd)." >&2
+  echo "  On Linux/WSL2, get the same cadence with a crontab entry, e.g. every 15 min:" >&2
+  echo "    */15 * * * * $HOME/codebase/personal-stuff/tooling/cli/pp-work/pp-work snapshot --all >/dev/null 2>&1" >&2
+  echo "  (WSL2: cron needs starting per boot, e.g. 'sudo service cron start'.)" >&2
+  exit 1
+fi
 # Install (or remove) the launchd timer that takes rescue snapshots of dirty pp-work
 # workspaces.
 #

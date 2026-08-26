@@ -62,13 +62,18 @@ ws_is_clean() {
 # clean, just-landed workspace could have the folder deleted out from under its shell.
 PPWORK_GRACE_SECS="${PPWORK_GRACE_SECS:-14400}"   # 4h
 
+# GNU stat's `-f` is --file-system and SUCCEEDS with a mount point, so the
+# `stat -f %m || stat -c %Y` order this used to carry never fell through on
+# Linux. GNU first is the only ordering that degrades onto BSD.
+ppwork_mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null; }
+
 ws_touched() {
   local slug_dir="$1" t=""
   if [ -f "$slug_dir/manifest" ]; then
     t=$(sed -n 's/^touched=//p' "$slug_dir/manifest" 2>/dev/null | tail -1 || true)
   fi
   case "$t" in
-    ''|*[!0-9]*) t=$(stat -f %m "$slug_dir" 2>/dev/null || stat -c %Y "$slug_dir" 2>/dev/null || date +%s) ;;
+    ''|*[!0-9]*) t=$(ppwork_mtime "$slug_dir"); t=${t:-$(date +%s)} ;;
   esac
   printf '%s\n' "$t"
 }

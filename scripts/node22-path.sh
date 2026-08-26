@@ -37,10 +37,29 @@ node22_path() {
     [ -n "$c" ] && [ -x "$c/node" ] && { dir="$c"; break; }
   done
 
+  # Linux and WSL2 have no Homebrew. nvm, fnm and volta each keep every version under its
+  # own prefix, so there is no "node@22" symlink to probe: enumerate the installed
+  # versions newest-first and take the first one that is actually >= $want. Only runs
+  # when the Homebrew probes above found nothing, so macOS pays nothing for it.
+  if [ -z "$dir" ]; then
+    local cand v
+    for cand in $(ls -d "${NVM_DIR:-$HOME/.nvm}"/versions/node/v* \
+                        "$HOME/.local/share/fnm/node-versions"/*/installation \
+                        "$HOME/.volta/tools/image/node"/* 2>/dev/null | sort -r); do
+      [ -x "$cand/bin/node" ] || continue
+      v=$("$cand/bin/node" -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)
+      case "$v" in ''|*[!0-9]*) v=0 ;; esac
+      [ "$v" -ge "$want" ] && { dir="$cand/bin"; break; }
+    done
+  fi
+
   if [ -z "$dir" ]; then
     echo "FATAL: Node >=${want} not found, and wrangler refuses to run on Node ${cur}." >&2
     echo "       Install it — this does NOT change your default node:" >&2
-    echo "         brew install node@${want}" >&2
+    case "$(uname -s)" in
+      Darwin) echo "         brew install node@${want}" >&2 ;;
+      *)      echo "         nvm install ${want}      (or: fnm install ${want})" >&2 ;;
+    esac
     return 1
   fi
 

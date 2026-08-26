@@ -47,3 +47,21 @@ Full spec: `docs/specs/2026-07-07-boss-design.md`.
 
 Boss shares **no code** with captain. `tooling/captain/` was deleted 2026-08-23; two
 reference docs survive in `docs/archive/captain-references/`, the rest is in git history.
+
+## Second machine / non-macOS
+
+Boss runs on Linux and WSL2 Ubuntu as well as macOS. It does **not** run in PowerShell or
+CMD (every script is `#!/bin/bash`), and Git Bash is not recommended: crew management uses
+`ps -o lstart=`, `pgrep -P` and backgrounded PIDs with `disown`, and MSYS PID semantics do
+not map onto native Windows processes. The custody chain around it *is* Git-Bash-viable.
+
+Before trusting boss on a fresh machine:
+
+```bash
+bash scripts/doctor-portability.sh     # section 7 covers the boss chain
+git config boss.ghUser <your-gh-login> # boss force-switches the active gh account
+```
+
+Every dependency here fails silently rather than loudly (a missing `timeout` disarms
+`test_cmd` timeouts, a wrong `gh` account answers "Could not resolve to a Repository"),
+which is why the doctor exists. See `decisions.md` 2026-08-26.
