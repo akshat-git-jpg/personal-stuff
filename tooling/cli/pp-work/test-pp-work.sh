@@ -488,5 +488,53 @@ withsize=$("$PPWORK" list --size 2>/dev/null)
 echo "$withsize" | grep -qE "size:[0-9]" \
   || fail "(21) list --size did not report a real size: $(echo "$withsize" | grep 'kind:' | head -1)"
 
+# 22. a NEW workspace branch is cut from a freshly fetched origin/main, not from whatever
+# local main happens to be. Before this, `git worktree add -b <b>` was called with no start
+# point, so a claim inherited the main checkout's HEAD and pp-work never fetched at all --
+# meaning a session could open a workspace and start editing code that main had already
+# moved past. The fixture reproduces the only way that happens in real life: someone else's
+# land pushed to origin while this checkout was not looking.
+UPSTREAM="$SANDBOX/upstream-clone"
+run_guarded git clone "$ORIGIN" "$UPSTREAM" >/dev/null 2>&1
+( cd "$UPSTREAM" \
+  && echo "from-elsewhere" > landed-elsewhere.txt \
+  && run_guarded git add landed-elsewhere.txt \
+  && run_guarded git commit -m "landed elsewhere" >/dev/null \
+  && run_guarded git push origin HEAD:main >/dev/null 2>&1 ) \
+  || fail "(22) fixture: could not push a commit to origin from a second clone"
+
+# The main checkout must NOT have it yet, or the test proves nothing: a pass could just be
+# the old branch-from-HEAD behaviour picking it up for free.
+if [ -f "$MAIN_DIR/landed-elsewhere.txt" ]; then
+  fail "(22) fixture is wrong: the main checkout already carries the remote-only commit"
+fi
+
+fresh_out=$(run_guarded "$PPWORK" claim --kind code --slug freshbase)
+[ -f "$fresh_out/landed-elsewhere.txt" ] \
+  || fail "(22) claim did not branch from origin/main -- the new workspace is missing a commit that IS on the remote. Base was stale."
+
+# The base must NOT become an upstream. Branching from a bare HEAD never set one, and a
+# workspace branch that tracks origin/main reports "ahead by N" in every `git status` and
+# makes a bare `git push` fail under push.default=simple.
+if git -C "$fresh_out" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' >/dev/null 2>&1; then
+  fail "(22) the new workspace branch was given an upstream: $(git -C "$fresh_out" rev-parse --abbrev-ref '@{upstream}')"
+fi
+
+# And a RE-claim must not move: rebasing or resetting an existing workspace branch would
+# destroy in-progress work, which is the one thing pp-work exists to prevent.
+echo "wip" > "$fresh_out/wip.txt"
+( cd "$UPSTREAM" \
+  && echo "second" > landed-again.txt \
+  && run_guarded git add landed-again.txt \
+  && run_guarded git commit -m "landed again" >/dev/null \
+  && run_guarded git push origin HEAD:main >/dev/null 2>&1 ) \
+  || fail "(22) fixture: could not push a second commit to origin"
+again_out=$(run_guarded "$PPWORK" claim --kind code --slug freshbase)
+[ "$again_out" = "$fresh_out" ] || fail "(22) re-claim returned a different path: $again_out"
+[ -f "$again_out/wip.txt" ] || fail "(22) re-claim destroyed uncommitted work in the workspace"
+if [ -f "$again_out/landed-again.txt" ]; then
+  fail "(22) re-claim moved an existing workspace branch onto newer main -- that can eat in-progress work"
+fi
+
 echo ""
 echo "ALL TESTS PASSED"

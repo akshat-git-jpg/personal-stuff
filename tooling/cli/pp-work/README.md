@@ -27,6 +27,30 @@ In a shared checkout, session B switching to its own branch moves HEAD for sessi
 
 `pp-work claim` pins a subject workspace to branch `subject/<slug>` (or `work/<slug>` for code). Because `git worktree add` refuses to check out a branch that is already checked out elsewhere, the slug mutex comes for free from git. A second live claim of the same slug simply fails with the path to the holding worktree — no lock file, no PID tracking, no races.
 
+## What a new workspace is cut from
+
+A **new** branch is cut from a freshly fetched `origin/<default-branch>`, not from whatever
+the main checkout's HEAD happens to be. `claim` fetches just that one branch first (not
+`fetch origin` — a claim is interactive and on the critical path).
+
+Three things are deliberate:
+
+- **The fetch is best-effort.** Offline prints a warning and branches from local state.
+  Refusing to open a workspace because the laptop is on a plane would be the worse failure.
+- **A re-claim never moves.** Re-claiming an existing slug resumes that branch exactly where
+  it was left, base included. Rebasing it onto newer main could eat in-progress work, which
+  is the one thing this tool exists to prevent.
+- **`--no-track`, so the base does not become an upstream.** Otherwise every `git status` in
+  a workspace reports "ahead of origin/main by N" and a bare `git push` fails under
+  `push.default=simple`.
+
+If the *local* default branch is somehow ahead of origin's, local wins. Nothing in this repo
+can put a commit on local main (`.claude/hooks/no-history-in-main.sh` blocks the verbs), so
+that case only arises in `test-pp-work.sh`, which commits to a local main without pushing.
+
+Note that `wt` (the boss crew pool) already worked this way: `wt get` runs `git fetch origin`
+and bases every slot on `origin/<default>`, hard-resetting a reused slot.
+
 ## Two Kinds of Workspaces
 
 - `--kind subject`: For persistent topical exploration. Branch prefix is `subject/`.
