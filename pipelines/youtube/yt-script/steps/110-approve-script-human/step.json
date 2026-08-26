@@ -12,5 +12,5 @@
   "gate": "the final script is right and the changes to his draft were justified",
   "external": false,
   "optional": false,
-  "summary": "The owner reads the diff report from 100 - every line reworded, respelled or cut - and approves `script.md` and `script.vo.txt`. Last gate before anything is spoken aloud."
+  "summary": "The owner reads the diff report from 100 - every line reworded, respelled or cut - and approves `script.md`, `script.json` and `respell.json`. Last gate before anything is spoken aloud."
 }

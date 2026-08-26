@@ -97,7 +97,15 @@ test('every TASTE rule has all four required parts', () => {
     const id = (b.match(/^T\d+/) || ['?'])[0]
     assert.match(b, /^T\d+ — .+/, `TASTE_RULE_MALFORMED: ${id} has no one-line rule after the dash`)
     assert.match(b, /\*\*From:\*\*/, `TASTE_RULE_MALFORMED: ${id} has no **From:** line`)
-    assert.match(b, /Owner: \*".+"\*/s, `TASTE_RULE_MALFORMED: ${id}'s **From:** does not quote the owner verbatim`)
+    // A folded rule quotes the owner's own reaction verbatim (Owner: "..."). A
+    // seeded rule (plan 254) has no reaction to quote — it cites the format
+    // file it was migrated from plus the original text, verbatim, instead.
+    // Either counts as real provenance; neither is optional.
+    assert.match(
+      b,
+      /Owner: \*".+"\*|seeded from[\s\S]*\*".+"\*/s,
+      `TASTE_RULE_MALFORMED: ${id}'s **From:** documents neither an owner quote nor a seeded original text`,
+    )
     assert.match(b, /\*\*Applies to:\*\*/, `TASTE_RULE_MALFORMED: ${id} has no **Applies to:** line`)
     assert.match(b, /\*\*Enforced by:\*\*/, `TASTE_RULE_MALFORMED: ${id} has no **Enforced by:** line`)
   }
@@ -118,5 +126,44 @@ test('TASTE.md states that it holds taste and not format', () => {
   )
   for (const f of ['SCRIPT-PLAN-INSTRUCTIONS.md', 'OUTLINE-INSTRUCTIONS.md', 'SCRIPT-INSTRUCTIONS.md']) {
     assert.ok(t.includes(f), `TASTE_FORMAT_MIXED: TASTE.md does not name ${f} as the format home`)
+  }
+})
+
+// The migrated rules (plan 254) must stay migrated. Reintroducing one into a
+// format file is the exact drift TASTE.md exists to prevent, and it is a
+// copy-paste away — the text lived there for months.
+test('no migrated taste rule has leaked back into a format file', () => {
+  const FORMAT_FILES = [
+    'pipelines/youtube/yt-script/SCRIPT-INSTRUCTIONS.md',
+    'pipelines/youtube/yt-script/OUTLINE-INSTRUCTIONS.md',
+    'pipelines/youtube/yt-script/SCRIPT-PLAN-INSTRUCTIONS.md',
+  ]
+  // Distinctive fragments of T2-T5, chosen so a paraphrase is allowed but the
+  // original sentence is not.
+  const MIGRATED = [
+    ['T2', 'Casual-professional'],
+    ['T3', 'earned, not sponsored'],
+    ['T4', 'Give every option credit before naming its limit'],
+    ['T4', 'earn the criticism after'],
+    ['T4', 'never the reverse order'],
+    ['T5', 'not "it depends"'],
+    ['T5', "they're just built for different priorities"],
+  ]
+  for (const f of FORMAT_FILES) {
+    const body = read(f)
+    for (const [rule, fragment] of MIGRATED) {
+      assert.ok(
+        !body.includes(fragment),
+        `TASTE_IN_FORMAT_FILE: ${f} contains ${rule}'s text ("${fragment}"). ` +
+          'Taste lives in TASTE.md; steps/130-learn-from-feedback-llm/README.md has the routing table.',
+      )
+    }
+  }
+
+  // ...and each one really is in TASTE.md, so this check cannot pass by the
+  // rules having been deleted rather than moved.
+  const taste = read(TASTE)
+  for (const rule of ['T2', 'T3', 'T4', 'T5']) {
+    assert.match(taste, new RegExp(`^## ${rule} — `, 'm'), `TASTE_RULE_MISSING: ${rule} is not in TASTE.md`)
   }
 })

@@ -62,9 +62,10 @@ Three things, all owner decisions:
    link that already existed. Publishing is now step 070 and happens only after
    the owner has seen the real UI at 060.
 3. **No HTML or PDF.** `render-outline.mjs` and `render-script.mjs` are dropped
-   from the flow. The script desk replaced the outline PDF as the handoff, and the
-   VO engine reads `script.vo.txt`, so nothing read the script PDF any more. The
-   scripts still exist in the folder; the flow does not call them.
+   from the flow. The script desk replaced the outline PDF as the handoff, and
+   the VO engine reads the per-section `script.json` (`script.vo.txt`, which this
+   note originally named, was dropped by plan 252), so nothing read the script PDF
+   any more. The scripts still exist in the folder; the flow does not call them.
 
 4. **The markdown gets read before the desk boots (added 2026-08-23).** Step 055
    is a plain read of `script-plan.md` in an editor — no server, no browser. The
