@@ -1,3 +1,7 @@
+// lockSection moved to the TTS hub (plan 251); re-exported so tp3 call sites and
+// lib/state.test.mjs keep working unchanged.
+export { lockSection } from "../../../video/tts/lib/vo-state.mjs";
+
 export const STAGES = ["generated", "verified", "polished", "tts", "locked", "recorded", "qc-passed"];
 
 // Returns a NEW section object; never mutates the input.
@@ -38,27 +42,6 @@ export function applyTextEdit(section, { display_text, spoken_text }) {
   };
 
   return newSection;
-}
-
-// Throws Error with a message naming the failed precondition; else returns new section.
-export function lockSection(section) {
-  if (section.flags && section.flags.length > 0) {
-    throw new Error("Cannot lock section with remaining flags");
-  }
-  if (!section.spoken_text) {
-    throw new Error("Cannot lock section with empty spoken_text");
-  }
-  if (section.tts.take === null) {
-    throw new Error("Cannot lock section with null take");
-  }
-
-  return {
-    ...section,
-    tts: {
-      ...section.tts,
-      locked: true
-    }
-  };
 }
 
 // Returns { ok, errors: string[] } for a proposed stage move on a whole script obj.
