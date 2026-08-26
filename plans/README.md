@@ -1386,3 +1386,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 251-extract-shared-vo-lib — PR#212 251-extract-shared-vo-lib: Extract the shared voiceover lib into the TTS hub — DONE
 - 252-yt-script-wire-voiceover — PR#213 252-yt-script-wire-voiceover: Wire yt-script step 120 to the yt-vo engine — DONE
 - 253-yt-script-feedback-skill — PR#214 253-yt-script-feedback-skill: Learn the owner's script preferences — DONE
+- 254-taste-format-split — PR#215 254-taste-format-split: Move the taste rules out of SCRIPT-INSTRUCTIONS.md, and fix what 252 left behind — DONE
