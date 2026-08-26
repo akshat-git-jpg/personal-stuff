@@ -66,7 +66,8 @@ Close to the built-in view on purpose - the point is not to relearn anything.
 | Key | Action |
 |---|---|
 | `up`/`down`, `j`/`k` | move (the cursor starts on a session, not a header) |
-| `enter` | open the session (`claude attach`) |
+| `enter` | open the session |
+| `ctrl+o` | **come back here from inside a session** |
 | `ctrl+e` / `e` | tag this session; `tab` completes an existing tag |
 | `ctrl+x` / `x` | remove this session's tag |
 | `ctrl+t` / `t` | pin to top |
@@ -83,12 +84,57 @@ Close to the built-in view on purpose - the point is not to relearn anything.
 Fold every tag but one and only that tag's sessions are listed, so the folded
 headers double as a tag picker - the same trick the built-in view supports.
 
+### Getting in and out of a session
+
+`enter` opens it. **`ctrl+o` brings you back here** - from anywhere, including
+from inside Claude Code's own agents view if you end up there.
+
+That key exists because `claude attach` binds the left arrow to "back to the
+agents view" and opens **Claude Code's ungrouped one**, which strands you outside
+this view - and `esc` there does not exit, so there is no way home. Claude Code
+decides that internally and exposes no flag to turn it off. `claude --resume` is
+not a way around it either: it refuses a background agent outright and tells you
+to use `claude agents`.
+
+So the attach runs on a pty this program owns. Every byte is forwarded verbatim
+in both directions - alt-screen, mouse, bracketed paste, window resizes - except
+`ctrl+o`, which never reaches Claude Code and instead detaches and redraws the
+list. The left arrow keeps working as an ordinary cursor key while you type.
+
+Detaching kills only the attach *client*. The session lives in the daemon and
+keeps running, exactly as if you had closed the terminal. `PP_AGENTS_BACK_KEY`
+changes the key if `ctrl+o` ever clashes with something.
+
 ### The one thing that is missing
 
 The built-in view's `space` replies to a session without opening it. There is no
 published command for that, and the only other route is Claude Code's private
 `control.sock` / `rv/<id>.sock` - building on those would be *more* fragile than
-the byte patch this replaces. So: `enter`, type, then leave. One extra keypress.
+the byte patch this replaces. So: `enter`, type, `ctrl+o`.
+
+## How it looks
+
+Colour carries the meaning, so the list can be skimmed rather than read:
+
+| | |
+|---|---|
+| `●` yellow | needs your input |
+| `◐` cyan | working |
+| `·` green | done |
+| `▲` red | error |
+| `▸` magenta | pinned |
+| `▾` / `▸` cyan | group open / folded |
+| dim blue | last message, age |
+| reverse | the cursor row, and the two bars |
+
+Only the cursor row gets a background. Everything else is foreground colour on
+**your** terminal's background - `curses.use_default_colors()` is what makes that
+work. Without it curses paints every cell with its own idea of black, which on a
+themed terminal shows up as rectangular blocks behind the text. A terminal
+without colour falls back to bold and dim and still reads as a hierarchy.
+
+Below 90 columns the last message is dropped rather than truncated, because a
+readable session name is worth more than a fragment of its last line.
 
 ## Where state lives
 
@@ -105,7 +151,7 @@ the byte patch this replaces. So: `enter`, type, then leave. One extra keypress.
 python3 tooling/cli/pp-agents/test-pp-agents.py
 ```
 
-135 checks, in two layers, because the thing this replaces failed by *looking*
+149 checks, in two layers, because the thing this replaces failed by *looking*
 fine:
 
 1. **Unit and rendering** - loading, tagging, grouping, sorting, filtering,
@@ -124,11 +170,16 @@ checks the real machine still parses.
 Registered in `tooling/cli/pp-land/verify-map.tsv`, so a land touching this
 folder runs it.
 
-Three real bugs came out of writing these, all of which would have bitten in
-normal use: rows overflowed the terminal by six characters, resuming curses
-after `claude attach` used `initscr()` a second time and wedged the program, and
-opening a session whose folder had been reaped (a landed worktree) crashed the
-view.
+Five real bugs came out of writing these, all of which would have bitten in
+normal use:
+
+- rows overflowed the terminal by six characters
+- the age column was silently eaten by the last-message column
+- resuming curses after `claude attach` used `initscr()` a second time and
+  wedged the program
+- opening a session whose folder had been reaped (a landed worktree) crashed the
+  view
+- curses painted its own background, so the list rendered as black blocks
 
 ## When something looks wrong
 
