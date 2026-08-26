@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """Unlock Claude Code's built-in session tags in the agents view.
 
+SUPERSEDED on 2.1.246. That build stopped executing the JavaScript text this
+patches, so the flip is cosmetic: the byte reads "unlocked" and the feature stays
+off, with nothing in the log or the stamp reporting a problem. The tag view now
+comes from `pp-agents` (tooling/cli/pp-agents), which patches nothing. This is
+kept only because the patch still works on 2.1.245 and earlier, and it no longer
+writes `fleetViewGroupMode`.
+
 Claude Code ships the tag feature (it calls them groups) but the agents view
 hardcodes its gate to false, so `ctrl+e` (set tag) and the tag view are dead.
 This flips that one byte, re-signs the binary, and verifies it still runs —
@@ -29,11 +36,6 @@ import sys
 LAUNCHER = os.path.expanduser("~/.local/bin/claude")
 STAMP = os.path.expanduser("~/.cache/pp-claude-tags.json")
 LOCK = os.path.expanduser("~/.cache/pp-claude-tags.lock")
-NOHEAL = os.path.expanduser("~/.cache/pp-claude-tags-noheal")
-CONFIGS = [
-    os.path.expanduser("~/.claude-work/.claude.json"),
-    os.path.expanduser("~/.claude-personal/.claude.json"),
-]
 
 _ID = rb"[A-Za-z_$][\w$]*"
 
@@ -197,77 +199,17 @@ def write_byte(path, offset, value):
         fh.write(value)
 
 
-FIGHT_AFTER = 3
+def view_setting_note():
+    """Why nothing here writes `fleetViewGroupMode` any more.
 
-
-def restore_group_view():
-    """Re-select the tag view. Returns True if anything had to be corrected.
-
-    Every Claude Code session keeps `fleetViewGroupMode` in memory and writes it
-    back on its next save. A session on a gate-off build clamps it to a mode the
-    locked view still allows; a session on a patched build re-saves whatever the
-    value happened to be when it started. Either way the tags look deleted while
-    the tag files on disk are untouched.
-
-    So this runs on every invocation. It used to run only while a process older
-    than the patch was alive, on the reasoning that nothing else could clamp the
-    setting and a deliberate `ctrl+s` should therefore be respected. That gate
-    lost the race: the clamping write can land after the last recognisably-old
-    process is gone, and then nothing looks at the setting again. That is how the
-    agents view sat on folders for a whole day on 2026-08-26 with a correctly
-    patched 2.1.246 and every tag still on disk.
-
-    Correcting it unconditionally is what the owner wants; the cost is that
-    `ctrl+s` to the folder or state view no longer sticks. To keep a different
-    view: `touch ~/.cache/pp-claude-tags-noheal`.
+    It used to re-select the tag view on every run. That made sense while the
+    byte patch worked. From 2.1.246 the patch is cosmetic - the gate the running
+    code reads does not come from the text we edit - so forcing the setting back
+    to "group" achieved nothing except undoing a deliberate `ctrl+s` within a
+    couple of minutes. `pp-agents` provides the tag view now; see its README.
     """
-    if os.path.exists(NOHEAL):
-        return False
-    healed = False
-    for path in CONFIGS:
-        if not os.path.exists(path):
-            continue
-        try:
-            with open(path) as fh:
-                data = json.load(fh)
-            if data.get("fleetViewGroupMode") == "group":
-                continue
-            data["fleetViewGroupMode"] = "group"
-            tmp = path + ".tmp"
-            with open(tmp, "w") as fh:
-                json.dump(data, fh, indent=2)
-            os.replace(tmp, path)
-            healed = True
-            say(f"re-selected the tag view in {os.path.basename(os.path.dirname(path))}")
-        except (OSError, json.JSONDecodeError) as exc:
-            warn(f"could not update {path}: {exc}")
-    return healed
-
-
-def heal_view():
-    """Correct the view setting, and speak up if something keeps undoing it.
-
-    A healthy run corrects it once, right after an update. Correcting it on
-    several runs in a row means a live session is writing the old value back
-    every time it saves, and the script cannot win that on its own — the session
-    holding the stale value has to go. Only the owner can do that, so say so,
-    once per fight rather than every run.
-    """
-    stamp = read_stamp()
-    if not restore_group_view():
-        if stamp.get("heals"):
-            stamp["heals"] = 0
-            save_stamp(stamp)
-        return
-    count = stamp.get("heals", 0) + 1
-    stamp["heals"] = count
-    save_stamp(stamp)
-    if count == FIGHT_AFTER:
-        alert(
-            "a running session keeps putting the folder view back — quit the "
-            "oldest Claude Code session, or press ctrl+s in it, so it stops "
-            "overwriting the tag view"
-        )
+    return ("tags now come from pp-agents; this no longer touches "
+            "fleetViewGroupMode")
 
 
 def main():
@@ -278,9 +220,6 @@ def main():
 
     if read_stamp().get("fingerprint") == fingerprint(target):
         say("already unlocked (stamp current)")
-        # The binary is fine, but any live session can have written the view
-        # setting back since. That is the half of this that is never done.
-        heal_view()
         return 0
 
     offset, value = find_gate(target)
@@ -296,7 +235,6 @@ def main():
     if value == "0":
         say("already unlocked")
         write_stamp(target)
-        heal_view()
         return 0
 
     say(f"unlocking tags in {os.path.basename(target)}")
@@ -312,8 +250,7 @@ def main():
         return 1
 
     write_stamp(target)
-    heal_view()
-    say("tags unlocked — ctrl+e tags, ctrl+s tag view, ctrl+r renames")
+    say("patched; note that on 2.1.246 and later this has no runtime effect — ctrl+e tags, ctrl+s tag view, ctrl+r renames")
     return 0
 
 

@@ -27,7 +27,8 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Auditing Claude's file-based memory (what it is for, the four-question test, the audit) | [`tooling/maintainer/jobs/memory/runbook.md`](tooling/maintainer/jobs/memory/runbook.md) |
 | CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude, cf-email, drive, heygen-web, local-apps-dashboard, flights, flow-queue) | `tooling/cli/` |
 | Printing Press Go CLIs (`paypal-txns-pp-cli`, `impact-pp-cli`, others) and where their source is backed up | `tooling/press-clis/README.md` |
-| Session tags in the Claude Code agents view (ctrl+e / tag view unlock, auto-repatch) | `tooling/cli/pp-claude-tags/README.md` |
+| Session tags across your Claude Code sessions - the agents view grouped by tag (`pp-agents`) | `tooling/cli/pp-agents/README.md` |
+| Why the old binary-patch approach to tags was abandoned on 2.1.246 | `tooling/cli/pp-claude-tags/README.md` |
 | Send image-gen prompts to Google Flow from any pipeline (approve-the-look gates) | `tooling/cli/flow-queue/README.md` + the browser extension in `pipelines/video/zapi-flow-ext/` |
 | Flight search with live prices | `tooling/cli/flights/README.md` (`pp-flights`) |
 | Trains, railway timetables, fares, PNR | [`docs/indian-railways-data-sources.md`](docs/indian-railways-data-sources.md) — read before trusting any train result |

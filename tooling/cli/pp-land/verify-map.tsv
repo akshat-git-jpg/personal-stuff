@@ -4,6 +4,7 @@ tooling/cli/pp-push/	bash tooling/cli/pp-push/test-pp-push.sh
 tooling/cli/pp-work/	bash tooling/cli/pp-work/test-pp-work.sh
 tooling/cli/pp-land/	bash tooling/cli/pp-land/test-pp-land.sh
 tooling/cli/pp-claude-tags/	python3 tooling/cli/pp-claude-tags/test-pp-claude-tags.py
+tooling/cli/pp-agents/	python3 tooling/cli/pp-agents/test-pp-agents.py
 tooling/cli/greenlight/	bash tooling/boss/test-boss.sh
 tooling/cli/greenlight/	bash tooling/cli/greenlight/test-greenlight.sh
 scripts/	bash scripts/check-repo-hygiene.sh
