@@ -156,6 +156,66 @@ ws_is_idle() {
 # APPEND, never rewrite in place -- the same convention boss-lib.sh's meta_set uses, and
 # every reader here takes `tail -1`. A partial in-place rewrite would strand the manifest,
 # and a stranded manifest reads as untouched, which is to say reapable.
+# claim_base_ref — the ref a NEW workspace branch is cut from.
+#
+# `git worktree add -b <b>` with NO start point uses the main checkout's HEAD, and pp-work
+# never fetched, so every claim silently inherited however stale local main happened to be.
+# Nothing stale ever REACHED main (pp-land rebases onto origin/main in its own landing
+# tree), which is why this went unnoticed: the failure is that the session EDITS against old
+# code. That costs needless rebase conflicts and, worse, re-fixing a bug that main already
+# fixed. decisions.md 2026-08-25 records the exact bite: a workspace claimed before the
+# previous land finished, then a rebase conflict in root CLAUDE.md.
+#
+# Three deliberate choices:
+#
+#   1. The fetch is BEST-EFFORT. Offline must degrade to the old behaviour, never block a
+#      claim -- refusing to open a workspace because a laptop is on a plane would be a far
+#      worse failure than starting one commit behind.
+#   2. It fetches only the default branch, not `fetch origin`. A claim is interactive and on
+#      the critical path; a full fetch on a repo this size is the difference between
+#      instant and not. `wt get` does fetch everything, but that runs unattended.
+#   3. If the LOCAL default branch is strictly ahead of origin's, local wins. Nothing in
+#      this repo can put a commit on local main (`.claude/hooks/no-history-in-main.sh`
+#      forbids the verbs), so "local is ahead" means a test fixture: test-pp-work.sh
+#      commits straight to a local main and never pushes. Everywhere else origin is >=
+#      local and origin wins, which is the whole point of the change.
+#
+# Echoes empty when there is no usable base, and the caller then falls back to HEAD.
+claim_base_ref() {
+  local def ref have_remote=0 have_local=0
+  if ref=$(git -C "$MAIN" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null); then
+    def="${ref#refs/remotes/origin/}"
+  else
+    def=main
+  fi
+
+  if ! git -C "$MAIN" fetch --quiet origin "$def" 2>/dev/null; then
+    echo "pp-work: WARNING: could not fetch origin/$def -- branching from local state." >&2
+  fi
+
+  if git -C "$MAIN" rev-parse --verify --quiet "refs/remotes/origin/$def" >/dev/null 2>&1; then
+    have_remote=1
+  fi
+  if git -C "$MAIN" rev-parse --verify --quiet "refs/heads/$def" >/dev/null 2>&1; then
+    have_local=1
+  fi
+
+  if [ "$have_remote" -eq 1 ] && [ "$have_local" -eq 1 ]; then
+    # `is-ancestor local origin` is true when local is contained in origin, i.e. origin is
+    # equal or ahead. False means local carries commits origin does not: the fixture case.
+    if git -C "$MAIN" merge-base --is-ancestor "refs/heads/$def" "refs/remotes/origin/$def" 2>/dev/null; then
+      printf '%s' "origin/$def"
+    else
+      printf '%s' "$def"
+    fi
+  elif [ "$have_remote" -eq 1 ]; then
+    printf '%s' "origin/$def"
+  elif [ "$have_local" -eq 1 ]; then
+    printf '%s' "$def"
+  fi
+  return 0
+}
+
 ws_set_touched() {
   local slug_dir="$1"
   [ -f "$slug_dir/manifest" ] || return 0
@@ -250,7 +310,11 @@ case "$cmd" in
         die "branch $branch is checked out elsewhere: $holding. Read-only inspection is available there."
       fi
     else
-      if ! git -C "$MAIN" worktree add "$wt_path" -b "$branch" >&2; then
+      base=$(claim_base_ref)
+      [ -n "$base" ] && echo "pp-work: branching $branch from $base" >&2
+      # ${base:+...} keeps this valid under `set -u` when there is no usable base, and
+      # omitting the start point is exactly the old behaviour (branch from HEAD).
+      if ! git -C "$MAIN" worktree add --no-track "$wt_path" -b "$branch" ${base:+"$base"} >&2; then
         holding=$(git -C "$MAIN" worktree list --porcelain | grep -B2 "branch refs/heads/$branch" | awk '/^worktree/ {print $2}' || echo "unknown")
         die "branch $branch is checked out elsewhere: $holding. Read-only inspection is available there."
       fi
