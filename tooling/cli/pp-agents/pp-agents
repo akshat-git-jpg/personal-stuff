@@ -1,0 +1,847 @@
+#!/usr/bin/env python3
+"""pp-agents - the agents view, grouped by tag, without patching Claude Code.
+
+Claude Code ships session tags (it calls them groups) but the agents view
+hardcodes its gate to false. `pp-claude-tags` used to flip that byte; 2.1.246
+changed the build so the executed code no longer comes from the text we patched,
+and the flip became silently cosmetic - the byte read "unlocked" while the
+feature stayed off. That failure mode is unfixable from outside and will recur
+on any release, so this replaces the approach instead of chasing it.
+
+Nothing here patches, signs or inspects the binary. It reads the same on-disk
+session records Claude Code writes, and it acts only through published commands:
+
+    claude attach <id>      open a session in this terminal
+    claude logs <id>        dump recent output
+    claude stop <id>        stop a session
+    claude --bg "<prompt>"  dispatch a new background session
+
+An update can therefore never break this the way it broke the patch. If the
+record format ever moves, the loader says so out loud instead of showing an
+empty list.
+
+Two things the built-in view cannot do come free here: both accounts (work and
+personal) appear in one list, and the tag is the primary grouping.
+
+    pp-agents                 # the view
+    pp-agents --list          # one line per session, for scripts
+    pp-agents --dump          # exactly what the view would draw, as plain text
+    pp-agents --doctor        # check what it can read and act with
+"""
+import curses
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+def _accounts_from_env():
+    """`PP_AGENTS_ACCOUNTS=work=/tmp/a:personal=/tmp/b` overrides the real stores.
+
+    This exists so the tests can drive the whole program - including the screen -
+    against fixture directories, instead of reading the live session store. A
+    view that is only ever tested by hand is how the last approach shipped a
+    silent regression.
+    """
+    raw = os.environ.get("PP_AGENTS_ACCOUNTS")
+    if not raw:
+        return None
+    out = []
+    for part in raw.split(":"):
+        if "=" in part:
+            name, _, path = part.partition("=")
+            out.append((name, os.path.expanduser(path)))
+    return out or None
+
+
+ACCOUNTS = _accounts_from_env() or [
+    ("work", os.path.expanduser("~/.claude-work")),
+    ("personal", os.path.expanduser("~/.claude-personal")),
+]
+PIN_STORE = os.path.expanduser(
+    os.environ.get("PP_AGENTS_PINS", "~/.cache/pp-agents/pins.json"))
+UNTAGGED = "Ungrouped"
+
+# state.json's `state`, mapped to the words the built-in view uses, and the
+# order they sort in: what is waiting on you first, what is finished last.
+STATE_LABEL = {
+    "blocked": "Needs input",
+    "working": "Working",
+    "done": "Done",
+    "idle": "Idle",
+    "error": "Error",
+}
+STATE_RANK = {"blocked": 0, "error": 1, "working": 2, "idle": 3, "done": 4}
+GROUP_MODES = ("tag", "folder", "state")
+
+
+# ---------------------------------------------------------------- loading
+
+def account_dirs():
+    """The config dirs that actually exist, newest-relevant first."""
+    return [(name, path) for name, path in ACCOUNTS if os.path.isdir(os.path.join(path, "jobs"))]
+
+
+def read_json(path):
+    try:
+        with open(path) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return None
+
+
+def load_jobs(accounts=None):
+    """Every session Claude Code has recorded, as plain dicts.
+
+    Reads `jobs/<short>/state.json` - the same record the built-in view renders
+    - plus `jobs/<short>/group`, which is Claude Code's own tag file. Writing
+    that file is what `ctrl+e` does, so a tag set here shows up there too if the
+    feature is ever ungated, and vice versa. Nothing else is written into a job
+    directory.
+    """
+    accounts = accounts if accounts is not None else account_dirs()
+    jobs = []
+    for account, root in accounts:
+        jobs_dir = os.path.join(root, "jobs")
+        try:
+            shorts = os.listdir(jobs_dir)
+        except OSError:
+            continue
+        for short in shorts:
+            jdir = os.path.join(jobs_dir, short)
+            st = read_json(os.path.join(jdir, "state.json"))
+            if not isinstance(st, dict):
+                continue  # an empty or half-written record, not an error
+            tag = None
+            try:
+                with open(os.path.join(jdir, "group")) as fh:
+                    tag = fh.read().strip() or None
+            except OSError:
+                pass
+            jobs.append({
+                "short": short,
+                "account": account,
+                "config_dir": root,
+                "dir": jdir,
+                "tag": tag,
+                "name": st.get("name") or st.get("intent") or short,
+                "detail": (st.get("detail") or st.get("needs") or "").replace("\n", " ").strip(),
+                "state": (st.get("state") or "").lower(),
+                "cwd": st.get("cwd") or st.get("originCwd") or "",
+                "updated": st.get("updatedAt") or st.get("createdAt") or "",
+                "tokens": st.get("tokens") or 0,
+                "session_id": st.get("sessionId") or "",
+            })
+    return jobs
+
+
+def load_pins():
+    data = read_json(PIN_STORE)
+    return set(data.get("pins", [])) if isinstance(data, dict) else set()
+
+
+def save_pins(pins):
+    os.makedirs(os.path.dirname(PIN_STORE), exist_ok=True)
+    tmp = PIN_STORE + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump({"pins": sorted(pins)}, fh)
+    os.replace(tmp, PIN_STORE)
+
+
+# ---------------------------------------------------------------- tagging
+
+def write_tag(job, tag):
+    """Set or clear a session's tag, in Claude Code's own `group` file.
+
+    An empty tag removes the file rather than leaving a blank one, because the
+    built-in view treats a present-but-empty file as a tag named "".
+    """
+    path = os.path.join(job["dir"], "group")
+    tag = (tag or "").strip()
+    if not tag:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+        job["tag"] = None
+        return None
+    tmp = path + ".tmp"
+    with open(tmp, "w") as fh:
+        fh.write(tag + "\n")
+    os.replace(tmp, path)
+    job["tag"] = tag
+    return tag
+
+
+def known_tags(jobs):
+    return sorted({j["tag"] for j in jobs if j["tag"]})
+
+
+def complete_tag(prefix, tags):
+    """First tag that starts with what has been typed, for tab completion."""
+    for t in tags:
+        if t.startswith(prefix) and t != prefix:
+            return t
+    return None
+
+
+# ---------------------------------------------------------- grouping / sort
+
+def sort_key(job, pins):
+    return (
+        0 if job["short"] in pins else 1,
+        STATE_RANK.get(job["state"], 9),
+        # newest first within a state; the timestamps are ISO so they sort as text
+        [-ord(c) for c in job["updated"]],
+    )
+
+
+def header_of(job, mode):
+    if mode == "folder":
+        cwd = job["cwd"] or "(no folder)"
+        home = os.path.expanduser("~")
+        return "~" + cwd[len(home):] if cwd.startswith(home) else cwd
+    if mode == "state":
+        return STATE_LABEL.get(job["state"], job["state"] or "Unknown")
+    return job["tag"] or UNTAGGED
+
+
+def matches(job, query):
+    if not query:
+        return True
+    q = query.lower()
+    return any(q in str(job[f]).lower() for f in ("name", "detail", "tag", "cwd", "short"))
+
+
+def group_jobs(jobs, mode="tag", pins=(), query="", folded=()):
+    """Ordered [(header, count, [job, ...]), ...]; a folded header keeps its count.
+
+    Untagged sessions sink to the bottom in tag mode. That matters: it is what
+    makes folding every tag but one behave as a tag picker, the way the built-in
+    view does it.
+    """
+    pins = set(pins)
+    folded = set(folded)
+    buckets = {}
+    for job in jobs:
+        if not matches(job, query):
+            continue
+        buckets.setdefault(header_of(job, mode), []).append(job)
+
+    def header_rank(item):
+        head, rows = item
+        if mode == "tag":
+            sinks = 1 if head == UNTAGGED else 0
+        elif mode == "state":
+            sinks = min(STATE_RANK.get(r["state"], 9) for r in rows)
+        else:
+            sinks = 0
+        pinned = 0 if any(r["short"] in pins for r in rows) else 1
+        return (sinks, pinned, head.lower())
+
+    out = []
+    for head, rows in sorted(buckets.items(), key=header_rank):
+        rows.sort(key=lambda j: sort_key(j, pins))
+        out.append((head, len(rows), [] if head in folded else rows))
+    return out
+
+
+def flatten(groups):
+    """Rows for the cursor to walk: ('head', name) and ('job', job)."""
+    rows = []
+    for head, count, jobs in groups:
+        rows.append(("head", (head, count)))
+        for job in jobs:
+            rows.append(("job", job))
+    return rows
+
+
+# ---------------------------------------------------------------- actions
+
+def claude_bin():
+    """The binary to drive. `PP_AGENTS_CLAUDE` lets the tests stub it out.
+
+    Only ever invoked with published subcommands - attach, logs, stop, --bg - so
+    a new Claude Code release cannot change what this means underneath us.
+    """
+    override = os.environ.get("PP_AGENTS_CLAUDE")
+    if override:
+        return os.path.expanduser(override)
+    return shutil.which("claude") or os.path.expanduser("~/.local/bin/claude")
+
+
+def job_env(job):
+    """Environment for a command about this session - the right account.
+
+    CLAUDE_CONFIG_DIR is what separates the work and personal stores, so a
+    command aimed at a personal session must not inherit the work value from
+    whatever shell launched this tool.
+    """
+    env = dict(os.environ)
+    env["CLAUDE_CONFIG_DIR"] = job["config_dir"]
+    return env
+
+
+def attach_cmd(job):
+    return [claude_bin(), "attach", job["short"]]
+
+
+def logs_cmd(job):
+    return [claude_bin(), "logs", job["short"]]
+
+
+def stop_cmd(job):
+    return [claude_bin(), "stop", job["short"]]
+
+
+def dispatch_cmd(prompt):
+    return [claude_bin(), "--bg", prompt]
+
+
+def run_attached(cmd, env, cwd=None):
+    """Hand the whole terminal to a real command, then take it back.
+
+    Curses owns the screen, so it must be suspended before `claude attach` draws
+    its own full-screen UI. `def_prog_mode` / `reset_prog_mode` is the pattern
+    that survives the round trip - calling `initscr()` a second time instead
+    leaves the program wedged and takes the view down with it.
+    """
+    # A session's folder often no longer exists - worktrees get reaped, branches
+    # get cleaned up. Launching in a missing directory raises, and an unhandled
+    # raise here takes the whole view down, so fall back to wherever we are.
+    if cwd and not os.path.isdir(cwd):
+        cwd = None
+    curses.def_prog_mode()
+    curses.endwin()
+    try:
+        return subprocess.call(cmd, env=env, cwd=cwd or None)
+    except OSError as exc:
+        print(f"pp-agents: could not run {cmd[0]}: {exc}")
+        return 127
+    finally:
+        curses.reset_prog_mode()
+
+
+# ---------------------------------------------------------------- rendering
+
+def fmt_age(iso):
+    """'4m', '3h', '2d' - the built-in view's shape, from an ISO timestamp."""
+    if not iso:
+        return ""
+    try:
+        t = time.mktime(time.strptime(iso[:19], "%Y-%m-%dT%H:%M:%S"))
+    except ValueError:
+        return ""
+    # state.json stamps UTC; compare in the same frame
+    secs = max(0, time.time() - (t - time.timezone))
+    for cutoff, div, unit in ((60, 1, "s"), (3600, 60, "m"), (86400, 3600, "h")):
+        if secs < cutoff:
+            return f"{int(secs // div)}{unit}"
+    return f"{int(secs // 86400)}d"
+
+
+def state_glyph(state):
+    return {"blocked": "*", "working": "~", "error": "!"}.get(state, "-")
+
+
+STATE_W = 12   # widest label, "Needs input", plus a space
+AGE_W = 5
+
+
+def row_text(job, width, pins):
+    """One session line, never wider than `width`.
+
+    Layout: marker, name, state, last message, age. The name column is elastic
+    and the two right-hand columns are fixed, so the ages line up. The result is
+    truncated as a last step, because a row that overflows corrupts a curses
+    screen rather than merely looking wrong.
+    """
+    pin = "^" if job["short"] in pins else " "
+    label = STATE_LABEL.get(job["state"], job["state"] or "?")
+    age = fmt_age(job["updated"])
+    # In a narrow terminal the last message is the first thing to go: a readable
+    # session name matters more than a truncated fragment of its last line.
+    if width < 90:
+        name_w = max(8, width - STATE_W - AGE_W - 2)
+        detail_w = 0
+    else:
+        name_w = max(12, min(46, width - 40))
+        detail_w = max(0, width - name_w - STATE_W - AGE_W - 2)
+    name = f" {pin}{state_glyph(job['state'])} {job['name']}"[:name_w].ljust(name_w)
+    detail = job["detail"][:detail_w].ljust(detail_w)
+    line = f"{name} {label:<{STATE_W}}{detail}{age:>{AGE_W}}"
+    return line[:width]
+
+
+# ---------------------------------------------------------------- non-TUI
+
+def cmd_list(argv):
+    jobs = load_jobs()
+    pins = load_pins()
+    mode = "tag"
+    for i, a in enumerate(argv):
+        if a == "--group" and i + 1 < len(argv):
+            mode = argv[i + 1]
+    for head, count, rows in group_jobs(jobs, mode, pins):
+        print(f"{head} ({count})")
+        for j in rows:
+            print(f"  {j['short']}  {j['account']:<9}{STATE_LABEL.get(j['state'], j['state']):<12}"
+                  f"{fmt_age(j['updated']):>4}  {j['name']}")
+    return 0
+
+
+def cmd_dump(argv):
+    """Print exactly what the view would draw, as plain text.
+
+    The TUI and this share `group_jobs`, `flatten` and `row_text`, so the layout
+    can be asserted on character by character without a terminal. Curses only
+    ever sends the cells that changed, which makes scraping a live screen an
+    unreliable way to prove a key did the right thing - and unreliable tests are
+    how the approach this replaces shipped broken.
+
+        pp-agents --dump [--group tag|folder|state] [--filter Q]
+                         [--fold HEADER] [--width N] [--pin SHORT]
+    """
+    def opt(flag, default=None):
+        return argv[argv.index(flag) + 1] if flag in argv and argv.index(flag) + 1 < len(argv) else default
+
+    mode = opt("--group", "tag")
+    if mode not in GROUP_MODES:
+        print(f"unknown grouping {mode!r}; expected one of {', '.join(GROUP_MODES)}", file=sys.stderr)
+        return 2
+    width = int(opt("--width", "170"))
+    folded = {argv[i + 1] for i, a in enumerate(argv) if a == "--fold" and i + 1 < len(argv)}
+    pins = {argv[i + 1] for i, a in enumerate(argv) if a == "--pin" and i + 1 < len(argv)}
+    pins |= load_pins()
+
+    jobs = load_jobs()
+    counts = {}
+    for j in jobs:
+        counts[j["state"]] = counts.get(j["state"], 0) + 1
+    print(f"pp-agents  grouped by {mode}   {counts.get('blocked', 0)} need input, "
+          f"{counts.get('working', 0)} working, {counts.get('done', 0)} done")
+    groups = group_jobs(jobs, mode, pins, opt("--filter", ""), folded)
+    if not groups:
+        print("(nothing matched)")
+        return 0
+    for head, count, rows in groups:
+        print(f" {'+' if head in folded else '-'} {head}  ({count})")
+        for j in rows:
+            print(row_text(j, width, pins))
+    return 0
+
+
+def cmd_doctor():
+    """Say plainly what can be read and what can be driven.
+
+    The patch it replaces failed by reporting success, so this reports the two
+    things that actually matter and never guesses.
+    """
+    ok = True
+    accounts = account_dirs()
+    print("accounts:")
+    for name, path in accounts:
+        n = len(os.listdir(os.path.join(path, "jobs")))
+        print(f"  {name:<9}{path}  ({n} job records)")
+    if not accounts:
+        print("  none found - expected ~/.claude-work/jobs or ~/.claude-personal/jobs")
+        ok = False
+
+    jobs = load_jobs(accounts)
+    readable = [j for j in jobs if j["state"] or j["name"]]
+    print(f"\nsession records parsed: {len(readable)} of {len(jobs)}")
+    if jobs and not readable:
+        print("  every record parsed empty - the on-disk format may have changed")
+        ok = False
+    print(f"tags found: {', '.join(known_tags(jobs)) or '(none yet)'}")
+
+    binp = claude_bin()
+    print(f"\nclaude binary: {binp}")
+    if not os.path.exists(binp):
+        print("  MISSING - attach/logs/stop cannot run")
+        return 1
+    for sub in ("attach", "logs", "stop"):
+        out = subprocess.run([binp, sub, "--help"], capture_output=True, text=True, timeout=60)
+        good = f"claude {sub} <id>" in (out.stdout + out.stderr)
+        print(f"  {sub:<7}{'ok' if good else 'NOT AVAILABLE'}")
+        ok = ok and good
+    print("\n" + ("all good" if ok else "problems above"))
+    return 0 if ok else 1
+
+
+# ---------------------------------------------------------------- the TUI
+
+HELP = [
+    ("up/down, j/k", "move"),
+    ("enter", "open the session (claude attach)"),
+    ("ctrl+e / e", "tag this session (tab completes an existing tag)"),
+    ("ctrl+x / x", "remove this session's tag"),
+    ("ctrl+t / t", "pin to top"),
+    ("ctrl+s / s", "cycle grouping: tag -> folder -> state"),
+    ("space", "fold / unfold the group under the cursor"),
+    ("/", "filter; esc clears"),
+    ("l", "show recent output (claude logs)"),
+    ("K", "stop this session (asks first)"),
+    ("n", "new background session here (claude --bg)"),
+    ("g", "refresh now"),
+    ("?", "this help"),
+    ("q", "quit"),
+]
+
+
+class App:
+    def __init__(self, scr):
+        self.scr = scr
+        self.mode = "tag"
+        self.folded = set()
+        self.query = ""
+        self.pins = load_pins()
+        self.cursor = 0
+        self.placed = False
+        self.status = ""
+        self.show_help = False
+        self.reload()
+
+    def reload(self):
+        self.jobs = load_jobs()
+        self.rebuild()
+
+    def rebuild(self, keep_cursor=True):
+        """Recompute the visible rows, keeping the cursor sensible.
+
+        On the first build the cursor lands on the first *session*, not on the
+        header above it: every action except folding needs a session, and having
+        to press down once before anything works is the kind of friction that
+        stops a replacement being used.
+        """
+        self.groups = group_jobs(self.jobs, self.mode, self.pins, self.query, self.folded)
+        self.rows = flatten(self.groups)
+        if not self.rows:
+            self.cursor = 0
+            return
+        if not self.placed or not keep_cursor:
+            self.cursor = next((i for i, (k, _) in enumerate(self.rows) if k == "job"), 0)
+            self.placed = True
+        self.cursor = max(0, min(self.cursor, len(self.rows) - 1))
+
+    def focused(self):
+        if not self.rows:
+            return None, None
+        kind, payload = self.rows[self.cursor]
+        return kind, payload
+
+    def focused_job(self):
+        kind, payload = self.focused()
+        return payload if kind == "job" else None
+
+    # -------------------------------------------------------- drawing
+
+    def draw(self):
+        self.scr.erase()
+        h, w = self.scr.getmaxyx()
+        counts = {}
+        for j in self.jobs:
+            counts[j["state"]] = counts.get(j["state"], 0) + 1
+        title = (f" pp-agents  grouped by {self.mode}   "
+                 f"{counts.get('blocked', 0)} need input, "
+                 f"{counts.get('working', 0)} working, {counts.get('done', 0)} done")
+        self.scr.addnstr(0, 0, title.ljust(w - 1), w - 1, curses.A_REVERSE)
+
+        if self.show_help:
+            self.draw_help(h, w)
+        else:
+            self.draw_rows(h, w)
+
+        bar = self.status or ("filter: " + self.query if self.query else
+                              "enter open  e tag  s group  space fold  / filter  ? help  q quit")
+        self.scr.addnstr(h - 1, 0, bar.ljust(w - 1), w - 1, curses.A_REVERSE)
+        self.scr.refresh()
+
+    def draw_help(self, h, w):
+        self.scr.addnstr(2, 2, "keys", w - 4, curses.A_BOLD)
+        for i, (k, d) in enumerate(HELP):
+            if 4 + i >= h - 2:
+                break
+            self.scr.addnstr(4 + i, 4, f"{k:<16}{d}", w - 6)
+        line = 5 + len(HELP)
+        if line < h - 2:
+            self.scr.addnstr(line, 2, "tags are stored in Claude Code's own group file, so nothing", w - 4, curses.A_DIM)
+        if line + 1 < h - 2:
+            self.scr.addnstr(line + 1, 2, "is lost if the built-in tag view ever starts working again.", w - 4, curses.A_DIM)
+
+    def draw_rows(self, h, w):
+        body = h - 2
+        # keep the cursor on screen
+        first = 0
+        if self.cursor >= body:
+            first = self.cursor - body + 1
+        y = 1
+        for idx in range(first, len(self.rows)):
+            if y >= h - 1:
+                break
+            kind, payload = self.rows[idx]
+            sel = idx == self.cursor
+            if kind == "head":
+                head, count = payload
+                mark = "+" if head in self.folded else "-"
+                text = f" {mark} {head}  ({count})"
+                attr = curses.A_BOLD | (curses.A_REVERSE if sel else 0)
+            else:
+                text = row_text(payload, w - 2, self.pins)
+                attr = curses.A_REVERSE if sel else curses.A_NORMAL
+            self.scr.addnstr(y, 0, text.ljust(w - 1), w - 1, attr)
+            y += 1
+        if not self.rows:
+            msg = "no sessions matched" if self.query else "no session records found - run pp-agents --doctor"
+            self.scr.addnstr(2, 2, msg, w - 4)
+
+    # -------------------------------------------------------- input
+
+    def prompt(self, label, complete_from=()):
+        """One-line input on the status bar. Returns None if cancelled."""
+        h, w = self.scr.getmaxyx()
+        buf = ""
+        curses.curs_set(1)
+        try:
+            while True:
+                shown = f"{label}{buf}"
+                hint = ""
+                if complete_from:
+                    c = complete_tag(buf, complete_from)
+                    if c:
+                        hint = f"   (tab -> {c})"
+                self.scr.addnstr(h - 1, 0, (shown + hint).ljust(w - 1), w - 1, curses.A_REVERSE)
+                self.scr.refresh()
+                ch = self.scr.getch()
+                if ch in (10, 13):
+                    return buf
+                if ch == 27:
+                    return None
+                if ch in (curses.KEY_BACKSPACE, 127, 8):
+                    buf = buf[:-1]
+                elif ch == 9 and complete_from:
+                    c = complete_tag(buf, complete_from)
+                    if c:
+                        buf = c
+                elif 32 <= ch < 127:
+                    buf += chr(ch)
+        finally:
+            curses.curs_set(0)
+
+    def confirm(self, question):
+        h, w = self.scr.getmaxyx()
+        self.scr.addnstr(h - 1, 0, (question + "  [y/N]").ljust(w - 1), w - 1, curses.A_REVERSE)
+        self.scr.refresh()
+        return self.scr.getch() in (ord("y"), ord("Y"))
+
+    def move(self, delta):
+        if not self.rows:
+            return
+        self.cursor = max(0, min(len(self.rows) - 1, self.cursor + delta))
+
+    def act_open(self):
+        job = self.focused_job()
+        if not job:
+            self.toggle_fold()
+            return
+        code = run_attached(attach_cmd(job), job_env(job), job["cwd"])
+        self.restore_screen()
+        self.reload()
+        self.status = (f"back from {job['name']}" if code == 0
+                       else f"{job['name']} exited {code}")
+
+    def act_logs(self):
+        job = self.focused_job()
+        if not job:
+            return
+        curses.def_prog_mode()
+        curses.endwin()
+        try:
+            subprocess.call(logs_cmd(job), env=job_env(job))
+            try:
+                input("\n-- enter to return to pp-agents --")
+            except (EOFError, KeyboardInterrupt):
+                pass
+        finally:
+            curses.reset_prog_mode()
+        self.restore_screen()
+
+    def act_stop(self):
+        job = self.focused_job()
+        if not job:
+            return
+        if not self.confirm(f"stop {job['name']}?"):
+            self.status = "not stopped"
+            return
+        out = subprocess.run(stop_cmd(job), env=job_env(job), capture_output=True, text=True)
+        self.status = (out.stdout + out.stderr).strip().splitlines()[-1:] and \
+            (out.stdout + out.stderr).strip().splitlines()[-1] or "stop issued"
+        self.reload()
+
+    def act_tag(self):
+        job = self.focused_job()
+        if not job:
+            return
+        tags = known_tags(self.jobs)
+        cur = job["tag"] or ""
+        new = self.prompt(f"tag [{cur}]: ", tags)
+        if new is None:
+            self.status = "unchanged"
+            return
+        write_tag(job, new if new.strip() else cur if new == "" else new)
+        self.rebuild()
+        self.status = f"tag = {job['tag'] or '(none)'}"
+
+    def act_untag(self):
+        job = self.focused_job()
+        if not job:
+            return
+        write_tag(job, "")
+        self.rebuild()
+        self.status = "tag removed"
+
+    def act_pin(self):
+        job = self.focused_job()
+        if not job:
+            return
+        self.pins.symmetric_difference_update({job["short"]})
+        save_pins(self.pins)
+        self.rebuild()
+        self.status = "pinned" if job["short"] in self.pins else "unpinned"
+
+    def act_new(self):
+        cwds = sorted({j["cwd"] for j in self.jobs if j["cwd"]})
+        where = self.prompt("new session in folder: ", cwds)
+        if not where:
+            return
+        prompt = self.prompt("prompt: ")
+        if not prompt:
+            return
+        if not os.path.isdir(where):
+            self.status = f"no such folder: {where}"
+            return
+        out = subprocess.run(dispatch_cmd(prompt), cwd=where,
+                             capture_output=True, text=True)
+        self.status = (out.stdout + out.stderr).strip().splitlines()[-1] if (out.stdout + out.stderr).strip() else "dispatched"
+        self.reload()
+
+    def toggle_fold(self):
+        kind, payload = self.focused()
+        if kind == "head":
+            head = payload[0]
+            self.folded.symmetric_difference_update({head})
+        elif kind == "job":
+            head = header_of(payload, self.mode)
+            self.folded.add(head)
+        self.rebuild()
+
+    def restore_screen(self):
+        """Repaint after another program had the terminal.
+
+        `redrawwin` is the part that matters: curses still believes the screen
+        holds what it last drew, so without it the view comes back as fragments
+        of itself over whatever `claude attach` left behind.
+        """
+        curses.curs_set(0)
+        self.scr.keypad(True)
+        self.scr.redrawwin()
+        self.scr.refresh()
+
+    def handle(self, ch):
+        if self.show_help:
+            self.show_help = False
+            return True
+        if ch in (ord("q"), 27) and not self.query:
+            return False
+        if ch == 27:
+            self.query = ""
+            self.rebuild()
+            return True
+        if ch in (curses.KEY_DOWN, ord("j")):
+            self.move(1)
+        elif ch in (curses.KEY_UP, ord("k")):
+            self.move(-1)
+        elif ch == curses.KEY_NPAGE:
+            self.move(10)
+        elif ch == curses.KEY_PPAGE:
+            self.move(-10)
+        elif ch in (10, 13):
+            self.act_open()
+        elif ch == ord(" "):
+            self.toggle_fold()
+        elif ch in (5, ord("e")):            # ctrl+e
+            self.act_tag()
+        elif ch in (24, ord("x")):           # ctrl+x
+            self.act_untag()
+        elif ch in (20, ord("t")):           # ctrl+t
+            self.act_pin()
+        elif ch in (19, ord("s")):           # ctrl+s
+            self.mode = GROUP_MODES[(GROUP_MODES.index(self.mode) + 1) % len(GROUP_MODES)]
+            self.folded.clear()
+            self.rebuild()
+            self.status = f"grouped by {self.mode}"
+        elif ch == ord("/"):
+            q = self.prompt("filter: ")
+            self.query = q or ""
+            self.rebuild()
+        elif ch == ord("l"):
+            self.act_logs()
+        elif ch == ord("K"):
+            self.act_stop()
+        elif ch == ord("n"):
+            self.act_new()
+        elif ch == ord("g"):
+            self.reload()
+            self.status = "refreshed"
+        elif ch == ord("?"):
+            self.show_help = True
+        return True
+
+    def loop(self):
+        last = 0.0
+        while True:
+            self.draw()
+            self.scr.timeout(1000)
+            ch = self.scr.getch()
+            if ch == -1:
+                # cheap auto-refresh: only re-read when something changed
+                newest = 0.0
+                for j in self.jobs:
+                    try:
+                        newest = max(newest, os.path.getmtime(os.path.join(j["dir"], "state.json")))
+                    except OSError:
+                        pass
+                if newest > last:
+                    last = newest
+                    self.reload()
+                continue
+            self.status = ""
+            if not self.handle(ch):
+                return
+
+
+def main(argv):
+    if "--help" in argv or "-h" in argv:
+        print(__doc__)
+        return 0
+    if "--doctor" in argv:
+        return cmd_doctor()
+    if "--dump" in argv:
+        return cmd_dump(argv)
+    if "--list" in argv:
+        return cmd_list(argv)
+
+    def run(scr):
+        curses.curs_set(0)
+        App(scr).loop()
+
+    try:
+        curses.wrapper(run)
+    except KeyboardInterrupt:
+        pass
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
