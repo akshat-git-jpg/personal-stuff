@@ -22,34 +22,50 @@ triggers cover the two ways an update lands:
 1. **`~/.zshrc`** — `claude-work()` / `claude-personal()` call it, so `clw` and
    `clp` re-apply it. Covers a new terminal.
 2. **`~/Library/LaunchAgents/com.kbtg.pp-claude-tags.plist`** — watches
-   `~/.local/share/claude/versions` and also ticks every 10 minutes. Covers the
+   `~/.local/share/claude/versions` and also ticks every 2 minutes. Covers the
    case that actually bit: Claude Code updating and restarting **itself**, with
    no shell involved. The interval is the backstop for a watch that fires while
-   a ~310MB binary is still being written.
+   a ~310MB binary is still being written, and it also bounds how long the view
+   setting below can stay wrong.
 
 Both are idempotent and serialised by a lock file, so a burst of triggers
 patches once instead of racing.
 
 ### The setting also has to survive the update
 
-Patching the new binary is only half of it. Sessions that were **already
-running** when the update landed keep the old, gated build in memory, and every
-time one of them saves `.claude.json` it writes its clamped
-`fleetViewGroupMode` back over the good value. Your tags are all still on disk;
-the view just stops being the tag view, which looks identical to losing them.
+Patching the new binary is only half of it, and the other half is what has
+broken three times.
 
-That is what happened on 2026-08-26: 2.1.246 was patched correctly at 07:20,
-and a session left over from the night before clamped the setting at 08:55 — by
-which point the stamp was current, so the ten-minute tick said "already
-unlocked" and returned without ever looking at the setting.
+Every Claude Code session reads `fleetViewGroupMode` once at startup and writes
+it back on its next save. A session running a **gate-off** build clamps it to a
+mode the locked view still allows. A session running a **patched** build re-saves
+whatever the value happened to be when it started. Either way an update leaves
+live sessions that overwrite the good value minutes or hours later. Your tags are
+all still on disk; the view just stops being the tag view, which looks identical
+to losing them.
 
-So the setting is re-selected on **every** run, not only on a fresh patch —
-but only while a Claude Code process older than the stamp is still alive.
-That gate matters: healing unconditionally would undo a deliberate `ctrl+s` to
-the folder or state view within ten minutes. Once the pre-patch sessions are
-gone nothing can clamp the setting any more, so a change to it after that is
-yours and is left alone. Worst case after an update, the view flips back to
-tags within ten minutes.
+So the setting is re-selected on **every** run, not only on a fresh patch.
+
+The first attempt at that healed only while a Claude Code process older than the
+patch was still alive, on the reasoning that nothing else could clamp the setting
+and a deliberate `ctrl+s` should therefore be respected. That gate lost the race.
+On 2026-08-26 the agents view sat on folders all day with 2.1.246 patched
+correctly at 07:20 and all 16 tag files present: the overwriting write landed
+after the last process old enough to be recognised, so every tick said "already
+unlocked" and returned without ever looking at the setting. Nothing looked wrong
+anywhere - not the stamp, not the log, not the patch.
+
+It is now corrected unconditionally. The cost is that `ctrl+s` to the folder or
+state view does not stick; it goes back to tags on the next tick. To keep a
+different view, opt out:
+
+    touch ~/.cache/pp-claude-tags-noheal      # stop healing the setting
+    rm ~/.cache/pp-claude-tags-noheal         # resume
+
+A tick cannot stop a live session from writing the value back again, so a session
+that keeps doing it produces a heal on every tick. After three in a row you get a
+**macOS notification** telling you to quit that session or press `ctrl+s` in it -
+otherwise the two trade writes silently for as long as that session lives.
 
 ```bash
 launchctl list | grep pp-claude-tags        # is the watcher registered
@@ -138,11 +154,25 @@ editor's end-of-line key instead.
   stop being displayed.
 - Default view: `fleetViewGroupMode` in `$CLAUDE_CONFIG_DIR/.claude.json`, set to
   `group`. With the gate off the view clamps this to a mode it still allows, so
-  a reverted patch also rewrites the setting; the script puts it back — see
-  [The setting also has to survive the update](#the-setting-also-has-to-survive-the-update)
+  a reverted patch also rewrites the setting; the script puts it back on every
+  run — see [The setting also has to survive the update](#the-setting-also-has-to-survive-the-update)
   for why that is not a one-shot after patching.
 - Stamp: `~/.cache/pp-claude-tags.json`. Lock: `~/.cache/pp-claude-tags.lock`.
   Log: `~/.cache/pp-claude-tags.log`.
+
+## Tests
+
+    python3 tooling/cli/pp-claude-tags/test-pp-claude-tags.py
+
+Everything runs against temp files, so no test reads the real `.claude.json`, the
+real stamp or the real binary, and none can fire a desktop notification. It
+covers the two things that have actually broken: the view setting (healed
+unconditionally, counts a fight, respects the opt-out, survives a missing or
+half-written config) and gate detection against a synthetic bundle, including the
+two cases where it must refuse to patch — no anchor, and two candidate anchors.
+
+Registered in `tooling/cli/pp-land/verify-map.tsv`, so a land that touches this
+folder runs it.
 
 ## Reverting to stock
 
