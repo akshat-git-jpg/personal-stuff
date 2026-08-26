@@ -43,6 +43,13 @@ node bin/desk.mjs list             # every published video and its link
 node bin/desk.mjs pull <key>       # 090 — his draft back as script-draft.md
 ```
 
+```bash
+bash run.sh <key> status            # stage, sections, how many locked
+bash run.sh <key> vo                # 120 - synth every unlocked section
+bash run.sh <key> vo --only s03     # re-roll one
+bash run.sh <key> vo-lock           # lock what you have listened to
+```
+
 ## Files in this folder
 
 ```
@@ -69,7 +76,9 @@ script-worksheet.md fallback only, if the desk is down
 desk-draft.json     local-mode scratch, gitignored
 script-draft.md     090 — the maker's completed work, verbatim. Provenance, tracked
 script.md           100 — the final VO script
-script.vo.txt       100 — the flattened engine feed
+script.json         100 - the per-section engine feed; step 120's input
+respell.json        100 - pronunciation map, applied at synth time
+audio/              120 - generated wavs, gitignored
 ```
 
 ## Renamed on 2026-08-23
