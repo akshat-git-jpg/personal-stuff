@@ -190,11 +190,60 @@ land_class() {
 }
 
 # ---------------------------------------------------------------------------
+# WHY a dispatched fix-up produced nothing. `boss_head_advanced` answers "did it
+# commit", never "did it get to run at all", and reap_one charged both to the REAL
+# budget. On 2026-08-27 the agy fix-up for land-work-pp-agents-ui died in 4.4s on
+# `RESOURCE_EXHAUSTED (code 429): Individual quota reached` -- it never read the branch --
+# and that outage alone drove real_attempts to REAL_CAP, so the land stalled silently
+# with a verify that passed 16 minutes later. An executor that never ran is an INFRA
+# blip and belongs to the transient budget, next to every other blip.
+#
+# Reads the executor's own envelope ($LANDS_DIR/land-<slug>.out). No file, or no match,
+# means "it ran and failed" -- the safe default, because that is what keeps the REAL cap
+# doing its job for a land that is genuinely broken. The patterns are deliberately
+# narrow: a loose match here would refund the budget for real failures and turn REAL_CAP
+# into an infinite retry.
+# ---------------------------------------------------------------------------
+FIXUP_DEATH_CAUSE=""
+fixup_never_ran() {
+  local out="$LANDS_DIR/land-$1.out" body
+  FIXUP_DEATH_CAUSE=""
+  [ -f "$out" ] || return 1
+  body=$(tr -d '\n' < "$out" 2>/dev/null) || return 1
+  case "$body" in
+    *RESOURCE_EXHAUSTED*|*"quota reached"*|*"Individual quota"*|*"code 429"*\
+      |*"upgrade your subscription"*|*"usage limit reached"*|*"rate limit exceeded"*)
+      FIXUP_DEATH_CAUSE="provider quota / rate limit"; return 0 ;;
+    *"agy not installed"*|*"no worktree for"*)
+      FIXUP_DEATH_CAUSE="executor could not start"; return 0 ;;
+  esac
+  return 1
+}
+
+# ---------------------------------------------------------------------------
+# One notification per capped entry. The CAPPED line goes to this script's stdout, which
+# is read only by whoever runs a sweep by hand or reads boss-session-start's output -- so
+# in practice a capped land is SILENT: finished work simply stops arriving on main, with
+# nothing anywhere to say so. land-work-pp-agents-ui sat capped for 36 minutes and was
+# found only because the owner went looking.
+#
+# The flag lives IN the entry file, which entry_rewrite preserves and pp-land's next
+# write_blocked (a full rewrite) drops -- so one cap notifies once, and a fresh block
+# that caps again notifies again.
+# ---------------------------------------------------------------------------
+notify_capped() {
+  local f="$1" msg="$2"
+  [ "$(entry_get "$f" capped_notified)" = "1" ] && return 0
+  printf 'capped_notified=1\n' >> "$f"
+  boss_notify "boss:land capped -- $msg"
+}
+
+# ---------------------------------------------------------------------------
 # The brief. Written to an ABSOLUTE path: the executor cd's into the worktree first, so a
 # relative brief path is unreadable from there (recorded lesson boss-fixup-brief-absolute-path).
 # ---------------------------------------------------------------------------
 write_brief() {
-  local file="$1" slug="$2" ws="$3" branch="$4" reason="$5" conflicts="$6"
+  local file="$1" slug="$2" ws="$3" branch="$4" reason="$5" conflicts="$6" runlog="${7:-}"
   cat > "$file" <<BRIEF
 Fix a BLOCKED land, in place.
 
@@ -202,6 +251,7 @@ Workspace (already exists — work HERE, and nowhere else): $ws
 Branch (already checked out there):                       $branch
 Why the land did not complete:                            $reason
 Conflicting paths (if any):                               ${conflicts:-none recorded}
+Full run output (READ THIS FIRST, it says which check broke): ${runlog:-not recorded}
 
 What to do:
 
@@ -231,7 +281,7 @@ BRIEF
 # MERGED PRs were still labelled boss:in-progress).
 # ---------------------------------------------------------------------------
 reap_one() {
-  local f="$1" slug real tr win
+  local f="$1" slug real tr win now
   slug=$(basename "$f" .dispatching); slug=${slug#land-}
   if "$AGY" alive "land-$slug" >/dev/null 2>&1; then
     say "RUNNING    land-$slug — fix-up still working"
@@ -242,10 +292,27 @@ reap_one() {
     rm -f "$f"
     return 0
   fi
-  # HEAD never advanced: the fix-up produced nothing. That is a real failure.
+  # HEAD never advanced. WHY decides which budget pays. An executor that never ran costs
+  # the transient budget and REFUNDS the attempt sweep_one charged at dispatch time --
+  # nothing was tried, so nothing was learned about the land. Bounded by TRANSIENT_CAP
+  # per window: a provider that is down for good then falls through to the real budget
+  # and caps normally, rather than retrying forever.
   real=$(num_or "$(entry_get "$f" real_attempts)" 0)
   tr=$(num_or "$(entry_get "$f" transient_attempts)" 0)
   win=$(num_or "$(entry_get "$f" transient_window_start)" 0)
+  now=$(date +%s)
+  if fixup_never_ran "$slug"; then
+    if [ "$win" -eq 0 ] || [ $((now - win)) -ge "$TRANSIENT_WINDOW" ]; then win=$now; tr=0; fi
+    if [ "$tr" -lt "$TRANSIENT_CAP" ]; then
+      [ "$real" -gt 0 ] && real=$((real - 1))
+      tr=$((tr + 1))
+      entry_rewrite "$f" "$real" "$tr" "$win"
+      mv -f "$f" "${f%.dispatching}.blocked"
+      say "INFRA      land-$slug — fix-up never ran ($FIXUP_DEATH_CAUSE); transient $tr/$TRANSIENT_CAP, real $real/$REAL_CAP"
+      return 0
+    fi
+    say "INFRA-CAP  land-$slug — fix-up never ran ($FIXUP_DEATH_CAUSE) $tr times this window; charging the real budget"
+  fi
   real=$((real + 1))
   entry_rewrite "$f" "$real" "$tr" "$win"
   mv -f "$f" "${f%.dispatching}.blocked"
@@ -315,6 +382,7 @@ sweep_one() {
       if [ "$win" -eq 0 ] || [ $((now - win)) -ge "$TRANSIENT_WINDOW" ]; then win=$now; tr=0; fi
       if [ "$tr" -ge "$TRANSIENT_CAP" ]; then
         entry_rewrite "$claimed" "$real" "$tr" "$win"
+        notify_capped "$claimed" "land-$slug: $tr transient retries this window (cap $TRANSIENT_CAP) — $branch is not reaching main"
         mv -f "$claimed" "$f"
         say "CAPPED     land-$slug — $tr transient retries in this window (cap $TRANSIENT_CAP); listed, not dispatched"
         return 0
@@ -323,6 +391,7 @@ sweep_one() {
     real)
       if [ "$real" -ge "$REAL_CAP" ]; then
         entry_rewrite "$claimed" "$real" "$tr" "$win"
+        notify_capped "$claimed" "land-$slug: $real real attempts (cap $REAL_CAP) — $branch is not reaching main — $reason"
         mv -f "$claimed" "$f"
         say "CAPPED     land-$slug — $real real attempts (cap $REAL_CAP); listed, not dispatched — $reason"
         return 0
@@ -339,7 +408,7 @@ sweep_one() {
   meta_set "land-$slug" executor agy
 
   brief="$STATE_DIR/land-$slug.brief.md"
-  write_brief "$brief" "$slug" "$ws" "$branch" "$reason" "$conflicts"
+  write_brief "$brief" "$slug" "$ws" "$branch" "$reason" "$conflicts" "$(entry_get "$claimed" log)"
 
   # Hiding land metas from boss_crews_running removes the crew-wait heuristic that used to
   # keep browser-driving work apart (PR#134 lost a merge cycle to 44 live Chrome

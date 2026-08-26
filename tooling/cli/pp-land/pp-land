@@ -242,7 +242,7 @@ detect_conflicts() {
 }
 
 write_blocked() {
-  local ws="$1" branch="$2" reason="$3" land_branch="$4"
+  local ws="$1" branch="$2" reason="$3" land_branch="$4" gl_out="${5:-}"
   local slug file conflicts="" no_auto=0 attempts=1 p
   slug=$(printf '%s' "$branch" | tr '/' '-')
   mkdir -p "$LANDS_DIR" || return 0
@@ -277,6 +277,11 @@ write_blocked() {
     fi
     printf 'attempts=%s\n' "$attempts"
     printf 'at=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    # Where the failure actually is. `reason` is one line by construction, so without this
+    # neither the owner nor the fix-up agent can see which check broke.
+    if [ -n "$gl_out" ] && [ -f "$gl_out" ]; then
+      printf 'log=%s\n' "$gl_out"
+    fi
     if [ -n "$conflicts" ]; then
       printf 'conflicts=%s\n' "$(printf '%s' "$conflicts" | tr '\n' ',')"
     fi
@@ -364,7 +369,15 @@ do_one_land() {
   # right for a boss PR merge the owner is watching, and wrong here — this runs on EVERY
   # workspace commit, and the owner ruled notifications out. Blocked lands are surfaced by
   # the sweep and by boss-session-start, not by a phone.
-  GREENLIGHT_QUIET=1 GREENLIGHT_STATE_ROOT="$gl_root" "$GREENLIGHT_BIN" "${gl_args[@]}" >/dev/null 2>&1
+  # The run log goes to a FILE, never to stdout: this runs from a post-commit hook on every
+  # commit and any output would enter the session transcript. It used to go to /dev/null,
+  # which destroyed the only record of WHY a land parked -- greenlight writes just
+  # "verify failed: <cmd>" into parked-reason, and the test output that says which check
+  # broke was gone. land-work-pp-agents-ui parked twice on 2026-08-27 and the verify had
+  # to be re-run by hand, 16 minutes later, to learn it passed. The fix-up agent was blind
+  # to it too: its brief carried the same one-line reason and nothing else.
+  GREENLIGHT_QUIET=1 GREENLIGHT_STATE_ROOT="$gl_root" "$GREENLIGHT_BIN" "${gl_args[@]}" \
+    > "$gl_root/greenlight.out" 2>&1
   gl_state=""
   for d in "$gl_root"/*/; do
     [ -d "$d" ] && gl_state="${d%/}"
@@ -390,7 +403,8 @@ do_one_land() {
     git -C "$MAIN" update-ref -d "refs/heads/$land_branch" >/dev/null 2>&1 || true
   else
     log "land did not complete for $branch: $gl_result — $reason"
-    write_blocked "$ws" "$branch" "$reason" "$land_branch"
+    log "run output: $gl_root/greenlight.out"
+    write_blocked "$ws" "$branch" "$reason" "$land_branch" "$gl_root/greenlight.out"
   fi
   return 0
 }

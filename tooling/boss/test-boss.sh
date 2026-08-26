@@ -759,6 +759,74 @@ echo "$l6_out" | grep -q 'CAPPED' || fail "(L6) a 6th transient retry was not ca
 land_reset
 echo "PASS: the transient bound holds"
 
+# (L7-L9) added 2026-08-27, after land-work-pp-agents-ui stalled for 36 minutes.
+# A quota-dead fix-up consumed the whole REAL budget and the cap was announced only to a
+# stdout nobody reads, so two finished commits silently stopped reaching main.
+echo "--- (L7) a fix-up that never RAN refunds the real attempt and pays transient ---"
+land_reset
+land_entry boss-l7 "verify failed: npm test"
+LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l7a.out" 2>&1
+[ -f "$LANDS/land-boss-l7.dispatching" ] \
+  || fail "(L7) the land was not dispatched: $(cat "$TMP/l7a.out")"
+[ "$(land_field "$LANDS/land-boss-l7.dispatching" real_attempts)" = "1" ] \
+  || fail "(L7) dispatch did not charge a real attempt"
+# The executor's own envelope: an agy 429, exactly as recorded on 2026-08-27.
+printf '%s\n' '{"status":"ERROR","response":"","error":"RESOURCE_EXHAUSTED (code 429): Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 44m2s.","num_turns":1}' \
+  > "$LANDS/land-boss-l7.out"
+l7_out=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l7_out" | grep -q 'INFRA ' \
+  || fail "(L7) a quota death was not classified as infra: $l7_out"
+echo "$l7_out" | grep -q 'CAPPED' \
+  && fail "(L7) a quota death capped the land: $l7_out"
+l7e="$LANDS/land-boss-l7.dispatching"
+[ -f "$l7e" ] || l7e="$LANDS/land-boss-l7.blocked"
+[ "$(land_field "$l7e" transient_attempts)" = "1" ] \
+  || fail "(L7) a quota death did not charge the transient budget (got '$(land_field "$l7e" transient_attempts)')"
+[ "$(land_field "$l7e" real_attempts)" -le 1 ] \
+  || fail "(L7) a quota death consumed a real attempt (got '$(land_field "$l7e" real_attempts)')"
+echo "PASS: an executor that never ran costs the transient budget, not the real one"
+
+echo "--- (L8) a fix-up that DID run and produced nothing still costs a real attempt ---"
+land_reset
+land_entry boss-l8 "verify failed: npm test"
+LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l8a.out" 2>&1
+[ -f "$LANDS/land-boss-l8.dispatching" ] \
+  || fail "(L8) the land was not dispatched: $(cat "$TMP/l8a.out")"
+# Compared against the count AFTER dispatch, never against a literal: the real budget is
+# charged in two places (sweep_one at dispatch, reap_one at the reap) and this case is
+# about WHETHER the reap charges, not about what the total comes to.
+l8_before=$(land_field "$LANDS/land-boss-l8.dispatching" real_attempts)
+printf '%s\n' '{"status":"SUCCESS","response":"I read the failing test and could not find a safe fix.","num_turns":24}' \
+  > "$LANDS/land-boss-l8.out"
+l8_out=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l8_out" | grep -q 'NOADVANCE' \
+  || fail "(L8) a real no-commit fix-up was not charged: $l8_out"
+echo "$l8_out" | grep -q 'INFRA' \
+  && fail "(L8) ordinary agent output was misread as an infra death: $l8_out"
+l8_after=$(land_field "$LANDS/land-boss-l8.blocked" real_attempts)
+[ "$l8_after" -gt "$l8_before" ] \
+  || fail "(L8) a real failure did not consume a real attempt ($l8_before then $l8_after)"
+echo "PASS: only an executor that never ran is refunded"
+
+echo "--- (L9) a capped land notifies, exactly once ---"
+land_reset
+: > "$TMP/notify.log"
+land_entry boss-l9 "verify failed: npm test" "real_attempts=2"
+l9_out=$(BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l9_out" | grep -q 'CAPPED' || fail "(L9) the land was not capped: $l9_out"
+grep -q 'land-boss-l9' "$TMP/notify.log" \
+  || fail "(L9) a capped land sent no notification: $(cat "$TMP/notify.log" 2>/dev/null)"
+[ "$(land_field "$LANDS/land-boss-l9.blocked" capped_notified)" = "1" ] \
+  || fail "(L9) the notified flag was not recorded in the entry"
+l9_n=$(grep -c 'land-boss-l9' "$TMP/notify.log")
+BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > /dev/null 2>&1
+BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > /dev/null 2>&1
+l9_n2=$(grep -c 'land-boss-l9' "$TMP/notify.log")
+[ "$l9_n" = "$l9_n2" ] \
+  || fail "(L9) a capped land re-notified on every sweep ($l9_n then $l9_n2)"
+land_reset
+echo "PASS: a capped land is announced once, not silently and not repeatedly"
+
 echo "--- (D1) boss_dep_prelude installs deps for the dirs a command cd's into ---"
 # The verify and the mutation gate run in a POOL slot, not the crew's worktree, and
 # node_modules is per-slot — PR#197 (2026-08-23) read that as a broken mutation
