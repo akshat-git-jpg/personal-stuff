@@ -33,10 +33,10 @@ case "$verb" in
     node lib/render-script-md.mjs "$slug" --root "$TP3_ROOT"
     ;;
   vo)
-    node lib/vo-synth.mjs "$slug" --root "$TP3_ROOT" "${@:3}"
+    node ../../video/tts/lib/vo-synth.mjs "$slug" --root "$TP3_ROOT" "${@:3}"
     ;;
   vo-lock)
-    node lib/vo-lock.mjs "$slug" --root "$TP3_ROOT" "${@:3}"
+    node ../../video/tts/lib/vo-lock.mjs "$slug" --root "$TP3_ROOT" "${@:3}"
     ;;
   pull-recordings)
     node lib/drive-pull.mjs "$slug" --root "$TP3_ROOT"

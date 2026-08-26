@@ -1,6 +1,6 @@
 ---
 name: yt-script
-description: Turn owner-supplied knowledge into a YouTube outline, then a beat-by-beat script plan, then a VO-ready final script. Thirteen numbered steps with six owner gates, tabulated in the skill body, each with its own folder under pipelines/youtube/yt-script/steps/. Triggers on "yt-script", "outline for <video>", "write the outline", "write the script plan", "publish to the desk", "here's the completed draft", "finalise the script", "make it VO-ready".
+description: Turn owner-supplied knowledge into a YouTube outline, then a beat-by-beat script plan, then a VO-ready final script. Fourteen numbered steps with six owner gates, tabulated in the skill body, each with its own folder under pipelines/youtube/yt-script/steps/. Triggers on "yt-script", "outline for <video>", "write the outline", "write the script plan", "publish to the desk", "here's the completed draft", "finalise the script", "make it VO-ready".
 user-invocable: true
 metadata:
   author: kbtg
@@ -11,13 +11,13 @@ metadata:
 
 Working folder: `pipelines/youtube/yt-script/`
 
-**The flow is thirteen numbered steps, each a folder under `steps/`.** The table
+**The flow is fourteen numbered steps, each a folder under `steps/`.** The table
 below is the contract. Every step's folder holds a `step.json` (the machine
 record) and a `README.md` (what to actually do). Read the step's README before
 running it — this file deliberately does not repeat them.
 
 ```
-knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  script.md
+knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  script.md + script.json
   (010)           (030)            (050)               (090, his words)     (100)
 ```
 
@@ -37,7 +37,8 @@ knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  scri
 | `090-pull-draft-run` | [RUN] | Pulls his completed draft back into the repo |
 | `100-write-script-llm` | [LLM] | Finalises his words into the VO-ready script |
 | `110-approve-script-human` | **[OWNER]** | You read what changed and approve |
-| `120-voiceover-run` | [RUN] | Not wired yet |
+| `120-voiceover-run` | [RUN] | Synthesizes the voiceover per section, then locks the takes |
+| `130-learn-from-feedback-llm` | [LLM] | Folds your feedback into rules — run by `yt-script-feedback` |
 
 `ls steps/` is the check that keeps this table honest. A step on disk that is not
 in this table, or a row here with no folder, is a bug in the docs.
@@ -61,9 +62,10 @@ Three things, all owner decisions:
    link that already existed. Publishing is now step 070 and happens only after
    the owner has seen the real UI at 060.
 3. **No HTML or PDF.** `render-outline.mjs` and `render-script.mjs` are dropped
-   from the flow. The script desk replaced the outline PDF as the handoff, and the
-   VO engine reads `script.vo.txt`, so nothing read the script PDF any more. The
-   scripts still exist in the folder; the flow does not call them.
+   from the flow. The script desk replaced the outline PDF as the handoff, and
+   the VO engine reads the per-section `script.json` (`script.vo.txt`, which this
+   note originally named, was dropped by plan 252), so nothing read the script PDF
+   any more. The scripts still exist in the folder; the flow does not call them.
 
 4. **The markdown gets read before the desk boots (added 2026-08-23).** Step 055
    is a plain read of `script-plan.md` in an editor — no server, no browser. The
@@ -98,8 +100,11 @@ desk.
 | `videos/<key>/script-plan.md` | 050 | The beat-by-beat document the desk publishes |
 | `videos/<key>/script-draft.md` | 090 | The maker's completed work, verbatim. Provenance, tracked |
 | `videos/<key>/script.md` | 100 | The final VO script, human-readable |
-| `videos/<key>/script.vo.txt` | 100 | The flattened engine feed. Step 120's only input |
+| `videos/<key>/script.json` | 100 | The per-section engine feed. Step 120's input |
+| `videos/<key>/respell.json` | 100 | Pronunciation map, applied at synth time |
 | `videos/<key>/desk-draft.json` | local desk | Local-mode scratch, gitignored |
+| `TASTE.md` | 130 | Your accumulated taste rules, numbered and dated |
+| `FEEDBACK-LOG.md` | 130 | Every reaction, tagged. The repeat-detection index |
 
 Two owner-owned instruction files govern the writing steps and are the only
 authority on their formats:
@@ -127,6 +132,9 @@ question for him, never a cue to go find the answer.
 - **Step 100 finalises someone else's draft.** You do not write the script from
   the script plan. If no draft has come back, there is nothing to do — say so
   instead of writing one yourself.
+- **Pronunciation lives in `respell.json`, never in the script.** A respelling
+  typed into `script.md` is applied twice. The engine owns pronunciation
+  (`pipelines/video/tts/lib/spoken.mjs`).
 - **`script-draft.md` is never edited.** It is the maker's words, kept as
   provenance. Every change of yours goes into `script.md`.
 - **Never invent a key.** It comes from `pipelines/video-registry/` (`vreg
@@ -163,6 +171,10 @@ Each step is a folder, so changing one is local:
   decides). A `human` step with a `gate` field is a hard stop.
 
 ## Not this skill's job
+
+Feedback on what this skill produced is a separate skill: `yt-script-feedback`.
+It runs step 130. Do not fold feedback into a rule from inside an operating
+session — rule surfaces change between videos, never during one.
 
 `yt-research/` (legacy) and `dossiers/` (the persistent per-tool research library)
 are separate systems. This skill was built deliberately without them — don't read

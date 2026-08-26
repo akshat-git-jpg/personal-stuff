@@ -12,10 +12,11 @@
   ],
   "produces": [
     "script.md",
-    "script.vo.txt"
+    "script.json",
+    "respell.json"
   ],
   "gate": null,
   "external": false,
   "optional": false,
-  "summary": "`script-draft.md` -> `script.md` (human-readable) + `script.vo.txt` (the flattened engine feed, spoken lines only). Follows `SCRIPT-INSTRUCTIONS.md`. This is a FINALISE pass over someone else's words, not a fresh write - his phrasing survives unless it is wrong."
+  "summary": "`script-draft.md` -> `script.md` (human-readable) + `script.json` (the per-section feed step 120 reads) + `respell.json` (pronunciation). Follows `SCRIPT-INSTRUCTIONS.md`. This is a FINALISE pass over someone else's words, not a fresh write - his phrasing survives unless it is wrong."
 }

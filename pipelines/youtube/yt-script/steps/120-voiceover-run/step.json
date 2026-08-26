@@ -4,15 +4,16 @@
   "title": "the voiceover",
   "actor": "run",
   "actorLabel": "[RUN]",
-  "oneLiner": "Not wired yet.",
+  "oneLiner": "Synthesizes the voiceover section by section, then locks the takes.",
   "consumes": [
-    "script.vo.txt"
+    "script.json",
+    "respell.json"
   ],
   "produces": [
-    "voiceover audio"
+    "videos/<key>/audio/<id>.wav"
   ],
   "gate": null,
   "external": false,
-  "optional": true,
-  "summary": "NOT WIRED. `script.vo.txt` is the intended input for the `yt-vo` skill and the TTS hub at `pipelines/video/tts`. Nothing in this skill runs it today."
+  "optional": false,
+  "summary": "Runs the `yt-vo` engine over `script.json` one section at a time via the Modal `synth_section` endpoint, using `respell.json` for pronunciation. Re-roll a single section with `--only`, listen, then lock. Wired 2026-08-26 (plan 252); before that this step did nothing and `script.vo.txt`, its supposed input, had never once been produced."
 }

@@ -29,6 +29,7 @@ import sys
 LAUNCHER = os.path.expanduser("~/.local/bin/claude")
 STAMP = os.path.expanduser("~/.cache/pp-claude-tags.json")
 LOCK = os.path.expanduser("~/.cache/pp-claude-tags.lock")
+NOHEAL = os.path.expanduser("~/.cache/pp-claude-tags-noheal")
 CONFIGS = [
     os.path.expanduser("~/.claude-work/.claude.json"),
     os.path.expanduser("~/.claude-personal/.claude.json"),
@@ -110,12 +111,18 @@ def read_stamp():
         return {}
 
 
-def write_stamp(path):
+def save_stamp(data):
     os.makedirs(os.path.dirname(STAMP), exist_ok=True)
     tmp = STAMP + ".tmp"
     with open(tmp, "w") as fh:
-        json.dump({"fingerprint": fingerprint(path), "patched": True}, fh)
+        json.dump(data, fh)
     os.replace(tmp, STAMP)
+
+
+def write_stamp(path):
+    stamp = read_stamp()
+    stamp.update({"fingerprint": fingerprint(path), "patched": True})
+    save_stamp(stamp)
 
 
 def _by_shape(mm):
@@ -190,13 +197,33 @@ def write_byte(path, offset, value):
         fh.write(value)
 
 
-def restore_group_view():
-    """Re-select the tag view.
+FIGHT_AFTER = 3
 
-    With the gate off, the view clamps `fleetViewGroupMode` to a mode it still
-    allows, so an update that reverts the patch also rewrites this setting and
-    the tags look deleted. Put it back once tags work again.
+
+def restore_group_view():
+    """Re-select the tag view. Returns True if anything had to be corrected.
+
+    Every Claude Code session keeps `fleetViewGroupMode` in memory and writes it
+    back on its next save. A session on a gate-off build clamps it to a mode the
+    locked view still allows; a session on a patched build re-saves whatever the
+    value happened to be when it started. Either way the tags look deleted while
+    the tag files on disk are untouched.
+
+    So this runs on every invocation. It used to run only while a process older
+    than the patch was alive, on the reasoning that nothing else could clamp the
+    setting and a deliberate `ctrl+s` should therefore be respected. That gate
+    lost the race: the clamping write can land after the last recognisably-old
+    process is gone, and then nothing looks at the setting again. That is how the
+    agents view sat on folders for a whole day on 2026-08-26 with a correctly
+    patched 2.1.246 and every tag still on disk.
+
+    Correcting it unconditionally is what the owner wants; the cost is that
+    `ctrl+s` to the folder or state view no longer sticks. To keep a different
+    view: `touch ~/.cache/pp-claude-tags-noheal`.
     """
+    if os.path.exists(NOHEAL):
+        return False
+    healed = False
     for path in CONFIGS:
         if not os.path.exists(path):
             continue
@@ -210,9 +237,37 @@ def restore_group_view():
             with open(tmp, "w") as fh:
                 json.dump(data, fh, indent=2)
             os.replace(tmp, path)
+            healed = True
             say(f"re-selected the tag view in {os.path.basename(os.path.dirname(path))}")
         except (OSError, json.JSONDecodeError) as exc:
             warn(f"could not update {path}: {exc}")
+    return healed
+
+
+def heal_view():
+    """Correct the view setting, and speak up if something keeps undoing it.
+
+    A healthy run corrects it once, right after an update. Correcting it on
+    several runs in a row means a live session is writing the old value back
+    every time it saves, and the script cannot win that on its own — the session
+    holding the stale value has to go. Only the owner can do that, so say so,
+    once per fight rather than every run.
+    """
+    stamp = read_stamp()
+    if not restore_group_view():
+        if stamp.get("heals"):
+            stamp["heals"] = 0
+            save_stamp(stamp)
+        return
+    count = stamp.get("heals", 0) + 1
+    stamp["heals"] = count
+    save_stamp(stamp)
+    if count == FIGHT_AFTER:
+        alert(
+            "a running session keeps putting the folder view back — quit the "
+            "oldest Claude Code session, or press ctrl+s in it, so it stops "
+            "overwriting the tag view"
+        )
 
 
 def main():
@@ -223,6 +278,9 @@ def main():
 
     if read_stamp().get("fingerprint") == fingerprint(target):
         say("already unlocked (stamp current)")
+        # The binary is fine, but any live session can have written the view
+        # setting back since. That is the half of this that is never done.
+        heal_view()
         return 0
 
     offset, value = find_gate(target)
@@ -238,7 +296,7 @@ def main():
     if value == "0":
         say("already unlocked")
         write_stamp(target)
-        restore_group_view()
+        heal_view()
         return 0
 
     say(f"unlocking tags in {os.path.basename(target)}")
@@ -254,7 +312,7 @@ def main():
         return 1
 
     write_stamp(target)
-    restore_group_view()
+    heal_view()
     say("tags unlocked — ctrl+e tags, ctrl+s tag view, ctrl+r renames")
     return 0
 

@@ -175,6 +175,10 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 248 | maintainer **artifacts** job — joins the video registry to the tracker to find published videos, then lists their tracked folders and untracked renders as ARCHIVE candidates. A link without a done status is never proof of publication | P3 | M | 242, 240 | TODO |
 | 249 | maintainer **claude-health** + **token-budget** jobs — `claude doctor`, `rtk gain`, `rtk discover` (325.9M tokens saved so far, and nobody reads it), `ccusage` per account. `/context` has no CLI form, so it is marked a SESSION-STEP rather than faked | P3 | S | 242 | TODO |
 | 250 | **backfill the slug for all 76 live cards** — 0003 added `cards.slug` nullable and 239-241 only mint for NEW cards, so production is still 76 cards / 0 slugs and every slug consumer has nothing to read. One guarded, idempotent migration; the 76-row mapping is generated from the landed `slug.ts` and dry-run verified | P1 | S | none | TODO |
+| 251 | **extract the shared voiceover lib into the TTS hub** — `vo-synth`/`vo-lock`/`spoken`/`flags`/`env`/`lockSection` move from `tutorial-pipeline-3/lib/` to `pipelines/video/tts/lib/`, where `yt-vo` already says the engine belongs. Pure move behind re-export shims; tp3's 68 tests are the proof, and its enumerated `check.sh` list becomes a glob | P2 | M | none | TODO |
+| 252 | **wire yt-script step 120 to the yt-vo engine** — step 100 emits `script.json` (tp3 schema) + `respell.json` instead of `script.vo.txt`, which was specified for the whole life of the flow and never once produced. Pronunciation moves to `respell.json`; a new `run.sh` gives yt-script `vo` / `vo-lock` / `status` | P2 | M | 251 | TODO |
+| 253 | **`yt-script-feedback` skill** — the five-phase feedback conversation, plus step `130-learn-from-feedback-llm` owning the surface-routing table, `TASTE.md` (numbered dated rules, owner quoted verbatim) and `FEEDBACK-LOG.md`. Threshold is repeat-before-rule over a closed `kind` vocabulary, so the rulebook cannot grow until there is nothing left to write | P2 | M | 252 | TODO |
+| 254 | **move the taste rules out of `SCRIPT-INSTRUCTIONS.md`** into `TASTE.md` as seeded T2-T5, collapsing a rule stated twice and deleting one that supplied verbatim copy. Also cleans up after 252: step 110 still told the owner to approve the deleted `script.vo.txt`, and section 4's `script.md` skeleton still emitted the lexicon table section 1 forbids | P2 | S | none | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -1379,3 +1383,7 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 248-maintainer-artifacts-job — PR#209 248-maintainer-artifacts-job: a published video's leftovers — DONE
 - 249-maintainer-claude-health-and-token-budget — PR#210 249-maintainer-claude-health-and-token-budget: the claude-health and token-budget jobs — DONE
 - 250-backfill-card-slugs — PR#211 250-backfill-card-slugs: backfill the slug for all 76 live cards — DONE
+- 251-extract-shared-vo-lib — PR#212 251-extract-shared-vo-lib: Extract the shared voiceover lib into the TTS hub — DONE
+- 252-yt-script-wire-voiceover — PR#213 252-yt-script-wire-voiceover: Wire yt-script step 120 to the yt-vo engine — DONE
+- 253-yt-script-feedback-skill — PR#214 253-yt-script-feedback-skill: Learn the owner's script preferences — DONE
+- 254-taste-format-split — PR#215 254-taste-format-split: Move the taste rules out of SCRIPT-INSTRUCTIONS.md, and fix what 252 left behind — DONE

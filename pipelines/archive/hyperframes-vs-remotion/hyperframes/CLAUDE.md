@@ -1,3 +1,8 @@
+> **ARCHIVED 2026-07-04 - do not follow these instructions.** The Hyperframes side of a
+> one-off Hyperframes-vs-Remotion comparison. The live tool is
+> [`pipelines/video/card-library/`](../../../video/card-library/README.md). Kept for reference
+> only; nothing here runs in production. See `decisions.md` (2026-07-04).
+
 # HyperFrames Composition Project
 
 ## Skills — USE THESE FIRST

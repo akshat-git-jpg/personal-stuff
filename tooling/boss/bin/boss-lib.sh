@@ -289,7 +289,7 @@ boss_crews_running() {
     dispatched=$(meta_get "$id" dispatched_at)
     started=$(ps -o lstart= -p "$pid" 2>/dev/null)
     if [ -n "$dispatched" ] && [ -n "$started" ]; then
-      started=$(date -j -f '%a %b %e %T %Y' "$started" +%s 2>/dev/null || echo '')
+      started=$(boss_date_epoch "$started" || echo '')
       if [ -n "$started" ] \
          && { [ "$started" -gt $((dispatched + 3600)) ] || [ "$started" -lt $((dispatched - 300)) ]; }; then
         continue
@@ -480,7 +480,7 @@ boss_mutation_gate() {
     echo "mutation_apply set but mutation_command/mutation_expect missing — incomplete mutation contract"; return 0
   fi
   cwd=$(fm_get mutation_cwd "$plan" 2>/dev/null)
-  tbin=$(boss_timeout_bin) || { echo "mutation gate needs gtimeout (brew install coreutils)"; return 0; }
+  tbin=$(boss_timeout_bin) || { echo "mutation gate needs a timeout binary (macOS: brew install coreutils; Linux: apt install coreutils)"; return 0; }
   ttl=$(fm_get mutation_timeout "$plan" 2>/dev/null); ttl="${ttl:-600}"
   # Install deps the leased slot may not have — see boss_dep_prelude. Without
   # this the gate reports "command already fails on CLEAN state" and the recipe
@@ -554,12 +554,39 @@ _boss_mut_run() {
 # rather than silently running the verify bare.
 boss_timeout_bin() { command -v gtimeout 2>/dev/null || command -v timeout 2>/dev/null; }
 
+# --- portable stat/date. macOS ships BSD coreutils; Linux (incl. WSL2 Ubuntu)
+# ships GNU. THE ORDER BELOW IS LOAD-BEARING AND NOT INTERCHANGEABLE: under GNU
+# stat, `-f` means --file-system and SUCCEEDS, printing a mount point ("/") for
+# %m. So the obvious `stat -f %m || stat -c %Y` chain never falls through on
+# Linux and hands back "/", which then blows up as an arithmetic operand. BSD
+# stat has no `-c` at all and simply errors, so GNU-first is the only ordering
+# that degrades correctly on both.
+boss_mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null; }
+# boss_mtime_fmt <file> - mtime as "YYYY-MM-DD HH:MM:SS" (GNU `date -d @`, BSD `date -r`).
+boss_mtime_fmt() {
+  local t; t=$(boss_mtime "$1"); [ -n "$t" ] || return 1
+  date -d "@$t" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date -r "$t" '+%Y-%m-%d %H:%M:%S' 2>/dev/null
+}
+# boss_date_epoch <stamp> - parse a `ps -o lstart=` stamp to epoch seconds.
+boss_date_epoch() {
+  date -d "$1" +%s 2>/dev/null || date -j -f '%a %b %e %T %Y' "$1" +%s 2>/dev/null
+}
+
 # gh account guard. Another tool (or a second logged-in account) can flip the
 # active gh login mid-session; against this PRIVATE repo that silently breaks
 # every gh call ("Could not resolve to a Repository") and quietly parks work.
 # Assert — and auto-switch — to the expected account on every gh write path
 # (session-start, dispatch, merge, deploy). `gh api user` is one unambiguous call
 # that also proves the token is valid. Override the expected user via BOSS_GH_USER.
+# Resolution order: $BOSS_GH_USER, then `git config boss.ghUser` (per-clone and
+# untracked, so a second machine or a second owner sets it once with
+# `git config boss.ghUser <login>` and never edits this file), then the original
+# default so nothing changes for the primary checkout.
+# The `|| true` is load-bearing. `git config --get` EXITS 1 when the key is unset, and
+# boss-lib is sourced under `set -e`, so without it EVERY boss entry script dies on load
+# the moment boss.ghUser is not configured, which is the normal state of the primary
+# checkout. test-boss.sh section (8) caught this: it sources boss-lib in a subshell.
+BOSS_GH_USER="${BOSS_GH_USER:-$(git config --get boss.ghUser 2>/dev/null || true)}"
 BOSS_GH_USER="${BOSS_GH_USER:-akshat-git-jpg}"
 boss_assert_gh() {
   local u; u=$(gh api user -q .login 2>/dev/null)

@@ -24,6 +24,19 @@ DEFAULT_TTL_HOURS=24
 # to break a provably-dead lock, bound the wait, and fail loudly.
 LOCK_WAIT_SECS=30
 
+# --- portable stat/date. macOS ships BSD coreutils; Linux (incl. WSL2 Ubuntu)
+# ships GNU. THE ORDER BELOW IS LOAD-BEARING AND NOT INTERCHANGEABLE: under GNU
+# stat, `-f` means --file-system and SUCCEEDS, printing a mount point ("/") for
+# %m. So the obvious `stat -f %m || stat -c %Y` chain never falls through on
+# Linux and hands back "/", which then blows up as an arithmetic operand. BSD
+# stat has no `-c` at all and simply errors, so GNU-first is the only ordering
+# that degrades correctly on both.
+wt_mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null; }
+wt_mtime_fmt() {
+  local t; t=$(wt_mtime "$1"); [ -n "$t" ] || { printf '%s' '-'; return 0; }
+  date -d "@$t" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date -r "$t" '+%Y-%m-%d %H:%M:%S' 2>/dev/null
+}
+
 function usage() {
   echo "Usage: wt <command> [options]" >&2
   echo "Commands:" >&2
@@ -116,7 +129,7 @@ function lock_pool() {
     # between `mkdir` and the pid write. Break it on age alone.
     if [ -z "$owner_pid" ]; then
       now=$(date +%s)
-      mtime=$(stat -f %m "$LOCK_DIR" 2>/dev/null || echo "$now")
+      mtime=$(wt_mtime "$LOCK_DIR"); mtime=${mtime:-$now}
       if [ $((now - mtime)) -ge "$LOCK_WAIT_SECS" ]; then
         echo "wt: breaking stale pool lock (no pid recorded, ${LOCK_WAIT_SECS}s+ old)" >&2
         rm -rf "$LOCK_DIR"; continue
@@ -177,7 +190,7 @@ function lease_age_hours() {
   local lease_file=$1 now mtime
   [ -f "$lease_file" ] || { echo 0; return; }
   now=$(date +%s)
-  mtime=$(stat -f %m "$lease_file" 2>/dev/null || echo "$now")
+  mtime=$(wt_mtime "$lease_file"); mtime=${mtime:-$now}
   echo $(( (now - mtime) / 3600 ))
 }
 
@@ -367,7 +380,7 @@ case "$CMD" in
             stale_seen=1
             if wt_is_clean "$wt_path"; then state="STALE"; else state="STALE/DIRTY"; fi
           fi
-          printf "%-5s %-10s %-15s %-6s %s\n" "$i" "$state" "$holder" "$age" "$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$lease_file")"
+          printf "%-5s %-10s %-15s %-6s %s\n" "$i" "$state" "$holder" "$age" "$(wt_mtime_fmt "$lease_file")"
         else
           if [ -n "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
             printf "%-5s %-10s %-15s %-6s %s\n" "$i" "dirty" "-" "-" "-"

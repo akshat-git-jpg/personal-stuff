@@ -73,7 +73,7 @@ lock_try() {
     rm -rf "$SWEEP_LOCK"
   elif [ -z "$owner" ]; then
     now=$(date +%s)
-    mt=$(stat -f %m "$SWEEP_LOCK" 2>/dev/null || stat -c %Y "$SWEEP_LOCK" 2>/dev/null || echo "$now")
+    mt=$(boss_mtime "$SWEEP_LOCK"); mt=${mt:-$now}
     if [ $((now - mt)) -ge "$LOCK_STALE_SECS" ]; then
       log "breaking a stale sweep lock (no pid recorded, ${LOCK_STALE_SECS}s+ old)"
       rm -rf "$SWEEP_LOCK"

@@ -102,7 +102,7 @@ branch_slug=$(echo "$branch" | tr '/' '-' | tr -cd 'a-zA-Z0-9-')
 # printf %q keeps the test_cmd intact through the extra shell layer. -k 30 forces
 # SIGKILL 30s after SIGTERM in case the hung process ignores the term.
 ttl=$(meta_get "$pr" test_timeout); ttl="${ttl:-600}"
-tbin=$(boss_timeout_bin) || { echo "FATAL: no gtimeout/timeout on PATH — brew install coreutils" >&2; exit 1; }
+tbin=$(boss_timeout_bin) || { echo "FATAL: no gtimeout/timeout on PATH (macOS: brew install coreutils; Linux: apt install coreutils)" >&2; exit 1; }
 # greenlight leases its OWN pool slot, which may never have built this app —
 # prepend the install step derived from test_cmd's own `cd` targets so the verify
 # is runnable in any slot (boss_dep_prelude; PR#197, 2026-08-23).
