@@ -29,12 +29,19 @@ personal) appear in one list, and the tag is the primary grouping.
     pp-agents --doctor        # check what it can read and act with
 """
 import curses
+import errno
+import fcntl
 import json
 import os
+import pty
+import select
 import shutil
+import signal
 import subprocess
 import sys
+import termios
 import time
+import tty
 
 def _accounts_from_env():
     """`PP_AGENTS_ACCOUNTS=work=/tmp/a:personal=/tmp/b` overrides the real stores.
@@ -299,6 +306,114 @@ def dispatch_cmd(prompt):
     return [claude_bin(), "--bg", prompt]
 
 
+BACK_KEY = os.environ.get("PP_AGENTS_BACK_KEY", "\x0f")   # ctrl+o, "out"
+BACK_KEY_LABEL = os.environ.get("PP_AGENTS_BACK_KEY_LABEL", "ctrl+o")
+
+
+def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
+    """Run `cmd` on a pty we own, and come straight back here on `back`.
+
+    Why this is not a plain `subprocess.call`: `claude attach` binds the left
+    arrow to "back to the agents view" and opens **Claude Code's** ungrouped one,
+    which strands you outside this view - and `esc` there does not exit, so there
+    is no way home. Claude Code decides that internally and exposes no flag.
+    `claude --resume` is not an alternative either; it refuses a background agent
+    outright and tells you to use `claude agents`.
+
+    So the bytes go through here. Everything is forwarded verbatim in both
+    directions - alt-screen, mouse, bracketed paste, resizes - except one
+    reserved key, which never reaches Claude Code and instead detaches and
+    returns. The left arrow keeps working normally as a cursor key, and even if
+    you do land in Claude Code's own list, the reserved key still brings you back.
+
+    Detaching kills only the attach *client*. The session itself lives in the
+    daemon and keeps running, exactly as it would if the terminal were closed.
+
+    Returns the child's exit status, or None if it was detached.
+    """
+    if not sys.stdin.isatty():
+        return subprocess.call(cmd, env=env, cwd=cwd or None)
+
+    stdin_fd = sys.stdin.fileno()
+    out_fd = sys.stdout.fileno()
+    saved = termios.tcgetattr(stdin_fd)
+    pid, master = pty.fork()
+    if pid == 0:
+        try:
+            if cwd:
+                os.chdir(cwd)
+        except OSError:
+            pass
+        os.execvpe(cmd[0], cmd, env)
+        os._exit(127)                                    # unreachable on success
+
+    def sync_size(*_):
+        try:
+            size = fcntl.ioctl(out_fd, termios.TIOCGWINSZ, b"\0" * 8)
+            fcntl.ioctl(master, termios.TIOCSWINSZ, size)
+            os.kill(pid, signal.SIGWINCH)
+        except (OSError, ValueError):
+            pass
+
+    prev_winch = signal.getsignal(signal.SIGWINCH)
+    detached = False
+    try:
+        tty.setraw(stdin_fd)
+        signal.signal(signal.SIGWINCH, sync_size)
+        sync_size()
+        while True:
+            try:
+                readable, _, _ = select.select([stdin_fd, master], [], [])
+            except (OSError, select.error) as exc:
+                if getattr(exc, "errno", None) == errno.EINTR:
+                    continue                             # a resize woke select
+                break
+            if master in readable:
+                try:
+                    data = os.read(master, 1 << 16)
+                except OSError:
+                    break
+                if not data:
+                    break
+                os.write(out_fd, data)
+            if stdin_fd in readable:
+                try:
+                    data = os.read(stdin_fd, 1 << 16)
+                except OSError:
+                    break
+                if not data:
+                    break
+                hit = data.find(back.encode())
+                if hit != -1:
+                    if hit:
+                        os.write(master, data[:hit])     # send what came before
+                    detached = True
+                    break
+                os.write(master, data)
+    finally:
+        signal.signal(signal.SIGWINCH, prev_winch)
+        termios.tcsetattr(stdin_fd, termios.TCSADRAIN, saved)
+        if detached:
+            for sig in (signal.SIGTERM, signal.SIGKILL):
+                try:
+                    os.kill(pid, sig)
+                    time.sleep(0.15)
+                    if os.waitpid(pid, os.WNOHANG)[0]:
+                        break
+                except OSError:
+                    break
+        try:
+            os.close(master)
+        except OSError:
+            pass
+    if detached:
+        return None
+    try:
+        return os.waitpid(pid, 0)[1] >> 8
+    except OSError:
+        return 0
+
+
 def run_attached(cmd, env, cwd=None):
     """Hand the whole terminal to a real command, then take it back.
 
@@ -315,7 +430,7 @@ def run_attached(cmd, env, cwd=None):
     curses.def_prog_mode()
     curses.endwin()
     try:
-        return subprocess.call(cmd, env=env, cwd=cwd or None)
+        return run_proxied(cmd, env, cwd)
     except OSError as exc:
         print(f"pp-agents: could not run {cmd[0]}: {exc}")
         return 127
@@ -341,37 +456,78 @@ def fmt_age(iso):
     return f"{int(secs // 86400)}d"
 
 
+PIN_MARK = "▸"
+FOLD_OPEN = "▾"      # open group
+FOLD_SHUT = "▸"      # folded group          # a small right-pointing triangle
+
+# One glyph per state, so the list can be skimmed by shape as well as by colour.
+GLYPH = {
+    "blocked": "●",     # filled circle - wants you
+    "working": "◐",     # half-filled - busy
+    "error": "▲",       # triangle - trouble
+    "idle": "○",        # hollow circle
+}
+
+
 def state_glyph(state):
-    return {"blocked": "*", "working": "~", "error": "!"}.get(state, "-")
+    return GLYPH.get(state, "·")   # middle dot for done and anything else
 
 
 STATE_W = 12   # widest label, "Needs input", plus a space
 AGE_W = 5
+# the fixed cells around the elastic columns: two lead spaces, pin, glyph, and
+# the single spaces after the glyph and after the name
+ROW_CHROME = 6
 
 
-def row_text(job, width, pins):
-    """One session line, never wider than `width`.
+def row_segments(job, width, pins):
+    """One session line as [(text, kind), ...] - the single layout definition.
 
-    Layout: marker, name, state, last message, age. The name column is elastic
-    and the two right-hand columns are fixed, so the ages line up. The result is
-    truncated as a last step, because a row that overflows corrupts a curses
-    screen rather than merely looking wrong.
+    The screen colours each segment by `kind`; `--dump` joins them into plain
+    text. Both go through here so a rendering test means something: if the two
+    drifted apart, the plain-text assertions would stop describing the screen.
+
+    Layout is marker, name, state, last message, age. The name column is elastic
+    and the right-hand columns are fixed so the ages line up.
     """
-    pin = "^" if job["short"] in pins else " "
+    pinned = job["short"] in pins
     label = STATE_LABEL.get(job["state"], job["state"] or "?")
     age = fmt_age(job["updated"])
     # In a narrow terminal the last message is the first thing to go: a readable
     # session name matters more than a truncated fragment of its last line.
     if width < 90:
-        name_w = max(8, width - STATE_W - AGE_W - 2)
+        name_w = max(8, width - STATE_W - AGE_W - ROW_CHROME)
         detail_w = 0
     else:
-        name_w = max(12, min(46, width - 40))
-        detail_w = max(0, width - name_w - STATE_W - AGE_W - 2)
-    name = f" {pin}{state_glyph(job['state'])} {job['name']}"[:name_w].ljust(name_w)
-    detail = job["detail"][:detail_w].ljust(detail_w)
-    line = f"{name} {label:<{STATE_W}}{detail}{age:>{AGE_W}}"
-    return line[:width]
+        name_w = max(12, min(44, width - 42))
+        detail_w = max(0, width - name_w - STATE_W - AGE_W - ROW_CHROME)
+    name = f"{job['name']}"[:name_w].ljust(name_w)
+    segs = [
+        ("  ", "plain"),
+        (PIN_MARK if pinned else " ", "pin"),
+        (state_glyph(job["state"]), job["state"] or "done"),
+        (" ", "plain"),
+        (name, "name"),
+        (" ", "plain"),
+        (f"{label:<{STATE_W}}", job["state"] or "done"),
+    ]
+    if detail_w:
+        segs.append((job["detail"][:detail_w].ljust(detail_w), "detail"))
+    segs.append((f"{age:>{AGE_W}}", "age"))
+    # never let the composed line exceed the width - an overflowing row corrupts
+    # a curses screen rather than merely looking wrong
+    out, used = [], 0
+    for text, kind in segs:
+        if used >= width:
+            break
+        text = text[:width - used]
+        used += len(text)
+        out.append((text, kind))
+    return out
+
+
+def row_text(job, width, pins):
+    return "".join(t for t, _ in row_segments(job, width, pins))
 
 
 # ---------------------------------------------------------------- non-TUI
@@ -426,7 +582,8 @@ def cmd_dump(argv):
         print("(nothing matched)")
         return 0
     for head, count, rows in groups:
-        print(f" {'+' if head in folded else '-'} {head}  ({count})")
+        mark = FOLD_SHUT if head in folded else FOLD_OPEN
+        print(f" {mark} {head}  {count}")
         for j in rows:
             print(row_text(j, width, pins))
     return 0
@@ -474,7 +631,8 @@ def cmd_doctor():
 
 HELP = [
     ("up/down, j/k", "move"),
-    ("enter", "open the session (claude attach)"),
+    ("enter", "open the session"),
+    (BACK_KEY_LABEL, "come back here from inside a session"),
     ("ctrl+e / e", "tag this session (tab completes an existing tag)"),
     ("ctrl+x / x", "remove this session's tag"),
     ("ctrl+t / t", "pin to top"),
@@ -490,9 +648,61 @@ HELP = [
 ]
 
 
+def init_colours():
+    """Colour by meaning, on the terminal's own background.
+
+    `use_default_colors` is the important call: without it curses paints every
+    cell with its own idea of "black", which on a themed terminal shows up as
+    rectangular blocks behind the text instead of a background. Foreground only,
+    background left alone.
+
+    Returns a dict of segment kind -> attribute, with a monochrome fallback so a
+    terminal without colour still reads as a hierarchy.
+    """
+    mono = {
+        "header": curses.A_BOLD, "count": curses.A_DIM, "name": curses.A_NORMAL,
+        "detail": curses.A_DIM, "age": curses.A_DIM, "pin": curses.A_BOLD,
+        "blocked": curses.A_BOLD, "working": curses.A_BOLD, "error": curses.A_BOLD,
+        "idle": curses.A_DIM, "done": curses.A_DIM, "plain": curses.A_NORMAL,
+        "bar": curses.A_REVERSE, "hint": curses.A_DIM,
+    }
+    try:
+        curses.start_color()
+        curses.use_default_colors()
+    except curses.error:
+        return mono
+    if not curses.has_colors():
+        return mono
+
+    def pair(idx, fg, attr=0):
+        try:
+            curses.init_pair(idx, fg, -1)
+            return curses.color_pair(idx) | attr
+        except curses.error:
+            return attr
+
+    return {
+        "header": pair(1, curses.COLOR_CYAN, curses.A_BOLD),
+        "count": pair(2, curses.COLOR_BLUE),
+        "name": curses.A_NORMAL,
+        "detail": pair(3, curses.COLOR_BLUE),
+        "age": pair(3, curses.COLOR_BLUE),
+        "pin": pair(4, curses.COLOR_MAGENTA, curses.A_BOLD),
+        "blocked": pair(5, curses.COLOR_YELLOW, curses.A_BOLD),
+        "working": pair(6, curses.COLOR_CYAN),
+        "error": pair(7, curses.COLOR_RED, curses.A_BOLD),
+        "idle": pair(3, curses.COLOR_BLUE),
+        "done": pair(8, curses.COLOR_GREEN),
+        "plain": curses.A_NORMAL,
+        "bar": pair(1, curses.COLOR_CYAN, curses.A_BOLD | curses.A_REVERSE),
+        "hint": pair(3, curses.COLOR_BLUE),
+    }
+
+
 class App:
     def __init__(self, scr):
         self.scr = scr
+        self.attr = init_colours()
         self.mode = "tag"
         self.folded = set()
         self.query = ""
@@ -537,42 +747,73 @@ class App:
 
     # -------------------------------------------------------- drawing
 
+    def put(self, y, x, text, attr=0):
+        """Write clipped text and return the next column.
+
+        curses raises if anything reaches the bottom-right cell, so every write
+        goes through here rather than trusting the caller's arithmetic.
+        """
+        h, w = self.scr.getmaxyx()
+        if y < 0 or y >= h or x >= w - 1:
+            return x
+        text = text[:max(0, w - 1 - x)]
+        if text:
+            try:
+                self.scr.addstr(y, x, text, attr)
+            except curses.error:
+                pass
+        return x + len(text)
+
     def draw(self):
         self.scr.erase()
         h, w = self.scr.getmaxyx()
         counts = {}
         for j in self.jobs:
             counts[j["state"]] = counts.get(j["state"], 0) + 1
-        title = (f" pp-agents  grouped by {self.mode}   "
-                 f"{counts.get('blocked', 0)} need input, "
-                 f"{counts.get('working', 0)} working, {counts.get('done', 0)} done")
-        self.scr.addnstr(0, 0, title.ljust(w - 1), w - 1, curses.A_REVERSE)
+        bits = [f"{counts.get('blocked', 0)} need input"]
+        if counts.get("working"):
+            bits.append(f"{counts['working']} working")
+        bits.append(f"{counts.get('done', 0)} done")
+        title = f" pp-agents · by {self.mode} · " + " · ".join(bits)
+        self.put(0, 0, title.ljust(w - 1), self.attr["bar"])
 
         if self.show_help:
             self.draw_help(h, w)
         else:
             self.draw_rows(h, w)
 
-        bar = self.status or ("filter: " + self.query if self.query else
-                              "enter open  e tag  s group  space fold  / filter  ? help  q quit")
-        self.scr.addnstr(h - 1, 0, bar.ljust(w - 1), w - 1, curses.A_REVERSE)
+        if self.status:
+            bar, attr = " " + self.status, self.attr["bar"]
+        elif self.query:
+            bar, attr = f" filter: {self.query}   (esc clears)", self.attr["bar"]
+        else:
+            bar, attr = (f" enter open · {BACK_KEY_LABEL} back · e tag · t pin · "
+                         "s group · / filter · ? help · q quit"), self.attr["bar"]
+        self.put(h - 1, 0, bar.ljust(w - 1), attr)
         self.scr.refresh()
 
     def draw_help(self, h, w):
-        self.scr.addnstr(2, 2, "keys", w - 4, curses.A_BOLD)
+        self.put(2, 2, "keys", self.attr["header"])
         for i, (k, d) in enumerate(HELP):
             if 4 + i >= h - 2:
                 break
-            self.scr.addnstr(4 + i, 4, f"{k:<16}{d}", w - 6)
+            x = self.put(4 + i, 4, f"{k:<16}", self.attr["blocked"])
+            self.put(4 + i, x, d, self.attr["name"])
         line = 5 + len(HELP)
-        if line < h - 2:
-            self.scr.addnstr(line, 2, "tags are stored in Claude Code's own group file, so nothing", w - 4, curses.A_DIM)
-        if line + 1 < h - 2:
-            self.scr.addnstr(line + 1, 2, "is lost if the built-in tag view ever starts working again.", w - 4, curses.A_DIM)
+        for j, note in enumerate((
+                "tags live in Claude Code's own group file, so nothing is lost",
+                "if the built-in tag view ever starts working again.")):
+            if line + j < h - 2:
+                self.put(line + j, 2, note, self.attr["detail"])
 
     def draw_rows(self, h, w):
+        """Draw headers and sessions, colouring each piece by what it means.
+
+        Only the cursor row gets a background. Everything else is foreground
+        colour on the terminal's own background, which is what stops the list
+        looking like a grid of black rectangles.
+        """
         body = h - 2
-        # keep the cursor on screen
         first = 0
         if self.cursor >= body:
             first = self.cursor - body + 1
@@ -582,19 +823,25 @@ class App:
                 break
             kind, payload = self.rows[idx]
             sel = idx == self.cursor
+            base = curses.A_REVERSE if sel else 0
+            if sel:
+                # lay the highlight down first so it spans the whole row
+                self.put(y, 0, " " * (w - 1), base)
             if kind == "head":
                 head, count = payload
-                mark = "+" if head in self.folded else "-"
-                text = f" {mark} {head}  ({count})"
-                attr = curses.A_BOLD | (curses.A_REVERSE if sel else 0)
+                arrow = FOLD_SHUT if head in self.folded else FOLD_OPEN
+                x = self.put(y, 0, f" {arrow} ", self.attr["header"] | base)
+                x = self.put(y, x, head, self.attr["header"] | base)
+                self.put(y, x, f"  {count}", self.attr["count"] | base)
             else:
-                text = row_text(payload, w - 2, self.pins)
-                attr = curses.A_REVERSE if sel else curses.A_NORMAL
-            self.scr.addnstr(y, 0, text.ljust(w - 1), w - 1, attr)
+                x = 0
+                for text, seg in row_segments(payload, w - 2, self.pins):
+                    x = self.put(y, x, text, self.attr.get(seg, 0) | base)
             y += 1
         if not self.rows:
-            msg = "no sessions matched" if self.query else "no session records found - run pp-agents --doctor"
-            self.scr.addnstr(2, 2, msg, w - 4)
+            msg = ("nothing matched that filter" if self.query
+                   else "no sessions found - run  pp-agents --doctor")
+            self.put(2, 2, msg, self.attr["hint"])
 
     # -------------------------------------------------------- input
 
@@ -611,7 +858,7 @@ class App:
                     c = complete_tag(buf, complete_from)
                     if c:
                         hint = f"   (tab -> {c})"
-                self.scr.addnstr(h - 1, 0, (shown + hint).ljust(w - 1), w - 1, curses.A_REVERSE)
+                self.put(h - 1, 0, (shown + hint).ljust(w - 1), self.attr["bar"])
                 self.scr.refresh()
                 ch = self.scr.getch()
                 if ch in (10, 13):
@@ -631,7 +878,7 @@ class App:
 
     def confirm(self, question):
         h, w = self.scr.getmaxyx()
-        self.scr.addnstr(h - 1, 0, (question + "  [y/N]").ljust(w - 1), w - 1, curses.A_REVERSE)
+        self.put(h - 1, 0, (question + "  [y/N]").ljust(w - 1), self.attr["bar"])
         self.scr.refresh()
         return self.scr.getch() in (ord("y"), ord("Y"))
 

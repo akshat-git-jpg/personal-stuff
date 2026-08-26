@@ -272,7 +272,8 @@ with tempfile.TemporaryDirectory() as tmp:
     for w in (40, 80, 120, 200):
         line = mod.row_text(j, w, set())
         check(f"a row fits width {w}", len(line) <= w + 2, f"{len(line)} > {w}")
-    check("a pinned row is marked", "^" in mod.row_text(j, 120, {j["short"]}))
+    check("a pinned row is marked",
+          mod.PIN_MARK in mod.row_text(j, 120, {j["short"]}))
     long = dict(j, name="n" * 200, detail="d" * 400)
     check("an absurdly long name still fits", len(mod.row_text(long, 100, set())) <= 102)
 
@@ -305,7 +306,7 @@ with tempfile.TemporaryDirectory() as tmp:
     check("summarises the states", "2 need input, 1 working, 2 done" in text, text[:160])
     for tag in ("pp", "source-filter", "vi-prod", "Ungrouped"):
         check(f"tag header {tag!r} is drawn with a count",
-              re.search(rf"^ - {re.escape(tag)}\s+\(\d+\)$", text, re.M) is not None, text)
+              re.search(rf"^ \u25be {re.escape(tag)}\s+\d+$", text, re.M) is not None, text)
     check("every session is drawn", all(n in text for n in
           ("chargeback", "cleanup", "source filter", "loose end", "video intro")))
     check("both accounts are in one list", "video intro" in text and "cleanup" in text)
@@ -320,14 +321,14 @@ with tempfile.TemporaryDirectory() as tmp:
     text = dump(tmp, "--group", "folder")
     check("--group folder groups by path", "grouped by folder" in text)
     check("folder headers are paths",
-          re.search(r"^ - .*dashboard-api\s+\(3\)$", text, re.M) is not None, text)
+          re.search(r"^ \u25be .*dashboard-api\s+3$", text, re.M) is not None, text)
 
     text = dump(tmp, "--group", "state")
     check("--group state groups by state", "grouped by state" in text)
     check("state headers appear with counts",
-          re.search(r"^ - Needs input\s+\(2\)$", text, re.M) is not None, text)
+          re.search(r"^ \u25be Needs input\s+2$", text, re.M) is not None, text)
     check("needs input is the first state group",
-          text.index("Needs input  (2)") < text.index("Done  (2)"))
+          text.index("Needs input  2") < text.index("Done  2"))
 
     bad = subprocess.run([sys.executable, SCRIPT, "--dump", "--group", "nonsense"],
                          env=env_for(tmp), capture_output=True, text=True, timeout=60)
@@ -335,10 +336,18 @@ with tempfile.TemporaryDirectory() as tmp:
 
     text = dump(tmp, "--fold", "pp")
     check("a folded group is marked with +",
-          re.search(r"^ \+ pp\s+\(2\)$", text, re.M) is not None, text)
-    check("a folded group keeps its count", "(2)" in text)
+          re.search(r"^ \u25b8 pp\s+2$", text, re.M) is not None, text)
+    check("a folded group keeps its count", re.search(r"pp\s+2$", text, re.M) is not None)
     check("a folded group hides its sessions", "chargeback" not in text, text)
     check("other groups are untouched by folding", "video intro" in text)
+
+    check("a session that needs input is marked differently from a done one",
+          "\u25cf" in text and "\u00b7" in text, text)
+    for w in ("60", "90", "120", "150", "200"):
+        rows = [l for l in dump(tmp, "--width", w).splitlines() if l.startswith("   ")]
+        check(f"the age is never clipped at width {w}",
+              all(re.search(r"\d+[smhd]$", l) for l in rows),
+              [l[-8:] for l in rows][:3])
 
     narrow = dump(tmp, "--width", "60")
     check("a narrow render keeps the full session name",
@@ -353,7 +362,7 @@ with tempfile.TemporaryDirectory() as tmp:
     check("a filter matching nothing says so", "nothing matched" in text, text)
 
     text = dump(tmp, "--pin", "aaa2")
-    check("a pinned session is marked", "^" in text, text)
+    check("a pinned session is marked", "\u25b8" in text, text)
     check("a pinned session floats to the top of its group",
           text.index("cleanup") < text.index("chargeback"))
 
@@ -361,7 +370,7 @@ with tempfile.TemporaryDirectory() as tmp:
         text = dump(tmp, "--width", w)
         check(f"nothing overflows at width {w}",
               all(len(l) <= int(w) for l in text.splitlines()
-                  if not l.startswith(("pp-agents", " - ", " + "))),
+                  if l.startswith("   ")),
               max((len(l) for l in text.splitlines()), default=0))
 
 with tempfile.TemporaryDirectory() as tmp:
@@ -379,7 +388,7 @@ def stub_claude(tmp):
         fh.write("#!/bin/sh\n"
                  f'printf "%s\\n" "$*" >> {log}\n'
                  'case "$1" in\n'
-                 '  attach) echo "ATTACHED $2"; sleep 0.3 ;;\n'
+                 '  attach) echo "ATTACHED $2"; sleep 2; echo "FINISHED $2" ;;\n'
                  '  logs)   echo "LOGS $2" ;;\n'
                  '  stop)   echo "stopped $2" ;;\n'
                  '  *)      echo "backgrounded fake" ;;\n'
@@ -394,7 +403,7 @@ def scrape(raw):
     return re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", text)
 
 
-def drive(tmp, keys, rows=40, cols=170, settle=4.0):
+def drive(tmp, keys, rows=40, cols=170, settle=4.0, tail=1.2):
     """Run the real pp-agents in a pty, wait until it has drawn, then send keys.
 
     Returns (first_screen, screen_after_keys, recorded_claude_calls). Curses only
@@ -446,7 +455,7 @@ def drive(tmp, keys, rows=40, cols=170, settle=4.0):
         except OSError:
             break          # the program exited already; nothing left to send
         pump(0.55)
-    pump(1.2)
+    pump(tail)
 
     try:
         os.kill(pid, signal.SIGKILL)
@@ -469,7 +478,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    first, after, calls = drive(tmp, [b"\r", b"q"])
+    first, after, calls = drive(tmp, [b"\r", b"\x0f", b"q"], tail=3.0)
     check("the cursor starts on a session, so enter works immediately",
           re.search(r"attach (aaa|bbb)", calls) is not None, repr(calls))
     check("a session whose folder is gone still opens",
@@ -497,6 +506,44 @@ with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     _f, _a, calls = drive(tmp, [b"K", b"n", b"q"])
     check("declining K stops nothing", re.search(r"stop (aaa|bbb)", calls) is None, repr(calls))
+
+section("end to end: coming back out of a session")
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # ctrl+o mid-session must return to the list AND detach the client, so the
+    # stub's later output never appears. This is the whole reason the attach runs
+    # on a pty we own instead of inheriting the terminal.
+    _f, after, calls = drive(tmp, [b"\r", b"\x0f"], tail=4.0)
+    check("the session was opened", "ATTACHED" in after, after[-200:])
+    check("ctrl+o returns to the tag list", "pp-agents" in after.split("ATTACHED")[-1],
+          after[-400:])
+    check("ctrl+o detaches rather than waiting it out",
+          "FINISHED" not in after, after[-300:])
+    check("coming back does not traceback", "Traceback" not in after, after[-300:])
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # without the reserved key the child is left to finish normally
+    _f, after, _ = drive(tmp, [b"\r"], tail=5.0)
+    check("a session left alone runs to completion", "FINISHED" in after, after[-300:])
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # keystrokes before the reserved key must still reach the session
+    _f, after, _ = drive(tmp, [b"\r"], tail=3.0)
+    check("the view returns after the session ends",
+          "pp-agents" in after.split("FINISHED")[-1] if "FINISHED" in after else True,
+          after[-300:])
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    _f, after, _ = drive(tmp, [b"?", b"q", b"q"])
+    check("help names the key that comes back", "ctrl+o" in after, after[-500:])
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    first, _a, _ = drive(tmp, [b"q"])
+    check("the status bar names the key that comes back", "ctrl+o" in first, first[-300:])
 
 section("end to end: key presses that change disk state")
 
