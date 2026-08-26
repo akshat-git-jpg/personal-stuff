@@ -58,16 +58,12 @@ The draft's words are the maker's. The line is **sound, not substance**.
 
 - First person, one presenter talking directly to camera. "I tested," "I'm
   comparing," never "we" unless the channel is an established team.
-- Direct address to the viewer as "you." Casual-professional — contractions,
-  short sentences, no corporate hedging.
-- Frame every comparison as fair and unbiased before making claims: state the
-  test conditions (same script, same inputs) up front so verdicts later feel
-  earned, not sponsored.
-- Give every option credit before naming its limit. Never open a platform's
-  verdict with the negative — earn the criticism after stating what it's
-  genuinely good for.
-- Confident, singular recommendations at the end — not "it depends," a named
-  winner with a one-line reason.
+
+Everything else about voice is taste, not format, and lives in
+[`TASTE.md`](TASTE.md) — T2 (register), T3 (earn the verdicts), T4 (credit before
+limit), T5 (land on a winner). Read it alongside this file. It moved there on
+2026-08-26 so that a preference could be dated, sourced and retired; a rule with
+no recorded origin lives forever by default.
 
 ## Structure: three parts, all locked
 
@@ -124,15 +120,12 @@ For a comparison across N options, structure the walk as:
 ## Closing convention (Part C)
 
 1. **Honest Verdict, weakest to strongest.** Walk every option in ascending
-   order of fit, ending on the winner(s). Each gets a fair reason to exist,
-   then its limit — never the reverse order.
-2. **Overall synthesis line** before verdicts start: "none of these are bad,
-   they're just built for different priorities" — softens the ranking that
-   follows.
-3. **Final recommendation** — restate the winner(s) addressed to named viewer
+   order of fit, ending on the winner(s). What goes *inside* each verdict is
+   `TASTE.md` T4.
+2. **Final recommendation** — restate the winner(s) addressed to named viewer
    personas (by role/use case), then one closing sentence naming the single
    top pick if forced to choose only one.
-4. **Final CTA** — thanks for watching → links/deals reminder in description →
+3. **Final CTA** — thanks for watching → links/deals reminder in description →
    comment prompt → like + subscribe → sign-off ("I'll see you in the next
    one").
 
@@ -153,7 +146,8 @@ For a comparison across N options, structure the walk as:
 - References to internal process (SOPs, scoring methodology docs, "per our
   evaluation criteria doc") — state the criteria in plain language instead.
 - Sponsor/bias language unless the video is actually sponsored — the fairness
-  framing in the intro exists specifically so this never needs saying later.
+  framing in the intro (`TASTE.md` T3) exists specifically so this never needs
+  saying later.
 
 ---
 
@@ -241,9 +235,6 @@ clearly headed. None of that structure reaches the engine.
 
 ```markdown
 # <video title> — final VO script
-
-## Pronunciation lexicon
-| ... |
 
 ## Part A — Introduction
 
