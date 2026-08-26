@@ -3,6 +3,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Touch devices have no hover, so Tailwind's `hover:` / `group-hover:` rules
+   never fire there and hover-revealed controls stay invisible but still
+   tappable. `touch:` applies exactly where hover does not. */
+@custom-variant touch (@media (hover: none));
+
 /* ── Design tokens — Soft Modern ─────────────────────────────────────────────
    Rounded, airy, soft layered shadows, one accent. Accent = emerald.
    Emerald-500 ≈ oklch(0.696 0.17 162). Light is default; dark is intentional. */

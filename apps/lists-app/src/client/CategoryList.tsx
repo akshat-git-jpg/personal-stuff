@@ -2,7 +2,8 @@ import { useState } from 'react'
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
@@ -104,7 +105,7 @@ function Row({
             {...attributes}
             {...listeners}
             aria-label="Reorder category"
-            className="grid size-6 shrink-0 cursor-grab touch-none place-items-center rounded text-muted-foreground/50 opacity-0 transition group-hover:opacity-100 active:cursor-grabbing"
+            className="grid size-6 shrink-0 cursor-grab touch-none select-none place-items-center rounded text-muted-foreground/50 opacity-0 transition [-webkit-touch-callout:none] group-hover:opacity-100 active:cursor-grabbing touch:size-9 touch:text-muted-foreground/70 touch:opacity-100"
           >
             <GripVertical className="size-4" />
           </button>
@@ -125,14 +126,16 @@ function Row({
             {count}
           </span>
 
-          <div className="absolute right-2 flex items-center gap-0.5 opacity-0 transition group-hover:opacity-100">
+          {/* On hover devices these float over the count badge, which fades out.
+              On touch there is no hover, so they join the row instead. */}
+          <div className="absolute right-2 flex items-center gap-0.5 opacity-0 transition group-hover:opacity-100 touch:static touch:opacity-100">
             <button
               onClick={() => {
                 setDraft(cat.name)
                 setEditing(true)
               }}
               aria-label="Rename"
-              className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground"
+              className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground touch:size-9"
             >
               <Pencil className="size-3.5" />
             </button>
@@ -141,7 +144,7 @@ function Row({
                 if (confirm(`Delete "${cat.name}" and all its items?`)) onDelete()
               }}
               aria-label="Delete"
-              className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive touch:size-9"
             >
               <Trash2 className="size-3.5" />
             </button>
@@ -163,8 +166,11 @@ export default function CategoryList({
   onReorder,
 }: Props) {
   const [adding, setAdding] = useState('')
+  // See ItemList: touch needs its own press-delay constraint, which a single
+  // PointerSensor cannot express alongside the mouse one.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 

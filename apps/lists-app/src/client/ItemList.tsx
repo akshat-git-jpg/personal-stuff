@@ -2,7 +2,8 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
@@ -117,7 +118,7 @@ function Row({
         {...attributes}
         {...listeners}
         aria-label="Reorder item"
-        className="mt-0.5 grid size-7 shrink-0 cursor-grab touch-none place-items-center rounded text-muted-foreground/40 opacity-0 transition group-hover:opacity-100 active:cursor-grabbing"
+        className="mt-0.5 grid size-7 shrink-0 cursor-grab touch-none select-none place-items-center rounded text-muted-foreground/40 opacity-0 transition [-webkit-touch-callout:none] group-hover:opacity-100 active:cursor-grabbing touch:size-9 touch:text-muted-foreground/70 touch:opacity-100"
       >
         <GripVertical className="size-4" />
       </button>
@@ -155,7 +156,7 @@ function Row({
       <button
         onClick={onDelete}
         aria-label="Delete item"
-        className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground opacity-0 transition hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+        className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground opacity-0 transition hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100 touch:size-9 touch:opacity-100"
       >
         <Trash2 className="size-4" />
       </button>
@@ -165,8 +166,12 @@ function Row({
 
 export default function ItemList({ category, items, onAdd, onUpdate, onDelete, onReorder }: Props) {
   const [adding, setAdding] = useState('')
+  // Mouse + Touch rather than one PointerSensor: touch needs a press delay so a
+  // finger landing on the handle can still scroll the page, and PointerSensor
+  // has no way to hold two different activation constraints.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
