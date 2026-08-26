@@ -201,3 +201,31 @@ engines/omnivoice/venv/bin/python pipeline/assemble.py work/chunks.json work/omn
 Hostinger VPS (2 vCPU, 7.8 GB RAM, no GPU, no swap) + simple web UI for a non-techy editor:
 upload video → review/fix auto-transcript in a textbox → generate → download synced video.
 Async one-job-at-a-time queue. Add swap before heavy jobs.
+
+## `lib/` — the shared voiceover client (plan 251, 2026-08-26)
+
+The per-section IndexTTS-2 client used to live in
+`pipelines/youtube/tutorial-pipeline-3/lib/`. It moved here when a second
+pipeline (`yt-script`) needed it, because this folder is the source of truth for
+anything voice-related and a consuming pipeline must not own the engine.
+
+| Module | What it does |
+|---|---|
+| `vo-synth.mjs` | CLI + client for the Modal `synth_section` endpoint. `node lib/vo-synth.mjs <slug> --root <dir> [--only sNN] [--force]` |
+| `vo-lock.mjs` | CLI + `lockScript`. `node lib/vo-lock.mjs <slug> --root <dir> [--only sNN]` |
+| `vo-state.mjs` | `lockSection` — the lock preconditions (no flags, non-empty `spoken_text`, a take on disk) |
+| `spoken.mjs` | `deriveSpoken(display_text, respellMap)` — applies `respell.json` |
+| `flags.mjs` | `scanFlags` / `stripFlags` over `[VERIFY: …]` / `[FILL: …]` |
+| `env.mjs` | `loadEnv(rootDir)` — reads `<rootDir>/../../.env`, i.e. `pipelines/.env` |
+
+**`--root` is the whole contract.** A consuming pipeline passes its own directory
+and the client reads `<root>/videos/<slug>/script.json` plus optional
+`<root>/videos/<slug>/respell.json`, and writes `<root>/videos/<slug>/audio/`.
+That works for any pipeline sitting two levels under `pipelines/` — the depth
+`env.mjs` assumes.
+
+tp3 keeps one-line re-export shims at `lib/flags.mjs`, `lib/spoken.mjs` and
+`lib/env.mjs`, and re-exports `lockSection` from `lib/state.mjs`, so its own
+modules were not touched by the move.
+
+Gate: `bash scripts/check.sh`.

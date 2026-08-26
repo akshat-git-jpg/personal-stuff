@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import url from "node:url";
 import { parseArgs } from "node:util";
-import { lockSection } from "./state.mjs";
+import { lockSection } from "./vo-state.mjs";
 
 // Locks every section (or just `only`). Throws on the first failed precondition.
 export function lockScript(script, { only } = {}) {
