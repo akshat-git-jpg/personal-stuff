@@ -601,6 +601,7 @@ case "$verb" in
     printf '%s\n' "$id" >> "${AGY_STUB_LOG:-/dev/null}"
     wt=$(meta_get "$id" worktree) || { echo "ERROR: no worktree for $id" >&2; exit 1; }
     [ -f "${3:-}" ] || { echo "ERROR: brief unreadable: ${3:-}" >&2; exit 1; }
+    boss_fixup_claim "$id" || exit 3
     meta_set "$id" head_before "$(git -C "$wt" rev-parse HEAD 2>/dev/null || echo none)"
     ( exec sleep "${LAND_STUB_SLEEP:-60}" ) & pid=$!
     disown "$pid" 2>/dev/null || true
@@ -612,6 +613,38 @@ case "$verb" in
 esac
 LANDAGYEOF
 chmod +x "$LAND_BOSS/executors/agy.sh"
+
+# Stub fallback executor. Same contract, its own log, and it claims the fix-up budget
+# exactly like executors/claude-p.sh — which is what makes L10 a real test of the
+# refund: without it, boss_fixup_claim refuses the fallback dispatch outright.
+CLAUDEP_LOG="$TMP/land-claudep.log"
+: > "$CLAUDEP_LOG"
+cat > "$LAND_BOSS/executors/claude-p.sh" <<'LANDCPEOF'
+#!/bin/bash
+set -uo pipefail
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../bin" && pwd)/boss-lib.sh"
+verb="${1:?}"; id="${2:?}"
+case "$verb" in
+  dispatch)
+    wt=$(meta_get "$id" worktree) || { echo "ERROR: no worktree for $id" >&2; exit 1; }
+    [ -f "${3:-}" ] || { echo "ERROR: brief unreadable: ${3:-}" >&2; exit 1; }
+    # The claim comes BEFORE the log line, unlike the agy stub: this log is what L10
+    # reads to decide whether the fallback actually RAN, so a refused dispatch must
+    # leave it empty or the test passes on a dispatch that never happened.
+    boss_fixup_claim "$id" || exit 3
+    printf '%s\n' "$id" >> "${CLAUDEP_STUB_LOG:-/dev/null}"
+    meta_set "$id" head_before "$(git -C "$wt" rev-parse HEAD 2>/dev/null || echo none)"
+    ( exec sleep "${LAND_STUB_SLEEP:-60}" ) & pid=$!
+    disown "$pid" 2>/dev/null || true
+    meta_set "$id" pid "$pid"; meta_set "$id" dispatched_at "$(date +%s)" ;;
+  alive)
+    pid=$(meta_get "$id" pid) || exit 2; [ -n "$pid" ] || exit 2
+    kill -0 "$pid" 2>/dev/null && exit 0; exit 1 ;;
+  *) exit 2 ;;
+esac
+LANDCPEOF
+chmod +x "$LAND_BOSS/executors/claude-p.sh"
+export CLAUDEP_STUB_LOG="$CLAUDEP_LOG"
 
 LAND_WS="$TMP/land-ws"
 mkdir -p "$LAND_WS"
@@ -826,6 +859,29 @@ l9_n2=$(grep -c 'land-boss-l9' "$TMP/notify.log")
   || fail "(L9) a capped land re-notified on every sweep ($l9_n then $l9_n2)"
 land_reset
 echo "PASS: a capped land is announced once, not silently and not repeatedly"
+
+echo "--- (L10) after an infra death the next fix-up falls back to claude-p on sonnet ---"
+land_reset
+: > "$CLAUDEP_LOG"
+land_entry boss-l10 "verify failed: npm test"
+LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l10a.out" 2>&1
+grep -q 'boss-l10' "$AGY_LOG" \
+  || fail "(L10) the first dispatch did not use the primary executor: $(cat "$TMP/l10a.out")"
+[ ! -s "$CLAUDEP_LOG" ] || fail "(L10) the fallback ran before anything had failed"
+# A fix-up round is already spent. Without the refund in reap_one, boss_fixup_claim
+# REFUSES the fallback (BOSS_MAX_FIXUPS=1) and the outage takes the land down with it.
+printf 'fixups=1\n' >> "$LANDS/land-boss-l10.meta"
+printf '%s\n' '{"status":"ERROR","response":"","error":"RESOURCE_EXHAUSTED (code 429): Individual quota reached.","num_turns":1}' \
+  > "$LANDS/land-boss-l10.out"
+l10_out=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+grep -q 'boss-l10' "$CLAUDEP_LOG" \
+  || fail "(L10) a quota death did not fall back to claude-p: $l10_out"
+[ "$(land_field "$LANDS/land-boss-l10.meta" executor)" = "claude-p" ] \
+  || fail "(L10) the meta does not name the fallback executor (got '$(land_field "$LANDS/land-boss-l10.meta" executor)')"
+[ "$(land_field "$LANDS/land-boss-l10.meta" model)" = "sonnet" ] \
+  || fail "(L10) the fallback model was not pinned to sonnet (got '$(land_field "$LANDS/land-boss-l10.meta" model)')"
+land_reset
+echo "PASS: a provider outage hands the fix-up to claude-p on sonnet"
 
 echo "--- (D1) boss_dep_prelude installs deps for the dirs a command cd's into ---"
 # The verify and the mutation gate run in a POOL slot, not the crew's worktree, and
