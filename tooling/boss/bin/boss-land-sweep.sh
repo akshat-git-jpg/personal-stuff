@@ -43,6 +43,13 @@ export BOSS_CHROME_WAIT_MIN
 source "$BOSS_BIN/boss-lib.sh"
 
 AGY="$BOSS_ROOT/executors/agy.sh"
+CLAUDE_P="$BOSS_ROOT/executors/claude-p.sh"
+# The executor a land falls back to when the primary one never RAN (see fixup_never_ran).
+# agy's 429 is an Antigravity ACCOUNT quota, not a per-model one, so retrying another
+# agy model would hit the same wall -- the fallback has to be a different provider.
+# claude-p bills the owner's Claude subscription, which is a separate bucket.
+LAND_FALLBACK_EXECUTOR="${BOSS_LAND_FALLBACK_EXECUTOR:-claude-p}"
+LAND_FALLBACK_MODEL="${BOSS_LAND_FALLBACK_MODEL:-sonnet}"
 SWEEP_LOCK="$LANDS_DIR/sweep.lock"
 LOCK_STALE_SECS="${BOSS_LAND_LOCK_STALE_SECS:-1800}"
 LOCK_MAX_WAIT="${BOSS_LAND_LOCK_MAX_WAIT:-60}"
@@ -53,6 +60,25 @@ LOCK_HELD=0
 DISPATCHED_THIS_RUN=0
 
 log()  { printf 'boss-land-sweep: %s\n' "$1" >&2; }
+
+# exec_bin <name> — the executor script for a name. Unknown names resolve to agy, the
+# primary: a typo in BOSS_LAND_FALLBACK_EXECUTOR must not leave a land undispatchable.
+exec_bin() {
+  case "$1" in
+    claude-p) printf '%s' "$CLAUDE_P" ;;
+    *)        printf '%s' "$AGY" ;;
+  esac
+}
+
+# land_exec_bin <slug> — the executor a DISPATCHED land is actually running under, read
+# from its meta. `alive` must be asked of the right script: asking agy about a live
+# claude-p fix-up reads as dead, and reap_one would then charge the attempt and
+# re-dispatch a second agent into a workspace that already has one.
+land_exec_bin() {
+  local e
+  e=$(meta_get "land-$1" executor 2>/dev/null) || e=""
+  exec_bin "${e:-agy}"
+}
 say()  { printf '%s\n' "$1"; }
 
 # ---------------------------------------------------------------------------
@@ -281,9 +307,9 @@ BRIEF
 # MERGED PRs were still labelled boss:in-progress).
 # ---------------------------------------------------------------------------
 reap_one() {
-  local f="$1" slug real tr win now
+  local f="$1" slug real tr win now fx
   slug=$(basename "$f" .dispatching); slug=${slug#land-}
-  if "$AGY" alive "land-$slug" >/dev/null 2>&1; then
+  if "$(land_exec_bin "$slug")" alive "land-$slug" >/dev/null 2>&1; then
     say "RUNNING    land-$slug — fix-up still working"
     return 0
   fi
@@ -306,9 +332,20 @@ reap_one() {
     if [ "$tr" -lt "$TRANSIENT_CAP" ]; then
       [ "$real" -gt 0 ] && real=$((real - 1))
       tr=$((tr + 1))
+      # Refund the fix-up round too. boss_fixup_claim counts any dispatch against a meta
+      # that already carries a pid, and BOSS_MAX_FIXUPS is 1 — so without this the
+      # fallback dispatch below is REFUSED (exit 3) by the very outage it exists for.
+      fx=$(num_or "$(meta_get "land-$slug" fixups 2>/dev/null)" 0)
+      [ "$fx" -gt 0 ] && meta_set "land-$slug" fixups $((fx - 1))
+      # Arm the fallback: the provider that just refused us does not get the next turn.
+      # entry_rewrite preserves this line, and pp-land's next write_blocked drops it, so
+      # a fresh block starts from the primary again.
+      if [ "$(entry_get "$f" fallback_executor)" != "$LAND_FALLBACK_EXECUTOR" ]; then
+        printf 'fallback_executor=%s\n' "$LAND_FALLBACK_EXECUTOR" >> "$f"
+      fi
       entry_rewrite "$f" "$real" "$tr" "$win"
       mv -f "$f" "${f%.dispatching}.blocked"
-      say "INFRA      land-$slug — fix-up never ran ($FIXUP_DEATH_CAUSE); transient $tr/$TRANSIENT_CAP, real $real/$REAL_CAP"
+      say "INFRA      land-$slug — fix-up never ran ($FIXUP_DEATH_CAUSE); transient $tr/$TRANSIENT_CAP, real $real/$REAL_CAP, next executor $LAND_FALLBACK_EXECUTOR"
       return 0
     fi
     say "INFRA-CAP  land-$slug — fix-up never ran ($FIXUP_DEATH_CAUSE) $tr times this window; charging the real budget"
@@ -324,14 +361,14 @@ reap_one() {
 # Phase B — claim and dispatch.
 # ---------------------------------------------------------------------------
 sweep_one() {
-  local f="$1" slug claimed ws branch reason conflicts no_auto
+  local f="$1" slug claimed ws branch reason conflicts no_auto ex ex_bin
   local real tr win class now brief pid rc lock_ok
   slug=$(basename "$f" .blocked); slug=${slug#land-}
 
   # A live fix-up for this slug means pp-land re-wrote the .blocked entry while the
   # fix-up was still running. Dispatching a second one would have two agents editing
   # one workspace.
-  if "$AGY" alive "land-$slug" >/dev/null 2>&1; then
+  if "$(land_exec_bin "$slug")" alive "land-$slug" >/dev/null 2>&1; then
     say "RUNNING    land-$slug — fix-up still working, not re-dispatching"
     return 0
   fi
@@ -403,9 +440,21 @@ sweep_one() {
   # The synthetic meta. agy.sh takes no path argument — it resolves the worktree from
   # $STATE_DIR/$id.meta — so without this it exits 1 on the FIRST attempt, every time.
   # meta_set appends and meta_get tails, so re-stating a field overrides it.
+  ex=$(entry_get "$claimed" fallback_executor)
+  case "$ex" in
+    agy|claude-p) ;;
+    *) ex=agy ;;
+  esac
+  ex_bin=$(exec_bin "$ex")
   meta_set "land-$slug" worktree "$ws"
-  meta_set "land-$slug" model ""
-  meta_set "land-$slug" executor agy
+  # A blank model means "the executor's own default" — Gemini 3.1 Pro (High) for agy.
+  # The fallback is pinned instead, because its default is the thing being chosen.
+  if [ "$ex" = agy ]; then
+    meta_set "land-$slug" model ""
+  else
+    meta_set "land-$slug" model "$LAND_FALLBACK_MODEL"
+  fi
+  meta_set "land-$slug" executor "$ex"
 
   brief="$STATE_DIR/land-$slug.brief.md"
   write_brief "$brief" "$slug" "$ws" "$branch" "$reason" "$conflicts" "$(entry_get "$claimed" log)"
@@ -425,10 +474,10 @@ sweep_one() {
     return 0
   fi
 
-  "$AGY" dispatch "land-$slug" "$brief" >/dev/null 2>&1
+  "$ex_bin" dispatch "land-$slug" "$brief" >/dev/null 2>&1
   rc=$?
   if [ "$rc" -ne 0 ]; then
-    # A mechanical dispatch failure (agy missing, no meta) is transient, not the land's
+    # A mechanical dispatch failure (executor missing, no meta) is transient, not the land's
     # fault — so it must not have consumed a real attempt.
     [ "$lock_ok" -eq 1 ] && boss_chrome_lock_release
     if [ "$win" -eq 0 ] || [ $((now - win)) -ge "$TRANSIENT_WINDOW" ]; then win=$now; tr=0; fi
@@ -448,7 +497,7 @@ sweep_one() {
     boss_chrome_lock_release
   fi
   DISPATCHED_THIS_RUN=1
-  say "DISPATCHED land-$slug — fix-up in $ws (real $real/$REAL_CAP, transient $tr/$TRANSIENT_CAP) — $reason"
+  say "DISPATCHED land-$slug — $ex fix-up in $ws (real $real/$REAL_CAP, transient $tr/$TRANSIENT_CAP) — $reason"
   return 0
 }
 
