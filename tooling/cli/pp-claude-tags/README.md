@@ -30,6 +30,27 @@ triggers cover the two ways an update lands:
 Both are idempotent and serialised by a lock file, so a burst of triggers
 patches once instead of racing.
 
+### The setting also has to survive the update
+
+Patching the new binary is only half of it. Sessions that were **already
+running** when the update landed keep the old, gated build in memory, and every
+time one of them saves `.claude.json` it writes its clamped
+`fleetViewGroupMode` back over the good value. Your tags are all still on disk;
+the view just stops being the tag view, which looks identical to losing them.
+
+That is what happened on 2026-08-26: 2.1.246 was patched correctly at 07:20,
+and a session left over from the night before clamped the setting at 08:55 — by
+which point the stamp was current, so the ten-minute tick said "already
+unlocked" and returned without ever looking at the setting.
+
+So the setting is re-selected on **every** run, not only on a fresh patch —
+but only while a Claude Code process older than the stamp is still alive.
+That gate matters: healing unconditionally would undo a deliberate `ctrl+s` to
+the folder or state view within ten minutes. Once the pre-patch sessions are
+gone nothing can clamp the setting any more, so a change to it after that is
+yours and is left alone. Worst case after an update, the view flips back to
+tags within ten minutes.
+
 ```bash
 launchctl list | grep pp-claude-tags        # is the watcher registered
 tail ~/.cache/pp-claude-tags.log            # what it did
@@ -117,8 +138,9 @@ editor's end-of-line key instead.
   stop being displayed.
 - Default view: `fleetViewGroupMode` in `$CLAUDE_CONFIG_DIR/.claude.json`, set to
   `group`. With the gate off the view clamps this to a mode it still allows, so
-  a reverted patch also rewrites the setting; the script puts it back after a
-  successful patch.
+  a reverted patch also rewrites the setting; the script puts it back — see
+  [The setting also has to survive the update](#the-setting-also-has-to-survive-the-update)
+  for why that is not a one-shot after patching.
 - Stamp: `~/.cache/pp-claude-tags.json`. Lock: `~/.cache/pp-claude-tags.lock`.
   Log: `~/.cache/pp-claude-tags.log`.
 
