@@ -23,10 +23,15 @@ empty list.
 Two things the built-in view cannot do come free here: both accounts (work and
 personal) appear in one list, and the tag is the primary grouping.
 
-    pp-agents                 # the view
-    pp-agents --list          # one line per session, for scripts
-    pp-agents --dump          # exactly what the view would draw, as plain text
-    pp-agents --doctor        # check what it can read and act with
+Inside a session the LEFT ARROW brings you back here - the key Claude Code
+already binds to "back to the agents view", landing in this list instead of its
+ungrouped one. `shift+left` does the same and never depends on Claude Code's
+wording.
+
+    kbc                       # the view (`pp-agents` is the same program)
+    kbc --list                # one line per session, for scripts
+    kbc --dump                # exactly what the view would draw, as plain text
+    kbc --doctor              # check what it can read and act with
 """
 import curses
 import errno
@@ -306,8 +311,140 @@ def dispatch_cmd(prompt):
     return [claude_bin(), "--bg", prompt]
 
 
-BACK_KEY = os.environ.get("PP_AGENTS_BACK_KEY", "\x0f")   # ctrl+o, "out"
-BACK_KEY_LABEL = os.environ.get("PP_AGENTS_BACK_KEY_LABEL", "ctrl+o")
+# Coming back out of a session.
+#
+# The left arrow is what the owner already reaches for, because inside a session
+# Claude Code binds it to "back to the agents view" - and opens **its own**
+# ungrouped one, stranding you outside this view with no way home (`esc` there
+# does not exit). Rather than teach a new key, the left arrow is forwarded
+# normally and the *result* is watched for: when Claude Code's own list appears,
+# this detaches and redraws the tag list instead. The muscle memory is unchanged
+# and it lands somewhere useful.
+#
+# Two reserved keys are also swallowed and never reach Claude Code, as the
+# deterministic fallback if a release ever rewords its list. Both were checked
+# against a real session and produce no reaction at all.
+RESERVED_KEYS = {
+    "\x1b[1;2D": "shift+left",
+    "\x0f": "ctrl+o",
+}
+BACK_KEY = os.environ.get("PP_AGENTS_BACK_KEY", "")     # optional extra key
+BACK_KEY_LABEL = os.environ.get("PP_AGENTS_BACK_KEY_LABEL", "shift+left")
+
+# The left arrow, in both the normal and application cursor modes a full-screen
+# program may switch the terminal into.
+LEFT_KEYS = ("\x1b[D", "\x1bOD")
+
+# Text that only Claude Code's own agents view draws. The dispatch placeholder is
+# the specific one; the footer hint corroborates it.
+FLEET_MARKERS = ("describe a task for a new session", "ctrl+x to delete all")
+
+# How long after a left arrow the markers are believed. Arming on the keypress is
+# what makes this safe: a session that merely PRINTS one of those strings - a
+# transcript discussing this very feature, say - cannot yank you out of it,
+# because you did not ask to leave.
+ARM_SECONDS = 4.0
+
+# Terminal modes a borrowed program can leave switched on.
+#
+# `claude attach` turns on mouse reporting (1000/1002/1003/1006) and normally
+# turns it off on the way out. Detaching does not let it exit normally, so the
+# terminal keeps sending mouse packets - and the next thing to read stdin, your
+# shell, prints them as text: `65;59;21M65;59;21M...` every time you move the
+# mouse. Clearing these is not optional politeness; skipping it corrupts the
+# shell you return to.
+MOUSE_OFF = "".join(f"\x1b[?{m}l" for m in (1000, 1001, 1002, 1003, 1005, 1006, 1015))
+BORROWED_MODES_OFF = (
+    MOUSE_OFF
+    + "\x1b[?1004l"     # focus in/out reporting
+    + "\x1b[?2004l"     # bracketed paste
+)
+CURSOR_AND_COLOUR = "\x1b[?25h\x1b[0m"
+
+
+def clear_borrowed_modes(extra=""):
+    """Switch off input modes another program turned on. Safe to call anywhere."""
+    try:
+        sys.stdout.write(BORROWED_MODES_OFF + extra)
+        sys.stdout.flush()
+    except (OSError, ValueError):
+        pass
+
+
+def end_child(pid, grace=0.9):
+    """Ask a child to exit, and give it time to tidy the terminal first.
+
+    A signalled program still gets to run its exit handlers; `SIGKILL` does not.
+    Claude Code resets the modes it set when it can, so try the polite signals
+    with a real grace period and keep `SIGKILL` as the last resort.
+    """
+    for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.kill(pid, sig)
+        except OSError:
+            return
+        waited = 0.0
+        while waited < grace:
+            try:
+                if os.waitpid(pid, os.WNOHANG)[0]:
+                    return
+            except OSError:
+                return
+            time.sleep(0.05)
+            waited += 0.05
+
+
+DEBUG_LOG = os.environ.get("PP_AGENTS_DEBUG", "")
+
+
+def dbg(msg):
+    """Append a line to PP_AGENTS_DEBUG, if set. Silent otherwise.
+
+    The proxy makes its decisions with the screen handed to another program, so
+    there is nowhere to print. Without this the only way to find out why a detach
+    did or did not happen is to guess.
+    """
+    if not DEBUG_LOG:
+        return
+    try:
+        with open(DEBUG_LOG, "a") as fh:
+            fh.write(f"{time.time():.3f} {msg}\n")
+    except OSError:
+        pass
+
+
+ESC_SEQ = None      # compiled lazily; `re` is needed only for this
+
+
+def strip_escapes(raw):
+    """Plain text out of a terminal stream, so a marker can be matched.
+
+    A full-screen program paints with escape sequences interleaved, and one can
+    land inside the very string being looked for.
+    """
+    global ESC_SEQ
+    if ESC_SEQ is None:
+        import re as _re
+        ESC_SEQ = _re.compile(
+            r"\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b\[[0-9;?]*[a-zA-Z]|\x1b[()][B0]")
+    return ESC_SEQ.sub("", raw.decode("utf-8", "replace"))
+
+
+def first_reserved(data, extra=""):
+    """(offset, label) of the first reserved key in `data`, or (-1, None).
+
+    Reserved keys are swallowed here and never reach Claude Code, so they must be
+    keys nobody needs while typing.
+    """
+    best, label = -1, None
+    keys = dict(RESERVED_KEYS)
+    if extra:
+        keys[extra] = "the configured key"
+    for seq, name in keys.items():
+        at = data.find(seq.encode())
+        if at != -1 and (best == -1 or at < best):
+            best, label = at, name
+    return best, label
 
 
 def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
@@ -357,6 +494,8 @@ def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
 
     prev_winch = signal.getsignal(signal.SIGWINCH)
     detached = False
+    armed_until = 0.0       # set when a left arrow is forwarded
+    watch = b""             # recent child output, searched only while armed
     try:
         tty.setraw(stdin_fd)
         signal.signal(signal.SIGWINCH, sync_size)
@@ -376,6 +515,18 @@ def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
                 if not data:
                     break
                 os.write(out_fd, data)
+                # Only while a left arrow has recently been pressed: if Claude
+                # Code's own agents view appears, that is the navigation the
+                # owner asked for - finish it here instead of there.
+                if armed_until and time.time() < armed_until:
+                    watch = (watch + data)[-8192:]
+                    found = [m for m in FLEET_MARKERS if m in strip_escapes(watch)]
+                    if found:
+                        dbg(f"marker seen {found!r} -> detaching")
+                        detached = True
+                        break
+                elif armed_until:
+                    armed_until, watch = 0.0, b""
             if stdin_fd in readable:
                 try:
                     data = os.read(stdin_fd, 1 << 16)
@@ -383,25 +534,27 @@ def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
                     break
                 if not data:
                     break
-                hit = data.find(back.encode())
+                hit, key = first_reserved(data, back)
                 if hit != -1:
+                    dbg(f"reserved key {key!r} -> detaching")
                     if hit:
                         os.write(master, data[:hit])     # send what came before
                     detached = True
                     break
                 os.write(master, data)
+                if any(k.encode() in data for k in LEFT_KEYS):
+                    armed_until, watch = time.time() + ARM_SECONDS, b""
+                    dbg(f"left arrow forwarded, armed for {ARM_SECONDS}s")
     finally:
         signal.signal(signal.SIGWINCH, prev_winch)
         termios.tcsetattr(stdin_fd, termios.TCSADRAIN, saved)
         if detached:
-            for sig in (signal.SIGTERM, signal.SIGKILL):
-                try:
-                    os.kill(pid, sig)
-                    time.sleep(0.15)
-                    if os.waitpid(pid, os.WNOHANG)[0]:
-                        break
-                except OSError:
-                    break
+            end_child(pid)
+        # Whether it exited on its own or was detached, switch off the input modes
+        # it may have left on. Mouse reporting is the one that bites: left on, the
+        # terminal keeps emitting mouse packets and whatever reads stdin next
+        # prints them as `65;59;21M` gibberish.
+        clear_borrowed_modes()
         try:
             os.close(master)
         except OSError:
@@ -632,7 +785,8 @@ def cmd_doctor():
 HELP = [
     ("up/down, j/k", "move"),
     ("enter", "open the session"),
-    (BACK_KEY_LABEL, "come back here from inside a session"),
+    ("left arrow", "inside a session: come back here"),
+    ("shift+left", "same, and always works"),
     ("ctrl+e / e", "tag this session (tab completes an existing tag)"),
     ("ctrl+x / x", "remove this session's tag"),
     ("ctrl+t / t", "pin to top"),
@@ -648,61 +802,110 @@ HELP = [
 ]
 
 
+# The palette, in one place.
+#
+# Only the STATE colours are saturated, because they are the only thing worth
+# your eye jumping to: what needs you, what is running, what is finished. Every
+# other element - headers, counts, last message, age, the bars - is a muted grey
+# or a soft steel blue. The first version coloured the chrome as loudly as the
+# states, which made the whole list shout and nothing stand out.
+#
+# 256-colour numbers, with an 8-colour fallback below.
+GREY_TEXT = 245         # the last message
+GREY_FAINT = 243        # counts, age
+GREY_BAR_FG = 252       # bar text
+GREY_BAR_BG = 236       # bar background: chrome, not a neon strip
+SEL_BG = 237            # the cursor row: a shade lifted, not inverted
+STEEL = 110             # group headers: present without shouting
+AMBER_SOFT = 179        # the pin marker
+
+
 def init_colours():
-    """Colour by meaning, on the terminal's own background.
+    """Two attribute maps: (normal, cursor-row). Keyed by segment kind.
 
-    `use_default_colors` is the important call: without it curses paints every
-    cell with its own idea of "black", which on a themed terminal shows up as
-    rectangular blocks behind the text instead of a background. Foreground only,
-    background left alone.
+    `use_default_colors` is load-bearing: without it curses paints every cell
+    with its own idea of "black", which on a themed terminal shows up as
+    rectangular blocks behind the text instead of a background.
 
-    Returns a dict of segment kind -> attribute, with a monochrome fallback so a
-    terminal without colour still reads as a hierarchy.
+    The cursor row gets its own map rather than `A_REVERSE` over the normal one.
+    Reverse video inverts the saturated state colours into full-width blocks of
+    yellow or green, which is exactly the "popping" this palette avoids; a second
+    set of pairs sharing one background keeps the row legible and the state
+    colours intact.
     """
     mono = {
         "header": curses.A_BOLD, "count": curses.A_DIM, "name": curses.A_NORMAL,
         "detail": curses.A_DIM, "age": curses.A_DIM, "pin": curses.A_BOLD,
         "blocked": curses.A_BOLD, "working": curses.A_BOLD, "error": curses.A_BOLD,
-        "idle": curses.A_DIM, "done": curses.A_DIM, "plain": curses.A_NORMAL,
+        "idle": curses.A_DIM, "done": curses.A_NORMAL, "plain": curses.A_NORMAL,
         "bar": curses.A_REVERSE, "hint": curses.A_DIM,
     }
+    mono_sel = {k: v | curses.A_REVERSE for k, v in mono.items()}
     try:
         curses.start_color()
         curses.use_default_colors()
     except curses.error:
-        return mono
+        return mono, mono_sel
     if not curses.has_colors():
-        return mono
+        return mono, mono_sel
 
-    def pair(idx, fg, attr=0):
+    rich = curses.COLORS >= 256
+    counter = [1]
+
+    def pair(fg, bg=-1, attr=0):
+        idx = counter[0]
+        counter[0] += 1
         try:
-            curses.init_pair(idx, fg, -1)
+            curses.init_pair(idx, fg, bg)
             return curses.color_pair(idx) | attr
         except curses.error:
             return attr
 
-    return {
-        "header": pair(1, curses.COLOR_CYAN, curses.A_BOLD),
-        "count": pair(2, curses.COLOR_BLUE),
-        "name": curses.A_NORMAL,
-        "detail": pair(3, curses.COLOR_BLUE),
-        "age": pair(3, curses.COLOR_BLUE),
-        "pin": pair(4, curses.COLOR_MAGENTA, curses.A_BOLD),
-        "blocked": pair(5, curses.COLOR_YELLOW, curses.A_BOLD),
-        "working": pair(6, curses.COLOR_CYAN),
-        "error": pair(7, curses.COLOR_RED, curses.A_BOLD),
-        "idle": pair(3, curses.COLOR_BLUE),
-        "done": pair(8, curses.COLOR_GREEN),
-        "plain": curses.A_NORMAL,
-        "bar": pair(1, curses.COLOR_CYAN, curses.A_BOLD | curses.A_REVERSE),
-        "hint": pair(3, curses.COLOR_BLUE),
-    }
+    def states(bg):
+        # unchanged, and the only saturated colours in the list
+        return {
+            "blocked": pair(curses.COLOR_YELLOW, bg, curses.A_BOLD),
+            "working": pair(curses.COLOR_CYAN, bg),
+            "done": pair(curses.COLOR_GREEN, bg),
+            "error": pair(curses.COLOR_RED, bg, curses.A_BOLD),
+        }
+
+    def chrome(bg):
+        grey = GREY_TEXT if rich else curses.COLOR_WHITE
+        faint = GREY_FAINT if rich else curses.COLOR_WHITE
+        steel = STEEL if rich else curses.COLOR_BLUE
+        amber = AMBER_SOFT if rich else curses.COLOR_YELLOW
+        dim = 0 if rich else curses.A_DIM
+        plain = pair(-1, bg) if bg != -1 else curses.A_NORMAL
+        out = {
+            "header": pair(steel, bg, curses.A_BOLD),
+            "count": pair(faint, bg, dim),
+            "name": plain,
+            "detail": pair(grey, bg, dim),
+            "age": pair(faint, bg, dim),
+            "pin": pair(amber, bg),
+            "idle": pair(faint, bg, dim),
+            "plain": plain,
+            "hint": pair(grey, bg, dim),
+        }
+        out.update(states(bg))
+        return out
+
+    normal = chrome(-1)
+    # the bars are chrome: light text on a dark grey band, no reverse video
+    normal["bar"] = (pair(GREY_BAR_FG, GREY_BAR_BG) if rich
+                     else curses.A_REVERSE | curses.A_BOLD)
+    selected = chrome(SEL_BG if rich else -1)
+    if not rich:
+        selected = {k: v | curses.A_REVERSE for k, v in selected.items()}
+    selected["bar"] = normal["bar"]
+    return normal, selected
 
 
 class App:
     def __init__(self, scr):
         self.scr = scr
-        self.attr = init_colours()
+        self.attr, self.attr_sel = init_colours()
         self.mode = "tag"
         self.folded = set()
         self.query = ""
@@ -787,7 +990,7 @@ class App:
         elif self.query:
             bar, attr = f" filter: {self.query}   (esc clears)", self.attr["bar"]
         else:
-            bar, attr = (f" enter open · {BACK_KEY_LABEL} back · e tag · t pin · "
+            bar, attr = (" enter open · left back · e tag · t pin · "
                          "s group · / filter · ? help · q quit"), self.attr["bar"]
         self.put(h - 1, 0, bar.ljust(w - 1), attr)
         self.scr.refresh()
@@ -823,20 +1026,20 @@ class App:
                 break
             kind, payload = self.rows[idx]
             sel = idx == self.cursor
-            base = curses.A_REVERSE if sel else 0
+            attr = self.attr_sel if sel else self.attr
             if sel:
-                # lay the highlight down first so it spans the whole row
-                self.put(y, 0, " " * (w - 1), base)
+                # lay the row's background down first so it spans the full width
+                self.put(y, 0, " " * (w - 1), attr["plain"])
             if kind == "head":
                 head, count = payload
                 arrow = FOLD_SHUT if head in self.folded else FOLD_OPEN
-                x = self.put(y, 0, f" {arrow} ", self.attr["header"] | base)
-                x = self.put(y, x, head, self.attr["header"] | base)
-                self.put(y, x, f"  {count}", self.attr["count"] | base)
+                x = self.put(y, 0, f" {arrow} ", attr["header"])
+                x = self.put(y, x, head, attr["header"])
+                self.put(y, x, f"  {count}", attr["count"])
             else:
                 x = 0
                 for text, seg in row_segments(payload, w - 2, self.pins):
-                    x = self.put(y, x, text, self.attr.get(seg, 0) | base)
+                    x = self.put(y, x, text, attr.get(seg, attr["plain"]))
             y += 1
         if not self.rows:
             msg = ("nothing matched that filter" if self.query
@@ -850,6 +1053,7 @@ class App:
         h, w = self.scr.getmaxyx()
         buf = ""
         curses.curs_set(1)
+        self.scr.timeout(-1)        # same sticky-timeout trap as confirm()
         try:
             while True:
                 shown = f"{label}{buf}"
@@ -875,12 +1079,24 @@ class App:
                     buf += chr(ch)
         finally:
             curses.curs_set(0)
+            self.scr.timeout(1000)
 
     def confirm(self, question):
+        """Ask a yes/no question on the status bar and WAIT for the answer.
+
+        `timeout(-1)` is the point. The main loop runs `timeout(1000)` so it can
+        wake up and refresh; that setting is sticky, so without this a question
+        answers itself "no" after one second of hesitation and reports "not
+        stopped" as though you had declined it.
+        """
         h, w = self.scr.getmaxyx()
         self.put(h - 1, 0, (question + "  [y/N]").ljust(w - 1), self.attr["bar"])
         self.scr.refresh()
-        return self.scr.getch() in (ord("y"), ord("Y"))
+        self.scr.timeout(-1)
+        try:
+            return self.scr.getch() in (ord("y"), ord("Y"))
+        finally:
+            self.scr.timeout(1000)
 
     def move(self, delta):
         if not self.rows:
@@ -911,6 +1127,7 @@ class App:
             except (EOFError, KeyboardInterrupt):
                 pass
         finally:
+            clear_borrowed_modes()
             curses.reset_prog_mode()
         self.restore_screen()
 
@@ -1087,6 +1304,9 @@ def main(argv):
         curses.wrapper(run)
     except KeyboardInterrupt:
         pass
+    finally:
+        # A borrowed program's modes outlive it. Leave the shell as we found it.
+        clear_borrowed_modes(CURSOR_AND_COLOUR)
     return 0
 
 
