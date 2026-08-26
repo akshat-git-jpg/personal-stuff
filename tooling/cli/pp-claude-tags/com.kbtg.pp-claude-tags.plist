@@ -9,8 +9,13 @@
        reverts the agents-view tag patch. WatchPaths reacts to a new build
        landing; StartInterval is the backstop for the case where the watch fires
        while a ~310MB binary is still being written (the patch is skipped then,
-       and the next tick picks it up). Once patched, each run is a ~0.06s no-op
-       because the stamp matches, so the interval costs nothing. -->
+       and the next tick picks it up).
+
+       The interval is also what bounds how long the agents view can sit on the
+       wrong grouping: any live session can write `fleetViewGroupMode` back, and
+       only a tick puts it right. Two minutes, not ten, because ten was long
+       enough to be the whole visible symptom. Once patched each run is a ~0.06s
+       no-op, so the extra ticks cost nothing. -->
   <key>ProgramArguments</key>
   <array>
     <string>/Users/kbtg/.local/bin/pp-claude-tags</string>
@@ -22,7 +27,7 @@
   </array>
 
   <key>StartInterval</key>
-  <integer>600</integer>
+  <integer>120</integer>
 
   <key>RunAtLoad</key>
   <true/>
