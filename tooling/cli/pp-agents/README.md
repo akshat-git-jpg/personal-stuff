@@ -3,11 +3,15 @@
 The agents view, grouped by **tag**, without patching Claude Code.
 
 ```bash
-pp-agents                 # the view
-pp-agents --dump          # exactly what the view would draw, as plain text
-pp-agents --list          # one line per session, for scripts
-pp-agents --doctor        # what it can read, and what it can drive
+kbc                       # the view
+kbc --dump                # exactly what the view would draw, as plain text
+kbc --list                # one line per session, for scripts
+kbc --doctor              # what it can read, and what it can drive
 ```
+
+`kbc` is the command you type. `pp-agents` is the same program under its
+repo-convention name, and both symlinks live in `~/.local/bin`; the folder,
+the tests and the verify-map entry all stay `pp-agents`.
 
 ## Why this exists instead of `pp-claude-tags`
 

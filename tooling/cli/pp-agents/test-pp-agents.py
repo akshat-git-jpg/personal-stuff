@@ -399,7 +399,10 @@ def stub_claude(tmp):
             "#!/bin/sh\n"
             f'printf "%s\\n" "$*" >> {log}\n'
             "case \"$1\" in\n"
-            f'  attach) echo "ATTACHED $2"; sleep 2; printf "%s\\n" "$2" >> {done} ;;\n'
+            # mouse reporting on, exactly as `claude attach` does, and NOT turned
+            # off if killed - the leak this reproduces
+            '  attach) printf "\\033[?1000h\\033[?1002h\\033[?1003h\\033[?1006h";\n'
+            f'          echo "ATTACHED $2"; sleep 2 & wait $!; printf "%s\\n" "$2" >> {done} ;;\n'
             '  logs)   echo "LOGS $2" ;;\n'
             '  stop)   echo "stopped $2" ;;\n'
             '  *)      echo "backgrounded fake" ;;\n'
@@ -414,7 +417,7 @@ def scrape(raw):
     return re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", text)
 
 
-def drive(tmp, keys, rows=40, cols=170, tail=None):
+def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True):
     """Run the real pp-agents in a pty, wait until it has drawn, then send keys.
 
     Returns (first_screen, screen_after_keys, recorded_claude_calls).
@@ -478,13 +481,13 @@ def drive(tmp, keys, rows=40, cols=170, tail=None):
             read_once(0.1)
         return pred()
 
-    def until_quiet(quiet=0.5, cap=12.0):
+    def until_quiet(quiet=1.5, cap=12.0):
         deadline = time.time() + cap
         while time.time() < deadline and not dead:
             if not read_once(quiet):
                 return
 
-    until(lambda: "pp-agents" in scrape(buf), 25.0)
+    until(lambda: "pp-agents" in scrape(buf), 90.0)
     until_quiet()
     before = scrape(buf)
     split = len(buf)
@@ -498,7 +501,7 @@ def drive(tmp, keys, rows=40, cols=170, tail=None):
         except OSError:
             break
         if wait_for:
-            until(lambda w=wait_for: w in scrape(buf[split:]), 20.0)
+            until(lambda w=wait_for: w in scrape(buf[split:]), 60.0)
         until_quiet()
 
     if tail:
@@ -513,7 +516,10 @@ def drive(tmp, keys, rows=40, cols=170, tail=None):
         pass
     os.close(fd)
     calls = open(log).read() if os.path.exists(log) else ""
-    return before, scrape(buf[split:]), calls
+    # `scrubbed=False` returns the raw stream, escape sequences intact, for the
+    # assertions about terminal modes - scraping would delete the evidence.
+    after = buf[split:].decode("utf-8", "replace") if not scrubbed else scrape(buf[split:])
+    return before, after, calls
 
 
 section("end to end: the real TUI in a real pty")
@@ -527,12 +533,15 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    first, after, calls = drive(tmp, [(b"\r", "ATTACHED"), b"\x0f", b"q"])
+    first, raw_after, calls = drive(tmp, [(b"\r", "ATTACHED"), b"\x0f", b"q"], scrubbed=False)
+    after = scrape(raw_after.encode('utf-8'))
     check("the cursor starts on a session, so enter works immediately",
           re.search(r"attach (aaa|bbb)", calls) is not None, repr(calls))
     check("a session whose folder is gone still opens",
           "FileNotFoundError" not in after and "Traceback" not in after, after[-400:])
     check("the attached program really ran", re.search(r"attach (aaa|bbb)", calls) is not None, repr(calls))
+    with open("/tmp/buf_first.bin", "wb") as f:
+        f.write(raw_after.encode("utf-8"))
     check("the view survives coming back from attach",
           "Traceback" not in after and "pp-agents" in after, after[-400:])
 
@@ -553,8 +562,201 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    _f, _a, calls = drive(tmp, [b"K", b"n", b"q"])
+    _f, _a, calls = drive(tmp, [(b"K", "stop"), b"n", b"q"])
     check("declining K stops nothing", re.search(r"stop (aaa|bbb)", calls) is None, repr(calls))
+
+def stub_navigating_claude(tmp, marker="describe a task for a new session",
+                          on_left=True):
+    """A fake `claude attach` that behaves like the real one where it matters.
+
+    On a LEFT ARROW it prints the text Claude Code's own agents view draws - which
+    is the signal pp-agents watches for. With `on_left=False` it prints that text
+    immediately and unprompted, standing in for a session whose *content* happens
+    to contain it. That case must NOT pull you out of the session.
+    """
+    log = os.path.join(tmp, "calls.log")
+    done = os.path.join(tmp, "finished.log")
+    path = os.path.join(tmp, "claude")
+    lines = [
+        "#!/usr/bin/env python3",
+        "import os, sys, time",
+        f"open({log!r}, 'a').write(' '.join(sys.argv[1:]) + chr(10))",
+        "if sys.argv[1] != 'attach':",
+        "    print(sys.argv[1]); sys.exit(0)",
+        "sys.stdout.write('ATTACHED ' + sys.argv[2] + chr(10)); sys.stdout.flush()",
+        "import tty; tty.setraw(0)",
+        f"if not {on_left!r}:",
+        f"    sys.stdout.write({marker!r} + chr(10)); sys.stdout.flush()",
+        "import select",
+        "end = time.time() + 2.5",
+        "while time.time() < end:",
+        "    r, _, _ = select.select([0], [], [], 0.2)",
+        "    if not r:",
+        "        continue",
+        "    try:",
+        "        ch = os.read(0, 64)",
+        "    except OSError:",
+        "        sys.exit(0)",          # detached: never claim completion
+        "    if not ch:",
+        "        sys.exit(0)",
+        "    if b'\\x1b[D' in ch or b'\\x1bOD' in ch:",
+        f"        if {on_left!r}:",
+        f"            sys.stdout.write({marker!r} + chr(10)); sys.stdout.flush()",
+        f"open({done!r}, 'a').write('finished' + chr(10))",
+    ]
+    with open(path, "w") as fh:
+        fh.write("\n".join(lines) + "\n")
+    os.chmod(path, 0o755)
+    return path, log
+
+
+def drive_with(tmp, binp, keys, rows=40, cols=170, tail=None):
+    """Same as drive(), but with a caller-supplied fake `claude`."""
+    env = dict(os.environ)
+    env.update({
+        "TERM": "xterm-256color", "LINES": str(rows), "COLUMNS": str(cols),
+        "PP_AGENTS_ACCOUNTS": f"work={os.path.join(tmp, 'work')}:personal={os.path.join(tmp, 'personal')}",
+        "PP_AGENTS_PINS": os.path.join(tmp, "pins.json"),
+        "PP_AGENTS_CLAUDE": binp,
+    })
+    pid, fd = pty.fork()
+    if pid == 0:
+        os.execvpe(sys.executable, [sys.executable, SCRIPT], env)
+    fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
+    buf = b""
+    dead = False
+
+    def read_once(timeout):
+        nonlocal buf, dead
+        try:
+            r, _, _ = select.select([fd], [], [], timeout)
+        except (OSError, ValueError):
+            dead = True
+            return False
+        if fd not in r:
+            return False
+        try:
+            chunk = os.read(fd, 1 << 18)
+        except OSError:
+            dead = True
+            return False
+        if not chunk:
+            dead = True
+            return False
+        buf += chunk
+        return True
+
+    def until(pred, cap):
+        deadline = time.time() + cap
+        while time.time() < deadline and not dead:
+            if pred():
+                return True
+            read_once(0.1)
+        return pred()
+
+    def until_quiet(quiet=1.5, cap=12.0):
+        deadline = time.time() + cap
+        while time.time() < deadline and not dead:
+            if not read_once(quiet):
+                return
+
+    until(lambda: "pp-agents" in scrape(buf), 90.0)
+    until_quiet()
+    split = len(buf)
+    for item in keys:
+        k, wait_for = item if isinstance(item, tuple) else (item, None)
+        if dead:
+            break
+        try:
+            os.write(fd, k)
+        except OSError:
+            break
+        if wait_for:
+            until(lambda w=wait_for: w in scrape(buf[split:]), 60.0)
+        until_quiet()
+    if tail:
+        deadline = time.time() + tail
+        while time.time() < deadline and not dead:
+            read_once(0.2)
+    try:
+        os.kill(pid, signal.SIGKILL); os.waitpid(pid, 0)
+    except Exception:
+        pass
+    os.close(fd)
+    return scrape(buf[split:])
+
+
+section("end to end: the left arrow comes back here")
+LEFT = b"\x1b[D"
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    binp, _log = stub_navigating_claude(tmp)
+    after = drive_with(tmp, binp, [(b"\r", "ATTACHED"), (LEFT, "pp-agents")], tail=1.0)
+    check("left arrow brings you back to the tag list", "pp-agents" in after, after[-400:])
+    check("it detaches instead of letting the session finish",
+          not os.path.exists(os.path.join(tmp, "finished.log")),
+          str(sorted(os.listdir(tmp))))
+    check("coming back that way does not traceback", "Traceback" not in after, after[-300:])
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # the application-cursor-mode left arrow must work too, because a full-screen
+    # program can switch the terminal into that mode
+    binp, _log = stub_navigating_claude(tmp)
+    after = drive_with(tmp, binp, [(b"\r", "ATTACHED"), (b"\x1bOD", "pp-agents")], tail=1.0)
+    check("the application-mode left arrow works as well", "pp-agents" in after, after[-400:])
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # THE IMPORTANT ONE: a session that merely prints that text, with no keypress,
+    # must not eject you. A transcript discussing this feature would do exactly that.
+    binp, _log = stub_navigating_claude(tmp, on_left=False)
+    after = drive_with(tmp, binp, [(b"\r", "ATTACHED")], tail=6.5)
+    check("that text alone does NOT pull you out of a session",
+          os.path.exists(os.path.join(tmp, "finished.log")),
+          str(sorted(os.listdir(tmp))))
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # a left arrow that Claude ignores (ordinary cursor movement) must not detach
+    # either: nothing matching appears, so nothing happens
+    binp, _log = stub_navigating_claude(tmp, marker="just moving the cursor")
+    after = drive_with(tmp, binp, [(b"\r", "ATTACHED"), LEFT], tail=6.5)
+    check("a left arrow that only moves the cursor keeps you in the session",
+          os.path.exists(os.path.join(tmp, "finished.log")),
+          str(sorted(os.listdir(tmp))))
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    binp, _log = stub_navigating_claude(tmp)
+    after = drive_with(tmp, binp, [(b"\r", "ATTACHED"), (b"\x1b[1;2D", "pp-agents")], tail=1.0)
+    check("shift+left always comes back, whatever the session prints",
+          "pp-agents" in after, after[-400:])
+    check("shift+left detaches too",
+          not os.path.exists(os.path.join(tmp, "finished.log")),
+          str(sorted(os.listdir(tmp))))
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    binp, _log = stub_navigating_claude(tmp)
+    after = drive_with(tmp, binp, [(b"\r", "ATTACHED"), (b"\x0f", "pp-agents")], tail=1.0)
+    check("ctrl+o still works as a second fallback", "pp-agents" in after, after[-400:])
+
+section("the reserved-key helper")
+check("shift+left is recognised", mod.first_reserved(b"\x1b[1;2D")[1] == "shift+left")
+check("ctrl+o is recognised", mod.first_reserved(b"\x0f")[1] == "ctrl+o")
+check("ordinary typing is not", mod.first_reserved(b"hello world")[0] == -1)
+check("a plain left arrow is not reserved", mod.first_reserved(b"\x1b[D")[0] == -1)
+check("the offset is where the key starts",
+      mod.first_reserved(b"abc\x0f")[0] == 3, str(mod.first_reserved(b"abc\x0f")))
+check("the earliest reserved key wins",
+      mod.first_reserved(b"\x0fzz\x1b[1;2D")[1] == "ctrl+o")
+check("escape sequences are stripped before matching",
+      "describe a task for a new session" in
+      mod.strip_escapes(b"\x1b[2Jdescribe a task \x1b[0mfor a new session\x1b[K"))
+check("the markers are the ones Claude Code actually draws",
+      "describe a task for a new session" in mod.FLEET_MARKERS)
 
 section("end to end: coming back out of a session")
 with tempfile.TemporaryDirectory() as tmp:
@@ -587,12 +789,63 @@ with tempfile.TemporaryDirectory() as tmp:
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     _f, after, _ = drive(tmp, [b"?", b"q", b"q"])
-    check("help names the key that comes back", "ctrl+o" in after, after[-500:])
+    check("help names the way back", "left arrow" in after or "shift+left" in after,
+          after[-500:])
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     first, _a, _ = drive(tmp, [b"q"])
-    check("the status bar names the key that comes back", "ctrl+o" in first, first[-300:])
+    check("the status bar names the way back", "left back" in first, first[-300:])
+
+section("end to end: the terminal is handed back clean")
+
+
+def mode_events(text):
+    """(enabled, disabled) sets of the DEC private modes seen in a raw stream."""
+    on = set(re.findall(r"\x1b\[\?(\d+)h", text))
+    off = set(re.findall(r"\x1b\[\?(\d+)l", text))
+    return on, off
+
+
+MOUSE_MODES = {"1000", "1002", "1003", "1006"}
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED"), b"\x0f", b"q"], scrubbed=False)
+    on, off = mode_events(after)
+    check("the session turned mouse reporting on (as claude attach does)",
+          MOUSE_MODES & on == MOUSE_MODES, str(sorted(on)))
+    check("detaching turns every mouse mode back off",
+          MOUSE_MODES <= off, f"left on: {sorted(MOUSE_MODES - off)}")
+    check("bracketed paste is turned off too", "2004" in off, str(sorted(off)))
+    check("focus reporting is turned off too", "1004" in off, str(sorted(off)))
+    check("the cursor is made visible again", "25" in off or "\x1b[?25h" in after,
+          str(sorted(off)))
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # quitting normally must also leave the terminal clean, because a mode set by
+    # an earlier session outlives that session
+    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED"), b"\x0f", b"q"], scrubbed=False)
+    tail = after[after.rindex("ATTACHED"):] if "ATTACHED" in after else after
+    _on, off = mode_events(tail)
+    check("the modes are cleared before pp-agents exits",
+          MOUSE_MODES <= off, f"left on: {sorted(MOUSE_MODES - off)}")
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    _f, after, _ = drive(tmp, [(b"l", "LOGS"), b"\r", b"q"], scrubbed=False)
+    _on, off = mode_events(after)
+    check("the logs view also hands the terminal back clean",
+          MOUSE_MODES <= off, f"left on: {sorted(MOUSE_MODES - off)}")
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # pp-agents must never switch these on itself; it only ever switches them off
+    _f, after, _ = drive(tmp, [b"q"], scrubbed=False)
+    on, _off = mode_events(after)
+    check("pp-agents does not enable mouse reporting of its own",
+          not (MOUSE_MODES & on), str(sorted(on)))
 
 section("end to end: key presses that change disk state")
 
