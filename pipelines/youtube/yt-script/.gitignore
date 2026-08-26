@@ -12,3 +12,9 @@ videos/*/script.pdf
 
 # Local-mode desk scratch. The record that matters is script-draft.md, pulled with desk.mjs.
 videos/*/desk-draft.json
+
+# Generated voiceover. Audio never lives in the repo (pipelines/CLAUDE.md house
+# rule); vo-synth writes here and the takes belong in ~/kb-scratch. Step 120.
+videos/*/audio/
+videos/*/*.wav
+videos/*/*.mp3

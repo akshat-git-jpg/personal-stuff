@@ -2,11 +2,11 @@
 
 **[LLM]** &nbsp; Finalises his words into the VO-ready script.
 
-`script-draft.md` -> `script.md` (human-readable) + `script.vo.txt` (the flattened engine feed, spoken lines only). Follows `SCRIPT-INSTRUCTIONS.md`. This is a FINALISE pass over someone else's words, not a fresh write - his phrasing survives unless it is wrong.
+`script-draft.md` -> `script.md` (human-readable) + `script.json` (the per-section feed step 120 reads) + `respell.json` (pronunciation). Follows `SCRIPT-INSTRUCTIONS.md`. This is a FINALISE pass over someone else's words, not a fresh write - his phrasing survives unless it is wrong.
 
 **Reads:** `script-draft.md`, `script-plan.md`, `knowledge.md`
 
-**Writes:** `script.md`, `script.vo.txt`
+**Writes:** `script.md`, `script.json`, `respell.json`
 
 ---
 
@@ -15,8 +15,30 @@
 Read `SCRIPT-INSTRUCTIONS.md` in full. Read the approved `script-plan.md` and
 `knowledge.md`. Every claim in his draft must trace back to `knowledge.md`.
 
-Write `script.md`, then `script.vo.txt` - spoken lines only, nothing else, since
-that file is step 120's only input.
+Write `script.md`, then derive `script.json` from it:
+
+```bash
+cd pipelines/youtube/yt-script
+node -e "
+import('./lib/build-script-json.mjs').then(async (m) => {
+  const fs = await import('node:fs/promises')
+  const key = process.argv[1]
+  const md = await fs.readFile(\`videos/\${key}/script.md\`, 'utf8')
+  const { script, errors } = m.buildScriptJson(key, m.parseScriptMd(md))
+  if (errors.length) { console.error(errors.join('\n')); process.exit(1) }
+  await fs.writeFile(\`videos/\${key}/script.json\`, JSON.stringify(script, null, 2) + '\n')
+  console.log(\`\${script.sections.length} sections\`)
+})
+" <key>
+```
+
+Then write `videos/<key>/respell.json` — every word an engine is likely to get
+wrong, mapped to a plain-letters respelling. `script.md` keeps normal spelling;
+the map is applied at synth time, never written into the script.
+
+If the builder reports `BEAT_TOO_SHORT`, do not pad the beat to clear it. Raise
+it to the owner — a beat under 8 words is an editorial call, and the maker wrote
+those words.
 
 ## His words, not yours
 

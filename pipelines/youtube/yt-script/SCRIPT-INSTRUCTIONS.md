@@ -1,14 +1,12 @@
 # Script instructions
 
-How to turn the **team member's completed draft** into `script.md` + `script.vo.txt`
+How to turn the **team member's completed draft** into `script.md` + `script.json`
 — the final script an AI voiceover engine reads correctly on the first take.
 
 ```
-outline.md   →  outline.pdf            the READ file: show, edit, rules
-     └──────→  script-worksheet.md     the WRITE file: script only —
-                                       pre-filled copy + empty slots
-script-worksheet.md  →  [ he fills the slots ]  →  script-draft.md
-script-draft.md      →  [ this file ]           →  script.md + script.vo.txt
+knowledge.md  ->  outline.md  ->  script-plan.md  ->  [ the desk ]
+     script-plan.md  ->  [ he writes ]  ->  script-draft.md
+     script-draft.md ->  [ this file ] ->  script.md + script.json + respell.json
 ```
 
 **You are not writing the script.** The maker already did, working from the
@@ -18,8 +16,9 @@ not. Two documents come out of it:
 
 | File | For | Contains |
 |---|---|---|
-| `script.md` | humans — the owner, the editor | everything: Voiceover, Notes, lexicon, headings |
-| `script.vo.txt` | the VO engine (step 4) | spoken lines only, pronunciation already applied |
+| `script.md` | humans — the owner, the editor | everything: Voiceover, Notes, headings. Normal spelling |
+| `script.json` | the VO engine (step 120) | one entry per beat: `display_text`, `notes`, `tts` state |
+| `respell.json` | the VO engine (step 120) | pronunciation map, applied at synth time |
 
 The rest of this file is two things: the **standard the final script must meet**
 (voice, structure, conventions, budgets — sections below), and the **VO polish
@@ -88,7 +87,7 @@ literally, so:
   brackets, no "(adjust as needed)". Pick one and flag the other to the owner.
 - Do not leave a blank for the voice to fill. A `[PLACEHOLDER]` is legitimate in
   `script.md` when a volatile fact needs owner confirmation, but it must be
-  resolved before it reaches `script.vo.txt` — an unresolved placeholder is a
+  resolved before it reaches `script.json` — an unresolved placeholder is a
   blocker, not a note.
 - Structure and claims still never change. That rule did not soften; it hardened.
 
@@ -166,59 +165,51 @@ they see a 60-word sentence and breathe where it makes sense. **A synthetic voic
 does none of that.** It reads characters. Every one of those corrections has to be
 in the text before the engine sees it.
 
-## 1 · The pronunciation lexicon
+## 1 · The pronunciation map
 
-`script.md` opens with a lexicon table, before Part A. It lists every word in this
-script that an engine is likely to get wrong, and the respelling that fixes it.
+Pronunciation is **not** written into the script. It lives in
+`videos/<key>/respell.json`, and the engine applies it at synth time
+(`deriveSpoken` in `pipelines/video/tts/lib/spoken.mjs`).
 
-```markdown
-## Pronunciation lexicon
-
-| Written | Say it as | Note |
-|---|---|---|
-| HeyGen | hay-jen | not "hey-gen" |
-| Descript | dee-script | |
-| n8n | n-eight-n | never "en-eight-en" |
-| ElevenLabs | eleven labs | two words when spoken |
-| 1080p | ten-eighty p | |
-| $29/mo | twenty-nine dollars a month | |
-| API | A-P-I | letters, not "appy" |
-| .mp4 | dot em-pee-four | |
+```json
+{
+  "HeyGen": "hay-jen",
+  "Descript": "dee-script",
+  "n8n": "N eight N",
+  "ElevenLabs": "eleven labs",
+  "1080p": "ten-eighty p",
+  "API": "A-P-I",
+  ".mp4": "dot em-pee-four"
+}
 ```
 
-Rules for the lexicon:
+Rules for the map:
 
-- **One row per distinct problem word**, not per occurrence.
+- **One key per distinct problem word**, not per occurrence.
 - **Cover these categories every time:** product and brand names, acronyms,
   file extensions and formats, version numbers, prices and currency, units,
   numbers that are read as digits vs. words, and any non-English word.
-- **Respell phonetically in plain letters with hyphens.** No IPA, no engine-specific
-  phoneme codes — the engine is not chosen yet, and plain respelling works on all
-  of them.
-- **The lexicon is documentation, not markup.** It explains the substitutions you
-  already made. It is never itself sent to the engine.
+- **Respell phonetically in plain letters with hyphens.** No IPA, no
+  engine-specific phoneme codes.
+- Matching is whole-word and case-sensitive, longest key first.
+- `script.md` carries **no** lexicon table. It used to, and that meant the
+  respelling existed in two places. One source only (plan 252, 2026-08-26).
 
-## 2 · Substitution — the lexicon is applied, not attached
+## 2 · Never write a pronunciation hint into the text
 
-This is the trap worth stating twice. **Brackets are for the human file only.**
-An engine reads a bracket out loud, or chokes on it.
-
-- In `script.md`, keep the name readable and let the lexicon carry the note:
-  `We'll start with HeyGen.`
-- In `script.vo.txt`, the substitution is already done:
-  `We'll start with hay-jen.`
-
-Never write the hint inline in the spoken text:
+Brackets and parentheticals are read out loud or choked on. And now that
+`respell.json` owns pronunciation, a respelling typed into the script is worse
+than useless — it gets respelled a second time.
 
 ```
 BAD   We'll start with HeyGen [hay-jen].
 BAD   We'll start with HeyGen (pronounced hay-jen).
-GOOD  script.md      → We'll start with HeyGen.
-      script.vo.txt  → We'll start with hay-jen.
+BAD   We'll start with hay-jen.
+GOOD  script.md     -> We'll start with HeyGen.
+      respell.json  -> { "HeyGen": "hay-jen" }
 ```
 
-If the respelling looks wrong in the human file, that is fine — `script.vo.txt` is
-not for reading, it is for speaking.
+The one place a respelling ever appears is `respell.json`.
 
 ## 3 · Punctuation is the pacing track
 
@@ -280,36 +271,32 @@ The rules:
 - **Notes are never spoken.** Everything in the "Never appears in a spoken line"
   list above lives here.
 
-## 5 · Building `script.vo.txt`
+## 5 · Building `script.json`
 
-Flatten `script.md` into spoken text and nothing else.
+`script.json` is derived from `script.md` by `lib/build-script-json.mjs` (step
+100's README has the command). You do not hand-write it. What you control is
+`script.md`, because the builder reads it:
 
-**Keep:** the Voiceover blockquote content, in document order, with the lexicon
-substitutions applied and the paragraph breaks preserved.
+- Each `### N. Title` heading becomes one section, id `s01`, `s02`, … in order.
+- Its `**Voiceover**` blockquote becomes `display_text` — the spoken words.
+- Its `**Notes**` block becomes `notes` — never spoken.
+- A beat under `## PART B` gets `demo: true`; A and C get `demo: false`.
 
-**Strip:** the lexicon table, every heading, every `**Voiceover**` / `**Notes**`
-label, every Notes block, every blockquote marker, every bracket, every markdown
-emphasis marker, and every table.
+Then check, because this file is the last thing between the draft and the audio:
 
-```
-You'd expect to be able to tell. Remember this moment.
+- [ ] The builder exits 0 and reports the section count you expect.
+- [ ] No `[PLACEHOLDER]`, no `[illegible]`, no `[VERIFY:` / `[FILL:` anywhere.
+- [ ] No em dashes, semicolons or ellipses in any `display_text`. Punctuation is
+      the pacing track and those three have no spoken form.
+- [ ] No production instruction sits in a `display_text` — it belongs in `notes`.
+- [ ] Every problem word has a `respell.json` key.
+- [ ] `stage` is `"tts"` and every `spoken_text` is `""`. Both are required: the
+      respell map only applies while `spoken_text` is empty, and `vo-synth`
+      refuses any stage other than `tts` or `polished`.
 
-So over the last three weeks, I tested four avatar tools. Same script. Same
-inputs. Same fifteen-second clip.
-
-First up, hay-jen.
-```
-
-Then check it, because this file is the last thing between the draft and the
-audio:
-
-- [ ] Read it top to bottom. Every line is something you want said out loud.
-- [ ] No `#`, `>`, `*`, `[`, `]`, `|`, `_` characters left.
-- [ ] No `[PLACEHOLDER]` and no `[illegible]`.
-- [ ] No em dashes, semicolons, or ellipses.
-- [ ] No production instruction survived from a Notes block.
-- [ ] Every lexicon row is actually applied in the text.
-- [ ] Nothing is spelled `HeyGen` that the lexicon says to say as `hay-jen`.
+The old flat file is gone (plan 252, 2026-08-26). It was specified for two years of
+this flow and never once produced, and it duplicated the spoken words that
+`script.json` now holds.
 
 ## 6 · The change report
 

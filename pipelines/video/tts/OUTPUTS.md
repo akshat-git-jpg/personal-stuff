@@ -9,3 +9,4 @@ predate this manifest and are not retro-logged.
 
 | Date | Output file (under ~/kb-scratch/video/tts/) | Pipeline | Engine | Ref voice (slug) | Source / notes |
 |---|---|---|---|---|---|
+| (directory) | pipelines/youtube/yt-script/videos/<key>/audio/ | yt-script | - | - | per-section engine feed |
