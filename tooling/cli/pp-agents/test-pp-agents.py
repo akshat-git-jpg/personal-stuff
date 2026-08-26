@@ -450,6 +450,9 @@ def drive(tmp, keys, rows=40, cols=170, settle=4.0, tail=1.2):
     split = len(buf)
 
     for k in keys:
+        if isinstance(k, float):
+            pump(k)
+            continue
         try:
             os.write(fd, k)
         except OSError:
@@ -478,7 +481,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    first, after, calls = drive(tmp, [b"\r", b"\x0f", b"q"], tail=3.0)
+    first, after, calls = drive(tmp, [b"\r", 1.0, b"\x0f", b"q"], tail=3.0)
     check("the cursor starts on a session, so enter works immediately",
           re.search(r"attach (aaa|bbb)", calls) is not None, repr(calls))
     check("a session whose folder is gone still opens",
@@ -513,7 +516,7 @@ with tempfile.TemporaryDirectory() as tmp:
     # ctrl+o mid-session must return to the list AND detach the client, so the
     # stub's later output never appears. This is the whole reason the attach runs
     # on a pty we own instead of inheriting the terminal.
-    _f, after, calls = drive(tmp, [b"\r", b"\x0f"], tail=4.0)
+    _f, after, calls = drive(tmp, [b"\r", 1.0, b"\x0f"], tail=4.0)
     check("the session was opened", "ATTACHED" in after, after[-200:])
     check("ctrl+o returns to the tag list", "pp-agents" in after.split("ATTACHED")[-1],
           after[-400:])
