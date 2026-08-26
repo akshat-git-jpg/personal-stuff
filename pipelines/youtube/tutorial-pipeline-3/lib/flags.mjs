@@ -1,13 +1,3 @@
-const FLAG_RE = /\[(VERIFY|FILL):\s*([^\]]+)\]/g;
-
-export function scanFlags(text) {
-  const out = [];
-  for (const m of String(text).matchAll(FLAG_RE)) {
-    out.push({ kind: m[1], note: m[2].trim(), raw: m[0] });
-  }
-  return out;
-}
-
-export function stripFlags(text) {
-  return String(text).replace(FLAG_RE, "").replace(/\s{2,}/g, " ").trim();
-}
+// Moved to the TTS hub (plan 251). Kept as a re-export so tp3's own modules —
+// schema.mjs above all — keep their `./flags.mjs` import unchanged.
+export * from "../../../video/tts/lib/flags.mjs";
