@@ -25,6 +25,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 LAUNCHER = os.path.expanduser("~/.local/bin/claude")
 STAMP = os.path.expanduser("~/.cache/pp-claude-tags.json")
@@ -190,6 +191,73 @@ def write_byte(path, offset, value):
         fh.write(value)
 
 
+def parse_etime(text):
+    """Seconds from ps's `[[dd-]hh:]mm:ss` elapsed-time column."""
+    try:
+        days = 0
+        if "-" in text:
+            head, _, text = text.partition("-")
+            days = int(head)
+        parts = [int(p) for p in text.split(":")]
+        while len(parts) < 3:
+            parts.insert(0, 0)
+        hours, minutes, seconds = parts
+    except ValueError:
+        return None
+    return days * 86400 + hours * 3600 + minutes * 60 + seconds
+
+
+def is_claude(command):
+    """A Claude Code process, not merely something with `claude` in its args."""
+    return (
+        command == "claude"
+        or command.startswith("claude ")
+        or "/.local/share/claude/versions/" in command
+        or command.startswith(LAUNCHER)
+    )
+
+
+def stale_sessions_running():
+    """True while a Claude Code process older than the last patch is alive.
+
+    Such a session started on an unpatched binary, so it holds the gate OFF in
+    memory. Whenever it saves `.claude.json` it writes its clamped
+    `fleetViewGroupMode` over ours and the tags look deleted — which is what
+    happened on 2026-08-26, hours after 2.1.246 had already been patched
+    cleanly, so the stamp was current and nothing looked wrong.
+
+    This check is what keeps the heal from fighting its owner. Re-selecting the
+    tag view on every tick unconditionally would undo a deliberate `ctrl+s` to
+    the folder or state view within ten minutes. Once the pre-patch sessions are
+    gone nothing can clamp the setting any more, so a change to it after that is
+    the owner's own and is left alone.
+    """
+    try:
+        patched_at = os.path.getmtime(STAMP)
+    except OSError:
+        return False
+    try:
+        out = subprocess.run(
+            ["ps", "-A", "-o", "etime=,command="],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        ).stdout
+    except (subprocess.TimeoutExpired, OSError):
+        return False
+    now = time.time()
+    for line in out.splitlines():
+        row = line.split(None, 1)
+        if len(row) != 2 or not is_claude(row[1]):
+            continue
+        elapsed = parse_etime(row[0])
+        if elapsed is None:
+            continue
+        if now - elapsed <= patched_at:
+            return True
+    return False
+
+
 def restore_group_view():
     """Re-select the tag view.
 
@@ -223,6 +291,10 @@ def main():
 
     if read_stamp().get("fingerprint") == fingerprint(target):
         say("already unlocked (stamp current)")
+        # The binary is fine, but a session that predates the patch can have
+        # clamped the view setting since. Heal it while any such session lives.
+        if stale_sessions_running():
+            restore_group_view()
         return 0
 
     offset, value = find_gate(target)
