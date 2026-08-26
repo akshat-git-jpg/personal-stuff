@@ -267,6 +267,13 @@ grep -q "^branch=work/failing-verify$" "$blocked" || fail "blocked entry has no 
 grep -q "^reason=.*verify" "$blocked" || fail "blocked entry has no verify reason: $(cat "$blocked")"
 grep -q "^attempts=" "$blocked" || fail "blocked entry has no attempts= line"
 grep -q "^at=" "$blocked" || fail "blocked entry has no at= line"
+# The run output must SURVIVE. `reason` is one line by construction, so when this went to
+# /dev/null a parked land recorded only "verify failed: <cmd>" and the output naming the
+# broken check was destroyed -- for the owner and for the fix-up agent alike.
+grep -q "^log=" "$blocked" || fail "blocked entry has no log= line: $(cat "$blocked")"
+run_log=$(sed -n 's/^log=//p' "$blocked" | head -1)
+[ -s "$run_log" ] || fail "the recorded run log is missing or empty: $run_log"
+grep -q "verify" "$run_log" || fail "the run log kept no verify output: $(head -20 "$run_log")"
 [ "$(remote_main)" = "$before" ] || fail "a failing verify still reached origin/main"
 [ -d "$ws4" ] || fail "a blocked land removed the workspace"
 note "blocked entry written, origin/main unchanged"
