@@ -819,27 +819,45 @@ l7e="$LANDS/land-boss-l7.dispatching"
   || fail "(L7) a quota death consumed a real attempt (got '$(land_field "$l7e" real_attempts)')"
 echo "PASS: an executor that never ran costs the transient budget, not the real one"
 
-echo "--- (L8) a fix-up that DID run and produced nothing still costs a real attempt ---"
+echo "--- (L8) one fix-up costs exactly one real attempt, charged at dispatch ---"
 land_reset
 land_entry boss-l8 "verify failed: npm test"
 LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l8a.out" 2>&1
 [ -f "$LANDS/land-boss-l8.dispatching" ] \
   || fail "(L8) the land was not dispatched: $(cat "$TMP/l8a.out")"
-# Compared against the count AFTER dispatch, never against a literal: the real budget is
-# charged in two places (sweep_one at dispatch, reap_one at the reap) and this case is
-# about WHETHER the reap charges, not about what the total comes to.
 l8_before=$(land_field "$LANDS/land-boss-l8.dispatching" real_attempts)
+[ "$l8_before" = "1" ] \
+  || fail "(L8) dispatch did not charge exactly one real attempt (got '$l8_before')"
+# Freeze phase B so the reap is measured ALONE. reap_one does not look at
+# no_auto_resolve, so it still runs; sweep_one HOLDs and restores byte-identically, which
+# leaves the reap's own counters readable with no second dispatch mixed in.
+printf 'no_auto_resolve=1\n' >> "$LANDS/land-boss-l8.dispatching"
 printf '%s\n' '{"status":"SUCCESS","response":"I read the failing test and could not find a safe fix.","num_turns":24}' \
   > "$LANDS/land-boss-l8.out"
 l8_out=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
 echo "$l8_out" | grep -q 'NOADVANCE' \
-  || fail "(L8) a real no-commit fix-up was not charged: $l8_out"
+  || fail "(L8) a real no-commit fix-up was not reaped: $l8_out"
 echo "$l8_out" | grep -q 'INFRA' \
   && fail "(L8) ordinary agent output was misread as an infra death: $l8_out"
 l8_after=$(land_field "$LANDS/land-boss-l8.blocked" real_attempts)
-[ "$l8_after" -gt "$l8_before" ] \
-  || fail "(L8) a real failure did not consume a real attempt ($l8_before then $l8_after)"
-echo "PASS: only an executor that never ran is refunded"
+[ "$l8_after" = "$l8_before" ] \
+  || fail "(L8) the reap charged a SECOND attempt for one fix-up ($l8_before then $l8_after) — REAL_CAP buys half what it says"
+echo "PASS: one fix-up costs one real attempt, and only an executor that never ran is refunded"
+
+echo "--- (L8b) REAL_CAP really buys REAL_CAP dispatches ---"
+land_reset
+land_entry boss-l8b "verify failed: npm test"
+l8b_n=0
+for _ in 1 2 3 4; do
+  printf '%s\n' '{"status":"SUCCESS","response":"no safe fix","num_turns":9}' \
+    > "$LANDS/land-boss-l8b.out"
+  LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l8b.out" 2>&1
+  l8b_n=$(grep -c 'boss-l8b' "$AGY_LOG" || true)
+done
+[ "$l8b_n" = "2" ] \
+  || fail "(L8b) REAL_CAP=2 bought $l8b_n dispatch(es), expected 2"
+land_reset
+echo "PASS: two dispatches for a cap of two, then it stops"
 
 echo "--- (L9) a capped land notifies, exactly once ---"
 land_reset

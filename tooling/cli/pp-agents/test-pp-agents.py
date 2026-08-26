@@ -20,6 +20,7 @@ import os
 import pty
 import re
 import select
+import shutil
 import signal
 import struct
 import subprocess
@@ -947,16 +948,68 @@ with tempfile.TemporaryDirectory() as tmp:
 
 # --------------------------------------------------------------- the real thing
 
-section("against the real session store (read only)")
-real = subprocess.run([sys.executable, SCRIPT, "--doctor"],
-                      capture_output=True, text=True, timeout=180)
-print("   " + "\n   ".join(real.stdout.strip().splitlines()[-14:]))
-check("--doctor passes on this machine", real.returncode == 0, real.stdout[-300:])
-real = subprocess.run([sys.executable, SCRIPT, "--list"],
-                      capture_output=True, text=True, timeout=120)
-check("--list works on the real store", real.returncode == 0, real.stderr[-200:])
-check("--list finds real sessions", len(real.stdout.strip().splitlines()) > 3,
-      real.stdout[:200])
+# A SNAPSHOT of the real store, not the store itself. This section exists to prove the
+# tool survives real records from this machine - real shapes, real counts, real tags -
+# and a copy proves exactly that. Reading the live store additionally raced every other
+# Claude session on the box, each of which rewrites its own `jobs/<short>/state.json`
+# while this runs: a record created, deleted or half-written mid-parse fails --doctor,
+# and the land then parks on a failure that no longer exists by the time anyone looks.
+# That is what stalled work/pp-agents-ui on 2026-08-27; raising the timeouts (cae06a47)
+# did not help, because time was never the problem.
+#
+# pp-agents reads two tiny files per job (`state.json` and `group`, see load_jobs), so
+# the copy is cheap. Nothing here writes to the real store, then or now.
+section("against a snapshot of the real session store (read only)")
+
+# Mirrors pp-agents' own ACCOUNTS defaults. Stated here rather than imported because
+# that module resolves PP_AGENTS_ACCOUNTS at import time, and this suite sets it.
+REAL_ACCOUNT_ROOTS = (
+    ("work", os.path.expanduser("~/.claude-work")),
+    ("personal", os.path.expanduser("~/.claude-personal")),
+)
+
+
+def snapshot_real_store(dest):
+    """Copy every live job record into `dest`. Returns a PP_AGENTS_ACCOUNTS value."""
+    specs = []
+    for name, root in REAL_ACCOUNT_ROOTS:
+        src = os.path.join(root, "jobs")
+        if not os.path.isdir(src):
+            continue
+        acct = os.path.join(dest, name)
+        dst = os.path.join(acct, "jobs")
+        os.makedirs(dst, exist_ok=True)
+        for short in sorted(os.listdir(src)):
+            sdir = os.path.join(src, short)
+            if not os.path.isdir(sdir):
+                continue
+            os.makedirs(os.path.join(dst, short), exist_ok=True)
+            for fn in ("state.json", "group"):
+                try:
+                    shutil.copyfile(os.path.join(sdir, fn), os.path.join(dst, short, fn))
+                except OSError:
+                    # A job that vanished between the listing and the copy is precisely
+                    # the race this snapshot removes. Skip it; the rest is still real.
+                    pass
+        specs.append("%s=%s" % (name, acct))
+    return ":".join(specs)
+
+
+with tempfile.TemporaryDirectory() as snap:
+    accounts = snapshot_real_store(snap)
+    check("the snapshot found at least one real account", bool(accounts), accounts)
+    renv = dict(os.environ)
+    renv["PP_AGENTS_ACCOUNTS"] = accounts
+    renv.pop("PP_AGENTS_PINS", None)
+    real = subprocess.run([sys.executable, SCRIPT, "--doctor"], env=renv,
+                          capture_output=True, text=True, timeout=180)
+    print("   " + "\n   ".join(real.stdout.strip().splitlines()[-14:]))
+    check("--doctor passes on this machine", real.returncode == 0, real.stdout[-300:])
+    real = subprocess.run([sys.executable, SCRIPT, "--list"], env=renv,
+                          capture_output=True, text=True, timeout=120)
+    check("--list works on the real store", real.returncode == 0, real.stderr[-200:])
+    check("--list finds real sessions", len(real.stdout.strip().splitlines()) > 3,
+          real.stdout[:200])
 
 print()
 if FAILS:
