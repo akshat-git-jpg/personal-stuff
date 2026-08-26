@@ -1,0 +1,20 @@
+{
+  "number": "130",
+  "slug": "130-learn-from-feedback-llm",
+  "title": "learn from the feedback",
+  "actor": "llm",
+  "actorLabel": "[LLM]",
+  "oneLiner": "Routes each owner reaction to the one surface that owns it.",
+  "consumes": [
+    "FEEDBACK-LOG.md",
+    "TASTE.md"
+  ],
+  "produces": [
+    "TASTE.md",
+    "FEEDBACK-LOG.md"
+  ],
+  "gate": null,
+  "external": false,
+  "optional": true,
+  "summary": "The fold. Owns the surface-routing table - which file a lesson goes into - and the promotion threshold that decides whether a reaction is an instance fix or a standing rule. Run by the `yt-script-feedback` skill after the owner approves its Phase 4 summary; never run mid-flow on another video. Added 2026-08-26."
+}

@@ -4,7 +4,7 @@ The flow itself lives in the skill: `pipelines/.claude/skills/yt-script/SKILL.md
 This file is the folder map. Read the skill first — it owns the step table and
 the gates; this only says where things are.
 
-## The flow is thirteen step folders
+## The flow is fourteen step folders
 
 ```
 steps/
@@ -14,7 +14,7 @@ steps/
   060-review-local-desk-human/   070-publish-desk-run/
   080-freelancer-writes-human/   090-pull-draft-run/
   100-write-script-llm/          110-approve-script-human/
-  120-voiceover-run/
+  120-voiceover-run/             130-learn-from-feedback-llm/
 ```
 
 Each holds a `step.json` (the machine record — actor, what it reads, what it
@@ -56,12 +56,14 @@ bash run.sh <key> vo-lock           # lock what you have listened to
 OUTLINE-INSTRUCTIONS.md       owner-owned — the only authority on outline format
 SCRIPT-PLAN-INSTRUCTIONS.md   owner-owned — the only authority on script-plan format
 SCRIPT-INSTRUCTIONS.md        owner-owned — the only authority on final script format
+TASTE.md                      130 — accumulated taste rules, numbered and dated
+FEEDBACK-LOG.md               130 — every reaction, tagged. The repeat-detection index
 lib/beats.mjs                 script-plan.md -> the typed beat model the desk reads
 render-worksheet.mjs          script-plan.md -> script-worksheet.md (voiceover only) — desk-down fallback
 render-outline.mjs            RETIRED 2026-08-23 — not called by any step
 render-script.mjs             RETIRED 2026-08-23 — not called by any step
-steps/                        the thirteen step folders
-test/                         beats, worksheet, steps, desk-docs
+steps/                        the fourteen step folders
+test/                         beats, worksheet, steps, desk-docs, feedback-surfaces
 videos/<key>/                 one folder per video
 ```
 
