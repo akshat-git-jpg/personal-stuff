@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# doctor-portability — is the custody + auto-commit chain actually armed on THIS machine?
+# doctor-portability — is the custody + auto-commit + boss chain actually armed on THIS machine?
 #
 # Why this exists: every part of that chain fails SILENTLY when a dependency is missing.
 # A hook whose interpreter is absent does not error, it just never fires; a `.sh` checked
@@ -213,10 +213,98 @@ else
         Run: bash scripts/relink.sh"
 fi
 
+# ---------------------------------------------------------------- 7. the boss chain
+# The custody sections above cover pp-work, the wall and the lander. Boss rides on top
+# of them and adds four dependencies of its own, and the same "fails silently" property
+# applies to every one: a missing timeout binary disarms test_cmd timeouts rather than
+# erroring, a wrong `gh` account makes every call answer "Could not resolve to a
+# Repository", and the two mtime/lstart probes below returned garbage on Linux for
+# exactly as long as nobody ran boss off a Mac.
+head2 "7. The boss chain"
+
+BOSS_BIN="$REPO/tooling/boss/bin"
+
+if [ -f "$BOSS_BIN/boss-lib.sh" ]; then
+  # Sourced in a subshell: boss-lib sets its own state dirs and we want none of that here.
+  probe=$(
+    source "$BOSS_BIN/boss-lib.sh" >/dev/null 2>&1
+    printf '%s\t%s\t%s\n' \
+      "$(boss_mtime "$REPO/tooling/boss/README.md" 2>/dev/null)" \
+      "$(boss_date_epoch "$(ps -o lstart= -p $$ 2>/dev/null)" 2>/dev/null)" \
+      "$BOSS_GH_USER"
+  )
+  p_mtime=$(printf '%s' "$probe" | cut -f1)
+  p_epoch=$(printf '%s' "$probe" | cut -f2)
+  p_ghuser=$(printf '%s' "$probe" | cut -f3)
+
+  # GNU stat's `-f` is --file-system and SUCCEEDS with a mount point, so the pre-fix
+  # BSD-first chain returned "/" on Linux and every lease age read as zero.
+  case "$p_mtime" in
+    ''|*[!0-9]*) fail "boss_mtime returned '${p_mtime:-empty}', not an epoch. Lease ages and
+        stale-lock breaking are broken on this machine (wt would never reap a dead slot)." ;;
+    *) pass "boss_mtime resolves an epoch ($p_mtime)" ;;
+  esac
+
+  # `date -j -f` is BSD-only; on Linux the orphan-reconcile guard silently stopped filtering.
+  case "$p_epoch" in
+    ''|*[!0-9]*) fail "boss_date_epoch could not parse this platform's \`ps -o lstart=\` stamp.
+        Crew orphan detection will keep reporting dead crews as live." ;;
+    *) pass "boss_date_epoch parses ps lstart ($p_epoch)" ;;
+  esac
+else
+  fail "tooling/boss/bin/boss-lib.sh missing — this is not a complete checkout."
+  p_ghuser=""
+fi
+
+# test_cmd never runs bare; boss-merge is FATAL without a timeout binary.
+if command -v gtimeout >/dev/null 2>&1 || command -v timeout >/dev/null 2>&1; then
+  pass "timeout binary present ($(command -v gtimeout 2>/dev/null || command -v timeout))"
+else
+  fail "no gtimeout/timeout on PATH — boss-merge refuses to run and a hanging test_cmd
+        would freeze a merge. macOS: brew install coreutils. Linux: apt install coreutils."
+fi
+
+# A wrong active gh account does not error, it answers "Could not resolve to a Repository"
+# on a PRIVATE repo and quietly parks the work.
+if ! command -v gh >/dev/null 2>&1; then
+  fail "gh not on PATH — boss cannot read the PR queue. See https://cli.github.com"
+else
+  gh_who=$(gh api user -q .login 2>/dev/null)
+  if [ -z "$gh_who" ]; then
+    fail "gh is not authenticated. Run: gh auth login"
+  elif [ -n "${p_ghuser:-}" ] && [ "$gh_who" != "$p_ghuser" ]; then
+    fail "gh is logged in as '$gh_who' but boss will force-switch to '$p_ghuser'.
+        On a second machine set your own: git config boss.ghUser $gh_who"
+  else
+    pass "gh authenticated as $gh_who (matches boss.ghUser)"
+  fi
+fi
+
+# The worktree pool. `wt status` touches the pool root, so this also proves it is writable.
+if bash "$REPO/tooling/cli/wt/wt" status --repo "$REPO" >/dev/null 2>&1; then
+  pass "wt pool reachable ($HOME/kb-scratch/worktrees/...)"
+else
+  fail "wt status failed — no crew can be dispatched.
+        Try: bash $REPO/tooling/cli/wt/wt status --repo $REPO"
+fi
+
+if [ -x "$REPO/tooling/cli/greenlight/greenlight" ]; then
+  pass "greenlight present (boss lands through it)"
+else
+  fail "tooling/cli/greenlight/greenlight missing or not executable — nothing can land."
+fi
+
+# notify is best-effort: boss merges fine without it, you just stop hearing about it.
+if [ -x "$REPO/tooling/cli/notify/notify" ]; then
+  pass "notify present"
+else
+  warn "notify missing — merges and deploys will land silently."
+fi
+
 # ---------------------------------------------------------------- verdict
 head2 "Verdict"
 if [ "$FAILED" -eq 0 ] && [ "$WARNED" -eq 0 ]; then
-  printf '  \033[32mArmed.\033[0m Custody and auto-commit are working on this machine.\n\n'
+  printf '  \033[32mArmed.\033[0m Custody, auto-commit and the boss chain all work on this machine.\n\n'
   exit 0
 elif [ "$FAILED" -eq 0 ]; then
   printf '  \033[33mArmed, with %d warning(s).\033[0m The chain works; the notes above are optional.\n\n' "$WARNED"
