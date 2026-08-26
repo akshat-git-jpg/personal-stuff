@@ -381,18 +381,29 @@ with tempfile.TemporaryDirectory() as tmp:
     check("an empty store says nothing matched", "nothing matched" in text, text)
 
 def stub_claude(tmp):
-    """A fake `claude` that records how it was called, so a key press is provable."""
+    """A fake `claude` that leaves a record of how it was called.
+
+    Two records, both files, because file evidence is deterministic while scraped
+    screen text is not - pp-agents redraws over a forwarded child the instant it
+    takes the terminal back, so whether that child's words survive in a capture
+    is a race:
+
+      calls.log     one line per invocation, written immediately
+      finished.log  written only if an `attach` was left alone to run out
+    """
     log = os.path.join(tmp, "calls.log")
+    done = os.path.join(tmp, "finished.log")
     path = os.path.join(tmp, "claude")
     with open(path, "w") as fh:
-        fh.write("#!/bin/sh\n"
-                 f'printf "%s\\n" "$*" >> {log}\n'
-                 'case "$1" in\n'
-                 '  attach) echo "ATTACHED $2"; sleep 2; echo "FINISHED $2" ;;\n'
-                 '  logs)   echo "LOGS $2" ;;\n'
-                 '  stop)   echo "stopped $2" ;;\n'
-                 '  *)      echo "backgrounded fake" ;;\n'
-                 'esac\n')
+        fh.write(
+            "#!/bin/sh\n"
+            f'printf "%s\\n" "$*" >> {log}\n'
+            "case \"$1\" in\n"
+            f'  attach) echo "ATTACHED $2"; sleep 2; printf "%s\\n" "$2" >> {done} ;;\n'
+            '  logs)   echo "LOGS $2" ;;\n'
+            '  stop)   echo "stopped $2" ;;\n'
+            '  *)      echo "backgrounded fake" ;;\n'
+            "esac\n")
     os.chmod(path, 0o755)
     return path, log
 
@@ -403,14 +414,24 @@ def scrape(raw):
     return re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", text)
 
 
-def drive(tmp, keys, rows=40, cols=170, settle=4.0, tail=1.2):
+def drive(tmp, keys, rows=40, cols=170, tail=None):
     """Run the real pp-agents in a pty, wait until it has drawn, then send keys.
 
-    Returns (first_screen, screen_after_keys, recorded_claude_calls). Curses only
-    transmits the cells that changed, so the screen text here is used for coarse
-    checks - did it start, did it come back, did it not traceback - while the
-    precise behaviour is proved by the recorded calls and by what landed on disk.
-    Layout itself is asserted through --dump, which shares the same row code.
+    Returns (first_screen, screen_after_keys, recorded_claude_calls).
+
+    **Every wait is on evidence, not on a clock.** An earlier version slept fixed
+    amounts; it passed here and failed inside the lander, which runs under load.
+    A flaky test that blocks a land is worse than no test, so:
+
+    - the first frame is waited for by looking for the title
+    - after each key, output is read until it goes quiet
+    - a key may be given as `(bytes, "text to wait for")`, which is required when
+      the next key depends on the previous one having taken effect - handing
+      ctrl+o to the proxy before the session it should leave has started is
+      exactly the race that made this flaky
+
+    `tail` is a bounded extra wait, used only by the assertion that checks
+    something never happens.
     """
     binp, log = stub_claude(tmp)
     env = dict(os.environ)
@@ -426,39 +447,64 @@ def drive(tmp, keys, rows=40, cols=170, settle=4.0, tail=1.2):
     fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
 
     buf = b""
+    dead = False
 
-    def pump(secs):
-        nonlocal buf
-        end = time.time() + secs
-        while time.time() < end:
-            r, _, _ = select.select([fd], [], [], 0.15)
-            if fd in r:
-                try:
-                    c = os.read(fd, 1 << 18)
-                except OSError:
-                    return
-                if not c:
-                    return
-                buf += c
+    def read_once(timeout):
+        """One select+read. True if bytes arrived; False on quiet or EOF."""
+        nonlocal buf, dead
+        try:
+            r, _, _ = select.select([fd], [], [], timeout)
+        except (OSError, ValueError):
+            dead = True
+            return False
+        if fd not in r:
+            return False
+        try:
+            chunk = os.read(fd, 1 << 18)
+        except OSError:
+            dead = True
+            return False
+        if not chunk:
+            dead = True
+            return False
+        buf += chunk
+        return True
 
-    # wait for the first frame rather than guessing a delay
-    ready_by = time.time() + settle
-    while time.time() < ready_by and "pp-agents" not in scrape(buf):
-        pump(0.3)
-    pump(0.4)
+    def until(pred, cap):
+        deadline = time.time() + cap
+        while time.time() < deadline and not dead:
+            if pred():
+                return True
+            read_once(0.1)
+        return pred()
+
+    def until_quiet(quiet=0.5, cap=12.0):
+        deadline = time.time() + cap
+        while time.time() < deadline and not dead:
+            if not read_once(quiet):
+                return
+
+    until(lambda: "pp-agents" in scrape(buf), 25.0)
+    until_quiet()
     before = scrape(buf)
     split = len(buf)
 
-    for k in keys:
-        if isinstance(k, float):
-            pump(k)
-            continue
+    for item in keys:
+        k, wait_for = item if isinstance(item, tuple) else (item, None)
+        if dead:
+            break
         try:
             os.write(fd, k)
         except OSError:
-            break          # the program exited already; nothing left to send
-        pump(0.55)
-    pump(tail)
+            break
+        if wait_for:
+            until(lambda w=wait_for: w in scrape(buf[split:]), 20.0)
+        until_quiet()
+
+    if tail:
+        deadline = time.time() + tail
+        while time.time() < deadline and not dead:
+            read_once(0.2)
 
     try:
         os.kill(pid, signal.SIGKILL)
@@ -481,18 +527,18 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    first, after, calls = drive(tmp, [b"\r", 1.0, b"\x0f", b"q"], tail=3.0)
+    first, after, calls = drive(tmp, [(b"\r", "ATTACHED"), b"\x0f", b"q"])
     check("the cursor starts on a session, so enter works immediately",
           re.search(r"attach (aaa|bbb)", calls) is not None, repr(calls))
     check("a session whose folder is gone still opens",
           "FileNotFoundError" not in after and "Traceback" not in after, after[-400:])
-    check("the attached program really ran", "ATTACHED" in after, after[-200:])
+    check("the attached program really ran", re.search(r"attach (aaa|bbb)", calls) is not None, repr(calls))
     check("the view survives coming back from attach",
           "Traceback" not in after and "pp-agents" in after, after[-400:])
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    _f, after, calls = drive(tmp, [b"l", b"\r", b"q"])
+    _f, after, calls = drive(tmp, [(b"l", "LOGS"), b"\r", b"q"])
     check("l runs claude logs on the focused session",
           re.search(r"logs (aaa|bbb)", calls) is not None, repr(calls))
     check("the view survives coming back from logs",
@@ -500,7 +546,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    _f, after, calls = drive(tmp, [b"K", b"y", b"q"])
+    _f, after, calls = drive(tmp, [b"K", (b"y", "stopped"), b"q"])
     check("K confirms before stopping", "stop" in after.lower(), after[-300:])
     check("confirming K runs claude stop",
           re.search(r"stop (aaa|bbb)", calls) is not None, repr(calls))
@@ -516,27 +562,27 @@ with tempfile.TemporaryDirectory() as tmp:
     # ctrl+o mid-session must return to the list AND detach the client, so the
     # stub's later output never appears. This is the whole reason the attach runs
     # on a pty we own instead of inheriting the terminal.
-    _f, after, calls = drive(tmp, [b"\r", 1.0, b"\x0f"], tail=4.0)
-    check("the session was opened", "ATTACHED" in after, after[-200:])
-    check("ctrl+o returns to the tag list", "pp-agents" in after.split("ATTACHED")[-1],
-          after[-400:])
+    _f, after, calls = drive(tmp, [(b"\r", "ATTACHED"), b"\x0f"], tail=3.0)
+    check("the session was opened", re.search(r"attach (aaa|bbb)", calls) is not None, repr(calls))
+    check("ctrl+o returns to the tag list", "pp-agents" in after, after[-400:])
     check("ctrl+o detaches rather than waiting it out",
-          "FINISHED" not in after, after[-300:])
+          not os.path.exists(os.path.join(tmp, "finished.log")),
+          str(sorted(os.listdir(tmp))))
     check("coming back does not traceback", "Traceback" not in after, after[-300:])
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     # without the reserved key the child is left to finish normally
-    _f, after, _ = drive(tmp, [b"\r"], tail=5.0)
-    check("a session left alone runs to completion", "FINISHED" in after, after[-300:])
+    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED")], tail=4.0)
+    done = os.path.join(tmp, "finished.log")
+    check("a session left alone runs to completion", os.path.exists(done),
+          str(sorted(os.listdir(tmp))))
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     # keystrokes before the reserved key must still reach the session
-    _f, after, _ = drive(tmp, [b"\r"], tail=3.0)
-    check("the view returns after the session ends",
-          "pp-agents" in after.split("FINISHED")[-1] if "FINISHED" in after else True,
-          after[-300:])
+    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED")], tail=4.0)
+    check("the view returns after the session ends", "pp-agents" in after, after[-300:])
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
