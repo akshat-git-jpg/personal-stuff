@@ -414,3 +414,15 @@
 /* Set from JS to the header's real height - hard-coding it breaks the moment
    the header wraps onto two lines on a narrow window. */
 .toggle-rail { top: var(--chrome-top, 74px); }
+
+/* A source link in the instruction track. Underlined, in the accent, because the
+   freelancer has to spot it as openable inside a paragraph of notes. The scheme
+   prefix is stripped in the label so a long YouTube URL does not swamp the line. */
+.lane-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+.lane-link:hover { text-decoration-thickness: 2px; }

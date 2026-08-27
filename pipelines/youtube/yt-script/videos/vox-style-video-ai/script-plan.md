@@ -211,6 +211,7 @@ No verdict card. This is a tutorial. Nothing has been ranked.
 
 ---
 
+Who these people are: Joseph | Video Editing https://youtu.be/PaXuebdY75U · Leo Ai https://youtu.be/WCDhGKNVrKU · Ai-Seekify https://youtu.be/ZhfHjf_0E-Q · Thomas Creates https://youtu.be/edrUbfeSPio
 ### SECTION: Why one tool beats five
 
 > **RULES — WHOLE SECTION**
@@ -299,6 +300,7 @@ Two things: the Director tab, and a browser you can install an extension into.
 
 ---
 
+Who these people are: Leo Ai https://youtu.be/WCDhGKNVrKU · Joseph | Video Editing https://youtu.be/PaXuebdY75U · Koen | AI Content Systems https://youtu.be/TiycelzfzC0 · MoSidd https://youtu.be/7wuYBfE131U · Ai-Seekify https://youtu.be/ZhfHjf_0E-Q · Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Getting the AI to study real Vox videos
 
 > **RULES — WHOLE SECTION**
@@ -388,6 +390,7 @@ Say plainly that this is the part that survives when the tool changes. Nothing e
 
 ---
 
+Who these people are: Thomas Creates https://youtu.be/edrUbfeSPio · Joseph | Video Editing https://youtu.be/PaXuebdY75U
 ### SECTION: Picking a topic that holds up
 
 > **RULES — WHOLE SECTION**
@@ -452,6 +455,7 @@ It is the single most copyable thing in this section.
 
 ---
 
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Writing the script
 
 > **RULES — WHOLE SECTION**
@@ -524,6 +528,7 @@ So a weak line here becomes a weak shot four steps from now.
 
 ---
 
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Locking the look
 
 > **RULES — WHOLE SECTION**
@@ -618,6 +623,7 @@ Zero glitches, and a better picture anyway.
 
 ---
 
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM · Luuk Alleman https://youtu.be/i5-tZegBvxU
 ### SECTION: Picking the voice
 
 > **RULES — WHOLE SECTION**
@@ -672,6 +678,7 @@ Say plainly that this is what makes locking safe, not final.
 
 ---
 
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Picking the music
 
 > **RULES — WHOLE SECTION**
@@ -725,6 +732,7 @@ The narrated slideshow playing. 15 seconds, uncut.
 
 ---
 
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Adding the motion
 
 > **RULES — WHOLE SECTION**
@@ -814,6 +822,7 @@ The glitching map was replaced with a person thinking over a chessboard. Zero gl
 
 ---
 
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Putting it all together
 
 > **RULES — WHOLE SECTION**
@@ -866,6 +875,7 @@ This is the least interesting beat in the video, and padding it would show.
 
 ---
 
+Who these people are: Luuk Alleman https://youtu.be/i5-tZegBvxU
 ### SECTION: When you need more control
 
 > **RULES — WHOLE SECTION**
@@ -998,3 +1008,4 @@ Duration for a three-frame build: 15 seconds.
 **EDIT**
 Hold on the finished shot from the cold open under the last two sentences.
 That closes the loop on the opening image.
+Who these people are: Thomas Creates https://youtu.be/edrUbfeSPio

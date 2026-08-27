@@ -111,18 +111,35 @@ function renderRightCell(beat: Beat, prefs: Prefs): ReactNode {
   return blocks
 }
 
-// Outline authors emphasise with markdown - "**This is the one demo block**" -
-// and the instruction track used to print the asterisks literally. Bold is the
-// only inline mark that appears in these lanes, so this renders that one and
-// leaves every other character alone rather than pulling in a markdown parser.
+// Two inline marks, and only two. Outline authors emphasise with markdown -
+// "**This is the one demo block**" - and the instruction track used to print the
+// asterisks literally. And the lanes cite sources by URL.
+//
+// URLs are CLICKABLE because a reference the freelancer cannot open is not a
+// reference. The lanes name people he has never heard of - "Joseph's checklist",
+// "Skai's angle" - and owner, 2026-08-28: *"can we please add reference link
+// wherever possible for my freelancer... you said Joseph's list, but I don't
+// think my freelancer is aware of Joseph."*
+//
+// BARE urls, not markdown links. There is no markdown parser on this track and
+// `[Joseph](https://...)` printed its brackets literally. The trailing character
+// class stops a sentence-ending period being swallowed into the href.
+const INLINE_RE = /(\*\*[^*]+\*\*|https?:\/\/[^\s<>()]*[^\s<>().,;:!?])/g
+
 function renderEmphasis(line: string): ReactNode[] {
-  return line.split(/(\*\*[^*]+\*\*)/g).map((piece, i) =>
-    piece.startsWith('**') && piece.endsWith('**') && piece.length > 4 ? (
-      <strong key={i}>{piece.slice(2, -2)}</strong>
-    ) : (
-      <Fragment key={i}>{piece}</Fragment>
-    ),
-  )
+  return line.split(INLINE_RE).map((piece, i) => {
+    if (piece.startsWith('**') && piece.endsWith('**') && piece.length > 4) {
+      return <strong key={i}>{piece.slice(2, -2)}</strong>
+    }
+    if (/^https?:\/\//.test(piece)) {
+      return (
+        <a key={i} className="lane-link" href={piece} target="_blank" rel="noopener noreferrer">
+          {piece.replace(/^https?:\/\//, '')}
+        </a>
+      )
+    }
+    return <Fragment key={i}>{piece}</Fragment>
+  })
 }
 
 // The heading a beat sits under is the OUTLINE'S heading, never a title invented
