@@ -130,6 +130,32 @@ with tempfile.TemporaryDirectory() as tmp:
 
 # ------------------------------------------------------------------ tagging
 
+section("the row label")
+check("a real summary wins once there is work behind it",
+      mod.display_name({"name": "pp-feature-deploy", "intent": "deploy the thing",
+                        "detail": "5 of 6 services green"}) == "pp-feature-deploy")
+check("while it is still asking for a task, your own words win",
+      mod.display_name({"name": "onboarding empty state message", "intent": "test1",
+                        "detail": "awaiting task description"}) == "test1")
+check("the check does not care about case or padding",
+      mod.display_name({"name": "invented", "intent": "test1",
+                        "detail": "  Awaiting Task Description "}) == "test1")
+check("no summary at all falls back to the prompt",
+      mod.display_name({"name": "", "intent": "do the thing"}) == "do the thing")
+check("no prompt at all keeps the summary",
+      mod.display_name({"name": "summary", "intent": "",
+                        "detail": "awaiting task description"}) == "summary")
+check("neither one gives an empty string, so the caller can fall back to the id",
+      mod.display_name({}) == "")
+
+with tempfile.TemporaryDirectory() as tmp:
+    make_job(os.path.join(tmp, "work"), "fresh1", state="blocked",
+             name="onboarding empty state message", detail="awaiting task description",
+             extra={"intent": "test1"})
+    jobs = mod.load_jobs([("work", os.path.join(tmp, "work"))])
+    check("a freshly dispatched session is findable by what you typed",
+          jobs[0]["name"] == "test1", jobs[0]["name"])
+
 section("tagging")
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)

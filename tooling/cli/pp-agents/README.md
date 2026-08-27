@@ -133,6 +133,17 @@ opened the view in**, so enter accepts it and `tab` completes to any folder your
 other sessions use. The task comes first because that is the part you already have
 in your head; the folder is a detail.
 
+The row shows **the words you typed** until the session has done something. Claude
+Code writes two labels - `intent` is your prompt, `name` is a summary it generates -
+and the summary is written at dispatch time, before there is anything to summarise.
+A one-line prompt therefore gets an invented one: `test1` came back as `onboarding
+empty state message`, unfindable by the person who typed `test1`. While a session is
+still `awaiting task description` the prompt wins; once it starts work the summary
+takes over, because by then `pp-feature-deploy` beats a paragraph.
+
+Related, and not a bug here: a prompt with no actual task in it (`test1`) leaves the
+session asking you what to do. It shows as **Needs input**, which is correct.
+
 The new session appears in the list by itself, selected, with the status line
 naming its short id. Two things had to be true for that: the dispatch waits for
 the daemon to write `jobs/<short>/state.json`, which lands a moment after
