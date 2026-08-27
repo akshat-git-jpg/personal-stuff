@@ -207,6 +207,20 @@ def delete_record(job):
     shutil.rmtree(target)
 
 
+def default_cwd(jobs):
+    """The folder most sessions run in, or wherever this was started from."""
+    counts = {}
+    for job in jobs:
+        if job["cwd"]:
+            counts[job["cwd"]] = counts.get(job["cwd"], 0) + 1
+    if counts:
+        return max(sorted(counts), key=lambda c: counts[c])
+    try:
+        return os.getcwd()
+    except OSError:
+        return os.path.expanduser("~")
+
+
 def known_tags(jobs):
     return sorted({j["tag"] for j in jobs if j["tag"]})
 
@@ -600,6 +614,14 @@ def fmt_age(iso):
     return f"{int(secs // 86400)}d"
 
 
+# The built-in view carries a permanent input line at the bottom - "describe a
+# task for a new session" - and that line is the whole reason anyone knows the
+# feature exists. `n` did the same job here from the start and nobody could find
+# it, so the line is reproduced. It is a prompt-shaped label, not a live input:
+# in this view the letters are shortcuts, so typing into it would collide with
+# `j`, `k`, `e`, `d` and the rest.
+NEW_HINT = "\u203a n   describe a task for a new session"
+
 PIN_MARK = "▸"
 FOLD_OPEN = "▾"      # open group
 FOLD_SHUT = "▸"      # folded group          # a small right-pointing triangle
@@ -786,7 +808,7 @@ HELP = [
     ("/", "filter; esc clears"),
     ("l", "show recent output (claude logs)"),
     ("K", "stop this session (asks first)"),
-    ("n", "new background session here (claude --bg)"),
+    ("n", "start a new session: the task, then the folder (claude --bg)"),
     ("g", "refresh now"),
     ("?", "this help"),
     ("q", "quit"),
@@ -976,6 +998,9 @@ class App:
         else:
             self.draw_rows(h, w)
 
+        if h >= 4 and not self.show_help:
+            self.put(h - 2, 0, NEW_HINT.ljust(w - 1), self.attr["hint"])
+
         if self.status:
             bar, attr = " " + self.status, self.attr["bar"]
         elif self.query:
@@ -1007,13 +1032,17 @@ class App:
         colour on the terminal's own background, which is what stops the list
         looking like a grid of black rectangles.
         """
-        body = h - 2
+        # h-1 is the status bar and h-2 is the new-session line, so the list
+        # stops two rows early. On a terminal too short for the hint it is not
+        # drawn, and the row is the list's again.
+        last = h - 2 if h >= 4 else h - 1
+        body = max(1, last - 1)
         first = 0
         if self.cursor >= body:
             first = self.cursor - body + 1
         y = 1
         for idx in range(first, len(self.rows)):
-            if y >= h - 1:
+            if y >= last:
                 break
             kind, payload = self.rows[idx]
             sel = idx == self.cursor
@@ -1039,10 +1068,15 @@ class App:
 
     # -------------------------------------------------------- input
 
-    def prompt(self, label, complete_from=()):
-        """One-line input on the status bar. Returns None if cancelled."""
+    def prompt(self, label, complete_from=(), preset=""):
+        """One-line input on the status bar. Returns None if cancelled.
+
+        `preset` starts the line filled in and editable, which is what makes a
+        sensible default worth offering: accept it with enter, or backspace it
+        away.
+        """
         h, w = self.scr.getmaxyx()
-        buf = ""
+        buf = preset
         curses.curs_set(1)
         self.scr.timeout(-1)        # same sticky-timeout trap as confirm()
         try:
@@ -1196,13 +1230,23 @@ class App:
         self.status = "pinned" if job["short"] in self.pins else "unpinned"
 
     def act_new(self):
+        """Dispatch a background session, asking for the task first.
+
+        The task is what you already have in your head when you reach for this;
+        the folder is a detail, so it comes second and arrives pre-filled with
+        the one most of your sessions run in.
+        """
+        task = self.prompt("new session - describe the task: ")
+        if not task or not task.strip():
+            self.status = "nothing dispatched"
+            return
         cwds = sorted({j["cwd"] for j in self.jobs if j["cwd"]})
-        where = self.prompt("new session in folder: ", cwds)
+        where = self.prompt("folder: ", cwds, preset=default_cwd(self.jobs))
         if not where:
+            self.status = "nothing dispatched"
             return
-        prompt = self.prompt("prompt: ")
-        if not prompt:
-            return
+        where = os.path.expanduser(where.strip())
+        prompt = task
         if not os.path.isdir(where):
             self.status = f"no such folder: {where}"
             return

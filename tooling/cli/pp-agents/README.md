@@ -81,7 +81,7 @@ Close to the built-in view on purpose - the point is not to relearn anything.
 | `l` | recent output (`claude logs`) |
 | `K` | stop this session (asks first) |
 | `d` | delete this session (asks first; stops it first if still running) |
-| `n` | new background session in a folder you pick (`claude --bg`) |
+| `n` | start a new session: the task first, then the folder (`claude --bg`) |
 | `g` | refresh now (it also refreshes on its own) |
 | `?` | help |
 | `q` | quit |
@@ -125,6 +125,23 @@ reporting on and never gets to turn it off, so the modes are cleared here - and
 the input queue is flushed as well, because switching reporting off stops new
 packets but leaves the queued ones for your shell to print as `35;3;19M`
 gibberish.
+
+### Starting a new session
+
+`n` asks for the task, then for the folder - pre-filled with the one most of your
+sessions already run in, so enter accepts it. The task comes first because that is
+the part you already have in your head; the folder is a detail.
+
+The list carries a permanent line above the status bar:
+
+```
+> n   describe a task for a new session
+```
+
+`n` did this from the first build and nobody could find it, which is the whole
+argument for the line: the built-in view has the same affordance and that is where
+the habit comes from. It is a label, not a live input - in this view the letters are
+shortcuts, so typing into it would collide with `j`, `k`, `e`, `d` and the rest.
 
 ### The one thing that is missing
 
