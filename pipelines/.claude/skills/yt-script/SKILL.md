@@ -78,7 +78,7 @@ Three things, all owner decisions:
    never one — it held verbatim intro and conclusion copy plus 25+ beats with
    lanes, which is a draft script. It is now `script-plan.md` (step 050), and
    `outline.md` is a new, earlier, one-page document (step 030) holding sections
-   and one line each. The owner approves *direction* there, when changing it is
+   and a card each. The owner approves *direction* there, when changing it is
    still cheap.
 2. **The local review gate exists.** The old step 2 published the live freelancer
    URL *before* any owner review, then said "wait for approval" — approval of a
@@ -119,7 +119,7 @@ desk.
 |---|---|---|
 | `videos/<key>/knowledge.md` | 010 | Every source, as TEXT, plus the `# Approaches` menu where the topic has one. The only input later steps read |
 | `videos/<key>/sources/` | 010 | The originals — screenshots, fetched pages, transcripts. Provenance, tracked |
-| `videos/<key>/outline.md` | 030 | One page. Sections and one line each. The direction |
+| `videos/<key>/outline.md` | 030 | A table of contents plus a card per section. Carries `Format:` and `Target:`. The direction |
 | `videos/<key>/script-plan.md` | 050 | The beat-by-beat document the desk publishes |
 | `videos/<key>/script-draft.md` | 090 | The maker's completed work, verbatim. Provenance, tracked |
 | `videos/<key>/script.md` | 100 | The final VO script, human-readable |
@@ -157,6 +157,12 @@ question for him, never a cue to go find the answer.
 - **Never name an approach without its detail.** The owner picks the approach at
   gate 020, so a list of tool names with no cost, no steps and no failure modes
   hands the decision back with the evidence removed.
+- **Never ask whether the method works, and never ask about the owner's
+  experience.** The sources prove the first; `TASTE.md` T7 settles the second.
+  Write the credibility claim as fact and let him correct it at review.
+- **Never pad to hit a length target.** `TASTE.md` T6 wants the video as long as
+  the material honestly carries, and says plainly that repetition breaks the rule
+  rather than serving it. Name the ceiling at the gate instead.
 - **Step 100 finalises someone else's draft.** You do not write the script from
   the script plan. If no draft has come back, there is nothing to do — say so
   instead of writing one yourself.

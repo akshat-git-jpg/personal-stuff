@@ -167,3 +167,58 @@ and T1 forbids that.
 
 **Applies to:** 050, 100
 **Enforced by:** author judgement.
+
+---
+
+## T6 — Go as long as the material honestly carries, and keep it interesting the whole way.
+
+**From:** vox-style-video-ai, 2026-08-27. Owner: *"i prefer longer videos without
+making audience bored. i prefre longer videos only. keep the entire flow
+interesting but always try to make as long video as possible."*
+
+Length is a target to push toward, not a budget to spend. Where `knowledge.md`
+supports depth, take it — more phases, more of the exact settings, more of what
+breaks and why. A short video that left real material on the table is the failure
+this rule exists to stop.
+
+**The second half of the rule is load-bearing and is not a softener.** Padding
+with repetition, restating a point in new words, or narrating what is already on
+screen makes the video longer and worse, and breaks this rule rather than serving
+it. When the honest ceiling is below what the owner would like, the answer is to
+name the ceiling and its reason at the gate — never to fill the gap.
+
+The practical test: could any minute be cut without the viewer losing something
+they needed? If yes, that minute is padding and the rule has been broken in the
+direction of length.
+
+`OUTLINE-INSTRUCTIONS.md` carries the mechanism — a required `Target:` line and
+the section count that serves it.
+
+**Applies to:** 030, 050, 100
+**Enforced by:** author judgement, plus the owner's read at gates 040 and 055.
+
+## T7 — Assume the owner's expertise. Write the credibility claim; do not ask for it.
+
+**From:** vox-style-video-ai, 2026-08-27. Owner: *"pls always assume that i know
+things. you can add claim about prior experince. assume i have explored tools for
+yeards and know my stuff. if i need to make changes in script - i will do during
+review."*
+
+The intro's credibility line, and any later line resting on the owner's
+experience, is written as fact. He has used these tools for years. A hedge, a
+`[PLACEHOLDER]`, or a question at the gate all read as doubt about the presenter
+and all cost him a review cycle to delete.
+
+**This rule is scoped to claims about the owner himself** — what he has used,
+built, tested or seen. It does not license inventing anything else. Numbers,
+prices, tool behaviour, model names and every factual claim still come from
+`knowledge.md` and nowhere else, exactly as the skill's hard rules say. The two
+do not conflict: one is about who is talking, the other about what is said.
+
+Raised with the owner before this rule was written, because it sits against
+"never invent facts"; he reaffirmed it, and named the review gate as where he
+corrects a claim that overreaches.
+
+**Applies to:** 030, 050, 100
+**Enforced by:** author judgement. The owner's own read at gates 040, 055 and 110.
+

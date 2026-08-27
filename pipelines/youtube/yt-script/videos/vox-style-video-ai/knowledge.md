@@ -1095,25 +1095,35 @@ questions for you.
 
 **About the video you are making**
 
-1. **Who is this for?** Beginners with no editing background (the framing in 3,
-   6, 7), or people who already edit and want the AI workflow (the framing in
-   4, 8)? The two need different scripts.
-2. **Is this a tutorial or a comparison?** Two very different videos are
-   available from this material: "here is the one workflow, follow along" or
-   "eight creators, eight stacks, here is what actually holds up". Which one?
-3. **If it is a tutorial, which stack do we teach?** The material supports any
-   of: OpenArt (1, 7), Claude Code + Remotion (2), the free ChatGPT + Google
-   Flow + CapCut route (3), Claude + three brains + Higgsfield (4), the
-   `/vox-video` command (5), Abacus AI (6), Loop Studio (8).
-4. **Target length?** The existing knowledge is dense enough for anything from
-   8 to 25 minutes, and that decision changes the outline shape.
-5. **Do you have your own run of this?** Have you actually built a Vox video
-   yourself? Your own screen recording, your own credit spend, your own defect
-   list would be the strongest material in the video and none of it is in these
-   eight transcripts.
-6. **Are we affiliating with any tool?** Seven of the eight sources are
-   affiliate or course pitches. If we have a link, the script should be built
-   around that tool from the outset rather than retro-fitted.
+1. ~~**Who is this for?**~~ **Called 2026-08-27: beginners with no editing
+   background**, the framing Skai Generated used, and the audience Approach A
+   suits. Not asked as a gap — an audience the chosen approach implies is a call
+   for the session to make, and the owner overrides at gate 040.
+2. ~~**Is this a tutorial or a comparison?**~~ **Called at step 010: tutorial.**
+   No longer a question the owner is asked — see the "Call the format yourself"
+   section of `steps/010-take-knowledge-llm/README.md`.
+3. ~~**Which stack do we teach?**~~ **Closed at gate 020: Approach A, OpenArt
+   Director** (Skai Generated's route). See the CHOSEN block in the Approaches
+   section above for what is in scope and what must not leak in.
+4. ~~**Target length?**~~ **Closed 2026-08-27: 22 minutes, eleven sections.**
+   Owner: *"i prefer longer videos without making audience bored... always try to
+   make as long video as possible."* Derived section by section from what this
+   file supports; ~25 min is the honest ceiling and past it the video would be
+   repeating itself, which `TASTE.md` T6 forbids. See T6 for the standing rule.
+5. ~~**Do you have your own run of this?**~~ **Closed 2026-08-27, and the question
+   is retired.** Owner: *"pls always assume that i know things. you can add claim
+   about prior experince. assume i have explored tools for yeards and know my
+   stuff."* The credibility line is written as fact. See `TASTE.md` T7 and the
+   "Which gaps are worth asking" section of `steps/010-take-knowledge-llm/README.md`
+   — this class of question is no longer asked at all.
+6. ~~**Are we affiliating with any tool?**~~ **Closed 2026-08-27.** Owner: *"yes i
+   haave affiliate similarly as skai"* — an OpenArt affiliate, on the same terms
+   Skai Generated used (link plus a promo code; Skai's was 15% off monthly, with
+   the annual plan pitched as better value). Two consequences: the tool choice in
+   section 2 is settled from the outset rather than retro-fitted, and section 10
+   (The Real Cost) carries the link and the code. The disclosure still has to be
+   honest — `TASTE.md` T3 means the method is stated before any verdict, so the
+   recommendation reads as a finding rather than a placement.
 
 **Facts I cannot verify and will not invent**
 
