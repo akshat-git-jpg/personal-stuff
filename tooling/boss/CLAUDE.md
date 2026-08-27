@@ -677,6 +677,22 @@ own commit re-triggers the land), HEAD unmoved is a real failure and goes back t
 `.blocked` with the counter spent. **One dispatch per run** — the fix-up holds the chrome
 lock for its whole life, so the rest of the queue waits for the next sweep.
 
+**A stale entry for a land that already SUCCEEDED is dropped, not dispatched** (added
+2026-08-27). pp-land clears its own entry on success with `rm -f land-<slug>.blocked` —
+but the sweep's claim RENAMES that file to `.dispatching`, so a sweep that runs mid-land
+moves the file out from under pp-land's cleanup and the entry outlives a land that
+worked. Every later sweep then dispatches a fix-up to repair a branch already on main.
+The land for `work/land-retry-hardening` ran 09:41:41 → 09:51:22 (a 9m41s verify suite)
+and a session-start sweep claimed its entry at 09:51:06, sixteen seconds before the
+success; an agy crew spent its life re-running a test that had been fixed and landed ten
+minutes earlier. `land_already_landed` now asks pp-land's own question — is the workspace
+HEAD an ancestor of `origin/main`? — in both `sweep_one` and `reap_one`, and prints
+`LANDED` instead of dispatching. It is robust to HOW an entry went stale (this race, a
+hand land, a coalesced cycle) in a way that teaching the `rm` about `.dispatching` would
+not be. Pinned by `test-boss.sh` (L11), including the negative case: a workspace holding
+a commit that is NOT on `origin/main` still dispatches, so the guard cannot silence the
+queue. **If a sweep says a land is blocked, check `origin/main` before believing it.**
+
 **The attempt policy.** Three classes, not two:
 
 | class | causes | effect |
