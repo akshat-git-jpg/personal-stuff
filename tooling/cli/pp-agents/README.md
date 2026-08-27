@@ -144,6 +144,21 @@ takes over, because by then `pp-feature-deploy` beats a paragraph.
 Related, and not a bug here: a prompt with no actual task in it (`test1`) leaves the
 session asking you what to do. It shows as **Needs input**, which is correct.
 
+Every `claude` call goes through `run_claude`, which writes the child's output to
+a temp **file** and never a pipe. This is not tidiness. `claude --bg` starts a
+`claude daemon run` child when none is up, that child inherits whatever it was
+given, and a pipe reaches EOF only once every holder closes it - so
+`capture_output=True` waits for the daemon, i.e. forever. The view froze
+mid-keystroke while the session it had just started ran happily in the background:
+the record existed, the row never appeared, and `n` looked like a dead key.
+
+It hid for a whole day because of how it fails: when a daemon is ALREADY running,
+nothing is spawned, the pipe closes, and the identical code returns at once. Every
+by-hand test from a shell passed. The stub in the tests now leaves a child sitting
+on its output for 30 seconds, so the pipe version cannot pass again. `stdin` is
+closed for the child too - this view holds the terminal in raw mode, and a child
+must never read the keys meant for it.
+
 The new session appears in the list by itself, selected, with the status line
 naming its short id. Two things had to be true for that: the dispatch waits for
 the daemon to write `jobs/<short>/state.json`, which lands a moment after
