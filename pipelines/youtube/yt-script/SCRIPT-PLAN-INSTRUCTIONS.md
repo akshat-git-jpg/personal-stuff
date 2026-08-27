@@ -122,6 +122,22 @@ Five beats in order: wrap signal → deals and free-trial links in the
 description → thanks → a comment prompt that asks something answerable →
 subscribe and sign off. Both monetisation beats always appear.
 
+## Body CTAs — plan them, do not leave them to the writer
+
+**Two to four link mentions live in the body**, on top of the intro and
+conclusion CTAs. `SCRIPT-INSTRUCTIONS.md` has the cadence rules and the wording
+guidance; the plan's job is to **place** them.
+
+- Mark each one in the beat's `EDIT` lane as `CTA — link in description`, in the
+  beat where the tool has just visibly done something well.
+- Spread them across the document. Never two in adjacent sections.
+- Never place one in a beat whose subject is a limitation or a failure fix.
+- Where a promo code or deal exists, say so in the lane so the writer knows to
+  name it.
+
+The maker will phrase them. Leaving the placement to him is how a video ends up
+with either none or four in a row.
+
 ## The body
 
 ### Sections

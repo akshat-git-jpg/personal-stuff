@@ -150,6 +150,30 @@ from the comparison shape:
 4. **First CTA** — links in the description, then a one-line transition into
    the body ("Now let's put them to the test").
 
+## CTA cadence — more than the two bookends
+
+**The intro and the conclusion are not the only places the links get mentioned.**
+Owner, 2026-08-27: *"from time to time, whenever we are giving CTA, we should
+mention link in description. Best buy link in description. Something like that."*
+
+- **Two to four mentions across the body**, on top of the intro and final CTAs.
+  Spread them; never two in adjacent sections.
+- **Each one is one sentence, inside the flow of the work.** It rides a moment
+  where the viewer has just seen the tool do something, not a moment invented to
+  hold it. A paragraph break for a mid-roll ad is not this.
+- **Always name the description as the place to get it.** "Link's in the
+  description", "the link and the code are down below" — the wording is yours,
+  the destination is not optional. Where a promo code or a deal exists, the
+  mention says so, because that is the part that converts.
+- **Never stack a CTA onto a limitation.** Naming a weakness and asking for the
+  click in the same breath reads as a sale. Put the mention on a win.
+- **Do not repeat one form of words.** Four identical "link in the description"
+  sentences read as a script hitting its quota.
+
+`TASTE.md` T9 governs what happens between these mentions — the benefit lands
+through the work, and the limits get named honestly. The cadence here is the only
+place the ask itself is made.
+
 ## Closing convention (Part C)
 
 1. **Honest Verdict, weakest to strongest.** Walk every option in ascending
