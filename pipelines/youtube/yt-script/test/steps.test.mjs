@@ -82,11 +82,15 @@ test('every owner gate in the table is a human step, and every human step is in 
   )
 })
 
-test('the publish step comes after the local review step', () => {
+// Until 2026-08-27 this looked for `review-local-desk`, a separate desk-review
+// gate. The owner merged it into `review-plan`, which now covers both the
+// markdown and the local desk in one pass. The guard is unchanged in substance:
+// SOME owner review of script-plan.md must come before publishing.
+test('the publish step comes after the owner review step', () => {
   const dirs = stepDirs()
-  const review = dirs.findIndex((d) => d.includes('review-local-desk'))
+  const review = dirs.findIndex((d) => d.includes('review-plan'))
   const publish = dirs.findIndex((d) => d.includes('publish-desk'))
-  assert.ok(review >= 0, 'STEP_MISSING: no local review step')
+  assert.ok(review >= 0, 'STEP_MISSING: no owner review step for script-plan.md')
   assert.ok(publish >= 0, 'STEP_MISSING: no publish step')
   assert.ok(
     review < publish,

@@ -30,10 +30,14 @@ test('the pull step carries the pull command', () => {
   assert.match(s, /desk\.mjs pull/, 'DESK_WIRING_MISSING: step 090 does not pull the draft')
 })
 
-test('the local review step tells the owner how to open it', () => {
-  const s = read(`${STEPS}/060-review-local-desk-human/README.md`)
-  assert.match(s, /npm run dev:local/, 'DESK_WIRING_MISSING: step 060 does not say how to run the desk locally')
-  assert.match(s, /localhost:5175/, 'DESK_WIRING_MISSING: step 060 does not give the local URL')
+// Moved from 060 to 055 on 2026-08-27, when the owner merged the markdown review
+// and the desk review into one gate. The assertion is unchanged in substance:
+// whichever step IS the owner's review must tell him how to boot the desk and
+// where to open it.
+test('the owner review step tells him how to open the desk', () => {
+  const s = read(`${STEPS}/055-review-plan-human/README.md`)
+  assert.match(s, /npm run dev:local/, 'DESK_WIRING_MISSING: step 055 does not say how to run the desk locally')
+  assert.match(s, /localhost:5175/, 'DESK_WIRING_MISSING: step 055 does not give the local URL')
 })
 
 test('the body-draft rule is restated where the plan is written', () => {
