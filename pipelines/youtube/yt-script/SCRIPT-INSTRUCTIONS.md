@@ -96,12 +96,41 @@ Every section separates two things, always labeled:
   what to show on screen, what NOT to reveal yet, pacing cues like "skip
   loading screens"). Notes are never spoken.
 
-For a comparison across N options, structure the walk as:
+### Read the outline's `Format:` line first
+
+`outline.md` carries `Format: tutorial` or `Format: comparison` on its first
+line, set at step 010 and approved at gate 040. Everything below forks on it,
+and the two shapes do not mix. If the line is missing, stop and ask - do not
+infer it from the section names.
+
+### For a comparison across N options
+
+Structure the walk as:
 1. One short paragraph per option (quick overview) before any evaluation.
 2. A `Notes` block per option covering setup specifics and what stays hidden.
 3. An `ON-SCREEN — <TABLE NAME>` table when scoring, immediately followed by a
    Voiceover paragraph per row/metric explaining the numbers — never leave a
    table to speak for itself.
+
+### For a tutorial
+
+Structure the walk as the phases of the job, in performance order. What changes
+from the comparison shape:
+
+1. **No scorecard and no per-option verdicts.** Nothing is being ranked, so
+   there is nothing to score. A tutorial that grades its own steps has drifted
+   into the wrong format.
+2. **Every phase states the exact setting, path or value** the maker used, in
+   Voiceover or in `Notes`, wherever `knowledge.md` supplies one. A tutorial
+   whose value was the specifics and that ships without them has failed, however
+   well it reads.
+3. **`Notes` carries what breaks at that phase**, and the fix, where the
+   knowledge names one. The failure modes are the part a viewer cannot get from
+   the tool's own documentation.
+4. **An `ON-SCREEN — <TABLE NAME>` table is still fine** for settings, costs or
+   options at a fork - the ban is on scoring tables, not on all tables.
+5. **The approaches the owner did not pick get at most one section**, and it
+   says why the chosen one won. It is not a second tutorial.
 
 ## Opening convention (Part A)
 

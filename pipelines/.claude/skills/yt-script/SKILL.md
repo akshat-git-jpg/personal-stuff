@@ -47,6 +47,29 @@ in this table, or a row here with no folder, is a bug in the docs.
 every transition — never advance a step on your own, and never treat "it looks
 fine" as approval.
 
+## Tutorial or comparison — the fork that runs through everything
+
+Every video here is one or the other, and the two shapes diverge at every
+writing step. **Step 010 calls it and the session states the call; it is never a
+question for the owner.** He overrides at gate 040, which is the last cheap
+moment. Owner decision, 2026-08-27.
+
+`outline.md` carries the call on its first line as `Format: tutorial` or
+`Format: comparison`, and steps 050 and 100 read it before writing. Where each
+file forks:
+
+| File | What forks |
+|---|---|
+| `steps/010-take-knowledge-llm/README.md` | who makes the call, and the `# Approaches` section a tutorial needs |
+| `OUTLINE-INSTRUCTIONS.md` | section shape, and the `Format:` line itself |
+| `SCRIPT-PLAN-INSTRUCTIONS.md` | by-factor vs by-phase, and whether a section closes on a `VERDICT` |
+| `SCRIPT-INSTRUCTIONS.md` | the walk's structure, scorecards, exact-value rules |
+| `TASTE.md` | how T3–T5 read outside the comparison scripts they were seeded from |
+
+**The failure this prevents:** a tutorial written with comparison habits becomes
+a ranked survey of approaches instead of a walkthrough of one. It reads fine and
+teaches nothing.
+
 ## What changed on 2026-08-23 (read this if you remember the old flow)
 
 Three things, all owner decisions:
@@ -94,7 +117,7 @@ desk.
 
 | File | Written by | What it is |
 |---|---|---|
-| `videos/<key>/knowledge.md` | 010 | Every source, as TEXT. The only input later steps read |
+| `videos/<key>/knowledge.md` | 010 | Every source, as TEXT, plus the `# Approaches` menu where the topic has one. The only input later steps read |
 | `videos/<key>/sources/` | 010 | The originals — screenshots, fetched pages, transcripts. Provenance, tracked |
 | `videos/<key>/outline.md` | 030 | One page. Sections and one line each. The direction |
 | `videos/<key>/script-plan.md` | 050 | The beat-by-beat document the desk publishes |
@@ -129,6 +152,11 @@ question for him, never a cue to go find the answer.
   is not approval.
 - **Never publish before 060.** Publishing mints a live secret URL. Reviewing
   after that is reviewing something already shipped.
+- **Never ask the owner whether a video is a tutorial or a comparison.** 010
+  decides; gate 040 is where he overrides.
+- **Never name an approach without its detail.** The owner picks the approach at
+  gate 020, so a list of tool names with no cost, no steps and no failure modes
+  hands the decision back with the evidence removed.
 - **Step 100 finalises someone else's draft.** You do not write the script from
   the script plan. If no draft has come back, there is nothing to do — say so
   instead of writing one yourself.

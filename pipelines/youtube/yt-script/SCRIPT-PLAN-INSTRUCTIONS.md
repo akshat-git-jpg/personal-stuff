@@ -129,11 +129,29 @@ subscribe and sign off. Both monetisation beats always appear.
 Named exactly as the intro's roadmap named them. Section count follows the
 material.
 
-For a comparison, organise **by factor with every tool swept inside each
-factor** — one Features section covering all tools, not one section per tool.
-For a tutorial, sections are phases of the job in the order he performs them.
+**`outline.md`'s first line carries `Format: tutorial` or `Format: comparison`.**
+Read it before writing a single section, and do not infer it from the section
+names. The two shapes diverge here and stay diverged through step 100.
 
-Every section closes with a `> **VERDICT:**` line.
+**For a comparison**, organise **by factor with every tool swept inside each
+factor** — one Features section covering all tools, not one section per tool.
+Every section closes with a `> **VERDICT:**` line, because ranking is what the
+viewer came for.
+
+**For a tutorial**, sections are phases of the job in the order he performs them.
+
+- **No `> **VERDICT:**` line.** There is nothing being ranked, and a phase given
+  a verdict reads as a score on the maker's own work. Where a phase ends on a
+  real judgement — an approach picked at a fork, a setting that only suits one
+  case — that belongs in the beat's own lanes, not in a section-closing verdict.
+- **The `SAY` draft for a phase must carry the exact value** — the setting, the
+  menu path, the price, the model name — wherever `knowledge.md` has one. This
+  is the whole reason a viewer chose a tutorial over the tool's own docs.
+- **Give each phase's known failure mode a beat or an `EDIT` note**, where the
+  knowledge names one. A tutorial that only shows the happy path is the one the
+  viewer abandons at the first error.
+- **Approaches the owner rejected at gate 020 get at most one section**, saying
+  why the chosen one won. Never a second walkthrough.
 
 ### Beats
 
