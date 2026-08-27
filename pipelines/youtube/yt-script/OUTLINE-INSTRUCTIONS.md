@@ -235,6 +235,23 @@ Three rules that only apply here, and that a comparison-shaped habit breaks:
 - **The sections are the phases of the approach the owner picked at gate 020**,
   not a survey of every approach in `knowledge.md`. The approaches he did not
   pick are context, and at most one section covers them.
+- **Every section must be supported by the chosen approach's own source.** Before
+  writing a card, name which source it comes from. If the answer is a rejected
+  approach, it is not a section - the material is out of scope and the card is
+  padding wearing a heading. Owner, 2026-08-27, on a costs section:
+  *"was 10 present in refernce video? if not - lets remove that as well"*.
+
+  This is the same scope rule the CHOSEN block in `knowledge.md` already states,
+  and it is written here because the outline is where it gets broken. On
+  `vox-style-video-ai` the session wrote the scope rule and then produced two
+  sections out of rejected approaches: a costs section built from three other
+  routes' credit figures, and a YouTube-risk section built from a rival's outro
+  plug. Both read as reasonable and neither was teachable.
+
+  **A plug in the reference video is not a section.** Where the source mentioned
+  something only as a promo, a price or a teaser for its own next video, that
+  belongs in the CTA - `SCRIPT-INSTRUCTIONS.md` owns where the CTAs sit - not in
+  a card of its own.
 - **There are no verdicts, because there is nothing to rank.** A tutorial that
   scores its own steps has become a comparison by accident. If a step has a real
   fork in it, that is a fork inside one section, not a scorecard.
