@@ -40,14 +40,47 @@ spec.loader.exec_module(mod)
 FAILS = []
 
 
+_LAST_CHECK = [time.time()]
+
+
 def check(label, cond, extra=""):
-    print(("  ok   " if cond else "  FAIL ") + label + (f"   [{extra}]" if extra and not cond else ""))
+    """Report one check, and how long the work before it took.
+
+    The elapsed time is printed only when it crosses a second. A section total
+    says which section is slow; it does not say which check inside it is, and
+    three sections carry three quarters of this suite.
+    """
+    took = time.time() - _LAST_CHECK[0]
+    slow = f"  ({took:.1f}s)" if took >= 1.0 else ""
+    print(("  ok   " if cond else "  FAIL ") + label + slow
+          + (f"   [{extra}]" if extra and not cond else ""))
     if not cond:
         FAILS.append(label)
+    _LAST_CHECK[0] = time.time()
+
+
+_SECTION = [None, 0.0]
 
 
 def section(name):
+    """Announce a section, and time the one that just ended.
+
+    Timing is printed rather than asserted: a slow section is a fact about this
+    machine as much as about the code, so it is reported for a human to read and
+    never used to fail anything.
+    """
+    if _SECTION[0] is not None:
+        print(f"       {time.time() - _SECTION[1]:6.1f}s  {_SECTION[0]}")
+    _SECTION[0] = name
+    _SECTION[1] = time.time()
     print(name)
+
+
+def section_close():
+    """Time the last section. Called once, at the end."""
+    if _SECTION[0] is not None:
+        print(f"       {time.time() - _SECTION[1]:6.1f}s  {_SECTION[0]}")
+        _SECTION[0] = None
 
 
 def make_job(root, short, *, state="done", name=None, detail="", cwd="/tmp/x",
@@ -337,8 +370,13 @@ with tempfile.TemporaryDirectory() as tmp:
           mod.logs_cmd(work_job) == ["/fake/claude", "logs", "aaa1"])
     check("stop runs claude stop <id>",
           mod.stop_cmd(work_job) == ["/fake/claude", "stop", "aaa1"])
-    check("new runs claude --bg <prompt>",
-          mod.dispatch_cmd("do a thing") == ["/fake/claude", "--bg", "do a thing"])
+    check("new runs claude --bg --name <name>",
+          mod.dispatch_cmd("tag flow") ==
+          ["/fake/claude", "--bg", "--name", "tag flow"],
+          str(mod.dispatch_cmd("tag flow")))
+    check("and sends no prompt, so the session waits for you to talk to it",
+          len(mod.dispatch_cmd("tag flow")) == 4,
+          str(mod.dispatch_cmd("tag flow")))
     check("a work session is driven with the work config dir",
           mod.job_env(work_job)["CLAUDE_CONFIG_DIR"] == accounts[0][1])
     check("a personal session is driven with the personal config dir",
@@ -481,7 +519,13 @@ with tempfile.TemporaryDirectory() as tmp:
     check("an empty store says nothing matched", "nothing matched" in text, text)
 
 DISPATCHED_ID = "abcd1234"      # what the stub reports for a `--bg`
+# Claude Code's own wording for a named session with no work yet. Copied exactly
+# so the test breaks if the real string moves out from under the matcher.
+IDLE_DETAIL = "(idle \u2014 send a prompt to start)"
 LINGERING_DAEMON = 30           # seconds the stub's "daemon" holds its output
+# How long `drive()` waits for an expected string. Every real match lands in well
+# under a second; this only bounds the broken case.
+WAIT_CAP = 20.0
 
 
 def stub_claude(tmp, linger=2):
@@ -521,12 +565,18 @@ def stub_claude(tmp, linger=2):
             # lands a moment LATER than the command returns. Both are reproduced,
             # and the output deliberately carries NO id: the session has to be
             # found by watching the store, not by parsing a line.
+            #
+            # The invocation is `--bg --name <name>`, so the name is $3, and the
+            # detail is the real wording Claude Code writes for a session that
+            # has a name and no work: `state` says working while it is in fact
+            # waiting for you, which is the mapping under test.
             f'  rm)     {sys.executable} -c "import shutil,sys;shutil.rmtree(sys.argv[1],ignore_errors=True)" '
             f'          "{jobs}/$2"; echo "removed $2" ;;\n'
             f'  --bg)   ( sleep {LINGERING_DAEMON} ) &\n'
             f'          ( sleep 0.4; mkdir -p {jobs}/{DISPATCHED_ID};'
-            f'            printf \'{{"state":"working","name":"%s","detail":"dispatched",'
-            f'"cwd":"%s","updatedAt":"2026-08-27T10:00:00.000Z"}}\' "$2" "$PWD"'
+            f'            printf \'{{"state":"working","name":"%s",'
+            f'"detail":"{IDLE_DETAIL}",'
+            f'"cwd":"%s","updatedAt":"2026-08-27T10:00:00.000Z"}}\' "$3" "$PWD"'
             f'            > {jobs}/{DISPATCHED_ID}/state.json ) &\n'
             'echo "started, see claude agents" ;;\n'
             '  *)      echo "backgrounded fake" ;;\n'
@@ -669,7 +719,14 @@ def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True, linger=2):
         except OSError:
             break
         if wait_for:
-            until(lambda w=wait_for: w in scrape(buf[split:]), 60.0)
+            # A miss here means the test expects text the program no longer
+            # prints. Waiting it out silently is how three checks came to carry
+            # 380 seconds of a 669-second suite while still passing: the cap
+            # expired, the loop moved on, and a later disk assertion covered for
+            # it. 20 seconds is still far longer than any real match takes.
+            if not until(lambda w=wait_for: w in scrape(buf[split:]), WAIT_CAP):
+                check(f"drive() saw {wait_for!r} on screen", False,
+                      scrape(buf[split:])[-300:])
         until_quiet()
 
     if tail:
@@ -1195,7 +1252,15 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    _f, after, calls = drive(tmp, [b"j", b"j", (b"d", "delete"), (b"y", "deleted"), b"q"])
+    # ONE `j`, not two. The cursor starts on the first job, and the fixture's rows
+    # are: [header pp, aaa1 blocked, aaa2 done, header source-filter, ...] - so a
+    # second `j` lands on a HEADER, where `d` folds the group and confirms nothing.
+    _f, after, calls = drive(tmp, [b"j", (b"d", "delete"), (b"y", "deleted"), b"q"])
+    # Assert the prompt was actually reached. Without this the check below passes
+    # whenever `d` lands on a group header instead of a session: nothing is
+    # confirmed, nothing is deleted, and "no stop was run" is true for the wrong
+    # reason - which is exactly what it was doing, at 128 seconds a run.
+    check("the confirm prompt was reached at all", "delete" in after, after[-400:])
     check("deleting a finished session does not stop anything",
           re.search(r"stop ", calls) is None, repr(calls))
 
@@ -1288,24 +1353,47 @@ with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     first, _a, _ = drive(tmp, [b"q"])
     check("the list offers a new session on screen",
-          "describe a task for a new session" in first, first[-400:])
+          "name a new session" in first, first[-400:])
 
 with tempfile.TemporaryDirectory() as tmp:
     real = one_folder_store(tmp)
     _f, after, calls = drive(tmp, [
-        (b"n", "describe the task"),
-        (b"ship it\r", "folder:"),
-        (b"\r", "started"),
+        (b"n", "name it"),
+        (b"tag flow\r", "folder:"),
+        (b"\r", "ATTACHED"),
+        (b"\x1b[1;2D", "back from"),
         b"q",
     ])
-    check("n asks for the task before anything else",
-          "describe the task" in after, after[-400:])
-    check("the task is dispatched with claude --bg",
-          "--bg ship it" in calls, repr(calls))
+    check("n asks for the name before anything else",
+          "name it" in after, after[-400:])
+    check("the name is dispatched with claude --bg --name",
+          "--bg --name tag flow" in calls, repr(calls))
+    check("and no prompt rides along with it",
+          "ship it" not in calls and "--bg tag" not in calls, repr(calls))
+    check("the new session is opened, not left on the list",
+          f"ATTACHED {DISPATCHED_ID}" in after, after[-600:])
+    check("and shift+left comes straight back out of it",
+          "back from" in after, after[-400:])
     check("the folder prompt arrives pre-filled, so enter accepts it",
           "folder: /" in after, after[-500:])
     check("and what it offers is where the view was opened, not where the sessions are",
           real not in after.split("folder: ")[-1][:200], after[-500:])
+
+# A named session with no work yet records `working` and does nothing. The bucket
+# has to say Needs input, or the row you just made is filed under Working - the
+# one group you would not scan for it.
+check("a session waiting for its first prompt is filed as needing input",
+      mod.session_state({"state": "working", "detail": IDLE_DETAIL}) == "blocked",
+      mod.session_state({"state": "working", "detail": IDLE_DETAIL}))
+check("a session that is really working is left alone",
+      mod.session_state({"state": "working", "detail": "editing a file"})
+      == "working")
+check("and every other state passes through untouched",
+      [mod.session_state({"state": s, "detail": ""})
+       for s in ("done", "blocked", "error", "idle")]
+      == ["done", "blocked", "error", "idle"])
+check("a record with no state at all is not crashed on",
+      mod.session_state({}) == "")
 
 check("a launch that cannot even start is reported, not raised",
       mod.start_claude(["/nonexistent/claude", "--bg", "x"])[0] is None)
@@ -1319,9 +1407,10 @@ with tempfile.TemporaryDirectory() as tmp:
     # later, and the row must be listed and selected without pressing g.
     real = one_folder_store(tmp)
     _f, after, calls = drive(tmp, [
-        (b"n", "describe the task"),
+        (b"n", "name it"),
         (b"water the plants\r", "folder:"),
-        (b"\r", "started"),
+        (b"\r", "ATTACHED"),
+        (b"\x1b[1;2D", "back from"),
         b"q",
     ])
     check("the new session is listed straight away",
@@ -1355,20 +1444,20 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     one_folder_store(tmp)
-    _f, after, calls = drive(tmp, [(b"n", "describe the task"), b"\x1b", b"q"])
-    check("escaping the task prompt dispatches nothing",
+    _f, after, calls = drive(tmp, [(b"n", "name it"), b"\x1b", b"q"])
+    check("escaping the name prompt dispatches nothing",
           "--bg" not in calls, repr(calls))
     check("and it says so", "nothing dispatched" in after, after[-300:])
 
 with tempfile.TemporaryDirectory() as tmp:
     one_folder_store(tmp)
-    _f, after, calls = drive(tmp, [(b"n", "describe the task"), b"\r", b"q"])
-    check("an empty task dispatches nothing", "--bg" not in calls, repr(calls))
+    _f, after, calls = drive(tmp, [(b"n", "name it"), b"\r", b"q"])
+    check("an empty name dispatches nothing", "--bg" not in calls, repr(calls))
 
 with tempfile.TemporaryDirectory() as tmp:
     one_folder_store(tmp)
     _f, after, calls = drive(tmp, [
-        (b"n", "describe the task"),
+        (b"n", "name it"),
         (b"look at the logs\r", "folder:"),
         b"\x1b",
         b"q",
@@ -1381,7 +1470,7 @@ with tempfile.TemporaryDirectory() as tmp:
     # the hint costs the list a row; every session must still be reachable
     first, _a, _ = drive(tmp, [b"q"], rows=14)
     check("the list still renders with the hint taking a row",
-          "pp-agents" in first and "describe a task" in first, first[-300:])
+          "pp-agents" in first and "name a new session" in first, first[-300:])
 
 section("a new session lands in an account this view reads")
 check("dispatch_env pins the store",
@@ -1414,9 +1503,10 @@ with tempfile.TemporaryDirectory() as tmp:
     os.environ["CLAUDE_CONFIG_DIR"] = "/tmp/not-an-account-at-all"
     try:
         _f, after, calls = drive(tmp, [
-            (b"n", "describe the task"),
+            (b"n", "name it"),
             (b"pin the account\r", "folder:"),
-            (b"\r", "started"),
+            (b"\r", "ATTACHED"),
+            (b"\x1b[1;2D", "back from"),
             b"q",
         ])
     finally:
@@ -1532,6 +1622,7 @@ with tempfile.TemporaryDirectory() as snap:
     check("--list finds real sessions", len(real.stdout.strip().splitlines()) > 3,
           real.stdout[:200])
 
+section_close()
 print()
 if FAILS:
     print(f"FAILED: {len(FAILS)}")

@@ -173,7 +173,7 @@ def load_jobs(accounts=None):
                 "tag": tag,
                 "name": display_name(st) or short,
                 "detail": (st.get("detail") or st.get("needs") or "").replace("\n", " ").strip(),
-                "state": (st.get("state") or "").lower(),
+                "state": session_state(st),
                 "cwd": st.get("cwd") or st.get("originCwd") or "",
                 "updated": st.get("updatedAt") or st.get("createdAt") or "",
                 "tokens": st.get("tokens") or 0,
@@ -184,15 +184,37 @@ def load_jobs(accounts=None):
 
 NO_TASK_YET = "awaiting task description"
 
+# What Claude Code writes as the detail of a session that has a name and no work
+# yet. Matched loosely: the surrounding text is decorative and has changed shape
+# before, the middle of the sentence has not.
+WAITING_FOR_PROMPT = "send a prompt to start"
+
+
+def session_state(st):
+    """Which bucket a record belongs in.
+
+    A session created with a name and no prompt records `working` while doing
+    nothing at all - it sits at `(idle - send a prompt to start)`, waiting for
+    YOU. That is the definition of needing input, so it is filed under `blocked`
+    and sorts to the top with everything else that wants you. Believing the
+    record here would bury a session you just made in the middle of the Working
+    group, which is the one place you would not look for it.
+    """
+    state = (st.get("state") or "").lower()
+    detail = (st.get("detail") or "").lower()
+    if state == "working" and WAITING_FOR_PROMPT in detail:
+        return "blocked"
+    return state
+
 
 def display_name(state):
-    """The label for a row: the generated summary, unless there is nothing behind it.
+    """The label for a row.
 
-    `name` is written the moment a session is dispatched, so for a one-line prompt
-    it is a guess made from almost no information - `test1` came back as
-    `onboarding empty state message`. While the session is still asking for its
-    task there is no work to summarise, so the prompt you typed is the only honest
-    label. After that the summary is the better one and wins again.
+    A session started from here carries the name you typed and an empty `intent`,
+    so `name` is simply used. The `intent` fallback covers records made some
+    other way - `claude --bg "<prompt>"` from a shell, where Claude Code guesses
+    a name from one line of prompt and can guess badly, and where until it has
+    guessed there is nothing but the prompt to show.
     """
     name = (state.get("name") or "").strip()
     intent = (state.get("intent") or "").strip()
@@ -557,8 +579,20 @@ def rm_cmd(job):
     return [claude_bin(), "rm", job["short"]]
 
 
-def dispatch_cmd(prompt):
-    return [claude_bin(), "--bg", prompt]
+def dispatch_cmd(name):
+    """Start an idle session under a name you chose. No prompt is sent.
+
+    `claude --bg` with a name and nothing else creates a session parked at
+    `(idle - send a prompt to start)`, which is exactly the shape this view
+    wants: the name is for the list, the conversation happens after you attach.
+
+    Passing a prompt instead - what this did first - put the opening turn of a
+    conversation into a one-line field in a list view, and then let Claude Code
+    name the session from that one line, which is how `test1` came back as
+    `onboarding empty state message`. `--name` writes `nameSource: user`, so
+    the name you typed is never replaced by a generated summary.
+    """
+    return [claude_bin(), "--bg", "--name", name]
 
 
 # Coming back out of a session.
@@ -835,7 +869,7 @@ def fmt_age(iso):
 # it, so the line is reproduced. It is a prompt-shaped label, not a live input:
 # in this view the letters are shortcuts, so typing into it would collide with
 # `j`, `k`, `e`, `d` and the rest.
-NEW_HINT = "\u203a n   describe a task for a new session"
+NEW_HINT = "\u203a n   name a new session"
 
 # How long to watch the store for a dispatched session before saying so.
 # Generous, because it never blocks anything: the view redraws every pass.
@@ -1372,7 +1406,11 @@ class App:
         code = run_attached(attach_cmd(job), job_env(job), job["cwd"])
         self.restore_screen()
         self.reload()
-        self.status = (f"back from {job['name']}" if code == 0
+        # `None` is `run_proxied` saying the back key was pressed, which is the
+        # ordinary way out of a session and the only way for one that is still
+        # alive. Reading it as an exit code printed `<name> exited None` every
+        # single time you came back, which looks exactly like a crash.
+        self.status = (f"back from {job['name']}" if code in (None, 0)
                        else f"{job['name']} exited {code}")
 
     def act_logs(self):
@@ -1471,13 +1509,14 @@ class App:
         self.status = "pinned" if job["short"] in self.pins else "unpinned"
 
     def act_new(self):
-        """Dispatch a background session, asking for the task first.
+        """Create an idle session under a name, then open it.
 
-        The task is what you already have in your head when you reach for this;
+        The name is what you already have in your head when you reach for this;
         the folder is a detail, so it comes second and arrives pre-filled with
-        the one most of your sessions run in.
+        the folder you launched from. Nothing is asked about the work, because
+        the work is discussed inside the session.
         """
-        task = self.prompt("new session - describe the task: ")
+        task = self.prompt("new session - name it: ")
         if not task or not task.strip():
             self.status = "nothing dispatched"
             return
@@ -1513,12 +1552,19 @@ class App:
             time.sleep(0.25)
 
         if short:
-            self.select_short(short)
+            landed = self.select_short(short)
             self.status = f"started {short}"
             try:
                 os.unlink(log)
             except OSError:
                 pass
+            # Open it. The name was the only thing this flow needed from you and
+            # the session is parked waiting for a prompt, so stopping on the list
+            # to make you press one more key serves nothing. `shift+left` comes
+            # straight back. If a filter is hiding the new row there is nothing
+            # to open, and the id in the status line is the way back to it.
+            if landed:
+                self.act_open()
             return
         if proc is None or proc.poll() not in (None, 0):
             self.status = last_line(log) or f"dispatch failed - see {log}"

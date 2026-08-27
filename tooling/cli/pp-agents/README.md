@@ -110,7 +110,7 @@ Close to the built-in view on purpose - the point is not to relearn anything.
 | `l` | recent output (`claude logs`) |
 | `K` | stop this session (asks first) |
 | `d` | delete this session (asks first; stops it first if still running) |
-| `n` | start a new session: the task first, then the folder (`claude --bg`) |
+| `n` | start a new session: the name first, then the folder, then it opens |
 | `g` | refresh now (it also refreshes on its own) |
 | `?` | help |
 | `q` | quit |
@@ -157,21 +157,36 @@ gibberish.
 
 ### Starting a new session
 
-`n` asks for the task, then for the folder - pre-filled with **the directory you
+`n` asks for a **name**, then for the folder - pre-filled with **the directory you
 opened the view in**, so enter accepts it and `tab` completes to any folder your
-other sessions use. The task comes first because that is the part you already have
-in your head; the folder is a detail.
+other sessions use. Then it opens the session. Spaces are fine: `tag flow` is a
+name, and it is the name that appears in the list.
 
-The row shows **the words you typed** until the session has done something. Claude
-Code writes two labels - `intent` is your prompt, `name` is a summary it generates -
-and the summary is written at dispatch time, before there is anything to summarise.
-A one-line prompt therefore gets an invented one: `test1` came back as `onboarding
-empty state message`, unfindable by the person who typed `test1`. While a session is
-still `awaiting task description` the prompt wins; once it starts work the summary
-takes over, because by then `pp-feature-deploy` beats a paragraph.
+Nothing is asked about the work, because the command is
+`claude --bg --name <name>` with **no prompt**. Claude Code answers that with a
+session parked at `(idle - send a prompt to start)`, so the first thing you type
+is typed inside the session, in a real prompt box, with history and editing and
+everything else the client gives you.
 
-Related, and not a bug here: a prompt with no actual task in it (`test1`) leaves the
-session asking you what to do. It shows as **Needs input**, which is correct.
+Asking for the task was the first design and it was wrong twice over. The opening
+turn of a conversation had to be composed in a one-line field in a list view, and
+Claude Code then generated the row label out of that single line: `test1` came
+back as `onboarding empty state message`, unfindable by the person who typed
+`test1`. `--name` writes `nameSource: user` into the record, so the name you chose
+is never replaced by a generated summary. `/rename` inside the session still
+changes it, which is the same mechanism from the other end.
+
+The session opens instead of leaving you on the list. The name was the only thing
+that flow needed from you and the session is sitting there waiting to be talked
+to, so a stop on the list to press one more key buys nothing. `shift+left` comes
+straight back out.
+
+A brand-new session shows as **Needs input**, which is where it belongs: it is
+waiting for you. The record does not say that. It says `state: working` with a
+detail of `(idle - send a prompt to start)`, so `session_state` reads the detail
+and files it under `blocked`. Trusting the record would sort a session you made
+five seconds ago into the middle of the Working group, the one place nobody scans
+for something new.
 
 The dispatch names the account explicitly. This view READS two fixed stores
 whatever the shell says - that is the point of it - but the dispatch used to
@@ -231,7 +246,7 @@ a different one. Where the terminal is, is the thing you actually chose.
 The list carries a permanent line above the status bar:
 
 ```
-> n   describe a task for a new session
+> n   name a new session
 ```
 
 `n` did this from the first build and nobody could find it, which is the whole
@@ -308,8 +323,8 @@ readable session name is worth more than a fragment of its last line.
 python3 tooling/cli/pp-agents/test-pp-agents.py
 ```
 
-149 checks, in two layers, because the thing this replaces failed by *looking*
-fine:
+265 checks in about four minutes, in two layers, because the thing this replaces
+failed by *looking* fine:
 
 1. **Unit and rendering** - loading, tagging, grouping, sorting, filtering,
    folding, pinning, row layout at four widths, and the exact argv built for
@@ -326,6 +341,26 @@ checks the real machine still parses.
 
 Registered in `tooling/cli/pp-land/verify-map.tsv`, so a land touching this
 folder runs it.
+
+Every section and every slow check prints its own elapsed time. That is there
+because the suite reached eleven minutes and the only way to find out where was
+to bisect it by hand. The numbers said something better than "the pty tests are
+slow": three checks carried 380 of the 669 seconds, and all three were waiting
+sixty seconds for a string the program no longer printed, then passing on a
+separate assertion about disk. One of them, `deleting a finished session does not
+stop anything`, was passing for entirely the wrong reason - `j` twice from the
+top lands on a group HEADER, not the second session, so nothing was ever
+confirmed and no `stop` was run because no delete was run either.
+
+So `drive()` now treats a missed wait as a FAIL rather than a pause, and the cap
+is 20 seconds instead of 60. A real match lands in well under a second; the cap
+only ever bounds the broken case, and a silent timeout is the worst shape that
+case can take, because it is indistinguishable from a loaded machine.
+
+The rest of the time is the pty tests, and it stays. Every cheap-to-test thing
+already runs in-process at 0.0s a section; what is left drives the real curses
+program through a real terminal, which is the only way the frozen `n` key, the
+mouse-reporting leak and the detach behaviour could be caught at all.
 
 Five real bugs came out of writing these, all of which would have bitten in
 normal use:
