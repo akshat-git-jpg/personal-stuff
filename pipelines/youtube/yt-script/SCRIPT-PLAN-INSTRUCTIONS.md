@@ -21,6 +21,13 @@ desk (`apps/yt-script-desk`) and he opens a URL, which is the only handoff.
 `render-outline.mjs` and `render-script.mjs` were dropped from the flow on
 2026-08-23 — the desk replaced both.
 
+**This file governs the document's shape. `SCRIPT-INSTRUCTIONS.md` governs the
+spoken words, and step 050 must read both.** The intro and conclusion written
+here are finished copy a narrator reads aloud, so every rule there applies: "One
+sentence per line", "Reading as a human", the voice sections, and `TASTE.md` T2,
+T8 and T10. Added 2026-08-27, after an intro came back as dense paragraphs because
+this file was the only one the step had been told to open.
+
 Two halves, two standards:
 
 - **Intro and conclusion — finished verbatim copy.** Nothing left to decide.

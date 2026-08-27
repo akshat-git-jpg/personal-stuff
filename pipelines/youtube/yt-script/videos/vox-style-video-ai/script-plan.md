@@ -64,7 +64,7 @@ Each line appears on the beat of its name. No transitions between lines.
 Keep the list on screen through the last sentence, then cut straight to the first body shot with no wipe.
 
 **SAY** — final
-> By the end of this video, you will be able to take any topic and turn it into one of these.
+> By the end of this video, you will be able to do this with any topic.
 > And when a shot comes out wrong, you will know exactly which step to go back to.
 >
 > Here is what we are going to cover.
@@ -752,7 +752,7 @@ Duration for a three-frame build: 15 seconds.
 >
 > If you only take one thing away from this, make it the style breakdown near the start.
 > Every step after it got easier because that document existed.
-> And it is the one piece here that will still be useful when these tools change their names and their menus.
+> And it is the one piece that survives when these tools change.
 > Which they will.
 >
 > One more thing.
