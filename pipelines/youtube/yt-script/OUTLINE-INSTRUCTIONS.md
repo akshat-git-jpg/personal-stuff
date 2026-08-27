@@ -121,28 +121,51 @@ The same script through all five, generated before any result is shown.
 
 ## Section names
 
-**Every section name is a heading, not a sentence.** Owner, 2026-08-27: *"i
-prefer simple heading and symmetricall. it should be like a title.. i prefer
-section name to be simple and stndard"*.
+**Plain, everyday words. The words a viewer would use talking to a friend.**
+Owner, 2026-08-27: *"need language to be simple day to day.. , intutive we use
+day to day.. no one uses ' The Music Bed'"*.
 
-- **A noun phrase, two to five words.** Title Case.
-- **Symmetrical.** Every section in one outline takes the same grammatical shape.
-  A list that mixes noun phrases with question clauses reads as a draft.
-- **Standard words a viewer would scan for.** The name is a label on a card, not
-  a joke and not a tease. The tease belongs in the hook.
-- **No questions. No `When…` / `Why…` / `What…` / `How…` clauses. No verbs in
-  the imperative.**
+- **Say it out loud.** If a normal person would not say it in conversation, it is
+  the wrong name. That is the whole test and it beats every rule below.
+- **A phrase is fine.** So is a short sentence fragment, and so is a `What…` or
+  `Why…` clause when that is the natural way to say the thing.
+- **Sentence case, not Title Case.** Title Case makes an ordinary phrase read as
+  a label.
+- **No industry jargon, ever.** `The Music Bed`, `The Motion Pass`, `The Style
+  Lock`, `B-roll`, `Colour Grade` — all of these are words the people who do this
+  for a living use with each other. The viewer is not one of them.
+- **Symmetry is welcome where it happens on its own** — several sections in a row
+  naturally starting with a gerund is a good sign. **Never chase it.** Forcing
+  every section into one grammatical mould is what produced the jargon this rule
+  exists to stop.
 
 | Bad | Why | Good |
 |---|---|---|
-| `When It Breaks` | a clause, and a troubleshooting bucket | — (see below) |
-| `Why One Chat` | a question without the mark | `Choosing The Tool` |
-| `What Makes It Vox` | a clause | `The Vox Look` |
-| `Locking the Style` | verb-first, breaks symmetry with noun-phrase siblings | `The Style Lock` |
-| `Let's Add Motion` | imperative, and chatty | `Adding Motion` — acceptable only if **every** section is a gerund |
+| `The Music Bed` | jargon. Nobody says it | `Picking the music` |
+| `The Narrator Audition` | jargon, and pompous | `Picking the voice` |
+| `The Motion Pass` | jargon | `Adding the motion` |
+| `The Final Stitch` | jargon | `Putting it all together` |
+| `The Topic Brief` | jargon | `Picking a topic that holds up` |
+| `The Real Cost` | reads as a label, not speech | `What it really costs` |
+| `When It Breaks` | a troubleshooting bucket. Not a naming problem — see below | — |
 
-**Pick one shape for the whole outline and hold it.** All noun phrases, or all
-gerunds. Never a mix.
+### The reversal, recorded (2026-08-27)
+
+This section first said *"a noun phrase, two to five words, Title Case,
+symmetrical… no `When`/`Why`/`What` clauses"*, written the same day from the
+owner's *"i prefer simple heading and symmetricall. it should be like a title"*.
+Applied literally it turned all eleven sections of `vox-style-video-ai` into
+`The <Noun>` and produced `The Music Bed`, `The Motion Pass` and `The Final
+Stitch`. The owner reversed it within the hour: *"i take back my call - we can
+have phrases in section name"*.
+
+**Kept from the original call:** simple and standard rather than clever, no tease
+in the name, and no bucket sections. **Dropped:** the noun-phrase requirement,
+Title Case, the clause ban, and enforced symmetry.
+
+The lesson worth carrying: **symmetry and plain speech pull against each other,
+and plain speech wins.** A rule that specifies a grammatical shape will be
+satisfied by jargon, because jargon is what fits a mould.
 
 ## Never make a section out of failures
 

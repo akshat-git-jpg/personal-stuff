@@ -25,9 +25,13 @@ script-plan forms, and putting them here means the two documents will drift.
 **Three to six bullets per card**, and no prose paragraph under a heading beyond
 the single promise line. A card that outgrows six bullets has become a beat.
 
-**Every section name is a heading, not a sentence.** Noun phrase, two to five
-words, Title Case, and the same grammatical shape across the whole outline.
-`OUTLINE-INSTRUCTIONS.md` has the table of good and bad names.
+**Section names use plain everyday words** - the words a viewer would say to a
+friend. Say the name out loud; if a normal person would not, it is wrong. Phrases
+are fine, sentence case not Title Case, and no industry jargon
+(`The Music Bed`, `The Motion Pass`, `b-roll`). Symmetry is welcome where it
+happens on its own and is never chased, because a grammatical mould gets filled
+with jargon. `OUTLINE-INSTRUCTIONS.md` has the table of good and bad names, and
+`TASTE.md` T8 is the standing rule.
 
 **Never make a section out of failures.** No `When It Breaks`, no `Common
 Mistakes`, no `Tips And Tricks`. A failure belongs in the phase where it happens.
