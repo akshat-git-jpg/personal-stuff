@@ -349,8 +349,23 @@ reap_one() {
       return 0
     fi
     say "INFRA-CAP  land-$slug — fix-up never ran ($FIXUP_DEATH_CAUSE) $tr times this window; charging the real budget"
+    # Out of transient budget: this attempt is charged like any real failure. That is the
+    # dispatch charge STANDING, not a second one -- see below.
+    entry_rewrite "$f" "$real" "$tr" "$win"
+    mv -f "$f" "${f%.dispatching}.blocked"
+    say "NOADVANCE  land-$slug — fix-up produced no commit (real attempts $real/$REAL_CAP)"
+    return 0
   fi
-  real=$((real + 1))
+  # The real budget is charged ONCE, by sweep_one at dispatch. This reap used to charge a
+  # second time for the same fix-up, so REAL_CAP=2 really bought ONE attempt: dispatch
+  # took it to 1, the reap took it to 2, and the next sweep capped. land-work-pp-agents-ui
+  # hit that on 2026-08-27 -- a single quota-dead fix-up exhausted a budget of two.
+  #
+  # Charging at dispatch (not here) is what the cap actually reads, and it is the safer
+  # half of the pair: an entry cannot be re-dispatched while it is .dispatching, so a
+  # sweep killed before the reap still leaves the attempt paid for. A fix-up that DID
+  # commit never reaches this line -- boss_head_advanced deletes the entry above -- and a
+  # later park rewrites the entry from scratch, which resets the budget on real progress.
   entry_rewrite "$f" "$real" "$tr" "$win"
   mv -f "$f" "${f%.dispatching}.blocked"
   say "NOADVANCE  land-$slug — fix-up produced no commit (real attempts $real/$REAL_CAP)"
