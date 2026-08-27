@@ -39,6 +39,7 @@ import json
 import os
 import pty
 import select
+import re
 import shutil
 import signal
 import subprocess
@@ -205,6 +206,50 @@ def delete_record(job):
     if os.path.dirname(target) != root or os.path.basename(target) != job["short"]:
         raise ValueError(f"refusing to delete {target}: not a session record")
     shutil.rmtree(target)
+
+
+SHORT_ID = re.compile(r"\b([0-9a-f]{8})\b")
+
+
+def dispatched_id(text):
+    """The short id `claude --bg` reported, or None.
+
+    It prints `backgrounded · <id>` followed by four hint lines, so the id has to
+    be read out rather than inferred from the last line of output - which is what
+    the status bar used to show.
+    """
+    plain = re.sub(r"\x1b\[[0-9;]*m", "", text)
+    for line in plain.splitlines():
+        if "backgrounded" in line:
+            found = SHORT_ID.search(line)
+            if found:
+                return found.group(1)
+    found = SHORT_ID.search(plain)
+    return found.group(1) if found else None
+
+
+def record_exists(short, accounts=None):
+    """True once some account holds a readable `state.json` for `short`."""
+    for _name, root in (accounts if accounts is not None else account_dirs()):
+        if os.path.isfile(os.path.join(root, "jobs", short, "state.json")):
+            return True
+    return False
+
+
+def store_stamp(accounts=None):
+    """Newest mtime across the account `jobs` DIRECTORIES.
+
+    A new session is a new subdirectory, which bumps its parent's mtime. Watching
+    only the records of known sessions - which is what this used to do - can never
+    see one arrive.
+    """
+    newest = 0.0
+    for _name, root in (accounts if accounts is not None else account_dirs()):
+        try:
+            newest = max(newest, os.path.getmtime(os.path.join(root, "jobs")))
+        except OSError:
+            pass
+    return newest
 
 
 def default_cwd(jobs):
@@ -1263,8 +1308,28 @@ class App:
             return
         out = subprocess.run(dispatch_cmd(prompt), cwd=where,
                              capture_output=True, text=True)
-        self.status = (out.stdout + out.stderr).strip().splitlines()[-1] if (out.stdout + out.stderr).strip() else "dispatched"
+        blob = (out.stdout + out.stderr).strip()
+        short = dispatched_id(blob)
+        if short:
+            # the daemon writes the record a moment after the command returns
+            deadline = time.time() + 6.0
+            while time.time() < deadline and not record_exists(short):
+                time.sleep(0.1)
         self.reload()
+        if short and self.select_short(short):
+            self.status = f"started {short}"
+        elif short:
+            self.status = f"started {short} - press g if it is not listed yet"
+        else:
+            self.status = blob.splitlines()[-1] if blob else "nothing came back"
+
+    def select_short(self, short):
+        """Move the cursor onto a session by short id. False if it is not listed."""
+        for idx, (kind, payload) in enumerate(self.rows):
+            if kind == "job" and payload["short"] == short:
+                self.cursor = idx
+                return True
+        return False
 
     def toggle_fold(self):
         kind, payload = self.focused()
@@ -1347,8 +1412,10 @@ class App:
             self.scr.timeout(1000)
             ch = self.scr.getch()
             if ch == -1:
-                # cheap auto-refresh: only re-read when something changed
-                newest = 0.0
+                # cheap auto-refresh: only re-read when something changed.
+                # `store_stamp` is the half that notices a session ARRIVING - the
+                # per-record loop below only ever sees the ones already listed.
+                newest = store_stamp()
                 for j in self.jobs:
                     try:
                         newest = max(newest, os.path.getmtime(os.path.join(j["dir"], "state.json")))

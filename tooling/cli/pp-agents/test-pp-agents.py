@@ -381,6 +381,9 @@ with tempfile.TemporaryDirectory() as tmp:
     check("an empty store renders without crashing", "grouped by tag" in text)
     check("an empty store says nothing matched", "nothing matched" in text, text)
 
+DISPATCHED_ID = "abcd1234"      # what the stub reports for a `--bg`
+
+
 def stub_claude(tmp, linger=2):
     """A fake `claude` that leaves a record of how it was called.
 
@@ -399,6 +402,7 @@ def stub_claude(tmp, linger=2):
     """
     log = os.path.join(tmp, "calls.log")
     done = os.path.join(tmp, "finished.log")
+    jobs = os.path.join(tmp, "work", "jobs")
     path = os.path.join(tmp, "claude")
     with open(path, "w") as fh:
         fh.write(
@@ -411,6 +415,16 @@ def stub_claude(tmp, linger=2):
             f'          echo "ATTACHED $2"; sleep {linger} & wait $!; printf "%s\\n" "$2" >> {done} ;;\n'
             '  logs)   echo "LOGS $2" ;;\n'
             '  stop)   echo "stopped $2" ;;\n'
+            # `claude --bg` prints `backgrounded · <id>` and then four hint
+            # lines, and the daemon writes the record a moment LATER. Both halves
+            # are reproduced: the id has to be read off the first line, and the
+            # record has to be waited for.
+            f'  --bg)   ( sleep 0.4; mkdir -p {jobs}/{DISPATCHED_ID};'
+            f'            printf \'{{"state":"working","name":"%s","detail":"dispatched",'
+            f'"cwd":"%s","updatedAt":"2026-08-27T10:00:00.000Z"}}\' "$2" "$PWD"'
+            f'            > {jobs}/{DISPATCHED_ID}/state.json ) &\n'
+            f'          echo "backgrounded \\u00b7 {DISPATCHED_ID}"; '
+            'echo "  claude stop x  stop this session" ;;\n'
             '  *)      echo "backgrounded fake" ;;\n'
             "esac\n")
     os.chmod(path, 0o755)
@@ -604,7 +618,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    _f, _a, calls = drive(tmp, [(b"K", "stop"), b"n", b"q"])
+    _f, _a, calls = drive(tmp, [(b"K", "stop"), (b"n", "not stopped"), b"q"])
     check("declining K stops nothing", re.search(r"stop (aaa|bbb)", calls) is None, repr(calls))
 
 def stub_navigating_claude(tmp, marker="describe a task for a new session",
@@ -1037,7 +1051,7 @@ def records_on_disk(tmp):
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     before = records_on_disk(tmp)
-    _f, after, calls = drive(tmp, [(b"d", "delete"), b"y", b"q"])
+    _f, after, calls = drive(tmp, [(b"d", "delete"), (b"y", "deleted"), b"q"])
     gone = before - records_on_disk(tmp)
     check("d then y deletes exactly one session record", len(gone) == 1, str(gone))
     check("the deleted record's directory is really gone",
@@ -1048,7 +1062,7 @@ with tempfile.TemporaryDirectory() as tmp:
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     before = records_on_disk(tmp)
-    _f, after, _ = drive(tmp, [(b"d", "delete"), b"n", b"q"])
+    _f, after, _ = drive(tmp, [(b"d", "delete"), (b"n", "not deleted"), b"q"])
     check("d then n deletes nothing", records_on_disk(tmp) == before,
           str(before - records_on_disk(tmp)))
     check("declining says so", "not deleted" in after, after[-300:])
@@ -1057,7 +1071,7 @@ with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     # the cursor starts on the most urgent row, which the fixture makes a
     # `blocked` one - a live session, so this must stop it before removing it
-    _f, after, calls = drive(tmp, [(b"d", "delete"), b"y", b"q"])
+    _f, after, calls = drive(tmp, [(b"d", "delete"), (b"y", "deleted"), b"q"])
     check("deleting a live session asks about stopping too", "stop AND delete" in after,
           after[-400:])
     check("deleting a live session runs claude stop first",
@@ -1065,13 +1079,13 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    _f, after, calls = drive(tmp, [b"j", b"j", (b"d", "delete"), b"y", b"q"])
+    _f, after, calls = drive(tmp, [b"j", b"j", (b"d", "delete"), (b"y", "deleted"), b"q"])
     check("deleting a finished session does not stop anything",
           re.search(r"stop ", calls) is None, repr(calls))
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    _f, after, _ = drive(tmp, [b"t", (b"d", "delete"), b"y", b"q"])
+    _f, after, _ = drive(tmp, [(b"t", "pinned"), (b"d", "delete"), (b"y", "deleted"), b"q"])
     pins = json.load(open(os.path.join(tmp, "pins.json")))["pins"]
     check("deleting a pinned session drops its pin too", pins == [], str(pins))
 
@@ -1165,7 +1179,7 @@ with tempfile.TemporaryDirectory() as tmp:
     _f, after, calls = drive(tmp, [
         (b"n", "describe the task"),
         (b"ship it\r", "folder:"),
-        (b"\r", "backgrounded"),
+        (b"\r", "started"),
         b"q",
     ])
     check("n asks for the task before anything else",
@@ -1176,6 +1190,44 @@ with tempfile.TemporaryDirectory() as tmp:
           "folder: /" in after, after[-500:])
     check("and what it offers is where the view was opened, not where the sessions are",
           real not in after.split("folder: ")[-1][:200], after[-500:])
+
+check("the id is read off the backgrounded line",
+      mod.dispatched_id("backgrounded \u00b7 1eaf7a1e\n  claude stop 1eaf7a1e  x")
+      == "1eaf7a1e")
+check("colour codes do not hide it",
+      mod.dispatched_id("backgrounded \u00b7 \x1b[36mdeadbeef\x1b[39m") == "deadbeef")
+check("no id means None", mod.dispatched_id("something else entirely") is None)
+
+with tempfile.TemporaryDirectory() as tmp:
+    # THE BUG THIS EXISTS FOR: the session dispatches, the record lands a moment
+    # later, and the row must be listed and selected without pressing g.
+    real = one_folder_store(tmp)
+    _f, after, calls = drive(tmp, [
+        (b"n", "describe the task"),
+        (b"water the plants\r", "folder:"),
+        (b"\r", "started"),
+        b"q",
+    ])
+    check("the new session is listed straight away",
+          "water the plants" in after, after[-600:])
+    check("the status names the session that started",
+          "started abcd1234" in after, after[-300:])
+    check("the record really was written",
+          os.path.isfile(os.path.join(tmp, "work", "jobs", "abcd1234", "state.json")))
+
+with tempfile.TemporaryDirectory() as tmp:
+    # the store stamp is the half that notices an ARRIVAL; a record appearing
+    # under jobs/ must move it, or the list can never refresh itself
+    one_folder_store(tmp)
+    accounts = [("work", os.path.join(tmp, "work"))]
+    before = mod.store_stamp(accounts)
+    check("a stamp is produced at all", before > 0, str(before))
+    time.sleep(1.1)                       # mtime granularity on some filesystems
+    make_job(os.path.join(tmp, "work"), "brandnew", state="working", name="new one")
+    check("adding a session moves the stamp", mod.store_stamp(accounts) > before,
+          f"{before} -> {mod.store_stamp(accounts)}")
+    check("record_exists finds it", mod.record_exists("brandnew", accounts))
+    check("and does not invent one", not mod.record_exists("nope", accounts))
 
 with tempfile.TemporaryDirectory() as tmp:
     one_folder_store(tmp)
