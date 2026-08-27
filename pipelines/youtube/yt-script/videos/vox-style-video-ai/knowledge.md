@@ -1030,7 +1030,50 @@ of.
 **The principle under 1 and 4:** give the model less to redraw. Two sources
 reached it independently, from maps and from text.
 
-## Recommendation
+## CHOSEN — Approach A, OpenArt Director
+
+**Owner decision, gate 020, 2026-08-27:** *"i like open art approach , 1sst one -
+lets go with that.."*, confirmed as **OpenArt Director**, not the manual
+image/video panels of source 1.
+
+So the video teaches **Skai Generated's route** (source 7): one chat inside
+OpenArt Director does script, boards, voice, music, motion and stitch. The
+tutorial's sections are the phases of that route, in the order they are
+performed.
+
+**What that makes primary:** source 7 in full — it is the only end-to-end run of
+this exact approach in the knowledge base.
+
+**What stays in, as supporting material:**
+
+- **Source 6 (Leo Ai, Abacus AI)** — the same all-in-one shape in a different
+  tool. One section at most, on why OpenArt Director over Abacus.
+- **Source 1 (Thomas Creates)** — OpenArt's own image and video panels, and
+  frame-chaining. Relevant because it is *the same platform*: a viewer who
+  outgrows Director drops down to the panels. Also supplies real model names and
+  settings (GPT Image 2, Seedance 2.0/2.5, 4K, 6s, 16:9).
+- **The five-asset taxonomy and the design vocabulary** (sources 2, 4, 7) — what
+  makes a shot read as Vox at all. Needed for the section that explains what we
+  are recreating before any tool is opened.
+- **Techniques 3, 4, 5** (board approval gate, static captions, `@`-asset
+  regeneration) — all three are native to Director, so they are phases of this
+  approach rather than splices.
+
+**What is now out of scope, and must not leak into the script:**
+
+- Approach **B** (Higgsfield MCP), **C** (`/vox-video` + Kie), **D** (Remotion),
+  **E** (free/Google Flow/CapCut), **F** (Loop Studio).
+- Everything specific to them: Higgsfield MCP setup, Remotion `spring`/
+  `interpolate` and prop controls, `.env` API keys, Kie pricing, CapCut sync,
+  the video enhancer settings, the three "brain" skills.
+- Techniques 1, 2 and 6 as *instructions*. Technique 1 (frame-chaining) may be
+  named as the principle behind Director's board approach, but the video does not
+  teach the two-frame method, because Director does not expose it.
+
+**Per `SCRIPT-PLAN-INSTRUCTIONS.md`:** the rejected approaches get **at most one
+section**, saying why A won. Not a second walkthrough.
+
+## Recommendation (superseded by the owner's pick above, kept for the record)
 
 **The bolt-on brain, on top of C, with techniques 1, 3 and 4 baked into the
 prompts.** Reason: C is the only approach where the finished artefact is a
