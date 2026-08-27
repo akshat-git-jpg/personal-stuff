@@ -22,11 +22,13 @@ els.push(
 // --- the broker ------------------------------------------------------------
 const BX = 300, BY = 130, BW = 580, BH = 240;
 els.push(rect({ x: BX, y: BY, w: BW, h: BH, stroke: COLORS.greyLine, dashed: true }));
-els.push(text({ x: BX + 14, y: BY + 12, str: 'BROKER — one Kafka server (your Docker container)', size: 13, color: COLORS.greyLine }));
-els.push(text({ x: BX + 14, y: BY + 42, str: 'topic: ch1-orders    ·    1 partition', size: 15, color: COLORS.blueLine }));
+els.push(text({ x: BX + 14, y: BY + 10, str: 'BROKER — one Kafka server (your Docker container)', size: 13, color: COLORS.greyLine }));
+els.push(text({ x: BX + 14, y: BY + 28, str: 'the building. Everything in this dashed box lives on it.', size: 10, color: COLORS.greyLine }));
+els.push(text({ x: BX + 14, y: BY + 50, str: 'TOPIC: ch1-orders    ·    1 partition', size: 15, color: COLORS.blueLine }));
+els.push(text({ x: BX + 14, y: BY + 70, str: 'a named shelf INSIDE the broker. Not the same thing as the broker.', size: 10, color: COLORS.greyLine }));
 
 // --- the log cells ---------------------------------------------------------
-const CX = 322, CY = BY + 78, CW = 84, CH = 70, GAP = 6;
+const CX = 322, CY = BY + 100, CW = 84, CH = 70, GAP = 6;
 const WRITTEN = 5; // offsets 0..4 exist; slot 5 is the next append
 for (let i = 0; i < 6; i++) {
   const x = CX + i * (CW + GAP);
