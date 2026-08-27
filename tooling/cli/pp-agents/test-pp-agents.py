@@ -1123,6 +1123,79 @@ with tempfile.TemporaryDirectory() as tmp:
     check("a genuine record is removed", not os.path.isdir(jobs[0]["dir"]))
 
 
+section("starting a new session")
+
+check("the busiest folder is the default",
+      mod.default_cwd([{"cwd": "/a"}, {"cwd": "/b"}, {"cwd": "/b"}]) == "/b")
+check("ties are broken the same way every run",
+      mod.default_cwd([{"cwd": "/b"}, {"cwd": "/a"}]) ==
+      mod.default_cwd([{"cwd": "/a"}, {"cwd": "/b"}]))
+check("no sessions means somewhere real, not empty",
+      os.path.isdir(mod.default_cwd([])), mod.default_cwd([]))
+check("sessions without a folder are ignored",
+      mod.default_cwd([{"cwd": ""}, {"cwd": "/only"}]) == "/only")
+
+
+def one_folder_store(tmp):
+    """A store whose sessions all live in a folder that really exists."""
+    real = os.path.join(tmp, "repo")
+    os.makedirs(real, exist_ok=True)
+    make_job(os.path.join(tmp, "work"), "nn1", state="done", name="one", cwd=real)
+    make_job(os.path.join(tmp, "work"), "nn2", state="done", name="two", cwd=real)
+    return real
+
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    first, _a, _ = drive(tmp, [b"q"])
+    check("the list offers a new session on screen",
+          "describe a task for a new session" in first, first[-400:])
+
+with tempfile.TemporaryDirectory() as tmp:
+    real = one_folder_store(tmp)
+    _f, after, calls = drive(tmp, [
+        (b"n", "describe the task"),
+        (b"ship it\r", "folder:"),
+        (b"\r", "backgrounded"),
+        b"q",
+    ])
+    check("n asks for the task before anything else",
+          "describe the task" in after, after[-400:])
+    check("the task is dispatched with claude --bg",
+          "--bg ship it" in calls, repr(calls))
+    check("the folder prompt is pre-filled, so enter accepts it",
+          real in after, after[-500:])
+
+with tempfile.TemporaryDirectory() as tmp:
+    one_folder_store(tmp)
+    _f, after, calls = drive(tmp, [(b"n", "describe the task"), b"\x1b", b"q"])
+    check("escaping the task prompt dispatches nothing",
+          "--bg" not in calls, repr(calls))
+    check("and it says so", "nothing dispatched" in after, after[-300:])
+
+with tempfile.TemporaryDirectory() as tmp:
+    one_folder_store(tmp)
+    _f, after, calls = drive(tmp, [(b"n", "describe the task"), b"\r", b"q"])
+    check("an empty task dispatches nothing", "--bg" not in calls, repr(calls))
+
+with tempfile.TemporaryDirectory() as tmp:
+    one_folder_store(tmp)
+    _f, after, calls = drive(tmp, [
+        (b"n", "describe the task"),
+        (b"look at the logs\r", "folder:"),
+        b"\x1b",
+        b"q",
+    ])
+    check("escaping the folder prompt dispatches nothing",
+          "--bg" not in calls, repr(calls))
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # the hint costs the list a row; every session must still be reachable
+    first, _a, _ = drive(tmp, [b"q"], rows=14)
+    check("the list still renders with the hint taking a row",
+          "pp-agents" in first and "describe a task" in first, first[-300:])
+
 section("end to end: awkward terminals")
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
