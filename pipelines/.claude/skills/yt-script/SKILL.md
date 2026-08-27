@@ -204,6 +204,31 @@ Each step is a folder, so changing one is local:
 - **Kinds** are `llm` (Claude writes it), `run` (a command), `human` (the owner
   decides). A `human` step with a `gate` field is a hard stop.
 
+## The `humanizer` skill writes the spoken words
+
+Steps 050 and 100 both run it. It is required, not a polish option. Owner,
+2026-08-27: *"My script should not look AI generated, so use the humanizer
+skill"* — and the owner's global rule already lists video scripts as
+humanizer's territory.
+
+| Step | Mode | Why that mode |
+|---|---|---|
+| 050 | **B** (new copy) | nothing exists yet; write clean rather than patching |
+| 100 | **A** (edit) | the draft is the maker's. Strip AI tells, keep his voice |
+
+**Getting the mode wrong at 100 is the expensive mistake.** Mode B supplies a
+voice, and that step exists to preserve one. It is the same rule as "His words,
+not yours", reached from the other side.
+
+`SCRIPT-INSTRUCTIONS.md` has the pattern table for speech, the zero-em-dash rule,
+and the one place the house convention and the skill genuinely disagree (the
+spoken roadmap survives pattern 28, because a roadmap carries information and a
+signpost does not).
+
+Not every step is humanizer's. `knowledge.md` (010) and `outline.md` (030) are
+working documents the owner reads, not copy anyone hears. `TASTE.md` T8 already
+keeps their language plain.
+
 ## Not this skill's job
 
 Feedback on what this skill produced is a separate skill: `yt-script-feedback`.

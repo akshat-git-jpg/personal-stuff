@@ -138,6 +138,14 @@ guidance; the plan's job is to **place** them.
 The maker will phrase them. Leaving the placement to him is how a video ends up
 with either none or four in a row.
 
+## The spoken words go through `humanizer`
+
+Step 050 runs it in Mode B. The verbatim intro and conclusion get a full pass;
+a body `SAY` is a draft prompt, so what matters there is the rhetorical shape.
+A `SAY` handed over as a binary contrast, a faux-insight setup or a fake-profound
+kicker is a mould the maker will fill, and the tell then arrives in his draft
+wearing his name. `SCRIPT-INSTRUCTIONS.md` has the pattern table.
+
 ## The body
 
 ### Sections
