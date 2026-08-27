@@ -23,10 +23,9 @@ empty list.
 Two things the built-in view cannot do come free here: both accounts (work and
 personal) appear in one list, and the tag is the primary grouping.
 
-Inside a session the LEFT ARROW brings you back here - the key Claude Code
-already binds to "back to the agents view", landing in this list instead of its
-ungrouped one. `shift+left` does the same and never depends on Claude Code's
-wording.
+Inside a session `shift+left` brings you back here, instantly. It is swallowed
+before Claude Code ever sees it, so nothing has to be guessed from the screen
+and the plain left arrow keeps working as an ordinary cursor key.
 
     kbc                       # the view (`pp-agents` is the same program)
     kbc --list                # one line per session, for scripts
@@ -186,6 +185,28 @@ def write_tag(job, tag):
     return tag
 
 
+LIVE_STATES = ("working", "blocked")
+
+
+def delete_record(job):
+    """Remove a session's record directory, the way the built-in view does.
+
+    A record is one `jobs/<short>/` directory, so deleting the row means deleting
+    that directory. There is no published `claude` command for it - `claude
+    agents` manages live sessions, not their history - so the directory is
+    removed here. Nothing outside `jobs/<short>/` is touched.
+
+    The path is re-derived from the account root and checked against the job's
+    own short id first, so a malformed record can never turn this into a delete
+    of something else.
+    """
+    root = os.path.realpath(os.path.join(job["config_dir"], "jobs"))
+    target = os.path.realpath(job["dir"])
+    if os.path.dirname(target) != root or os.path.basename(target) != job["short"]:
+        raise ValueError(f"refusing to delete {target}: not a session record")
+    shutil.rmtree(target)
+
+
 def known_tags(jobs):
     return sorted({j["tag"] for j in jobs if j["tag"]})
 
@@ -313,37 +334,23 @@ def dispatch_cmd(prompt):
 
 # Coming back out of a session.
 #
-# The left arrow is what the owner already reaches for, because inside a session
-# Claude Code binds it to "back to the agents view" - and opens **its own**
-# ungrouped one, stranding you outside this view with no way home (`esc` there
-# does not exit). Rather than teach a new key, the left arrow is forwarded
-# normally and the *result* is watched for: when Claude Code's own list appears,
-# this detaches and redraws the tag list instead. The muscle memory is unchanged
-# and it lands somewhere useful.
+# One key, swallowed here and never forwarded, so leaving is instant and depends
+# on nothing Claude Code prints. An earlier version forwarded the plain left
+# arrow and watched for Claude Code's own agents view to appear before detaching.
+# That worked, but it could not be quick by construction: Claude Code's list had
+# to finish drawing first, so every exit flashed the wrong screen. Reserving a
+# key removes the wait and the flash together, and leaves the left arrow free to
+# do its ordinary job of moving the cursor while you edit a prompt.
 #
-# Two reserved keys are also swallowed and never reach Claude Code, as the
-# deterministic fallback if a release ever rewords its list. Both were checked
-# against a real session and produce no reaction at all.
+# `shift+left` is the choice because it sits under the same finger as the arrow
+# it replaces, and a real session ignores it completely. `ctrl+o` was the old
+# second fallback and is deliberately gone: Claude Code binds it to "see full
+# summary", so swallowing it took a working shortcut away.
 RESERVED_KEYS = {
     "\x1b[1;2D": "shift+left",
-    "\x0f": "ctrl+o",
 }
 BACK_KEY = os.environ.get("PP_AGENTS_BACK_KEY", "")     # optional extra key
 BACK_KEY_LABEL = os.environ.get("PP_AGENTS_BACK_KEY_LABEL", "shift+left")
-
-# The left arrow, in both the normal and application cursor modes a full-screen
-# program may switch the terminal into.
-LEFT_KEYS = ("\x1b[D", "\x1bOD")
-
-# Text that only Claude Code's own agents view draws. The dispatch placeholder is
-# the specific one; the footer hint corroborates it.
-FLEET_MARKERS = ("describe a task for a new session", "ctrl+x to delete all")
-
-# How long after a left arrow the markers are believed. Arming on the keypress is
-# what makes this safe: a session that merely PRINTS one of those strings - a
-# transcript discussing this very feature, say - cannot yank you out of it,
-# because you did not ask to leave.
-ARM_SECONDS = 4.0
 
 # Terminal modes a borrowed program can leave switched on.
 #
@@ -362,12 +369,29 @@ BORROWED_MODES_OFF = (
 CURSOR_AND_COLOUR = "\x1b[?25h\x1b[0m"
 
 
-def clear_borrowed_modes(extra=""):
-    """Switch off input modes another program turned on. Safe to call anywhere."""
+def clear_borrowed_modes(extra="", drain=True):
+    """Switch off input modes another program turned on. Safe to call anywhere.
+
+    Switching mouse reporting off stops the terminal producing NEW packets. It
+    does nothing about the ones already queued on stdin, and those are read by
+    whatever runs next - your shell - which prints them as `35;3;19M` gibberish.
+    So after the modes go off, wait a beat for anything in flight to land, then
+    throw the queue away. `drain=False` is for callers that must not lose a
+    keystroke.
+    """
     try:
         sys.stdout.write(BORROWED_MODES_OFF + extra)
         sys.stdout.flush()
     except (OSError, ValueError):
+        pass
+    if not drain:
+        return
+    try:
+        fd = sys.stdin.fileno()
+        if os.isatty(fd):
+            time.sleep(0.06)                  # let in-flight packets arrive
+            termios.tcflush(fd, termios.TCIFLUSH)
+    except (OSError, ValueError, termios.error):
         pass
 
 
@@ -413,23 +437,6 @@ def dbg(msg):
         pass
 
 
-ESC_SEQ = None      # compiled lazily; `re` is needed only for this
-
-
-def strip_escapes(raw):
-    """Plain text out of a terminal stream, so a marker can be matched.
-
-    A full-screen program paints with escape sequences interleaved, and one can
-    land inside the very string being looked for.
-    """
-    global ESC_SEQ
-    if ESC_SEQ is None:
-        import re as _re
-        ESC_SEQ = _re.compile(
-            r"\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b\[[0-9;?]*[a-zA-Z]|\x1b[()][B0]")
-    return ESC_SEQ.sub("", raw.decode("utf-8", "replace"))
-
-
 def first_reserved(data, extra=""):
     """(offset, label) of the first reserved key in `data`, or (-1, None).
 
@@ -460,8 +467,9 @@ def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
     So the bytes go through here. Everything is forwarded verbatim in both
     directions - alt-screen, mouse, bracketed paste, resizes - except one
     reserved key, which never reaches Claude Code and instead detaches and
-    returns. The left arrow keeps working normally as a cursor key, and even if
-    you do land in Claude Code's own list, the reserved key still brings you back.
+    returns. The plain left arrow is forwarded like any other key, so it still
+    moves the cursor; and if you do land in Claude Code's own list, the reserved
+    key still brings you back from there.
 
     Detaching kills only the attach *client*. The session itself lives in the
     daemon and keeps running, exactly as it would if the terminal were closed.
@@ -494,8 +502,6 @@ def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
 
     prev_winch = signal.getsignal(signal.SIGWINCH)
     detached = False
-    armed_until = 0.0       # set when a left arrow is forwarded
-    watch = b""             # recent child output, searched only while armed
     try:
         tty.setraw(stdin_fd)
         signal.signal(signal.SIGWINCH, sync_size)
@@ -515,18 +521,6 @@ def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
                 if not data:
                     break
                 os.write(out_fd, data)
-                # Only while a left arrow has recently been pressed: if Claude
-                # Code's own agents view appears, that is the navigation the
-                # owner asked for - finish it here instead of there.
-                if armed_until and time.time() < armed_until:
-                    watch = (watch + data)[-8192:]
-                    found = [m for m in FLEET_MARKERS if m in strip_escapes(watch)]
-                    if found:
-                        dbg(f"marker seen {found!r} -> detaching")
-                        detached = True
-                        break
-                elif armed_until:
-                    armed_until, watch = 0.0, b""
             if stdin_fd in readable:
                 try:
                     data = os.read(stdin_fd, 1 << 16)
@@ -542,9 +536,6 @@ def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
                     detached = True
                     break
                 os.write(master, data)
-                if any(k.encode() in data for k in LEFT_KEYS):
-                    armed_until, watch = time.time() + ARM_SECONDS, b""
-                    dbg(f"left arrow forwarded, armed for {ARM_SECONDS}s")
     finally:
         signal.signal(signal.SIGWINCH, prev_winch)
         termios.tcsetattr(stdin_fd, termios.TCSADRAIN, saved)
@@ -785,10 +776,10 @@ def cmd_doctor():
 HELP = [
     ("up/down, j/k", "move"),
     ("enter", "open the session"),
-    ("left arrow", "inside a session: come back here"),
-    ("shift+left", "same, and always works"),
+    ("shift+left", "inside a session: come back here"),
     ("ctrl+e / e", "tag this session (tab completes an existing tag)"),
     ("ctrl+x / x", "remove this session's tag"),
+    ("d", "delete this session (asks first; stops it if still running)"),
     ("ctrl+t / t", "pin to top"),
     ("ctrl+s / s", "cycle grouping: tag -> folder -> state"),
     ("space", "fold / unfold the group under the cursor"),
@@ -990,8 +981,8 @@ class App:
         elif self.query:
             bar, attr = f" filter: {self.query}   (esc clears)", self.attr["bar"]
         else:
-            bar, attr = (" enter open · left back · e tag · t pin · "
-                         "s group · / filter · ? help · q quit"), self.attr["bar"]
+            bar, attr = (" enter open · shift+left back · e tag · d delete · "
+                         "t pin · s group · / filter · ? help · q quit"), self.attr["bar"]
         self.put(h - 1, 0, bar.ljust(w - 1), attr)
         self.scr.refresh()
 
@@ -1143,6 +1134,36 @@ class App:
             (out.stdout + out.stderr).strip().splitlines()[-1] or "stop issued"
         self.reload()
 
+    def act_delete(self):
+        """Delete the focused session, stopping it first if it is still running.
+
+        Deleting a live session would leave the daemon writing into a directory
+        that no longer exists, so it is stopped and given a moment to notice
+        before the record goes. The question says which of the two is happening.
+        """
+        job = self.focused_job()
+        if not job:
+            return
+        live = job["state"] in LIVE_STATES
+        question = (f"stop AND delete {job['name']}?" if live
+                    else f"delete {job['name']}?")
+        if not self.confirm(question):
+            self.status = "not deleted"
+            return
+        if live:
+            subprocess.run(stop_cmd(job), env=job_env(job),
+                           capture_output=True, text=True)
+            time.sleep(0.4)
+        try:
+            delete_record(job)
+        except (OSError, ValueError) as exc:
+            self.status = f"not deleted: {exc}"
+            return
+        self.pins.discard(job["short"])
+        save_pins(self.pins)
+        self.reload()
+        self.status = f"deleted {job['name']}"
+
     def act_tag(self):
         job = self.focused_job()
         if not job:
@@ -1253,6 +1274,8 @@ class App:
             self.act_logs()
         elif ch == ord("K"):
             self.act_stop()
+        elif ch == ord("d"):
+            self.act_delete()
         elif ch == ord("n"):
             self.act_new()
         elif ch == ord("g"):

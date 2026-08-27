@@ -71,7 +71,7 @@ Close to the built-in view on purpose - the point is not to relearn anything.
 |---|---|
 | `up`/`down`, `j`/`k` | move (the cursor starts on a session, not a header) |
 | `enter` | open the session |
-| `ctrl+o` | **come back here from inside a session** |
+| `shift+left` | **come back here from inside a session** |
 | `ctrl+e` / `e` | tag this session; `tab` completes an existing tag |
 | `ctrl+x` / `x` | remove this session's tag |
 | `ctrl+t` / `t` | pin to top |
@@ -80,6 +80,7 @@ Close to the built-in view on purpose - the point is not to relearn anything.
 | `/` | filter on name, last message, tag or folder; `esc` clears |
 | `l` | recent output (`claude logs`) |
 | `K` | stop this session (asks first) |
+| `d` | delete this session (asks first; stops it first if still running) |
 | `n` | new background session in a folder you pick (`claude --bg`) |
 | `g` | refresh now (it also refreshes on its own) |
 | `?` | help |
@@ -90,31 +91,47 @@ headers double as a tag picker - the same trick the built-in view supports.
 
 ### Getting in and out of a session
 
-`enter` opens it. **`ctrl+o` brings you back here** - from anywhere, including
-from inside Claude Code's own agents view if you end up there.
+`enter` opens it. **`shift+left` brings you back here** - instantly, from
+anywhere, including from inside Claude Code's own agents view if you end up
+there.
 
-That key exists because `claude attach` binds the left arrow to "back to the
-agents view" and opens **Claude Code's ungrouped one**, which strands you outside
-this view - and `esc` there does not exit, so there is no way home. Claude Code
-decides that internally and exposes no flag to turn it off. `claude --resume` is
-not a way around it either: it refuses a background agent outright and tells you
-to use `claude agents`.
+A back key is needed at all because `claude attach` binds the left arrow to
+"back to the agents view" and opens **Claude Code's ungrouped one**, which
+strands you outside this view - and `esc` there does not exit, so there is no way
+home. Claude Code decides that internally and exposes no flag to turn it off.
+`claude --resume` is not a way around it either: it refuses a background agent
+outright and tells you to use `claude agents`.
 
 So the attach runs on a pty this program owns. Every byte is forwarded verbatim
 in both directions - alt-screen, mouse, bracketed paste, window resizes - except
-`ctrl+o`, which never reaches Claude Code and instead detaches and redraws the
-list. The left arrow keeps working as an ordinary cursor key while you type.
+`shift+left`, which never reaches Claude Code and instead detaches and redraws
+the list. The plain left arrow is forwarded like anything else, so it still moves
+the cursor while you edit a prompt.
+
+An earlier build reused the plain left arrow: it forwarded the key and waited to
+*see* Claude Code's own list appear before detaching. It worked, but it could
+never be quick - Claude Code's list had to finish drawing first, so every exit
+flashed the wrong screen for about a second. Reserving a key removes the wait and
+the flash together. `ctrl+o` was a second reserved key and is deliberately gone:
+Claude Code binds it to "see full summary", so swallowing it took a working
+shortcut away.
 
 Detaching kills only the attach *client*. The session lives in the daemon and
 keeps running, exactly as if you had closed the terminal. `PP_AGENTS_BACK_KEY`
-changes the key if `ctrl+o` ever clashes with something.
+adds a second key if `shift+left` ever clashes with something.
+
+Detaching also has to hand the terminal back clean. `claude attach` turns mouse
+reporting on and never gets to turn it off, so the modes are cleared here - and
+the input queue is flushed as well, because switching reporting off stops new
+packets but leaves the queued ones for your shell to print as `35;3;19M`
+gibberish.
 
 ### The one thing that is missing
 
 The built-in view's `space` replies to a session without opening it. There is no
 published command for that, and the only other route is Claude Code's private
 `control.sock` / `rv/<id>.sock` - building on those would be *more* fragile than
-the byte patch this replaces. So: `enter`, type, `ctrl+o`.
+the byte patch this replaces. So: `enter`, type, `shift+left`.
 
 ## How it looks
 
@@ -126,12 +143,17 @@ Colour carries the meaning, so the list can be skimmed rather than read:
 | `◐` cyan | working |
 | `·` green | done |
 | `▲` red | error |
-| `▸` magenta | pinned |
-| `▾` / `▸` cyan | group open / folded |
-| dim blue | last message, age |
-| reverse | the cursor row, and the two bars |
+| `▸` steel | pinned |
+| `▾` / `▸` steel | group open / folded |
+| grey | last message, age |
+| a darker background | the cursor row, and the two bars |
 
-Only the cursor row gets a background. Everything else is foreground colour on
+Statuses keep saturated colour because that is the thing being scanned for.
+Everything else is grey and steel, one shade off the background, so the list
+reads as a hierarchy instead of a neon strip. Reverse video is not used at all -
+the cursor row and the bars get a slightly lighter background instead.
+
+Only those rows get a background. Everything else is foreground colour on
 **your** terminal's background - `curses.use_default_colors()` is what makes that
 work. Without it curses paints every cell with its own idea of black, which on a
 themed terminal shows up as rectangular blocks behind the text. A terminal
@@ -148,6 +170,11 @@ readable session name is worth more than a fragment of its last line.
 - **Pins** - `~/.cache/pp-agents/pins.json`. Ours alone; a corrupt file reads as
   no pins rather than failing.
 - **Nothing else** is written into a job directory. A test asserts that.
+- **Deleting** (`d`) removes the whole `jobs/<short>/` directory, which is what a
+  session record is. There is no published `claude` command for it. The path is
+  re-derived from the account root and checked against the job's own short id
+  first, so a malformed record cannot turn a delete into something worse; tests
+  cover both refusals.
 
 ## Tests
 
@@ -209,6 +236,30 @@ says so directly, and the view says `run pp-agents --doctor` instead of
 rendering an empty list. If `attach`, `logs` or `stop` ever stops being a
 command, doctor fails and names it. That is the whole lesson from the patch:
 report what is true, never that it worked.
+
+### When the LANDER says this suite failed
+
+Read the land's own output first. `pp-land` records it and names the path in
+`land.log`:
+
+```
+/Users/kbtg/.local/state/pp-land/<repo-hash>/gl/<pid>-<cycle>-<slug>/greenlight.out
+```
+
+Three things have parked this suite, and none of them was a failing check. All
+three look identical in `land.log`, which only says `verify failed`:
+
+| What the run output says | What it means |
+|---|---|
+| `Killed: 9` | the OS killed the suite for memory. It forks a pty per end-to-end test, a land can run several suites back to back, and this machine has 16 GB. Not a code failure - run it again when fewer agents are busy |
+| `SSL_ERROR_SYSCALL` / `Could not resolve host: github.com` | the tests passed and the merge happened; only the push failed. Network, nothing else |
+| a real `FAIL <label>` line | an actual failing check, and the label names it |
+
+Two habits keep the third case honest, and both are already in place: nothing
+here reads the live session store while it is moving - the last section copies
+every job record into a temp directory and tests the copy - and no assertion
+depends on how long a fake session lives; `got_key` asks which keys the session
+actually received.
 
 ## Testing overrides
 
