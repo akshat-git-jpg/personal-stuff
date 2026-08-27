@@ -38,3 +38,15 @@ Constants and URLs used as mutation targets by the merge gates live in this code
 
 ### Deploy chain
 The deploy chain is strictly **owner-gated**. Do not attempt to deploy this app automatically or instruct sessions to run Wrangler commands. All deployments happen manually by the owner once the feature branch is reviewed and merged.
+
+## The instruction track linkifies bare URLs. It has no markdown parser.
+
+`renderEmphasis` in `WriteView.tsx` handles exactly two inline marks: `**bold**`
+and a bare `http(s)://` URL, which becomes an `<a class="lane-link">` opening in
+a new tab. Everything else is printed as written.
+
+So a source reference in a lane is a **bare URL**. A markdown link prints its
+brackets. Added 2026-08-28 because the plan names people the freelancer has never
+heard of and a URL he has to copy out by hand is not a reference. Guarded by
+`laneLinks.test.tsx`, including the trailing-period case — `…Jkt4aTOpqpM.` must
+not put the period in the href.

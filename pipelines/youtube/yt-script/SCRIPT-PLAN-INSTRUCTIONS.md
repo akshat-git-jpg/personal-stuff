@@ -229,6 +229,38 @@ which is a wall the owner has to parse before he can check any one of them.
 frame for 4 seconds or more` needs nothing. The example exists for abstraction,
 not for decoration.
 
+## Name a source, link the source
+
+**The freelancer has never heard of any of these people.** The lanes cite them
+constantly — *"Joseph's checklist"*, *"Skai's angle"*, *"both Thomas Creates and
+Joseph"* — and to him those are three strangers with opinions. Owner, 2026-08-28:
+*"can we please add reference link wherever possible for my freelancer... you
+said Joseph's list, but I don't think my freelancer is aware of Joseph."*
+
+**Every section that names a person carries one reference line**, at the end of
+its first `FACTS` block, which reaches the desk as **General Notes**:
+
+```
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM · Luuk Alleman https://youtu.be/i5-tZegBvxU
+```
+
+Only the people that section actually names. In first-mention order. Per section,
+not once per document, because he works one section at a time and should never
+scroll up to find out who somebody is.
+
+**Bare URLs. Never markdown links.** The instruction track renders text with one
+handler for `**bold**` and nothing else, so `[Joseph](https://youtu.be/...)`
+prints its own brackets. `WriteView.tsx` turns a bare URL into a clickable link;
+a markdown one just looks broken. Guarded by `test/sourceLinks.test.mjs`.
+
+**Never put a URL in a blockquote.** A blockquote is what comes out of the
+presenter's mouth, and nobody reads a link aloud. Same test guards that.
+
+**Do not link the same name inline at every mention.** The first attempt on
+`vox-style-video-ai` did, and it mangled the names it was trying to explain —
+`Skai (Skai Generated, https://…) Generated`, `Joseph (Joseph | Video Editing,
+https://…)'s design checklist`. One line per section, names left alone.
+
 ## The rules box
 
 Anything true for a whole section goes in a `RULES` blockquote directly under
