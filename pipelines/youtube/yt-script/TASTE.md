@@ -256,3 +256,48 @@ and how the sentences run. T8 is vocabulary: which words are allowed in them.
 **Enforced by:** author judgement, plus the read-aloud test. Nothing mechanical
 catches jargon.
 
+---
+
+## T9 — Every script is an affiliate script. Make the tool's benefit land, honestly, without selling it.
+
+**From:** vox-style-video-ai, 2026-08-27. Owner: *"my main goal of making all
+these scripts and videos is affiliate... Be genuine, be authentic. Obviously,
+don't oversell the tools. But keep that in mind that I want to get affiliate
+commissions. I want them to be able to use the tools I am promoting. So I want
+them to understand the benefit of these tools... It should be subtle, not
+oversell."*
+
+The commercial goal is real and it is not a secret to be worked around. It is
+also not served by enthusiasm. A viewer converts when they can see themselves
+doing the thing, so the job is to make the benefit **legible**, not loud.
+
+**What that means concretely:**
+
+- **Show the benefit, do not assert it.** The strongest thing available is the
+  work itself — the setting that saved an hour, the step that used to need a
+  specialist, the result on screen. A tutorial has an advantage over a review
+  here: the viewer watches the tool succeed rather than being told it does.
+- **Name the limits.** This is the part that makes the rest believable, and it is
+  where "don't oversell" has teeth. A video that admits where the output still
+  looks like AI, which step is fiddly, and what came back wrong the first time,
+  earns the recommendation it never had to make.
+- **Never inflate a claim to close.** No superlative the material does not carry,
+  no time saving nobody measured, no "this changes everything". Every claim still
+  traces to `knowledge.md`.
+- **Do not editorialise about the affiliate relationship.** No disclaimers
+  invented to sound fair, no apologising for the link, no "I only recommend what
+  I use" boilerplate. T3 already covers this: state the method up front and the
+  recommendation reads as a finding.
+- **Subtle means woven, not hidden.** The tool is named plainly and its value is
+  stated plainly, in the flow of the work. Coyness reads worse than clarity.
+
+**The test:** would a viewer who bought on this video's strength feel misled a
+week later? If yes, the script oversold, however subtle the wording.
+
+`SCRIPT-INSTRUCTIONS.md` owns the CTA cadence and wording — where the links get
+mentioned and how often. This rule governs everything between the CTAs.
+
+**Applies to:** 030, 050, 100
+**Enforced by:** author judgement. Nothing mechanical can tell an earned
+recommendation from a sold one.
+
