@@ -467,7 +467,7 @@ def stub_claude(tmp, linger=2):
     with open(path, "w") as fh:
         fh.write(
             "#!/bin/sh\n"
-            f'printf "%s\\n" "$*" >> {log}\n'
+            f'printf "%s | CLAUDE_CONFIG_DIR=%s\\n" "$*" "$CLAUDE_CONFIG_DIR" >> {log}\n'
             "case \"$1\" in\n"
             # mouse reporting on, exactly as `claude attach` does, and NOT turned
             # off if killed - the leak this reproduces
@@ -1340,6 +1340,53 @@ with tempfile.TemporaryDirectory() as tmp:
     first, _a, _ = drive(tmp, [b"q"], rows=14)
     check("the list still renders with the hint taking a row",
           "pp-agents" in first and "describe a task" in first, first[-300:])
+
+section("a new session lands in an account this view reads")
+check("dispatch_env pins the store",
+      mod.dispatch_env("/tmp/whatever")["CLAUDE_CONFIG_DIR"] == "/tmp/whatever")
+check("it does not disturb the rest of the environment",
+      mod.dispatch_env("/tmp/whatever").get("PATH") == os.environ.get("PATH"))
+
+with tempfile.TemporaryDirectory() as tmp:
+    # a store holding records that is not one of the accounts must be reported,
+    # because that is exactly where an unpinned dispatch used to disappear to
+    other = os.path.join(tmp, "elsewhere")
+    make_job(other, "orphan1", state="done", name="lost one")
+    make_job(other, "orphan2", state="done", name="lost two")
+    found = mod.foreign_stores(candidates=(other,))
+    check("a store with records outside the accounts is reported",
+          found and found[0][1] == 2, str(found))
+    empty = os.path.join(tmp, "nothing")
+    os.makedirs(os.path.join(empty, "jobs"), exist_ok=True)
+    check("an empty one is not worth mentioning",
+          mod.foreign_stores(candidates=(empty,)) == [], str(mod.foreign_stores(candidates=(empty,))))
+    check("a real account is never called foreign",
+          mod.foreign_stores(candidates=(os.path.join(tmp, "work"),)) == [])
+
+with tempfile.TemporaryDirectory() as tmp:
+    # THE BUG: the view reads two fixed stores but the dispatch used to inherit
+    # the shell's CLAUDE_CONFIG_DIR, so a shell that had selected no account sent
+    # the session to Claude Code's default - created, reported, and unlistable.
+    real = one_folder_store(tmp)
+    env_before = os.environ.get("CLAUDE_CONFIG_DIR")
+    os.environ["CLAUDE_CONFIG_DIR"] = "/tmp/not-an-account-at-all"
+    try:
+        _f, after, calls = drive(tmp, [
+            (b"n", "describe the task"),
+            (b"pin the account\r", "folder:"),
+            (b"\r", "started"),
+            b"q",
+        ])
+    finally:
+        if env_before is None:
+            os.environ.pop("CLAUDE_CONFIG_DIR", None)
+        else:
+            os.environ["CLAUDE_CONFIG_DIR"] = env_before
+    check("the dispatch ignores the shell and pins the account it will show",
+          os.path.join(tmp, "work") in calls, repr(calls[-200:]))
+    check("so the shell's store is never used",
+          "not-an-account-at-all" not in calls, repr(calls[-200:]))
+    check("and the session is listed", DISPATCHED_ID in after, after[-300:])
 
 section("end to end: awkward terminals")
 with tempfile.TemporaryDirectory() as tmp:

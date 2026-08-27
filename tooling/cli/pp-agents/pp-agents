@@ -469,6 +469,42 @@ def job_env(job):
     return env
 
 
+def dispatch_env(account_dir):
+    """Environment for CREATING a session, pinned to a store this view reads.
+
+    Without this the new session goes wherever the launching shell points, and a
+    shell that never selected an account points at Claude Code's default
+    `~/.claude` - which this view does not read. The session is then created,
+    reported, and invisible. `--doctor` names any store in that state.
+    """
+    env = dict(os.environ)
+    env["CLAUDE_CONFIG_DIR"] = account_dir
+    return env
+
+
+def foreign_stores(candidates=None):
+    """Stores holding session records that this view does NOT read.
+
+    `~/.claude` is Claude Code's default and is not one of the accounts here, so
+    anything dispatched by a shell with no account selected lands there unseen.
+    """
+    known = {os.path.realpath(root) for _name, root in account_dirs()}
+    out = []
+    for root in (candidates if candidates is not None
+                 else (os.path.expanduser("~/.claude"),)):
+        if os.path.realpath(root) in known:
+            continue
+        jobs = os.path.join(root, "jobs")
+        try:
+            found = [s for s in os.listdir(jobs)
+                     if os.path.isfile(os.path.join(jobs, s, "state.json"))]
+        except OSError:
+            continue
+        if found:
+            out.append((root, len(found)))
+    return out
+
+
 def attach_cmd(job):
     return [claude_bin(), "attach", job["short"]]
 
@@ -918,6 +954,15 @@ def cmd_doctor():
         print("  none found - expected ~/.claude-work/jobs or ~/.claude-personal/jobs")
         ok = False
 
+    stray = foreign_stores()
+    if stray:
+        print("\nsessions in a store this view does NOT read:")
+        for path, count in stray:
+            print(f"  {path}  ({count} records)")
+        print("  a shell with no CLAUDE_CONFIG_DIR set dispatches into Claude")
+        print("  Code's own default, and nothing here lists it. `claude rm <id>`")
+        print("  clears one; new sessions from this view can no longer land there.")
+
     jobs = load_jobs(accounts)
     readable = [j for j in jobs if j["state"] or j["name"]]
     print(f"\nsession records parsed: {len(readable)} of {len(jobs)}")
@@ -931,7 +976,7 @@ def cmd_doctor():
     if not os.path.exists(binp):
         print("  MISSING - attach/logs/stop cannot run")
         return 1
-    for sub in ("attach", "logs", "stop"):
+    for sub in ("attach", "logs", "stop", "rm"):
         out = subprocess.run([binp, sub, "--help"], capture_output=True, text=True, timeout=60)
         good = f"claude {sub} <id>" in (out.stdout + out.stderr)
         print(f"  {sub:<7}{'ok' if good else 'NOT AVAILABLE'}")
@@ -1403,7 +1448,9 @@ class App:
             self.status = f"no such folder: {where}"
             return
         before = {j["short"] for j in self.jobs}
-        proc, log = start_claude(dispatch_cmd(prompt), cwd=where)
+        account, account_dir = account_dirs()[0]
+        proc, log = start_claude(dispatch_cmd(prompt), cwd=where,
+                                 env=dispatch_env(account_dir))
         self.status = "starting a session ..."
         self.draw()
 
@@ -1432,7 +1479,8 @@ class App:
         if proc is None or proc.poll() not in (None, 0):
             self.status = last_line(log) or f"dispatch failed - see {log}"
         else:
-            self.status = f"no session appeared in {DISPATCH_WAIT:.0f}s - see {log}"
+            self.status = (f"no session appeared in {DISPATCH_WAIT:.0f}s "
+                           f"under {account} - see {log}")
 
     def select_short(self, short):
         """Move the cursor onto a session by short id. False if it is not listed."""
