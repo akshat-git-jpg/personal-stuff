@@ -28,19 +28,46 @@ Ingested 2026-08-27 via the `transcribe` skill. All eight returned native
 captions (`method: captions`). Full transcripts kept verbatim in
 `sources/transcripts/<video-id>.md`.
 
-| # | Video ID | URL | Words | Language | The tool stack it teaches |
-|---|---|---|---|---|---|
-| 1 | `edrUbfeSPio` | https://youtu.be/edrUbfeSPio | 2525 | English | Claude + VidIQ + OpenArt (GPT Image 2 + Seedance 2.0) |
-| 2 | `7wuYBfE131U` | https://youtu.be/7wuYBfE131U | 2933 | English | Claude Code + Remotion + Magnific/Higgsfield MCP + ElevenLabs |
-| 3 | `ZhfHjf_0E-Q` | https://youtu.be/ZhfHjf_0E-Q | 2361 | **Hindi** | ChatGPT + ElevenLabs + Google Flow (Nano Banana Pro) + Topaz-style enhancer + CapCut |
-| 4 | `PaXuebdY75U` | https://youtu.be/PaXuebdY75U | 4357 | English | Claude + three custom "brain" skills + Higgsfield + ElevenLabs + Premiere Pro |
-| 5 | `TiycelzfzC0` | https://youtu.be/TiycelzfzC0 | 2762 | English | Claude Code (desktop app) + Gemini Omni via Kie AI + ElevenLabs, as a `/vox-video` slash command |
-| 6 | `WCDhGKNVrKU` | https://youtu.be/WCDhGKNVrKU | 1961 | English | Abacus AI end-to-end (chat + studio + video editor) |
-| 7 | `Jkt4aTOpqpM` | https://youtu.be/Jkt4aTOpqpM | 2880 | English | OpenArt Director (single-chat, all-in-one) |
-| 8 | `i5-tZegBvxU` | https://youtu.be/i5-tZegBvxU | 1338 | English | Loop Studio skill + Claude + Higgsfield MCP |
+Titles, channels, subscriber and view counts fetched 2026-08-27 with
+`yt-dlp --skip-download --print`. Metadata for a video the owner handed over is
+ingestion, not research.
 
-Video titles were not captured — the transcript fetcher returns caption text
-only. See GAPS.
+| # | Channel | Video title | Published | Length | Subs | Views | The tool stack it teaches |
+|---|---|---|---|---|---|---|---|
+| 1 | **Thomas Creates** | How to Make Vox Style Videos With AI | 2026-08-17 | 9m32s | 42.7K | 13.4K | Claude + VidIQ + OpenArt (GPT Image 2 + Seedance 2.0) |
+| 2 | **MoSidd** | I Made Vox-Style Motion Graphics Using Only Claude Code & Remotion | 2026-06-28 | 13m11s | 10.6K | **146.4K** | Claude Code + Remotion + Magnific/Higgsfield MCP + ElevenLabs |
+| 3 | **Ai-Seekify** | How to Create Vox-Style Documentaries with AI | 2026-08-24 | 10m12s | 20.5K | 3.0K | ChatGPT + ElevenLabs + Google Flow (Nano Banana Pro) + an enhancer + CapCut |
+| 4 | **Joseph \| Video Editing** | Claude just Edited an Entire Vox Documentary From Scratch! (Here's How) | 2026-07-18 | 17m15s | **188K** | 59.0K | Claude + three custom "brain" skills + Higgsfield + ElevenLabs + Premiere Pro |
+| 5 | **Koen \| AI Content Systems** | I 100% Automated Vox-Style Motion Graphics (Claude Code + Omni) | 2026-07-16 | 13m50s | 26.6K | 38.9K | Claude Code + Gemini Omni via Kie AI + ElevenLabs, as a `/vox-video` slash command |
+| 6 | **Leo Ai** | How to Make VOX Style Videos AUTOMATICALLY With AI | 2026-07-30 | 8m24s | 61.4K | 16.3K | Abacus AI end-to-end (chat + studio + video editor) |
+| 7 | **Skai Generated** | How To Create Vox-Style AI Motion Graphics (Full Workflow) | 2026-07-06 | 11m52s | 33.4K | 39.1K | OpenArt Director (single-chat, all-in-one) |
+| 8 | **Luuk Alleman** | I Made a $3,000/Minute Vox-Style Animation (It Cost Me Almost Nothing) | 2026-07-24 | 5m56s | 22.0K | 5.1K | Loop Studio skill + Claude + Higgsfield MCP |
+
+**Video IDs and URLs:** 1 `edrUbfeSPio` · 2 `7wuYBfE131U` · 3 `ZhfHjf_0E-Q` ·
+4 `PaXuebdY75U` · 5 `TiycelzfzC0` · 6 `WCDhGKNVrKU` · 7 `Jkt4aTOpqpM` ·
+8 `i5-tZegBvxU` — all at `https://youtu.be/<id>`.
+
+**Transcript word counts:** 1 2525 · 2 2933 · 3 2361 (**Hindi**) · 4 4357 ·
+5 2762 · 6 1961 · 7 2880 · 8 1338.
+
+## What the numbers say about the sources
+
+Read as a signal about which approach the audience actually rewarded, not as
+proof of anything:
+
+- **MoSidd (2) is the outlier hit.** 10.6K subs and 146K views — roughly
+  **13.8x** its subscriber count, and more views than the other seven combined.
+  It is also the oldest of the eight and the only one teaching the Remotion code
+  route. Whatever the title and the code angle did, it travelled.
+- **Joseph (4) has the biggest channel by far** (188K) but 0.31x views to subs.
+  The most systematic method in the set, and the hardest sell.
+- **Koen (5) and Skai (7) both beat their subscriber counts** (1.46x and 1.17x)
+  — the two "one command / one chat, fully automated" angles.
+- **Ai-Seekify (3) is the weakest** at 0.15x, and it is the free route, in Hindi,
+  published most recently. Recency explains part of it.
+- **Title pattern in the three best performers:** first-person claim, not a
+  how-to. "I Made…", "I 100% Automated…". The two how-to titles (1, 6) landed at
+  0.31x and 0.27x.
 
 ---
 
@@ -959,14 +986,21 @@ new built from the splice-in techniques below.
 
 ## The six
 
-| # | Approach | Tools | Real cost | Still done by hand | What breaks | Source |
+| # | Approach | Whose | Tools | Real cost | Still done by hand | What breaks |
 |---|---|---|---|---|---|---|
-| **A** | All-in-one chat | OpenArt Director *or* Abacus AI | subscription only (OpenArt has a 15% promo; Abacus bundles chat + studio + editor) | almost nothing — one chat does script, boards, voice, motion, stitch | text turns to gibberish; boards come back generic on the first pass | 6, 7 |
-| **B** | Claude directs, an MCP generates | Claude + Higgsfield MCP + ElevenLabs + Premiere Pro | ~$20 in Higgsfield credits for a six-scene edit, testing included | final assembly in Premiere | maps generate badly; transitions inside a scene are rough | 4, 8 |
-| **C** | Claude Code builds you a machine | Claude Code + Gemini Omni via Kie AI + ElevenLabs | $20/mo + ~$3.50 per 35-second chapter; ElevenLabs free | nothing after the build — type `/vox-video` | the slash command stays hidden until Claude is restarted | 5 |
-| **D** | Real code, no generative motion | Claude Code + Remotion + Magnific MCP + ElevenLabs | $20/mo + image credits | scale and position tweaks in Remotion Studio | tweaks revert unless the numbers are saved; audio sounds jerky while scrubbing (cosmetic — renders clean) | 2 |
-| **E** | Free, phone only | ChatGPT + ElevenLabs V3 + Google Flow (Nano Banana Pro) + an enhancer + CapCut | $0 | most of it — one image at a time, manual CapCut sync | output caps at 720p/1080p, so a separate upscale pass is required; prompt/duration mismatch (10s prompt vs 6s clip) | 3 |
-| **F** | Buy the packaged skill | Loop Studio + Higgsfield | price of Loop Studio | give feedback, it re-runs | author admits many burnt credits and ten versions before it was good | 8 |
+| **A** | All-in-one chat | **Skai Generated** (7, 39K views / 33K subs) and **Leo Ai** (6, 16K / 61K) | OpenArt Director *or* Abacus AI | subscription only (OpenArt has a 15% promo; Abacus bundles chat + studio + editor) | almost nothing — one chat does script, boards, voice, motion, stitch | text turns to gibberish; boards come back generic on the first pass |
+| **B** | Claude directs, an MCP generates | **Joseph \| Video Editing** (4, the 188K channel) and **Luuk Alleman** (8) | Claude + Higgsfield MCP + ElevenLabs + Premiere Pro | ~$20 in Higgsfield credits for a six-scene edit, testing included | final assembly in Premiere | maps generate badly; transitions inside a scene are rough |
+| **C** | Claude Code builds you a machine | **Koen \| AI Content Systems** (5, 1.46x views-to-subs) | Claude Code + Gemini Omni via Kie AI + ElevenLabs | $20/mo + ~$3.50 per 35-second chapter; ElevenLabs free | nothing after the build — type `/vox-video` | the slash command stays hidden until Claude is restarted |
+| **D** | Real code, no generative motion | **MoSidd** (2, the 146K-view outlier) | Claude Code + Remotion + Magnific MCP + ElevenLabs | $20/mo + image credits | scale and position tweaks in Remotion Studio | tweaks revert unless the numbers are saved; audio sounds jerky while scrubbing (cosmetic — renders clean) |
+| **E** | Free, phone only | **Ai-Seekify** (3, Hindi) | ChatGPT + ElevenLabs V3 + Google Flow (Nano Banana Pro) + an enhancer + CapCut | $0 | most of it — one image at a time, manual CapCut sync | output caps at 720p/1080p, so a separate upscale pass is required; prompt/duration mismatch (10s prompt vs 6s clip) |
+| **F** | Buy the packaged skill | **Luuk Alleman** (8) | Loop Studio + Higgsfield | price of Loop Studio | give feedback, it re-runs | author admits many burnt credits and ten versions before it was good |
+
+Approach **A** also draws on **Thomas Creates** (1) for its OpenArt image/video
+settings, though that video is closer to a hybrid of A and the frame-chaining
+technique below.
+
+The bolt-on brain below is **Joseph's** (4). Techniques 1 is **Thomas Creates'**
+(1), 2 is **MoSidd's** (2), and 3, 4, 5 are all **Skai Generated's** (7).
 
 ## The bolt-on layer
 
@@ -986,12 +1020,12 @@ of.
 
 | # | Technique | What it buys | Source |
 |---|---|---|---|
-| 1 | **Frame-chaining** — never animate a map. Generate a before still and an after still, let the video model move between them. | Consistency. A model told to animate a map redraws it every frame. | 1 |
-| 2 | **Locked background** — static background, only mid- and foreground move. | Zero style drift, structurally rather than by prompt. Also produces the one-continuous-shot Vox feel. | 2 |
-| 3 | **Board approval gate** — generate boards, approve them, the tool holds that style everywhere after. | Kills drift before any scene work is paid for. | 7 |
-| 4 | **Static captions** — animate objects only, never letters. | Removes the single worst failure mode in the whole set. | 7 |
-| 5 | **`@`-asset regeneration** — fix one bad shot in place; ask for 3–5 variations and pick. | The good takes survive. No starting over in a fresh chat. | 7 |
-| 6 | **Version feedback loop** — send feedback, get the next version, repeat. | Catches continuity breaks (two towers merging, a character changing face). | 8 |
+| 1 | **Frame-chaining** — never animate a map. Generate a before still and an after still, let the video model move between them. | Consistency. A model told to animate a map redraws it every frame. | Thomas Creates (1) |
+| 2 | **Locked background** — static background, only mid- and foreground move. | Zero style drift, structurally rather than by prompt. Also produces the one-continuous-shot Vox feel. | MoSidd (2) |
+| 3 | **Board approval gate** — generate boards, approve them, the tool holds that style everywhere after. | Kills drift before any scene work is paid for. | Skai Generated (7) |
+| 4 | **Static captions** — animate objects only, never letters. | Removes the single worst failure mode in the whole set. | Skai Generated (7) |
+| 5 | **`@`-asset regeneration** — fix one bad shot in place; ask for 3–5 variations and pick. | The good takes survive. No starting over in a fresh chat. | Skai Generated (7) |
+| 6 | **Version feedback loop** — send feedback, get the next version, repeat. | Catches continuity breaks (two towers merging, a character changing face). | Luuk Alleman (8) |
 
 **The principle under 1 and 4:** give the model less to redraw. Two sources
 reached it independently, from maps and from text.
@@ -1057,9 +1091,10 @@ questions for you.
 
 **Material that is missing**
 
-12. **No video titles or channel names.** The transcript fetcher returns caption
-    text only. If you want to name or credit any of these creators on screen, I
-    need the titles/channels from you.
+12. ~~**No video titles or channel names.**~~ **Closed 2026-08-27** — fetched with
+    `yt-dlp --skip-download --print`. Titles, channels, subscriber counts, view
+    counts, publish dates and durations are all in the Sources table now, and
+    every approach and technique is attributed by channel.
 13. **No screenshots.** Every UI path in here (menu names, button labels,
     settings panels) is reconstructed from spoken description. If the video
     shows UI, we need real captures.
