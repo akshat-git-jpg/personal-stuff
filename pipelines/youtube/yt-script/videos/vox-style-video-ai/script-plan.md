@@ -71,21 +71,21 @@ Keep the list on screen through the last sentence, then cut straight to the firs
 > And when a shot comes out wrong, you will know exactly which step to go back to.
 >
 > Here is what we are going to cover.
-> First, what makes it look like Vox, so you can judge your own results properly. (What makes it look like Vox)
-> Then, why one tool beats five. (Why one tool beats five)
-> After that, getting the AI to study real Vox videos. (Getting the AI to study real Vox videos)
+> First, what makes it look like Vox, so you can judge your own results properly.
+> Then, why one tool beats five.
+> After that, getting the AI to study real Vox videos.
 > That is the step almost nobody does, and it is the one that saves you the most trouble later.
 >
 > Then we get to work.
-> Picking a topic that holds up. (Picking a topic that holds up)
-> Writing the script. (Writing the script)
-> Locking the look. (Locking the look)
-> Picking the voice. (Picking the voice)
-> Picking the music. (Picking the music)
-> Adding the motion. (Adding the motion)
-> And putting it all together. (Putting it all together)
+> Picking a topic that holds up.
+> Writing the script.
+> Locking the look.
+> Picking the voice.
+> Picking the music.
+> Adding the motion.
+> And putting it all together.
 >
-> Then right at the end, when you need more control. (When you need more control)
+> Then right at the end, when you need more control.
 > That one is for the point where the chat stops being enough.
 >
 > If you want to follow along, everything I use is linked in the description.
