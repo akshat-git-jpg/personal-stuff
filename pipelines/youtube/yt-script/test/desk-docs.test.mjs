@@ -19,6 +19,33 @@ const read = (p) => readFileSync(join(REPO, p), 'utf8')
 
 const STEPS = 'pipelines/youtube/yt-script/steps'
 
+// The DEMO lane renders at the TOP of its beat, so every spoken line in that beat
+// is heard AFTER the silence. The spec said where the lane renders and never what
+// that means for the words, and on 2026-08-27 the session wrote "just watch this
+// for a second" into a beat where the shot had already played. Owner: *"You said
+// just watch this for a second and after that there is no demo section... Is the
+// sequencing wrong?"* The constraint is invisible in the parser and in the UI, so
+// the spec is the only place it can live, and this is the only thing keeping it
+// there.
+test('the DEMO lane spec says the spoken copy comes after the silence', () => {
+  const plan = read('pipelines/youtube/yt-script/SCRIPT-PLAN-INSTRUCTIONS.md')
+  assert.match(
+    plan,
+    /## The DEMO lane/,
+    'DEMO_SPEC_MISSING: the DEMO lane section is gone from the script-plan spec',
+  )
+  assert.match(
+    plan,
+    /renders at the \*\*top\*\* of its beat/,
+    'DEMO_ORDER_UNSTATED: the spec no longer says DEMO renders at the top of its beat — without it the writer cannot know which order the words are heard in',
+  )
+  assert.match(
+    plan,
+    /Never write a line that points forward to the demo/,
+    'DEMO_ORDER_UNSTATED: the spec no longer forbids a forward-pointing spoken line, which is the mistake that produced "just watch this for a second" after the shot had played',
+  )
+})
+
 test('the publish step carries the publish command', () => {
   const s = read(`${STEPS}/070-publish-desk-run/README.md`)
   assert.match(s, /desk\.mjs publish/, 'DESK_WIRING_MISSING: step 070 does not publish to the desk')

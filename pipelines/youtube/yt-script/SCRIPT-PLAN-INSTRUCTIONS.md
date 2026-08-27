@@ -152,6 +152,33 @@ instruction into the left track and the exception stops being one.
 **Not a blockquote.** Plain lines, like `SHOW` and `EDIT`. A blockquote means
 spoken copy, and the whole point is that nothing here is spoken.
 
+**The silence comes first, so the spoken copy must read as coming after it.**
+`DEMO` renders at the **top** of its beat, above the spoken lines, always. Every
+line of that beat's `SAY` is therefore heard *after* the viewer has already
+watched. **Never write a line that points forward to the demo.** "Just watch this
+for a second", "here is what that looks like", "let me show you" — each of them
+promises something the viewer has just sat through, and the beat plays as a
+contradiction.
+
+Write the spoken copy as a **reaction**, not an introduction:
+
+| Wrong — points forward | Right — points back |
+|---|---|
+| "So before I say anything else, just watch this." | "You have probably seen shots like this before." |
+| "Let me show you what it looks like." | "What you just watched was made with AI." |
+| "Here is the finished result." | "That took one afternoon." |
+
+If the video genuinely needs to tease first and *then* go silent, that is **two
+beats** — a spoken beat, then a beat whose only left-track content is its `DEMO`.
+That is still the lane as a beat property; it is not a new kind of beat. Do not
+try to get both orders out of one beat, because only one of them renders.
+
+Broken on 2026-08-27 in `vox-style-video-ai` beat 1.1, on the same day the lane
+was added. Twelve seconds of shot played in silence, then the voice said *"just
+watch this for a second."* Owner: *"You said just watch this for a second and
+after that there is no demo section... Is the sequencing wrong?"* The desk was
+right; the words were written for the opposite order.
+
 **A property of a beat, never a beat of its own.** Owner decision, 2026-08-27:
 a beat can open silent and then have spoken copy, and both render in the left
 track in that order. It does not change the beat's `mode`, so it never adds to
