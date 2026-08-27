@@ -166,7 +166,9 @@ export function save(path, elements) {
     type: 'excalidraw',
     version: 2,
     source: 'kafka-food-delivery',
-    elements: elements.flat(),
+    // flat(Infinity): helpers return arrays, and callers nest those arrays inside
+    // their own arrays. One level of flattening is not enough.
+    elements: elements.flat(Infinity),
     appState: { gridSize: null, viewBackgroundColor: '#ffffff' },
     files: {},
   };

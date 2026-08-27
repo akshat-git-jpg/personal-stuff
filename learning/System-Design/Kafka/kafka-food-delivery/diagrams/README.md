@@ -16,6 +16,7 @@ then just click the file. It opens as a canvas.
 | File | Chapter | The idea |
 |---|---|---|
 | `01-the-log.excalidraw` | 1 | Kafka is a numbered list that does not forget |
+| `02-the-whole-picture.excalidraw` | 1-3 | Broker holds topics, topics split into partitions, consumers read in groups |
 
 More get added as we go. **Ask me to visualise anything** — a concept, a
 failure, a comparison — and I will generate a new one here.
