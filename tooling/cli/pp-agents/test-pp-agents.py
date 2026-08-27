@@ -1125,15 +1125,24 @@ with tempfile.TemporaryDirectory() as tmp:
 
 section("starting a new session")
 
-check("the busiest folder is the default",
-      mod.default_cwd([{"cwd": "/a"}, {"cwd": "/b"}, {"cwd": "/b"}]) == "/b")
-check("ties are broken the same way every run",
-      mod.default_cwd([{"cwd": "/b"}, {"cwd": "/a"}]) ==
-      mod.default_cwd([{"cwd": "/a"}, {"cwd": "/b"}]))
-check("no sessions means somewhere real, not empty",
-      os.path.isdir(mod.default_cwd([])), mod.default_cwd([]))
-check("sessions without a folder are ignored",
-      mod.default_cwd([{"cwd": ""}, {"cwd": "/only"}]) == "/only")
+# Where you opened the view is what you chose; where the backlog lives is not.
+with tempfile.TemporaryDirectory() as here:
+    was = os.getcwd()
+    os.chdir(here)
+    try:
+        check("the folder the view was opened in wins",
+              os.path.realpath(mod.default_cwd([])) == os.path.realpath(here),
+              mod.default_cwd([]))
+        check("it wins even when every session lives somewhere else",
+              os.path.realpath(mod.default_cwd(
+                  [{"cwd": "/b"}, {"cwd": "/b"}, {"cwd": "/b"}])) ==
+              os.path.realpath(here),
+              mod.default_cwd([{"cwd": "/b"}]))
+    finally:
+        os.chdir(was)
+
+check("the default is always a real folder", os.path.isdir(mod.default_cwd([])),
+      mod.default_cwd([]))
 
 
 def one_folder_store(tmp):
@@ -1163,8 +1172,10 @@ with tempfile.TemporaryDirectory() as tmp:
           "describe the task" in after, after[-400:])
     check("the task is dispatched with claude --bg",
           "--bg ship it" in calls, repr(calls))
-    check("the folder prompt is pre-filled, so enter accepts it",
-          real in after, after[-500:])
+    check("the folder prompt arrives pre-filled, so enter accepts it",
+          "folder: /" in after, after[-500:])
+    check("and what it offers is where the view was opened, not where the sessions are",
+          real not in after.split("folder: ")[-1][:200], after[-500:])
 
 with tempfile.TemporaryDirectory() as tmp:
     one_folder_store(tmp)

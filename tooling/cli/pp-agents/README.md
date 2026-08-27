@@ -128,9 +128,14 @@ gibberish.
 
 ### Starting a new session
 
-`n` asks for the task, then for the folder - pre-filled with the one most of your
-sessions already run in, so enter accepts it. The task comes first because that is
-the part you already have in your head; the folder is a detail.
+`n` asks for the task, then for the folder - pre-filled with **the directory you
+opened the view in**, so enter accepts it and `tab` completes to any folder your
+other sessions use. The task comes first because that is the part you already have
+in your head; the folder is a detail.
+
+The first version offered the folder most sessions already ran in. That is a fact
+about the backlog, not about intent: open the view inside one repo and it proposed
+a different one. Where the terminal is, is the thing you actually chose.
 
 The list carries a permanent line above the status bar:
 
