@@ -225,6 +225,46 @@ an intro:
 - Per-metric scorecard explanation: 50-90 words.
 - Per-option honest-verdict paragraph: 50-80 words.
 
+## One sentence per line
+
+**Every spoken line is one sentence on its own line.** This is how
+`EXAMPLE-SCRIPT.md` is written, and it was never written down as a rule until
+2026-08-27, when a script plan came back in paragraphs and the owner said the
+whole thing read as *"too gibberish, too much is going on in a small frame of
+time, it doesn't look like our day-to-day language"*.
+
+Look at the reference script:
+
+```
+"Most people think they can instantly tell when they're looking at an AI avatar.
+They expect awkward lip-sync, unnatural expressions, or something that just feels... off.
+But AI avatar technology has come a long way.
+So before I tell you anything else... remember this moment."
+```
+
+Four lines, four sentences. Then compare what the same content looks like as a
+paragraph: identical words, and it reads twice as fast and half as clearly.
+
+**The line break is not formatting. It is the pacing.** It is where the narrator
+breathes, and writing paragraphs removes every one of those breaths at once. That
+is the mechanism behind the owner's *"too much is going on in a small frame of
+time"* — not word choice, sentence packing.
+
+Three rules that follow from it:
+
+- **One idea per sentence, one sentence per line.** If a line needs an "and" to
+  hold two ideas together, it is two lines.
+- **Blank line between thought groups**, roughly every three or four lines. That
+  is the paragraph, and it is where the narrator takes a longer beat.
+- **Do not stack three parallel fragments as a drumbeat.** Three real, distinct
+  items on three lines is fine and the reference script does it. Three
+  rewordings of one item is `humanizer` pattern 35.
+
+**Claim density is the other half.** A line carries one claim. Four claims in
+sixty words is a paragraph a listener cannot follow, however plain the words are,
+because speech gives them no chance to re-read. When a beat has four things to
+say, it needs four lines and a breath, not a denser sentence.
+
 ## Reading as a human
 
 **The `humanizer` skill is part of writing a script here, not a polish option.**
