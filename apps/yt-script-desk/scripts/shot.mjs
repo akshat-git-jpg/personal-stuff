@@ -14,7 +14,7 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 const APP_ROOT = join(HERE, '..')
 const API_PORT = 4327
 const WEB_PORT = 4173
-const KEY = 'character-consistency-ai'
+const KEY = 'vox-style-video-ai'
 
 function waitForPort(port, path = '/') {
   const deadline = Date.now() + 30_000

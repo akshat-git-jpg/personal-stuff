@@ -21,7 +21,7 @@ This separation prevents the maker from accidentally reading production notes as
 npm install
 npm run dev:local
 ```
-Then open `http://localhost:5175/?key=character-consistency-ai` (or any other valid video key you are working on).
+Then open `http://localhost:5175/?key=vox-style-video-ai` (or any other valid video key you are working on).
 
 ## CLI Workflow
 
