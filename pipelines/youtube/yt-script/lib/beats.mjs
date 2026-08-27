@@ -101,6 +101,7 @@ export function buildBeats(md) {
   let curPartKind = 'intro'
   let curSection = null
   let curRules = []
+  let curSectionFacts = []
   let pending = null
 
   const flush = () => {
@@ -117,6 +118,7 @@ export function buildBeats(md) {
       curPartKind = partKindFor(n)
       curSection = null
       curRules = []
+      curSectionFacts = []
       continue
     }
 
@@ -124,6 +126,7 @@ export function buildBeats(md) {
       flush()
       curSection = b.text
       curRules = []
+      curSectionFacts = []
       continue
     }
 
@@ -133,6 +136,24 @@ export function buildBeats(md) {
         .slice(1)
         .map((l) => l.replace(/^\s*-\s*/, '').trim())
         .filter(Boolean)
+      continue
+    }
+
+    // A `FACTS` block between a `### SECTION:` heading and that section's first
+    // `#### beat` belongs to the SECTION, the way a RULES box does.
+    //
+    // Until 2026-08-28 it fell through to `if (!pending) continue` below and was
+    // dropped in SILENCE. Every one of the eleven sections in vox-style-video-ai
+    // had one — the research behind the section, ten to fifteen lines of it — and
+    // none of it ever reached the desk. It looked correct in the markdown, so
+    // nothing pointed at it until the owner added source links to those blocks
+    // and could not find them in the UI.
+    //
+    // It attaches to the section's FIRST beat only, not to every beat: RULES
+    // repeat because breaking one breaks the video, while FACTS are context to
+    // read once. `splice(0)` is what makes it once.
+    if (b.t === 'lane' && b.kind === 'FACTS' && !pending) {
+      curSectionFacts.push(...b.raw)
       continue
     }
 
@@ -151,7 +172,7 @@ export function buildBeats(md) {
         demo: [],
         show: [],
         edit: [],
-        facts: [],
+        facts: curSectionFacts.splice(0),
         rules: curRules.slice(),
         verdict: null,
       }

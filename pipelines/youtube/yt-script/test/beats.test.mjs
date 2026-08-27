@@ -207,6 +207,108 @@ test('the worksheet is still byte-identical after the parser change', (t) => {
   t.diagnostic(checked.join(' | ') || 'no videos in REAL')
 })
 
+// ------------------------------------------------- section-level FACTS
+// A `FACTS` block between a `### SECTION:` heading and that section's first beat
+// belongs to the SECTION. It used to hit `if (!pending) continue` and be dropped
+// in SILENCE.
+//
+// Measured 2026-08-28: every one of the eleven sections in vox-style-video-ai
+// carried one — ten to fifteen lines of research each — and NONE of it reached
+// the desk. The markdown looked right, the UI looked right, and the freelancer
+// was simply never shown the material behind the section he was filming. It
+// surfaced only because the owner asked for source links, they went into those
+// blocks, and he could not find them: *"not seeing."*
+//
+// RULES were already handled this way. FACTS were not, and nothing said so.
+test('a FACTS block before the first beat of a section is not dropped', () => {
+  const md = [
+    '# T',
+    '',
+    '## 1 · INTRODUCTION',
+    '',
+    '#### 1.1 · Open',
+    '',
+    '**SAY** — final',
+    '> A line.',
+    '',
+    '## 2 · BODY',
+    '',
+    '### SECTION: The section',
+    '',
+    '> **RULES — WHOLE SECTION**',
+    '> - A rule.',
+    '',
+    '**FACTS**',
+    'A section fact.',
+    'Who these people are: Someone https://youtu.be/aaaaaaaaaaa',
+    '',
+    '#### 2.1 · First',
+    '',
+    '**SAY**',
+    'Cover the thing.',
+    '',
+    '#### 2.2 · Second',
+    '',
+    '**SAY**',
+    'Cover the other thing.',
+    '',
+  ].join('\n')
+
+  const { beats } = buildBeats(md)
+  const first = beats.find((b) => b.num === '2.1')
+  const second = beats.find((b) => b.num === '2.2')
+
+  assert.deepEqual(
+    first.facts,
+    ['A section fact.', 'Who these people are: Someone https://youtu.be/aaaaaaaaaaa'],
+    'SECTION_FACTS_DROPPED: the section FACTS block never reached a beat, so the research behind the section is invisible in the desk',
+  )
+  // Once, not on every beat. RULES repeat because breaking one breaks the video;
+  // FACTS are context to read at the top of the section.
+  assert.deepEqual(
+    second.facts,
+    [],
+    'SECTION_FACTS_REPEATED: the section FACTS block was copied onto every beat, which turns the notes track into wallpaper',
+  )
+  assert.deepEqual(second.rules, ['A rule.'], 'RULES_NOT_REPEATED: a section rule must appear on every beat of the section')
+})
+
+test('a beat-level FACTS block is not swallowed by the section one', () => {
+  const md = [
+    '# T',
+    '',
+    '## 1 · INTRODUCTION',
+    '',
+    '#### 1.1 · Open',
+    '',
+    '**SAY** — final',
+    '> A line.',
+    '',
+    '## 2 · BODY',
+    '',
+    '### SECTION: S',
+    '',
+    '**FACTS**',
+    'Section fact.',
+    '',
+    '#### 2.1 · One',
+    '',
+    '**SAY**',
+    'Do it.',
+    '',
+    '**FACTS**',
+    'Beat fact.',
+    '',
+  ].join('\n')
+  const { beats } = buildBeats(md)
+  const b = beats.find((x) => x.num === '2.1')
+  assert.deepEqual(
+    b.facts,
+    ['Section fact.', 'Beat fact.'],
+    'FACTS_LOST: a beat that has both a section FACTS block and its own must carry both, section first',
+  )
+})
+
 // ---------------------------------------------------------------- legacy guard
 // A pre-spec outline must be REFUSED, not silently half-parsed. Measured
 // 2026-08-23: ai-avatar-online-courses returned 5 beats instead of 13 and

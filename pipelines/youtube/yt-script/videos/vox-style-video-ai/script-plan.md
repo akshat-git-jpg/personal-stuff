@@ -122,6 +122,7 @@ The five things in every scene (Joseph, source 4): text, main object, background
 Background does not move. Small extras drift a little. Text pops on. Main object unfolds or pops into place.
 Niches named: finance, documentary, true crime (Leo Ai). Crime, documentary, history, money and power (Ai-Seekify).
 Vox's own subjects: political and historical, backed by numbers.
+Who these people are: Joseph | Video Editing https://youtu.be/PaXuebdY75U · Leo Ai https://youtu.be/WCDhGKNVrKU · Ai-Seekify https://youtu.be/ZhfHjf_0E-Q · Thomas Creates https://youtu.be/edrUbfeSPio
 
 #### 2.1 · Locked background
 
@@ -211,7 +212,6 @@ No verdict card. This is a tutorial. Nothing has been ranked.
 
 ---
 
-Who these people are: Joseph | Video Editing https://youtu.be/PaXuebdY75U · Leo Ai https://youtu.be/WCDhGKNVrKU · Ai-Seekify https://youtu.be/ZhfHjf_0E-Q · Thomas Creates https://youtu.be/edrUbfeSPio
 ### SECTION: Why one tool beats five
 
 > **RULES — WHOLE SECTION**
@@ -230,6 +230,7 @@ ChatGPT plus Google Flow plus a separate upscale plus CapCut. Free, but all manu
 Director has two modes: run it start to finish, or guide me step by step.
 Skai Generated used guide me, so he could stop and change things partway.
 The session is saved. Closing the tab does not lose the work.
+Who these people are: Leo Ai https://youtu.be/WCDhGKNVrKU · Joseph | Video Editing https://youtu.be/PaXuebdY75U · Koen | AI Content Systems https://youtu.be/TiycelzfzC0 · MoSidd https://youtu.be/7wuYBfE131U · Ai-Seekify https://youtu.be/ZhfHjf_0E-Q · Skai Generated https://youtu.be/Jkt4aTOpqpM
 
 #### 2.6 · The five steps
 
@@ -300,7 +301,6 @@ Two things: the Director tab, and a browser you can install an extension into.
 
 ---
 
-Who these people are: Leo Ai https://youtu.be/WCDhGKNVrKU · Joseph | Video Editing https://youtu.be/PaXuebdY75U · Koen | AI Content Systems https://youtu.be/TiycelzfzC0 · MoSidd https://youtu.be/7wuYBfE131U · Ai-Seekify https://youtu.be/ZhfHjf_0E-Q · Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Getting the AI to study real Vox videos
 
 > **RULES — WHOLE SECTION**
@@ -318,6 +318,7 @@ What comes back is one research document: how shots are built, notes on getting 
 Two sets of prompts: one for making pictures, one for making them move.
 Joseph's design checklist, from studying 100 reference designs: colours, shapes, text, objects, big design, small detail, textures.
 Joseph called that document the most important part of getting his six animations right.
+Who these people are: Thomas Creates https://youtu.be/edrUbfeSPio · Joseph | Video Editing https://youtu.be/PaXuebdY75U
 
 #### 2.10 · Why guessing fails
 
@@ -390,7 +391,6 @@ Say plainly that this is the part that survives when the tool changes. Nothing e
 
 ---
 
-Who these people are: Thomas Creates https://youtu.be/edrUbfeSPio · Joseph | Video Editing https://youtu.be/PaXuebdY75U
 ### SECTION: Picking a topic that holds up
 
 > **RULES — WHOLE SECTION**
@@ -405,6 +405,7 @@ Three: gives it the real verified facts, with one firm instruction not to invent
 The style needs one narrow, well-checked topic and one narrator carrying it.
 Skai's worked topic: how an Amazon package reaches you in two days.
 His surprising angle: Amazon shipped it near you before you ordered it.
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 
 #### 2.15 · One narrator
 
@@ -455,7 +456,6 @@ It is the single most copyable thing in this section.
 
 ---
 
-Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Writing the script
 
 > **RULES — WHOLE SECTION**
@@ -469,6 +469,7 @@ Skai: "I never take any AI's first pass as final."
 After editing: tighten it, check every number against real data, save.
 The director then remembers the script and locks it in.
 Skai called this the hardest part of the whole video, and said you never touch it again afterwards.
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 
 #### 2.19 · Fill the template
 
@@ -528,7 +529,6 @@ So a weak line here becomes a weak shot four steps from now.
 
 ---
 
-Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Locking the look
 
 > **RULES — WHOLE SECTION**
@@ -547,6 +547,7 @@ The text glitch: if captions keep coming back as nonsense, lock them as still gr
 The director moves pictures well and struggles to redraw letters.
 Luuk Alleman: output he left alone was flat. The moment he had a real idea for how to show something, it came out well.
 Luuk: "Trust your creativity. It is the one thing nobody can clone."
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM · Luuk Alleman https://youtu.be/i5-tZegBvxU
 
 #### 2.24 · First boards
 
@@ -623,7 +624,6 @@ Zero glitches, and a better picture anyway.
 
 ---
 
-Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM · Luuk Alleman https://youtu.be/i5-tZegBvxU
 ### SECTION: Picking the voice
 
 > **RULES — WHOLE SECTION**
@@ -636,6 +636,7 @@ Skai: the first few sounded flat and a bit robotic. The fourth was the one.
 What he picked: warm, calm, and a little curious.
 The narrator and the music set the mood before the pictures take over.
 Get those wrong and nothing else saves it.
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 
 #### 2.30 · Ten reads
 
@@ -678,7 +679,6 @@ Say plainly that this is what makes locking safe, not final.
 
 ---
 
-Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Picking the music
 
 > **RULES — WHOLE SECTION**
@@ -691,6 +691,7 @@ Skai's pick: warm and calm, with just enough pace to keep things alive without f
 His warning: copyright strikes and takedowns are not worth the trouble, so keep your music original.
 After both are locked, ask the director to lay voice and music over all the boards in order.
 What you get is a narrated slideshow. It fits together, it is on topic, and it is boring. That is expected.
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 
 #### 2.34 · Ten tracks
 
@@ -732,7 +733,6 @@ The narrated slideshow playing. 15 seconds, uncut.
 
 ---
 
-Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Adding the motion
 
 > **RULES — WHOLE SECTION**
@@ -751,6 +751,7 @@ The single-asset fix: type @, click the thing that is wrong, say what is wrong. 
 Ask for three to five versions and pick the one that got it right.
 When one board keeps breaking whatever you do, redesign the thing causing the problem instead of fighting it.
 It always stitches a remade scene back into the right spot.
+Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 
 #### 2.38 · Why flat is right
 
@@ -822,7 +823,6 @@ The glitching map was replaced with a person thinking over a chessboard. Zero gl
 
 ---
 
-Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 ### SECTION: Putting it all together
 
 > **RULES — WHOLE SECTION**
@@ -836,6 +836,7 @@ Two continuity failures worth naming, both from Luuk.
 One: two objects merging into one mid-shot. His case was two electricity towers.
 Two: a character who stops looking like the same person between scenes.
 His fix for the second was a plain instruction: make the person match the previous scene.
+Who these people are: Luuk Alleman https://youtu.be/i5-tZegBvxU
 
 #### 2.44 · Ask for the cut
 
@@ -875,7 +876,6 @@ This is the least interesting beat in the video, and padding it would show.
 
 ---
 
-Who these people are: Luuk Alleman https://youtu.be/i5-tZegBvxU
 ### SECTION: When you need more control
 
 > **RULES — WHOLE SECTION**
@@ -900,6 +900,7 @@ Switch to the text with reference tab, open add visual references, go to from cr
 Paste an animation prompt telling it to open on the empty version and build each part up in turn.
 Duration 15 seconds for that shot.
 Honest defect Thomas named: the map's colour and texture shifted slightly between frame one and frame two.
+Who these people are: Thomas Creates https://youtu.be/edrUbfeSPio
 
 #### 2.48 · The two panels
 
@@ -1008,4 +1009,3 @@ Duration for a three-frame build: 15 seconds.
 **EDIT**
 Hold on the finished shot from the cold open under the last two sentences.
 That closes the loop on the opening image.
-Who these people are: Thomas Creates https://youtu.be/edrUbfeSPio
