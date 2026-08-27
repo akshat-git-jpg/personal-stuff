@@ -12,14 +12,35 @@ The owner reviews `videos/<key>/script-plan.md` two ways at once: the raw markdo
 
 ## What you do
 
-**1. Boot the desk once.**
+**1. Boot the desk once — from the WORKSPACE, not the main checkout.**
 
 ```bash
-cd apps/yt-script-desk
+cd "$(pp-work claim --kind code --slug <this-session-slug>)"/apps/yt-script-desk
 npm run dev:local
 ```
 
 Open `http://localhost:5175/?key=<key>`.
+
+**Which checkout the desk runs in decides which file you review.** The server
+resolves `videos/<key>/script-plan.md` relative to its own repo root, so a desk
+booted in `~/codebase/personal-stuff` shows you whatever has **landed on main**,
+not what this session just wrote. The live file is in the workspace.
+
+Symptom when it is wrong (hit on 2026-08-27): edits appear after a few minutes,
+in the order they landed, and code changes never appear at all — because the
+running Vite server is serving the main checkout's components. If the page looks
+one step behind reality, check the server's directory before anything else:
+
+```bash
+lsof -a -p "$(lsof -nP -iTCP:5175 -sTCP:LISTEN -t)" -d cwd -Fn | tail -1
+```
+
+**A fresh workspace has no `node_modules`.** Install once, and use a private npm
+cache — the shared one throws `EACCES` under the sandbox:
+
+```bash
+npm ci --cache /tmp/npm-cache-<slug>
+```
 
 **2. Open the markdown in your editor.**
 
