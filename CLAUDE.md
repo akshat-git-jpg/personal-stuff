@@ -49,6 +49,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Implementation plans for executor agents (write or run one) | [`plans/README.md`](plans/README.md) — convention in [`plans/WORKFLOW.md`](plans/WORKFLOW.md) |
 | Infra (docker compose, VPS watchdog, secrets, secrets escrow) | `infra/` |
 | DSA practice notes/solutions | `learning/DSA/` |
+| System design study — Kafka hands-on lab (food delivery story, 11 chapters) | `learning/System-Design/Kafka/kafka-food-delivery/` |
 | Repo-wide scripts + external path dependencies | `scripts/README.md` |
 
 
