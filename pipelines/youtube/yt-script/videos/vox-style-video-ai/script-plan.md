@@ -2,7 +2,10 @@
 
 ## 1 · INTRODUCTION
 
-#### 1.1 · Cold open — a finished Vox shot, no logos, no UI
+#### 1.1 · Cold open
+
+**DEMO**
+The finished Vox shot plays. No voiceover.
 
 **SHOW**
 Play roughly 12 seconds of a finished paper-cut shot: locked background, cutouts landing, a caption punching on, one slow camera push.
@@ -19,7 +22,7 @@ Do NOT show the OpenArt interface anywhere in this beat. The reveal in 1.2 depen
 > Or spending weeks learning After Effects.
 > So before I say anything else, just watch this for a second.
 
-#### 1.2 · Reveal, who this is for, and credibility
+#### 1.2 · The reveal
 
 **SHOW**
 Cut to the OpenArt Director chat, one clean full-screen frame. Then, while the failure list is spoken, three quick shots of things going wrong: a caption rendered as gibberish, a flat generic board, a character whose face changes between two frames.
@@ -54,7 +57,7 @@ Keep the finished shot from 1.1 available. It comes back at the end of the video
 > One real topic, start to finish.
 > Every setting on screen, and nothing cut out when it went wrong.
 
-#### 1.3 · Promise, roadmap, links, and into the body
+#### 1.3 · Roadmap
 
 **SHOW**
 A simple list of the eleven section names as they are spoken, one line at a time.
@@ -106,7 +109,7 @@ The five assets in every scene (Joseph, source 4): text, main object, background
 Niches named: finance, documentary, true crime (Leo Ai). Crime and documentary, history, money and power (Ai-Seekify).
 Vox itself covers political and historical subjects backed by numbers, facts and stories.
 
-#### 2.1 · The background that never moves
+#### 2.1 · Locked background
 
 **SAY**
 Open on the single thing that does most of the work: the background is static and everything else moves on top of it. Explain why that reads as one continuous shot instead of a cut every two seconds. Contrast with what a normal edit does.
@@ -117,7 +120,7 @@ Side by side: the same shot with a moving background, then with a locked one. Th
 **EDIT**
 Hold the three-layer breakdown on screen for at least four seconds. This is the frame people will screenshot.
 
-#### 2.2 · Paper texture and the choppy frame rate
+#### 2.2 · Paper and frame rate
 
 **SAY**
 Cover the two things that make it feel handmade rather than digital: the rough paper look, and a frame rate that is deliberately jerky. Say plainly that the jerkiness is a choice and not a rendering fault, because that is the part people try to fix.
@@ -129,7 +132,7 @@ Zoom into a paper edge at 200% so the texture is unmistakable. Then the same mot
 The choppy low-FPS look is named by both Thomas Creates and Joseph as intentional.
 The paper texture is what makes it read as an animated film rather than a slide deck.
 
-#### 2.3 · The five things in every shot
+#### 2.3 · The five assets
 
 **SAY**
 Walk the five-asset breakdown as a checklist the viewer can hold in their head. Text, main object, background, secondary objects, camera. Name what each one does and, more usefully, what each one does NOT do.
@@ -148,7 +151,7 @@ On-screen graphic:
 **EDIT**
 Keep this table up while 2.4 plays. It is the reference for the rest of the video.
 
-#### 2.4 · Maps, arrows and captions
+#### 2.4 · Maps and captions
 
 **SAY** — one row per element
 Walk the table above row by row against a real shot, pointing at each element as it appears. Then cover the two signature moves the table does not capture: a map or arrow that draws itself across the screen, and a caption that punches on exactly as the narrator hits the word.
@@ -156,7 +159,7 @@ Walk the table above row by row against a real shot, pointing at each element as
 **SHOW**
 A map drawing a route. Then a caption landing on a beat, played twice: once at speed, once slowed down so the timing is visible.
 
-#### 2.5 · Where this style already works
+#### 2.5 · Which niches
 
 **SAY**
 Close the section on who this is for. Name the niches this look is already winning in, and be honest that it suits topics with numbers and history in them rather than anything and everything.
@@ -185,7 +188,7 @@ The four longer routes: Claude plus Higgsfield MCP with final assembly in Premie
 Director offers two modes: run it start to finish, or guide me step by step. Skai Generated used guide me, for control and mid-course adjustments.
 Session state persists. Closing the tab does not lose the work.
 
-#### 2.6 · The five steps under every method
+#### 2.6 · The five steps
 
 **SAY**
 Give the viewer the map before the tool. Every route to a Vox video runs the same five steps, so once they see the steps no tool can confuse them. List the five. Say that the only thing any tool changes is how many windows the five steps are spread across.
@@ -193,7 +196,7 @@ Give the viewer the map before the tool. Every route to a Vox video runs the sam
 **SHOW**
 On-screen graphic: the five steps as a single horizontal strip. Then the same strip with tool logos scattered across it for a five-tool stack, versus one logo covering the whole strip.
 
-#### 2.7 · What one chat replaces
+#### 2.7 · One chat
 
 **SAY**
 Name OpenArt Director and say what it collapses: the script, the boards, the voice, the music, the motion and the stitch all live in one conversation. Be concrete about what that removes, which is the exporting and re-importing between tools, not the thinking.
@@ -204,7 +207,7 @@ CTA — link in description. Place it on the end of this beat, right after the b
 **SHOW**
 The Director chat with the left column visible. One clean pass, no clicking yet.
 
-#### 2.8 · The other routes, and the honest cost of each
+#### 2.8 · The other routes
 
 **SAY**
 Cover the alternatives fast and fairly. One line each: what it is, and the specific thing it costs you. Give the Abacus route slightly more room since it is the closest thing to a real alternative. Be straight that the code route produced the single best-performing video in this space, and that it still means running code.
@@ -223,7 +226,7 @@ On-screen graphic:
 **FACTS**
 MoSidd's Remotion video: 10.6K subscribers, 146K views. The strongest performer in this space and the only code route.
 
-#### 2.9 · Guide me, or run it
+#### 2.9 · Guide me mode
 
 **SAY**
 Explain the two modes and make a recommendation. Run it start to finish is faster and worse for a first attempt; guide me lets the viewer stop and fix at every stage. Recommend guide me and say why.
@@ -250,7 +253,7 @@ The ask: break down exactly what gives the Vox style its look. What comes back i
 Joseph's design checklist, from studying 100 reference designs: colours, shapes, text, objects, macro designs, micro details, textures.
 Joseph called the design guideline document the most important part of getting his six animations right.
 
-#### 2.10 · Why guessing produces the boring version
+#### 2.10 · Why guessing fails
 
 **SAY**
 Set up the problem before the fix. The AI already knows roughly what Vox looks like, which is exactly the trouble: roughly is what produces the generic first attempt everyone gets. Say that this beat is the reason section six goes smoothly.
@@ -258,7 +261,7 @@ Set up the problem before the fix. The AI already knows roughly what Vox looks l
 **SHOW**
 A generic first-pass board next to a real Vox frame. No commentary needed on screen, the gap does the work.
 
-#### 2.11 · Letting it read the real thing
+#### 2.11 · Connect the extension
 
 **SAY**
 Walk the install and the connection. Keep it brisk, it is four clicks. The point to land is what changes: the AI stops working from memory and starts working from actual videos.
@@ -269,7 +272,7 @@ Screen recording of the full path: the VidIQ site, the install button, then the 
 **EDIT**
 Skip the loading between authorize and the connected state. Cut straight to connected.
 
-#### 2.12 · Asking for the breakdown
+#### 2.12 · Ask for the breakdown
 
 **SAY**
 Give the exact ask and explain the two halves of it. One set of words for making pictures, a separate set for making them move. Say why they stay separate, which is that the same word means different things to an image model and a video model.
@@ -277,7 +280,7 @@ Give the exact ask and explain the two halves of it. One set of words for making
 **SHOW**
 The prompt on screen, then the document that comes back, scrolled slowly enough to read the headings.
 
-#### 2.13 · The seven things the breakdown must cover
+#### 2.13 · The seven checks
 
 **SAY** — one row per element
 Walk Joseph's checklist as the test of whether the breakdown is usable. If a breakdown does not name all seven, it is too vague to build on and the viewer should ask again.
@@ -298,7 +301,7 @@ On-screen graphic:
 **EDIT**
 CTA — link in description. Second body CTA. Place it after the checklist lands, and note that the breakdown document is reusable across every video they make.
 
-#### 2.14 · Keep this document
+#### 2.14 · Keep the document
 
 **SAY**
 Close on the reuse. This breakdown is written once and feeds every video after it. Say plainly that this is the part that survives a tool change, unlike anything else in the workflow.
@@ -316,7 +319,7 @@ Skai Generated's script builder template does three things: tells the director t
 The style needs one tightly focused, thoroughly fact-checked topic and a single narrator carrying it.
 Skai's worked topic: how an Amazon package reaches you in two days. The surprising angle: Amazon shipped it near you before you ordered.
 
-#### 2.15 · One narrator, one thread
+#### 2.15 · One narrator
 
 **SAY**
 Explain the constraint that decides whether a topic works: one voice has to carry the whole thing with no cutaways to a second speaker. Give the test — if the topic needs two experts disagreeing, it is the wrong topic for this style.
@@ -324,7 +327,7 @@ Explain the constraint that decides whether a topic works: one voice has to carr
 **SHOW**
 Two topic examples side by side, one that passes and one that does not.
 
-#### 2.16 · Decide the ending first
+#### 2.16 · The ending first
 
 **SAY**
 The surprising angle comes before the opening line. Explain why: the payoff is what the whole script builds toward, so writing the hook first means guessing at what you are hooking toward. Use a real example of an angle.
@@ -332,7 +335,7 @@ The surprising angle comes before the opening line. Explain why: the payoff is w
 **FACTS**
 Skai's angle: the machine started moving your package before you knew you wanted it.
 
-#### 2.17 · Your numbers, in one place
+#### 2.17 · Gather the numbers
 
 **SAY**
 Cover the collection step honestly. Every figure goes in one list before a word of script gets written, and each one gets checked at the source. Say that this is dull and that it is the difference between a video that survives the comments and one that does not.
@@ -340,7 +343,7 @@ Cover the collection step honestly. Every figure goes in one list before a word 
 **SHOW**
 A plain notes file with a short list of figures, each with its source next to it.
 
-#### 2.18 · The one line that stops it inventing numbers
+#### 2.18 · Do not invent
 
 **SAY**
 Give the instruction verbatim in spirit: use these facts and do not invent a single number beyond them. Explain what happens without it, which is a script full of plausible figures nobody can source.
@@ -363,7 +366,7 @@ Skai: "I never take any AI's first pass as final."
 After editing: tighten, double-check every number against real data, save. The director then remembers the script and locks it in.
 Skai called this the most complicated part of the whole video, and said you do not need to touch it again afterward.
 
-#### 2.19 · Filling in the template
+#### 2.19 · Fill the template
 
 **SAY**
 Walk the template being filled with the three inputs from the last section. Keep it quick, the work was done already. That is the point worth making: this beat is fast because section four was slow.
@@ -379,7 +382,7 @@ Cover the structure that arrives: a hook, a build, and a payoff, laid out as a r
 **SHOW**
 The returned draft, scrolled so the three parts are visible.
 
-#### 2.21 · Editing it in place
+#### 2.21 · Edit in place
 
 **SAY**
 This is the beat that matters. Show editing the draft directly instead of asking again. Explain the difference: re-prompting throws away the parts that were already right, editing keeps them. Then tighten a real line on screen so the viewer sees the kind of change worth making.
@@ -391,7 +394,7 @@ Click into the script, edit two or three lines live, save.
 Do not speed this up. Real-time editing is more convincing than a cut.
 CTA — link in description. Third body CTA. Place it after the edit lands, on the convenience of editing in place rather than re-prompting.
 
-#### 2.22 · Check the numbers, then lock
+#### 2.22 · Check and lock
 
 **SAY**
 Close the loop opened in section four: every figure in the draft gets checked against the list. Then lock it, and say what locking means downstream.
@@ -399,7 +402,7 @@ Close the loop opened in section four: every figure in the draft gets checked ag
 **FACTS**
 Once locked, the director holds the script for everything that follows.
 
-#### 2.23 · The step you cannot rush
+#### 2.23 · Do not rush this
 
 **SAY**
 Say plainly that this is the one section where hurrying costs you later, and name the specific cost: every board, every voice read and every motion pass is built on this script, so a weak line here becomes a weak shot four steps from now.
@@ -419,7 +422,7 @@ Before and after: generic flat blue boards with plain icons, to bold collage fra
 The text glitch: if captions keep coming back as gibberish, lock them as static graphics and only animate the objects. The director moves pictures well and struggles to redraw letters.
 Luuk Alleman: unattended AI output was flat; the moment he had a real idea for how to visualise something, it turned out well. "Trust your creativity. It is the one thing nobody can clone."
 
-#### 2.24 · Generating the first boards
+#### 2.24 · First boards
 
 **SAY**
 Generate the first set using the words from the style breakdown. Say what changes because of section three: the ask is specific instead of hopeful.
@@ -427,7 +430,7 @@ Generate the first set using the words from the style breakdown. Say what change
 **SHOW**
 The board prompt, built from the breakdown document. Then the set that comes back.
 
-#### 2.25 · What generic looks like
+#### 2.25 · Generic looks like
 
 **SAY**
 Show the weak result and name what is wrong with it in concrete terms rather than calling it bad. Flat colour, plain icons, no texture, no cutouts. Say that this still happens even with a good breakdown, and that it is a starting point rather than a failure.
@@ -438,7 +441,7 @@ The generic boards, full screen, unflattering.
 **EDIT**
 Do not apologise for the output. Naming the weakness plainly is what makes the next beat land.
 
-#### 2.26 · Asking for the makeover in plain English
+#### 2.26 · Ask for the makeover
 
 **SAY**
 The fix, and it is the most useful sentence in the section. Describe the look you want in ordinary words, name the actual colours, and let it rebuild every board. Show the real description and the rebuild.
@@ -450,12 +453,12 @@ The plain-English request typed out, then the rebuilt set. Before and after on o
 Hold the before-and-after for at least five seconds.
 CTA — link in description. Fourth and final body CTA. Place it here, on the rebuild, because this is the strongest visible result in the video.
 
-#### 2.27 · Approving the set, and what that locks
+#### 2.27 · Approve the set
 
 **SAY**
 Approve the boards and explain what approval actually binds: every later scene inherits this look without being asked again. Say what that saves.
 
-#### 2.28 · Static words from here on
+#### 2.28 · Static captions
 
 **SAY**
 Introduce the captions rule as a decision rather than a workaround, then admit the reason. The tool draws pictures well and letters badly, so words stay still and objects move. Say that this constraint costs almost nothing visually.
@@ -463,7 +466,7 @@ Introduce the captions rule as a decision rather than a workaround, then admit t
 **FACTS**
 Skai hit this failure hardest of the three he named.
 
-#### 2.29 · Your idea beats its idea
+#### 2.29 · Your own idea
 
 **SAY**
 Close the section on the thing that separates a good result from an average one. Unattended, the output is flat. The moment you bring a real visual idea, it lifts. Give a concrete example of swapping a weak concept for a stronger one, and say that this is the part no tool replaces.
@@ -485,7 +488,7 @@ Skai: the first few sounded flat and a little robotic. The fourth was the one.
 The quality he picked: warm, calm, and a little curious.
 The narrator plus the music set the mood before the visuals take over. Get those wrong and nothing else saves it.
 
-#### 2.30 · Ten reads on your own script
+#### 2.30 · Ten reads
 
 **SAY**
 Explain the audition and the one detail that makes it work: they read YOUR script, not a sample. Say why that matters, which is that a voice that suits a generic line can fall apart on your actual sentences.
@@ -493,7 +496,7 @@ Explain the audition and the one detail that makes it work: they read YOUR scrip
 **SHOW**
 The request, then the ten options listed.
 
-#### 2.31 · What a bad read sounds like
+#### 2.31 · A bad read
 
 **SAY**
 Play a flat one and a good one back to back and name the difference in plain terms. Do not use audio-engineering words. Say what a listener would notice.
@@ -509,7 +512,7 @@ Play the weak one first and let it run long enough to be uncomfortable.
 **SAY**
 Give the listening checklist, then say which item matters most and why. Warmth, pace, and whether it sounds curious about its own subject. Land on the last one as the decider.
 
-#### 2.33 · Locking it, and fixing one line later
+#### 2.33 · Lock the voice
 
 **SAY**
 Lock the voice, then cover the thing that saves a re-record: a single line can be redone later without touching the rest. Say plainly that this is what makes locking safe rather than final.
@@ -528,7 +531,7 @@ Skai's pick: warm and calm with just enough tempo to keep things alive without e
 His warning, verbatim in substance: copyrights and the takedowns that come with them are not worth the trouble, so keep your music original.
 After both are locked, ask the director to lay voice and music over all the boards in order. The result is a narrated slideshow: cohesive and on topic, and boring. That is expected.
 
-#### 2.34 · Ten tracks, different moods
+#### 2.34 · Ten tracks
 
 **SAY**
 Cover the audition briefly. It mirrors the voice section so keep it tighter than that one was.
@@ -536,7 +539,7 @@ Cover the audition briefly. It mirrors the voice section so keep it tighter than
 **SHOW**
 The ten tracks listed, then two played under the same narration line.
 
-#### 2.35 · When a track starts competing
+#### 2.35 · When it competes
 
 **SAY**
 Explain the one thing that decides a track: tempo against the read. Too slow and it drags the narrator, too busy and it fights them. Demonstrate both with the same line.
@@ -549,7 +552,7 @@ Play the competing version loud enough that the problem is obvious without being
 **SAY**
 One sentence on copyright and takedowns, then move. Do not turn this into a lecture.
 
-#### 2.37 · Laying it over the boards
+#### 2.37 · The timing base
 
 **SAY**
 Lay the voice and music over the boards and get the timing base. Then set the expectation for the next section: what you are about to watch is a narrated slideshow, it is supposed to feel flat, and that flatness is the timing everything else gets built on.
@@ -575,12 +578,12 @@ Scale: motion added to all 14 boards in one go, made in under 3 minutes. No batc
 The single-asset fix: type @, click the asset, say what is wrong, and it regenerates just that one asset. Ask for three to five variations and pick the one that got it right.
 When one board keeps breaking no matter what, redesign the thing causing the problem rather than fighting it. It always stitches a regenerated scene back into the right spot.
 
-#### 2.38 · Why flat is the right starting point
+#### 2.38 · Why flat is right
 
 **SAY**
 Open by defending the slideshow. It feels boring because the timing is doing its job and nothing is competing with it yet. Say that everything added from here has to earn its place against that baseline.
 
-#### 2.39 · One movement per board
+#### 2.39 · One movement
 
 **SAY**
 Give the rule and the reason. One simple movement per board, timed to the line underneath it. Explain that the timing is what makes it feel deliberate, and that the simplicity is what makes the timing readable.
@@ -588,7 +591,7 @@ Give the rule and the reason. One simple movement per board, timed to the line u
 **SHOW**
 One board with one movement, played against its narration line. Then the same board with the audio muted, so the viewer sees how much the timing was carrying.
 
-#### 2.40 · The everything-moves version
+#### 2.40 · Too much motion
 
 **SAY**
 Show the mistake properly. A board where every element animates, and name what it costs: the viewer's eye has nowhere to rest and the words stop landing. Be specific rather than calling it cluttered.
@@ -599,7 +602,7 @@ The over-animated version, full screen, played twice.
 **EDIT**
 Do not soften this with a cut. Let it be unpleasant.
 
-#### 2.41 · Running the whole set
+#### 2.41 · The whole set
 
 **SAY**
 Cover the scale honestly. One prompt, the whole board set, and it comes back fast. Give the real number and say what it means for iterating rather than treating speed as the headline.
@@ -607,7 +610,7 @@ Cover the scale honestly. One prompt, the whole board set, and it comes back fas
 **FACTS**
 14 boards, motion added in one pass, under 3 minutes. No batch limits.
 
-#### 2.42 · Fixing one shot, keeping the rest
+#### 2.42 · Fix one shot
 
 **SAY**
 The fix that saves the project. When one shot is wrong, do not start over in a fresh chat. Point at the single asset, say what is wrong, and get variations. Say plainly what this protects: every take that was already good.
@@ -615,7 +618,7 @@ The fix that saves the project. When one shot is wrong, do not start over in a f
 **SHOW**
 The @ selection, the complaint typed in, three variations back, one picked.
 
-#### 2.43 · When a board keeps breaking
+#### 2.43 · Redraw the board
 
 **SAY**
 Cover the harder failure and the counterintuitive answer. If a board fails repeatedly, the board is the problem, not the prompt. Redesign the idea. Use the real example and be honest that the replacement was a better visual anyway.
@@ -636,7 +639,7 @@ Ask the director to stitch the final cut, making sure it is timed exactly as in 
 It always stitches a regenerated scene back into the right spot, however many times it was redone.
 The two continuity failures worth naming, both from Luuk: two objects merging into one mid-shot (two electricity towers); and a character who stops looking like the same person between scenes. His fix for the second was a plain instruction to make the person match the previous scene.
 
-#### 2.44 · Asking for the cut
+#### 2.44 · Ask for the cut
 
 **SAY**
 Ask for the stitch and name the one condition that matters: held to the timing base, not re-timed. Explain what happens without that condition.
@@ -644,12 +647,12 @@ Ask for the stitch and name the one condition that matters: held to the timing b
 **SHOW**
 The request, then the full cut playing.
 
-#### 2.45 · One watch, for continuity only
+#### 2.45 · One watch
 
 **SAY**
 Give the review discipline. Watch it once, and look only for things that do not match up between shots. Say why style is not on the list: it was locked four sections ago and re-opening it here means redoing everything downstream.
 
-#### 2.46 · The two mistakes to look for
+#### 2.46 · Two mistakes
 
 **SAY**
 Name both continuity failures concretely and show one. Objects merging into each other mid-shot, and a person who changes between scenes. Give the plain-English fix for the second.
@@ -657,7 +660,7 @@ Name both continuity failures concretely and show one. Objects merging into each
 **SHOW**
 A real continuity break, played twice, then the corrected version.
 
-#### 2.47 · Exporting
+#### 2.47 · Export
 
 **SAY**
 Close on export and the handful of settings that matter. Keep it short, this is the least interesting beat in the video and padding it out would show.
@@ -680,7 +683,7 @@ The map technique: never animate a map. A model told to animate a map redraws it
 Three frames instead of two: the start-and-end option takes only two images. Switch to the text with reference tab, open add visual references, go to from creations, load all three in order, and paste an animation prompt telling it to open on the empty version and build each part up in turn. Duration 15 seconds for that shot.
 Honest defect Thomas named: the map's colour and texture shifted slightly between frame one and frame two.
 
-#### 2.48 · The two panels behind the chat
+#### 2.48 · The two panels
 
 **SAY**
 Open by making the relationship clear: same account, same platform, one level down. The chat is a layer over these two panels. Say when to come down here, which is when you want a specific model or a specific setting the chat will not give you.
@@ -688,7 +691,7 @@ Open by making the relationship clear: same account, same platform, one level do
 **SHOW**
 The left sidebar, image panel and video panel, on the same logged-in account used all video.
 
-#### 2.49 · Picture settings worth changing
+#### 2.49 · Picture settings
 
 **SAY**
 Walk the image panel settings and single out the one that matters most. Give the real values. Explain the 4K choice as a consequence rather than a preference: the first frame is what every later frame in that shot is built from.
@@ -702,7 +705,7 @@ On-screen graphic:
 | Quality | high | the frame is the foundation |
 | Resolution | 4K | everything later inherits it |
 
-#### 2.50 · Video settings, and how long a shot should be
+#### 2.50 · Video settings
 
 **SAY**
 Walk the video panel and give the values plainly. Land on duration as the one people get wrong, and say what 6 seconds buys.
@@ -731,7 +734,7 @@ Frame one, frame two, then the finished shot with the route drawing itself.
 **EDIT**
 Show the two still frames side by side before playing the result. The trick only lands if the viewer sees how similar they are.
 
-#### 2.52 · Three pictures instead of two
+#### 2.52 · Three pictures
 
 **SAY**
 Cover the harder case for anyone building up a scene: three frames, each referencing the one before, and a different tab to animate them. Give the switch and the reason it is needed. Be honest about the defect Thomas hit, which is a slight colour and texture shift between chained frames.
@@ -744,7 +747,7 @@ Duration for a three-frame build: 15 seconds.
 
 ## 3 · CONCLUSION
 
-#### 3.1 · Wrap, links, and sign-off
+#### 3.1 · Wrap and sign-off
 
 **SAY** — final
 > So that is the whole thing.
