@@ -3,15 +3,25 @@
 The agents view, grouped by **tag**, without patching Claude Code.
 
 ```bash
-kbc                       # the view
+kbc                       # the view, on the WORK store (~/.claude-work)
+kbcp                      # the same view, PERSONAL store (~/.claude-personal)
 kbc --dump                # exactly what the view would draw, as plain text
 kbc --list                # one line per session, for scripts
 kbc --doctor              # what it can read, and what it can drive
 ```
 
-`kbc` is the command you type. `pp-agents` is the same program under its
-repo-convention name, and both symlinks live in `~/.local/bin`; the folder,
-the tests and the verify-map entry all stay `pp-agents`.
+`kbc` and `kbcp` are the commands you type - one store each. `pp-agents` is the
+same program under its repo-convention name; the folder, the tests and the
+verify-map entry all stay `pp-agents`.
+
+All three are symlinks in `~/.local/bin` to this one file, and the NAME is what
+selects the store, so a missing link is a missing account. On a fresh machine:
+
+```
+for n in kbc kbcp pp-agents; do
+  ln -sf "$PWD/tooling/cli/pp-agents/pp-agents" ~/.local/bin/$n
+done
+```
 
 ## Why this exists instead of `pp-claude-tags`
 
@@ -62,6 +72,25 @@ Two things fall out that the built-in view cannot do:
 - **Both accounts in one list.** Work and personal sessions together, each
   driven with its own `CLAUDE_CONFIG_DIR`.
 - **Tag is the primary grouping**, not an option behind a dead gate.
+
+## One account per command
+
+`kbc` is the work store, `kbcp` is the personal one. Each shows only its own
+sessions and dispatches only into its own store, and the title says which you are
+looking at. Both are the same file behind two symlinks: the account comes from the
+name it was invoked as, with `--account work|personal` and `PP_AGENTS_ACCOUNT` for
+scripts. Pins are kept per store, so neither can pin the other's rows.
+
+The first build merged both stores into one list. It read well and cost more than
+it gave: the account of a row had to be inferred from a column, and - the part
+that actually broke - a NEW session had to be dispatched into *some* account. That
+ambiguity is what let sessions land in `~/.claude`, created and unlistable. One
+command, one store: what you see and what you create are the same place, and there
+is nothing left to infer.
+
+`--doctor` still names any OTHER store holding records, so an old orphan is
+visible instead of silently accumulating. The sibling account is never reported
+that way - it belongs to the other command, not to nobody.
 
 ## Keys
 

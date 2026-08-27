@@ -68,12 +68,45 @@ def _accounts_from_env():
     return out or None
 
 
-ACCOUNTS = _accounts_from_env() or [
-    ("work", os.path.expanduser("~/.claude-work")),
-    ("personal", os.path.expanduser("~/.claude-personal")),
-]
+# The two stores, and the command name that selects each. `pp-agents` is the
+# original name and keeps the work store, which is what it always listed first.
+STORES = {
+    "work": os.path.expanduser("~/.claude-work"),
+    "personal": os.path.expanduser("~/.claude-personal"),
+}
+COMMAND_ACCOUNT = {"kbc": "work", "kbcp": "personal", "pp-agents": "work"}
+
+
+def account_from_argv(argv0, override=None):
+    """Which store this invocation owns.
+
+    Read from the name the program was called as, so `kbc` and `kbcp` can be two
+    symlinks to one file. An unrecognised name gets the work store rather than an
+    error: a rename should never leave the tool unusable.
+    """
+    if override in STORES:
+        return override
+    env = os.environ.get("PP_AGENTS_ACCOUNT")
+    if env in STORES:
+        return env
+    return COMMAND_ACCOUNT.get(os.path.basename(argv0 or ""), "work")
+
+
+def _account_flag(argv):
+    for i, arg in enumerate(argv):
+        if arg == "--account" and i + 1 < len(argv):
+            return argv[i + 1]
+        if arg.startswith("--account="):
+            return arg.split("=", 1)[1]
+    return None
+
+
+ACCOUNT = account_from_argv(sys.argv[0] if sys.argv else "",
+                            _account_flag(sys.argv[1:]))
+ACCOUNTS = _accounts_from_env() or [(ACCOUNT, STORES[ACCOUNT])]
+# Pins are per store: the two commands must not be able to pin each other's rows.
 PIN_STORE = os.path.expanduser(
-    os.environ.get("PP_AGENTS_PINS", "~/.cache/pp-agents/pins.json"))
+    os.environ.get("PP_AGENTS_PINS", f"~/.cache/pp-agents/pins-{ACCOUNT}.json"))
 UNTAGGED = "Ungrouped"
 
 # state.json's `state`, mapped to the words the built-in view uses, and the
@@ -488,7 +521,10 @@ def foreign_stores(candidates=None):
     `~/.claude` is Claude Code's default and is not one of the accounts here, so
     anything dispatched by a shell with no account selected lands there unseen.
     """
+    # Both stores are known even when only one is being shown: the other one
+    # belongs to the sibling command, not to nobody.
     known = {os.path.realpath(root) for _name, root in account_dirs()}
+    known |= {os.path.realpath(p) for p in STORES.values()}
     out = []
     for root in (candidates if candidates is not None
                  else (os.path.expanduser("~/.claude"),)):
@@ -804,6 +840,9 @@ NEW_HINT = "\u203a n   describe a task for a new session"
 # How long to watch the store for a dispatched session before saying so.
 # Generous, because it never blocks anything: the view redraws every pass.
 DISPATCH_WAIT = float(os.environ.get("PP_AGENTS_DISPATCH_WAIT", "15"))
+
+# The name this was invoked as, so the title matches what you typed.
+PROG_NAME = os.path.basename(sys.argv[0]) if sys.argv else "kbc"
 
 PIN_MARK = "▸"
 FOLD_OPEN = "▾"      # open group
@@ -1182,7 +1221,8 @@ class App:
         if counts.get("working"):
             bits.append(f"{counts['working']} working")
         bits.append(f"{counts.get('done', 0)} done")
-        title = f" pp-agents · by {self.mode} · " + " · ".join(bits)
+        title = (f" {PROG_NAME} · {ACCOUNTS[0][0]} · by {self.mode} · "
+                 + " · ".join(bits))
         self.put(0, 0, title.ljust(w - 1), self.attr["bar"])
 
         if self.show_help:
