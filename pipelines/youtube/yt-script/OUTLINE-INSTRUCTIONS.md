@@ -85,12 +85,12 @@ Format: comparison
 Target: 18 min
 
 ## Contents
-1. Quick Overview
-2. Live Demo
-3. Realism
-4. Features For Course Creators
-5. Pricing And Value
-6. Summary Scorecard
+1. Who each one is for
+2. The same script through all five
+3. Which one looks real
+4. What course creators actually need
+5. What they really cost
+6. Every score in one place
 
 ## Intro
 - hook: $300 and a studio day, versus a few dollars and a few minutes
@@ -99,22 +99,22 @@ Target: 18 min
 
 ---
 
-## 1. Quick Overview
+## 1. Who each one is for
 
-Who each of the five tools is actually built for, before any of them is judged.
+Work out which tool is built for you, before any of them is judged.
 
 - what each one was built to do, in one pass
-- the price tier each sits in
-- which two are enterprise-first and why that shows up later
-- the test conditions held constant across all five
+- the price bracket each one sits in
+- which two are built for big companies, and why that shows up later
+- what was kept identical across all five, so the results mean something
 
-## 2. Live Demo
+## 2. The same script through all five
 
-The same script through all five, generated before any result is shown.
+One script through every tool, all of it generated before any result is shown.
 
-- the script, the avatar and the voice, held identical
-- each platform's setup, and what stays off screen
-- all five outputs revealed together, not one at a time
+- the script, the face and the voice, held identical
+- each tool's setup, and what stays off screen
+- all five results revealed together, not one at a time
 
 ...
 ```
