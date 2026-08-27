@@ -137,7 +137,7 @@ def load_jobs(accounts=None):
                 "config_dir": root,
                 "dir": jdir,
                 "tag": tag,
-                "name": st.get("name") or st.get("intent") or short,
+                "name": display_name(st) or short,
                 "detail": (st.get("detail") or st.get("needs") or "").replace("\n", " ").strip(),
                 "state": (st.get("state") or "").lower(),
                 "cwd": st.get("cwd") or st.get("originCwd") or "",
@@ -146,6 +146,26 @@ def load_jobs(accounts=None):
                 "session_id": st.get("sessionId") or "",
             })
     return jobs
+
+
+NO_TASK_YET = "awaiting task description"
+
+
+def display_name(state):
+    """The label for a row: the generated summary, unless there is nothing behind it.
+
+    `name` is written the moment a session is dispatched, so for a one-line prompt
+    it is a guess made from almost no information - `test1` came back as
+    `onboarding empty state message`. While the session is still asking for its
+    task there is no work to summarise, so the prompt you typed is the only honest
+    label. After that the summary is the better one and wins again.
+    """
+    name = (state.get("name") or "").strip()
+    intent = (state.get("intent") or "").strip()
+    detail = (state.get("detail") or "").strip().lower()
+    if intent and (not name or detail == NO_TASK_YET):
+        return intent
+    return name or intent
 
 
 def load_pins():
