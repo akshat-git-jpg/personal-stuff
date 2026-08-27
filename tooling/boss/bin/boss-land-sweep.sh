@@ -155,6 +155,43 @@ entry_rewrite() {
 }
 
 # ---------------------------------------------------------------------------
+# Already landed? pp-land clears its own entry on success — but the clear is an `rm -f`
+# on the `.blocked` NAME, and this sweep's claim RENAMES that file to `.dispatching`. A
+# sweep that runs mid-land therefore moves the file out from under pp-land's own
+# cleanup, and the entry outlives a land that worked.
+#
+# 2026-08-27, work/land-retry-hardening: the land ran 09:41:41 -> 09:51:22 (9m41s, a
+# full verify suite) and a session-start sweep claimed its entry at 09:51:06 — sixteen
+# seconds before the success. pp-land's rm hit a name that no longer existed, so the
+# entry survived, and an agy fix-up was dispatched to repair a branch already on main.
+# Every later sweep would have done the same thing, forever.
+#
+# The test is pp-land's own (pp-land:317): the workspace HEAD being an ancestor of
+# origin/main IS the definition of landed. Asking it HERE is robust to how the entry
+# went stale — this race, a hand land, a coalesced cycle — in a way that teaching
+# pp-land's rm about `.dispatching` would not be, and it cannot race: an entry that is
+# already on main stays on main.
+# ---------------------------------------------------------------------------
+LAND_FETCHED=0
+land_already_landed() {
+  local f="$1" ws sha
+  ws=$(entry_get "$f" workspace)
+  [ -n "$ws" ] && [ -d "$ws" ] || return 1
+  sha=$(git -C "$ws" rev-parse HEAD 2>/dev/null) || return 1
+  # One fetch per sweep run — this is asked for every entry. It goes through the
+  # WORKSPACE, not REPO_ROOT: a pp-work workspace shares the repo's refs, so the two are
+  # the same fetch in production, and routing it through the entry keeps this helper
+  # self-contained (and testable against a throwaway origin). A failed fetch falls
+  # through to the local origin/main, which is stale only in the SAFE direction: it
+  # under-reports "landed", so the worst case is exactly the behaviour we had before.
+  if [ "$LAND_FETCHED" -eq 0 ]; then
+    LAND_FETCHED=1
+    git -C "$ws" fetch origin main >/dev/null 2>&1 || true
+  fi
+  git -C "$ws" merge-base --is-ancestor "$sha" origin/main 2>/dev/null
+}
+
+# ---------------------------------------------------------------------------
 # The attempt classifier. THE policy of this script — see tooling/boss/CLAUDE.md.
 #
 #   transient  a blip: resets the real-attempt counter, bounded at TRANSIENT_CAP per
@@ -313,6 +350,15 @@ reap_one() {
     say "RUNNING    land-$slug — fix-up still working"
     return 0
   fi
+  # Landed while the fix-up was in flight — or before it ever started, if this entry is
+  # the mid-land claim land_already_landed describes. Either way there is nothing left to
+  # repair, and falling through to ADVANCED would credit the fix-up for someone else's
+  # commit.
+  if land_already_landed "$f"; then
+    say "LANDED     land-$slug — already on origin/main; dropping the stale entry"
+    rm -f "$f"
+    return 0
+  fi
   if boss_head_advanced "land-$slug"; then
     say "ADVANCED   land-$slug — fix-up committed; the post-commit hook re-triggers the land"
     rm -f "$f"
@@ -385,6 +431,13 @@ sweep_one() {
   # one workspace.
   if "$(land_exec_bin "$slug")" alive "land-$slug" >/dev/null 2>&1; then
     say "RUNNING    land-$slug — fix-up still working, not re-dispatching"
+    return 0
+  fi
+  # The land this entry describes may have SUCCEEDED since it was written — see
+  # land_already_landed. Dispatching now repairs nothing and spends a real attempt.
+  if land_already_landed "$f"; then
+    say "LANDED     land-$slug — already on origin/main; dropping the stale entry"
+    rm -f "$f"
     return 0
   fi
   if [ -e "${f%.blocked}.dispatching" ]; then

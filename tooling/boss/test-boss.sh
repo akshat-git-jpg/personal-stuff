@@ -901,6 +901,52 @@ grep -q 'boss-l10' "$CLAUDEP_LOG" \
 land_reset
 echo "PASS: a provider outage hands the fix-up to claude-p on sonnet"
 
+echo "--- (L11) an entry whose land already SUCCEEDED is dropped, not dispatched ---"
+# 2026-08-27. pp-land clears its own entry with `rm -f land-<slug>.blocked` once a land
+# finishes — but a sweep that runs mid-land has already RENAMED that file to
+# `.dispatching`, so the rm hits a name that no longer exists and the entry outlives a
+# land that worked. work/land-retry-hardening landed 09:41:41 -> 09:51:22 (a 9m41s verify
+# suite) and a session-start sweep claimed its entry at 09:51:06, sixteen seconds early:
+# an agy fix-up was dispatched to repair a branch that was already on main, and every
+# later sweep would have done it again. The guard is pp-land's own question asked here —
+# is the workspace HEAD an ancestor of origin/main?
+land_reset
+: > "$CLAUDEP_LOG"
+l11_origin="$TMP/l11-origin.git"; l11_ws="$TMP/l11-ws"
+rm -rf "$l11_origin" "$l11_ws"
+git init -q --bare -b main "$l11_origin"
+git clone -q "$l11_origin" "$l11_ws" 2>/dev/null || true
+git -C "$l11_ws" symbolic-ref HEAD refs/heads/main
+git -C "$l11_ws" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+git -C "$l11_ws" push -q origin main
+l11_entry() {
+  {
+    printf 'workspace=%s\n' "$l11_ws"
+    printf 'branch=%s\n' "boss/l11"
+    printf 'reason=%s\n' "verify failed: npm test"
+    printf 'attempts=1\n'
+    printf 'at=2026-08-27T00:00:00Z\n'
+  } > "$LANDS/land-boss-l11.blocked"
+}
+l11_entry
+l11_out=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l11_out" | grep -q 'LANDED' \
+  || fail "(L11) a land already on origin/main was not reported as landed: $l11_out"
+[ -e "$LANDS/land-boss-l11.blocked" ] && fail "(L11) the stale entry was kept"
+[ -e "$LANDS/land-boss-l11.dispatching" ] && fail "(L11) the stale entry was claimed for dispatch"
+grep -q 'boss-l11' "$AGY_LOG" && fail "(L11) a fix-up was dispatched for a land already on main"
+# The negative half, and the reason this guard is safe: a workspace carrying a commit
+# that is NOT on origin/main is a genuinely blocked land and must still dispatch.
+# Without this case the guard could silence the whole queue and still pass.
+land_reset
+l11_entry
+git -C "$l11_ws" -c user.email=t@t -c user.name=t commit -q --allow-empty -m unlanded
+l11_out2=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+grep -q 'boss-l11' "$AGY_LOG" \
+  || fail "(L11) an unlanded workspace was wrongly treated as landed: $l11_out2"
+land_reset
+echo "PASS: a stale entry for a landed branch is dropped; an unlanded one still dispatches"
+
 echo "--- (D1) boss_dep_prelude installs deps for the dirs a command cd's into ---"
 # The verify and the mutation gate run in a POOL slot, not the crew's worktree, and
 # node_modules is per-slot — PR#197 (2026-08-23) read that as a broken mutation
