@@ -211,12 +211,13 @@ LIVE_STATES = ("working", "blocked")
 
 
 def delete_record(job):
-    """Remove a session's record directory, the way the built-in view does.
+    """Remove a session's record directory. The LAST resort, not the first.
 
-    A record is one `jobs/<short>/` directory, so deleting the row means deleting
-    that directory. There is no published `claude` command for it - `claude
-    agents` manages live sessions, not their history - so the directory is
-    removed here. Nothing outside `jobs/<short>/` is touched.
+    `claude rm <id>` is the real delete and is what `act_delete` calls: it tells
+    the daemon, which owns the session list. Removing the directory behind the
+    daemon's back does not work - it rewrote both probe records minutes after they
+    were deleted this way - so this is only used to tidy a directory that survives
+    a successful `rm`.
 
     The path is re-derived from the account root and checked against the job's
     own short id first, so a malformed record can never turn this into a delete
@@ -257,6 +258,40 @@ def run_claude(cmd, cwd=None, env=None, timeout=45.0):
             return f"could not run {cmd[0]}: {exc}"
         fh.seek(0)
         return fh.read().strip()
+
+
+def start_claude(cmd, cwd=None, env=None):
+    """Launch a `claude` subcommand and DO NOT wait for it. Returns (proc, log path).
+
+    Waiting is the thing being avoided. A dispatch that blocks the key handler
+    freezes the whole view, and a frozen curses program looks exactly like a
+    working one showing a stale frame - which is how a dead `n` key went
+    undiagnosed for a day. Output goes to a file the caller can read afterwards,
+    and the child gets its own session and no stdin, so it can neither read the
+    keys meant for this view nor die with it.
+    """
+    fh = tempfile.NamedTemporaryFile("w+", prefix="pp-agents-dispatch-",
+                                     suffix=".log", delete=False)
+    try:
+        proc = subprocess.Popen(cmd, cwd=cwd or None, env=env,
+                                stdin=subprocess.DEVNULL, stdout=fh,
+                                stderr=subprocess.STDOUT, start_new_session=True)
+    except OSError as exc:
+        fh.write(f"could not run {cmd[0]}: {exc}\n")
+        fh.close()
+        return None, fh.name
+    fh.close()
+    return proc, fh.name
+
+
+def last_line(path):
+    """The last non-empty line of a log file, for the status bar."""
+    try:
+        with open(path) as fh:
+            lines = [l.strip() for l in fh if l.strip()]
+    except OSError:
+        return ""
+    return lines[-1] if lines else ""
 
 
 def dispatched_id(text):
@@ -444,6 +479,10 @@ def logs_cmd(job):
 
 def stop_cmd(job):
     return [claude_bin(), "stop", job["short"]]
+
+
+def rm_cmd(job):
+    return [claude_bin(), "rm", job["short"]]
 
 
 def dispatch_cmd(prompt):
@@ -725,6 +764,10 @@ def fmt_age(iso):
 # in this view the letters are shortcuts, so typing into it would collide with
 # `j`, `k`, `e`, `d` and the rest.
 NEW_HINT = "\u203a n   describe a task for a new session"
+
+# How long to watch the store for a dispatched session before saying so.
+# Generous, because it never blocks anything: the view redraws every pass.
+DISPATCH_WAIT = float(os.environ.get("PP_AGENTS_DISPATCH_WAIT", "15"))
 
 PIN_MARK = "▸"
 FOLD_OPEN = "▾"      # open group
@@ -1290,11 +1333,18 @@ class App:
         if live:
             run_claude(stop_cmd(job), env=job_env(job))
             time.sleep(0.4)
-        try:
-            delete_record(job)
-        except (OSError, ValueError) as exc:
-            self.status = f"not deleted: {exc}"
-            return
+        # `claude rm` is the published delete and the only one the daemon honours
+        blob = run_claude(rm_cmd(job), env=job_env(job))
+        deadline = time.time() + 4.0
+        while time.time() < deadline and record_exists(job["short"]):
+            time.sleep(0.1)
+        if record_exists(job["short"]):
+            # rm reported success but left the directory: tidy it ourselves
+            try:
+                delete_record(job)
+            except (OSError, ValueError) as exc:
+                self.status = f"not deleted: {blob or exc}"
+                return
         self.pins.discard(job["short"])
         save_pins(self.pins)
         self.reload()
@@ -1352,20 +1402,37 @@ class App:
         if not os.path.isdir(where):
             self.status = f"no such folder: {where}"
             return
-        blob = run_claude(dispatch_cmd(prompt), cwd=where)
-        short = dispatched_id(blob)
+        before = {j["short"] for j in self.jobs}
+        proc, log = start_claude(dispatch_cmd(prompt), cwd=where)
+        self.status = "starting a session ..."
+        self.draw()
+
+        # Watch for the session to APPEAR rather than for the command to finish.
+        # The record is what the owner is waiting to see, the command is not, and
+        # nothing here can block: every pass redraws, so the view stays alive.
+        short = None
+        deadline = time.time() + DISPATCH_WAIT
+        while time.time() < deadline:
+            self.reload()
+            fresh = sorted({j["short"] for j in self.jobs} - before)
+            if fresh:
+                short = fresh[0]
+                break
+            self.draw()
+            time.sleep(0.25)
+
         if short:
-            # the daemon writes the record a moment after the command returns
-            deadline = time.time() + 6.0
-            while time.time() < deadline and not record_exists(short):
-                time.sleep(0.1)
-        self.reload()
-        if short and self.select_short(short):
+            self.select_short(short)
             self.status = f"started {short}"
-        elif short:
-            self.status = f"started {short} - press g if it is not listed yet"
+            try:
+                os.unlink(log)
+            except OSError:
+                pass
+            return
+        if proc is None or proc.poll() not in (None, 0):
+            self.status = last_line(log) or f"dispatch failed - see {log}"
         else:
-            self.status = blob.splitlines()[-1] if blob else "nothing came back"
+            self.status = f"no session appeared in {DISPATCH_WAIT:.0f}s - see {log}"
 
     def select_short(self, short):
         """Move the cursor onto a session by short id. False if it is not listed."""
