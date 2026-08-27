@@ -15,20 +15,41 @@ Do NOT show the OpenArt interface anywhere in this beat. The reveal in 1.2 depen
 **SAY** — final
 > You have seen shots like this one. Paper cutouts, a map drawing itself, a voice that sounds like a documentary. The kind of thing that used to mean a motion designer and weeks in After Effects.
 
-#### 1.2 · Reveal, promise and roadmap
+#### 1.2 · Reveal, who this is for, and credibility
 
 **SHOW**
-Cut to the OpenArt Director chat, one clean full-screen frame. Then a simple list of the eleven section names as they are spoken.
+Cut to the OpenArt Director chat, one clean full-screen frame. Then, while the failure list is spoken, three quick shots of things going wrong: a caption rendered as gibberish, a flat generic board, a character whose face changes between two frames.
 
 **EDIT**
-The list appears one line at a time, on the beat of each name. No transitions between lines.
+Do not linger on the failure shots. One second each. They are there to be recognised, not studied.
+Keep the finished shot from 1.1 available. It comes back at the end of the video.
 
 **SAY** — final
-> Nobody designed a board in that clip. It came out of one chat window. I have been testing these tools for years, and this is the shortest route I have found to that look.
+> Nobody designed a board in that clip. Nobody opened After Effects. It came out of one chat window, in an afternoon.
 >
-> Here is the order. First, what makes it look like Vox, and why one tool beats five. Then getting the AI to study real Vox videos, picking a topic that holds up, and writing the script. After that, locking the look, picking the voice, picking the music, and adding the motion. Then putting it all together, and when you need more control.
+> Now, you have probably seen a dozen videos promising you this. I have watched most of them. And here is what happens when you actually sit down and try it: your text comes back as gibberish. Your second shot looks nothing like your first. Your character's face changes between scenes. You burn through credits, get something that looks almost right, and quietly give up.
 >
-> Everything I use is linked below, with a code that knocks some money off. Let's start with the style.
+> That is not a tool problem. It is a sequence problem. There is an order these steps have to happen in, and almost every tutorial gets it wrong, because they start generating before they have decided what they are generating.
+>
+> I have been testing these tools for years, long enough to have made every one of those mistakes myself. So this is the whole sequence, start to finish, on one topic, with every setting on screen and nothing cut out when it went wrong.
+
+#### 1.3 · Promise, roadmap, links, and into the body
+
+**SHOW**
+A simple list of the eleven section names as they are spoken, one line at a time.
+
+**EDIT**
+Each line appears on the beat of its name. No transitions between lines.
+Keep the list on screen through the last sentence, then cut straight to the first body shot with no wipe.
+
+**SAY** — final
+> By the end of this you will be able to take any topic and turn it into one of these, and more usefully, you will know which step to go back to when a shot comes out wrong.
+>
+> Here is the order. First, what makes it look like Vox, so you can judge your own results instead of guessing. Then why one tool beats five. Then getting the AI to study real Vox videos, which is the step almost nobody does and the one that saves you the most pain later.
+>
+> After that we get to work: picking a topic that holds up, writing the script, and locking the look. Then picking the voice, picking the music, and adding the motion. Then putting it all together. And at the end, when you need more control, for the point where the chat stops being enough.
+>
+> Everything I use is linked below, and there is a code down there that knocks some money off if you want to follow along. Let's start with the style itself, because if you cannot see what makes it work, you cannot tell whether yours is working.
 
 ---
 
@@ -688,11 +709,13 @@ Duration for a three-frame build: 15 seconds.
 #### 3.1 · Wrap, links, and sign-off
 
 **SAY** — final
-> That is the whole route, one chat, topic to finished cut. If you take one thing from this, make it the style breakdown. Everything after it got easier because that document existed.
+> That is the whole route. One chat, one topic, from nothing to a finished cut.
 >
-> When your first attempt comes back generic, and it will, describe what you actually want in plain words and let it rebuild. Do not start over.
+> If you take one thing away from this, make it the style breakdown near the start. Every step after it got easier because that document existed, and it is the only piece of this that will still be useful when these tools change their names and their menus, which they will.
 >
-> Links and the discount code are below. Thanks for watching this far. Tell me in the comments which topic you are running first, and subscribe for the rest of this workflow. See you in the next one.
+> And when your first attempt comes back generic, because it probably will, do not start over in a new chat. Describe what you actually want in plain words and let it rebuild. That one habit is most of the difference between people who get a finished video out of this and people who give up on it.
+>
+> The links and the discount code are down in the description if you want to try it. Thanks for staying to the end, genuinely. Tell me in the comments which topic you are running first, because I want to see what people pick. And if you want the rest of this workflow, the thumbnails and the titles and the part where you actually publish it, subscribe, because that is what I am doing next. See you then.
 
 **EDIT**
 Hold on the finished shot from the cold open under the last two sentences. Closing the loop on the opening image.

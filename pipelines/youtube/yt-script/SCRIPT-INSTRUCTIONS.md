@@ -186,14 +186,44 @@ place the ask itself is made.
    comment prompt → like + subscribe → sign-off ("I'll see you in the next
    one").
 
-## Word budget and pacing (rough, calibrate to the topic)
+## Length and pacing
 
-- Cold open + reveal: 100-160 words combined.
-- Roadmap: 60-100 words.
+**The intro and the conclusion have no word limit.** Owner, 2026-08-27: *"I
+don't need the limits on intro and conclusion… depending on the video, if I am
+making a very long video and very detailed video, then obviously I would want my
+intro to be more hooky, more hook and more detailed, so that once intro is over
+we have our audience attention. If it's a short video then maybe short intro is
+fine."*
+
+**Size them against the video, not against a number.** A 25-minute tutorial with
+eleven sections needs an intro that earns 25 minutes of attention: a longer hook,
+more of the reveal, a roadmap that actually names eleven things. A six-minute
+video needs none of that and a long intro would kill it.
+
+The intro's job is what constrains it, and the job is done when:
+
+- the hook has bought the viewer past the first few seconds
+- they know what they are getting and roughly in what order
+- they know why this person is the one explaining it
+- the links have been mentioned once
+
+Say all of that and stop. **What is still banned is padding**, which is the same
+rule as `TASTE.md` T6: repetition, restating the promise twice, or narrating what
+is about to happen. A long intro that earns its length is right; a long intro
+because the target said so is not, and neither is a short one that skipped the
+hook to hit a count.
+
+The same applies to the conclusion. It closes the loop, gives the one thing to do
+next, mentions the links, and asks for the comment and the subscribe. Length
+follows from how much closing the video actually needs.
+
+**These body figures stay** as rough guides for a comparison, where the shape
+repeats per option and consistency between options matters more than it does in
+an intro:
+
 - Per-option quick overview: 25-40 words each.
 - Per-metric scorecard explanation: 50-90 words.
 - Per-option honest-verdict paragraph: 50-80 words.
-- Final CTA: 100-140 words.
 
 ## Reading as a human
 
