@@ -72,7 +72,7 @@ videos/<key>/                 one folder per video
 ```
 knowledge.md        010 — every source, as TEXT. The only input later steps read
 sources/            010 — the originals. Provenance, tracked
-outline.md          030 — one page, sections + one line each. The direction
+outline.md          030 — contents + a card per section. The direction
 script-plan.md      050 — the beat-by-beat document; reviewed as markdown at 055, published by the desk
 script-worksheet.md fallback only, if the desk is down
 desk-draft.json     local-mode scratch, gitignored
@@ -94,7 +94,7 @@ draft script. Approving "the outline" therefore meant reading a finished
 document, and a wrong section order cost a full rewrite.
 
 `outline.md` is now a genuinely new, one-page document written at step 030 and
-approved at 040 — sections and one line each, no spoken copy, no lanes. The names
+approved at 040 — contents plus a card per section, no spoken copy, no lanes. The names
 finally mean what they say.
 
 `lib/beats.mjs`, the desk's local server, the Worker and the tests all read

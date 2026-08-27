@@ -112,6 +112,32 @@ source did.
 3. **Your recommendation**, one line, with the reason. A menu with no
    recommendation hands the work back.
 
+## Which gaps are worth asking
+
+A gap list is only useful if every question on it is one the owner alone can
+answer. Two whole classes are not, and both were on the first list this step ever
+produced.
+
+**Never ask whether the method works.** If the knowledge base demonstrates it -
+several sources, each showing it done - it is proven, and asking is doubt dressed
+as diligence. Owner, 2026-08-27: *"assume that if its already propven by differnt
+videos given during knowldge base - then it can be done, no need to question
+it"*.
+
+**Never ask about the owner's credibility or experience.** He has used these
+tools for years. Write the claim as fact per `TASTE.md` T7 and let him correct it
+at review. Owner: *"pls always assume that i know things. you can add claim about
+prior experince... if i need to make changes in script - i will do during
+review."*
+
+**What still belongs on the list:** a fact only he holds (an affiliate link, a
+price he pays, a result he measured), a source that failed to ingest, a volatile
+number worth re-checking on recording day, a claim two sources contradict, and
+anything the knowledge simply does not cover.
+
+**The test:** could any reasonable reader answer this from `knowledge.md`? If yes,
+it is not a gap - it is you asking to be told you are right.
+
 ## Do not
 
 - Search the web to fill a gap. Ask the owner.
@@ -127,6 +153,8 @@ source did.
   the owner cannot weigh who said it.
 - **Compress the approaches out of the gate message** to keep it short. The
   5-line cap in step 6 is on the *summary*, and on nothing else.
+- **Ask whether the method works**, when the sources demonstrate it.
+- **Ask about the owner's experience or credibility.** See above, and `TASTE.md` T7.
 
 ## Why the brain-dump stays verbatim
 

@@ -75,11 +75,32 @@ test('the outline and the script plan are two different documents', () => {
   const outline = read('pipelines/youtube/yt-script/OUTLINE-INSTRUCTIONS.md')
   const plan = read('pipelines/youtube/yt-script/SCRIPT-PLAN-INSTRUCTIONS.md')
 
-  assert.match(outline, /One line per section/, 'OUTLINE_BLOAT: the outline spec no longer caps a section at one line')
+  // Until 2026-08-27 this asserted /One line per section/. The owner removed that
+  // cap — the outline is now a table of contents with a card per section, three
+  // to six bullets each — so the line count is no longer the boundary. What
+  // separates the two documents is, and always was, spoken copy and lanes. Those
+  // are what this now guards, plus the bullet cap that replaced the line cap.
+  assert.match(
+    outline,
+    /Three to six bullets per card/,
+    'OUTLINE_BLOAT: the outline spec no longer caps a card at six bullets — without a cap it becomes the beat document',
+  )
   assert.match(
     outline,
     /No spoken copy anywhere|No spoken copy/,
     'OUTLINE_BLOAT: the outline spec no longer forbids spoken copy — that is what made it a draft script',
+  )
+  assert.match(
+    outline,
+    /No lanes\./,
+    'OUTLINE_BLOAT: the outline spec no longer forbids script-plan lanes',
+  )
+  // The card shape is only safe while the promise line stays a single line. A
+  // paragraph under a heading is a draft script with extra steps.
+  assert.match(
+    outline,
+    /no prose paragraph under a heading/,
+    'OUTLINE_BLOAT: the outline spec no longer forbids a prose paragraph under a section heading',
   )
   assert.match(plan, /script-plan/, 'PLAN_DOC_DRIFT: the script-plan spec does not name its own file')
 })

@@ -7,7 +7,7 @@ beat recording his screen, and writes the demo lines himself.
 Renamed from `outline.md` on 2026-08-23. It never was an outline — it carries
 verbatim intro and conclusion copy plus every body beat's lanes, which is a draft
 script. The real outline (`outline.md`) is now a separate, earlier, one-page
-document holding sections and one line each, and the owner approves the video's
+document holding a table of contents and a card per section, and the owner approves the video's
 direction there, while changing it is still cheap. See
 `OUTLINE-INSTRUCTIONS.md`.
 

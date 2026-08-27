@@ -12,7 +12,7 @@ The owner reads one page and approves what the video IS and what order it happen
 
 ## What you do
 
-Read `videos/<key>/outline.md`. It fits on one screen. Then either approve it or
+Read `videos/<key>/outline.md`. Its Contents block fits one screen; the cards below it run as long as the section count needs. Then either approve it or
 say what to change - reorder the numbered sections, rename one, cut one, add one.
 
 ## Why this is the important gate
