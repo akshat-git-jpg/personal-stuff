@@ -475,17 +475,20 @@ def stub_claude(tmp, linger=2):
             f'          echo "ATTACHED $2"; sleep {linger} & wait $!; printf "%s\\n" "$2" >> {done} ;;\n'
             '  logs)   echo "LOGS $2" ;;\n'
             '  stop)   echo "stopped $2" ;;\n'
-            # `claude --bg` prints `backgrounded · <id>` and then four hint
-            # lines, and the daemon writes the record a moment LATER. Both halves
-            # are reproduced: the id has to be read off the first line, and the
-            # record has to be waited for.
+            # `claude --bg` starts `claude daemon run`, which outlives the
+            # command and keeps whatever it inherited open - a pipe held that way
+            # never reaches EOF, which is what froze the view. The record also
+            # lands a moment LATER than the command returns. Both are reproduced,
+            # and the output deliberately carries NO id: the session has to be
+            # found by watching the store, not by parsing a line.
+            f'  rm)     {sys.executable} -c "import shutil,sys;shutil.rmtree(sys.argv[1],ignore_errors=True)" '
+            f'          "{jobs}/$2"; echo "removed $2" ;;\n'
             f'  --bg)   ( sleep {LINGERING_DAEMON} ) &\n'
             f'          ( sleep 0.4; mkdir -p {jobs}/{DISPATCHED_ID};'
             f'            printf \'{{"state":"working","name":"%s","detail":"dispatched",'
             f'"cwd":"%s","updatedAt":"2026-08-27T10:00:00.000Z"}}\' "$2" "$PWD"'
             f'            > {jobs}/{DISPATCHED_ID}/state.json ) &\n'
-            f'          echo "backgrounded \\u00b7 {DISPATCHED_ID}"; '
-            'echo "  claude stop x  stop this session" ;;\n'
+            'echo "started, see claude agents" ;;\n'
             '  *)      echo "backgrounded fake" ;;\n'
             "esac\n")
     os.chmod(path, 0o755)
@@ -529,9 +532,17 @@ def finished(tmp, within=40.0):
 
 
 def scrape(raw):
+    """Plain text out of a terminal stream.
+
+    The charset-designation escapes (`ESC ( B`) matter as much as the colour ones:
+    curses emits one around almost every cell when a screen is being repainted
+    repeatedly, so without stripping them a word on screen arrives as
+    `(Bs(Bt(Ba(Br(Bt` and no assertion about visible text can ever match.
+    """
     text = raw.decode("utf-8", "replace")
     text = re.sub(r"\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)", "", text)
-    return re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", text)
+    text = re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", text)
+    return re.sub(r"\x1b[()][AB0-2]", "", text)
 
 
 def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True, linger=2):
@@ -1115,6 +1126,8 @@ with tempfile.TemporaryDirectory() as tmp:
     _f, after, calls = drive(tmp, [(b"d", "delete"), (b"y", "deleted"), b"q"])
     gone = before - records_on_disk(tmp)
     check("d then y deletes exactly one session record", len(gone) == 1, str(gone))
+    check("it deletes through claude rm, which the daemon honours",
+          re.search(r"\brm (aaa|bbb|zzz)", calls) is not None, repr(calls))
     check("the deleted record's directory is really gone",
           not any(os.path.isdir(os.path.join(tmp, r, "jobs", s))
                   for s in gone for r in ("work", "personal")), str(gone))
@@ -1252,12 +1265,12 @@ with tempfile.TemporaryDirectory() as tmp:
     check("and what it offers is where the view was opened, not where the sessions are",
           real not in after.split("folder: ")[-1][:200], after[-500:])
 
-check("the id is read off the backgrounded line",
-      mod.dispatched_id("backgrounded \u00b7 1eaf7a1e\n  claude stop 1eaf7a1e  x")
-      == "1eaf7a1e")
-check("colour codes do not hide it",
-      mod.dispatched_id("backgrounded \u00b7 \x1b[36mdeadbeef\x1b[39m") == "deadbeef")
-check("no id means None", mod.dispatched_id("something else entirely") is None)
+check("a launch that cannot even start is reported, not raised",
+      mod.start_claude(["/nonexistent/claude", "--bg", "x"])[0] is None)
+_proc, _log = mod.start_claude(["/nonexistent/claude", "--bg", "x"])
+check("and the reason is written where the caller can read it",
+      "could not run" in mod.last_line(_log), mod.last_line(_log))
+os.unlink(_log)
 
 with tempfile.TemporaryDirectory() as tmp:
     # THE BUG THIS EXISTS FOR: the session dispatches, the record lands a moment
@@ -1271,8 +1284,16 @@ with tempfile.TemporaryDirectory() as tmp:
     ])
     check("the new session is listed straight away",
           "water the plants" in after, after[-600:])
+    # The id, not the sentence around it: curses repaints in fragments, so the
+    # captured stream interleaves text from different screen positions and an
+    # exact phrase spanning a redraw cannot be matched reliably. The id is the
+    # part that has to reach the screen.
     check("the status names the session that started",
-          "started abcd1234" in after, after[-300:])
+          DISPATCHED_ID in after, after[-300:])
+    check("it did not need the command to print an id",
+          "backgrounded" not in after, after[-300:])
+    check("the view said it was working on it while it waited",
+          "starting a session" in after, after[-300:])
     check("the record really was written",
           os.path.isfile(os.path.join(tmp, "work", "jobs", "abcd1234", "state.json")))
 

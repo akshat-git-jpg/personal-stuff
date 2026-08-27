@@ -144,8 +144,27 @@ takes over, because by then `pp-feature-deploy` beats a paragraph.
 Related, and not a bug here: a prompt with no actual task in it (`test1`) leaves the
 session asking you what to do. It shows as **Needs input**, which is correct.
 
-Every `claude` call goes through `run_claude`, which writes the child's output to
-a temp **file** and never a pipe. This is not tidiness. `claude --bg` starts a
+The dispatch does not wait for `claude --bg` at all. It launches it detached and
+then watches the store for a session to APPEAR, by diffing the set of short ids -
+redrawing every pass, so the view stays alive throughout. Waiting on the command
+was the whole problem: one blocking call inside the key handler stalls the entire
+view, and a stalled curses program is indistinguishable from a working one showing
+a stale frame. That is how a dead `n` key survived a day of fixes - each attempt
+wedged the view, and every key after it went into a frozen process.
+
+Watching the store also removes the need to read an id out of the command's
+output, so a reworded `backgrounded ·` line cannot break dispatch. The stub in the
+tests prints no id at all, to keep it that way.
+
+`d` deletes through **`claude rm <id>`**, the published command for it ("Delete a
+background session and its worktree. Unlike `stop`, works on already-exited
+sessions"). Removing the record directory instead does not work: the daemon owns
+the session list and wrote both probe records back minutes later. The directory
+removal survives only as a tidy-up for a directory that outlives a successful
+`rm`.
+
+Every other `claude` call goes through `run_claude`, which writes the child's
+output to a temp **file** and never a pipe. This is not tidiness. `claude --bg` starts a
 `claude daemon run` child when none is up, that child inherits whatever it was
 given, and a pipe reaches EOF only once every holder closes it - so
 `capture_output=True` waits for the daemon, i.e. forever. The view froze
