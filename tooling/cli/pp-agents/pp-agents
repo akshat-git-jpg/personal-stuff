@@ -208,17 +208,28 @@ def delete_record(job):
 
 
 def default_cwd(jobs):
-    """The folder most sessions run in, or wherever this was started from."""
+    """Where a new session should start: the folder this view was opened in.
+
+    An earlier version offered the folder MOST sessions already run in, which is
+    a fact about history rather than about intent - open the view in one repo and
+    it proposed a different one, because that is where the backlog happens to
+    live. The terminal's own directory is the thing you actually chose, so that
+    wins; the busy folder is only a fallback for the case where there is no
+    usable one, and `tab` still completes to any folder in the list.
+    """
+    try:
+        here = os.getcwd()
+        if os.path.isdir(here):
+            return here
+    except OSError:
+        pass
     counts = {}
     for job in jobs:
         if job["cwd"]:
             counts[job["cwd"]] = counts.get(job["cwd"], 0) + 1
     if counts:
         return max(sorted(counts), key=lambda c: counts[c])
-    try:
-        return os.getcwd()
-    except OSError:
-        return os.path.expanduser("~")
+    return os.path.expanduser("~")
 
 
 def known_tags(jobs):
