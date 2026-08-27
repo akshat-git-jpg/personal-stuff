@@ -33,6 +33,7 @@ definition.
 | 2026-08-27 | vox-style-video-ai | jargon | "also need language to be simple day to day.. , intutive we use day to day.. no one uses ' The Music Bed' .." | `TASTE.md` T8, `OUTLINE-INSTRUCTIONS.md` (bad-name table), all eleven section names of `vox-style-video-ai` rewritten | **T8** — owner stated it as a general preference about language, not only about names, so it is taste and not only format |
 | 2026-08-27 | vox-style-video-ai | structure | "remove 11,also was 10 present in refernce video? if not - lets remove that as well" | `OUTLINE-INSTRUCTIONS.md` (every tutorial section must trace to the chosen approach's own source; a plug is not a section), `videos/vox-style-video-ai/outline.md` (sections 10 and 11 cut, target 22 to 20 min), `knowledge.md` (affiliate moved to the CTA) | No T rule. Format spec — the scope rule already existed in `knowledge.md`'s CHOSEN block and was broken in the outline, so it is now stated where it gets broken. |
 | 2026-08-27 | vox-style-video-ai | structure | "this is wrong. i am totally ok with comnbing approaches. i am giving you diff erent videos and selecting one approach doesn't mean we have to only do all things from that video.. keep the idea/approach of the selected approach but obsiosuly we can take ideas from all diff videos, knowdlget base and make our own combined way - thats obiosuly alloed.. you made opposidte rule.." | `OUTLINE-INSTRUCTIONS.md` (the source-fence rule replaced with spine-not-fence, plus the one honesty limit), `SCRIPT-PLAN-INSTRUCTIONS.md`, `SCRIPT-INSTRUCTIONS.md`, `knowledge.md` CHOSEN block rewritten, outline back to 12 sections | No T rule. Format spec. **Reverses the rule logged in the row above it, written minutes earlier.** |
+| 2026-08-27 | vox-style-video-ai | structure | "i already said dont include don't include cost breadkdow and yt ban parts. those are just feedbacks for this topic, not general.." | `videos/vox-style-video-ai/outline.md` (costs section cut again, 12 sections to 11, target 22 min), `knowledge.md` (recorded under "Cut from this video by the owner — instance only, not a rule") | **Instance only. Deliberately no rule anywhere.** The owner named it as topic feedback, not a preference. |
 
 ## Notes on these first three rows
 
@@ -120,3 +121,24 @@ language preference as a jargon row, because they are genuinely two things: what
 a section name is *allowed* to be, and which words may appear anywhere in the
 script. Collapsing them into one row would have hidden the second behind the
 first.
+
+## Not every reaction wants a rule (2026-08-27)
+
+The costs and platform-risk sections were cut from `vox-style-video-ai` twice.
+The first time, the session read *"was 10 present in refernce video?"* as a
+principle and wrote a rule banning material from unchosen approaches. The owner
+reversed that. The second time it read the same instruction correctly:
+
+> *"those are just feedbacks for this topic, not general.."*
+
+**A reaction to one video's content is usually not a preference about all
+videos.** "I do not want a costs section in this video" and "I never want a costs
+section" are different statements, and only the owner knows which he means. Where
+he does not say, the answer is the instance fix plus a log row - which is what the
+threshold in `steps/130-learn-from-feedback-llm/README.md` has always said, and
+what got skipped here.
+
+**The tell:** if the reaction names *this topic, this tool, this section*, it is
+probably an instance. If it names *how you work, what you always do, what you
+should never ask* - the way T6, T7 and T8 all do - it is probably a rule. When
+both readings are live, ask; the owner answered this one before being asked, twice.
