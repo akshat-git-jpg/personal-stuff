@@ -98,7 +98,18 @@ wallpaper.
 If an instruction appears in more than one beat of a section, it belongs in the
 rules box instead.
 
-## The intro — verbatim, 130–160 words
+## The intro — verbatim, no word limit
+
+**Length follows the video.** There used to be a 130-160 word cap here; the owner
+removed it on 2026-08-27: *"depending on the video, if I am making a very long
+video and very detailed video, then obviously I would want my intro to be more
+hooky, more hook and more detailed... if it's a short video then maybe short intro
+is fine."* `SCRIPT-INSTRUCTIONS.md` has the sizing guidance and the one thing
+still banned, which is padding.
+
+A long-form video's intro carries a longer hook and a roadmap naming every
+section; a short video's intro is short. Both are correct. What is not correct is
+either one hitting a number.
 
 Six beats in order, no skipping, no reordering:
 
@@ -116,7 +127,10 @@ shot, e.g. `#### Cold open — HeyGen avatar, temp human voice`.
 
 Never open with "In this video, we will…" or "Hey guys, welcome back."
 
-## The conclusion — verbatim, 80–100 words
+## The conclusion — verbatim, no word limit
+
+Same rule as the intro, and the same removal date. Length follows from how much
+closing the video needs.
 
 Five beats in order: wrap signal → deals and free-trial links in the
 description → thanks → a comment prompt that asks something answerable →
@@ -214,6 +228,8 @@ up.
 - **Repeated instruction means it belongs in the rules box.**
 - **Intro roadmap and section headings match word for word.**
 - **Every claim traces to `knowledge.md`.** No support, no line — raise the gap.
-- **No section without a verdict.**
+- **No comparison section without a verdict.** A tutorial section carries none —
+  see the tutorial rules above. This rule said "no section without a verdict"
+  until 2026-08-27, which contradicted them.
 - **No HTML or PDF is generated any more.** The markdown is the source and
   the script desk renders it. `render-outline.mjs` is retired.
