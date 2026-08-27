@@ -1059,19 +1059,65 @@ this exact approach in the knowledge base.
   regeneration) — all three are native to Director, so they are phases of this
   approach rather than splices.
 
-**What is now out of scope, and must not leak into the script:**
+**Combining is expected. The approach is the spine, not a fence.** Owner,
+2026-08-27: *"i am totally ok with comnbing approaches... selecting one approach
+doesn't mean we have to only do all things from that video.. keep the
+idea/approach of the selected approach but obsiosuly we can take ideas from all
+diff videos, knowdlget base and make our own combined way - thats obiosuly
+alloed"*.
 
-- Approach **B** (Higgsfield MCP), **C** (`/vox-video` + Kie), **D** (Remotion),
-  **E** (free/Google Flow/CapCut), **F** (Loop Studio).
-- Everything specific to them: Higgsfield MCP setup, Remotion `spring`/
-  `interpolate` and prop controls, `.env` API keys, Kie pricing, CapCut sync,
-  the video enhancer settings, the three "brain" skills.
-- Techniques 1, 2 and 6 as *instructions*. Technique 1 (frame-chaining) may be
-  named as the principle behind Director's board approach, but the video does not
-  teach the two-frame method, because Director does not expose it.
+So every source in this file is available. What A fixes is **the workflow the
+video teaches**: the viewer opens OpenArt Director, and the phases run in Skai
+Generated's order. Everything else is material to be folded in where it makes the
+route better than any single source.
 
-**Per `SCRIPT-PLAN-INSTRUCTIONS.md`:** the rejected approaches get **at most one
-section**, saying why A won. Not a second walkthrough.
+**Deliberately folded in from other sources:**
+
+- **Letting the AI study real Vox videos first** (Thomas Creates, 1) — VidIQ into
+  Claude, then a style guide with the exact keywords for the paper look. This is
+  the missing half of Skai's own fix for a generic first pass: he says describe
+  the makeover in plain English, but never says how to know what to ask for.
+- **The design vocabulary** (Joseph, 4) — colours, shapes, text, objects, macro
+  design, micro detail, texture. The checklist the style guide has to cover.
+- **The five-asset taxonomy** (Joseph, 4) and the **locked background**
+  (MoSidd, 2) — what makes a shot read as Vox at all.
+- **Frame-chaining, and never animating a map or text** (Thomas Creates, 1;
+  Skai, 7) — the principle behind board approval, and the method itself in the
+  panels section.
+- **Trust your own visual ideas** (Luuk, 8) — unattended AI output is flat; the
+  moment a human has a real idea for how to show something, it lifts. Belongs in
+  the style and motion phases, and in the conclusion.
+- **Trust your own visual ideas** carries into the conclusion as well.
+
+## Cut from this video by the owner — instance only, not a rule
+
+**Owner instruction, 2026-08-27:** *"i already said dont include don't include
+cost breadkdow and yt ban parts. those are just feedbacks for this topic, not
+general.."*
+
+- **No costs or pricing section.** Not because the material is out of scope — see
+  above, combining is allowed — but because he does not want one in this video.
+- **No YouTube-ban or platform-risk section.** Same reason.
+
+**These are decisions about this video and nothing else.** No rule was written
+into `OUTLINE-INSTRUCTIONS.md`, `SCRIPT-PLAN-INSTRUCTIONS.md` or `TASTE.md` from
+them, and a future video may well want either section. The affiliate link and
+promo code still go in the CTA, per `SCRIPT-INSTRUCTIONS.md`; they simply do not
+get a card.
+
+A rule *was* briefly written from the first half of this and then reversed — see
+the notes at the end of `FEEDBACK-LOG.md`.
+
+**Two things stay out, and both are general:**
+
+- **A second walkthrough.** Approaches B, C, D, E and F are named and dismissed
+  in one pass, in one section, and never taught. The viewer is not asked to do
+  the job twice.
+- **A borrowed number wearing the wrong label.** `$20` of Higgsfield credits,
+  `$3.50` a chapter on Kie, the enhancer's `sharpen 35` — these belong to other
+  platforms and must never be stated as OpenArt's. Use the idea, keep the name,
+  or leave the figure as a gap. **This was the actual defect** that got a costs
+  section cut on 2026-08-27, and cutting the section was the wrong fix.
 
 ## Recommendation (superseded by the owner's pick above, kept for the record)
 

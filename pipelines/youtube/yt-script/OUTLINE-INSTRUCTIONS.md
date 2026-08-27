@@ -232,26 +232,53 @@ Sections are the phases of the job, in the order the maker performs them.
 
 Three rules that only apply here, and that a comparison-shaped habit breaks:
 
-- **The sections are the phases of the approach the owner picked at gate 020**,
-  not a survey of every approach in `knowledge.md`. The approaches he did not
-  pick are context, and at most one section covers them.
-- **Every section must be supported by the chosen approach's own source.** Before
-  writing a card, name which source it comes from. If the answer is a rejected
-  approach, it is not a section - the material is out of scope and the card is
-  padding wearing a heading. Owner, 2026-08-27, on a costs section:
-  *"was 10 present in refernce video? if not - lets remove that as well"*.
+- **The chosen approach is the spine, not a fence.** The approach the owner
+  picked at gate 020 fixes **the workflow the video teaches** - which tool the
+  viewer opens, and the order of the phases. It does **not** limit which sources
+  the material may come from. Owner, 2026-08-27: *"i am totally ok with comnbing
+  approaches... selecting one approach doesn't mean we have to only do all things
+  from that video.. keep the idea/approach of the selected approach but obsiosuly
+  we can take ideas from all diff videos, knowdlget base and make our own combined
+  way - thats obiosuly alloed"*.
 
-  This is the same scope rule the CHOSEN block in `knowledge.md` already states,
-  and it is written here because the outline is where it gets broken. On
-  `vox-style-video-ai` the session wrote the scope rule and then produced two
-  sections out of rejected approaches: a costs section built from three other
-  routes' credit figures, and a YouTube-risk section built from a rival's outro
-  plug. Both read as reasonable and neither was teachable.
+  **Combining is the point.** A technique, a warning, a framing or a number from
+  any source in `knowledge.md` is fair game, and a video that folds the best of
+  all of them into one route is better than any single source. The whole
+  `# Approaches` section exists so the owner can splice - see the splice-in
+  techniques there.
 
-  **A plug in the reference video is not a section.** Where the source mentioned
-  something only as a promo, a price or a teaser for its own next video, that
-  belongs in the CTA - `SCRIPT-INSTRUCTIONS.md` owns where the CTAs sit - not in
-  a card of its own.
+- **One workflow, though.** The thing to guard against is not borrowed material,
+  it is **a second competing walkthrough** - the viewer told to do the same job
+  twice, two different ways, and left to choose. The rejected approaches are
+  named and dismissed in one pass, in one section, and never taught. That is what
+  "at most one section" means in `SCRIPT-PLAN-INSTRUCTIONS.md` and
+  `SCRIPT-INSTRUCTIONS.md`.
+
+- **A borrowed number stays attached to the tool it came from.** This is the only
+  real limit on combining, and it is honesty rather than scope: a credit price
+  from a different platform is not the chosen tool's price, and a setting from a
+  different tool's panel is not the chosen tool's setting. Adapt it, attribute it,
+  or state the general shape - never relabel it. Where the chosen tool's own
+  number is missing from `knowledge.md`, that is a gap for the owner, not a figure
+  to borrow.
+
+### The rule that used to be here was wrong (2026-08-27)
+
+For a short time this said *"every section must be supported by the chosen
+approach's own source… if the answer is a rejected approach, it is not a
+section"*, written from the owner's *"was 10 present in refernce video? if not -
+lets remove that as well"*. He rejected it immediately: *"this is wrong... you
+made opposidte rule"*.
+
+**What actually went wrong on `vox-style-video-ai`** was narrower than the rule
+claimed. A costs section quoted `$20 in credits` and `$3.50 a chapter` - figures
+belonging to Higgsfield and Kie AI - as though they were the chosen tool's
+prices. The defect was the mislabelled numbers, not the existence of a costs
+section. Cutting the section fixed the symptom and banned the wrong thing.
+
+The generalisation error is recorded in `FEEDBACK-LOG.md`; it is the second time
+in one session that a specific correction was written up as a broader ban than
+the owner asked for.
 - **There are no verdicts, because there is nothing to rank.** A tutorial that
   scores its own steps has become a comparison by accident. If a step has a real
   fork in it, that is a fork inside one section, not a scorecard.

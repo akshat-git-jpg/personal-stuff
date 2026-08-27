@@ -119,11 +119,44 @@ All four parts are required and `test/feedback-surfaces.test.mjs` checks them.
   says *author judgement*, nothing stops the mistake recurring except reading
   the file. Say so honestly rather than claiming a check that does not exist.
 
+## Write the narrowest rule that fixes the item
+
+**The failure mode of this step is not missing a lesson. It is writing a bigger
+rule than the owner asked for.** Twice on 2026-08-27, in one session, a specific
+correction became a general ban, and both had to be reversed within the hour:
+
+| The owner said | The rule that got written | What it broke |
+|---|---|---|
+| section names should be *"simple heading and symmetricall"* | noun phrase, 2-5 words, Title Case, one grammatical shape throughout | produced `The Music Bed`, `The Motion Pass` - the mould selected for jargon |
+| *"was 10 present in refernce video? if not - lets remove"* | every section must trace to the chosen approach's own source | banned combining sources, which is the whole point of the `# Approaches` menu |
+
+Both were reversed by the owner in his next message. Neither was a
+misunderstanding of what he said; both were a correct reading turned into a wider
+rule than the words carried.
+
+**Three checks before writing any rule:**
+
+1. **Restate the item as the narrowest true statement.** "This name is jargon" is
+   narrower than "names must be noun phrases". Fix the narrow thing.
+2. **Name what the rule now forbids that the owner never mentioned.** If that list
+   is not empty, the rule is too wide. The costs-section rule forbade combining
+   sources; he had said nothing about combining.
+3. **Prefer a judgement test over a shape.** A rule that specifies a *form* can be
+   satisfied by something worse - jargon fits a mould better than plain speech
+   does. A rule that specifies *how to judge* ("say it out loud") cannot be gamed
+   that way. `TASTE.md` T1 implies this; these two cases are why it is spelled out
+   here.
+
+**When the right rule is genuinely unclear, fix the instance and log the row.**
+The threshold exists for exactly this: a second occurrence tells you which
+generalisation the owner actually meant, and one occurrence often does not.
+
 ## Do not
 
 - Run this mid-flow on another video. Rule surfaces change between videos, never
   during one.
 - Fold an item the owner did not approve in the Phase 4 summary.
 - Write a rule with no quote. If you cannot quote it, ask.
+- Widen a rule past the words the owner used. See the section above.
 - Move a rule between `TASTE.md` and an INSTRUCTIONS file to "tidy up". The
   routing table above decides once.

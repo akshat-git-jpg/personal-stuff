@@ -130,7 +130,11 @@ from the comparison shape:
 4. **An `ON-SCREEN — <TABLE NAME>` table is still fine** for settings, costs or
    options at a fork - the ban is on scoring tables, not on all tables.
 5. **The approaches the owner did not pick get at most one section**, and it
-   says why the chosen one won. It is not a second tutorial.
+   says why the chosen one won. It is not a second tutorial. **Their ideas,
+   though, are fair game everywhere** - the chosen approach fixes the workflow,
+   not the sources the material may come from, and folding the best of all of
+   them into one route is the goal. A borrowed price or setting keeps the name of
+   the tool it belongs to.
 
 ## Opening convention (Part A)
 
