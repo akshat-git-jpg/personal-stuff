@@ -116,6 +116,18 @@
 .beat-num { font: 11px var(--mono); text-transform: uppercase; color: var(--faint); }
 .beat-title { margin-top: 3px; font: 600 14.5px/1.3 var(--sans); color: var(--text-h); }
 
+/* The outline's own heading, once per section, spanning both tracks. This is the
+   structure the owner approved at gate 040; before 2026-08-27 the desk never
+   showed it and labelled each beat with an invented title instead. */
+.group-head {
+  grid-column: 1 / -1;
+  padding: 26px 40px 10px;
+  border-top: 1px solid var(--rule);
+  font: 600 15px/1.35 var(--sans);
+  color: var(--text-h);
+  background: var(--hdr);
+}
+
 .tag {
   display: inline-block;
   margin-top: 8px;
@@ -151,6 +163,31 @@
   position: relative;
 }
 .say.editable { padding-right: 96px; }
+
+/* A silent stretch: something plays, nobody speaks. Deliberately NOT paper and
+   NOT serif — it sits in the left track because it is timeline content, but it
+   must never read as a line to say. Dashed rail, muted panel, sans text. */
+.demo-card {
+  margin-top: 10px;
+  background: var(--panel);
+  border: 1px dashed var(--border);
+  border-left: 3px dashed var(--faint);
+  border-radius: 10px;
+  padding: 13px 18px;
+}
+.demo-card-label {
+  font: 11px/1.6 var(--sans);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--faint);
+  margin-bottom: 5px;
+}
+.demo-card-line {
+  font: 15px/1.6 var(--sans);
+  color: var(--note);
+}
+.demo-card-line + .demo-card-line { margin-top: 4px; }
 .say p { margin: 0 0 11px; font: 17px/1.66 var(--serif); color: var(--paper-ink); letter-spacing: 0.1px; }
 .say p:last-child { margin-bottom: 0; }
 

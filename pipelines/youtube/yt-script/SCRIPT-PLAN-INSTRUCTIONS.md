@@ -56,6 +56,7 @@ anywhere.
 | `**SHOW**` alone on a line, then plain lines | Teal chip, sans text, teal rail |
 | `**EDIT**` alone on a line, then plain lines | Rose chip, sans text, rose rail |
 | `**FACTS**` alone on a line, then plain lines | Slate chip, sans text — numbers for this beat |
+| `**DEMO**` alone on a line, then plain lines | A silent block in the LEFT track — something plays, nobody speaks |
 | `**SAY** — lip-sync` | Same, with a small caption under the chip |
 | `> **RULES — WHOLE SECTION**` then `> - item` lines | Red rules box |
 | `> **VERDICT:** ...` | Slate verdict block |
@@ -91,6 +92,75 @@ outline with no FACTS lanes parses fine and the desk simply shows no facts.
 
 **FACTS is never spoken copy.** Putting it in a blockquote makes the parser
 treat it as prose, and the desk will not show it.
+
+## Beat headings are labels, not descriptions
+
+**A beat's `####` heading carries a short label, and the maker never sees it as
+the beat's heading.** Owner, 2026-08-27, reading beats called `Cold open — a
+finished Vox shot, no logos, no UI` and `Reveal, who this is for, and
+credibility`: *"I don't like it. These are too confusing. I prefer that this
+heading should be the actual outline headings... you can keep that as intro as a
+heading and then you can just make it intro 1.1 intro 1.2."*
+
+**The heading a beat appears under is the outline's own heading** — the section
+name for a body beat, the part name for an intro or conclusion beat. The desk
+renders that plus the beat number, and nothing else. Before this it rendered the
+`####` label and never showed the section at all, so the section names the owner
+approved at gate 040 were invisible in the tool built to review them.
+
+So write the label for **you and the reviewer**, not as a headline:
+
+- **Two to five words**, plain. `Cold open`, `The map trick`, `Bulk generate`.
+- **No dash clauses, no lists, no promise.** `Cold open — a finished Vox shot,
+  no logos, no UI` is three things at once.
+- **What the beat *is*, not what it argues.** `Reveal` beats `Reveal, who this
+  is for, and credibility`.
+
+What the beat covers already lives in `SAY`, `SHOW` and `EDIT`. The label is an
+index entry, so a human can find the beat in a 700-line file.
+
+## The DEMO lane — a silent stretch
+
+**`DEMO` marks a stretch where something plays or is shown and nobody speaks.**
+Added 2026-08-27. Owner: *"there are multiple areas during our script where we
+are not even saying anything, we are just showing something... that doesn't come
+in the left side vertical timeline. It's confusing."*
+
+```
+#### 1.1 · Cold open — the finished shot
+
+**DEMO**
+The finished Vox shot plays. No voiceover.
+
+**SHOW**
+Roughly 12 seconds: locked background, cutouts landing, one slow camera push.
+No browser, no logo, no cursor.
+```
+
+**It is timeline content, not an instruction.** That is why it renders in the
+desk's **left** track alongside the spoken copy, and it is the one exception to
+"instructions never enter the left track". The left track is the audio timeline,
+and a stretch with no audio is part of that timeline. Without it a cold open
+simply does not appear, and the video looks like it starts on the first spoken
+line — which is what the owner hit on `vox-style-video-ai`.
+
+**Keep the DEMO line short and about the timeline.** One or two lines naming what
+plays and that nobody is speaking. **How to shoot it stays in `SHOW`; how to cut
+it stays in `EDIT`.** A DEMO lane that grows shooting notes has smuggled an
+instruction into the left track and the exception stops being one.
+
+**Not a blockquote.** Plain lines, like `SHOW` and `EDIT`. A blockquote means
+spoken copy, and the whole point is that nothing here is spoken.
+
+**A property of a beat, never a beat of its own.** Owner decision, 2026-08-27:
+a beat can open silent and then have spoken copy, and both render in the left
+track in that order. It does not change the beat's `mode`, so it never adds to
+the maker's write count and he gets no box for it — there is nothing for him to
+write.
+
+Use it wherever the video runs without narration: a cold open, a finished result
+playing before it gets explained, a demo the viewer watches in silence, a
+before-and-after held on screen.
 
 ## The rules box
 

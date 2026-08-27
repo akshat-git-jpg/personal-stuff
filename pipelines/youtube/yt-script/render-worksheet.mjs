@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
-const LANE_RE = /^\*\*(SAY|SHOW|EDIT|FACTS)\*\*(?:\s*[—-]\s*(.*))?$/i
+const LANE_RE = /^\*\*(SAY|SHOW|EDIT|FACTS|DEMO)\*\*(?:\s*[—-]\s*(.*))?$/i
 
 // Strip the blockquote marker, keeping everything after ONE optional space so a
 // continuation line's own indentation survives.

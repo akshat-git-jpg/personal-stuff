@@ -66,3 +66,11 @@
   color: var(--warm-ink);
   font-size: 13px;
 }
+
+/* A silent stretch, in the read-through. Bracketed and muted so a reader scanning
+   for words to say skips it, while the flow still shows where the video runs
+   without narration. */
+.fs-demo {
+  font: italic 15px/1.6 var(--sans);
+  color: var(--faint);
+}

@@ -32,7 +32,7 @@ const BEAT_RE = /^([0-9A-Za-z][0-9A-Za-z.]*)\s*·\s*(.*)$/
 
 // A pre-spec outline uses `### 1. Cold Open` for a beat and `**Voiceover**` /
 // `**Notes**` for its lanes. SCRIPT-PLAN-INSTRUCTIONS.md settled on `#### 1 · Cold
-// Open` with `**SAY**` / `**SHOW**` / `**EDIT**`, and the block parser only
+// Open` with `**SAY**` / `**SHOW**` / `**EDIT**` / `**DEMO**`, and the block parser only
 // knows that spelling. Fed a legacy file it does not fail — it quietly returns
 // whichever stray `####` headings happen to exist, so the desk renders a short,
 // plausible, WRONG script. Measured 2026-08-23: ai-avatar-online-courses came
@@ -148,6 +148,7 @@ export function buildBeats(md) {
         mode: curPartKind === 'body' ? 'write' : 'read',
         say: null,
         angle: null,
+        demo: [],
         show: [],
         edit: [],
         facts: [],
@@ -180,6 +181,14 @@ export function buildBeats(md) {
         pending.edit.push(...b.raw)
       } else if (b.kind === 'FACTS') {
         pending.facts.push(...b.raw)
+      } else if (b.kind === 'DEMO') {
+        // A silent stretch: something plays or is shown and NOBODY SPEAKS. It is
+        // timeline content, not an instruction, which is why it renders in the
+        // desk's left track next to the spoken copy rather than in the right
+        // one. Added 2026-08-27: the owner could not see the cold open in the
+        // timeline, because 12 seconds of video playing with no voiceover had
+        // nowhere to live. How to shoot it still belongs in SHOW and EDIT.
+        pending.demo.push(...b.raw)
       }
       continue
     }

@@ -10,6 +10,7 @@ export type Beat = {
   mode: 'read' | 'write' // read = spoken copy already written; write = he writes it
   say: string[] | null // raw quote lines; '' means a paragraph break. Only when mode==='read'
   angle: string[] | null // the body SAY draft, as an INSTRUCTION. Only when mode==='write'
+  demo: string[] // a silent stretch: something plays, nobody speaks. Renders LEFT
   show: string[]
   edit: string[]
   facts: string[]

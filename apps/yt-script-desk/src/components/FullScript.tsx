@@ -69,9 +69,15 @@ export function FullScript({ doc, loadError, beatLabels, onRetry, onFinish }: Fu
 function BeatRows({ beat, doc, beatLabels }: { beat: Beat; doc: VideoDoc; beatLabels: boolean }) {
   const paragraphs = resolveBeatParagraphs(beat, doc)
   const hasVerdict = Boolean(beat.verdict && beat.verdict.trim().length > 0)
-  const isUnwritten = paragraphs.length === 0 && !hasVerdict
+  const hasDemo = beat.demo.length > 0
+  // A beat that is only a silent stretch is not unwritten — there is nothing to
+  // write. Counting it as unwritten put "Not written yet." on the cold open.
+  const isUnwritten = paragraphs.length === 0 && !hasVerdict && !hasDemo
   const label = beatLabels ? beat.num : ''
-  const title = beatLabels ? (beat.title ?? '').trim() : ''
+  // The outline's heading, not a title invented for the beat — same rule as the
+  // write view's `groupOf` (owner, 2026-08-27: the invented titles were "too
+  // confusing"). Intro and conclusion have no section, so the part name stands in.
+  const title = beatLabels ? groupHeading(beat) : ''
   const inProse = [label, title].filter(Boolean).join(' · ')
 
   return (
@@ -86,6 +92,11 @@ function BeatRows({ beat, doc, beatLabels }: { beat: Beat; doc: VideoDoc; beatLa
       </div>
       <div className="bd">
         {!LABELS_LIVE_IN_THE_MARGIN && inProse && <span className="mk-in-prose">{inProse} </span>}
+        {hasDemo && (
+          <p className="fs-demo" data-testid="fs-demo">
+            [{beat.demo.join(' ')}]
+          </p>
+        )}
         {isUnwritten ? (
           <p className="not-written">Not written yet.</p>
         ) : (
@@ -99,6 +110,13 @@ function BeatRows({ beat, doc, beatLabels }: { beat: Beat; doc: VideoDoc; beatLa
       </div>
     </>
   )
+}
+
+function groupHeading(beat: Beat): string {
+  if (beat.section) return beat.section
+  const part = (beat.part ?? '').replace(/^\s*\d+\s*·\s*/, '').trim()
+  if (!part) return beat.partKind === 'intro' ? 'Intro' : 'Conclusion'
+  return part.charAt(0) + part.slice(1).toLowerCase()
 }
 
 function FullScriptFooter({
