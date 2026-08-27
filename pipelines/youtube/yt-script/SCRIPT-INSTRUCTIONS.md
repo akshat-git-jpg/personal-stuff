@@ -195,6 +195,57 @@ place the ask itself is made.
 - Per-option honest-verdict paragraph: 50-80 words.
 - Final CTA: 100-140 words.
 
+## Reading as a human
+
+**The `humanizer` skill is part of writing a script here, not a polish option.**
+Owner, 2026-08-27: *"My script should not look AI generated, so use the humanizer
+skill"*. Step 050 runs it in Mode B (new copy), step 100 in Mode A (editing the
+maker's draft, protecting his voice). Their READMEs carry the mode; this section
+carries what matters for speech.
+
+Two hard rules, both already true of the reference script and now named:
+
+- **Zero em dashes and zero en dashes.** Scan for them before delivering. A
+  regular hyphen in a compound word is fine.
+- **Straight quotes only.** No curly quotes.
+
+The patterns that do real damage to a spoken line, in rough order of how often
+they show up in a video script:
+
+| Pattern | The shape | The fix |
+|---|---|---|
+| Fake-profound kicker | a short mic-drop line closing a section: "and that's the whole game" | delete it, do not improve it. End on the last concrete sentence |
+| Binary contrast | "this isn't X, it's Y" / "the question isn't X, it's Y" | state Y directly |
+| Throat-clearing | "here's the thing", "let me be clear", "I'll be honest" | cut, start on the point |
+| Faux-insight setup | "what nobody tells you", "the part everyone skips" | cut the setup, let the claim stand |
+| Colon reveal | a noun phrase, a colon, a dramatic payoff | write it as a plain sentence |
+| Dramatic fragmentation | "X. And Y. And Z." or stacked one-word lines | complete sentences. Varied rhythm is one short line among longer ones, not a drumbeat |
+| Rule of three | every list forced to exactly three items | use the number of items there actually are |
+| Undue significance | "underscores the importance of", "marks a shift" | say what happened |
+| -ing tails | "…, highlighting the need for…" | end the sentence |
+| Interpretive metadiscourse | "that matters more than it sounds", "as you can see" | delete, or replace with the fact that would make it land |
+
+Formatting patterns (boldface, emojis, heading case, inline-header lists) do not
+apply inside a `Voiceover` block. They still apply to `Notes` and to anything the
+desk or the owner reads.
+
+### Where the house convention and the skill disagree
+
+**The spoken roadmap stays.** `humanizer` pattern 28 bans signposting, and the
+opening convention above *requires* a roadmap that names every body section out
+loud. That is not a conflict once you see what 28 is aimed at: it bans **empty
+announcements** — "let's dive in", "without further ado", "let's break this
+down" — sentences that describe the act of speaking instead of saying anything.
+
+A roadmap carries real information: it tells the viewer what they are getting and
+in what order, which is why it earns its place and why retention depends on it.
+**Keep the roadmap, and keep it concrete.** What 28 forbids is the wind-up around
+it. "Now let's dive into the first one" is a signpost; naming the section and
+moving is not.
+
+The same distinction settles the CTA cadence: "link's in the description" is
+information. "But before we get into it, make sure to…" is a wind-up.
+
 ## Never appears in a spoken line
 
 - Recording/production directives ("use the custom avatar," "skip loading
