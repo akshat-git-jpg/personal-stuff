@@ -1,7 +1,7 @@
 # How to Make Vox Style Videos with AI
 
 Format: tutorial
-Target: 24 min
+Target: 22 min
 
 ## Contents
 1. What makes it look like Vox
@@ -15,12 +15,11 @@ Target: 24 min
 9. Adding the motion
 10. Putting it all together
 11. When you need more control
-12. What this actually costs
 
 ## Intro
 - hook: a finished Vox shot plays cold, then the reveal that no frame of it touched After Effects and nobody designed a single board by hand
 - credibility: years of using these tools, and this whole video built in one chat with every setting and every mistake left on screen
-- roadmap: names the twelve sections above
+- roadmap: names the eleven sections above
 
 ---
 
@@ -131,15 +130,6 @@ Step out of the chat and drive the picture and video tools yourself, on the same
 - the video settings, and how long a single shot should be
 - the trick for a map or a chart: never animate it, make a before and an after
 - what to do when a shot needs three pictures instead of two
-
-## 12. What this actually costs
-
-Know what you are signing up for, and where the money goes.
-
-- what you are paying for, and which plan is worth it once you post regularly
-- the step that eats most of your budget, and why
-- budgeting for the attempts that come back wrong, because the first ones will
-- where the results still look like AI, said straight
 
 ---
 

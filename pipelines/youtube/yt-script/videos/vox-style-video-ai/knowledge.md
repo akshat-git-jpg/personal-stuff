@@ -1087,10 +1087,28 @@ route better than any single source.
 - **Trust your own visual ideas** (Luuk, 8) — unattended AI output is flat; the
   moment a human has a real idea for how to show something, it lifts. Belongs in
   the style and motion phases, and in the conclusion.
-- **Budget for the bad attempts** (Luuk, 8) — the iteration cost nobody mentions.
-  As an idea only; see the honesty limit below.
+- **Trust your own visual ideas** carries into the conclusion as well.
 
-**Two things stay out, and neither is about scope:**
+## Cut from this video by the owner — instance only, not a rule
+
+**Owner instruction, 2026-08-27:** *"i already said dont include don't include
+cost breadkdow and yt ban parts. those are just feedbacks for this topic, not
+general.."*
+
+- **No costs or pricing section.** Not because the material is out of scope — see
+  above, combining is allowed — but because he does not want one in this video.
+- **No YouTube-ban or platform-risk section.** Same reason.
+
+**These are decisions about this video and nothing else.** No rule was written
+into `OUTLINE-INSTRUCTIONS.md`, `SCRIPT-PLAN-INSTRUCTIONS.md` or `TASTE.md` from
+them, and a future video may well want either section. The affiliate link and
+promo code still go in the CTA, per `SCRIPT-INSTRUCTIONS.md`; they simply do not
+get a card.
+
+A rule *was* briefly written from the first half of this and then reversed — see
+the notes at the end of `FEEDBACK-LOG.md`.
+
+**Two things stay out, and both are general:**
 
 - **A second walkthrough.** Approaches B, C, D, E and F are named and dismissed
   in one pass, in one section, and never taught. The viewer is not asked to do
