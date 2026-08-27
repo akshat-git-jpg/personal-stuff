@@ -34,7 +34,33 @@ async function j<T = { ok: true }>(url: string, method = 'GET', body?: unknown):
   return (await res.json()) as T
 }
 
-export const getVideo = (key: string) => j<VideoDoc>(`${base}/video${keyQuery(key)}`)
+// A beat field added after a video was published is ABSENT from that video's
+// stored snapshot, and the UI must not crash on it. Hosted mode serves
+// `beats_json` written into D1 at publish time, and local mode is served by a
+// long-running node process that imported the parser at startup — so a freshly
+// added field is missing in both until a republish or a restart.
+//
+// Seen live 2026-08-27: `demo` was added, the Vite frontend hot-reloaded, the
+// API process did not, and `beat.demo.length` on undefined blanked the whole
+// page. Every freelancer holding an older link would have hit the same thing.
+// Normalising here, at the one place a document enters the app, is what keeps
+// that from being a crash.
+function normalizeDoc(doc: VideoDoc): VideoDoc {
+  return {
+    ...doc,
+    beats: (doc.beats ?? []).map((b) => ({
+      ...b,
+      demo: b.demo ?? [],
+      show: b.show ?? [],
+      edit: b.edit ?? [],
+      facts: b.facts ?? [],
+      rules: b.rules ?? [],
+    })),
+  }
+}
+
+export const getVideo = (key: string) =>
+  j<VideoDoc>(`${base}/video${keyQuery(key)}`).then(normalizeDoc)
 
 export const putDraft = (key: string, num: string, text: string) =>
   j(`${base}/beat/${num}${keyQuery(key)}`, 'PUT', { text })

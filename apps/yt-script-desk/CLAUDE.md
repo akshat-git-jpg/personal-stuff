@@ -9,6 +9,13 @@
 
 **DEMO is the one thing in the left track that is not spoken copy, and it is not an exception to the rule.** A silent stretch is timeline content: something plays and nobody talks. Added 2026-08-27, because a 12-second cold open with no voiceover had nowhere to appear, so the timeline read as if the video began on the first spoken line. How to shoot it stays in SHOW; how to cut it stays in EDIT. A DEMO lane that grows shooting notes has smuggled an instruction into the left track. Guarded by `src/components/__tests__/demoLane.test.tsx`.
 
+### The API process does not hot-reload. Vite does.
+`npm run dev:local` runs two things: Vite (watches `src/`, reloads on save) and `server/local.mjs` (a plain node process that imported `buildBeats` **at startup**). Change the parser in `pipelines/youtube/yt-script/lib/` and the frontend picks it up while the API keeps serving the old shape. **Restart `dev:local` after any parser change.**
+
+Seen live 2026-08-27: `demo` was added, the frontend hot-reloaded, the API did not, and `beat.demo.length` on undefined blanked the whole page. `normalizeDoc` in `src/api.ts` now fills missing list fields at the boundary, so this degrades to "the new field is absent" instead of a crash — which is also what protects freelancers holding links published before a field existed, since D1 snapshots are frozen at publish time. Guarded by `src/__tests__/oldSnapshot.test.ts`.
+
+**Any new beat field goes in `normalizeDoc`.** A field the UI reads with `.length` and does not normalise is a blank page waiting for the next publish.
+
 ### Beats are labelled by the outline's heading
 **Never by `beat.title`.** A body beat is headed by its outline section; an intro or conclusion beat by its part name. The section header prints once per section, not once per beat.
 
