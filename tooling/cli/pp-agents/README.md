@@ -10,9 +10,18 @@ kbc --list                # one line per session, for scripts
 kbc --doctor              # what it can read, and what it can drive
 ```
 
-`kbc` and `kbcp` are the commands you type - one store each. `pp-agents` is the same program under its
-repo-convention name, and both symlinks live in `~/.local/bin`; the folder,
-the tests and the verify-map entry all stay `pp-agents`.
+`kbc` and `kbcp` are the commands you type - one store each. `pp-agents` is the
+same program under its repo-convention name; the folder, the tests and the
+verify-map entry all stay `pp-agents`.
+
+All three are symlinks in `~/.local/bin` to this one file, and the NAME is what
+selects the store, so a missing link is a missing account. On a fresh machine:
+
+```
+for n in kbc kbcp pp-agents; do
+  ln -sf "$PWD/tooling/cli/pp-agents/pp-agents" ~/.local/bin/$n
+done
+```
 
 ## Why this exists instead of `pp-claude-tags`
 
