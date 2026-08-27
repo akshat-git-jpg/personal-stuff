@@ -32,17 +32,17 @@ showed it to be wrong; anything you change is flagged for Kushal's review.
 
 > "Here's the run of show.
 >
-> Quick look at all five. (Quick Overview)
+> Quick look at all five.
 >
-> The main event — one character, five scenes, all five tools. (The Character Consistency Test)
+> The main event — one character, five scenes, all five tools.
 >
-> Then what happens once you animate it. (Video & Motion Consistency)
+> Then what happens once you animate it.
 >
-> Then style and memory — does it hold up over a whole project. (Style & Character Memory)
+> Then style and memory — does it hold up over a whole project.
 >
-> Then workflow, ease of use, and what it costs. (Workflow, Ease of Use & Pricing)
+> Then workflow, ease of use, and what it costs.
 >
-> Then every score, one table. (Summary Scorecard)
+> Then every score, one table.
 >
 > And my honest pick at the end."
 

@@ -43,6 +43,7 @@ definition.
 | 2026-08-27 | vox-style-video-ai | structure | "there are multiple areas during our script where we are not even saying anything, we are just showing something on the UI... that doesn't come in the left side vertical timeline. It's confusing... I want to make a left side part like that where it's a section of just demo without voiceover" | New DEMO lane: `render-worksheet.mjs` LANE_RE, `lib/beats.mjs`, `SCRIPT-PLAN-INSTRUCTIONS.md`, desk `types.ts` / `WriteView.tsx` / `FullScript.tsx` / css, `demoLane.test.tsx` (8 tests), desk `CLAUDE.md`, and beat 1.1 of this video | No T rule. Format plus code. Bends the desk's two-track rule on purpose: a silent stretch is timeline content, not an instruction. |
 | 2026-08-27 | vox-style-video-ai | format | "you have added this title for each section so beat. I don't like it. These are too confusing. I prefer that this heading should be the actual outline headings... you can keep that as intro as a heading and then you can just make it intro 1.1 intro 1.2" | `SCRIPT-PLAN-INSTRUCTIONS.md` (beat headings are labels), desk `WriteView.tsx` + `FullScript.tsx` (heading comes from the outline section, printed once per section), `outlineHeadings.test.tsx` (5 tests), all 56 labels in this video shortened | No T rule. Format spec plus code. **The real defect was worse than the titles:** the desk never rendered `beat.section` at all, so the owner's approved section names were invisible in the review tool. |
 | 2026-08-27 | vox-style-video-ai | structure | "You said just watch this for a second and after that there is no demo section. Not sure what you are trying to do here... Is the sequencing wrong?" | `SCRIPT-PLAN-INSTRUCTIONS.md` (new ordering rule in the DEMO lane section, with a wrong/right table), `videos/vox-style-video-ai/script-plan.md` beats 1.1 and 1.2, `test/desk-docs.test.mjs` | No T rule. Format spec, and the gap was in a section written hours earlier the same day. The lane was specified as *where* it renders and never as *what that means for the words*: `DEMO` is pinned to the top of its beat, so every spoken line in that beat is heard after the silence. The session then wrote a forward-pointing tease into it. Owner chose "silence first, then talk" over splitting into two beats. |
+| 2026-08-28 | vox-style-video-ai | format | "What are these texts in the bracket and why are they in read as written? This is a major gap, right?" | `SCRIPT-PLAN-INSTRUCTIONS.md` (roadmap rule rewritten from verbatim-match to coverage, plus the blockquote hard rule), new `test/roadmap.test.mjs` (2 checks per plan), 25 annotations stripped across `vox-style-video-ai`, `ai-avatar-generator-comparison` and `character-consistency-ai`, plus the last one's worksheet | No T rule. Format spec plus a test. **Removed a stated rule** — the old "roadmap must match the section headings exactly" is what caused this: with a heading like "Summary Table" there is no way to obey it and still sound human, so the session wrote the natural sentence and bolted the heading on in brackets, inside the spoken blockquote. Found in three videos going back to the earliest, so it was a standing habit. |
 ## Notes on these first three rows
 
 **gate-report is a new tag**, approved by the owner on 2026-08-27 in the Phase
@@ -150,3 +151,30 @@ what got skipped here.
 probably an instance. If it names *how you work, what you always do, what you
 should never ask* - the way T6, T7 and T8 all do - it is probably a rule. When
 both readings are live, ask; the owner answered this one before being asked, twice.
+
+## A prose constraint nobody can check gets satisfied by writing the proof into the script (2026-08-27/28)
+
+Two bugs the same night, the same shape:
+
+- The DEMO lane spec said *where* the lane renders and never what that implied for
+  the words, so a forward-pointing tease went into a beat where the demo had
+  already played.
+- The roadmap rule said the spoken lines *"must match the `### SECTION:` headings
+  exactly"* and nothing checked it, so the headings were appended in brackets to
+  the sentences that already contained them — as the session's own proof of the
+  match, in the voiceover.
+
+**The pattern: a rule stated in prose, verifiable by nobody, gets satisfied by
+putting the verification inside the artefact.** The bracketed heading was not a
+typo. It was a compliance artifact.
+
+Two things fix it, and both are needed:
+
+1. **If a rule is mechanically checkable, check it.** `test/roadmap.test.mjs`
+   now proves the coverage on every plan, which is exactly why no annotation is
+   ever needed again.
+2. **A rule you cannot obey without breaking another rule is the bug.** The
+   verbatim requirement collided with T8 the moment a heading was not natural
+   speech. The session should have raised that instead of writing both. Writing
+   the test is what surfaced it: `ai-avatar-generators` paraphrases three
+   headings and reads better than verbatim would.

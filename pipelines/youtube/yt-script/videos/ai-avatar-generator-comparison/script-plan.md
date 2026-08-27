@@ -19,21 +19,21 @@ Read as written.
 **SAY**
 > "Here's exactly what we'll cover in this video.
 >
-> First, I'll give you a quick overview of all five platforms. (Quick Overview)
+> First, I'll give you a quick overview of all five platforms.
 >
-> Then, we'll compare avatar realism, lip-sync, and natural movement to see which platform actually looks the most convincing on screen. (Realism Comparison)
+> Then, we'll compare avatar realism, lip-sync, and natural movement to see which platform actually looks the most convincing on screen.
 >
-> After that, we'll look at course and training features — scene management, document imports, and LMS tools — to see which platform can actually support a full course. (Course & Training Features)
+> After that, we'll look at course and training features — scene management, document imports, and LMS tools — to see which platform can actually support a full course.
 >
-> Next, we'll compare voice and presentation quality across all five. (Voice & Presentation Quality)
+> Next, we'll compare voice and presentation quality across all five.
 >
-> Then, custom avatars — how each platform lets you build and maintain your own digital twin. (Custom Avatars)
+> Then, custom avatars — how each platform lets you build and maintain your own digital twin.
 >
-> After that, ease of course creation — how fast you can go from script to finished lesson. (Ease of Course Creation)
+> After that, ease of course creation — how fast you can go from script to finished lesson.
 >
-> Then, pricing and value, so you know exactly what you're paying for a finished minute of video. (Pricing & Value)
+> Then, pricing and value, so you know exactly what you're paying for a finished minute of video.
 >
-> We'll bring everything together in one final summary scorecard. (Summary Table)
+> We'll bring everything together in one final summary scorecard.
 >
 > And finally, I'll share my honest recommendation for both solo creators and enterprise teams. (Honest Verdict)"
 

@@ -221,8 +221,22 @@ Six beats in order, no skipping, no reordering:
    themselves in the first sentence.
 2. **Credibility** — what you actually did. Specific beats vague.
 3. **Promise** — what they walk away knowing.
-4. **Roadmap** — name the body sections out loud, in order. These must match
-   the `### SECTION:` headings **exactly**.
+4. **Roadmap** — name the body sections out loud, in order. Each spoken line
+   must contain its `### SECTION:` heading **verbatim**, inside a normal
+   sentence: *"First, what makes it look like Vox, so you can judge your own
+   results properly."*
+
+   **Never annotate the match.** The heading appearing in the sentence *is* the
+   match; there is nothing to prove and nothing to label. A blockquote holds
+   only words that come out of your mouth, so a bracketed heading after the
+   sentence — `... judge your own results properly. (What makes it look like
+   Vox)` — is a line the voice reads aloud. `test/roadmap.test.mjs` checks the
+   match for you, on every plan, which is why the annotation buys nothing.
+
+   Broken on 2026-08-27 in `vox-style-video-ai`: eleven headings were appended
+   in brackets to the eleven roadmap sentences that already contained them.
+   Owner: *"What are these texts in the bracket and why are they in read as
+   written? This is a major gap, right?"*
 5. **Links in description** — always present.
 6. **Transition** into the body.
 
@@ -328,7 +342,9 @@ up.
 
 - **Intro and conclusion are finished copy. Body beats are lanes.** Never mix.
 - **Lane labels sit alone on their line**, or the parser drops the lane.
-- **Spoken copy is always a blockquote. Nothing else is.**
+- **Spoken copy is always a blockquote. Nothing else is.** And a blockquote
+  holds **only** what is said aloud — no notes, no labels, no bracketed
+  cross-references. Anything you want to say *about* the copy goes in `EDIT`.
 - **Repeated instruction means it belongs in the rules box.**
 - **Intro roadmap and section headings match word for word.**
 - **Every claim traces to `knowledge.md`.** No support, no line — raise the gap.
