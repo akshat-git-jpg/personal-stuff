@@ -257,6 +257,39 @@ with tempfile.TemporaryDirectory() as tmp:
 
 # ----------------------------------------------------------------- commands
 
+section("a lingering child cannot stall a claude call")
+with tempfile.TemporaryDirectory() as tmp:
+    # A command that prints, then leaves a child holding its output open. Read
+    # through a PIPE this blocks until that child exits, because a pipe is only
+    # at EOF once every holder closes it. That is what froze the view mid-key.
+    slow = os.path.join(tmp, "slow")
+    with open(slow, "w") as fh:
+        fh.write("#!/bin/sh\n( sleep 30 ) &\necho 'backgrounded \u00b7 feedface'\n")
+    os.chmod(slow, 0o755)
+
+    began = time.time()
+    blob = mod.run_claude([slow], timeout=20)
+    took = time.time() - began
+    check("it returns as soon as the command itself is done", took < 8.0, f"{took:.1f}s")
+    check("and still hands back what the command printed",
+          "feedface" in blob, repr(blob))
+    check("so the id is readable from it", mod.dispatched_id(blob) == "feedface")
+
+with tempfile.TemporaryDirectory() as tmp:
+    # a command that never finishes is capped rather than waited on forever
+    stuck = os.path.join(tmp, "stuck")
+    with open(stuck, "w") as fh:
+        fh.write("#!/bin/sh\necho starting\nsleep 60\n")
+    os.chmod(stuck, 0o755)
+    began = time.time()
+    blob = mod.run_claude([stuck], timeout=2)
+    took = time.time() - began
+    check("a command that hangs is cut off, not waited on", took < 12.0, f"{took:.1f}s")
+    check("and says so", "timed out" in blob, repr(blob))
+
+check("a missing binary is reported, not raised",
+      "could not run" in mod.run_claude(["/nonexistent/claude", "agents"]))
+
 section("the commands each action runs")
 with tempfile.TemporaryDirectory() as tmp:
     accounts = fixture(tmp)
@@ -408,6 +441,7 @@ with tempfile.TemporaryDirectory() as tmp:
     check("an empty store says nothing matched", "nothing matched" in text, text)
 
 DISPATCHED_ID = "abcd1234"      # what the stub reports for a `--bg`
+LINGERING_DAEMON = 30           # seconds the stub's "daemon" holds its output
 
 
 def stub_claude(tmp, linger=2):
@@ -445,7 +479,8 @@ def stub_claude(tmp, linger=2):
             # lines, and the daemon writes the record a moment LATER. Both halves
             # are reproduced: the id has to be read off the first line, and the
             # record has to be waited for.
-            f'  --bg)   ( sleep 0.4; mkdir -p {jobs}/{DISPATCHED_ID};'
+            f'  --bg)   ( sleep {LINGERING_DAEMON} ) &\n'
+            f'          ( sleep 0.4; mkdir -p {jobs}/{DISPATCHED_ID};'
             f'            printf \'{{"state":"working","name":"%s","detail":"dispatched",'
             f'"cwd":"%s","updatedAt":"2026-08-27T10:00:00.000Z"}}\' "$2" "$PWD"'
             f'            > {jobs}/{DISPATCHED_ID}/state.json ) &\n'

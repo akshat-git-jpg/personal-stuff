@@ -44,6 +44,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import termios
 import time
 import tty
@@ -229,6 +230,33 @@ def delete_record(job):
 
 
 SHORT_ID = re.compile(r"\b([0-9a-f]{8})\b")
+
+
+def run_claude(cmd, cwd=None, env=None, timeout=45.0):
+    """Run a `claude` subcommand and return its combined output.
+
+    Output goes to a temp FILE, never a pipe. `claude --bg` spawns a
+    `claude daemon run` child that outlives the command, and a pipe is only at
+    EOF once every holder closes it - so `capture_output=True` waits for the
+    daemon, i.e. forever, freezing this view mid-keystroke while the session it
+    started runs happily in the background. A file has no such handshake.
+
+    stdin is closed for the same class of reason: this view holds the terminal in
+    raw mode, and a child must never be able to read the keys meant for it.
+    """
+    with tempfile.TemporaryFile("w+") as fh:
+        try:
+            subprocess.run(cmd, cwd=cwd or None, env=env,
+                           stdin=subprocess.DEVNULL, stdout=fh,
+                           stderr=subprocess.STDOUT,
+                           start_new_session=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            fh.seek(0)
+            return (fh.read() + f"\ntimed out after {timeout:.0f}s").strip()
+        except OSError as exc:
+            return f"could not run {cmd[0]}: {exc}"
+        fh.seek(0)
+        return fh.read().strip()
 
 
 def dispatched_id(text):
@@ -1239,9 +1267,8 @@ class App:
         if not self.confirm(f"stop {job['name']}?"):
             self.status = "not stopped"
             return
-        out = subprocess.run(stop_cmd(job), env=job_env(job), capture_output=True, text=True)
-        self.status = (out.stdout + out.stderr).strip().splitlines()[-1:] and \
-            (out.stdout + out.stderr).strip().splitlines()[-1] or "stop issued"
+        blob = run_claude(stop_cmd(job), env=job_env(job))
+        self.status = blob.splitlines()[-1] if blob else "stop issued"
         self.reload()
 
     def act_delete(self):
@@ -1261,8 +1288,7 @@ class App:
             self.status = "not deleted"
             return
         if live:
-            subprocess.run(stop_cmd(job), env=job_env(job),
-                           capture_output=True, text=True)
+            run_claude(stop_cmd(job), env=job_env(job))
             time.sleep(0.4)
         try:
             delete_record(job)
@@ -1326,9 +1352,7 @@ class App:
         if not os.path.isdir(where):
             self.status = f"no such folder: {where}"
             return
-        out = subprocess.run(dispatch_cmd(prompt), cwd=where,
-                             capture_output=True, text=True)
-        blob = (out.stdout + out.stderr).strip()
+        blob = run_claude(dispatch_cmd(prompt), cwd=where)
         short = dispatched_id(blob)
         if short:
             # the daemon writes the record a moment after the command returns
