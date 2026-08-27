@@ -5,14 +5,15 @@
 #### 1.1 · Cold open
 
 **DEMO**
-The finished Vox shot plays. No voiceover.
+The finished Vox shot plays. No voiceover. The first spoken line lands after it.
 
 **SHOW**
 Play roughly 12 seconds of a finished paper-cut shot: locked background, cutouts landing, a caption punching on, one slow camera push.
 No browser, no logo, no cursor. Nothing that reveals which tool made it.
+Hold the shot on screen while the first lines are spoken. It does not cut away.
 
 **EDIT**
-Cut the audio hard on the last word. Silence for half a beat before 1.2.
+The shot's own music and sound carry the silent stretch. Duck them under the voice when it starts; do not cut them.
 Do NOT show the OpenArt interface anywhere in this beat. The reveal in 1.2 depends on it.
 
 **SAY** — final
@@ -20,7 +21,6 @@ Do NOT show the OpenArt interface anywhere in this beat. The reveal in 1.2 depen
 > Paper cutouts, a map drawing itself, and a voice that sounds like a proper documentary.
 > This kind of thing used to mean hiring a motion designer.
 > Or spending weeks learning After Effects.
-> So before I say anything else, just watch this for a second.
 
 #### 1.2 · The reveal
 
@@ -32,7 +32,7 @@ Do not linger on the failure shots. One second each. They are there to be recogn
 Keep the finished shot from 1.1 available. It comes back at the end of the video.
 
 **SAY** — final
-> That was all made with AI.
+> What you just watched was made with AI.
 > Nobody cut out those paper shapes by hand.
 > Nobody opened After Effects.
 > It came out of one chat window, in a single afternoon.
