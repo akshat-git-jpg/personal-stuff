@@ -1,0 +1,76 @@
+# One Kafka broker + one web dashboard. Nothing else. Costs nothing.
+#
+#   docker compose up -d     start it
+#   docker compose stop      pause it, KEEP the messages
+#   docker compose down      stop it and DELETE all messages (clean slate)
+#
+# Dashboard: http://localhost:8080
+# Your code talks to: localhost:9092
+
+services:
+  kafka:
+    image: apache/kafka:4.0.0
+    container_name: kafka-lab-broker
+    ports:
+      - "9092:9092"
+    environment:
+      # --- Identity. This broker is node 1, and it is also its own "controller".
+      # The controller is the brain that tracks which broker owns what. Since Kafka
+      # 3.3 the brain lives inside Kafka itself (this mode is called KRaft). Older
+      # tutorials start a second program called ZooKeeper. You do not need it.
+      # It was removed entirely in Kafka 4. If a tutorial mentions ZooKeeper, it is old.
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # --- Doors into the broker. Three, because callers arrive from different places:
+      #   HOST       -> your Mac terminal and your TS scripts, via localhost:9092
+      #   INTERNAL   -> other containers (the dashboard), via kafka:29092
+      #   CONTROLLER -> the brain talking to itself
+      # This is the #1 thing people get wrong in local Kafka. If you ever see
+      # "connection refused" from inside a container, it is this block.
+      KAFKA_LISTENERS: HOST://0.0.0.0:9092,INTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: HOST://localhost:9092,INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: HOST:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      # --- Single-broker settings. With 1 broker you cannot keep 3 copies of
+      # anything, so Kafka's own internal bookkeeping topics are told to keep 1 copy.
+      # In production every one of these would be 3.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: 1
+
+      # --- Lab conveniences.
+      # 0 = when a consumer joins a group, reshuffle immediately instead of waiting
+      # 3 seconds. Makes chapter 3 feel instant instead of laggy.
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # false = a typo in a topic name is an ERROR, not a silent brand-new topic.
+      # This is also the correct production setting, and a real interview question.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_NUM_PARTITIONS: 1
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 15s
+
+  kafka-ui:
+    image: kafbat/kafka-ui:latest
+    container_name: kafka-lab-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: kafka-lab
+      # Note: kafka:29092, NOT localhost:9092. Inside Docker, "localhost" means
+      # "this container", which is not the broker.
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      DYNAMIC_CONFIG_ENABLED: "true"
+    depends_on:
+      kafka:
+        condition: service_healthy
