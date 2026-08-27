@@ -133,6 +133,14 @@ opened the view in**, so enter accepts it and `tab` completes to any folder your
 other sessions use. The task comes first because that is the part you already have
 in your head; the folder is a detail.
 
+The new session appears in the list by itself, selected, with the status line
+naming its short id. Two things had to be true for that: the dispatch waits for
+the daemon to write `jobs/<short>/state.json`, which lands a moment after
+`claude --bg` returns; and the auto-refresh watches the `jobs` DIRECTORIES, not
+just the records of sessions already on screen. Watching only known records is
+how a brand-new session stayed invisible until `g` was pressed - the list had no
+way to notice an arrival.
+
 The first version offered the folder most sessions already ran in. That is a fact
 about the backlog, not about intent: open the view inside one repo and it proposed
 a different one. Where the terminal is, is the thing you actually chose.
