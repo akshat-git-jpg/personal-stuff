@@ -25,6 +25,32 @@ reaction of the same `kind`**, or when the owner explicitly asks for one. Step
 Rules are appended and never renumbered. A rule whose cause is gone is retired in
 place, with a note, so the reason it existed outlives it.
 
+## Tutorial or comparison: how these rules read (added 2026-08-27)
+
+**T3, T4 and T5 were seeded from comparison scripts.** They talk about options,
+verdicts, rankings and a named winner, because the script they were modelled on
+had five tools in it. A tutorial has none of those things, and a step that
+applies them literally to a tutorial invents a scorecard nobody asked for. That
+is the quality drift the owner named on 2026-08-27: *"pls have distinction
+between tutorial videos and comparison video throught out the skill and
+feedback.. so as to avoid any issues and degrading quality"*.
+
+`outline.md`'s first line carries `Format: tutorial` or `Format: comparison`.
+Read it, then read these rules through this table. **None of the four rules is
+being narrowed or retired** — this says how each one lands in a format it was
+not written from.
+
+| Rule | In a comparison | In a tutorial |
+|---|---|---|
+| **T2** — one viewer, contractions, short sentences | unchanged | unchanged. This one is format-blind. |
+| **T3** — earn the verdicts before making them | state the test conditions up front | state the **starting conditions** up front: what was already installed, what it cost, what was assumed. Same purpose — the viewer judges the result knowing the method. |
+| **T4** — credit before limit | applies to each option's verdict | applies to each **tool, step or approach the video names**, including the ones it rejects. A rejected approach still gets its real reason to exist before its limit. |
+| **T5** — land on one named winner | a named pick per persona | a named pick **at every fork the video presents**, plus one line on what to do next. An approach menu ending in "any of these work" is the same failure T5 exists to stop. |
+
+**The trap this table closes:** a tutorial reading T4 and T5 without it produces
+a ranked survey of approaches instead of a walkthrough of one. That is not a
+tutorial with good taste; it is a comparison in the wrong clothes.
+
 ---
 
 ## T1 — A taste rule must never narrow what a script is allowed to say.

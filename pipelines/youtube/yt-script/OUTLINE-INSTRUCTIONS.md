@@ -27,6 +27,8 @@ Markdown, **one screen**. Three parts, always in this order.
 ```markdown
 # <the video's working title>
 
+Format: tutorial | comparison
+
 ## Intro
 - hook: <one line — what makes someone stay past 5 seconds>
 - credibility: <one line — what you actually did>
@@ -45,6 +47,8 @@ A real one:
 
 ```markdown
 # Best Realistic AI Avatar Generator for Online Courses & Training
+
+Format: comparison
 
 ## Intro
 - hook: $300 and a studio day, versus a few dollars and a few minutes
@@ -80,6 +84,25 @@ A real one:
 - **Body sections are numbered; intro and conclusion are bullets.** The numbers
   are the running order and the owner reorders by moving them.
 
+## The format is already decided when you get here
+
+Step 010 called it — tutorial or comparison — and stated the call in the gate
+020 message. **Do not re-open it and do not ask.** Owner instruction,
+2026-08-27: *"going forward you can take the call whether a video is supposed to
+be a tutorial or comparison"*.
+
+Two things you must do with it:
+
+- **Name the format on the first line of the outline**, right under the title,
+  as `Format: tutorial` or `Format: comparison`. One line. It is the only
+  metadata this document carries, and it exists so `script-plan.md` and
+  `script.md` cannot silently write the other shape.
+- **If the knowledge does not support the call**, say so to the owner before
+  writing. That is a gap that escaped gate 020, not a format decision to
+  quietly flip.
+
+The owner overrides the call at gate 040. That is the last cheap moment.
+
 ## For a comparison video
 
 Organise **by factor with every tool swept inside each factor** — one "Pricing"
@@ -87,9 +110,24 @@ section covering all five tools, never one section per tool. Per-tool sections
 make the viewer hold five separate verdicts in their head and make the scorecard
 impossible to build.
 
+The conclusion is organised by **who each option is for**. Verdicts are the
+point of the video.
+
 ## For a tutorial
 
 Sections are the phases of the job, in the order the maker performs them.
+
+Three rules that only apply here, and that a comparison-shaped habit breaks:
+
+- **The sections are the phases of the approach the owner picked at gate 020**,
+  not a survey of every approach in `knowledge.md`. The approaches the owner did
+  not pick are context, and at most one section covers them.
+- **There are no verdicts, because there is nothing to rank.** A tutorial that
+  scores its own steps has become a comparison by accident. If a step has a real
+  fork in it, that is a fork inside one section, not a scorecard.
+- **The conclusion is what to do next and what breaks**, not a named winner.
+  `TASTE.md`'s preamble records how T3–T5 read for a tutorial, because those
+  rules were written from comparison scripts.
 
 ## What the owner does with it
 

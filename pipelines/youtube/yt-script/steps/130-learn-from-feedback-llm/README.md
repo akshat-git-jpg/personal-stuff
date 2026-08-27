@@ -29,6 +29,7 @@ so the two cannot drift.
 | What the script SAYS or how it SOUNDS - wording, register, a phrase to stop using, how a claim is framed, running-order preference | taste | `TASTE.md` |
 | One video only, no pattern yet | nothing durable | the video's own file, plus a `FEEDBACK-LOG.md` row |
 | A parser bug, a broken command, a missing tool | code | a plan in `plans/` via the `orchestrate` skill |
+| How a STEP behaves — what it decides on its own vs. asks the owner, and what a gate must put in front of him | flow spec | that step's own `steps/NNN-*/README.md` |
 
 **A format spec and a taste rule are not the same kind of thing and never share a
 file.** `lib/beats.mjs` parses the exact forms in
@@ -39,6 +40,15 @@ document that looks fine at a glance.
 
 **And the reverse:** a genuine format fix never becomes a `T` rule. A `T` rule is
 judgement; a format rule is a contract with a parser.
+
+**A flow spec is a third kind again.** It governs neither wording nor markup but
+**decision rights** — which calls a session makes on its own, and what a gate
+must show the owner so his call is an informed one. It lands in the step's own
+README because that is the only file the session running that step is required
+to read. Added 2026-08-27, when the owner found that step 010 had turned "is
+this a tutorial or a comparison?" into a gap question, and had compressed eight
+candidate approaches into one line each before asking him to pick one.
+
 
 ## The `kind:` vocabulary is closed
 
@@ -59,6 +69,7 @@ cannot drift session to session.
 | `structure` | part or section shape beyond simple order |
 | `evidence` | how a claim is backed or attributed |
 | `format` | a parsed form or markup - routes to an INSTRUCTIONS file, never to `TASTE.md` |
+| `gate-report` | what a gate puts in front of the owner, and which calls the session makes instead of asking - routes to a step README, never to `TASTE.md` |
 
 **Adding a tag needs the owner's approval**, in the Phase 4 summary, as its own
 line. A new tag resets repeat detection for everything it absorbs, so it is a
