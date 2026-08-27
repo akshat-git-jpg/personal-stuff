@@ -1,7 +1,7 @@
 # How to Make Vox Style Videos with AI
 
 Format: tutorial
-Target: 22 min
+Target: 20 min
 
 ## Contents
 1. What makes it look like Vox
@@ -13,13 +13,12 @@ Target: 22 min
 7. Picking the music
 8. Adding the motion
 9. Putting it all together
-10. What it really costs
-11. Not getting your channel banned
+10. When you need more control
 
 ## Intro
 - hook: a finished Vox shot plays cold, then the reveal that no frame of it touched After Effects and nobody designed a single board by hand
 - credibility: years of using these tools, and this whole video built in one chat with every setting and every mistake left on screen
-- roadmap: names the eleven sections above
+- roadmap: names the ten sections above
 
 ---
 
@@ -40,7 +39,7 @@ See what every version of this workflow is really doing, then take the shortest 
 - the same five steps behind every method, so no tool can confuse you
 - what this one chat folds together that normally takes five separate tools
 - the one other tool that works the same way, and where it differs
-- the four longer routes, in one quick pass, and what each one costs you
+- the choice between letting it run start to finish and walking it step by step
 - what to have open before the next step
 
 ## 3. Picking a topic that holds up
@@ -108,27 +107,17 @@ Get the finished video out, timed exactly to what you already approved.
 - asking for the final cut, held to your own timing
 - watching it once, looking only for things that do not match up
 - the two mistakes worth checking for by name
-- when to leave the chat and drive the picture tools yourself
 - exporting, and the handful of settings that matter here
 
-## 10. What it really costs
+## 10. When you need more control
 
-Know what you will actually spend, and what more money buys you.
+Step out of the chat and drive the picture and video tools yourself, on the same account.
 
-- the monthly fee, and what a month of real use burns through
-- where the money goes, and the one step that eats most of it
-- the cost of getting it wrong a few times, and how to keep that small
-- which plan is worth it once you post regularly
-- where the results still look like AI, said straight
-
-## 11. Not getting your channel banned
-
-The part that decides whether any of this is worth your time.
-
-- what changed for AI videos on YouTube this year
-- what actually gets a faceless channel shut down, and what does not
-- the one habit that keeps this style on the safe side
-- where this look genuinely fits, and where it does not
+- the two panels sitting behind the chat, and when the chat is not enough
+- the picture settings worth changing, and the one that matters most
+- the video settings, and how long a single shot should be
+- the trick for a map or a chart: never animate it, make a before and an after
+- what to do when a shot needs three pictures instead of two
 
 ---
 
