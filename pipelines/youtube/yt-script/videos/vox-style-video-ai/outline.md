@@ -4,133 +4,133 @@ Format: tutorial
 Target: 22 min
 
 ## Contents
-1. The Vox Look
-2. The Tool Choice
-3. The Topic Brief
-4. The Script Build
-5. The Style Lock
-6. The Narrator Audition
-7. The Music Bed
-8. The Motion Pass
-9. The Final Stitch
-10. The Real Cost
-11. The Channel Risk
+1. What makes it look like Vox
+2. Why one tool beats five
+3. Picking a topic that holds up
+4. Writing the script
+5. Locking the look
+6. Picking the voice
+7. Picking the music
+8. Adding the motion
+9. Putting it all together
+10. What it really costs
+11. Not getting your channel banned
 
 ## Intro
-- hook: a finished Vox shot plays cold, then the reveal that no frame of it touched After Effects and no board was designed by hand
-- credibility: years of testing these tools, and this whole video built in one chat with every setting and every failure left on screen
+- hook: a finished Vox shot plays cold, then the reveal that no frame of it touched After Effects and nobody designed a single board by hand
+- credibility: years of using these tools, and this whole video built in one chat with every setting and every mistake left on screen
 - roadmap: names the eleven sections above
 
 ---
 
-## 1. The Vox Look
+## 1. What makes it look like Vox
 
-What actually makes a shot read as Vox, so you can tell a good generation from a bad one before you spend a credit.
+Learn to spot the style, so you can tell a good result from a bad one before you spend anything.
 
-- the locked static background, and why it makes many cuts read as one continuous shot
-- rough paper texture and the deliberately choppy frame rate
-- the five assets in every scene: text, main object, background, secondary objects, camera move
-- maps and arrows that draw themselves, and captions that land on the narrator's beat
-- the three niches already winning with this style, and why the style suits them
+- the background that never moves, and why that makes lots of cuts feel like one long shot
+- the rough paper texture, and the jerky frame rate that is there on purpose
+- the five things in every shot: words, the main object, the background, the small extras, and the camera
+- maps and arrows that draw themselves, and big text that lands right on the narrator's beat
+- the three kinds of channel already winning with this look, and why it fits them
 
-## 2. The Tool Choice
+## 2. Why one tool beats five
 
-Why one chat beats a stack of five tools, and the one alternative worth knowing before you commit.
+See what every version of this workflow is actually doing, then pick the shortest way through it.
 
-- the five-step spine every route shares, so you can see what any tool is actually doing
-- what OpenArt Director collapses into a single chat
-- the one real alternative in the same shape, and where it differs
-- the four routes deliberately skipped here, in one pass, and what each costs you
-- the account and settings to have open before the next section
+- the same five steps behind every method, so no tool can confuse you
+- what OpenArt Director folds into a single chat
+- the one other tool that works the same way, and where it differs
+- the four other routes, in one quick pass, and what each one costs you
+- what to have open before the next step
 
-## 3. The Topic Brief
+## 3. Picking a topic that holds up
 
-Getting the three inputs right, because everything downstream inherits them.
+Get the three inputs right, because everything after this is built on them.
 
-- picking a topic tight enough for a single narrator to carry
-- the surprising angle, and why the payoff is chosen before the hook is written
-- gathering the real verified numbers first, in one place
-- the one instruction that stops the model inventing a figure beyond them
+- choosing something tight enough for one narrator to carry
+- deciding the surprise ending first, then working backwards to the hook
+- collecting your real numbers in one place before you write a word
+- the one line that stops the AI making up a figure you never gave it
 
-## 4. The Script Build
+## 4. Writing the script
 
-Turning the brief into a real explainer structure, then tightening it by hand.
+Turn your notes into a real story, then tighten it yourself.
 
-- the script builder template, filled in live
-- what comes back: hook, buildup and payoff, not plain text
-- editing the draft inline like a document instead of re-prompting
-- checking every number against the brief, then locking it
-- why this is the only section you cannot rush, and the failure it causes downstream
+- the script template, filled in on screen
+- what comes back: an opening, a build, and a payoff, not a wall of text
+- editing the draft in place instead of asking again
+- checking every number against your notes, then locking it
+- why this is the one step you cannot rush, and what goes wrong later if you do
 
-## 5. The Style Lock
+## 5. Locking the look
 
-Approving a small set of boards so every later scene inherits one look.
+Approve a handful of pictures so every later shot copies the same style.
 
-- generating the first board set from the locked script
-- reading a generic first pass, and what "generic" looks like here
-- describing the makeover in plain English, and the rebuild it triggers
-- approving the set, and what the approval actually binds
-- captions locked as static graphics from this point on, and the glitch that forces it
+- generating the first set of pictures from your finished script
+- what a boring, generic first attempt looks like
+- describing the change you want in plain English, and watching it redo all of them
+- approving the set, and what that approval actually locks
+- keeping your on-screen text still from here on, and the glitch that forces it
 
-## 6. The Narrator Audition
+## 6. Picking the voice
 
-Casting the voice that carries the whole video, before any motion exists.
+Cast the narrator who carries the whole video, before any of it moves.
 
-- asking for ten reads, five male and five female, on your own script
-- what a flat or robotic read sounds like against a documentary line
-- the qualities worth listening for, and the one that matters most
-- locking the voice, and regenerating a single line later without touching the rest
+- asking for ten reads, five men and five women, on your own script
+- what a flat or robotic read sounds like next to a real documentary line
+- what to listen for, and the one thing that matters most
+- locking the voice, and redoing one line later without touching the rest
 
-## 7. The Music Bed
+## 7. Picking the music
 
-Choosing a track that sets mood without fighting the narrator.
+Find a track that sets the mood without fighting the narrator.
 
-- auditioning ten tracks across different vibes
-- tempo against the read, and where a track starts competing
-- keeping the music original, and the takedown risk that makes it worth it
-- laying voice and music over the boards to get the timing base
+- listening to ten options across different moods
+- how a track's pace works against the read, and when it starts competing
+- keeping your music original, and the copyright strike that makes it worth it
+- laying the voice and music over the pictures to get your timing
 
-## 8. The Motion Pass
+## 8. Adding the motion
 
-Adding motion board by board, timed to the voice, and stopping before it gets busy.
+Make it move, one picture at a time, timed to the voice, and know when to stop.
 
-- why the narrated slideshow at this stage is supposed to feel boring
-- one simple motion per board, timed to the line it sits under
-- the beginner trap of animating everything, and what it looks like
-- running the whole board set in one pass, and how long that really takes
-- fixing one bad shot in place without losing the good takes
-- redesigning a board that keeps breaking, instead of fighting it
+- why it feels boring at this stage, and why that is fine
+- one simple movement per picture, timed to the line under it
+- the beginner mistake of animating everything, and what that looks like
+- doing the whole set in one go, and how long it really takes
+- fixing one bad shot without losing the good ones
+- when to redraw a picture that keeps breaking instead of fighting it
 
-## 9. The Final Stitch
+## 9. Putting it all together
 
-Getting the finished cut out, timed exactly to the base you already approved.
+Get the finished video out, timed exactly to what you already approved.
 
-- asking for the stitch, with the timing held to the base
-- watching the full cut once, for continuity rather than polish
-- the two continuity breaks worth checking for by name
-- when to drop down to the platform's own image and video panels instead
-- export, and the settings that matter at this step
+- asking for the final cut, held to your timing
+- watching it once, looking for things that do not match up
+- the two mistakes worth checking for by name
+- when to drop out of the chat and use the picture tools directly
+- exporting, and the settings that matter here
 
-## 10. The Real Cost
+## 10. What it really costs
 
-What this costs in practice, and what you get for spending more.
+Know what you will actually spend, and what more money buys you.
 
-- the subscription, and what a month of real use consumes
-- where the credits actually go, and the step that eats most of them
-- the iteration tax nobody mentions, and how to keep it small
-- the plan worth having if you publish on a schedule
-- the seams still visible in the output, stated plainly
+- the monthly fee, and what a month of real use burns through
+- where the money goes, and the one step that eats most of it
+- the cost of getting it wrong a few times, and how to keep that small
+- which plan is worth it if you post regularly
+- where the results still look like AI, said straight
 
-## 11. The Channel Risk
+## 11. Not getting your channel banned
 
-The part that decides whether any of this is worth doing.
+The part that decides whether any of this is worth your time.
 
-- what changed for AI content on YouTube this year
-- what gets a faceless channel actioned, and what does not
-- the one thing that keeps this style on the right side of it
-- where the style is genuinely a fit, and where it is not
+- what changed for AI videos on YouTube this year
+- what actually gets a faceless channel shut down, and what does not
+- the one habit that keeps this style on the safe side
+- where this look genuinely fits, and where it does not
 
 ---
 
 ## Conclusion
-- one topic to run first, the one section to get right before the rest, and what to do when the first attempt comes back wrong
+- the first topic to try, the one step to get right before anything else, and what to do when your first attempt comes back bad

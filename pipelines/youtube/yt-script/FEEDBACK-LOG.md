@@ -29,6 +29,8 @@ definition.
 | 2026-08-27 | vox-style-video-ai | evidence | "pls always assume that i know things. you can add claim about prior experince. assume i have explored tools for yeards and know my stuff. if i need to make changes in script - i will do during review." | `TASTE.md` T7 | **T7** — owner asked for it long-term. Raised against the "never invent facts" hard rule first; he reaffirmed, so T7 is scoped to claims about himself only. |
 | 2026-08-27 | vox-style-video-ai | format | "i prefer outline to be proper table of contens... i prefer simple heading and symmetricall. it should be like a title... 'when it breaks' - thats a bad section name.. infact that should not be even a section name" | `OUTLINE-INSTRUCTIONS.md` (new "Section names" and "Never make a section out of failures" sections), `steps/030-write-outline-llm/README.md` | No T rule. Format spec — 130's table sends outline shape and section-line content to this file, never to `TASTE.md`. |
 | 2026-08-27 | vox-style-video-ai | format | "i need more details what we are planning inside each section so that i can visualize.. make the outline little more detailed" | `OUTLINE-INSTRUCTIONS.md` rewritten to a contents-plus-cards shape; `test/desk-docs.test.mjs` re-pointed at the new boundary; `steps/030`, `steps/040`, `CLAUDE.md`, `SCRIPT-PLAN-INSTRUCTIONS.md`, `SKILL.md` de-referenced | No T rule. Format spec. **Removed a stated rule** — see the last note below. |
+| 2026-08-27 | vox-style-video-ai | format | "i take back my call - we can have phrases in section name" | `OUTLINE-INSTRUCTIONS.md` "Section names" rewritten and the reversal recorded in place, `steps/030-write-outline-llm/README.md` | No T rule. Format spec. **Reverses a rule written the same day** — see the last note. |
+| 2026-08-27 | vox-style-video-ai | jargon | "also need language to be simple day to day.. , intutive we use day to day.. no one uses ' The Music Bed' .." | `TASTE.md` T8, `OUTLINE-INSTRUCTIONS.md` (bad-name table), all eleven section names of `vox-style-video-ai` rewritten | **T8** — owner stated it as a general preference about language, not only about names, so it is taste and not only format |
 
 ## Notes on these first three rows
 
@@ -86,3 +88,33 @@ hard rule that claims come from `knowledge.md` and nowhere else, so it is scoped
 to claims about the owner himself and stays that way. The conflict was raised
 with him before the rule was written, and he reaffirmed it; that exchange is why
 the rule names its own scope twice.
+
+## A rule written this morning was reversed this afternoon (2026-08-27)
+
+The owner asked for section names that were *"simple heading and symmetricall…
+like a title"*. That became a rule requiring a noun phrase of two to five words,
+Title Case, no `When`/`Why`/`What` clauses, and one grammatical shape across the
+whole outline. Followed exactly, it turned all eleven sections of
+`vox-style-video-ai` into `The <Noun>` and produced `The Music Bed`, `The Motion
+Pass`, `The Final Stitch` and `The Narrator Audition`. He reversed it the same
+day: *"i take back my call - we can have phrases in section name"*, with
+*"no one uses ' The Music Bed'"* as the example.
+
+**Why it went wrong, and it is worth remembering.** The rule specified a
+grammatical *shape*, and a shape can be satisfied by jargon — in fact jargon is
+the easiest thing to fit into one, because industry terms are already compact
+noun phrases. So the rule did not merely fail to prevent jargon; it selected for
+it. T8 replaces the shape requirement with a spoken test, which no jargon passes.
+
+**The general shape of this mistake:** a preference stated as a *feeling* ("simple
+and symmetrical") was written down as a *mechanism* (noun phrase, N words, Title
+Case). The mechanism was checkable and the feeling was not, so the mechanism won
+and the feeling was lost. Where a taste item resists mechanisation, the rule
+should say how to judge it, not what shape it takes — `TASTE.md` T1 already
+implies this and this is the first concrete instance of it.
+
+**Two rows, one lesson.** The reversal is logged as a format row and the plain-
+language preference as a jargon row, because they are genuinely two things: what
+a section name is *allowed* to be, and which words may appear anywhere in the
+script. Collapsing them into one row would have hidden the second behind the
+first.

@@ -222,3 +222,37 @@ corrects a claim that overreaches.
 **Applies to:** 030, 050, 100
 **Enforced by:** author judgement. The owner's own read at gates 040, 055 and 110.
 
+## T8 — Everyday words. If a normal person would not say it out loud, it is the wrong word.
+
+**From:** vox-style-video-ai, 2026-08-27. Owner: *"also need language to be
+simple day to day.. , intutive we use day to day.. no one uses ' The Music
+Bed' .."*
+
+The words are the ones the viewer already uses. Not the words the people who do
+this for a living use with each other. `The Music Bed`, `The Motion Pass`,
+`b-roll`, `colour grade`, `asset`, `composition`, `render pass` are all fluent
+and all wrong: they signal that the video is for insiders, at the exact moment a
+beginner is deciding whether they can follow it.
+
+**The test is spoken, not written.** Read the line aloud. If it would sound odd
+said to a friend, rewrite it. "Picking the music" passes. "The music bed" does
+not, even though it is shorter and looks tidier on a page.
+
+**A necessary technical term is allowed once you have paid for it** — name it,
+then say what it means in the same breath, in ordinary words. What is banned is
+the term used as if the viewer already shares it. A term the sources themselves
+have to explain is one the script has to explain too.
+
+**Where this bites hardest is a name or a heading**, because a heading has no
+room to explain itself and gets read before anything else. See
+`OUTLINE-INSTRUCTIONS.md`, which carries the naming rule and the table of names
+this preference rejected — including the ones the earlier, stricter version of
+that rule produced.
+
+This overlaps T2 without duplicating it. T2 is register: who is being addressed
+and how the sentences run. T8 is vocabulary: which words are allowed in them.
+
+**Applies to:** 030, 050, 100
+**Enforced by:** author judgement, plus the read-aloud test. Nothing mechanical
+catches jargon.
+
