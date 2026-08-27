@@ -63,20 +63,34 @@ describe('a beat is labelled by the outline heading', () => {
     ).not.toContain(CONFUSING_TITLE)
   })
 
-  it('shows the outline section name for a body beat', () => {
+  // The name lives in the section header, ONCE, and the beat carries only its
+  // number. It used to be repeated into every beat label too ("WHAT MAKES IT
+  // LOOK LIKE VOX 2.1" in uppercase mono, directly under a header saying the
+  // same words) — owner, 2026-08-27: *"Can you make the UI better It looks bad,
+  // for all the section titles which you are adding"*.
+  it('shows the outline section name in the section header', () => {
     renderView([makeWriteBeat({ section: 'Locking the look', title: 'some invented prose' })])
-    const left = document.querySelector('[data-testid="left-cell"]')?.textContent ?? ''
-    expect(left, 'SECTION_NOT_SHOWN: the outline section the owner approved is missing').toContain(
+    const head = document.querySelector('[data-testid="group-head"]')?.textContent ?? ''
+    expect(head, 'SECTION_NOT_SHOWN: the outline section the owner approved is missing').toContain(
       'Locking the look',
     )
-    expect(left).toContain('2.4')
+  })
+
+  it('labels the beat with its number alone, not the section name again', () => {
+    renderView([makeWriteBeat({ section: 'Locking the look', title: 'some invented prose' })])
+    const num = document.querySelector('.beat-num')?.textContent ?? ''
+    expect(num, 'BEAT_NUM_MISSING: the beat lost its number').toBe('2.4')
+    expect(
+      num,
+      'SECTION_DUPLICATED: the section name is repeated in the beat label, directly under a header that already says it',
+    ).not.toContain('Locking the look')
   })
 
   it('falls back to the part name for intro and conclusion, which have no section', () => {
     renderView([makeReadBeat({ section: null, part: '1 · INTRODUCTION', partKind: 'intro' })])
-    const left = document.querySelector('[data-testid="left-cell"]')?.textContent ?? ''
-    expect(left, 'PART_FALLBACK_MISSING: an intro beat lost its heading entirely').toContain('Introduction')
-    expect(left, 'PART_NUMBER_LEAKED: the "1 ·" prefix belongs to the document, not the label').not.toContain(
+    const head = document.querySelector('[data-testid="group-head"]')?.textContent ?? ''
+    expect(head, 'PART_FALLBACK_MISSING: an intro beat lost its heading entirely').toContain('Introduction')
+    expect(head, 'PART_NUMBER_LEAKED: the "1 ·" prefix belongs to the document, not the heading').not.toContain(
       '1 · INTRODUCTION',
     )
   })
