@@ -428,6 +428,27 @@ note still describing unfixed behaviour says so in place.
 
 ### A gate is lying to you
 
+- **A parked land writes its full output to a file — read it before believing the reason.**
+  `land.log` only ever says `verify failed: <cmd>`, which is the same sentence for three
+  completely different causes. `pp-land` records the run and names the path on the next line:
+  `~/.local/state/pp-land/<repo-hash>/gl/<pid>-<cycle>-<slug>/greenlight.out`. In that file,
+  `Killed: 9` means the OS killed the suite for memory — several suites can run in one land,
+  each end-to-end test may fork a pty, and this machine has 16 GB, so it is not a code failure
+  and the fix is to re-run when fewer agents are busy. `SSL_ERROR_SYSCALL` or
+  `Could not resolve host: github.com` means the tests passed and the merge happened; only the
+  push failed. Only a real `FAIL <label>` line is a failing check. Five lands were parked
+  overnight on 2026-08-27 and diagnosed three times over before anyone opened this file — the
+  output capture itself only landed that morning (`686b7e08`), so older lands have none.
+
+- **Do not send a fix-up agent into a workspace its owner is actively editing.** On 2026-08-27
+  a fix-up dispatched for a parked `pp-agents` land reverted the owner's uncommitted test
+  rewrite, added debug instrumentation to the program, and ran the same five-minute pty suite
+  concurrently — two copies of it fought for memory and both were SIGKILLed, which looked
+  exactly like the failure being investigated. It then landed a competing fix to the same file
+  on `main`, so the owner's branch could no longer rebase. Renaming the `.blocked` and
+  `.dispatching` markers with a suffix stops re-entry; the owner recovered by cutting a fresh
+  workspace from `main` rather than resolving the conflict.
+
 - **`mutation_expect` must be a string that appears ONLY on failure.** Authors keep picking
   the error-code prefix they also used to name the tests (`INTRO-MODE:`, `S1`), so a fully
   passing `node --test` run prints it in every `✔` line and `boss-merge` correctly rejects

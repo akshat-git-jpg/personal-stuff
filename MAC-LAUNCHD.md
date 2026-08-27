@@ -20,12 +20,19 @@ one of them, `bt-audio-guard`, with its script unbacked-up anywhere.
 | `com.kushal.yt-claude-relay` | Localhost HTTP server on :7777. The browser posts a YouTube URL; it fetches the title and transcript, then opens a Claude session already fed the transcript. | always on (`KeepAlive`) | `tooling/cli/yt-claude/` |
 | `com.kushal.yt-claude-prune` | Deletes `~/yt-claude/<videoid>/` folders older than `YT_PRUNE_DAYS` (default 30). Nothing else ever removed them; 142 had accumulated by 2026-08-24. | Sunday 03:00 | `tooling/cli/yt-claude/` |
 | `com.kbtg.pp-work-snapshot` | Records every `pp-work` workspace's file tree **without committing it**. A commit inside a workspace fires `pp-land`, which rebases, verifies and pushes to `main` — so there is no such thing as a private "just in case" commit here. This is the safety net instead. | every 30 min | `tooling/cli/pp-work/` |
-| `com.kbtg.pp-claude-tags` | Re-patches the Claude Code binary to unlock its built-in session tags. The feature ships but the agents view hardcodes its gate to `false`, so `ctrl+e` is unreachable; this flips one byte and re-signs the binary. Every Claude Code update re-locks it, hence the watch. | every 10 min, and on any write under `~/.local/share/claude/versions` | `tooling/cli/pp-claude-tags/` |
 | `com.kbtg.bt-audio-guard` | On earbud reconnect, switches the audio **input** back to the MacBook microphone. macOS otherwise grabs the earbud mic, which forces the link into HFP call mode — mono 16 kHz, and music sounds broken. | polls every 3s (`KeepAlive`) | `tooling/cli/bt-audio-guard/` |
 | `com.kushal.skills-sync` | Copies the five person-level skills (`claude-router`, `github-router`, `humanizer`, `i-have-adhd`, `session-handoff`) from `.claude/skills/` into the **private** `work-skills` plugin, then commits and pushes it. Backstop: the repo hygiene gate already warns at commit time. Skips a dirty checkout. | daily 04:10 | `scripts/` |
 
 `mega.mac.megaupdater` also sits in `~/Library/LaunchAgents/`. It belongs to the MEGA
 desktop app, not to this repo. Leave it alone.
+
+**Retired 2026-08-27: `com.kbtg.pp-claude-tags`.** It re-applied a byte patch to the
+Claude Code binary every 10 minutes to unlock the built-in session tags. Claude Code
+2.1.246 ships compiled bytecode, so the patch still applied cleanly and still changed
+nothing — the same watcher, reporting success, while the tags stayed gone. The
+replacement is `kbc` (`tooling/cli/pp-agents/`), which patches nothing and needs no
+background job. The plist is deleted from the repo; on this machine the installed copy
+was unloaded and renamed `com.kbtg.pp-claude-tags.plist.retired`. Do not re-add it.
 
 ## Logs
 
@@ -34,7 +41,6 @@ desktop app, not to this repo. Leave it alone.
 | yt-claude-relay | `/tmp/yt-claude-relay.log` |
 | yt-claude-prune | `~/Library/Logs/yt-claude-prune.log` |
 | pp-work-snapshot | `~/.local/state/pp-work/snapshot-timer.log` |
-| pp-claude-tags | `~/.cache/pp-claude-tags.log` |
 | bt-audio-guard | `~/Library/Logs/bt-audio-guard.log` (and `/tmp/bt-audio-guard.err`) |
 | skills-sync | `~/Library/Logs/skills-sync.log` |
 
@@ -59,17 +65,16 @@ ln -sfn "$PWD/tooling/cli/bt-audio-guard/bt-audio-guard.sh" ~/.local/bin/bt-audi
 cp tooling/cli/yt-claude/com.kushal.yt-claude-relay.plist   ~/Library/LaunchAgents/
 cp tooling/cli/yt-claude/com.kushal.yt-claude-prune.plist   ~/Library/LaunchAgents/
 cp tooling/cli/pp-work/com.kbtg.pp-work-snapshot.plist      ~/Library/LaunchAgents/
-cp tooling/cli/pp-claude-tags/com.kbtg.pp-claude-tags.plist ~/Library/LaunchAgents/
 cp tooling/cli/bt-audio-guard/com.kbtg.bt-audio-guard.plist ~/Library/LaunchAgents/
 
 # 3. Load them.
 for j in com.kushal.yt-claude-relay com.kushal.yt-claude-prune \
-         com.kbtg.pp-work-snapshot com.kbtg.pp-claude-tags com.kbtg.bt-audio-guard; do
+         com.kbtg.pp-work-snapshot com.kbtg.bt-audio-guard; do
   launchctl load ~/Library/LaunchAgents/$j.plist 2>/dev/null
 done
 
-# 4. Verify — five lines, no "not registered".
-launchctl list | grep -E 'yt-claude|pp-work-snapshot|pp-claude-tags|bt-audio-guard'
+# 4. Verify — four lines, no "not registered".
+launchctl list | grep -E 'yt-claude|pp-work-snapshot|bt-audio-guard'
 ```
 
 **Every plist hardcodes `/Users/kbtg/codebase/personal-stuff`.** If the repo ever moves,
