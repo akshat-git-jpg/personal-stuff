@@ -151,7 +151,12 @@ viewer came for.
   knowledge names one. A tutorial that only shows the happy path is the one the
   viewer abandons at the first error.
 - **Approaches the owner rejected at gate 020 get at most one section**, saying
-  why the chosen one won. Never a second walkthrough.
+  why the chosen one won. Never a second walkthrough. **This limits walkthroughs,
+  not material** - a technique, warning or framing from any source in
+  `knowledge.md` is fair game and combining them is expected. See the tutorial
+  rules in `OUTLINE-INSTRUCTIONS.md`. The one honesty limit: a price or setting
+  stays attached to the tool it came from and is never relabelled as the chosen
+  tool's.
 
 ### Beats
 
