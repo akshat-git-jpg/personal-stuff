@@ -12,8 +12,21 @@ The approved `outline.md` + `knowledge.md` -> `videos/<key>/script-plan.md`, fol
 
 ## What happens
 
-Read `SCRIPT-PLAN-INSTRUCTIONS.md` in full and follow it exactly. Write
-`videos/<key>/script-plan.md` against the approved `outline.md`.
+Read **both** of these in full and follow them exactly, then write
+`videos/<key>/script-plan.md` against the approved `outline.md`:
+
+1. **`SCRIPT-PLAN-INSTRUCTIONS.md`** — the document's shape and its parsed lane
+   forms.
+2. **`SCRIPT-INSTRUCTIONS.md`** — how spoken words are written: "One sentence
+   per line", "Reading as a human", "Length and pacing", and the voice sections.
+   Plus `TASTE.md` in full.
+
+**Both, not just the first one.** This step writes finished verbatim copy for the
+intro and the conclusion, so every rule governing spoken words applies here and
+not only at step 100. On 2026-08-27 this said "read `SCRIPT-PLAN-INSTRUCTIONS.md`
+in full" and nothing more, the intro came back as dense paragraphs, and the
+one-sentence-per-line rule that would have caught it was sitting in the file this
+step was never told to open.
 
 ## Two halves, two standards
 

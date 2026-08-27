@@ -301,3 +301,47 @@ mentioned and how often. This rule governs everything between the CTAs.
 **Enforced by:** author judgement. Nothing mechanical can tell an earned
 recommendation from a sold one.
 
+---
+
+## T10 — Short sentences. One idea each. A listener gets one pass, not two.
+
+**From:** vox-style-video-ai, 2026-08-27. Owner: *"I like to keep my script very
+simple and in human readable day-to-day language. Currently I feel that the script
+is too gibberish, too much is going on in a small frame of time, it doesn't look
+like our day-to-day language."*
+
+Then, in the next message: *"I like my sentences to be shorter and not too long...
+on the same line of when I said I like my script to be simple in simple language,
+easier to follow."* Two reactions of the same shape, one after the other, which is
+why this became a rule rather than an instance fix.
+
+A reader can go back over a long sentence. A listener cannot. So the ceiling is
+not what reads well, it is what survives being heard once, at speaking pace,
+by someone half-watching.
+
+**The mechanism is `SCRIPT-INSTRUCTIONS.md`'s "One sentence per line"**, and that
+is where the format lives. This rule is the judgement behind it:
+
+- **One idea per sentence.** If it needs an "and" to carry a second idea, it is
+  two sentences.
+- **Past about twenty words, look again.** Not a cap. A trigger to check whether
+  it is really two sentences wearing one. Measured on 2026-08-27: the owner's own
+  hand-written script ran a 15-word median with 28% of sentences over twenty, and
+  he asked for shorter than that, so twenty is the point where checking starts,
+  not where the sentence is wrong.
+- **Short does not mean choppy.** Stacked fragments used as a drumbeat are
+  `humanizer` pattern 35, and they read worse than the long sentence they
+  replaced. Vary the rhythm inside the shorter range: a four-word line among
+  twelve-word lines, not twenty four-word lines.
+
+**The test, and it is a spoken one:** read the sentence out loud at pace. If you
+have to re-read it to place a clause, or you run out of breath, it is too long.
+
+This overlaps T2 without replacing it. T2 was seeded from the instruction file
+with no owner quote and says "short sentences" without saying how short. T10
+carries the owner's actual words, the measurement, and the trigger.
+
+**Applies to:** 050, 100
+**Enforced by:** author judgement, plus the read-aloud test. Nothing mechanical
+catches a sentence that is merely hard to follow.
+
