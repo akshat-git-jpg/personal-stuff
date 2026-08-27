@@ -214,6 +214,8 @@ up.
 - **Repeated instruction means it belongs in the rules box.**
 - **Intro roadmap and section headings match word for word.**
 - **Every claim traces to `knowledge.md`.** No support, no line — raise the gap.
-- **No section without a verdict.**
+- **No comparison section without a verdict.** A tutorial section carries none —
+  see the tutorial rules above. This rule said "no section without a verdict"
+  until 2026-08-27, which contradicted them.
 - **No HTML or PDF is generated any more.** The markdown is the source and
   the script desk renders it. `render-outline.mjs` is retired.
