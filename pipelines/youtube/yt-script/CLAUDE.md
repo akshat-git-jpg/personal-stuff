@@ -114,6 +114,13 @@ finally mean what they say.
   `ai-video-tools-comparison`) went with the older scripts on 2026-08-28. The
   guard stays, on an inline fixture in `test/beats.test.mjs`, because the next
   hand-written plan can land in that shape again.
+- **A section-level `FACTS` block belongs to the section, and lands on its FIRST
+  beat.** A `FACTS` block written between a `### SECTION:` heading and that
+  section's first `####` beat is section context. It attaches once, to the first
+  beat, and not to every beat the way `RULES` does. Until 2026-08-28 it was
+  dropped silently — eleven sections' worth of research that never reached the
+  desk. Guarded by `SECTION_FACTS_DROPPED` and `SECTION_FACTS_REPEATED` in
+  `test/beats.test.mjs`.
 - **A body beat's `SAY` is a draft prompt, never finished copy.** It reaches the
   desk as **What to cover** in the instruction track — something he reads, not a
   line he can paste. Enforced by `BODY_DRAFTS_ARE_INSTRUCTIONS` in `lib/beats.mjs`
