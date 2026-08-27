@@ -34,11 +34,12 @@ export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSay
         <Fragment key={beat.num}>
           {groupOf(beat) !== groupOf(beats[i - 1]) && (
             <div className="group-head" data-testid="group-head">
+              <span className="group-head-tick" aria-hidden="true" />
               {groupOf(beat)}
             </div>
           )}
           <div className="rowL" data-testid="left-cell">
-            <div className="beat-num">{`${groupOf(beat)} ${beat.num}`}</div>
+            <div className="beat-num">{beat.num}</div>
             <span className={`tag ${beat.mode === 'read' ? 'tag-say' : 'tag-write'}`}>
               {beat.mode === 'read' ? 'Read as written' : 'You write this'}
             </span>

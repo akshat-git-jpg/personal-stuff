@@ -113,7 +113,7 @@
 .rowL { grid-column: 1; padding: 20px 40px 26px; border-top: 1px solid var(--rule); }
 .rowR { grid-column: 3; padding: 20px 32px 26px; border-top: 1px solid var(--rule); background: var(--panel); }
 
-.beat-num { font: 11px var(--mono); text-transform: uppercase; color: var(--faint); }
+.beat-num { font: 11px var(--mono); color: var(--faint); }
 .beat-title { margin-top: 3px; font: 600 14.5px/1.3 var(--sans); color: var(--text-h); }
 
 /* The outline's own heading, once per section, spanning both tracks. This is the
@@ -121,12 +121,29 @@
    showed it and labelled each beat with an invented title instead. */
 .group-head {
   grid-column: 1 / -1;
-  padding: 26px 40px 10px;
-  border-top: 1px solid var(--rule);
-  font: 600 15px/1.35 var(--sans);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 44px 40px 16px;
+  border-top: 1px solid var(--border);
+  font: 600 17px/1.3 var(--sans);
+  letter-spacing: -0.01em;
   color: var(--text-h);
-  background: var(--hdr);
+  background: var(--bg);
 }
+/* The one accent placement per section, and the signature detail: a short tick
+   that lines the eye up with the heading. One accent, one use, per section. */
+.group-head-tick {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 15px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+/* The header already draws the divider, so the first row under it must not draw
+   a second one 16px later. DOM order inside .tracks is group-head, rowL, rowR. */
+.group-head + .rowL,
+.group-head + .rowL + .rowR { border-top: none; }
 
 .tag {
   display: inline-block;
