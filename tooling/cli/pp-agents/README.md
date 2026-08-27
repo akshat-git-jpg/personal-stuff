@@ -144,6 +144,15 @@ takes over, because by then `pp-feature-deploy` beats a paragraph.
 Related, and not a bug here: a prompt with no actual task in it (`test1`) leaves the
 session asking you what to do. It shows as **Needs input**, which is correct.
 
+The dispatch names the account explicitly. This view READS two fixed stores
+whatever the shell says - that is the point of it - but the dispatch used to
+inherit `CLAUDE_CONFIG_DIR` from the launching shell, and a terminal that never
+ran `clw`/`clp` points at Claude Code's own default, `~/.claude`. So the session
+was created, its id was printed, and it was unlistable by construction. Nine of
+them had collected there before anyone noticed, and every symptom looked like a
+failed dispatch. New sessions are now pinned to the account whose row they will
+appear as, and `--doctor` names any other store that holds records.
+
 The dispatch does not wait for `claude --bg` at all. It launches it detached and
 then watches the store for a session to APPEAR, by diffing the set of short ids -
 redrawing every pass, so the view stays alive throughout. Waiting on the command
@@ -200,6 +209,19 @@ The list carries a permanent line above the status bar:
 argument for the line: the built-in view has the same affordance and that is where
 the habit comes from. It is a label, not a live input - in this view the letters are
 shortcuts, so typing into it would collide with `j`, `k`, `e`, `d` and the rest.
+
+### What this cannot show
+
+**Interactive sessions.** A `claude` you start and talk to yourself writes no
+`state.json` - its job directory holds only `tmp/` - so there is nothing on disk
+to list. 22 such directories sit alongside the records here. The built-in view
+shows "current session" because it IS that session and does not need a file.
+`claude agents --json` does report exactly one `interactive` entry, so this could
+be closed later by merging that in; it is not free, because the JSON needs a
+subprocess call and this view refreshes on a timer.
+
+Only background sessions - `claude --bg`, and anything dispatched from an agents
+view - keep a record, and those are what appear here.
 
 ### The one thing that is missing
 
