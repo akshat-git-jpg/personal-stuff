@@ -3,9 +3,16 @@
 ## Core rules and architecture
 
 ### The two-track rule
-**Instructions never enter the left track.** The desk strictly splits every beat into two columns:
-1. Words that will be spoken on the left.
+**The left track is the audio timeline. Instructions never enter it.** The desk splits every beat into two columns:
+1. The audio timeline on the left: words that will be spoken, lines the maker writes himself, and a **DEMO** block marking a stretch where nothing is spoken at all.
 2. Instructions on the right, in four toggleable blocks: What to cover, Screen Recording notes, General Notes, Video Editor Notes.
+
+**DEMO is the one thing in the left track that is not spoken copy, and it is not an exception to the rule.** A silent stretch is timeline content: something plays and nobody talks. Added 2026-08-27, because a 12-second cold open with no voiceover had nowhere to appear, so the timeline read as if the video began on the first spoken line. How to shoot it stays in SHOW; how to cut it stays in EDIT. A DEMO lane that grows shooting notes has smuggled an instruction into the left track. Guarded by `src/components/__tests__/demoLane.test.tsx`.
+
+### Beats are labelled by the outline's heading
+**Never by `beat.title`.** A body beat is headed by its outline section; an intro or conclusion beat by its part name. The section header prints once per section, not once per beat.
+
+Before 2026-08-27 the desk rendered `beat.title` and never rendered `beat.section` at all, so the section names the owner approved at gate 040 were invisible in the tool built to review them, and what he read instead was prose the script plan had invented ("Cold open — a finished Vox shot, no logos, no UI"). `beat.title` is still parsed and still in the data; it is an index label for whoever reads the markdown, not a heading. Guarded by `src/components/__tests__/outlineHeadings.test.tsx`.
 
 ### The resolution order (`says -> say -> draft`)
 When parsing what text should appear in the spoken track, the resolution order is:
