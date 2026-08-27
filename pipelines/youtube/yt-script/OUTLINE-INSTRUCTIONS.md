@@ -85,12 +85,12 @@ Format: comparison
 Target: 18 min
 
 ## Contents
-1. Quick Overview
-2. Live Demo
-3. Realism
-4. Features For Course Creators
-5. Pricing And Value
-6. Summary Scorecard
+1. Who each one is for
+2. The same script through all five
+3. Which one looks real
+4. What course creators actually need
+5. What they really cost
+6. Every score in one place
 
 ## Intro
 - hook: $300 and a studio day, versus a few dollars and a few minutes
@@ -99,22 +99,22 @@ Target: 18 min
 
 ---
 
-## 1. Quick Overview
+## 1. Who each one is for
 
-Who each of the five tools is actually built for, before any of them is judged.
+Work out which tool is built for you, before any of them is judged.
 
 - what each one was built to do, in one pass
-- the price tier each sits in
-- which two are enterprise-first and why that shows up later
-- the test conditions held constant across all five
+- the price bracket each one sits in
+- which two are built for big companies, and why that shows up later
+- what was kept identical across all five, so the results mean something
 
-## 2. Live Demo
+## 2. The same script through all five
 
-The same script through all five, generated before any result is shown.
+One script through every tool, all of it generated before any result is shown.
 
-- the script, the avatar and the voice, held identical
-- each platform's setup, and what stays off screen
-- all five outputs revealed together, not one at a time
+- the script, the face and the voice, held identical
+- each tool's setup, and what stays off screen
+- all five results revealed together, not one at a time
 
 ...
 ```
@@ -235,6 +235,23 @@ Three rules that only apply here, and that a comparison-shaped habit breaks:
 - **The sections are the phases of the approach the owner picked at gate 020**,
   not a survey of every approach in `knowledge.md`. The approaches he did not
   pick are context, and at most one section covers them.
+- **Every section must be supported by the chosen approach's own source.** Before
+  writing a card, name which source it comes from. If the answer is a rejected
+  approach, it is not a section - the material is out of scope and the card is
+  padding wearing a heading. Owner, 2026-08-27, on a costs section:
+  *"was 10 present in refernce video? if not - lets remove that as well"*.
+
+  This is the same scope rule the CHOSEN block in `knowledge.md` already states,
+  and it is written here because the outline is where it gets broken. On
+  `vox-style-video-ai` the session wrote the scope rule and then produced two
+  sections out of rejected approaches: a costs section built from three other
+  routes' credit figures, and a YouTube-risk section built from a rival's outro
+  plug. Both read as reasonable and neither was teachable.
+
+  **A plug in the reference video is not a section.** Where the source mentioned
+  something only as a promo, a price or a teaser for its own next video, that
+  belongs in the CTA - `SCRIPT-INSTRUCTIONS.md` owns where the CTAs sit - not in
+  a card of its own.
 - **There are no verdicts, because there is nothing to rank.** A tutorial that
   scores its own steps has become a comparison by accident. If a step has a real
   fork in it, that is a fork inside one section, not a scorecard.

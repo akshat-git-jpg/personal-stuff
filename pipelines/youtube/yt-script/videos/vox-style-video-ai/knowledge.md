@@ -1120,9 +1120,11 @@ questions for you.
    haave affiliate similarly as skai"* — an OpenArt affiliate, on the same terms
    Skai Generated used (link plus a promo code; Skai's was 15% off monthly, with
    the annual plan pitched as better value). Two consequences: the tool choice in
-   section 2 is settled from the outset rather than retro-fitted, and section 10
-   (The Real Cost) carries the link and the code. The disclosure still has to be
-   honest — `TASTE.md` T3 means the method is stated before any verdict, so the
+   section 2 is settled from the outset rather than retro-fitted, and the CTA
+   carries the link and the code **in the CTA, not in a section of its own** -
+   Skai Generated never had a costs section, only a plug at the end, and the cost
+   figures in this file all come from rejected approaches. The disclosure still
+   has to be honest — `TASTE.md` T3 means the method is stated before any verdict, so the
    recommendation reads as a finding rather than a placement.
 
 **Facts I cannot verify and will not invent**
