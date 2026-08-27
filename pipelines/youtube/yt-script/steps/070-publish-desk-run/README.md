@@ -2,7 +2,7 @@
 
 **[RUN]** &nbsp; Publishes and prints the freelancer URL.
 
-Parses `script-plan.md` into beats, mints or reuses that video's secret token, and pushes the snapshot to D1. Prints one URL, which is the entire handoff. Runs ONLY after the owner approves at 060.
+Parses `script-plan.md` into beats, mints or reuses that video's secret token, and pushes the snapshot to D1. Prints one URL, which is the entire handoff. Runs ONLY after the owner approves at 055.
 
 **Reads:** `script-plan.md`
 
