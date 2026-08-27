@@ -109,8 +109,11 @@ finally mean what they say.
 - **A pre-spec outline is refused, not half-parsed.** Files written before the
   format settled use `### 1. Cold Open` and `**Voiceover**`. `buildBeats` throws
   `LEGACY_OUTLINE_FORMAT` rather than returning the handful of beats it happens to
-  recognise. Two files in `videos/` are still in that state:
-  `ai-avatar-online-courses` and `ai-video-tools-comparison`.
+  recognise. No such file is left in
+  `videos/` — the two that were (`ai-avatar-online-courses`,
+  `ai-video-tools-comparison`) went with the older scripts on 2026-08-28. The
+  guard stays, on an inline fixture in `test/beats.test.mjs`, because the next
+  hand-written plan can land in that shape again.
 - **A body beat's `SAY` is a draft prompt, never finished copy.** It reaches the
   desk as **What to cover** in the instruction track — something he reads, not a
   line he can paste. Enforced by `BODY_DRAFTS_ARE_INSTRUCTIONS` in `lib/beats.mjs`

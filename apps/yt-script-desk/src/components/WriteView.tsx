@@ -39,7 +39,19 @@ export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSay
             </div>
           )}
           <div className="rowL" data-testid="left-cell">
-            <div className="beat-num">{beat.num}</div>
+            {/* The number AND its section. Owner asked for "intro 1.1, intro 1.2"
+                on 2026-08-27 and again on 2026-08-28: *"make these changes such
+                that the heading also the subheadings also contains the heading
+                main heading"*. It was briefly the number alone, during the
+                header polish, because the section name had been rendering in
+                uppercase mono directly under a header saying the same words.
+                The duplication was never the problem — the SHOUTING was. So the
+                name is back, in sentence case, sized and coloured to sit under
+                the number rather than compete with the header. */}
+            <div className="beat-num">
+              <span className="beat-num-n">{beat.num}</span>
+              <span className="beat-num-sec">{groupOf(beat)}</span>
+            </div>
             <span className={`tag ${beat.mode === 'read' ? 'tag-say' : 'tag-write'}`}>
               {beat.mode === 'read' ? 'Read as written' : 'You write this'}
             </span>

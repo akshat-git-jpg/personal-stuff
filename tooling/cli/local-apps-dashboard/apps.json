@@ -114,7 +114,7 @@
       "start": "npm run dev:local",
       "port": 5175,
       "ports": [5175, 4327],
-      "url": "http://localhost:5175/?key=character-consistency-ai"
+      "url": "http://localhost:5175/?key=vox-style-video-ai"
     }
   ]
 }

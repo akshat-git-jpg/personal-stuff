@@ -9,7 +9,11 @@ import { buildWorksheet } from '../render-worksheet.mjs'
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(HERE, '..')
 const VIDEOS = join(ROOT, 'videos')
-const REAL = ['ai-avatar-generator-comparison', 'ai-avatar-generators', 'character-consistency-ai']
+// Was the three 2026-08 videos. The owner deleted them on 2026-08-28 — *"You can
+// remove older videos scripts, consider this as the first video which we are
+// testing using this flow"* — so `vox-style-video-ai` is now the only real plan
+// and the only fixture. Add a key here when a second video reaches step 050.
+const REAL = ['vox-style-video-ai']
 
 const FIXTURE = `# Test Video Title
 
@@ -172,7 +176,8 @@ test('every real outline parses and every beat has a num and a title', () => {
   }
 })
 
-test('the worksheet is still byte-identical after the parser change', () => {
+test('the worksheet is still byte-identical after the parser change', (t) => {
+  const checked = []
   for (const key of REAL) {
     const md = readFileSync(join(VIDEOS, key, 'script-plan.md'), 'utf8')
     const onDisk = join(VIDEOS, key, 'script-worksheet.md')
@@ -180,7 +185,14 @@ test('the worksheet is still byte-identical after the parser change', () => {
     try {
       expected = readFileSync(onDisk, 'utf8')
     } catch {
-      continue // this video has no checked-in worksheet
+      // No worksheet checked in for this video yet — one is generated later in
+      // the flow. Say so out loud. Until 2026-08-28 this was a bare `continue`,
+      // and when the older videos were deleted (the only one with a worksheet on
+      // disk went with them) this whole test started passing with ZERO
+      // assertions and no sign of it. A vacuous green test is the same failure
+      // shape as the two bugs logged in FEEDBACK-LOG.md the same night.
+      checked.push(`${key}: SKIPPED, no script-worksheet.md on disk yet`)
+      continue
     }
     let actual = buildWorksheet(md)
     // buildWorksheet outputs the 'target — words' placeholder, while the on-disk
@@ -190,7 +202,9 @@ test('the worksheet is still byte-identical after the parser change', () => {
     actual = actual.replace(/target (\d+-\d+|—) words/g, 'target <NORMALIZED> words')
     
     assert.equal(actual, expected, `${key}: worksheet output drifted`)
+    checked.push(`${key}: compared`)
   }
+  t.diagnostic(checked.join(' | ') || 'no videos in REAL')
 })
 
 // ---------------------------------------------------------------- legacy guard

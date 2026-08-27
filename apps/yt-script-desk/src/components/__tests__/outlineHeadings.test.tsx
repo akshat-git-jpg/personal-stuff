@@ -76,14 +76,33 @@ describe('a beat is labelled by the outline heading', () => {
     )
   })
 
-  it('labels the beat with its number alone, not the section name again', () => {
+  // REVERSED 2026-08-28. This test used to assert the OPPOSITE — that the beat
+  // label carried its number ALONE — written during the header polish, when the
+  // section name was rendering in uppercase mono under a header saying the same
+  // words. The owner had asked for "intro 1.1, intro 1.2" from the start and
+  // asked again after the polish: *"make these changes such that the heading
+  // also the subheadings also contains the heading main heading for example 1.1
+  // introduction 1.2 introduction"*. The duplication was never the complaint;
+  // the SHOUTING was. So the name belongs in the label, in sentence case, and
+  // this test now guards that instead of guarding its absence.
+  it('labels the beat with its number AND its section', () => {
     renderView([makeWriteBeat({ section: 'Locking the look', title: 'some invented prose' })])
-    const num = document.querySelector('.beat-num')?.textContent ?? ''
-    expect(num, 'BEAT_NUM_MISSING: the beat lost its number').toBe('2.4')
+    const label = document.querySelector('.beat-num')?.textContent ?? ''
+    expect(label, 'BEAT_NUM_MISSING: the beat lost its number').toContain('2.4')
     expect(
-      num,
-      'SECTION_DUPLICATED: the section name is repeated in the beat label, directly under a header that already says it',
-    ).not.toContain('Locking the look')
+      label,
+      'BEAT_SECTION_MISSING: the beat label no longer names its section, so a beat read on its own says nothing about where it sits',
+    ).toContain('Locking the look')
+  })
+
+  it('never SHOUTS the section name in the beat label', () => {
+    renderView([makeWriteBeat({ section: 'Locking the look' })])
+    const el = document.querySelector('.beat-num-sec')
+    expect(el, 'BEAT_SECTION_MISSING: no section element in the beat label').not.toBeNull()
+    expect(
+      el?.textContent ?? '',
+      'SECTION_SHOUTED: the section name is uppercased in the beat label — that is what the owner called bad the first time',
+    ).not.toBe((el?.textContent ?? '').toUpperCase())
   })
 
   it('falls back to the part name for intro and conclusion, which have no section', () => {

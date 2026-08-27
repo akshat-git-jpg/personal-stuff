@@ -27,13 +27,13 @@
 //
 // So the requirement is COVERAGE — every section is promised, in order — and
 // verbatim is the default because T8 (everyday words) makes a modern heading
-// already speakable. The three plans written before T8 are named below. That list
-// can only shrink: a new plan under T8 has no reason to be on it.
-const PRE_T8 = new Set([
-  'ai-avatar-generator-comparison',
-  'ai-avatar-generators',
-  'character-consistency-ai',
-])
+// already speakable.
+//
+// There WAS a PRE_T8 exemption set here holding those three plans. The owner
+// deleted all three on 2026-08-28 — *"You can remove older videos scripts,
+// consider this as the first video which we are testing using this flow"* — so
+// the set is gone and the check is unconditional. Do not reintroduce it: every
+// plan from here is written under T8, which is what makes verbatim free.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
@@ -67,11 +67,7 @@ for (const { key, path } of plans()) {
   const sections = sectionsOf(md)
   if (sections.length === 0) continue
 
-  test(`${key}: the intro roadmap names every body section verbatim`, {
-    skip: PRE_T8.has(key)
-      ? 'pre-T8 plan: Title Case headings that verbatim would make unspeakable — see the header'
-      : false,
-  }, () => {
+  test(`${key}: the intro roadmap names every body section verbatim`, () => {
     const intro = introSpoken(md).toLowerCase()
     const missing = sections.filter((s) => !intro.includes(s.toLowerCase()))
     assert.deepEqual(
