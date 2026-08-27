@@ -252,6 +252,11 @@ that rule produced.
 This overlaps T2 without duplicating it. T2 is register: who is being addressed
 and how the sentences run. T8 is vocabulary: which words are allowed in them.
 
+**This governs the INSTRUCTION lanes too, not only the spoken copy.** A `SHOW`
+or `EDIT` lane written in insider words is the same failure with a different
+audience — the owner reads those, and on 2026-08-28 he could not: *"all the
+instructions - i am finding too hard to understand."* See T11.
+
 **Applies to:** 030, 050, 100
 **Enforced by:** author judgement, plus the read-aloud test. Nothing mechanical
 catches jargon.
@@ -344,4 +349,47 @@ carries the owner's actual words, the measurement, and the trigger.
 **Applies to:** 050, 100
 **Enforced by:** author judgement, plus the read-aloud test. Nothing mechanical
 catches a sentence that is merely hard to follow.
+
+---
+
+## T11 — An instruction that cannot be pictured is not an instruction. Show an example.
+
+**From:** vox-style-video-ai, 2026-08-28. Owner: *"all the instructions - i am
+finding too hard to understand.. Can you please keep the instruction similarly a
+script? Basically simple and to the point. Maybe you can explain it with a simple
+example so that it's easy easier to follow what you're asking for that section."*
+
+Two halves, and both matter.
+
+**First: the instruction lanes are written like the script.** T8 and T10 apply to
+the whole document, not only to what gets said out loud. One idea per line.
+Everyday words. Nothing that needs reading twice. The instruction track is the
+half of the plan the owner and the maker actually work from, and it was the half
+written as dense abstract prose while the spoken copy got all the care.
+
+**Second, and this is the new rule: abstraction gets an example.** Any line that
+says *what* to do without saying *what that looks like* carries an `Example:` line
+under it. Not a rewrite of the instruction — a concrete instance of it.
+
+| Instruction alone | Instruction plus example |
+|---|---|
+| "Be specific rather than calling it cluttered." | "Name what it costs: the eye has nowhere to rest, and the words stop landing." |
+| "Contrast with what a normal edit does." | *Example: "a normal edit cuts to a new picture. This one just moves things around on the same picture."* |
+| "Two topic examples, one that passes and one that does not." | *Example that passes: "why this shipping route changed the world." Example that fails: "is this tool better than that one."* |
+
+**Why it is a rule and not a style note:** an abstract instruction reads as
+complete. Nothing about "give a concrete example of swapping a weak concept for a
+stronger one" looks unfinished on the page — it looks thorough. It is only at the
+moment of filming that it turns out to say nothing. The example is what makes the
+lane checkable at review time instead of at production time.
+
+**Where no example is needed:** an instruction that is already concrete. "Hold
+the frame for 4 seconds or more" is finished. The example exists for abstraction,
+not for decoration, and a plan padded with obvious examples has just moved the
+problem.
+
+**Applies to:** 030, 050, 100
+**Enforced by:** `SCRIPT-PLAN-INSTRUCTIONS.md`, section "Write the instructions
+like the script", plus the owner's read at gate 055. Nothing mechanical catches
+an abstraction.
 

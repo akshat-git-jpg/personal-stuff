@@ -189,6 +189,46 @@ Use it wherever the video runs without narration: a cold open, a finished result
 playing before it gets explained, a demo the viewer watches in silence, a
 before-and-after held on screen.
 
+## Write the instructions like the script
+
+**Every lane obeys the same language rules as the spoken copy.** T8 (everyday
+words) and T10 (short sentences, one idea each) are not about the blockquote.
+They are about the whole document. A `SHOW` lane written as one 60-word sentence
+of abstract direction is exactly as unusable as a spoken line written that way.
+
+Owner, 2026-08-28: *"all the instructions - i am finding too hard to understand.
+Can you please keep the instruction similarly a script? Basically simple and to
+the point."*
+
+**Three rules, and they are the same three the script gets:**
+
+1. **One line per idea.** Break every lane onto separate lines the way a `SAY`
+   block is broken. If a lane is one long line with three ideas in it, it is
+   three lines.
+2. **Everyday words.** No "unattended", "counterintuitive", "cohesive",
+   "generalises", "brisk". If you would not say it to a friend, do not write it
+   in a lane.
+3. **An `Example:` line wherever the instruction is abstract.** This is the new
+   one. Any time a lane says *what* without saying *what that looks like*, the
+   next line starts with `Example:` and shows it.
+
+**The Example line is the fix that matters most**, because "be specific rather
+than calling it cluttered" is an instruction nobody can act on:
+
+| Abstract on its own | With the example |
+|---|---|
+| `Contrast with what a normal edit does.` | `Then say what a normal edit does instead.`<br>`Example: "a normal edit cuts to a new picture. This one just moves things around on the same picture."` |
+| `A three-layer breakdown of one real shot.` | `Pull one real shot apart into its three layers.`<br>`Example: back layer is the sky, middle is the buildings, front is the person.` |
+| `Two topic examples, one that passes and one that does not.` | `Two topic examples side by side.`<br>`Example that passes: "why this shipping route changed the world."`<br>`Example that fails: "is this tool better than that one."` |
+
+**`FACTS` is one fact per line.** Never a paragraph of semicolons. The first pass
+on `vox-style-video-ai` put nine separate findings into a single 90-word sentence,
+which is a wall the owner has to parse before he can check any one of them.
+
+**Where the instruction is already concrete, no example is needed.** `Hold the
+frame for 4 seconds or more` needs nothing. The example exists for abstraction,
+not for decoration.
+
 ## The rules box
 
 Anything true for a whole section goes in a `RULES` blockquote directly under

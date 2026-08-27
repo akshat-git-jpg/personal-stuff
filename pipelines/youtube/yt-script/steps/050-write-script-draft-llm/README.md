@@ -65,3 +65,19 @@ word. The owner approved those names at 040.
 `lib/beats.mjs` reads this file and the desk renders what it finds. An
 unrecognised form falls through to plain prose **silently** - no error, no lane.
 The exact forms in `SCRIPT-PLAN-INSTRUCTIONS.md` are load-bearing.
+
+## The instructions are written like the script
+
+The lanes are not scratch notes. The owner reads them at gate 055 and the maker
+works from them, so they obey the same language rules as the spoken copy: one
+idea per line, everyday words, and an `Example:` line under anything abstract.
+
+`TASTE.md` T11 has the rule and the reason. `SCRIPT-PLAN-INSTRUCTIONS.md`,
+section **"Write the instructions like the script"**, has the shape.
+
+**The failure this prevents:** on the first pass at `vox-style-video-ai` the
+spoken copy got every rule applied to it and the instruction track got none.
+`SHOW` and `EDIT` came out as long abstract prose — *"be specific rather than
+calling it cluttered"*, *"contrast with what a normal edit does"* — which reads as
+thorough and is unusable. Owner: *"all the instructions - i am finding too hard to
+understand."* All 56 beats had to be rewritten.
