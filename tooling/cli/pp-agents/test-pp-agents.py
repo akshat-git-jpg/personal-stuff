@@ -381,8 +381,12 @@ with tempfile.TemporaryDirectory() as tmp:
     check("an empty store renders without crashing", "grouped by tag" in text)
     check("an empty store says nothing matched", "nothing matched" in text, text)
 
-def stub_claude(tmp):
+def stub_claude(tmp, life=2):
     """A fake `claude` that leaves a record of how it was called.
+
+    `life` is how long an `attach` runs before it writes finished.log. It is the
+    margin every detach assertion depends on, and it has to straddle two bounds at
+    once (see the note on drive's `tail`).
 
     Two records, both files, because file evidence is deterministic while scraped
     screen text is not - pp-agents redraws over a forwarded child the instant it
@@ -403,7 +407,7 @@ def stub_claude(tmp):
             # mouse reporting on, exactly as `claude attach` does, and NOT turned
             # off if killed - the leak this reproduces
             '  attach) printf "\\033[?1000h\\033[?1002h\\033[?1003h\\033[?1006h";\n'
-            f'          echo "ATTACHED $2"; sleep 2 & wait $!; printf "%s\\n" "$2" >> {done} ;;\n'
+            f'          echo "ATTACHED $2"; sleep {life} & wait $!; printf "%s\\n" "$2" >> {done} ;;\n'
             '  logs)   echo "LOGS $2" ;;\n'
             '  stop)   echo "stopped $2" ;;\n'
             '  *)      echo "backgrounded fake" ;;\n'
@@ -418,7 +422,7 @@ def scrape(raw):
     return re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", text)
 
 
-def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True):
+def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True, life=2):
     """Run the real pp-agents in a pty, wait until it has drawn, then send keys.
 
     Returns (first_screen, screen_after_keys, recorded_claude_calls).
@@ -436,8 +440,20 @@ def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True):
 
     `tail` is a bounded extra wait, used only by the assertion that checks
     something never happens.
+
+    `life` is the stub attach child's lifetime, and an assertion of the form "the
+    reserved key detached it" needs BOTH bounds around it:
+
+        key-delivery latency  <  life  <  tail
+
+    Too short a `life` and a loaded machine lets the child finish before the key
+    lands, which reads as "the key did not detach" - a false FAILURE. Too long and
+    a key that genuinely failed to detach never gets the chance to finish inside
+    the observation window, which reads as "nothing happened" - a false PASS. The
+    default 2 left only ~0.5s of headroom over until_quiet's own 1.5s wait, and
+    that is what parked work/land-retry-hardening on 2026-08-27.
     """
-    binp, log = stub_claude(tmp)
+    binp, log = stub_claude(tmp, life)
     env = dict(os.environ)
     env.update({
         "TERM": "xterm-256color", "LINES": str(rows), "COLUMNS": str(cols),
@@ -566,7 +582,8 @@ with tempfile.TemporaryDirectory() as tmp:
     _f, _a, calls = drive(tmp, [(b"K", "stop"), b"n", b"q"])
     check("declining K stops nothing", re.search(r"stop (aaa|bbb)", calls) is None, repr(calls))
 
-def stub_navigating_claude(tmp, marker="describe a task for a new session",
+def stub_navigating_claude(tmp, life=2.5,
+                           marker="describe a task for a new session",
                           on_left=True):
     """A fake `claude attach` that behaves like the real one where it matters.
 
@@ -589,7 +606,7 @@ def stub_navigating_claude(tmp, marker="describe a task for a new session",
         f"if not {on_left!r}:",
         f"    sys.stdout.write({marker!r} + chr(10)); sys.stdout.flush()",
         "import select",
-        "end = time.time() + 2.5",
+        f"end = time.time() + {life}",
         "while time.time() < end:",
         "    r, _, _ = select.select([0], [], [], 0.2)",
         "    if not r:",
@@ -692,8 +709,8 @@ LEFT = b"\x1b[D"
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    binp, _log = stub_navigating_claude(tmp)
-    after = drive_with(tmp, binp, [(b"\r", "ATTACHED"), (LEFT, "pp-agents")], tail=1.0)
+    binp, _log = stub_navigating_claude(tmp, life=8)
+    after = drive_with(tmp, binp, [(b"\r", "ATTACHED"), (LEFT, "pp-agents")], tail=12.0)
     check("left arrow brings you back to the tag list", "pp-agents" in after, after[-400:])
     check("it detaches instead of letting the session finish",
           not os.path.exists(os.path.join(tmp, "finished.log")),
@@ -730,8 +747,8 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    binp, _log = stub_navigating_claude(tmp)
-    after = drive_with(tmp, binp, [(b"\r", "ATTACHED"), (b"\x1b[1;2D", "pp-agents")], tail=1.0)
+    binp, _log = stub_navigating_claude(tmp, life=8)
+    after = drive_with(tmp, binp, [(b"\r", "ATTACHED"), (b"\x1b[1;2D", "pp-agents")], tail=12.0)
     check("shift+left always comes back, whatever the session prints",
           "pp-agents" in after, after[-400:])
     check("shift+left detaches too",
@@ -765,7 +782,7 @@ with tempfile.TemporaryDirectory() as tmp:
     # ctrl+o mid-session must return to the list AND detach the client, so the
     # stub's later output never appears. This is the whole reason the attach runs
     # on a pty we own instead of inheriting the terminal.
-    _f, after, calls = drive(tmp, [(b"\r", "ATTACHED"), b"\x0f"], tail=3.0)
+    _f, after, calls = drive(tmp, [(b"\r", "ATTACHED"), b"\x0f"], tail=12.0, life=8)
     check("the session was opened", re.search(r"attach (aaa|bbb)", calls) is not None, repr(calls))
     check("ctrl+o returns to the tag list", "pp-agents" in after, after[-400:])
     check("ctrl+o detaches rather than waiting it out",
