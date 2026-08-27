@@ -100,6 +100,38 @@ def fixture(tmp):
 
 # ------------------------------------------------------------------ loading
 
+section("one account per command")
+check("kbc means the work store", mod.account_from_argv("/usr/local/bin/kbc") == "work")
+check("kbcp means the personal store",
+      mod.account_from_argv("/usr/local/bin/kbcp") == "personal")
+check("the original name keeps the work store",
+      mod.account_from_argv("/repo/tooling/cli/pp-agents/pp-agents") == "work")
+check("an unrecognised name falls back rather than failing",
+      mod.account_from_argv("/usr/local/bin/renamed-somehow") == "work")
+check("an explicit override wins over the name",
+      mod.account_from_argv("/usr/local/bin/kbc", "personal") == "personal")
+check("a nonsense override is ignored, not obeyed",
+      mod.account_from_argv("/usr/local/bin/kbcp", "banana") == "personal")
+check("both stores are known", sorted(mod.STORES) == ["personal", "work"])
+check("the sibling store is never called foreign",
+      mod.foreign_stores(candidates=tuple(mod.STORES.values())) == [])
+
+_was = os.environ.get("PP_AGENTS_ACCOUNT")
+os.environ["PP_AGENTS_ACCOUNT"] = "personal"
+try:
+    check("the environment beats the command name",
+          mod.account_from_argv("/usr/local/bin/kbc") == "personal")
+    check("but an explicit override still beats the environment",
+          mod.account_from_argv("/usr/local/bin/kbc", "work") == "work")
+finally:
+    if _was is None:
+        os.environ.pop("PP_AGENTS_ACCOUNT", None)
+    else:
+        os.environ["PP_AGENTS_ACCOUNT"] = _was
+
+check("pins are kept per store, so the two commands cannot cross",
+      "pins-" in mod.PIN_STORE or os.environ.get("PP_AGENTS_PINS"), mod.PIN_STORE)
+
 section("loading session records")
 with tempfile.TemporaryDirectory() as tmp:
     accounts = fixture(tmp)
@@ -655,6 +687,8 @@ with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     first, _after, _ = drive(tmp, [b"q"])
     check("the view starts and draws", "pp-agents" in first)
+    head = first.splitlines()[0] if first.splitlines() else ""
+    check("the title names the store you are looking at", "work" in head, head)
     check("real tag headers reach the screen", "pp" in first and "vi-prod" in first)
     check("real session names reach the screen", "chargeback" in first)
     check("q quits without an error", "Traceback" not in first, first[-300:])
