@@ -101,6 +101,7 @@ def fixture(tmp):
 # ------------------------------------------------------------------ loading
 
 section("one account per command")
+
 check("kbc means the work store", mod.account_from_argv("/usr/local/bin/kbc") == "work")
 check("kbcp means the personal store",
       mod.account_from_argv("/usr/local/bin/kbcp") == "personal")
@@ -391,6 +392,13 @@ def dump(tmp, *args):
 
 
 section("rendering, via --dump (same code path the screen uses)")
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # `kbc` and `kbcp` print the same shapes, so the header is the only thing
+    # that says which store the numbers belong to
+    head = dump(tmp).splitlines()[0]
+    check("the dump header names the store", " work " in head, head)
+
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     text = dump(tmp)

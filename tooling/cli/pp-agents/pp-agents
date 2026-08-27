@@ -963,7 +963,11 @@ def cmd_dump(argv):
     counts = {}
     for j in jobs:
         counts[j["state"]] = counts.get(j["state"], 0) + 1
-    print(f"pp-agents  grouped by {mode}   {counts.get('blocked', 0)} need input, "
+    # The store belongs in the header for the same reason it is in the TUI title:
+    # `kbc` and `kbcp` print the same shapes, and the only thing telling them
+    # apart is this line.
+    print(f"{PROG_NAME} {ACCOUNTS[0][0]}  grouped by {mode}   "
+          f"{counts.get('blocked', 0)} need input, "
           f"{counts.get('working', 0)} working, {counts.get('done', 0)} done")
     groups = group_jobs(jobs, mode, pins, opt("--filter", ""), folded)
     if not groups:
