@@ -18,7 +18,7 @@ The owner's sources - brain-dump, screenshots, links, YouTube URLs - all become 
    - **plain text** - the owner's brain-dump, verbatim, at the top, untidied
    - **screenshots** - read the image, transcribe every number exactly
    - **links** - fetch, keep the facts, record the fetch date
-   - **YouTube** - the `transcribe` skill
+   - **YouTube** - the `transcribe` skill, **plus the metadata** (see below)
 4. **Call the format** - tutorial or comparison. See below. This is your call,
    not a question.
 5. **Write the `# Approaches` section** where the topic has candidate
@@ -27,6 +27,34 @@ The owner's sources - brain-dump, screenshots, links, YouTube URLs - all become 
    approaches menu, then the gaps. `steps/020-approve-knowledge-human/README.md`
    has the exact shape of that message.
 7. Name every gap as a question, then stop.
+
+## Always fetch YouTube metadata
+
+A transcript alone is anonymous. **Every YouTube source gets its channel and
+title recorded**, and the numbers alongside them:
+
+```bash
+yt-dlp --skip-download \
+  --print "%(channel)s|%(title)s|%(upload_date)s|%(duration)s|%(channel_follower_count)s|%(view_count)s" \
+  "https://youtu.be/<id>"
+```
+
+This is **ingestion, not research**. Metadata about a video the owner handed
+over is part of that video. What stays banned is going to find *more* videos.
+
+Owner instruction, 2026-08-27: *"when you give approaches.. i would like youtube
+video name and channel name as well. i like some channels so i wll be able to
+decide approaches more better"*.
+
+**Why it changes the decision.** The owner follows some of these channels and not
+others, so the source is itself evidence he weighs. Views-against-subscribers
+also says which angle the audience actually rewarded, which is a real input to
+picking an approach and to writing a title later. Stripping the byline throws
+both away.
+
+Record it in the Sources table, and **attribute every approach and every
+technique to the channel it came from** - by name, not by row number. "Source 4"
+means nothing to the owner; "Joseph, the 188K channel" is a decision he can make.
 
 ## Call the format yourself
 
@@ -93,6 +121,10 @@ source did.
 - **Ask the owner to choose the format.** That is step 4's call.
 - **Name an approach without its detail.** A row that says "Claude Code +
   Remotion" and nothing else is the failure this section was added to fix.
+- **Attribute by row number.** Every approach and technique names the channel it
+  came from. `Source 7` is not attribution.
+- **Leave a YouTube source anonymous.** No channel, no title, no numbers means
+  the owner cannot weigh who said it.
 - **Compress the approaches out of the gate message** to keep it short. The
   5-line cap in step 6 is on the *summary*, and on nothing else.
 
