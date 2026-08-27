@@ -1,24 +1,26 @@
 # How to Make Vox Style Videos with AI
 
 Format: tutorial
-Target: 20 min
+Target: 24 min
 
 ## Contents
 1. What makes it look like Vox
 2. Why one tool beats five
-3. Picking a topic that holds up
-4. Writing the script
-5. Locking the look
-6. Picking the voice
-7. Picking the music
-8. Adding the motion
-9. Putting it all together
-10. When you need more control
+3. Getting the AI to study real Vox videos
+4. Picking a topic that holds up
+5. Writing the script
+6. Locking the look
+7. Picking the voice
+8. Picking the music
+9. Adding the motion
+10. Putting it all together
+11. When you need more control
+12. What this actually costs
 
 ## Intro
 - hook: a finished Vox shot plays cold, then the reveal that no frame of it touched After Effects and nobody designed a single board by hand
 - credibility: years of using these tools, and this whole video built in one chat with every setting and every mistake left on screen
-- roadmap: names the ten sections above
+- roadmap: names the twelve sections above
 
 ---
 
@@ -42,7 +44,17 @@ See what every version of this workflow is really doing, then take the shortest 
 - the choice between letting it run start to finish and walking it step by step
 - what to have open before the next step
 
-## 3. Picking a topic that holds up
+## 3. Getting the AI to study real Vox videos
+
+Hand the AI the actual look instead of hoping it guesses, so your first attempt is not generic.
+
+- the free extension that lets the AI read real YouTube videos
+- asking it to break down what gives Vox its look, and what comes back
+- the seven things that breakdown has to cover, or it is too vague to use
+- keeping the words for the pictures separate from the words for the movement
+- why doing this first is what saves you from the boring first attempt later
+
+## 4. Picking a topic that holds up
 
 Get your three inputs right, because everything after this is built on them.
 
@@ -51,7 +63,7 @@ Get your three inputs right, because everything after this is built on them.
 - putting your real numbers in one place before you write a word
 - the one instruction that stops the AI making up a figure you never gave it
 
-## 4. Writing the script
+## 5. Writing the script
 
 Turn your notes into a real story, then tighten it yourself.
 
@@ -61,17 +73,18 @@ Turn your notes into a real story, then tighten it yourself.
 - checking every number against your notes, then locking it
 - why this is the one step you cannot rush, and what breaks later if you do
 
-## 5. Locking the look
+## 6. Locking the look
 
 Approve a handful of pictures so every later shot copies the same style.
 
-- making a first set of pictures from your finished script
-- what a boring, generic first attempt actually looks like
+- making a first set of pictures, using the words from your style breakdown
+- what a boring, generic attempt looks like, and why it still happens
 - asking for the change you want in plain English, and watching it redo all of them
 - approving the set, and what that approval locks
 - keeping your on-screen words still from here on, and the glitch that forces it
+- why your own idea for a shot beats anything the AI picks on its own
 
-## 6. Picking the voice
+## 7. Picking the voice
 
 Cast the narrator who carries the whole video, before any of it moves.
 
@@ -80,7 +93,7 @@ Cast the narrator who carries the whole video, before any of it moves.
 - what to listen for, and the one thing that matters most
 - locking the voice, and redoing a single line later without touching the rest
 
-## 7. Picking the music
+## 8. Picking the music
 
 Find a track that sets the mood without fighting the narrator.
 
@@ -89,7 +102,7 @@ Find a track that sets the mood without fighting the narrator.
 - keeping your music original, and the copyright strike that makes it worth it
 - laying the voice and the music over your pictures to get the timing
 
-## 8. Adding the motion
+## 9. Adding the motion
 
 Make it move, one picture at a time, timed to the voice, and know when to stop.
 
@@ -100,7 +113,7 @@ Make it move, one picture at a time, timed to the voice, and know when to stop.
 - fixing one bad shot without losing the good ones
 - redrawing a picture that keeps breaking, instead of fighting it
 
-## 9. Putting it all together
+## 10. Putting it all together
 
 Get the finished video out, timed exactly to what you already approved.
 
@@ -109,7 +122,7 @@ Get the finished video out, timed exactly to what you already approved.
 - the two mistakes worth checking for by name
 - exporting, and the handful of settings that matter here
 
-## 10. When you need more control
+## 11. When you need more control
 
 Step out of the chat and drive the picture and video tools yourself, on the same account.
 
@@ -118,6 +131,15 @@ Step out of the chat and drive the picture and video tools yourself, on the same
 - the video settings, and how long a single shot should be
 - the trick for a map or a chart: never animate it, make a before and an after
 - what to do when a shot needs three pictures instead of two
+
+## 12. What this actually costs
+
+Know what you are signing up for, and where the money goes.
+
+- what you are paying for, and which plan is worth it once you post regularly
+- the step that eats most of your budget, and why
+- budgeting for the attempts that come back wrong, because the first ones will
+- where the results still look like AI, said straight
 
 ---
 
