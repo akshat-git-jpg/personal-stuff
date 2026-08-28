@@ -116,3 +116,20 @@ export function linkDriftDiff(
   }
   return drift;
 }
+
+/**
+ * video_code -> video_title from the videos table. READ ONLY.
+ *
+ * The links list used to title its groups only from tracker cards, but just 2 of
+ * 76 cards carry a video_code (links minted before that field existed have none),
+ * so 85 of 87 groups rendered as "Untitled video" — indistinguishable from a real
+ * test entry. The owner nearly deleted a live video because of it (2026-08-28).
+ */
+export async function videoTitles(db: D1Database): Promise<Record<string, string>> {
+  const { results } = await db
+    .prepare("SELECT video_code, video_title FROM videos")
+    .all<{ video_code: string; video_title: string }>();
+  const out: Record<string, string> = {};
+  for (const r of results ?? []) out[r.video_code] = r.video_title ?? "";
+  return out;
+}
