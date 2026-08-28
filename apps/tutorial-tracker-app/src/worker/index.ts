@@ -64,6 +64,7 @@ import { sendNotification } from "./notifications";
 import { structuralIssues, buildReport, type GuardIssue } from "./linkguard";
 import { probeAll, type ProbeOne } from "./linkprobe";
 import { sendTelegram } from "./notify-telegram";
+import { syncYouTubeId } from "./ytsync";
 
 // ---------------------------------------------------------------------------
 // KV-backed read cache for board rows (~60 s TTL)
@@ -198,10 +199,15 @@ async function recordLinkCheck(env: Env, kind: CheckKind, checked: number, issue
   await env.TRACKER_DB.prepare("INSERT INTO link_checks (ran_at, kind, checked, ok_count, issue_count, unverifiable, issues_json, notified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(Math.floor(Date.now() / 1000), kind, checked, Math.max(0, checked - issues.length), issues.length, unverifiable, JSON.stringify(issues), notified ? 1 : 0).run();
 }
 async function runStructural(env: Env, kind: CheckKind = "structural"): Promise<GuardIssue[]> {
-  const [programs, links] = await Promise.all([listPrograms(env.TRACKER_DB), clickstore.allLinks(env.DB)]);
+  const [programs, links, videoRows] = await Promise.all([
+    listPrograms(env.TRACKER_DB),
+    clickstore.allLinks(env.DB),
+    env.DB.prepare("SELECT video_code, yt_video_id FROM videos").all<{ video_code: string; yt_video_id: string | null }>(),
+  ]);
   const kv: Record<string, string> = {};
   await Promise.all(links.map(async (link) => { const value = await env.CLICKS_KV.get(link.slug); if (value !== null) kv[link.slug] = value; }));
-  const issues = structuralIssues({ programs, links, kv }); const report = buildReport(issues, 0, programs.length, false);
+  const videos = Object.fromEntries(videoRows.results.map((row) => [row.video_code, row.yt_video_id]));
+  const issues = structuralIssues({ programs, links, kv, videos }); const report = buildReport(issues, 0, programs.length, false);
   const notified = report ? await sendTelegram(env, report) : false;
   await recordLinkCheck(env, kind, programs.length, issues, 0, notified); return issues;
 }
@@ -650,6 +656,16 @@ app.post("/api/update", async (c) => {
       return c.json({ error: "conflict", message: "Someone else changed this just now — reloading.", current: err.current }, 409);
     }
     throw err;
+  }
+
+  // Keep analytics mapping in step without putting the card save at risk.
+  if (typedCol === "yt_link") {
+    const code = String(targetRow.video_code ?? "").trim();
+    c.executionCtx.waitUntil(
+      syncYouTubeId(c.env.DB, code, value)
+        .then((outcome) => { if (outcome !== "skipped") console.log("ytsync", JSON.stringify({ code, outcome })); })
+        .catch((error) => console.error("ytsync failed", error)),
+    );
   }
   
   const stage = derive(pipe).byStatusCol.get(typedCol);

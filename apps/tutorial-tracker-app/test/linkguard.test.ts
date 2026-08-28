@@ -10,6 +10,25 @@ describe("structuralIssues", () => {
   });
   it("LINKGUARD_GATE recognizes a healthy catalogue", () => expect(structuralIssues({ programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })], links: [{ slug: "v/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }], kv: { "v/openart": "https://openart.ai/?via=seema" } })).toEqual([]));
   it("LINKGUARD_GATE orders issues stably", () => expect(structuralIssues({ programs: [prog({ slug: "b", target_url: "bad" }), prog({ slug: "a", target_url: "bad" })], links: [], kv: {} }).map((issue) => issue.slug)).toEqual(["a", "b"]));
+  it("LINKGUARD_GATE flags a video with links but no YouTube mapping", () => {
+    const issues = structuralIssues({ programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })], links: [{ slug: "vcfX/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }], kv: { "vcfX/openart": "https://openart.ai/?via=seema" }, videos: { vcfX: null } });
+    const issue = issues.find((item) => item.code === "unmapped_video");
+    expect(issue).toBeDefined();
+    expect(issue!.slug).toBe("vcfX");
+    expect(issue!.detail).toContain("invisible in analytics");
+  });
+  it("LINKGUARD_GATE does not flag a mapped video", () => {
+    const issues = structuralIssues({ programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })], links: [{ slug: "vcfX/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }], kv: { "vcfX/openart": "https://openart.ai/?via=seema" }, videos: { vcfX: "TaBrgRQSqeU" } });
+    expect(issues.map((issue) => issue.code)).not.toContain("unmapped_video");
+  });
+  it("LINKGUARD_GATE reports an unmapped video once even with multiple links", () => {
+    const issues = structuralIssues({ programs: [prog({ slug: "a", target_url: "https://a.example/?ref=1" }), prog({ slug: "b", target_url: "https://b.example/?ref=1" })], links: [{ slug: "vcfX/a", tool: "a", target_url: "https://a.example/?ref=1", kind: "affiliate" }, { slug: "vcfX/b", tool: "b", target_url: "https://b.example/?ref=1", kind: "affiliate" }], kv: { "vcfX/a": "https://a.example/?ref=1", "vcfX/b": "https://b.example/?ref=1" }, videos: { vcfX: null } });
+    expect(issues.filter((issue) => issue.code === "unmapped_video")).toHaveLength(1);
+  });
+  it("LINKGUARD_GATE omits mapping checks when no mapping is supplied", () => {
+    const issues = structuralIssues({ programs: [prog({ slug: "a", target_url: "https://a.example/?ref=1" })], links: [{ slug: "vcfX/a", tool: "a", target_url: "https://a.example/?ref=1", kind: "affiliate" }], kv: { "vcfX/a": "https://a.example/?ref=1" } });
+    expect(issues.map((issue) => issue.code)).not.toContain("unmapped_video");
+  });
   it("LINKGUARD_GATE buildReport is silent with nothing to say", () => expect(buildReport([], 0, 3, false)).toBeNull());
   it("LINKGUARD_GATE buildReport sends an explicit heartbeat", () => expect(buildReport([], 1, 3, true)).toContain("all 3 links fine"));
   it("LINKGUARD_GATE buildReport puts money before other issues", () => { const report = buildReport([{ code: "duplicate_target", slug: "later", detail: "later" }, { code: "bad_url", slug: "money", detail: "money" }], 0, 2, false)!; expect(report.indexOf("Earning nothing")).toBeLessThan(report.indexOf("Worth a look")); });
