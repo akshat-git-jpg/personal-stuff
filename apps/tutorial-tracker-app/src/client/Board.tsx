@@ -11,7 +11,7 @@ import { PipelineBoard } from "./PipelineBoard";
 import { TeamPanel } from "./TeamPanel";
 import { NewVideoDialog } from "./NewVideoDialog";
 import { MyWork } from "./MyWork";
-import { LinksTab } from "./LinkDrift";
+import { LinksTab } from "./LinksTab";
 import { Filters } from "./Filters";
 import { EMPTY_FILTERS, type AdminFilters } from "./filterModel";
 import { activeStage } from "./pipeline";

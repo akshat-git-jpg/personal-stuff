@@ -29,8 +29,6 @@ export default defineConfig({
   // Vitest runs the unit suite in test/; Playwright owns e2e/ (different runner).
   test: {
     exclude: [...configDefaults.exclude, 'e2e/**'],
-    // jsdom only for .tsx suites; the existing worker/logic suites stay in node.
-    environmentMatchGlobs: [['test/**/*.test.tsx', 'jsdom']],
     setupFiles: ['./test/setup-dom.ts'],
   },
 })
