@@ -29,5 +29,6 @@ export default defineConfig({
   // Vitest runs the unit suite in test/; Playwright owns e2e/ (different runner).
   test: {
     exclude: [...configDefaults.exclude, 'e2e/**'],
+    setupFiles: ['./test/setup-dom.ts'],
   },
 })
