@@ -93,13 +93,25 @@ describe("ProgramsView — search, filters, sorting", () => {
     expect(screen.getByText("OpenArt")).toBeTruthy();
   });
 
-  it("19 sorting by name is reversible", async () => {
+  it("19 clicking a column heading sorts, and clicking again reverses", async () => {
     withThree();
     await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
-    const names = () => screen.getAllByRole("row").slice(1).map((r) => r.textContent?.split(" ")[0]);
+    const names = () =>
+      screen.getAllByRole("row").slice(1).map((r) => r.querySelector("td")?.textContent?.trim());
+    const heading = screen.getByTitle("Sort by Program");
     const ascending = names();
-    fireEvent.click(screen.getByLabelText("Toggle sort direction"));
+    fireEvent.click(heading);   // already ascending -> flips to descending
     expect(names()).toEqual([...ascending].reverse());
+    fireEvent.click(heading);   // back to ascending
+    expect(names()).toEqual(ascending);
+  });
+
+  it("19b every sortable heading is a real button with a Sort by title", async () => {
+    withThree();
+    await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
+    for (const label of ["Program", "Type", "Destination", "Affiliate code", "Coupon", "Approval", "Last checked"]) {
+      expect(screen.getByTitle(`Sort by ${label}`).tagName).toBe("BUTTON");
+    }
   });
 
   it("20 the legend explains what the affiliate code column means", async () => {
