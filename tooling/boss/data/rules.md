@@ -18,7 +18,25 @@ exception for the scenarios below, not the default.
 | quality-setting CONTENT the owner judges by taste — rulebooks, prompts, prose, docs | claude-p | sonnet |
 | plan can't be fully inlined — real judgment/exploration expected mid-execution | claude-p | sonnet |
 | tricky — subtle concurrency, security-sensitive, gnarly refactor needing live judgment | claude-p | opus |
-| owner asks for codex, or a fully-inlined plan you want off the agy queue | codex | (codex default — gpt-5.6-sol) |
+| owner asks for codex, or a fully-inlined plan you want off the agy queue | codex | (codex default — gpt-5.6-terra) |
+| a codex plan that is large, subtle, or has already failed once on terra | codex | gpt-5.6-sol |
+
+**The codex default is `gpt-5.6-terra` (owner decision 2026-08-28).** The Codex CLI
+model menu offers `gpt-5.6-sol` (frontier), `gpt-5.6-terra` (balanced, everyday work) and
+`gpt-5.6-luna` (fast/cheap), plus the legacy `gpt-5.5`, `gpt-5.4` and `gpt-5.4-mini`
+reachable only via `-m`. terra takes the default seat because a boss plan that clears the
+fully-inlined bar is by construction everyday work — the judgment was spent at authoring
+time, so paying frontier rates per dispatch buys little, and the ChatGPT weekly limit is
+the real constraint. Escalate to `sol` for a large or subtle plan, or as the second round
+after terra fails once; that is its own row above. Boss never guesses the model — it
+passes `-m` explicitly on every dispatch and resume, so this default only applies when a
+plan's `model:` is blank.
+
+**Any Codex model name works.** `executors/codex.sh` does not validate the string; it
+hands it straight to `codex exec -m`. So a plan may name `gpt-5.6-luna` or a legacy model
+and boss will run it, but an invalid name fails inside the CLI, not at dispatch. Override
+order: plan frontmatter `model:` → `boss-dispatch.sh --model` → `CODEX_DEFAULT_MODEL`
+→ `gpt-5.6-terra`.
 
 **codex is a valid option, not a default (owner decision 2026-08-25).** The OpenAI
 Codex CLI runs on the owner's ChatGPT subscription (`auth_mode=chatgpt`), so like agy its

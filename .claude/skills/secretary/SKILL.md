@@ -93,7 +93,7 @@ gapped PR is automatically invisible to it without anyone refusing anything.
 **Every PR you report carries its executor and model, without being asked.**
 Read them out of the plan's frontmatter (`executor:` / `model:`) — never guess,
 never omit. A blank `model:` means the executor's default, which for `agy` is
-Gemini 3.1 Pro (High), for `claude-p` is Sonnet and for `codex` is gpt-5.6-sol; print the resolved name, not
+Gemini 3.1 Pro (High), for `claude-p` is Sonnet and for `codex` is gpt-5.6-terra; print the resolved name, not
 the blank.
 
 Owner rule (2026-08-23): *"whenever you give me summary on the PRs, I find it
