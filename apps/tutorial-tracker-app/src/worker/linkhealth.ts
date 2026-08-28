@@ -86,6 +86,50 @@ const DASHBOARD_PATH_RE =
 /** Our own redirect layer. Must not appear in a stored target (see decisions.md). */
 const OWN_REDIRECT_RE = /(^|\.)agrolloo\.com$/i;
 
+/**
+ * A subdomain a vendor dedicates to referrals: `go.expressvpn.com/OryBzA`,
+ * `get.brevo.com/538136cj7gdc`, `try.elevenlabs.io/…`, `free-trial.adcreative.ai/…`.
+ * On its own it proves nothing — `partners.emergent.sh/` is a bare landing page
+ * that credits nobody — so it only counts alongside an opaque code in the path.
+ */
+const REFERRAL_SUBDOMAIN_RE =
+  /^(go|get|try|start|join|signup|refer|referral|referrals|ref|aff|affiliate|link|links|track|click|cc|promo|trial|free-trial|partner|partners)\./i;
+
+/**
+ * One opaque path segment that looks GENERATED rather than written.
+ *
+ * Shape alone is not enough: `/pricing` is seven word-characters and sailed
+ * through an earlier version of this rule, which would have credited
+ * `go.example.com/pricing` as an earning link. A generated code carries a digit
+ * (`538136cj7gdc`, `aztd3d3n5sba`) or mixed case (`OryBzA`, `mQMwrjE`); a page
+ * name a human typed is lowercase letters only.
+ *
+ * The dot exclusion is deliberate, so `/account.php` still reads as a dashboard
+ * rather than as a code that happens to live on one.
+ *
+ * This errs strict on purpose. Missing an all-lowercase code costs one alarm to
+ * dismiss; crediting a dead homepage costs real commission silently.
+ */
+function looksLikeGeneratedCode(pathname: string): boolean {
+  if (!/^\/[A-Za-z0-9_-]{5,}\/?$/.test(pathname)) return false;
+  return /[0-9]/.test(pathname) || /[A-Z]/.test(pathname);
+}
+
+/** Vendor affiliate path prefixes: `mailerlite.com/a/mqjayzbdlssd`, `/r/`, `/l/`. */
+const CREDIT_PATH_PREFIX_RE =
+  /^\/(a|r|l|c|e|ref|refer|referral|aff|affiliate|invite|join|partner|recommends?)\/[A-Za-z0-9_.-]{4,}/i;
+
+/**
+ * The owner's own affiliate handles. This is the most direct answer to "will
+ * this link pay me?" — if my identifier is in the URL, something is tracking me,
+ * whatever shape the vendor chose. It is what credits `vidiq.com/agrollo`, a
+ * vanity path no generic pattern can recognise.
+ *
+ * Add a handle here when a new programme issues one. A handle that is also a
+ * common English word would over-credit, so keep them distinctive.
+ */
+const OWN_HANDLE_RE = /(agrollo|khushi|seema|kushal|hvd)/i;
+
 export type LinkKind = "affiliate" | "external";
 
 export interface LinkWarning {
@@ -147,10 +191,19 @@ export function creditWarnings(url: string, kind: LinkKind, repaired = false): L
     });
   }
 
+  // Six ways a link can carry credit. Measured against the live catalogue on
+  // 2026-08-28: the first three alone flagged 10 programmes, and 9 of those were
+  // real earning links (Impact branded short links, PartnerStack codes, vanity
+  // paths). A guard that is wrong 9 times out of 10 trains you to ignore it,
+  // which is the failure this file's header warns about — so the last three
+  // exist to keep the alarm rare enough to be worth reading.
   const credited =
     CREDIT_PARAM_RE.test(u.search) ||
     CREDIT_PATH_RE.test(u.pathname) ||
-    NETWORK_HOST_RE.test(u.hostname);
+    NETWORK_HOST_RE.test(u.hostname) ||
+    (REFERRAL_SUBDOMAIN_RE.test(u.hostname) && looksLikeGeneratedCode(u.pathname)) ||
+    CREDIT_PATH_PREFIX_RE.test(u.pathname) ||
+    OWN_HANDLE_RE.test(u.pathname + u.search);
   if (!credited) {
     out.push({
       code: "no_credit_marker",
