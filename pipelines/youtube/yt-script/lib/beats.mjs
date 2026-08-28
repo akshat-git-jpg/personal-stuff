@@ -264,3 +264,121 @@ function main(argv) {
 if (process.argv[1] && basename(process.argv[1]) === 'beats.mjs') {
   main(process.argv.slice(2))
 }
+
+// ---------------------------------------------------------------- edit model
+
+// `buildBeats` above answers "what does the maker read?" — lanes merged into
+// arrays, section rules copied onto every beat, section facts folded into the
+// first beat. That shape is right for READING and useless for EDITING: once
+// two `VIDEO` blocks have been concatenated into one `video` array there is no
+// way back to the two places in the file they came from.
+//
+// `buildEditModel` answers the other question: "what is actually in the file,
+// and where?" Every block keeps its own source range, in source order, owned by
+// the beat or section it physically sits under. The desk's edit mode renders
+// from THIS, so a delete or a move is always a splice of real lines the owner
+// can see, never a guess at which half of a merged array to remove.
+//
+// Added 2026-08-28 for the desk editor. Owner: *"I want it to be editable in
+// such a way that I can cut and move sections here and there or I can delete
+// sections or I can add more notes or delete notes."*
+//
+// Deliberately a SEPARATE pass over the same `parse()` output rather than extra
+// fields threaded through `buildBeats`. The read path is load-bearing and well
+// tested; the editor must not be able to break it.
+export function buildEditModel(md) {
+  const blocks = parse(md)
+  const lines = md.split(/\r?\n/)
+  const textOf = (b) => lines.slice(b.line, b.endLine).join('\n')
+
+  const asBlock = (b) => ({
+    t: b.t,
+    kind: b.kind ?? null,
+    note: b.note ?? '',
+    spoken: b.spoken ?? false,
+    line: b.line,
+    endLine: b.endLine,
+    text: textOf(b),
+  })
+
+  const parts = []
+  const sections = []
+  const beats = []
+  let curPart = null
+  let curSection = null
+  let curBeat = null
+
+  // A block belongs to the most recent beat; failing that, to the most recent
+  // section (that is where a section RULES or FACTS box lives); failing that it
+  // is loose, and edit mode leaves it alone rather than inventing an owner.
+  const own = (b) => {
+    if (curBeat) curBeat.blocks.push(asBlock(b))
+    else if (curSection) curSection.blocks.push(asBlock(b))
+  }
+
+  for (const b of blocks) {
+    if (b.t === 'title') continue
+
+    if (b.t === 'part') {
+      curPart = { text: b.text, line: b.line, endLine: b.endLine }
+      parts.push(curPart)
+      curSection = null
+      curBeat = null
+      continue
+    }
+
+    if (b.t === 'section') {
+      curSection = {
+        name: b.text,
+        part: curPart?.text ?? null,
+        line: b.line,
+        endLine: b.endLine,
+        // `head` is the heading line ALONE. `line..endLine` is widened below to
+        // cover everything the section owns, so renaming a section — as opposed
+        // to moving all of it — has to splice this narrower range instead.
+        head: { line: b.line, endLine: b.endLine },
+        blocks: [],
+        beatNums: [],
+      }
+      sections.push(curSection)
+      curBeat = null
+      continue
+    }
+
+    if (b.t === 'beat') {
+      const m = b.text.match(BEAT_RE)
+      curBeat = {
+        num: m ? m[1] : String(beats.length + 1),
+        title: (m ? m[2] : b.text).trim(),
+        part: curPart?.text ?? null,
+        section: curSection?.name ?? null,
+        line: b.line,
+        endLine: b.endLine,
+        head: { line: b.line, endLine: b.endLine },
+        blocks: [],
+      }
+      beats.push(curBeat)
+      curSection?.beatNums.push(curBeat.num)
+      continue
+    }
+
+    own(b)
+  }
+
+  // A beat's range runs from its heading to the end of its last block, and a
+  // section's from its heading to the end of its last beat. Both are computed
+  // from what is actually there rather than from the next heading, so the `---`
+  // separators between sections sit outside every range and stay where they are
+  // when a section is moved.
+  const spanTo = (owner, kids) => {
+    const last = kids[kids.length - 1]
+    owner.endLine = last ? Math.max(owner.endLine, last.endLine) : owner.endLine
+  }
+  for (const beat of beats) spanTo(beat, beat.blocks)
+  for (const sec of sections) {
+    const own = beats.filter((x) => x.section === sec.name && x.part === sec.part)
+    spanTo(sec, [...sec.blocks, ...own])
+  }
+
+  return { parts, sections, beats }
+}

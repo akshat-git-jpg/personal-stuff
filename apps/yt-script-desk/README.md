@@ -51,3 +51,17 @@ This downloads their final words to `videos/<key>/script-draft.md` in the pipeli
 
 The freelancer receives a secret link to the desk. There is no login.
 They see a clean, two-column UI where they write their lines on the left, guided by the non-editable instructions on the right.
+
+## Edit mode (local only)
+
+Hit **Edit** in the header and the reading view grows handles: move, delete or
+add a note, a beat or a whole section, and click any note to edit its raw
+markdown in place. Every action writes `script-plan.md` straight back — there is
+no separate save, no draft and no second copy of the script.
+
+It never appears on a hosted link. The freelancer reads the plan he was sent.
+
+The write path refuses markdown that will not parse, refuses to overwrite a file
+that changed on disk since the page loaded, and copies the last good version
+into `.desk-backups/` (gitignored) before every write. See `CLAUDE.md` for why
+each of those is there.

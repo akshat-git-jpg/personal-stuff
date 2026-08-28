@@ -146,12 +146,22 @@ the browser"*.
   restore control per beat. **While reviewing, prefer editing the markdown** and
   leave the desk's SAY boxes alone.
 
-  **Decided 2026-08-28: the desk is a reader, not an editor.** A full markup UI
-  was designed and then stopped by the owner - *"I have the entire thing as a text
-  in my MD file, which I can easily cut paste everything. I can't do that easily
-  on the UI."* He edits the markdown; the `ASK` lane covers the one thing the
-  editor could not do. The existing SAY-edit boxes stay for the **maker**, in
-  hosted mode. Do not build browser editing for the owner.
+  **Since 2026-08-28 the desk has an EDIT MODE, and it is usually the better
+  place to work.** Hit **Edit** in the header (local only) and every note, beat
+  and section grows handles: move it up or down, throw it somewhere else with
+  "Move to", delete it, add a note, or click any note to edit its raw markdown
+  in place while the rest of the page stays readable. Every action writes
+  `script-plan.md` immediately - there is no separate save and no second copy.
+  Owner: *"it's not easy to read while editing. I'm not able to follow the
+  script."*
+
+  **Use the markdown file when you want to restructure in bulk** - it is still
+  the source of truth and nothing stops you. Use edit mode for everything else.
+  If you have the file open in your editor at the same time, the desk will
+  refuse to save over changes it did not see; reload it and carry on.
+
+  The SAY-edit boxes are a separate feature for the **maker** in hosted mode -
+  while reviewing, leave those alone.
 - **Do not repair a lane form by hand.** The forms in
   `SCRIPT-PLAN-INSTRUCTIONS.md` are parsed. If a lane looks wrong, say so and the
   session fixes it against the instructions.

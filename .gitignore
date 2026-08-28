@@ -107,3 +107,7 @@ AGENTS.override.md
 .codex/config.local.toml
 .codex/auth.json
 CLAUDE.local.md
+
+# Local desk edit mode keeps the last good script-plan.md before every write.
+# Machine-local safety net, never part of the repo history.
+.desk-backups/

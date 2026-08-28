@@ -366,14 +366,32 @@ overlay store, four plans. The owner stopped it before a line was written:
 > one by one on the URL when I have the entire thing as a text in my MD file,
 > which I can easily cut paste everything. I can't do that easily on the UI."*
 
-He was right. The desk is the better **reader** - two tracks, sections, one glance.
-His editor is the better **writer** and always will be. The plan is already a text
-file he owns. The only gap was leaving a question in place that the desk could show
-back, and that is one lane, one regex and one card.
+He was right about the DESIGN. He was not right about the conclusion drawn from
+it, and later the same day he said so:
 
-**Do not grow this into an editor.** If a future ask sounds like "let me edit notes
-in the browser", the answer is the same: he edits the markdown, the desk renders it,
-and he refreshes.
+> *"the MD file is obviously yes it's very easy I can easily cut, paste, delete
+> things, add things - but it's not easy to read while editing. I'm not able to
+> follow the script, too much things is going on."*
+
+**So the desk now has an edit mode**, and this section is kept because the line
+between the two designs is the thing worth remembering:
+
+| Rejected, and still rejected | Built |
+|---|---|
+| Comments and edits held in an overlay store | Every action is a line splice on `script-plan.md` |
+| Reconciled back into the markdown later | Written straight back, atomically, now |
+| A second copy of the script to keep in sync | No second copy exists |
+
+The constraint was never "the desk must not write". It was **"do not build me a
+second copy of my script."** Edit mode has none, which is why it is four small
+files rather than four plans.
+
+**The rule that survives:** anything that stores an edit anywhere other than
+`script-plan.md` is the rejected design wearing a new hat. See
+`apps/yt-script-desk/CLAUDE.md`, "Edit mode", for the guards on the write path.
+
+**The ASK lane is unaffected.** Leaving a question for Claude *in the document*
+is a different job from editing it, and this lane is still how it is done.
 
 ## The rules box
 

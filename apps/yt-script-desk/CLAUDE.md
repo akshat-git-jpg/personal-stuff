@@ -52,22 +52,80 @@ heard of and a URL he has to copy out by hand is not a reference. Guarded by
 `laneLinks.test.tsx`, including the trailing-period case — `…Jkt4aTOpqpM.` must
 not put the period in the href.
 
-## The desk is a READER for the owner. Do not build editing into it for him.
+## Edit mode: the desk writes `script-plan.md`, and only on localhost
 
-Decided 2026-08-28, after a full review-and-markup layer had been designed for
-this app — hover tools per note, click-to-edit, an add-note menu, a request
-composer, an overlay store, four plans. The owner stopped it:
+**This reverses a decision made earlier the same day. Read why before you undo it.**
+
+On 2026-08-28 a full review-and-markup layer for this app was designed and then
+stopped by the owner — hover tools per note, a request composer, an overlay
+store, four plans:
 
 > *"I feel that this will be too complex. making comments, edits, all those things
 > one by one on the URL when I have the entire thing as a text in my MD file, which
 > I can easily cut paste everything. I can't do that easily on the UI."*
 
-**The split that survived:** the desk reads better than his editor (two tracks,
-section grouping, malformed lanes visible). His editor writes better than the desk
-and always will. `script-plan.md` is the source of truth and he owns it.
+That was recorded here as "the desk is a reader, do not build editing into it."
+Hours later he came back having actually used it:
+
+> *"the MD file is obviously yes it's very easy I can easily cut, paste, delete
+> things, add things — but it's not easy to read while editing. I'm not able to
+> follow the script, too much things is going on. ... I can do all the things in UI
+> and in UI itself I can do entire edit which was possible in the MD file."*
+
+**What was actually wrong the first time.** The rejected design was rejected for
+being a *parallel* system — comments, an overlay store, edits held somewhere
+other than the file, reconciled later. He was right about that, and it stays
+rejected. What the note got wrong was the conclusion: it read his complaint as
+"the desk should not edit" when the real constraint was "do not build a second
+copy of my script." Edit mode has no second copy. Every control is a line splice
+on the markdown, written straight back, atomically. There is nothing to reconcile.
+
+**How it works, in one line each:**
+
+- `buildEditModel()` (in `lib/beats.mjs`) is the STRUCTURAL parse — every block
+  with the source lines it came from. `buildBeats()` stays the READING parse.
+  Edit mode renders from the first, because once two `VIDEO` blocks are one
+  `video` array, deleting "the video note" is a guess.
+- `src/lib/edits.ts` turns a click into new markdown. Pure functions, and the
+  hardest-tested code in the app — `edits.test.ts` drives the real 1000-line
+  plan through a delete, a section move and a rewrite and asserts every spoken
+  line came out byte-identical.
+- `EditView.tsx` only decides which range each button points at.
+- `GET|PUT /api/source` in `server/local.mjs` does the IO.
+
+**Three guards on the write path, all in `server/local.mjs`. Do not remove one
+to make something easier:**
+
+1. **Never write markdown that does not parse.** The text is run through
+   `buildBeats` BEFORE it goes near the disk. A refused save keeps his text in
+   the browser and says what broke.
+2. **Never clobber an edit made elsewhere.** He may have the file open in his
+   editor. The browser sends back the mtime it loaded; a changed file refuses
+   the write rather than silently winning.
+3. **Keep the last good version.** Every write copies the file into
+   `.desk-backups/` first (gitignored). A splice bug is invisible until he
+   scrolls to the damage.
+
+**LOCAL ONLY, and that is a real boundary, not a default.** `isHosted` gates the
+button; the Worker serves a frozen D1 snapshot and has no file to write. The
+freelancer reads the plan he was sent. He does not rewrite it.
+
+**Spoken copy cannot be deleted from edit mode.** It can be moved and edited,
+but the one-click × is disabled on a `SAY` block — approved script is the one
+thing here with a real cost if it goes and nobody notices. `editView.test.tsx`
+guards it.
+
+**What is still true from the original decision**
+
+The `**ASK**` lane below is unchanged and still earns its place: it is how he
+leaves a question for Claude *in the document*, which is a different job from
+editing. And `script-plan.md` is still the single source of truth — edit mode
+did not change that, it just gave him a second way to type into it.
+
+## The ASK lane
 
 The one thing his editor could not do was leave a question in place that the desk
-shows back, so that is the only thing added: an `**ASK**` lane, rendered by
+shows back, so that is what the ASK lane is: an `**ASK**` lane, rendered by
 `AskCard` in `WriteView.tsx` as a purple card in the **left** track.
 
 **Nothing purple is ever on paper.** The spoken card is warm cream and serif; an
@@ -76,5 +134,5 @@ what keeps a note to Claude from being read aloud. `askCard.test.tsx` guards it,
 including that the card stays visible when the instruction track is toggled off —
 it is not a note, and it is not the maker's business.
 
-**The SAY edit boxes stay** — those are for the MAKER, in hosted mode. What is
-closed is browser editing for the owner.
+**The SAY edit boxes are a different thing again** — those are for the MAKER, in
+hosted mode, and are unrelated to the owner's edit mode above.

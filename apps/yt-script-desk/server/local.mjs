@@ -5,10 +5,10 @@
 // contract (src/api.ts) in production — keep both in sync.
 
 import { createServer } from 'node:http'
-import { readFileSync, writeFileSync, renameSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, renameSync, existsSync, statSync, copyFileSync, mkdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buildBeats } from '../../../pipelines/youtube/yt-script/lib/beats.mjs'
+import { buildBeats, buildEditModel } from '../../../pipelines/youtube/yt-script/lib/beats.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.API_PORT) || 4327
@@ -77,6 +77,53 @@ function buildVideoDoc(key) {
     says: doc.says,
     finished: doc.finished,
   }
+}
+
+// ---------------------------------------------------------------- edit mode
+//
+// The desk's edit mode writes `script-plan.md` itself. That is the whole point
+// — no second copy, no sync — and it is also why these three guards exist.
+// Added 2026-08-28.
+
+// 1. NEVER WRITE MARKDOWN THAT DOES NOT PARSE. The owner can delete a heading by
+//    accident, and a plan the parser refuses is a page that renders nothing. The
+//    incoming text is parsed BEFORE it goes anywhere near the disk; if it throws
+//    the write is refused and the browser keeps his text so he can fix it.
+function validatePlan(text) {
+  try {
+    const { title, beats } = buildBeats(text)
+    if (!beats.length) return { ok: false, error: 'that leaves the plan with no beats at all' }
+    return { ok: true, title, beats, edit: buildEditModel(text) }
+  } catch (err) {
+    return { ok: false, error: String(err?.message ?? err) }
+  }
+}
+
+// 2. NEVER CLOBBER AN EDIT MADE SOMEWHERE ELSE. He may have the same file open in
+//    his editor. The browser sends back the mtime it loaded; if the file on disk
+//    has moved on since, the save is refused rather than silently winning.
+function planStamp(key) {
+  const p = outlinePath(key)
+  return existsSync(p) ? String(statSync(p).mtimeMs) : null
+}
+
+// 3. KEEP THE LAST GOOD VERSION. Every write copies the current file into
+//    `.desk-backups/` first, newest last. A splice bug that eats a section is
+//    invisible until he scrolls to it, and `script-plan.md` is hours of work.
+function backupPlan(key) {
+  const src = outlinePath(key)
+  if (!existsSync(src)) return
+  const dir = join(VIDEOS_ROOT, key, '.desk-backups')
+  mkdirSync(dir, { recursive: true })
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+  copyFileSync(src, join(dir, `script-plan.${stamp}.md`))
+}
+
+function writePlan(key, text) {
+  const p = outlinePath(key)
+  const tmp = `${p}.tmp`
+  writeFileSync(tmp, text)
+  renameSync(tmp, p)
 }
 
 function sendJson(res, status, body) {
@@ -171,6 +218,48 @@ const server = createServer(async (req, res) => {
       doc.finished = true
       writeDraft(key, doc)
       return sendJson(res, 200, { ok: true })
+    }
+
+    // GET /api/source?key=<key> — the raw markdown, plus the structural model
+    // edit mode renders from and the stamp a later save is checked against.
+    if (req.method === 'GET' && url.pathname === '/api/source') {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const p = outlinePath(key)
+      if (!existsSync(p)) return sendJson(res, 404, { error: `no plan for ${key}` })
+      const text = readFileSync(p, 'utf8')
+      return sendJson(res, 200, { text, stamp: planStamp(key), edit: buildEditModel(text) })
+    }
+
+    // PUT /api/source?key=<key> — the whole file, after an edit in the browser.
+    if (req.method === 'PUT' && url.pathname === '/api/source') {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const p = outlinePath(key)
+      if (!existsSync(p)) return sendJson(res, 404, { error: `no plan for ${key}` })
+      const body = await readBody(req)
+      if (typeof body.text !== 'string') return sendJson(res, 400, { error: 'no text' })
+
+      const current = planStamp(key)
+      if (body.stamp != null && body.stamp !== current) {
+        return sendJson(res, 409, {
+          error:
+            'script-plan.md changed on disk since this page loaded — most likely your editor ' +
+            'also has it open. Reload the desk to pick that up. Nothing was written.',
+        })
+      }
+
+      const check = validatePlan(body.text)
+      if (!check.ok) return sendJson(res, 422, { error: check.error })
+
+      backupPlan(key)
+      writePlan(key, body.text)
+      const doc = buildVideoDoc(key)
+      return sendJson(res, 200, {
+        ok: true,
+        stamp: planStamp(key),
+        text: body.text,
+        edit: check.edit,
+        doc,
+      })
     }
 
     sendJson(res, 404, { error: 'not found' })

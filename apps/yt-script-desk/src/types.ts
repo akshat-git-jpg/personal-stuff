@@ -31,3 +31,46 @@ export type VideoDoc = {
   says: Record<string, string[]> // beat.num -> current spoken lines, when edited
   finished: boolean
 }
+
+// ---------------------------------------------------------------- edit mode
+//
+// Mirrors buildEditModel() in pipelines/youtube/yt-script/lib/beats.mjs. This is
+// the STRUCTURAL view of script-plan.md - every block with the source lines it
+// came from - as opposed to Beat above, which is the READING view with the
+// lanes already merged into arrays. Edit mode renders from this one, so a
+// delete or a move is always a splice of real lines the owner can point at
+// rather than a guess at which half of a merged array to remove.
+export type EditRange = { line: number; endLine: number }
+
+export type EditBlock = EditRange & {
+  t: 'lane' | 'rules' | 'verdict' | 'quote'
+  kind: string | null // VIDEO | SAY | FACTS | DEMO | ASK, or null for a rules box
+  note: string
+  spoken: boolean
+  text: string // the raw markdown, exactly as it sits in the file
+}
+
+export type EditBeat = EditRange & {
+  num: string
+  title: string
+  part: string | null
+  section: string | null
+  head: EditRange // the '#### N - Title' line alone, for a rename
+  blocks: EditBlock[]
+}
+
+export type EditSection = EditRange & {
+  name: string
+  part: string | null
+  head: EditRange
+  blocks: EditBlock[] // RULES / FACTS boxes that sit under the section, not a beat
+  beatNums: string[]
+}
+
+export type EditModel = {
+  parts: (EditRange & { text: string })[]
+  sections: EditSection[]
+  beats: EditBeat[]
+}
+
+export type SourceDoc = { text: string; stamp: string | null; edit: EditModel }
