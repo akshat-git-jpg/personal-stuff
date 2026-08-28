@@ -45,6 +45,9 @@ async function j<T = { ok: true }>(url: string, method = 'GET', body?: unknown):
 // page. Every freelancer holding an older link would have hit the same thing.
 // Normalising here, at the one place a document enters the app, is what keeps
 // that from being a crash.
+type LegacyBeat = { show?: string[]; edit?: string[] }
+const asLegacy = (b: unknown): LegacyBeat => b as LegacyBeat
+
 function normalizeDoc(doc: VideoDoc): VideoDoc {
   return {
     ...doc,
@@ -52,8 +55,10 @@ function normalizeDoc(doc: VideoDoc): VideoDoc {
       ...b,
       demo: b.demo ?? [],
       ask: b.ask ?? [],
-      show: b.show ?? [],
-      edit: b.edit ?? [],
+      // A snapshot published BEFORE the 2026-08-28 lane merge carries `show` and
+      // `edit` instead of `video`. Fold them here, in the one place a document
+      // enters the app, so an already-published desk link keeps rendering.
+      video: b.video ?? [...(asLegacy(b).show ?? []), ...(asLegacy(b).edit ?? [])],
       facts: b.facts ?? [],
       rules: b.rules ?? [],
     })),

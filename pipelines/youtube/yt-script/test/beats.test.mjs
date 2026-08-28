@@ -26,7 +26,7 @@ const FIXTURE = `# Test Video Title
 >
 > "Scene two. Different person."
 
-**SHOW**
+**VIDEO**
 One portrait full-screen.
 
 ## 2 · BODY
@@ -42,10 +42,8 @@ One portrait full-screen.
 **SAY**
 > Cover how the grids came back.
 
-**SHOW**
+**VIDEO**
 Run the same prompt through all five tools.
-
-**EDIT**
 Side-by-side grid.
 
 **FACTS**
@@ -59,8 +57,8 @@ Midjourney needs the URL pasted every time.
 
 #### 2.3 · Notes only
 
-**SHOW**
-Just a screen recording note, no spoken lane.
+**VIDEO**
+Just a video note, no spoken lane.
 
 ## 3 · CONCLUSION
 
@@ -133,13 +131,12 @@ test('a body beat with no SAY at all is still a write beat', () => {
   assert.equal(b.mode, 'write')
   assert.equal(b.say, null)
   assert.equal(b.angle, null)
-  assert.deepEqual(b.show, ['Just a screen recording note, no spoken lane.'])
+  assert.deepEqual(b.video, ['Just a video note, no spoken lane.'])
 })
 
-test('SHOW, EDIT and FACTS land in their own arrays', () => {
+test('VIDEO and FACTS land in their own arrays', () => {
   const b = byNum('2.1')
-  assert.deepEqual(b.show, ['Run the same prompt through all five tools.'])
-  assert.deepEqual(b.edit, ['Side-by-side grid.'])
+  assert.deepEqual(b.video, ['Run the same prompt through all five tools.', 'Side-by-side grid.'])
   assert.deepEqual(b.facts, [
     'Soul ID trains once, about 5 minutes.',
     'Midjourney needs the URL pasted every time.',
@@ -352,4 +349,41 @@ test('every real spec-format outline still parses', () => {
     const out = buildBeats(md)
     assert.ok(out.beats.length > 0, `${key}: expected beats, got none`)
   }
+})
+
+// SHOW and EDIT were two lanes until 2026-08-28, when the owner merged them:
+// *"I don't like having screen recording notes and video editing notes, can you
+// just club them both together and make it just video notes."* Nothing in the
+// repo writes them any more, but a plan drafted before the merge still might,
+// and silently dropping half a beat's instructions is the worst possible
+// outcome. Both fold into `video`, in the order they were written.
+test('a pre-merge SHOW and EDIT fold into the one video lane, in order', () => {
+  const { beats } = buildBeats(`# T
+
+## 1 · INTRODUCTION
+
+#### A1 · Old lanes
+
+**SAY**
+> "A line."
+
+**SHOW**
+Film the panel.
+
+**EDIT**
+Trim the pause.
+
+## 2 · BODY
+
+### SECTION: S
+
+#### 2.1 · Body beat
+
+**SAY**
+> Cover the thing.
+`)
+  const b = beats.find((x) => x.num === 'A1')
+  assert.deepEqual(b.video, ['Film the panel.', 'Trim the pause.'])
+  assert.equal(b.show, undefined, 'the merged parser must not keep a separate show array')
+  assert.equal(b.edit, undefined, 'the merged parser must not keep a separate edit array')
 })

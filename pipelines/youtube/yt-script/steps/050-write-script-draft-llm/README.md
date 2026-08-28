@@ -77,7 +77,7 @@ section **"Write the instructions like the script"**, has the shape.
 
 **The failure this prevents:** on the first pass at `vox-style-video-ai` the
 spoken copy got every rule applied to it and the instruction track got none.
-`SHOW` and `EDIT` came out as long abstract prose — *"be specific rather than
+The `VIDEO` lane came out as long abstract prose — *"be specific rather than
 calling it cluttered"*, *"contrast with what a normal edit does"* — which reads as
 thorough and is unusable. Owner: *"all the instructions - i am finding too hard to
 understand."* All 56 beats had to be rewritten.

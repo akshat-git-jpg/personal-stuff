@@ -120,7 +120,7 @@ markdown cannot and the reverse:
 - **The markdown answers: are the words right?** Section order, what a beat
   covers, a claim that came out wrong, a beat that should not exist.
 - **The desk answers: does it read right in the UI?** A beat that is fine as
-  markdown but splits badly across the two tracks, a `SHOW` lane that says
+  markdown but splits badly across the two tracks, a `VIDEO` lane that says
   nothing once it is on its own, an instruction track he will misread.
 - **And a third, which is why having both open is better than either:** a
   malformed lane label. `lib/beats.mjs` drops an unrecognised form to plain prose

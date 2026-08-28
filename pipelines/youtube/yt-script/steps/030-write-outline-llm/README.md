@@ -18,7 +18,7 @@ Read `OUTLINE-INSTRUCTIONS.md` in full and follow it exactly. Write
 ## The rules that matter
 
 **No spoken copy. No lanes.** Not one sentence the maker would read aloud, and no
-`SAY`/`SHOW`/`EDIT`/`FACTS`, verdicts, blockquotes or tables. Those are all
+`SAY`/`VIDEO`/`FACTS`, verdicts, blockquotes or tables. Those are all
 script-plan forms, and putting them here means the two documents will drift.
 **This is the boundary between the two documents** - it is not a line count.
 

@@ -174,7 +174,7 @@ satisfied by jargon, because jargon is what fits a mould.
 section name"*.
 
 Failures belong in the phase where they happen. `SCRIPT-PLAN-INSTRUCTIONS.md`
-already requires it: *"Give each phase's known failure mode a beat or an `EDIT`
+already requires it: *"Give each phase's known failure mode a beat or a `VIDEO`
 note."* A bucket at the end means the viewer meets the fix minutes after the
 moment it would have saved them, and the phase it belongs to is left teaching
 the happy path only.
@@ -200,7 +200,7 @@ reason at gate 040. That is a real answer; a padded outline is not.
 - **No spoken copy anywhere.** Not one sentence the maker would read aloud. That
   is `script-plan.md`'s job and duplicating it here is how the two documents
   drift. This is the real boundary between the two documents, not a line count.
-- **No lanes.** No `SAY`, `SHOW`, `EDIT`, `FACTS`, no blockquotes, no verdicts,
+- **No lanes.** No `SAY`, `VIDEO`, `FACTS`, no blockquotes, no verdicts,
   no tables. Those are all script-plan forms.
 - **A card's bullets name what happens, never how it sounds.** "the price tier
   each sits in" is a bullet. "He says the pricing page is misleading" is copy.

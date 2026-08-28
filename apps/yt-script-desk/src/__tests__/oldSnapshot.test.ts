@@ -59,7 +59,7 @@ describe('a document served from an older snapshot', () => {
     const doc = await getVideo('k')
     const beat = doc.beats[0]
 
-    for (const field of ['demo', 'show', 'edit', 'facts', 'rules'] as const) {
+    for (const field of ['demo', 'video', 'facts', 'rules'] as const) {
       expect(
         Array.isArray(beat[field]),
         `OLD_SNAPSHOT_CRASH: "${field}" came through as ${typeof beat[field]} — a .length on it blanks the page`,
@@ -73,6 +73,35 @@ describe('a document served from an older snapshot', () => {
     const doc = await getVideo('k')
     expect(doc.beats[0].say).toEqual(['A line that was already published.'])
     expect(doc.beats[0].num).toBe('1.1')
+  })
+
+  // The lanes were TWO fields until 2026-08-28. A desk link published before the
+  // merge is already out with a freelancer, and its beats carry `show` and `edit`
+  // and no `video`. Dropping them would blank the whole instruction track on a
+  // live link, so `normalizeDoc` folds them - show first, then edit, the order
+  // they were read in.
+  it('folds a pre-merge snapshot\'s show and edit into one video lane', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          key: 'k',
+          title: 'T',
+          beats: [{ ...OLD_SNAPSHOT_BEAT, show: ['Film the panel.'], edit: ['Trim the pause.'] }],
+          draft: {},
+          edits: {},
+          says: {},
+          finished: false,
+        }),
+      })),
+    )
+    const { getVideo } = await import('../api')
+    const doc = await getVideo('k')
+    expect(
+      doc.beats[0].video,
+      'PRE_MERGE_LANES_DROPPED: a link published before the lane merge lost its instructions',
+    ).toEqual(['Film the panel.', 'Trim the pause.'])
   })
 
   it('survives a document with no beats array at all', async () => {

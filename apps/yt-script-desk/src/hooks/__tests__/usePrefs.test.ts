@@ -34,12 +34,12 @@ describe('usePrefs', () => {
     const { result } = renderHook(() => usePrefs())
 
     act(() => {
-      result.current.setPrefs({ videoEditor: true })
+      result.current.setPrefs({ videoNotes: false })
     })
 
-    expect(result.current.prefs.videoEditor).toBe(true)
+    expect(result.current.prefs.videoNotes).toBe(false)
     const stored = JSON.parse(localStorage.getItem('script-desk:prefs') ?? '{}')
-    expect(stored.videoEditor).toBe(true)
+    expect(stored.videoNotes).toBe(false)
   })
 
   it('merges new pref keys over an old stored shape without losing what was saved', () => {

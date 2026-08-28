@@ -26,10 +26,10 @@ const FIXTURE = `# Test Video Title
 >
 >  Scene two. Different face."
 
-**SHOW**
+**VIDEO**
 One portrait full-screen. Hard cut through three scenes.
 
-**EDIT**
+**VIDEO**
 Red box. Glitch sound.
 
 #### First CTA
@@ -49,7 +49,7 @@ Red box. Glitch sound.
 **SAY**
 > "Quick intros. OpenArt, InVideo, Higgsfield."
 
-**SHOW**
+**VIDEO**
 Skim each platform panel.
 
 > **VERDICT:** Five tools, five approaches.
@@ -119,9 +119,9 @@ test('verdicts are pre-filled wherever they appear', () => {
   assert.match(buildWorksheet(FIXTURE), /> \*\*VERDICT\*\* ✎ pre-filled[^\n]*\n> Five tools, five approaches\./)
 })
 
-test('SHOW, EDIT and RULES never reach the worksheet', () => {
+test('VIDEO and RULES never reach the worksheet', () => {
   const ws = buildWorksheet(FIXTURE)
-  for (const banned of ['**SHOW**', '**EDIT**', 'RULES', 'One portrait full-screen', 'Red box. Glitch sound.', 'Skim each platform panel', 'Orientation only']) {
+  for (const banned of ['**VIDEO**', '**VIDEO**', 'RULES', 'One portrait full-screen', 'Red box. Glitch sound.', 'Skim each platform panel', 'Orientation only']) {
     assert.ok(!ws.includes(banned), `worksheet must not contain ${banned}`)
   }
 })

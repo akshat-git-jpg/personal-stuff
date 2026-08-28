@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Render a script-plan.md into script-worksheet.md — the WRITE artifact the remote
 // tutorial maker fills in. SCRIPT ONLY: the spoken copy that is already final,
-// plus an empty slot per beat he has to write. No SHOW, no EDIT, no rules boxes,
+// plus an empty slot per beat he has to write. No VIDEO lane, no rules boxes,
 // no reference drafts and no fact packs — all of that is in outline.pdf, which he
 // keeps open beside this file.
 //
@@ -36,7 +36,14 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 // refuses while any ASK remains. Added 2026-08-28, replacing a whole browser markup
 // UI: the owner edits the markdown in his own editor, where cut and paste actually
 // work, and this one lane is the only thing the editor could not give him.
-const LANE_RE = /^\*\*(SAY|SHOW|EDIT|FACTS|DEMO|ASK)\*\*(?:\s*[—-]\s*(.*))?$/i
+// VIDEO is the one lane for everything the maker does with the picture: what to
+// film or screen-record AND what to do with it afterwards. It replaced SHOW and
+// EDIT on 2026-08-28 - owner: *"I don't like having screen recording notes and
+// video editing notes, can you just club them both together and make it just
+// video notes."* SHOW and EDIT stay in this regex as ALIASES so a plan written
+// before the merge still parses and loses nothing; `lib/beats.mjs` folds all
+// three into one `video` array. Never write SHOW or EDIT in a new plan.
+const LANE_RE = /^\*\*(SAY|VIDEO|SHOW|EDIT|FACTS|DEMO|ASK)\*\*(?:\s*[—-]\s*(.*))?$/i
 
 // Strip the blockquote marker, keeping everything after ONE optional space so a
 // continuation line's own indentation survives.
@@ -204,7 +211,7 @@ export function buildWorksheet(md) {
     }
 
     // Record the heading only. The counter increments when a SAY lane actually
-    // EMITS a beat — a beat with only SHOW/EDIT produces nothing in a
+    // EMITS a beat — a beat with only VIDEO produces nothing in a
     // voiceover-only file, and must not consume a number and leave a gap.
     if (b.t === 'beat') {
       pendingBeat = { text: b.text.replace(/^[\d.]+\s*·\s*/, '') }
@@ -248,7 +255,7 @@ export function buildWorksheet(md) {
       continue
     }
 
-    // SHOW, EDIT, rules, plain quotes, prose: dropped on purpose. They belong to
+    // VIDEO, rules, plain quotes, prose: dropped on purpose. They belong to
     // outline.pdf. Repeating them here is the mistake this format exists to avoid.
   }
 
