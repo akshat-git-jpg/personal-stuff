@@ -11,6 +11,17 @@
 **DEMO is the one thing in the left track that is not spoken copy, and it is not an exception to the rule.** A silent stretch is timeline content: something plays and nobody talks. Added 2026-08-27, because a 12-second cold open with no voiceover had nowhere to appear, so the timeline read as if the video began on the first spoken line. How to shoot it stays in SHOW; how to cut it stays in EDIT. A DEMO lane that grows shooting notes has smuggled an instruction into the left track. Guarded by `src/components/__tests__/demoLane.test.tsx`.
 
 ### The API process does not hot-reload. Vite does.
+**The test suite needs Node 22.** On Node 20 `vitest` will not start at all:
+jsdom pulls `html-encoding-sniffer`, which `require()`s `@exodus/bytes`, and every
+published version of that package is ESM-only. You get 19 startup errors and
+`Tests  no tests`, which reads like a broken config and is not one. Run it as:
+
+```bash
+PATH="/opt/homebrew/opt/node@22/bin:$PATH" npx vitest run
+```
+
+Verified 2026-08-29: Node 20.18.3 fails, Node 22.14.0 passes 146/146.
+
 `npm run dev:local` runs two things: Vite (watches `src/`, reloads on save) and `server/local.mjs` (a plain node process that imported `buildBeats` **at startup**). Change the parser in `pipelines/youtube/yt-script/lib/` and the frontend picks it up while the API keeps serving the old shape. **Restart `dev:local` after any parser change.**
 
 Seen live 2026-08-27: `demo` was added, the frontend hot-reloaded, the API did not, and `beat.demo.length` on undefined blanked the whole page. `normalizeDoc` in `src/api.ts` now fills missing list fields at the boundary, so this degrades to "the new field is absent" instead of a crash — which is also what protects freelancers holding links published before a field existed, since D1 snapshots are frozen at publish time. Guarded by `src/__tests__/oldSnapshot.test.ts`.
