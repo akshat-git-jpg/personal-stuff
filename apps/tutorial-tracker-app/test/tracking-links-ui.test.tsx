@@ -27,7 +27,65 @@ describe("TrackingLinks", () => {
   it("names the Add path for an empty state", async () => { mockLinks({ links: [] }); render(<TrackingLinks />); expect(await screen.findByText(/Use Add/)).toBeTruthy(); });
   it("shows the Admin-role line and no edit button for 403", async () => { mockLinks({}, 403); render(<TrackingLinks />); expect(await screen.findByText(/Admin role/)).toBeTruthy(); expect(screen.queryByText("Edit")).toBeNull(); });
   it("requires confirmation naming the old and new destination", async () => { mockLinks(); render(<TrackingLinks />); fireEvent.click(await screen.findAllByText("Edit").then((x) => x[0])); fireEvent.change(screen.getByLabelText("New destination"), { target: { value: "https://new.example" } }); fireEvent.click(screen.getByText("Review change")); expect(screen.getAllByText(/https:\/\/openart.ai/).length).toBeGreaterThan(1); expect(screen.getByText(/https:\/\/new.example/)).toBeTruthy(); });
-  it("renders active guard controls", async () => { mockLinks(); render(<TrackingLinks />); const check = await screen.findByText("Re-check all now"); expect((check as HTMLButtonElement).disabled).toBe(false); expect((screen.getByText("Export CSV") as HTMLButtonElement).disabled).toBe(false); });
+  it("shows the shown-count and clears filters like the All videos toolbar", async () => {
+    mockLinks(); render(<TrackingLinks />);
+    await screen.findByText("New video");
+    expect(screen.getByTestId("link-count").textContent).toBe("3 shown");
+    fireEvent.change(screen.getByLabelText("Search tracking links"), { target: { value: "cursor" } });
+    expect(screen.getByTestId("link-count").textContent).toBe("1 shown");
+    fireEvent.click(screen.getByText("Clear"));
+    expect(screen.getByTestId("link-count").textContent).toBe("3 shown");
+  });
+
+  it("filters by type behind More filters", async () => {
+    mockLinks(); render(<TrackingLinks />);
+    await screen.findByText("New video");
+    fireEvent.click(screen.getByText("More filters"));
+    fireEvent.change(screen.getByLabelText("Type"), { target: { value: "external" } });
+    expect(screen.getByText("/new-video/cursor")).toBeTruthy();
+    expect(screen.queryByText("/new-video/openart")).toBeNull();
+  });
+
+  it("filters by state behind More filters", async () => {
+    mockLinks(); render(<TrackingLinks />);
+    await screen.findByText("New video");
+    fireEvent.click(screen.getByText("More filters"));
+    fireEvent.change(screen.getByLabelText("State"), { target: { value: "lost" } });
+    expect(screen.getByText("/new-video/openart")).toBeTruthy();
+    expect(screen.queryByText("/new-video/cursor")).toBeNull();
+  });
+
+  it("offers a way out when filters match nothing", async () => {
+    mockLinks(); render(<TrackingLinks />);
+    await screen.findByText("New video");
+    fireEvent.change(screen.getByLabelText("Search tracking links"), { target: { value: "zzznope" } });
+    expect(screen.getByText(/No links match those filters/)).toBeTruthy();
+    fireEvent.click(screen.getByText("Clear filters"));
+    expect(screen.getByText("New video")).toBeTruthy();
+  });
+
+  it("sorts within a group by clicking a column heading", async () => {
+    mockLinks(); render(<TrackingLinks />);
+    await screen.findByText("New video");
+    const slugs = () => screen.getAllByText(/^\/new-video\//).map((n) => n.textContent);
+    const before = slugs();
+    fireEvent.click(screen.getAllByTitle("Sort by Clicks")[0]);
+    // Clicks starts DESCENDING: openart (19) before cursor (2).
+    expect(slugs()[0]).toBe("/new-video/openart");
+    fireEvent.click(screen.getAllByTitle("Sort by Clicks")[0]);
+    expect(slugs()[0]).toBe("/new-video/cursor");
+    expect(before.length).toBe(2);
+  });
+
+  it("every sortable heading is a real button", async () => {
+    mockLinks(); render(<TrackingLinks />);
+    await screen.findByText("New video");
+    for (const label of ["Short link", "Tool", "Type", "Lands on", "Clicks", "Checked"]) {
+      expect(screen.getAllByTitle(`Sort by ${label}`)[0].tagName).toBe("BUTTON");
+    }
+  });
+
+  it("renders active guard controls", async () => { mockLinks(); render(<TrackingLinks />); const check = await screen.findByText("Re-check all now"); expect((check as HTMLButtonElement).disabled).toBe(false); });
 });
 describe("MintLinks", () => {
   const rows = [{ row_id: "r1", video_title: "Video one", video_code: "abc" }] as never[];
