@@ -1239,16 +1239,22 @@ app.post("/api/link-health/recheck", async (c) => {
 app.get("/api/links", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  const [links, counts, rows, programs] = await Promise.all([
+  const [links, counts, rows, programs, dbTitles] = await Promise.all([
     clickstore.allLinks(c.env.DB),
     clickstore.clickCounts(c.env.DB),
     cachedReadRows(c.env),
     listPrograms(c.env.TRACKER_DB),
+    clickstore.videoTitles(c.env.DB),
   ]);
-  const titleByCode: Record<string, string> = {};
+  // The videos table is the base layer — it has a title for every code. A tracker
+  // card, when one exists, wins because its title is the one being edited. Only 2
+  // of 76 cards carry a video_code, so without the base layer 85 of 87 groups
+  // rendered as "Untitled video" and looked like deletable test rows.
+  const titleByCode: Record<string, string> = { ...dbTitles };
   for (const r of rows as Record<string, unknown>[]) {
     const code = ((r.video_code as string) ?? "").trim();
-    if (code) titleByCode[code] = (r.video_title as string) ?? "";
+    const title = ((r.video_title as string) ?? "").trim();
+    if (code && title) titleByCode[code] = title;
   }
   const bySlug: Record<string, (typeof programs)[number]> = {};
   for (const p of programs) bySlug[p.slug] = p;
