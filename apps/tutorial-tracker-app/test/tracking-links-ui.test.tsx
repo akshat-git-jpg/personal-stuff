@@ -27,7 +27,7 @@ describe("TrackingLinks", () => {
   it("names the Add path for an empty state", async () => { mockLinks({ links: [] }); render(<TrackingLinks />); expect(await screen.findByText(/Use Add/)).toBeTruthy(); });
   it("shows the Admin-role line and no edit button for 403", async () => { mockLinks({}, 403); render(<TrackingLinks />); expect(await screen.findByText(/Admin role/)).toBeTruthy(); expect(screen.queryByText("Edit")).toBeNull(); });
   it("requires confirmation naming the old and new destination", async () => { mockLinks(); render(<TrackingLinks />); fireEvent.click(await screen.findAllByText("Edit").then((x) => x[0])); fireEvent.change(screen.getByLabelText("New destination"), { target: { value: "https://new.example" } }); fireEvent.click(screen.getByText("Review change")); expect(screen.getAllByText(/https:\/\/openart.ai/).length).toBeGreaterThan(1); expect(screen.getByText(/https:\/\/new.example/)).toBeTruthy(); });
-  it("renders disabled guard controls", async () => { mockLinks(); render(<TrackingLinks />); const check = await screen.findByText("Re-check all now"); expect((check as HTMLButtonElement).disabled).toBe(true); expect(check.getAttribute("title")).toContain("guard"); expect((screen.getByText("Export CSV") as HTMLButtonElement).disabled).toBe(true); });
+  it("renders active guard controls", async () => { mockLinks(); render(<TrackingLinks />); const check = await screen.findByText("Re-check all now"); expect((check as HTMLButtonElement).disabled).toBe(false); expect((screen.getByText("Export CSV") as HTMLButtonElement).disabled).toBe(false); });
 });
 describe("MintLinks", () => {
   const rows = [{ row_id: "r1", video_title: "Video one", video_code: "abc" }] as never[];
