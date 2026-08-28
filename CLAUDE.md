@@ -66,6 +66,22 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 
 - **When making technical decisions, don't weight development cost as if humans were writing the code.** Models estimate effort from human training data and implicitly reject good solutions as "too expensive" — an agent builds in minutes what it estimates in weeks. Pick the right design, not the cheap one.
 
+- **This repo has TWO operators on TWO platforms. Build for both.** The owner is on
+  macOS. His sister has the same repo cloned on **Windows**, runs Claude Code in it,
+  uses the skills, and does real work here (video editing and adjacent jobs). She is
+  **not technical**: she will not debug a path, install a runtime, or read an error
+  and work out what it means.
+
+  So, for anything new: prefer what already works on both — a browser page over a
+  local server, a repo-committed file over a per-machine setting, `node`/`npm` over
+  a shell script, a forward-slash path over a platform-specific one. When a Windows
+  gotcha is unavoidable, `personal-stuff-build-and-env` (**"Windows / any machine
+  not running the dual-account scheme"**) is where it goes, with the fix inline.
+
+  **The escape hatch, when something genuinely can only be fixed on her machine:**
+  do not write her a runbook. Write a **prompt** the owner forwards to her Claude,
+  which does the fix locally. She should never be the one holding the instructions.
+
 - A folder's `README.md` orients a human; its `CLAUDE.md` (where present) tells Claude how to operate there.
 - `INFRA.md` — canonical Cloudflare + VPS + DNS inventory.
 - `VPS-CRONS.md` — cron architecture (Pattern B). It's a runbook, not auto-loaded; open it only for cron work.

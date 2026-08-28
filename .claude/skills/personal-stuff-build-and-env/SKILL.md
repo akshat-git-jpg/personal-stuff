@@ -34,6 +34,41 @@ Skills need NO setup on a new machine: they are repo-scoped, so cloning the repo
 
 Dual-account facts that still matter: work config `~/.claude-work`, personal `~/.claude-personal`, one shared memory store linked by `relink.sh`. Use the `claude-work` / `claude-personal` shell functions to target an account — a bare `claude` alias silently hits work (details: **personal-stuff-debugging-playbook**). Which account you use no longer changes which skills load.
 
+### Who is on Windows, and what that means for what you build
+
+**The sister's laptop is a real, permanent second machine — not a hypothetical.**
+Same repo, cloned and working. She runs Claude Code in it, the skills load for her,
+and she does production work (video editing and adjacent jobs). Recorded 2026-08-28
+on the owner's instruction: *"my sister uses the same repo. She has already cloned
+things and she uses Windows and she is not that tech savvy, but she's already doing
+things... She's also able to use the skills."*
+
+**What "not that tech savvy" means in practice.** She will not install a runtime,
+fix a PATH, read a stack trace, or translate a macOS command. Anything that needs
+one of those has to be done FOR her, or not needed at all.
+
+**So when you build, in this order of preference:**
+
+| Prefer | Over | Why |
+|---|---|---|
+| A hosted URL she just opens | a local server she has to start | nothing to install, nothing to keep running |
+| A file committed to the repo | a per-machine setting | `git pull` is her whole setup |
+| `node` / `npm` scripts | `.sh` scripts | Git Bash exists but is not a given |
+| Forward slashes, `path.join` | hard-coded `/Users/...` | her paths differ from the owner's entirely |
+| A thing that already works for her | a new thing that "should" work | she cannot debug the difference |
+
+**The escape hatch when a fix can only happen on her machine:** hand the owner a
+**prompt to forward to her Claude**, not instructions for her. Her Claude does the
+work locally. She is never the one holding a runbook. The owner asked for it this
+way explicitly, and it is the right shape — her session has her real paths and her
+real errors, which no runbook can.
+
+**Worked example, 2026-08-28.** The `yt-script` flow splits cleanly along this line
+and is the pattern to copy: the owner reviews the plan in his editor with the local
+desk running (node, a repo clone, a terminal), and the person doing the writing gets
+**one secret URL** from `desk.mjs publish` — a web page, any browser, any OS,
+nothing installed. Same data, two surfaces, and only one of them needs a toolchain.
+
 ### Windows / any machine not running the dual-account scheme
 
 Nothing special is needed any more. A bare `claude` launched inside the repo reads `.claude/skills` like every other account does, so the old "link `personal.txt` into plain `~/.claude/skills`" fallback (decisions.md 2026-08-11) was deleted with the store on 2026-08-25. `relink.sh` step 2 above still applies verbatim for the Codex mirror and the push gate. Two Windows-specific gotchas it does NOT paper over:
