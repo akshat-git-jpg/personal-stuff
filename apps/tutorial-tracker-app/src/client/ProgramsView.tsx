@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { creditWarnings } from "../worker/linkhealth";
 import { APPROVAL_LABELS, networkLabel } from "../worker/programs";
 import type { ApprovalStatus, Kind, ProgramRow } from "../worker/programs";
@@ -80,16 +81,25 @@ export function creditCell(program: ProgramRow): CreditCell {
   };
 }
 
-type SortKey = "name" | "kind" | "credit" | "approval" | "checked";
+type SortCol = "name" | "kind" | "destination" | "credit" | "coupon" | "approval" | "checked";
+interface SortState { col: SortCol; dir: "asc" | "desc" }
 type TypeFilter = "all" | Kind;
 type HealthFilter = "all" | "earning" | "no-code" | "no-link" | "attention";
 
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: "name", label: "Name" },
-  { key: "kind", label: "Type" },
-  { key: "credit", label: "Affiliate code" },
-  { key: "approval", label: "Approval" },
-  { key: "checked", label: "Last checked" },
+/**
+ * Column order, and which ones sort. Header-click sorting matches the All videos
+ * board (PipelineBoard) on purpose — the owner asked for one consistent pattern
+ * rather than a dropdown here and headers there.
+ */
+const COLUMNS: { col: SortCol | null; label: string }[] = [
+  { col: "name", label: "Program" },
+  { col: "kind", label: "Type" },
+  { col: "destination", label: "Destination" },
+  { col: "credit", label: "Affiliate code" },
+  { col: "coupon", label: "Coupon" },
+  { col: "approval", label: "Approval" },
+  { col: "checked", label: "Last checked" },
+  { col: null, label: "" },
 ];
 
 export interface ProgramsViewProps {
@@ -111,8 +121,21 @@ export function ProgramsView({
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [health, setHealth] = useState<HealthFilter>("all");
-  const [sort, setSort] = useState<SortKey>("name");
-  const [desc, setDesc] = useState(false);
+  const [sort, setSort] = useState<SortState | null>({ col: "name", dir: "asc" });
+
+  // Same semantics as PipelineBoard: re-clicking a column flips direction; a new
+  // column starts ascending for text, descending for "most recent" style data.
+  function toggleSort(col: SortCol) {
+    setSort((prev) => prev?.col === col
+      ? { col, dir: prev.dir === "asc" ? "desc" : "asc" }
+      : { col, dir: col === "checked" ? "desc" : "asc" });
+  }
+  const caret = (col: SortCol) => sort?.col === col
+    ? (sort.dir === "asc" ? <ArrowUp className="inline size-3" /> : <ArrowDown className="inline size-3" />)
+    : null;
+  const ariaSort = (col: SortCol): "ascending" | "descending" | "none" =>
+    sort?.col === col ? (sort.dir === "asc" ? "ascending" : "descending") : "none";
+  const headCls = "text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground";
 
   const unavailable = !!error && error.status !== 403;
 
@@ -152,28 +175,32 @@ export function ProgramsView({
         networkLabel(program.network).toLowerCase().includes(q)
       );
     });
-    const dir = desc ? -1 : 1;
+    if (!sort) return list;
+    const dir = sort.dir === "asc" ? 1 : -1;
+    const byName = (a: typeof list[number], b: typeof list[number]) =>
+      a.program.name.localeCompare(b.program.name, undefined, { sensitivity: "base" });
     list = [...list].sort((a, b) => {
-      switch (sort) {
+      switch (sort.col) {
         case "kind":
-          return dir * (a.program.kind.localeCompare(b.program.kind) ||
-                        a.program.name.localeCompare(b.program.name));
+          return dir * (a.program.kind.localeCompare(b.program.kind) || byName(a, b));
+        case "destination":
+          return dir * (a.program.target_url.localeCompare(b.program.target_url) || byName(a, b));
         case "credit":
-          return dir * (a.credit.label.localeCompare(b.credit.label) ||
-                        a.program.name.localeCompare(b.program.name));
+          return dir * (a.credit.label.localeCompare(b.credit.label) || byName(a, b));
+        case "coupon":
+          return dir * (a.program.coupon_code.localeCompare(b.program.coupon_code) || byName(a, b));
         case "approval":
           return dir * ((APPROVAL_LABELS[a.program.approval_status as ApprovalStatus] ?? "")
-            .localeCompare(APPROVAL_LABELS[b.program.approval_status as ApprovalStatus] ?? "") ||
-            a.program.name.localeCompare(b.program.name));
+            .localeCompare(APPROVAL_LABELS[b.program.approval_status as ApprovalStatus] ?? "") || byName(a, b));
         case "checked":
-          // Never-checked sorts last on ascending, so the stale ones surface.
-          return dir * ((a.program.last_checked_at ?? 0) - (b.program.last_checked_at ?? 0));
+          // Never-checked counts as 0, so it groups at one end rather than scattering.
+          return dir * ((a.program.last_checked_at ?? 0) - (b.program.last_checked_at ?? 0) || byName(a, b));
         default:
-          return dir * a.program.name.localeCompare(b.program.name, undefined, { sensitivity: "base" });
+          return dir * byName(a, b);
       }
     });
     return list;
-  }, [decorated, query, typeFilter, health, sort, desc]);
+  }, [decorated, query, typeFilter, health, sort]);
 
   const chip = (active: boolean) =>
     `h-8 rounded-full px-3 text-xs font-medium transition-colors ${
@@ -284,26 +311,9 @@ export function ProgramsView({
                 </button>
               )}
             </div>
-            <div className="ml-auto flex items-center gap-1">
-              <span className="text-xs text-muted-foreground">Sort</span>
-              <select
-                className="h-8 rounded-md border border-border bg-card px-2 text-xs text-foreground"
-                value={sort}
-                onChange={(e) => setSort(e.target.value as SortKey)}
-                aria-label="Sort programs by"
-              >
-                {SORTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-              </select>
-              <button
-                type="button"
-                className={chip(false)}
-                onClick={() => setDesc((d) => !d)}
-                title={desc ? "Descending — click for ascending" : "Ascending — click for descending"}
-                aria-label="Toggle sort direction"
-              >
-                {desc ? "↓" : "↑"}
-              </button>
-            </div>
+            <span className="ml-auto text-xs text-muted-foreground">
+              Click a column heading to sort
+            </span>
           </div>
 
           {shown.length === 0 ? (
@@ -320,10 +330,23 @@ export function ProgramsView({
           ) : (
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-sm">
-                <thead className="border-b border-border bg-muted/50 text-left text-muted-foreground">
+                <thead className="border-b border-border bg-muted/50 text-left">
                   <tr>
-                    {["Program", "Type", "Destination", "Affiliate code", "Coupon", "Approval", "Last checked", ""].map((h) => (
-                      <th className="px-3 py-2 font-medium" key={h}>{h}</th>
+                    {COLUMNS.map(({ col, label }) => (
+                      <th className="px-3 py-2" key={label || "actions"} aria-sort={col ? ariaSort(col) : undefined}>
+                        {col ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleSort(col)}
+                            title={`Sort by ${label}`}
+                            className={cn(headCls, "text-left hover:text-foreground")}
+                          >
+                            {label} {caret(col)}
+                          </button>
+                        ) : (
+                          <span className="sr-only">Actions</span>
+                        )}
+                      </th>
                     ))}
                   </tr>
                 </thead>
