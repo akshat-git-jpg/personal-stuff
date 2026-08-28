@@ -7,7 +7,7 @@ writes a word of script.
 
 ```
 knowledge.md  ->  outline.md  ->  script-plan.md  ->  the script desk
-                  (this file)     (the beat doc)      (what the maker opens)
+                  (this file)     (the section cards)  (what the maker opens)
 ```
 
 ## Why this file exists
@@ -74,7 +74,7 @@ Target: <NN> min
 ```
 
 **Three to six bullets per card.** Under three and the owner cannot picture it;
-over six and you are writing the beat document.
+over six and you are writing the script plan.
 
 A real one:
 
@@ -174,8 +174,7 @@ satisfied by jargon, because jargon is what fits a mould.
 section name"*.
 
 Failures belong in the phase where they happen. `SCRIPT-PLAN-INSTRUCTIONS.md`
-already requires it: *"Give each phase's known failure mode a beat or a `VIDEO`
-note."* A bucket at the end means the viewer meets the fix minutes after the
+already requires it: *"Give each phase's known failure mode a bullet."* A bucket at the end means the viewer meets the fix minutes after the
 moment it would have saved them, and the phase it belongs to is left teaching
 the happy path only.
 
@@ -186,6 +185,16 @@ that they did not fit anywhere else, it is not a section.
 ## Target length
 
 `Target:` is required, in minutes, and it drives the section count.
+
+**A section here becomes ONE card in `script-plan.md`** — one heading and one
+short bullet list, nothing under it. So the section list you write is the whole
+structure of the body; there is no second, finer level of breakdown coming later
+to rescue a section that is really two. `TASTE.md` T13 is the rule, and
+`SCRIPT-PLAN-INSTRUCTIONS.md` has the card format.
+
+**The test: could these section names be title cards in the finished video?**
+That is what they are. A list nobody could hold in their head is too long, and a
+section that would need sub-headings to explain itself is two sections.
 
 **Go as long as the material honestly carries** — see `TASTE.md` T6. Derive the
 number from what `knowledge.md` actually supports, section by section, and say so

@@ -100,6 +100,7 @@ export function buildBeats(md) {
   let curPart = null
   let curPartKind = 'intro'
   let curSection = null
+  let cardCount = 0
   let curRules = []
   let curSectionFacts = []
   let curSectionAsk = []
@@ -117,6 +118,7 @@ export function buildBeats(md) {
       flush()
       curPart = b.text
       curPartKind = partKindFor(n)
+      cardCount = 0
       curSection = null
       curRules = []
       curSectionFacts = []
@@ -160,6 +162,47 @@ export function buildBeats(md) {
       continue
     }
 
+    // A BODY SECTION CARD. Added 2026-08-29.
+    //
+    // A body section used to hold five to seven `#### 2.n` beats, each with its
+    // own SAY / VIDEO / FACTS lanes. The owner read the result as clutter that
+    // took the job away from the person doing it: *"I want high level section
+    // distinction and their information that's it don't break down too much that
+    // it's cluttering everything and removes the creative freedom from the
+    // freelancer."* So a body section is now ONE card: the section heading, one
+    // flat `**NOTES**` bullet list, one thing to write.
+    //
+    // There is no `####` heading to hang that on, so the card beat is
+    // SYNTHESIZED from the section. `title` is the section name, which is also
+    // what the desk shows as the heading (`groupOf` reads `beat.section`), so
+    // nothing about the rendered card is invented here.
+    //
+    // Only `NOTES` triggers this. A section FACTS or ASK block still attaches to
+    // the section's first real beat, exactly as before, so every plan written in
+    // the old shape parses unchanged.
+    if (b.t === 'lane' && b.kind === 'NOTES' && !pending && curPartKind === 'body') {
+      cardCount += 1
+      const partNum = (curPart || '').match(/^\s*(\d+)/)?.[1] ?? '2'
+      pending = {
+        num: `${partNum}.${cardCount}`,
+        title: curSection ?? 'Untitled section',
+        part: curPart,
+        partKind: curPartKind,
+        section: curSection,
+        mode: 'write',
+        say: null,
+        angle: null,
+        demo: [],
+        ask: curSectionAsk.splice(0),
+        video: [],
+        notes: b.raw.slice(),
+        facts: curSectionFacts.splice(0),
+        rules: curRules.slice(),
+        verdict: null,
+      }
+      continue
+    }
+
     // A section-level ASK - "this whole section drags" - has no beat to hang on, so
     // it attaches to the section's FIRST beat, exactly like a section FACTS block.
     // Without this it would hit `if (!pending) continue` below and vanish, which is
@@ -184,6 +227,7 @@ export function buildBeats(md) {
         demo: [],
         ask: curSectionAsk.splice(0),
         video: [],
+        notes: [],
         facts: curSectionFacts.splice(0),
         rules: curRules.slice(),
         verdict: null,
@@ -217,6 +261,11 @@ export function buildBeats(md) {
         // SHOW and EDIT are kept as ALIASES, not as separate arrays, so a plan
         // written before the merge parses with nothing dropped. Write VIDEO.
         pending.video.push(...b.raw)
+      } else if (b.kind === 'NOTES') {
+        // The section card's bullet list. Normally the card was synthesized by
+        // the branch above and this never fires; it does fire for a SECOND NOTES
+        // block in one section, which appends rather than starting a new card.
+        pending.notes.push(...b.raw)
       } else if (b.kind === 'FACTS') {
         pending.facts.push(...b.raw)
       } else if (b.kind === 'ASK') {

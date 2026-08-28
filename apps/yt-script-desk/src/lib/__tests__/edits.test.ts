@@ -114,9 +114,16 @@ describe('the real script plan survives every operation', () => {
     return { edit: mod.buildEditModel(text), read: mod.buildBeats(text) }
   }
 
+  // Was `> 50` until 2026-08-29, when the body became one card per section: the
+  // real plan went from 56 beats to 15, and a count that large now means the old
+  // beat-per-shot shape has come back.
   it('the fixture is the real plan, not a stub', async () => {
-    const { read } = await model(md)
-    expect(read.beats.length).toBeGreaterThan(50)
+    const { read, edit } = await model(md)
+    expect(read.beats.length).toBeGreaterThan(10)
+    expect(edit.sections.length).toBeGreaterThan(5)
+    const cards = read.beats.filter((b: { partKind: string }) => b.partKind === 'body')
+    expect(cards.length, 'one card per body section').toBe(edit.sections.length)
+    for (const c of cards) expect(c.notes.length).toBeGreaterThan(0)
   })
 
   it('deleting one note leaves every other beat intact and the file parseable', async () => {
@@ -145,16 +152,27 @@ describe('the real script plan survives every operation', () => {
     expect(order(after.edit).sort()).toEqual(order(edit).sort())
   })
 
-  it('MOVING A BEAT between sections re-parents it and loses nothing', async () => {
-    const { edit, read } = await model(md)
-    const beat = edit.beats.find((b: { section: string | null }) => b.section === edit.sections[1].name)!
-    const target = edit.sections[5]
-    const moved = moveRange(md, { line: beat.line, endLine: beat.endLine }, target.endLine)
+  // A body section has no `####` beat to move since 2026-08-29 — it is one card,
+  // and its content is the section's own NOTES block. So the move that matters
+  // here is a block between sections, and the thing that must not happen is a
+  // bullet going missing on the way.
+  it('MOVING A NOTES BLOCK between sections loses no bullets', async () => {
+    const { edit } = await model(md)
+    const src = edit.sections[1]
+    const dst = edit.sections[5]
+    const block = src.blocks.find((b: { kind: string | null }) => b.kind === 'NOTES')!
+    expect(block, 'the fixture no longer has a NOTES block to move').toBeTruthy()
+
+    const bullets = (text: string) => (text.match(/^- /gm) ?? []).length
+    const moved = moveRange(md, { line: block.line, endLine: block.endLine }, dst.endLine)
     const after = await model(moved)
 
-    expect(after.read.beats.length).toBe(read.beats.length)
-    const now = after.edit.beats.find((b: { num: string }) => b.num === beat.num)!
-    expect(now.section, 'the moved beat did not re-parent to its new section').toBe(target.name)
+    expect(bullets(moved), 'BULLETS_LOST: the move dropped lines').toBe(bullets(md))
+    const target = after.edit.sections.find((x: { name: string }) => x.name === dst.name)!
+    expect(
+      target.blocks.filter((b: { kind: string | null }) => b.kind === 'NOTES').length,
+      'the block did not land in the target section',
+    ).toBe(2)
   })
 
   it('every spoken line survives a delete, a move and an edit in sequence', async () => {
@@ -163,9 +181,12 @@ describe('the real script plan survives every operation', () => {
 
     // a note goes, a section moves, a note is rewritten — none touch spoken copy
     let text = md
-    const note = edit.beats.find((b: { blocks: { kind: string }[] }) =>
-      b.blocks.some((x) => x.kind === 'VIDEO'),
-    )!.blocks.find((x: { kind: string }) => x.kind === 'VIDEO')!
+    const noteOwner = [...edit.beats, ...edit.sections].find((b: { blocks: { kind: string }[] }) =>
+      b.blocks.some((x) => x.kind === 'VIDEO' || x.kind === 'NOTES'),
+    )!
+    const note = noteOwner.blocks.find(
+      (x: { kind: string }) => x.kind === 'VIDEO' || x.kind === 'NOTES',
+    )!
     text = deleteRange(text, note)
 
     const m2 = await model(text)

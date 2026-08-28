@@ -15,6 +15,8 @@ export type Beat = {
   // `desk.mjs publish` refuses while any exists, and strips them if forced.
   video: string[] // ONE lane for the picture: what to film or screen-record AND
   // what to do with it in post. Merged from the old `show`+`edit` pair 2026-08-28.
+  notes: string[] // a BODY SECTION CARD's flat bullet list — the whole brief for
+  // that section, in one place. Added 2026-08-29; see beats.mjs for why.
   facts: string[]
   rules: string[] // section-level rules
   verdict: string | null

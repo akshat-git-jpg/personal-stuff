@@ -1,8 +1,8 @@
 # 050 - write the script plan
 
-**[LLM]** &nbsp; Expands the approved outline into the full beat-by-beat draft.
+**[LLM]** &nbsp; Turns the approved outline into the intro, the conclusion, and one card per body section.
 
-The approved `outline.md` + `knowledge.md` -> `videos/<key>/script-plan.md`, following `SCRIPT-PLAN-INSTRUCTIONS.md`. Two halves at two standards: intro and conclusion are finished verbatim copy; the body is beats carrying `SAY`/`SHOW`/`EDIT`/`FACTS` lanes. Was called `outline.md` until 2026-08-23.
+The approved `outline.md` + `knowledge.md` -> `videos/<key>/script-plan.md`, following `SCRIPT-PLAN-INSTRUCTIONS.md`. Two halves at two standards: intro and conclusion are finished verbatim copy; the body is one card per section, each a single `**NOTES**` bullet list. Was called `outline.md` until 2026-08-23; the body became cards on 2026-08-29.
 
 **Reads:** `knowledge.md`, `outline.md`
 
@@ -32,9 +32,11 @@ step was never told to open.
 
 - **Intro (130-160 words) and conclusion (80-100 words)** - finished verbatim
   copy. Nothing left to decide.
-- **Body** - beats with lanes. A body beat's `SAY` is a SHORT DRAFT PROMPT, not
-  finished copy. Writing it as polished prose collapses this into a duplicate of
-  the script and defeats having two documents.
+- **Body** - one card per section. `### SECTION:` then a single `**NOTES**`
+  bullet list. No `####` beats, no `SAY`, no `VIDEO`, no `FACTS`, no `RULES`.
+  Nothing in a card is spoken copy: the maker writes the words himself, and a
+  card that starts drafting his lines has collapsed the two documents into one.
+  `TASTE.md` T13 is the rule; `SCRIPT-PLAN-INSTRUCTIONS.md` has the format.
 
 ## Run the `humanizer` skill, in Mode B
 
@@ -45,12 +47,12 @@ the humanizer skill"*. Everything this step writes is heading for a viewer's ear
 producing an AI-flavoured draft and patching it. That applies to both halves:
 
 - **The verbatim intro and conclusion** are finished spoken copy. Full pass.
-- **A body beat's `SAY`** is a short draft prompt, not polished prose, so the
-  prose-level patterns barely apply. What does apply is the **rhetorical
-  posture**: a `SAY` shaped as a binary contrast ("this isn't X, it's Y"), a
-  faux-insight setup, or a fake-profound kicker hands the maker a shape to fill
-  in, and he will fill it in. The tell survives into his draft, and step 100 then
-  has to strip it out of his words instead of yours.
+- **A body card's bullets** are notes, not prose, so the prose-level patterns
+  barely apply. What does apply is the **rhetorical posture**: a bullet shaped as
+  a binary contrast ("this isn't X, it's Y"), a faux-insight setup, or a
+  fake-profound kicker hands the maker a shape to fill in, and he will fill it
+  in. The tell survives into his draft, and step 100 then has to strip it out of
+  his words instead of yours.
 
 `SCRIPT-INSTRUCTIONS.md` lists the patterns under "Reading as a human", including
 the one place the house convention and the skill genuinely disagree.
@@ -81,3 +83,9 @@ The `VIDEO` lane came out as long abstract prose — *"be specific rather than
 calling it cluttered"*, *"contrast with what a normal edit does"* — which reads as
 thorough and is unusable. Owner: *"all the instructions - i am finding too hard to
 understand."* All 56 beats had to be rewritten.
+
+**And then the beats themselves went.** Rewriting them plainly was not enough:
+the owner read 56 beats across 11 sections as clutter that took the job away from
+the person doing it. *"I want high level section distinction and their
+information that's it don't break down too much."* The body is 11 cards now.
+`TASTE.md` T13.

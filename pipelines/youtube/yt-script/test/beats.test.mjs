@@ -387,3 +387,102 @@ Trim the pause.
   assert.equal(b.show, undefined, 'the merged parser must not keep a separate show array')
   assert.equal(b.edit, undefined, 'the merged parser must not keep a separate edit array')
 })
+
+// ---------------------------------------------------------------- section cards
+//
+// A body section is ONE card since 2026-08-29: the section heading, one flat
+// `**NOTES**` bullet list, and one thing for the maker to write. It replaced five
+// to seven `#### 2.n` beats per section, each with its own SAY / VIDEO / FACTS
+// lanes. Owner: *"I want high level section distinction and their information
+// that's it don't break down too much that it's cluttering everything and removes
+// the creative freedom from the freelancer."*
+//
+// There is no `####` heading under a card, so the beat is synthesized from the
+// section. These guard the two ways that can go wrong: the card never appearing
+// at all, and an old plan's beats being swallowed by it.
+
+const CARDS = `# Card Video
+
+## 1 · INTRODUCTION
+
+#### A1 · Cold open
+
+**SAY**
+> The first line.
+
+## 2 · BODY
+
+### SECTION: What makes it look like Vox
+
+**NOTES**
+- The background never moves.
+- Sources: Joseph https://youtu.be/PaXuebdY75U
+
+### SECTION: Why one tool beats five
+
+**NOTES**
+- Every route runs the same five steps.
+
+## 3 · CONCLUSION
+
+#### C1 · Sign-off
+
+**SAY**
+> Thanks for watching.
+`
+
+test('CARD_DROPPED: a body section with a NOTES lane becomes one card beat', () => {
+  const { beats } = buildBeats(CARDS)
+  const body = beats.filter((b) => b.partKind === 'body')
+
+  assert.equal(body.length, 2, 'one card per body section, no more and no fewer')
+  assert.deepEqual(
+    body.map((b) => b.section),
+    ['What makes it look like Vox', 'Why one tool beats five'],
+  )
+  assert.deepEqual(
+    body.map((b) => b.num),
+    ['2.1', '2.2'],
+    'cards number from the part number, in order',
+  )
+  for (const card of body) {
+    assert.equal(card.mode, 'write', 'a card is something he writes')
+    assert.equal(card.title, card.section, 'the card IS the section, so it carries its name')
+    assert.ok(card.notes.length > 0, 'the bullets must reach the card')
+  }
+})
+
+test('CARD_NOTES_VERBATIM: the bullet list reaches the desk unchanged', () => {
+  const { beats } = buildBeats(CARDS)
+  const first = beats.find((b) => b.partKind === 'body')
+
+  assert.deepEqual(first.notes, [
+    '- The background never moves.',
+    '- Sources: Joseph https://youtu.be/PaXuebdY75U',
+  ])
+})
+
+test('CARD_ATE_A_BEAT: an older plan with real beats still parses beat by beat', () => {
+  // The synthesizing branch fires only on NOTES. A plan in the old shape has
+  // none, so nothing about it may change.
+  const { beats } = buildBeats(FIXTURE)
+  const body = beats.filter((b) => b.partKind === 'body')
+
+  assert.ok(body.length > 0)
+  for (const b of body) {
+    assert.deepEqual(b.notes, [], 'an old-shape beat carries no card bullets')
+  }
+})
+
+test('CARD_HAS_NO_WORKSHEET_SLOT: the desk-down fallback still gives him a place to write', () => {
+  // The worksheet emits a slot per SAY block, and a card has no SAY. Without its
+  // own branch every body section would vanish from the fallback file.
+  const md = buildWorksheet(CARDS)
+
+  assert.match(md, /#### B1 · What makes it look like Vox/)
+  assert.match(md, /#### B2 · Why one tool beats five/)
+  // The intro line "Fill the empty **Voiceover** slots" is one of the matches,
+  // so count the slot HEADINGS rather than the word.
+  assert.equal((md.match(/^#### B\d+ · /gm) ?? []).length, 2, 'one write slot per card')
+  assert.ok(!md.includes('The background never moves.'), 'bullets stay out of the worksheet')
+})

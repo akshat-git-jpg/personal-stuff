@@ -5,8 +5,8 @@
 ### The two-track rule
 **The left track is the audio timeline. Instructions never enter it.** The desk splits every beat into two columns:
 1. The audio timeline on the left: words that will be spoken, lines the maker writes himself, and a **DEMO** block marking a stretch where nothing is spoken at all.
-2. Instructions on the right, in three toggleable blocks: What to cover, Video notes, General notes.
-   (Video notes was two blocks until 2026-08-28 — Screen Recording and Video Editor merged, because one person does both jobs on the same beat.)
+2. Instructions on the right, in ONE block headed **Notes**, behind the `Instructions` toggle.
+   (It was three blocks with three chips — What to cover, Video notes, General notes — until 2026-08-29. Owner: *"remove those sections about video notes separately, general notes separately, everything else. Just need a simple bullet points."* One reader, one job, one list.)
 
 **DEMO is the one thing in the left track that is not spoken copy, and it is not an exception to the rule.** A silent stretch is timeline content: something plays and nobody talks. Added 2026-08-27, because a 12-second cold open with no voiceover had nowhere to appear, so the timeline read as if the video began on the first spoken line. How to shoot it stays in SHOW; how to cut it stays in EDIT. A DEMO lane that grows shooting notes has smuggled an instruction into the left track. Guarded by `src/components/__tests__/demoLane.test.tsx`.
 
@@ -25,7 +25,7 @@ Before 2026-08-27 the desk rendered `beat.title` and never rendered `beat.sectio
 ### The resolution order (`says -> say -> draft`)
 When parsing what text should appear in the spoken track, the resolution order is:
 1. `says` (final locked copy)
-2. `say` (draft prompt, which becomes **What to cover** in the right track, leaving the left track empty for the maker to fill)
+2. `notes` (a body section card's bullet list, which becomes **Notes** in the right track, leaving the left track empty for the maker to fill). An older plan's `say` draft, `video`, `rules` and `facts` fold into the same block.
 3. `draft` (the maker's typed copy)
 
 ### Data flow and upstream

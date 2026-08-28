@@ -67,12 +67,21 @@ test('the owner review step tells him how to open the desk', () => {
   assert.match(s, /localhost:5175/, 'DESK_WIRING_MISSING: step 055 does not give the local URL')
 })
 
-test('the body-draft rule is restated where the plan is written', () => {
+// The body is one card per section since 2026-08-29, and the rule that keeps the
+// two documents apart moved with it: nothing in a card is spoken copy. It used to
+// be "a body SAY is a SHORT DRAFT PROMPT, not finished copy", which said the same
+// thing about the lane the cards replaced.
+test('the no-spoken-copy-in-the-body rule is restated where the plan is written', () => {
   const s = read(`${STEPS}/050-write-script-draft-llm/README.md`)
   assert.match(
     s,
-    /SHORT DRAFT PROMPT|short draft prompt/,
-    'DESK_WIRING_MISSING: step 050 no longer says a body SAY is a draft prompt, not finished copy',
+    /one card per section/i,
+    'CARD_FORMAT_UNSTATED: step 050 no longer says the body is one card per section',
+  )
+  assert.match(
+    s,
+    /Nothing in a card is spoken copy/i,
+    'DESK_WIRING_MISSING: step 050 no longer says a card holds no spoken copy, which is the line that keeps the plan and the script two documents',
   )
   const skill = read('pipelines/.claude/skills/yt-script/SKILL.md')
   assert.match(skill, /script-plan\.md/, 'DESK_WIRING_MISSING: the skill does not name script-plan.md')

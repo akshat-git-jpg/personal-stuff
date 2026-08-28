@@ -6,9 +6,14 @@
 // link wherever possible for my freelancer... you said Joseph's list, but I
 // don't think my freelancer is aware of Joseph."*
 //
-// The fix is a "Who these people are:" line in each section's FACTS block, which
-// reaches the desk as General Notes, plus URL auto-linking in the instruction
-// track (WriteView.tsx) so the link is clickable rather than text to retype.
+// The fix is a reference line in every section that names anybody, plus URL
+// auto-linking in the instruction track (WriteView.tsx) so the link is clickable
+// rather than text to retype.
+//
+// Two spellings are accepted. `- Sources: ...` is the current one: the last
+// bullet of a section card's `**NOTES**` list. `Who these people are: ...` is
+// what plans written before the 2026-08-29 card format used, in a section FACTS
+// block. Both reach the desk in the same `Notes` block.
 //
 // This test exists because the failure is silent in both directions: a name with
 // no link renders perfectly, and a link written as markdown renders its brackets
@@ -51,14 +56,14 @@ for (const { key, path } of plans()) {
       const citesSomebody = /\b(?:Joseph|Skai|Luuk|Koen|MoSidd|Leo Ai|Ai-Seekify|Thomas Creates)\b/.test(
         body,
       )
-      if (citesSomebody && !/Who these people are:/.test(body)) {
+      if (citesSomebody && !/(?:Who these people are|Sources):/.test(body)) {
         missing.push(sections[i][1])
       }
     }
     assert.deepEqual(
       missing,
       [],
-      `SOURCE_UNEXPLAINED: these sections name a person with no "Who these people are:" line — ` +
+      `SOURCE_UNEXPLAINED: these sections name a person with no "Sources:" line — ` +
         `the freelancer reads "Joseph's checklist" and has no way to find out who Joseph is: ${JSON.stringify(missing)}`,
     )
   })

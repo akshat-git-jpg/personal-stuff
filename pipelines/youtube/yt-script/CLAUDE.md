@@ -128,10 +128,20 @@ finally mean what they say.
   field anyway). It exists INSTEAD of a browser markup UI — the owner edits the
   markdown in his editor, and this was the only gap. Do not grow it into one:
   `SCRIPT-PLAN-INSTRUCTIONS.md`, "Why this instead of an editing UI".
-- **A body beat's `SAY` is a draft prompt, never finished copy.** It reaches the
-  desk as **What to cover** in the instruction track — something he reads, not a
-  line he can paste. Enforced by `BODY_DRAFTS_ARE_INSTRUCTIONS` in `lib/beats.mjs`
-  and its mutation gate.
+- **A body section is ONE card, not a run of beats.** Since 2026-08-29 the body
+  format is `### SECTION:` followed by a single `**NOTES**` bullet list and no
+  `####` heading at all. `lib/beats.mjs` SYNTHESIZES the beat from the section, so
+  a section with no `NOTES` lane and no beats produces nothing — silently. Guarded
+  by `CARD_DROPPED` and `CARD_ATE_A_BEAT` in `test/beats.test.mjs`. The reason is
+  `TASTE.md` T13; the format is `SCRIPT-PLAN-INSTRUCTIONS.md`, "The NOTES lane".
+- **The desk shows ONE instruction block, headed `Notes`.** `notes`, `angle`,
+  `video`, `rules` and `facts` are all folded into it, in that order, so an older
+  plan loses nothing. The three separate blocks and their three chips went on
+  2026-08-29.
+- **A body beat's `SAY` is a draft prompt, never finished copy.** Only older plans
+  have one. It reaches the desk inside the `Notes` block — something he reads, not
+  a line he can paste. Enforced by `BODY_DRAFTS_ARE_INSTRUCTIONS` in
+  `lib/beats.mjs` and its mutation gate.
 - **`script-draft.md` is never edited in place.** It is his words. Yours go in
   `script.md`.
 - **`PREFILLED_DRIFT`** in the worksheet tests means the worksheet's pre-filled

@@ -43,7 +43,13 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 // video notes."* SHOW and EDIT stay in this regex as ALIASES so a plan written
 // before the merge still parses and loses nothing; `lib/beats.mjs` folds all
 // three into one `video` array. Never write SHOW or EDIT in a new plan.
-const LANE_RE = /^\*\*(SAY|VIDEO|SHOW|EDIT|FACTS|DEMO|ASK)\*\*(?:\s*[—-]\s*(.*))?$/i
+// NOTES is the BODY SECTION CARD lane, added 2026-08-29. A body section is one
+// card: one heading, one flat bullet list, one thing for the maker to write. It
+// replaced the old shape of five to seven `####` beats per section, each with its
+// own SAY/VIDEO/FACTS lanes. Owner: *"I want high level section distinction and
+// their information that's it don't break down too much that it's cluttering
+// everything and removes the creative freedom from the freelancer."*
+const LANE_RE = /^\*\*(SAY|VIDEO|SHOW|EDIT|FACTS|DEMO|ASK|NOTES)\*\*(?:\s*[—-]\s*(.*))?$/i
 
 // Strip the blockquote marker, keeping everything after ONE optional space so a
 // continuation line's own indentation survives.
@@ -212,6 +218,7 @@ export function buildWorksheet(md) {
 
   const counters = { A: 0, B: 0, C: 0 }
   let pendingBeat = null
+  let curSection = null
 
   for (let n = 0; n < blocks.length; n++) {
     const b = blocks[n]
@@ -225,6 +232,7 @@ export function buildWorksheet(md) {
     }
 
     if (b.t === 'section') {
+      curSection = b.text
       out.push(`### SECTION: ${b.text}`)
       out.push('')
       continue
@@ -242,6 +250,25 @@ export function buildWorksheet(md) {
       out.push(`> **VERDICT** ${PREFILLED_TAG}`)
       out.push(`> ${b.text}`)
       out.push('')
+      continue
+    }
+
+    // A body section CARD: one NOTES lane, no `####` beat, and nothing spoken
+    // written for him. He still needs a slot to write the section into, so the
+    // card emits one keyed on the section name. The bullets themselves stay out
+    // of this file for the same reason every other instruction does — he reads
+    // them in the desk, or in script-plan.md beside this one.
+    if (b.t === 'lane' && b.kind === 'NOTES' && letterFor(n) === 'B') {
+      counters.B += 1
+      const id = `B${counters.B}`
+      out.push(`#### ${id} · ${pendingBeat?.text ?? curSection ?? 'Untitled section'}    target — words`)
+      out.push('')
+      out.push('**Voiceover**')
+      out.push('>')
+      out.push('>')
+      out.push('>')
+      out.push('')
+      pendingBeat = null
       continue
     }
 

@@ -19,9 +19,6 @@ import type { Prefs } from '../../hooks/usePrefs'
 
 const allOn: Prefs = {
   instructions: true,
-  whatToCover: true,
-  videoNotes: true,
-  generalNotes: true,
   beatLabels: true,
   scriptNotes: false,
 }

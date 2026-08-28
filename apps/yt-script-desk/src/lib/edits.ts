@@ -94,6 +94,7 @@ export function moveSibling(text: string, siblings: Range[], from: number, to: n
 // `SAY` is deliberately absent: spoken copy is written and approved through the
 // script flow, never typed into a notes box by accident.
 export const ADDABLE_LANES = [
+  { kind: 'NOTES', label: 'Notes', stub: '**NOTES**\n- ' },
   { kind: 'VIDEO', label: 'Video notes', stub: '**VIDEO**\n' },
   { kind: 'FACTS', label: 'Facts', stub: '**FACTS**\n' },
   { kind: 'ASK', label: 'Ask Claude', stub: '**ASK**\n' },

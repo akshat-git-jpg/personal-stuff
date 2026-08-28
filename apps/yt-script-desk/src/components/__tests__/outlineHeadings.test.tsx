@@ -23,9 +23,6 @@ import type { VideoDoc } from '../../types'
 
 const allOnPrefs: Prefs = {
   instructions: true,
-  whatToCover: true,
-  videoNotes: true,
-  generalNotes: true,
   beatLabels: true,
   scriptNotes: false,
 }

@@ -441,3 +441,60 @@ example is needed and none is added.
 **Applies to:** 030, 050, 100
 **Enforced by:** `SCRIPT-PLAN-INSTRUCTIONS.md`, section "Say the goal, not the
 steps", plus the owner's read at gate 055.
+
+
+---
+
+## T13 — The body is section cards. One card per section, one bullet list, nothing else.
+
+**From:** vox-style-video-ai, 2026-08-29. Owner: *"there are currently too much
+spoon feeding and too much information which we are giving. After the outline,
+intro and conclusion, I don't want to divide the body into too many distinct
+steps. It should be just body with major major sections. Think of it like a
+section cards. You can't have too many section cards, right? So divide the video
+imagining a section cards which you can see, you can show on a video, and for
+each section card, just write the bullet points just the info for video editor...
+I want high level section distinction and their information that's it don't break
+down too much that it's cluttering everything and removes the creative freedom
+from the freelancer."*
+
+The video has an intro, a conclusion, and **a handful of big sections in
+between**. Each section is one card: a heading you could put on screen, and a
+short list of bullets under it. That is the entire body format.
+
+**The three things this rule kills, and each of them looked like care:**
+
+- **Sub-beats.** `What makes it look like Vox` had been cut into five beats.
+  The owner's own words on that one: *"we have divided that into too many
+  sections. No, just make one section."* Fifty-odd beats for an eleven-section
+  video is not a plan, it is the same material chopped past the point where any
+  piece can be acted on.
+- **The lane split.** What to cover, video notes and general notes were three
+  boxes holding one brief, sorted by which lane the writer typed a line into.
+  *"remove those sections about video notes separately, general notes separately,
+  everything else. Just need a simple bullet points."*
+- **Craft instruction.** Hold times, cut rhythm, transition choice, framing. He
+  edits video for a living. T12 already said this about lanes; T13 is the same
+  judgement applied to the shape of the whole document.
+
+**What survives, and is never cut:** the goal of the section, the points a good
+maker would otherwise get wrong, and every real value — settings, prices, model
+names, numbers, source links. Those buy the autonomy. Trimming them is not
+brevity, it is guesswork, and T12 already settled it.
+
+**Why it is a rule and not a style note:** granularity reads as diligence. A plan
+with fifty beats looks more thorough than a plan with eleven cards, right up to
+the moment someone has to work from it. The writer cannot see the failure,
+because on the page a fine-grained plan looks finished and a coarse one looks
+lazy. Only the reader finds out.
+
+**The relationship to T11 and T12.** T11 said an abstract instruction needs an
+example. T12 said state the goal, not the steps. T13 says how much document those
+two are allowed to fill: one card per section. All three point the same way —
+less, but every piece of it load-bearing.
+
+**Applies to:** 030, 050, 100
+**Enforced by:** `SCRIPT-PLAN-INSTRUCTIONS.md`, section "The NOTES lane — a body
+section card", plus `CARD_DROPPED` and `CARD_ATE_A_BEAT` in
+`test/beats.test.mjs`. Nothing mechanical catches a card with twenty bullets in
+it — that one is the owner's read at gate 055.

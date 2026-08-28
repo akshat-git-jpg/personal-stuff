@@ -6,9 +6,6 @@ import type { Prefs } from '../../hooks/usePrefs'
 
 const allOnPrefs: Prefs = {
   instructions: true,
-  whatToCover: true,
-  videoNotes: true,
-  generalNotes: true,
   beatLabels: true,
   scriptNotes: false,
 }
@@ -67,10 +64,10 @@ describe('WriteView', () => {
     expect(leftCell.querySelectorAll('.say p').length).toBe(2)
   })
 
-  it('hides General Notes when its toggle is off, and drops right cells entirely when Instructions is off', () => {
+  it('drops right cells entirely when Instructions is off', () => {
     const beat = makeReadBeat({ facts: ['A fact line.'] })
-    const { rerender } = renderView([beat], { ...allOnPrefs, generalNotes: false })
-    expect(screen.queryByText('A fact line.')).toBeNull()
+    const { rerender } = renderView([beat])
+    expect(screen.getByText('A fact line.')).toBeTruthy()
 
     rerender(
       <WriteView
