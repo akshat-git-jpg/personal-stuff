@@ -104,7 +104,11 @@ def _account_flag(argv):
 ACCOUNT = account_from_argv(sys.argv[0] if sys.argv else "",
                             _account_flag(sys.argv[1:]))
 ACCOUNTS = _accounts_from_env() or [(ACCOUNT, STORES[ACCOUNT])]
-# Pins are per store: the two commands must not be able to pin each other's rows.
+# Everything the view remembers between runs: pins, and which groups are folded.
+# Per account, so the two commands cannot reach into each other's state. The name
+# says pins because that is all it held first; one file beats two, since both are
+# the same question ("how was this view left?") and both want the same atomic
+# write.
 PIN_STORE = os.path.expanduser(
     os.environ.get("PP_AGENTS_PINS", f"~/.cache/pp-agents/pins-{ACCOUNT}.json"))
 UNTAGGED = "Ungrouped"
@@ -224,17 +228,57 @@ def display_name(state):
     return name or intent
 
 
-def load_pins():
+def load_view():
+    """Everything remembered from the last run, or an empty dict."""
     data = read_json(PIN_STORE)
-    return set(data.get("pins", [])) if isinstance(data, dict) else set()
+    return data if isinstance(data, dict) else {}
 
 
-def save_pins(pins):
+def save_view(**changes):
+    """Merge `changes` into the remembered state and write it atomically.
+
+    Read-modify-write rather than a full overwrite, so saving a fold cannot drop
+    a pin written a moment earlier by the same run.
+    """
+    data = load_view()
+    data.update(changes)
     os.makedirs(os.path.dirname(PIN_STORE), exist_ok=True)
     tmp = PIN_STORE + ".tmp"
     with open(tmp, "w") as fh:
-        json.dump({"pins": sorted(pins)}, fh)
+        json.dump(data, fh)
     os.replace(tmp, PIN_STORE)
+
+
+def load_pins():
+    pins = load_view().get("pins", [])
+    return set(pins) if isinstance(pins, list) else set()
+
+
+def save_pins(pins):
+    save_view(pins=sorted(pins))
+
+
+def _fold_map():
+    folds = load_view().get("folded", {})
+    return folds if isinstance(folds, dict) else {}
+
+
+def load_folds(mode):
+    """Which groups are collapsed, for one grouping mode.
+
+    Keyed by mode because a fold name only means anything inside one. `pp` is a
+    tag; `Needs input` is a state; `s` swaps which vocabulary is on screen. A
+    single flat list would collapse a state group because a tag of the same name
+    had been collapsed, which is why switching modes used to just clear them.
+    """
+    names = _fold_map().get(mode, [])
+    return set(names) if isinstance(names, list) else set()
+
+
+def save_folds(mode, folded):
+    folds = _fold_map()
+    folds[mode] = sorted(folded)
+    save_view(folded=folds)
 
 
 # ---------------------------------------------------------------- tagging
@@ -1189,7 +1233,7 @@ class App:
         self.scr = scr
         self.attr, self.attr_sel = init_colours()
         self.mode = "tag"
-        self.folded = set()
+        self.folded = load_folds(self.mode)
         self.query = ""
         self.pins = load_pins()
         self.cursor = 0
@@ -1588,6 +1632,7 @@ class App:
         elif kind == "job":
             head = header_of(payload, self.mode)
             self.folded.add(head)
+        save_folds(self.mode, self.folded)
         self.rebuild()
 
     def restore_screen(self):
@@ -1632,7 +1677,9 @@ class App:
             self.act_pin()
         elif ch in (19, ord("s")):           # ctrl+s
             self.mode = GROUP_MODES[(GROUP_MODES.index(self.mode) + 1) % len(GROUP_MODES)]
-            self.folded.clear()
+            # Not cleared: each mode keeps its own folds, so cycling `s` all the
+            # way round comes back to the view you left rather than a fresh one.
+            self.folded = load_folds(self.mode)
             self.rebuild()
             self.status = f"grouped by {self.mode}"
         elif ch == ord("/"):

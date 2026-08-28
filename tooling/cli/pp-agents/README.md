@@ -105,7 +105,7 @@ Close to the built-in view on purpose - the point is not to relearn anything.
 | `ctrl+x` / `x` | remove this session's tag |
 | `ctrl+t` / `t` | pin to top |
 | `ctrl+s` / `s` | cycle grouping: tag -> folder -> state |
-| `space` | fold / unfold the group under the cursor |
+| `space` | fold / unfold the group under the cursor (remembered) |
 | `/` | filter on name, last message, tag or folder; `esc` clears |
 | `l` | recent output (`claude logs`) |
 | `K` | stop this session (asks first) |
@@ -117,6 +117,20 @@ Close to the built-in view on purpose - the point is not to relearn anything.
 
 Fold every tag but one and only that tag's sessions are listed, so the folded
 headers double as a tag picker - the same trick the built-in view supports.
+
+**Folds survive a restart.** They are kept per grouping mode, so cycling `s` all
+the way round comes back to the view you left rather than a fresh one. Per mode
+because a fold name only means something inside one: `pp` is a tag, `Needs input`
+is a state, and one flat list would collapse a state group because a tag of the
+same name had been collapsed. That is why switching modes used to just clear
+them.
+
+The known cost, accepted rather than solved: a folded group can hold a session
+that has gone to **Needs input** and you will see only `> pp  5`, not that one of
+the five wants you. The count in the title bar still includes it, so the number
+is right even when the row is out of sight. Putting a state dot on the folded
+header would close that gap and was deliberately not built, to keep the change
+to the one thing that was asked for.
 
 ### Getting in and out of a session
 
@@ -308,14 +322,21 @@ readable session name is worth more than a fragment of its last line.
 - **Tags** - `$CLAUDE_CONFIG_DIR/jobs/<short>/group`, Claude Code's own file.
   Clearing a tag deletes the file rather than blanking it, because a
   present-but-empty file reads as a tag named `""`.
-- **Pins** - `~/.cache/pp-agents/pins.json`. Ours alone; a corrupt file reads as
-  no pins rather than failing.
+- **Pins and folds** - `~/.cache/pp-agents/pins-<account>.json`. Ours alone, one
+  file per store so the two commands cannot reach into each other's state. A
+  corrupt or missing file reads as no pins and nothing folded rather than
+  failing. Both live in one file because they answer the same question, "how was
+  this view left?", and each write merges into the file rather than replacing it,
+  so saving a fold cannot drop a pin. The name says pins because that is all it
+  held first.
 - **Nothing else** is written into a job directory. A test asserts that.
-- **Deleting** (`d`) removes the whole `jobs/<short>/` directory, which is what a
-  session record is. There is no published `claude` command for it. The path is
-  re-derived from the account root and checked against the job's own short id
-  first, so a malformed record cannot turn a delete into something worse; tests
-  cover both refusals.
+- **Deleting** (`d`) runs `claude rm <id>`, the published command for it.
+  Removing the `jobs/<short>/` directory directly does NOT work: the daemon owns
+  the session list and wrote both probe records back minutes later. Directory
+  removal survives only as a tidy-up for a directory that outlives a successful
+  `rm`, and that path re-derives itself from the account root and checks the
+  job's own short id first, so a malformed record cannot turn a delete into
+  something worse; tests cover both refusals.
 
 ## Tests
 
