@@ -317,6 +317,52 @@ without colour falls back to bold and dim and still reads as a hierarchy.
 Below 90 columns the last message is dropped rather than truncated, because a
 readable session name is worth more than a fragment of its last line.
 
+## Where the state on screen comes from
+
+**The daemon, not the file.** `state.json` is a snapshot the daemon flushes
+later, so a session that is working right now can sit on `Needs input` for tens
+of seconds. Caught on this machine, on the session that was running the commands
+at that moment:
+
+```
+71307488   api=working   disk=done
+```
+
+That is not something a cleverer read of the file can fix; the file is simply
+behind. Claude Code's own agents view never had the symptom because it asks the
+daemon, which is also why `kbc` looked wrong by comparison. `claude agents
+--json` asks the same source. It is a published subcommand, so this is still not
+the private socket route that was rejected when this tool was built.
+
+**It costs no tokens.** It reads the local daemon: with `HTTPS_PROXY` pointed at
+a dead port and `ANTHROPIC_API_KEY=bogus` it still returns the full list, exit 0.
+
+**It is not free either** - 0.24s of CPU and 190 MB of peak RSS per call - so
+almost every tick is arranged to skip it:
+
+- nothing on screen is `working` or `blocked`, so no state CAN change
+- the keyboard has been quiet for `LIVE_IDLE_STOP` (2 min), so nobody is reading
+- the last call was under `LIVE_POLL` (5s) ago
+
+A view left open in a background tab therefore makes **no** calls at all. The
+call runs on a worker thread and nothing in it touches curses: a blocking call in
+the key handler is what froze this view once already, and the worst a slow or
+hung `claude` can now do is leave the states one tick stale. A failed call
+returns `None` rather than `{}`, because "the daemon says nothing is running" and
+"I could not ask" must not look the same - one of them would blank every state on
+screen.
+
+A session the daemon does not mention keeps its recorded state: it has usually
+finished and been forgotten, and the file is the only account of it left. The
+idle-waiting rule is re-applied on top, because the daemon calls a named session
+with no prompt `working`, which is true of the process and useless to a reader.
+
+`--dump` and `--list` stay file-only. They are one-shot output for scripts, and
+a 0.24s subprocess on every invocation is the wrong trade for a snapshot; the TUI
+is where a state is watched.
+
+`PP_AGENTS_LIVE=0` turns the polling off entirely.
+
 ## Where state lives
 
 - **Tags** - `$CLAUDE_CONFIG_DIR/jobs/<short>/group`, Claude Code's own file.
@@ -329,6 +375,8 @@ readable session name is worth more than a fragment of its last line.
   this view left?", and each write merges into the file rather than replacing it,
   so saving a fold cannot drop a pin. The name says pins because that is all it
   held first.
+- **States on screen** - the daemon, via `claude agents --json`, falling back to
+  the record when the call fails. See the section above.
 - **Nothing else** is written into a job directory. A test asserts that.
 - **Deleting** (`d`) runs `claude rm <id>`, the published command for it.
   Removing the `jobs/<short>/` directory directly does NOT work: the daemon owns
@@ -450,5 +498,8 @@ Used only by the test suite; unset in normal use.
 | Variable | Effect |
 |---|---|
 | `PP_AGENTS_ACCOUNTS` | `work=/path:personal=/path` - read fixture stores instead of the real ones |
-| `PP_AGENTS_PINS` | pin file path |
+| `PP_AGENTS_PINS` | the remembered-state file (pins and folds) |
+| `PP_AGENTS_LIVE` | `0` stops asking the daemon for states |
+| `PP_AGENTS_LIVE_POLL` | seconds between daemon calls (default 5) |
+| `PP_AGENTS_LIVE_IDLE_STOP` | stop polling after this long with no keypress (default 120) |
 | `PP_AGENTS_CLAUDE` | the binary to drive, so a stub can record calls |
