@@ -31,6 +31,12 @@ import { resolveSelection, externalCollisions, buildPlan, renderDescription, val
 import * as clickstore from "./clickstore";
 import { normalizeTargetUrl, creditWarnings } from "./linkhealth";
 import {
+  listPrograms, getProgram, upsertProgram, deleteProgram, validateTargetUrl,
+  toSlug, NETWORKS, APPROVAL_STATUSES, COUPON_STATUSES, KINDS,
+  type ProgramInput,
+} from "./programs";
+import { readSheetForImport, harvestExternalTools } from "./programs-import";
+import {
   visibleColsForRoles, canEditForRoles, projectRowForRoles,
   isApproverRoles, isAdminRoles, isApprover,
   authorizeWrite, transitionsForCard, transitionsForStage, cardStagesForUser, upcomingStagesForUser,
@@ -1142,6 +1148,110 @@ app.post("/api/link-confirm", async (c) => {
   await bustBoardCache(c.env);
 
   return c.json({ ok: true, video_code: finalVideoCode, items: finalItems, description });
+});
+
+// GET /api/programs -> the whole catalogue plus the vocabularies the UI renders
+app.get("/api/programs", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  const programs = await listPrograms(c.env.TRACKER_DB);
+  return c.json({
+    programs,
+    vocab: {
+      kinds: KINDS, networks: NETWORKS,
+      approvalStatuses: APPROVAL_STATUSES, couponStatuses: COUPON_STATUSES,
+    },
+  });
+});
+
+// POST /api/programs/validate -> what the Add/Edit form calls as you type.
+app.post("/api/programs/validate", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: { target_url?: string; kind?: string };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+  const kind = body.kind === "external" ? "external" : "affiliate";
+  const validation = validateTargetUrl(body.target_url ?? "", kind);
+  return c.json({
+    ok: validation.ok,
+    value: validation.value ?? "",
+    error: validation.error ?? null,
+    warnings: validation.ok && validation.value ? creditWarnings(validation.value, kind) : [],
+  });
+});
+
+// POST /api/programs -> create or update (the Edit path uses the same route)
+app.post("/api/programs", async (c) => {
+  const { roles, email } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: Partial<ProgramInput> & { name?: string };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+
+  const name = (body.name ?? "").trim();
+  if (!name) return c.json({ error: "invalid", message: "Name is required." }, 400);
+  const slug = toSlug(body.slug ?? name);
+  if (!slug) return c.json({ error: "invalid", message: "Could not build a slug from that name." }, 400);
+
+  const kind = body.kind === "external" ? "external" : "affiliate";
+  const validation = validateTargetUrl(body.target_url ?? "", kind);
+  if (!validation.ok) return c.json({ error: "invalid", message: validation.error }, 400);
+
+  const pick = <T extends readonly string[]>(vals: T, value: unknown, fallback: T[number]) =>
+    (typeof value === "string" && (vals as readonly string[]).includes(value)) ? value as T[number] : fallback;
+
+  await upsertProgram(c.env.TRACKER_DB, {
+    slug, name, kind,
+    target_url: validation.value ?? "",
+    network: pick(NETWORKS, body.network, "other"),
+    approval_status: pick(APPROVAL_STATUSES, body.approval_status, "unknown"),
+    coupon_status: pick(COUPON_STATUSES, body.coupon_status, "unknown"),
+    coupon_code: (body.coupon_code ?? "").trim(),
+    coupon_url: (body.coupon_url ?? "").trim(),
+    coupon_terms: (body.coupon_terms ?? "").trim(),
+    dashboard_url: (body.dashboard_url ?? "").trim(),
+    dashboard_credentials: (body.dashboard_credentials ?? "").trim(),
+    notes: (body.notes ?? "").trim(),
+    probe_enabled: body.probe_enabled === 0 ? 0 : 1,
+  }, email ?? "");
+
+  const saved = await getProgram(c.env.TRACKER_DB, slug);
+  return c.json({
+    ok: true, program: saved,
+    warnings: saved?.target_url ? creditWarnings(saved.target_url, kind) : [],
+  });
+});
+
+// DELETE /api/programs/:slug
+app.delete("/api/programs/:slug", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  await deleteProgram(c.env.TRACKER_DB, c.req.param("slug"));
+  return c.json({ ok: true });
+});
+
+// POST /api/programs/import-from-sheet -> the one-time migration, re-runnable.
+app.post("/api/programs/import-from-sheet", async (c) => {
+  const { roles, email } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const sheet = await readSheetForImport(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const allRows = await cachedReadRows(c.env);
+  const external = harvestExternalTools(allRows as { row_id?: string; video_tools?: unknown }[]);
+
+  const updatedBy = email ?? "import";
+  for (const program of sheet.programs) await upsertProgram(c.env.TRACKER_DB, program, updatedBy);
+  for (const program of external.programs) {
+    // Never let a harvested external tool clobber a real affiliate programme.
+    const existing = await getProgram(c.env.TRACKER_DB, program.slug);
+    if (existing) continue;
+    await upsertProgram(c.env.TRACKER_DB, program, updatedBy);
+  }
+  return c.json({
+    ok: true,
+    imported: { affiliate: sheet.programs.length, external: external.programs.length },
+    issues: [...sheet.issues, ...external.issues],
+    droppedCells: sheet.droppedCells,
+  });
 });
 
 app.get("/api/link-drift", async (c) => {
