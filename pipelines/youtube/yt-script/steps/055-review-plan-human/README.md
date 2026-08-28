@@ -62,7 +62,28 @@ copy.
 request, so a save plus a refresh is all it takes. Nothing to restart, nothing to
 regenerate, and the session is not involved.
 
-Then say go, and step 070 publishes the file you just approved.
+**5. Leave Claude a question wherever you have one.** Type `ask` and press Tab in
+the markdown (or write `**ASK**` by hand):
+
+```
+**ASK**
+Cut this to two sentences. The After Effects line is doing the work.
+```
+
+It shows up in the desk as a purple `Asked Claude` card under that beat, so you
+can see every open question while you read. Put one on a beat, or under a
+`### SECTION:` heading for something about the whole section.
+
+**6. Say `edits are done` in the terminal.** The session reads every ASK, tells you
+what it intends to do about each one, and waits. You say `go`, or `go but skip
+3.1`, or `for 2.7 do X instead`. Then it applies your edits, answers the questions,
+and deletes the ASK lines.
+
+Round two is the same loop. There is no limit.
+
+Then say go, and step 070 publishes the file you just approved. **Publishing
+refuses while any ASK is still open** and lists them - an unanswered question means
+this review never finished.
 
 ## Why these were one gate from 2026-08-27
 
@@ -105,9 +126,12 @@ the browser"*.
   restore control per beat. **While reviewing, prefer editing the markdown** and
   leave the desk's SAY boxes alone.
 
-  The owner is deciding whether desk-side editing should exist at all now that
-  both views are open together (2026-08-27, undecided). Do not remove it until he
-  says so.
+  **Decided 2026-08-28: the desk is a reader, not an editor.** A full markup UI
+  was designed and then stopped by the owner - *"I have the entire thing as a text
+  in my MD file, which I can easily cut paste everything. I can't do that easily
+  on the UI."* He edits the markdown; the `ASK` lane covers the one thing the
+  editor could not do. The existing SAY-edit boxes stay for the **maker**, in
+  hosted mode. Do not build browser editing for the owner.
 - **Do not repair a lane form by hand.** The forms in
   `SCRIPT-PLAN-INSTRUCTIONS.md` are parsed. If a lane looks wrong, say so and the
   session fixes it against the instructions.

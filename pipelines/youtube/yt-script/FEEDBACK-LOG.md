@@ -47,6 +47,7 @@ definition.
 | 2026-08-28 | vox-style-video-ai | jargon | "all the instructions - i am finding too hard to understand.. Can you please keep the instruction similarly a script? Basically simple and to the point. Maybe you can explain it with a simple example so that it's easy easier to follow what you're asking for that section." | `TASTE.md` T11 (new) and T8 (scoped to the instruction lanes), `SCRIPT-PLAN-INSTRUCTIONS.md` (new "Write the instructions like the script"), `steps/050-write-script-draft-llm/README.md`, all 56 beats and 11 rules boxes of `vox-style-video-ai/script-plan.md` rewritten | **T11** — owner asked for it standing ("keep the instruction similarly a script"), so it did not wait for a repeat. **T8 and T10 already covered this and were read as spoken-copy-only.** Both now say out loud that they govern the whole document. The genuinely new part is the Example line: an abstract instruction reads as complete on the page and only turns out to say nothing at filming time. |
 | 2026-08-28 | vox-style-video-ai | format | "can we please add refernce link wheerevre possible for my freelancer... you said Joseph's list, but I don't think my freelancer is aware of Joseph. Similarly for other things, so try to add links in the notes section wherever you are referencing something." | `SCRIPT-PLAN-INSTRUCTIONS.md` (new "Name a source, link the source"), a "Who these people are:" line in all 11 sections of `vox-style-video-ai/script-plan.md`, URL auto-linking in desk `WriteView.tsx` + `app.css`, new `test/sourceLinks.test.mjs` (3 per plan) and `laneLinks.test.tsx` (5) | No T rule. Format spec plus code. The plan had been written as if its reader shared the session's knowledge of the eight sources; the freelancer shares none of it. **First attempt was wrong** — linking every inline mention mangled the names ("Skai (Skai Generated, url) Generated"), so it is one reference line per section instead, and that mistake is recorded in the spec. |
 | 2026-08-28 | vox-style-video-ai | structure | "http://localhost:5175/?key=vox-style-video-ai, not seeing." (the source links added the row above) | `lib/beats.mjs` (a section-level FACTS block now attaches to the section's first beat), `test/beats.test.mjs` (2 new tests), reference lines reinserted inside the section FACTS blocks of `vox-style-video-ai/script-plan.md` | No T rule. **A parser bug, not a content one, and it predates this session.** A `FACTS` block between a `### SECTION:` heading and the section's first beat hit `if (!pending) continue` and was dropped with no error. All eleven sections had one, ten to fifteen lines each, and none of it had ever reached the desk. RULES were already section-scoped; FACTS were not, and nothing said so. Only visible because the owner asked for links, they landed in those blocks, and he could not find them. |
+| 2026-08-28 | vox-style-video-ai | structure | "I want this entire local host to be editable. especially the right side note section" -> then, after the mock: "I feel that this will be too complex. making comments, edits, all those things one by one on the URL when I have the entire thing as a text in my MD file, which I can easily cut paste everything. I can't do that easily on the UI." | New `**ASK**` lane: one word in `render-worksheet.mjs` LANE_RE, `lib/beats.mjs` (beat + section level), desk `types.ts` / `api.ts` / `WriteView.tsx` AskCard / `app.css`, `bin/desk.mjs` publish gate + `openAsks`/`stripAsks`, `.vscode/yt-script.code-snippets`, `SCRIPT-PLAN-INSTRUCTIONS.md`, steps 055 + 070, both CLAUDE.md files, `test/askLane.test.mjs` (5) + `bin/__tests__/askGate.test.mjs` (7) + `askCard.test.tsx` (6) | No T rule. Flow spec plus code. **The owner reversed his own request mid-design and was right to.** A four-plan markup UI was designed and published as a mock; he then asked whether there was a simpler way, and there was. The desk is the better reader, his editor is the better writer, and the only real gap was leaving a question in place. That is one lane. Recorded in the spec as a standing "do not grow this into an editor". |
 ## Notes on these first three rows
 
 **gate-report is a new tag**, approved by the owner on 2026-08-27 in the Phase
@@ -181,3 +182,35 @@ Two things fix it, and both are needed:
    speech. The session should have raised that instead of writing both. Writing
    the test is what surfaced it: `ai-avatar-generators` paraphrases three
    headings and reads better than verbatim would.
+
+## The owner asking "is there an easier way?" is a signal to take seriously (2026-08-28)
+
+The session spent a long turn designing a review-and-markup UI for the desk: ten
+artboards, four plans, an overlay store, six components. It was a good design of the
+wrong thing. What killed it was one question from the owner:
+
+> *"Do you think is there any easier way by which we can accomplish the same goal
+> without increasing complexity on my end or anyone's end... Because I feel that
+> this will be too complex."*
+
+The honest answer was yes, and it was ~1/10th the work.
+
+**The mistake was not the design. It was not asking who does each job better.**
+Laid out as a table it is obvious:
+
+| | His editor | The desk |
+|---|---|---|
+| Read the script | ok | **better** |
+| Edit text, cut, paste | **better, always** | worse |
+| Leave a question in place | cannot | the gap |
+
+Only one row was a real gap. The session had proposed rebuilding the row his editor
+already wins, in a worse tool.
+
+**The tell:** a build that recreates something the owner already has, in a place he
+has less control. When the ask is "make the UI editable" and the content is already
+a text file he owns, stop and check which tool is actually better at editing.
+
+**Second tell, same turn:** he then said *"writing ask is I think time consuming"* -
+and the fix was a committed editor snippet, three lines of JSON, not a UI. Friction
+in a text workflow is usually a keystroke problem, not an interface problem.

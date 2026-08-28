@@ -50,3 +50,30 @@ brackets. Added 2026-08-28 because the plan names people the freelancer has neve
 heard of and a URL he has to copy out by hand is not a reference. Guarded by
 `laneLinks.test.tsx`, including the trailing-period case — `…Jkt4aTOpqpM.` must
 not put the period in the href.
+
+## The desk is a READER for the owner. Do not build editing into it for him.
+
+Decided 2026-08-28, after a full review-and-markup layer had been designed for
+this app — hover tools per note, click-to-edit, an add-note menu, a request
+composer, an overlay store, four plans. The owner stopped it:
+
+> *"I feel that this will be too complex. making comments, edits, all those things
+> one by one on the URL when I have the entire thing as a text in my MD file, which
+> I can easily cut paste everything. I can't do that easily on the UI."*
+
+**The split that survived:** the desk reads better than his editor (two tracks,
+section grouping, malformed lanes visible). His editor writes better than the desk
+and always will. `script-plan.md` is the source of truth and he owns it.
+
+The one thing his editor could not do was leave a question in place that the desk
+shows back, so that is the only thing added: an `**ASK**` lane, rendered by
+`AskCard` in `WriteView.tsx` as a purple card in the **left** track.
+
+**Nothing purple is ever on paper.** The spoken card is warm cream and serif; an
+ASK is a purple-bordered sans box addressed to Claude by name. That separation is
+what keeps a note to Claude from being read aloud. `askCard.test.tsx` guards it,
+including that the card stays visible when the instruction track is toggled off —
+it is not a note, and it is not the maker's business.
+
+**The SAY edit boxes stay** — those are for the MAKER, in hosted mode. What is
+closed is browser editing for the owner.

@@ -1,0 +1,23 @@
+{
+  "// why this file exists": [
+    "The owner reviews a script plan in his editor, not in the browser (2026-08-28:",
+    "'I have the entire thing as a text in my MD file, which I can easily cut paste",
+    "everything'). Leaving a question for Claude is an **ASK** lane, and typing that",
+    "out by hand is the friction he flagged straight after: 'writing ask is I think",
+    "time consuming'. So: type ask, press Tab, start typing the question.",
+    "Cursor and VS Code both read this file. It is committed, so it follows the repo",
+    "to any machine and needs no per-machine setup."
+  ],
+  "Ask Claude (yt-script ASK lane)": {
+    "scope": "markdown",
+    "prefix": ["ask", "??"],
+    "body": ["**ASK**", "$0", ""],
+    "description": "A question for Claude, in place. Blocks publishing until answered."
+  },
+  "Ask Claude, one-liner": {
+    "scope": "markdown",
+    "prefix": "ask1",
+    "body": ["**ASK**", "${1:make this shorter}", ""],
+    "description": "Same, with the most common request pre-filled so you can just Tab past it."
+  }
+}

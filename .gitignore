@@ -60,9 +60,12 @@ htmlcov/
 # stray test-run captures (crews sometimes redirect check.sh output to repo root)
 test-output*.log
 
-# IDE
+# IDE — machine-local settings stay out, but a SHARED snippet is repo content:
+# .vscode/yt-script.code-snippets is how the owner types an **ASK** lane with one
+# Tab instead of writing it out (2026-08-28). It must follow the repo to any machine.
 .idea/
-.vscode/
+.vscode/*
+!.vscode/*.code-snippets
 
 # ntfy runtime data — caches, attachments, user db (server.yml is checked in)
 infra/docker/ntfy/data/cache/

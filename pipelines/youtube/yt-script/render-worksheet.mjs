@@ -30,7 +30,13 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
-const LANE_RE = /^\*\*(SAY|SHOW|EDIT|FACTS|DEMO)\*\*(?:\s*[—-]\s*(.*))?$/i
+// ASK is the owner's own question to Claude, left in place while he reviews. It is
+// NOT script content and NOT an instruction for the maker: `buildWorksheet` only ever
+// emits SAY blocks, so an ASK can never reach the worksheet, and `desk.mjs publish`
+// refuses while any ASK remains. Added 2026-08-28, replacing a whole browser markup
+// UI: the owner edits the markdown in his own editor, where cut and paste actually
+// work, and this one lane is the only thing the editor could not give him.
+const LANE_RE = /^\*\*(SAY|SHOW|EDIT|FACTS|DEMO|ASK)\*\*(?:\s*[—-]\s*(.*))?$/i
 
 // Strip the blockquote marker, keeping everything after ONE optional space so a
 // continuation line's own indentation survives.

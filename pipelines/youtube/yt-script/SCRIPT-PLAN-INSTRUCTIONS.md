@@ -261,6 +261,62 @@ presenter's mouth, and nobody reads a link aloud. Same test guards that.
 `Skai (Skai Generated, https://…) Generated`, `Joseph (Joseph | Video Editing,
 https://…)'s design checklist`. One line per section, names left alone.
 
+## The ASK lane - your open question for Claude
+
+**`ASK` is the owner's own question, left in place while he reviews.** Not script,
+not an instruction for the maker. It is the one thing his editor could not give
+him, and it is the whole reason there is no markup UI in the browser.
+
+```
+#### 2.25 - Generic looks like
+
+**SHOW**
+The generic boards, full screen.
+
+**ASK**
+Say which boards. And is 200% too close to read the texture?
+```
+
+**In the editor: type `ask`, press Tab.** `.vscode/yt-script.code-snippets`
+expands it. `??` and `ask1` work too.
+
+**Where it can go.** On a beat, like any lane. Or between a `### SECTION:`
+heading and that section's first beat, for something about the whole section -
+it attaches to the first beat, exactly like a section `FACTS` block.
+
+**How it renders.** A purple card in the desk's **left** track, under the beat,
+labelled `Asked Claude`. Deliberately not the paper/serif treatment: **nothing
+purple is ever on paper**, so a note to Claude can never be read aloud.
+
+**It never leaves this repo.** `buildWorksheet` only emits `SAY` blocks, so an ASK
+cannot reach the maker's worksheet. `desk.mjs publish` **refuses** while any ASK
+remains and names them; `--force` overrides that, and strips the field anyway.
+Guarded by `test/askLane.test.mjs` and `bin/__tests__/askGate.test.mjs`.
+
+**The loop.** Write ASKs while you read -> say `edits are done` in the terminal ->
+the session lists every ASK with what it intends to do -> you approve or correct ->
+it applies the changes and deletes the ASK lines. Repeat as many rounds as you
+like. Publishing is blocked until none are left.
+
+### Why this instead of an editing UI
+
+A full review-and-markup layer for the desk was designed on 2026-08-28: hover
+tools on every note, click-to-edit, an add-note menu, a request composer, an
+overlay store, four plans. The owner stopped it before a line was written:
+
+> *"I feel that this will be too complex. making comments, edits, all those things
+> one by one on the URL when I have the entire thing as a text in my MD file,
+> which I can easily cut paste everything. I can't do that easily on the UI."*
+
+He was right. The desk is the better **reader** - two tracks, sections, one glance.
+His editor is the better **writer** and always will be. The plan is already a text
+file he owns. The only gap was leaving a question in place that the desk could show
+back, and that is one lane, one regex and one card.
+
+**Do not grow this into an editor.** If a future ask sounds like "let me edit notes
+in the browser", the answer is the same: he edits the markdown, the desk renders it,
+and he refreshes.
+
 ## The rules box
 
 Anything true for a whole section goes in a `RULES` blockquote directly under

@@ -57,6 +57,7 @@ export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSay
             </span>
 
             {beat.demo.length > 0 && <DemoCard lines={beat.demo} />}
+            {beat.ask.length > 0 && <AskCard lines={beat.ask} />}
 
             {beat.mode === 'read' && (
               <SayCard
@@ -168,6 +169,35 @@ function groupOf(beat: Beat | undefined): string {
 // A silent stretch. Deliberately NOT a SayCard: nothing here is spoken, so it
 // must never look like a line to read, and it carries no pencil and no write
 // box because there is nothing for the maker to write.
+// The owner's own open question to Claude, written as an `**ASK**` lane in the
+// markdown while he reviews. It renders in the LEFT track, below the beat, and it
+// is deliberately the loudest thing on the page: an unanswered question is work
+// outstanding, and `desk.mjs publish` refuses while one exists.
+//
+// It can never be mistaken for script. Nothing purple is ever on paper - the
+// spoken card is warm cream with a serif face, this is a purple-bordered box in
+// the sans face, addressed to Claude by name.
+//
+// Added 2026-08-28 INSTEAD of a browser markup UI. The owner already had the whole
+// script as text in his editor, where cut and paste work; the one thing the editor
+// could not give him was leaving a question in place that the desk could show him.
+// This lane is that, and nothing else.
+function AskCard({ lines }: { lines: string[] }) {
+  return (
+    <div className="ask-card" data-testid="ask-card">
+      <span className="ask-card-dot" aria-hidden="true" />
+      <div className="ask-card-body">
+        <div className="ask-card-label">Asked Claude</div>
+        {lines.map((l, i) => (
+          <div key={i} className="ask-card-line">
+            {l}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function DemoCard({ lines }: { lines: string[] }) {
   return (
     <div className="demo-card" data-testid="demo-card">

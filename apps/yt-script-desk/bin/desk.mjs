@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 // Zero-dependency CLI for the hosted script desk (plan 234).
 //
-//   node bin/desk.mjs publish <key> [--base https://script-desk.agrolloo.com]
+//   node bin/desk.mjs publish <key> [--base https://script-desk.agrolloo.com] [--force]
+//     Refuses while any **ASK** lane is still in the plan - those are the owner's own
+//     unanswered questions, so the review is not finished. --force overrides. Either
+//     way the ask field is stripped: it never reaches the maker.
 //   node bin/desk.mjs list                 # every published video and its link
 //   node bin/desk.mjs pull    <key> [--base ...]
 //   node bin/desk.mjs pull    --fixture <file.json> --out <file.md>   # offline, for tests
@@ -27,6 +30,37 @@ const DEFAULT_BASE = 'https://script-desk.agrolloo.com'
 const KEY_RE = /^[^/\\]+$/
 function isSafeKey(key) {
   return typeof key === 'string' && key.length > 0 && KEY_RE.test(key) && !key.includes('..')
+}
+
+// ------------------------------------------------------------------- ASK gate
+// An `**ASK**` lane is the owner's own open question to Claude, left in the
+// markdown while he reviews. Publishing hands the script to a freelancer, so
+// publishing over an unanswered question means the review was never finished.
+//
+// Exported so the gate is testable without the network: the refusal happens
+// BEFORE any fetch, and a gate nobody can test is a gate that quietly stops
+// firing (this repo has three logged cases of exactly that).
+export function openAsks(beats) {
+  return (beats ?? []).filter((b) => (b.ask ?? []).length > 0)
+}
+
+export function formatAskRefusal(key, open) {
+  const lines = [
+    `REFUSED: ${open.length} unanswered ASK note${open.length === 1 ? '' : 's'} in ${key}`,
+  ]
+  for (const b of open) {
+    lines.push(`  ${b.section ? `${b.num}  ${b.section}` : b.num}`)
+    for (const l of b.ask) lines.push(`      ${l}`)
+  }
+  lines.push('')
+  lines.push('Say "edits are done" in the terminal first, or pass --force to publish anyway.')
+  return lines.join('\n') + '\n'
+}
+
+// Unconditional, --force included. Whatever the owner decides about his own
+// workflow, his private question must never reach the maker's snapshot.
+export function stripAsks(beats) {
+  return (beats ?? []).map(({ ask: _ask, ...rest }) => rest)
 }
 
 function planPath(key) {
@@ -116,7 +150,7 @@ async function readJsonOrThrow(res, label) {
 
 // ------------------------------------------------------------ commands
 
-async function cmdPublish(key, base) {
+async function cmdPublish(key, base, force = false) {
   if (!isSafeKey(key)) {
     console.error(`desk.mjs: invalid key ${JSON.stringify(key)}`)
     process.exit(1)
@@ -127,10 +161,17 @@ async function cmdPublish(key, base) {
     process.exit(1)
   }
   const { title, beats } = buildBeats(readFileSync(planFile, 'utf8'))
+
+  const open = openAsks(beats)
+  if (open.length > 0 && !force) {
+    process.stderr.write(formatAskRefusal(key, open))
+    process.exit(2)
+  }
+  const clean = stripAsks(beats)
   const res = await fetch(`${base}/api/admin/publish`, {
     method: 'POST',
     headers: adminHeaders(),
-    body: JSON.stringify({ key, title, beats }),
+    body: JSON.stringify({ key, title, beats: clean }),
   })
   const body = await readJsonOrThrow(res, 'POST /api/admin/publish')
   // Nothing else on stdout, so this can be piped.
@@ -231,10 +272,10 @@ async function main(argv) {
 
   if (cmd === 'publish') {
     if (!key) {
-      console.error('usage: node bin/desk.mjs publish <key> [--base https://script-desk.agrolloo.com]')
+      console.error('usage: node bin/desk.mjs publish <key> [--base https://script-desk.agrolloo.com] [--force]')
       process.exit(1)
     }
-    return cmdPublish(key, base)
+    return cmdPublish(key, base, force)
   }
 
   if (cmd === 'pull') {
