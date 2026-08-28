@@ -18,7 +18,7 @@ describe("LinksTab — Programs", () => {
   it("3 shows the empty state with an Import button when there are no programs", async () => { global.fetch = stubFetch({ "/api/programs": { programs: [], vocab: VOCAB } }); render(tab()); expect(await screen.findByRole("button", { name: "Import from the old sheet" })).toBeTruthy(); });
   it("4 shows a Retry button when the API 5xx's", async () => { global.fetch = stubFetch({ "/api/programs": { status: 500, body: {} } }); render(tab()); expect(await screen.findByRole("button", { name: "Retry" })).toBeTruthy(); });
   it("5 shows the Admin-role message on 403 and hides Add", async () => { global.fetch = stubFetch({ "/api/programs": { status: 403, body: {} } }); render(tab()); expect(await screen.findByText("You need the Admin role to manage links.")).toBeTruthy(); expect(screen.getByRole("button", { name: "Add affiliate" }).hasAttribute("disabled")).toBe(true); });
-  it("6 tints a no_credit row and labels the code as lost", async () => { global.fetch = stubFetch({ "/api/programs": { programs: [{ ...PROGRAM, target_url: "https://openart.ai", last_status: "no_credit" }], vocab: VOCAB } }); render(tab()); expect(await screen.findByText("none found")).toBeTruthy(); expect(screen.getByText("OpenArt").closest("tr")?.className).toContain("bg-destructive/5"); });
+  it("6 tints a no_credit row and labels the code as lost", async () => { global.fetch = stubFetch({ "/api/programs": { programs: [{ ...PROGRAM, target_url: "https://openart.ai", last_status: "no_credit" }], vocab: VOCAB } }); render(tab()); expect(await screen.findByText("no code found")).toBeTruthy(); expect(screen.getByText("OpenArt").closest("tr")?.className).toContain("bg-destructive/5"); });
   it("7 labels an external row's code column not expected", async () => { global.fetch = stubFetch({ "/api/programs": { programs: [{ ...PROGRAM, kind: "external" }], vocab: VOCAB } }); render(tab()); expect(await screen.findByText("not expected")).toBeTruthy(); });
   it("8 switching to Tracking links renders the grouped links view", async () => { global.fetch = stubFetch({ "/api/programs": { programs: [PROGRAM], vocab: VOCAB }, "/api/links": { links: [] } }); render(tab()); await screen.findByText("OpenArt"); fireEvent.click(screen.getByRole("tab", { name: "Tracking links" })); expect(await screen.findByText("No tracking links yet. Use Add -> Tracking links for a video.")).toBeTruthy(); expect(screen.queryByText("OpenArt")).toBeNull(); });
   it("shows the health view", async () => { global.fetch = stubFetch({ "/api/programs": { programs: [], vocab: VOCAB }, "/api/link-health": { latest: null, programs: [] } }); render(tab()); fireEvent.click(screen.getByRole("tab", { name: "Health" })); expect(await screen.findByText(/first runs at 06:00 IST/)).toBeTruthy(); });
@@ -34,4 +34,77 @@ describe("ProgramForm", () => {
   it("derives a slug from the name while adding", () => { global.fetch = stubFetch({}); render(form()); fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Open Art Pro" } }); expect((screen.getByLabelText("Slug") as HTMLInputElement).value).toBe("open-art-pro"); });
   it("explains the empty-link state", () => { global.fetch = stubFetch({}); render(form()); expect(screen.getByText("No link yet — this programme cannot be published.")).toBeTruthy(); });
   it("renders dashboard credentials as a plain textarea", () => { global.fetch = stubFetch({}); render(form()); expect((screen.getByLabelText("Dashboard credentials") as HTMLTextAreaElement).type).toBe("textarea"); });
+});
+
+/**
+ * Search, filtering and sorting on the Programs table (ProgramsView).
+ * Added 2026-08-28: the owner could not navigate 93 programmes without them.
+ */
+describe("ProgramsView — search, filters, sorting", () => {
+  const THREE = [
+    { ...PROGRAM, slug: "openart", name: "OpenArt", target_url: "https://openart.ai/?via=seema" },
+    { ...PROGRAM, slug: "cursor", name: "Cursor", kind: "external", target_url: "https://cursor.com" },
+    { ...PROGRAM, slug: "bookbolt", name: "Book Bolt", target_url: "https://bookbolt.io/" },
+  ];
+  function withThree() {
+    global.fetch = stubFetch({ "/api/programs": { programs: THREE, vocab: VOCAB } }) as unknown as typeof fetch;
+    render(tab());
+  }
+
+  it("14 search narrows to a matching program", async () => {
+    withThree();
+    await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
+    fireEvent.change(screen.getByLabelText("Search programs"), { target: { value: "bookbolt" } });
+    expect(screen.getByText("Book Bolt")).toBeTruthy();
+    expect(screen.queryByText("OpenArt")).toBeNull();
+  });
+
+  it("15 the External filter hides affiliate programs", async () => {
+    withThree();
+    await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
+    fireEvent.click(screen.getByText("External"));
+    expect(screen.getByText("Cursor")).toBeTruthy();
+    expect(screen.queryByText("OpenArt")).toBeNull();
+  });
+
+  it("16 the No code filter finds the link that earns nothing", async () => {
+    withThree();
+    await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
+    fireEvent.click(screen.getByText(/^No code/));
+    expect(screen.getByText("Book Bolt")).toBeTruthy();
+    expect(screen.queryByText("OpenArt")).toBeNull();
+    expect(screen.queryByText("Cursor")).toBeNull();
+  });
+
+  it("17 an external row is never counted as No code", async () => {
+    withThree();
+    await waitFor(() => expect(screen.getByText("Cursor")).toBeTruthy());
+    // Cursor is external: a bare homepage is correct for it, so it must not be
+    // offered as a problem. This is the false-positive class the owner corrected.
+    expect(screen.getByText("not expected")).toBeTruthy();
+  });
+
+  it("18 filters can be cleared from the empty state", async () => {
+    withThree();
+    await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
+    fireEvent.change(screen.getByLabelText("Search programs"), { target: { value: "zzzznomatch" } });
+    expect(screen.getByText(/No programs match those filters/)).toBeTruthy();
+    fireEvent.click(screen.getByText("Clear filters"));
+    expect(screen.getByText("OpenArt")).toBeTruthy();
+  });
+
+  it("19 sorting by name is reversible", async () => {
+    withThree();
+    await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
+    const names = () => screen.getAllByRole("row").slice(1).map((r) => r.textContent?.split(" ")[0]);
+    const ascending = names();
+    fireEvent.click(screen.getByLabelText("Toggle sort direction"));
+    expect(names()).toEqual([...ascending].reverse());
+  });
+
+  it("20 the legend explains what the affiliate code column means", async () => {
+    withThree();
+    await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
+    expect(screen.getByText(/will this link actually pay me/i)).toBeTruthy();
+  });
 });
