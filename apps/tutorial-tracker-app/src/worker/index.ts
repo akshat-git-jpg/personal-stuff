@@ -33,7 +33,7 @@ import * as clickstore from "./clickstore";
 import { normalizeTargetUrl, creditWarnings } from "./linkhealth";
 import {
   listPrograms, getProgram, upsertProgram, deleteProgram, validateTargetUrl,
-  toSlug, NETWORKS, APPROVAL_STATUSES, COUPON_STATUSES, KINDS,
+  toSlug, NETWORKS, normalizeNetwork, APPROVAL_STATUSES, COUPON_STATUSES, KINDS,
   type ProgramInput,
 } from "./programs";
 import { readSheetForImport, harvestExternalTools } from "./programs-import";
@@ -1208,7 +1208,10 @@ app.get("/api/programs", async (c) => {
   return c.json({
     programs,
     vocab: {
-      kinds: KINDS, networks: NETWORKS,
+      kinds: KINDS,
+      // Seed list plus every network already in use, so one added by hand shows
+      // up as an option for the next program without a code change.
+      networks: [...new Set([...NETWORKS, ...programs.map((p) => p.network).filter(Boolean)])].sort(),
       approvalStatuses: APPROVAL_STATUSES, couponStatuses: COUPON_STATUSES,
     },
   });
@@ -1308,7 +1311,9 @@ app.post("/api/programs", async (c) => {
   await upsertProgram(c.env.TRACKER_DB, {
     slug, name, kind,
     target_url: validation.value ?? "",
-    network: pick(NETWORKS, body.network, "other"),
+      // Free text on purpose: the owner joins new affiliate networks and must be
+      // able to name one without a code change. Normalized, never rejected.
+      network: normalizeNetwork(typeof body.network === "string" ? body.network : ""),
     approval_status: pick(APPROVAL_STATUSES, body.approval_status, "unknown"),
     coupon_status: pick(COUPON_STATUSES, body.coupon_status, "unknown"),
     coupon_code: (body.coupon_code ?? "").trim(),

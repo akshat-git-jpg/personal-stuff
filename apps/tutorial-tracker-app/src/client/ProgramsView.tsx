@@ -3,8 +3,8 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { creditWarnings } from "../worker/linkhealth";
-import { APPROVAL_LABELS, NETWORK_LABELS } from "../worker/programs";
-import type { ApprovalStatus, Kind, Network, ProgramRow } from "../worker/programs";
+import { APPROVAL_LABELS, networkLabel } from "../worker/programs";
+import type { ApprovalStatus, Kind, ProgramRow } from "../worker/programs";
 
 /**
  * The Programs table: the affiliate/external catalogue that replaced the Google
@@ -149,7 +149,7 @@ export function ProgramsView({
         program.slug.toLowerCase().includes(q) ||
         program.target_url.toLowerCase().includes(q) ||
         program.coupon_code.toLowerCase().includes(q) ||
-        NETWORK_LABELS[program.network as Network]?.toLowerCase().includes(q)
+        networkLabel(program.network).toLowerCase().includes(q)
       );
     });
     const dir = desc ? -1 : 1;

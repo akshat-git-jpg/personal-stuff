@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { APPROVAL_LABELS, APPROVAL_STATUSES, COUPON_LABELS, COUPON_STATUSES, KINDS, NETWORK_LABELS, NETWORKS, toSlug, type Kind, type ProgramRow } from "../worker/programs";
+import { APPROVAL_LABELS, APPROVAL_STATUSES, COUPON_LABELS, COUPON_STATUSES, KINDS, NETWORKS, networkLabel, normalizeNetwork, toSlug, type Kind, type ProgramRow } from "../worker/programs";
 import { saveProgram, validateTarget, type ValidateResult } from "./programsApi";
 
 const inputCls = "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50";
@@ -18,6 +18,18 @@ function draftOf(initial: ProgramRow | null, kind: Kind): Draft {
 export function ProgramForm({ initial, kind, onClose, onSaved }: { initial: ProgramRow | null; kind: Kind; onClose: () => void; onSaved: () => void }) {
   const [draft, setDraft] = useState<Draft>(() => draftOf(initial, kind));
   const [verdict, setVerdict] = useState<ValidateResult | null>(null);
+  const [addingNetwork, setAddingNetwork] = useState(false);
+  const [newNetwork, setNewNetwork] = useState("");
+  // Whatever this program already uses must stay selectable even if it is not in
+  // the seed list — otherwise editing an old row would silently retype it.
+  const networkOptions = [...new Set([...NETWORKS, String(draft.network || "other")])].sort();
+  function commitNetwork() {
+    const token = normalizeNetwork(newNetwork);
+    if (!token || token === "other") { setAddingNetwork(false); setNewNetwork(""); return; }
+    update("network", token);
+    setAddingNetwork(false);
+    setNewNetwork("");
+  }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isExternal = draft.kind === "external";
@@ -50,7 +62,35 @@ export function ProgramForm({ initial, kind, onClose, onSaved }: { initial: Prog
       {field("Name", "name")}
       <label className="grid gap-1 text-sm font-medium">Slug<Input value={String(draft.slug)} readOnly={!!initial} onChange={(e) => update("slug", e.target.value)} /></label>
       <label className="grid gap-1 text-sm font-medium">Type<select className={inputCls} value={String(draft.kind)} onChange={(e) => update("kind", e.target.value)}>{KINDS.map((v) => <option key={v} value={v}>{v === "affiliate" ? "Affiliate" : "External"}</option>)}</select></label>
-      <label className="grid gap-1 text-sm font-medium">Network<select className={inputCls} value={String(draft.network)} onChange={(e) => update("network", e.target.value)}>{NETWORKS.map((v) => <option key={v} value={v}>{NETWORK_LABELS[v]}</option>)}</select></label>
+      {/* Network is an OPEN list. The owner joins new affiliate networks regularly,
+          so "+ Add a new network…" reveals a text box rather than forcing "Other"
+          and losing the real name. Options = the seed list, every network already
+          in use, and whatever is currently selected. */}
+      <label className="grid gap-1 text-sm font-medium">Network
+        {addingNetwork ? (
+          <div className="flex gap-2">
+            <Input
+              autoFocus
+              className="h-9"
+              placeholder="e.g. CJ Affiliate, ShareASale, Awin"
+              value={newNetwork}
+              aria-label="New network name"
+              onChange={(e) => setNewNetwork(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitNetwork(); } }}
+            />
+            <Button type="button" size="sm" variant="outline" onClick={commitNetwork}
+              disabled={!newNetwork.trim()}>Use it</Button>
+            <Button type="button" size="sm" variant="ghost"
+              onClick={() => { setAddingNetwork(false); setNewNetwork(""); }}>Cancel</Button>
+          </div>
+        ) : (
+          <select className={inputCls} value={String(draft.network)}
+            onChange={(e) => { if (e.target.value === "__new__") { setAddingNetwork(true); return; } update("network", e.target.value); }}>
+            {networkOptions.map((v) => <option key={v} value={v}>{networkLabel(v)}</option>)}
+            <option value="__new__">+ Add a new network…</option>
+          </select>
+        )}
+      </label>
     </div>
     <label className="grid gap-1 text-sm font-medium">Destination URL<Input value={target} onChange={(e) => update("target_url", e.target.value)} onBlur={() => void check()} /></label>
     <div aria-live="polite" className="text-sm">{!target.trim() ? <p className="text-muted-foreground">No link yet — this programme cannot be published.</p> : verdict && !verdict.ok ? <p className="text-destructive">{verdict.error}</p> : verdict ? <><p className="text-emerald-700 dark:text-emerald-400">{verdict.warnings.length ? "" : "Checks passed"}</p>{verdict.warnings.map((w) => <p className="text-amber-700 dark:text-amber-400" key={w.code}>{w.message}</p>)}{verdict.value !== target && <p className="text-muted-foreground">Saving as: {verdict.value}</p>}</> : null}</div>
