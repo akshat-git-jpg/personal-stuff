@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 # Cloudflare cron is UTC. 00:30 UTC = 06:00 IST.
 [triggers]
-crons = ["30 0 * * *", "45 0 * * 0", "0 1 1 * *"]
+crons = ["30 0 * * *", "45 0 * * 7", "0 1 1 * *"]
 
 [assets]
 directory = "./dist"

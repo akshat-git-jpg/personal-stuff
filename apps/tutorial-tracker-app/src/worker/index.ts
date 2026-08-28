@@ -1402,7 +1402,7 @@ app.get("*", (c) => c.env.ASSETS.fetch(c.req.raw));
 Object.assign(app, {
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     if (event.cron === "30 0 * * *") { ctx.waitUntil(runStructural(env)); return; }
-    if (event.cron === "45 0 * * 0") { ctx.waitUntil(runChainProbe(env)); return; }
+    if (event.cron === "45 0 * * 7") { ctx.waitUntil(runChainProbe(env)); return; }
     if (event.cron === "0 1 1 * *") { ctx.waitUntil(runUnverifiableDigest(env)); return; }
     console.warn("unknown cron", event.cron);
   },
