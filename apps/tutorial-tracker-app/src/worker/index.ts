@@ -29,6 +29,7 @@ import { getStore } from "./datastore";
 import { loadAffiliateRecords, type AffiliateRecord } from "./affiliate";
 import { resolveSelection, externalCollisions, buildPlan, renderDescription, validateDescription, planHash, generateVideoCode } from "./linkgen";
 import * as clickstore from "./clickstore";
+import { normalizeTargetUrl, creditWarnings } from "./linkhealth";
 import {
   visibleColsForRoles, canEditForRoles, projectRowForRoles,
   isApproverRoles, isAdminRoles, isApprover,
@@ -1113,7 +1114,7 @@ app.post("/api/link-confirm", async (c) => {
   for (const i of finalItems.filter(x => x.status !== "blocked")) {
     const fullSlug = `${finalVideoCode}/${i.slug}`;
     if (!existing.has(fullSlug)) {
-      await clickstore.insertLink(db, fullSlug, finalVideoCode, i.slug, i.target_url);
+      await clickstore.insertLink(db, fullSlug, finalVideoCode, i.slug, i.target_url, i.status === "affiliate" ? "affiliate" : "external");
       await c.env.CLICKS_KV.put(fullSlug, i.target_url);
     }
   }
@@ -1185,11 +1186,17 @@ app.post("/api/link-resync", async (c) => {
     return c.json({ error: "conflict", message: "Program is not approved or has no URL in sheet." }, 409);
   }
   
-  const url = rec.targetUrl.trim();
+  // This path writes KV directly, bypassing resolveSelection, so it needs the
+  // same validation — otherwise a bad sheet cell can still reach the redirector.
+  const norm = normalizeTargetUrl(rec.targetUrl);
+  if (!norm) {
+    return c.json({ error: "conflict", message: `The sheet link for ${linkRow.tool} is not a usable URL: ${JSON.stringify(rec.targetUrl.trim().slice(0, 60))}` }, 409);
+  }
+  const url = norm.url;
   await clickstore.updateLinkTarget(db, slug, url);
   await c.env.CLICKS_KV.put(slug, url);
-  
-  return c.json({ ok: true, slug, target_url: url });
+
+  return c.json({ ok: true, slug, target_url: url, warnings: creditWarnings(url, "affiliate", norm.repaired) });
 });
 
 // ---------------------------------------------------------------------------
