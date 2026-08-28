@@ -183,6 +183,21 @@ button {
 /* ── Toolbar ───────────────────────────────────────────── */
 .toolbar {
   margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sort-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sort-label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: 4px;
 }
 
 /* ── Cards ─────────────────────────────────────────────── */
