@@ -71,7 +71,27 @@ Cut this to two sentences. The After Effects line is doing the work.
 ```
 
 It shows up in the desk as a purple `Asked Claude` card under that beat, so you
-can see every open question while you read. Put one on a beat, or under a
+can see every open question while you read.
+
+**If `ask` does not expand**, the snippet is fine and the editor is muted. VS Code
+and Cursor both ship markdown with quick suggestions off, so nothing pops. Add this
+to `.vscode/settings.json` (gitignored, per-machine, carries your account colours so
+the repo cannot ship it):
+
+```json
+"[markdown]": {
+  "editor.quickSuggestions": { "other": "on" },
+  "editor.snippetSuggestions": "top",
+  "editor.tabCompletion": "on"
+}
+```
+
+`editor.tabCompletion` is the one that matters — with it, `ask` + Tab expands with
+no popup at all. Then reload the window (`Cmd+Shift+P` -> Reload Window).
+
+Second thing to check: project snippets only load when the **folder** is the
+workspace root. Opening one file into a window rooted somewhere else loads no
+snippets at all. Put one on a beat, or under a
 `### SECTION:` heading for something about the whole section.
 
 **6. Say `edits are done` in the terminal.** The session reads every ASK, tells you
