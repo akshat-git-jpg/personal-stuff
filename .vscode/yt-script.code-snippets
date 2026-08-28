@@ -6,7 +6,22 @@
     "out by hand is the friction he flagged straight after: 'writing ask is I think",
     "time consuming'. So: type ask, press Tab, start typing the question.",
     "Cursor and VS Code both read this file. It is committed, so it follows the repo",
-    "to any machine and needs no per-machine setup."
+    "to any machine.",
+    "",
+    "IT NEEDS ONE MACHINE-LOCAL SETTING TO FIRE. VS Code and Cursor both ship markdown",
+    "with quick suggestions OFF, so a snippet prefix pops nothing and `ask` just sits",
+    "there as text (hit 2026-08-28). `.vscode/settings.json` is gitignored because it",
+    "carries per-account colours, so it cannot ship this. Put this in it by hand:",
+    "",
+    "  \"[markdown]\": {",
+    "    \"editor.quickSuggestions\": { \"other\": \"on\" },",
+    "    \"editor.snippetSuggestions\": \"top\",",
+    "    \"editor.tabCompletion\": \"on\"",
+    "  }",
+    "",
+    "tabCompletion is the load-bearing one: with it, `ask` + Tab expands with no popup",
+    "at all. Also: project snippets only load when the FOLDER is open as the workspace",
+    "root, not when a single file is opened into some other window."
   ],
   "Ask Claude (yt-script ASK lane)": {
     "scope": "markdown",
