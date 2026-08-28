@@ -59,21 +59,34 @@ describe("ProgramsView — search, filters, sorting", () => {
     expect(screen.queryByText("OpenArt")).toBeNull();
   });
 
-  it("15 the External filter hides affiliate programs", async () => {
+  it("15 the Type filter hides affiliate programs", async () => {
     withThree();
     await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
-    fireEvent.click(screen.getByText("External"));
+    // Precise filters live behind "More filters", exactly as on the All videos tab.
+    fireEvent.click(screen.getByText("More filters"));
+    fireEvent.change(screen.getByLabelText("Type"), { target: { value: "external" } });
     expect(screen.getByText("Cursor")).toBeTruthy();
     expect(screen.queryByText("OpenArt")).toBeNull();
   });
 
-  it("16 the No code filter finds the link that earns nothing", async () => {
+  it("16 the No code state finds the link that earns nothing", async () => {
     withThree();
     await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
-    fireEvent.click(screen.getByText(/^No code/));
+    fireEvent.click(screen.getByText("More filters"));
+    fireEvent.change(screen.getByLabelText("State"), { target: { value: "no-code" } });
     expect(screen.getByText("Book Bolt")).toBeTruthy();
     expect(screen.queryByText("OpenArt")).toBeNull();
     expect(screen.queryByText("Cursor")).toBeNull();
+  });
+
+  it("16b the shown count and Clear match the All videos toolbar", async () => {
+    withThree();
+    await waitFor(() => expect(screen.getByText("OpenArt")).toBeTruthy());
+    expect(screen.getByTestId("program-count").textContent).toBe("3 shown");
+    fireEvent.change(screen.getByLabelText("Search programs"), { target: { value: "bookbolt" } });
+    expect(screen.getByTestId("program-count").textContent).toBe("1 shown");
+    fireEvent.click(screen.getByText("Clear"));
+    expect(screen.getByTestId("program-count").textContent).toBe("3 shown");
   });
 
   it("17 an external row is never counted as No code", async () => {
