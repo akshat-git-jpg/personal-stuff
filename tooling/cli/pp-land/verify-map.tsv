@@ -13,6 +13,7 @@ scripts/	bash scripts/test-sync-shared-skills.sh
 pipelines/video/visuals-flow/	cd pipelines/video/visuals-flow && bash scripts/check.sh
 pipelines/video/intro-studio/	cd pipelines/video/intro-studio && bash scripts/check.sh
 apps/tutorial-tracker-app/	cd apps/tutorial-tracker-app && npm test
+apps/redirector/	cd apps/redirector && npm test && npm run typecheck
 .claude/hooks/	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh && bash .claude/hooks/test-no-edits-in-main.sh
 .claude/skills/	bash .claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh
 tooling/press-clis/	cd tooling/press-clis/paypal-txns && go build ./... && go test ./...
