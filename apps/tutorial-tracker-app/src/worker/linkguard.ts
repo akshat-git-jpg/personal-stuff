@@ -46,7 +46,7 @@ export function structuralIssues(input: GuardInput): GuardIssue[] {
     else if (kvValue.trim() !== link.target_url.trim()) issues.push({ code: "kv_d1_mismatch", slug: link.slug, detail: `Redirect sends visitors to ${kvValue} but the record says ${link.target_url}.` });
   }
   issues.sort((a, b) => (a.code === b.code ? a.slug.localeCompare(b.slug) : a.code.localeCompare(b.code)));
-  return [];
+  return issues;
 }
 
 /** Telegram body. Silence is the default unless a heartbeat was requested. */

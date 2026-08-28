@@ -61,6 +61,9 @@ import { liveHoldingsFor, rolesRemoved } from "../shared/engine/holdings";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
 import { sendNotification } from "./notifications";
+import { structuralIssues, buildReport, type GuardIssue } from "./linkguard";
+import { probeAll, type ProbeOne } from "./linkprobe";
+import { sendTelegram } from "./notify-telegram";
 
 // ---------------------------------------------------------------------------
 // KV-backed read cache for board rows (~60 s TTL)
@@ -188,6 +191,37 @@ const ASSIGNEE_COL_ROLE: Record<string, string> = (() => {
 })();
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
+
+type CheckKind = "structural" | "chain" | "manual";
+interface CheckRow { ran_at: number; kind: CheckKind; checked: number; ok_count: number; issue_count: number; unverifiable: number; issues_json: string; notified: number; }
+async function recordLinkCheck(env: Env, kind: CheckKind, checked: number, issues: GuardIssue[], unverifiable: number, notified: boolean): Promise<void> {
+  await env.TRACKER_DB.prepare("INSERT INTO link_checks (ran_at, kind, checked, ok_count, issue_count, unverifiable, issues_json, notified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(Math.floor(Date.now() / 1000), kind, checked, Math.max(0, checked - issues.length), issues.length, unverifiable, JSON.stringify(issues), notified ? 1 : 0).run();
+}
+async function runStructural(env: Env, kind: CheckKind = "structural"): Promise<GuardIssue[]> {
+  const [programs, links] = await Promise.all([listPrograms(env.TRACKER_DB), clickstore.allLinks(env.DB)]);
+  const kv: Record<string, string> = {};
+  await Promise.all(links.map(async (link) => { const value = await env.CLICKS_KV.get(link.slug); if (value !== null) kv[link.slug] = value; }));
+  const issues = structuralIssues({ programs, links, kv }); const report = buildReport(issues, 0, programs.length, false);
+  const notified = report ? await sendTelegram(env, report) : false;
+  await recordLinkCheck(env, kind, programs.length, issues, 0, notified); return issues;
+}
+async function runChainProbe(env: Env, onlySlug?: string, kind: CheckKind = "chain"): Promise<GuardIssue[]> {
+  const programs = await listPrograms(env.TRACKER_DB);
+  const candidates: ProbeOne[] = programs.filter((program) => program.probe_enabled === 1 && !!program.target_url && (!onlySlug || program.slug === onlySlug)).map((program) => ({ slug: program.slug, targetUrl: program.target_url, kind: program.kind }));
+  const results = await probeAll(candidates, fetch); const issues: GuardIssue[] = [];
+  for (const result of results) { const program = programs.find((item) => item.slug === result.slug); if (!program) continue;
+    if (result.finalUrl && program.last_final_url && result.finalUrl !== program.last_final_url) issues.push({ code: "changed_destination", slug: program.slug, detail: `Was ${program.last_final_url}; now ${result.finalUrl}.` });
+    await env.TRACKER_DB.prepare("UPDATE programs SET previous_final_url = last_final_url, last_final_url = ?, last_status = ?, last_checked_at = ? WHERE slug = ?").bind(result.finalUrl, result.status, Math.floor(Date.now() / 1000), program.slug).run();
+    if (result.status === "no_credit") issues.push({ code: "no_credit_marker", slug: result.slug, detail: result.detail });
+    if (result.status === "dead") issues.push({ code: "bad_url", slug: result.slug, detail: result.detail }); }
+  const unverifiable = results.filter((result) => result.status === "unverifiable").length; const report = buildReport(issues, unverifiable, candidates.length, true);
+  const notified = report ? await sendTelegram(env, report) : false; await recordLinkCheck(env, kind, candidates.length, issues, unverifiable, notified); return issues;
+}
+async function runUnverifiableDigest(env: Env): Promise<void> {
+  const programs = await listPrograms(env.TRACKER_DB); const blocked = programs.filter((program) => program.last_status === "unverifiable");
+  const report = buildReport(blocked.map((program) => ({ code: "bad_url" as const, slug: program.slug, detail: "Blocks automated checks; open this destination yourself." })), blocked.length, programs.length, true);
+  if (report) await sendTelegram(env, report);
+}
 
 // ---------------------------------------------------------------------------
 // Auth routes (no session required)
@@ -1164,6 +1198,26 @@ app.get("/api/programs", async (c) => {
   });
 });
 
+app.get("/api/link-health", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  const [latest, programs] = await Promise.all([
+    c.env.TRACKER_DB.prepare("SELECT ran_at, kind, checked, ok_count, issue_count, unverifiable, issues_json, notified FROM link_checks ORDER BY ran_at DESC LIMIT 1").first<CheckRow>(),
+    listPrograms(c.env.TRACKER_DB),
+  ]);
+  return c.json({ latest: latest ?? null, programs });
+});
+
+app.post("/api/link-health/recheck", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: { slug?: string } = {};
+  try { body = await c.req.json(); } catch { /* empty body rechecks structural state */ }
+  const structural = await runStructural(c.env, "manual");
+  const chain = body.slug?.trim() ? await runChainProbe(c.env, body.slug.trim(), "manual") : [];
+  return c.json({ ok: true, issues: [...structural, ...chain] });
+});
+
 // GET /api/links -> every minted link, with analytics and last program check.
 // Read-only: clicks is written solely by the redirector Worker.
 app.get("/api/links", async (c) => {
@@ -1344,5 +1398,14 @@ app.post("/api/link-resync", async (c) => {
 // ---------------------------------------------------------------------------
 
 app.get("*", (c) => c.env.ASSETS.fetch(c.req.raw));
+
+Object.assign(app, {
+  async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    if (event.cron === "30 0 * * *") { ctx.waitUntil(runStructural(env)); return; }
+    if (event.cron === "45 0 * * 0") { ctx.waitUntil(runChainProbe(env)); return; }
+    if (event.cron === "0 1 1 * *") { ctx.waitUntil(runUnverifiableDigest(env)); return; }
+    console.warn("unknown cron", event.cron);
+  },
+});
 
 export default app;
