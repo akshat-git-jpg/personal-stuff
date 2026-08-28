@@ -26,7 +26,8 @@ import type { Env, Variables } from "./auth";
 import { getUser, loginRedirect, logout, oauthCallback, requireSession } from "./auth";
 import { getAccessToken, ConflictError, SheetsError } from "./sheets";
 import { getStore } from "./datastore";
-import { loadAffiliateRecords, type AffiliateRecord } from "./affiliate";
+import { type AffiliateRecord } from "./affiliate";
+import { loadCatalog, type CatalogEnv } from "./catalog";
 import { resolveSelection, externalCollisions, buildPlan, renderDescription, validateDescription, planHash, generateVideoCode } from "./linkgen";
 import * as clickstore from "./clickstore";
 import { normalizeTargetUrl, creditWarnings } from "./linkhealth";
@@ -121,8 +122,7 @@ async function cachedAffiliates(env: Env): Promise<Record<string, AffiliateRecor
     try { return JSON.parse(fresh) as Record<string, AffiliateRecord>; } catch { /* fall through */ }
   }
   try {
-    const token = await getAccessToken(env.GOOGLE_SA_JSON);
-    const records = await loadAffiliateRecords(token, env.AFFILIATE_PROGRAMS_SHEET_URL);
+    const records = await loadCatalog(env as unknown as CatalogEnv, () => getAccessToken(env.GOOGLE_SA_JSON));
     const body = JSON.stringify(records);
     await env.SESSIONS.put(AFFILIATE_CACHE_KEY, body, { expirationTtl: AFFILIATE_CACHE_TTL });
     await env.SESSIONS.put(AFFILIATE_STALE_KEY, body, { expirationTtl: AFFILIATE_STALE_TTL });
@@ -1161,6 +1161,36 @@ app.get("/api/programs", async (c) => {
       kinds: KINDS, networks: NETWORKS,
       approvalStatuses: APPROVAL_STATUSES, couponStatuses: COUPON_STATUSES,
     },
+  });
+});
+
+// GET /api/links -> every minted link, with analytics and last program check.
+// Read-only: clicks is written solely by the redirector Worker.
+app.get("/api/links", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  const [links, counts, rows, programs] = await Promise.all([
+    clickstore.allLinks(c.env.DB),
+    clickstore.clickCounts(c.env.DB),
+    cachedReadRows(c.env),
+    listPrograms(c.env.TRACKER_DB),
+  ]);
+  const titleByCode: Record<string, string> = {};
+  for (const r of rows as Record<string, unknown>[]) {
+    const code = ((r.video_code as string) ?? "").trim();
+    if (code) titleByCode[code] = (r.video_title as string) ?? "";
+  }
+  const bySlug: Record<string, (typeof programs)[number]> = {};
+  for (const p of programs) bySlug[p.slug] = p;
+  return c.json({
+    links: links.map((l) => ({
+      ...l,
+      clicks: counts[l.slug] ?? 0,
+      video_title: titleByCode[l.video_code] ?? "",
+      last_status: bySlug[l.tool]?.last_status ?? null,
+      last_final_url: bySlug[l.tool]?.last_final_url ?? null,
+      last_checked_at: bySlug[l.tool]?.last_checked_at ?? null,
+    })),
   });
 });
 
