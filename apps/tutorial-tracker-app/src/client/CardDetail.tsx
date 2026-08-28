@@ -16,7 +16,6 @@ import { inputCls, labelCls, EtaBadge, ASSIGNEE_COLS, MULTILINE_COLS, ETA_COLS, 
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { LinkStudio } from "./LinkStudio";
 interface CardDetailProps {
   row: BoardRow;
   columns: Column[];
@@ -349,8 +348,8 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
           )} {linksReady && ( <div className="mt-6 border-t border-border pt-4"> <button type="button" data-testid="card-links-toggle" className="flex items-center gap-1.5 text-sm font-semibold text-foreground" onClick={() => setShowLinks((v) => !v)}>
               Affiliate links &amp; description <ChevronDown className={cn("size-4 transition-transform", showLinks && "rotate-180")} /> </button>
             {!showLinks && <div className="mt-1 text-xs text-muted-foreground">{toolCount > 0 ? `${toolCount} tool${toolCount === 1 ? "" : "s"} picked` : "Pick the tools this video mentions, then mint the links."}</div>}
-            {showLinks && ( <div className="mt-4" data-testid="card-link-studio">
-                <LinkStudio rowId={row.row_id!} videoTitle={row.video_title || row.row_id!} initialTools={initialTools} onSaved={onSaved} /> </div>
+            {showLinks && ( <div className="mt-4 text-sm text-muted-foreground">
+                Affiliate links are managed in the <span className="font-medium">Links</span> tab. </div>
             )} </div>
         )} <div className="border-t border-border pt-4"> <button type="button" className="flex items-center gap-1.5 text-sm font-semibold text-foreground" onClick={() => setShowActivity(!showActivity)}>
               Activity <ChevronDown className={cn("size-4 transition-transform", showActivity && "rotate-180")} /> </button> {showActivity && ( <div className="mt-4 space-y-4" data-testid="activity-feed">

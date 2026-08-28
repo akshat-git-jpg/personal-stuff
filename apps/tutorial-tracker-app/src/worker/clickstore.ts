@@ -52,6 +52,27 @@ export async function updateLinkTarget(db: D1Database, slug: string, targetUrl: 
   await db.prepare("UPDATE links SET target_url = ? WHERE slug = ?").bind(targetUrl, slug).run();
 }
 
+/** Click totals per slug. READ ONLY: redirector owns writes to clicks. */
+export async function clickCounts(db: D1Database): Promise<Record<string, number>> {
+  const { results } = await db
+    .prepare("SELECT slug, COUNT(*) AS n FROM clicks GROUP BY slug")
+    .all<{ slug: string; n: number }>();
+  const out: Record<string, number> = {};
+  for (const r of results ?? []) out[r.slug] = r.n;
+  return out;
+}
+
+/** Every minted link with its video code. READ ONLY. */
+export async function allLinks(
+  db: D1Database,
+): Promise<{ slug: string; video_code: string; tool: string; target_url: string; kind: string | null; created_at: number }[]> {
+  const { results } = await db
+    .prepare(`SELECT slug, video_code, tool, target_url, kind, created_at
+              FROM links ORDER BY video_code, tool`)
+    .all();
+  return (results ?? []) as { slug: string; video_code: string; tool: string; target_url: string; kind: string | null; created_at: number }[];
+}
+
 export interface DriftRow {
   slug: string;
   tool: string;
