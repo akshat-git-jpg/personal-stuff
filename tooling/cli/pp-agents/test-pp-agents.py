@@ -321,6 +321,43 @@ with tempfile.TemporaryDirectory() as tmp:
         fh.write("garbage")
     check("a corrupt store degrades to empty", mod.load_pins() == set())
 
+section("folds are remembered")
+with tempfile.TemporaryDirectory() as tmp:
+    mod.PIN_STORE = os.path.join(tmp, "pins.json")
+    check("no store yet means nothing is folded", mod.load_folds("tag") == set())
+    mod.save_folds("tag", {"misc", "source-filter"})
+    check("folds round-trip", mod.load_folds("tag") == {"misc", "source-filter"},
+          str(mod.load_folds("tag")))
+
+    # A fold name only means something inside one grouping mode: `pp` is a tag,
+    # `Needs input` is a state. One flat list would collapse a state group
+    # because a tag of the same name had been collapsed.
+    check("a fold in one mode does not leak into another",
+          mod.load_folds("state") == set(), str(mod.load_folds("state")))
+    mod.save_folds("state", {"Done"})
+    check("each mode keeps its own", mod.load_folds("tag") == {"misc", "source-filter"}
+          and mod.load_folds("state") == {"Done"})
+
+    # Both live in one file, so each write has to merge rather than overwrite.
+    mod.save_pins({"aaa1"})
+    check("saving a pin does not drop the folds",
+          mod.load_folds("tag") == {"misc", "source-filter"}, str(mod.load_view()))
+    mod.save_folds("tag", {"misc"})
+    check("saving a fold does not drop the pins", mod.load_pins() == {"aaa1"},
+          str(mod.load_view()))
+
+    check("unfolding everything is remembered as nothing folded",
+          (mod.save_folds("tag", set()), mod.load_folds("tag"))[1] == set())
+
+    with open(mod.PIN_STORE, "w") as fh:
+        fh.write("garbage")
+    check("a corrupt store folds nothing rather than crashing",
+          mod.load_folds("tag") == set())
+    with open(mod.PIN_STORE, "w") as fh:
+        fh.write('{"folded": "not a dict"}')
+    check("and neither does a store with the wrong shape in it",
+          mod.load_folds("tag") == set())
+
 # ----------------------------------------------------------------- commands
 
 section("a lingering child cannot stall a claude call")
@@ -1157,6 +1194,26 @@ drained = queued_after_cleanup(MOUSE_JUNK, drain=True)
 kept = queued_after_cleanup(MOUSE_JUNK, drain=False)
 check("queued mouse packets are thrown away on the way out", drained == 0, str(drained))
 check("without the drain they survive, so this test can actually fail", kept > 0, str(kept))
+
+section("end to end: a fold outlives the process")
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # THE BUG THIS EXISTS FOR: the owner folds the tags he is not working in, and
+    # every restart opened them again. `space` on a header folds it; the second
+    # run is a whole new process reading the same store.
+    first, after, _ = drive(tmp, [(b" ", "\u25b8"), b"q"])
+    # The arrow alone, not `\u25b8 pp`: curses transmits only the cells that changed,
+    # so folding resends the one arrow character and leaves the name where it
+    # already was. Asserting the pair means asserting how curses batches a
+    # repaint, which is not what this test is about.
+    check("space folds the group under the cursor", "\u25b8" in after, after[-400:])
+    # That folding HIDES rows is a unit test ("a folded group contributes only its
+    # header"). Asserting absence from a live curses stream is unreliable, because
+    # only changed cells are transmitted and stale text lingers in the capture.
+    again, _a, _ = drive(tmp, [b"q"])
+    check("a new run opens with that group still folded", "\u25b8 pp" in again,
+          again[-400:])
+    check("the groups that were open are still open", "\u25be " in again, again[-400:])
 
 section("end to end: key presses that change disk state")
 
