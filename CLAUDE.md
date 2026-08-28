@@ -20,6 +20,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Cron architecture (Pattern B) | [`VPS-CRONS.md`](VPS-CRONS.md) |
 | Background jobs on the MacBook (launchd agents) | [`MAC-LAUNCHD.md`](MAC-LAUNCHD.md) |
 | Every live URL across this repo (incl. `pipelines/`) | [`my-hosted-sites.md`](my-hosted-sites.md) |
+| **Affiliate links, click tracking, "why is this link not earning"** — the money path | `apps/tutorial-tracker-app/CLAUDE.md` (**Links tab** section: the catalogue, its invariants, affiliate-code detection) then `apps/redirector/CLAUDE.md` (**What counts as a click**). Chain: YouTube description → `go.agrolloo.com/<code>/<tool>` → `CLICKS_KV` → affiliate URL, with the click logged to `clicks-db` |
 | Who I am, active bets, product inventory, idea backlog | `context/` (start at [`context/CLAUDE.md`](context/CLAUDE.md)) |
 | A custom Claude skill (source of truth) | `.claude/skills/` for anything a root-level session needs; `pipelines/.claude/skills/` for pipelines-domain skills (symlinked up so a root session sees them). Skills are **repo-scoped** — no global store, no per-account manifest (decisions.md 2026-08-25) |
 | Repo hygiene — the maintainer agent, its jobs and how to run one | [`tooling/maintainer/README.md`](tooling/maintainer/README.md) |

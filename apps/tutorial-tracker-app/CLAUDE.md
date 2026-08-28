@@ -114,6 +114,56 @@ npx wrangler dev --port 8787
   which burns fix-up rounds on nothing.
 - **Link generation needs the D1 schema in the LOCAL D1.** `wrangler dev` uses an empty *local* D1, not the remote `clicks-db`, so `/api/generate-links` errors with `no such table: videos` until you seed it once: `npx wrangler d1 execute clicks-db --local --file=../redirector/migrations/0001_init.sql`. Production uses the remote `clicks-db` (already has the tables from the redirector in `apps/redirector/` (same repo)).
 
+## The Links tab — the money surface (2026-08-28)
+
+Four sub-views under **Links**. This replaced the Google Sheet entirely; the
+sheet is retired and `import-from-sheet` is a one-way legacy path.
+
+| View | Owns | Source of truth |
+|---|---|---|
+| **Programs** | The affiliate/external catalogue: destination, affiliate code, coupon, approval, dashboard + credentials, notes | `tracker-db.programs` |
+| **Tracking links** | Every live `go.agrolloo.com/<code>/<tool>` grouped by video, with clicks | `clicks-db.links` + `clicks` |
+| **Mint links** | Creating new short links for a video | writes `links` + `CLICKS_KV` |
+| **Health** | What the daily guard found | `tracker-db.link_checks` |
+
+### Invariants — breaking these produces silent wrongness, not errors
+
+- **Every `links.tool` value must exist as a `programs.slug`.** The guard matches
+  them *exactly*; a spelling difference reports `link_without_program` forever.
+  When they disagree, **the catalogue moves, never the link** — `links.tool` is
+  baked into short URLs sitting in published YouTube descriptions. (2026-08-28:
+  18 slugs were misaligned and produced 42 false alarms.)
+- **`kind: "external"` means "no programme exists, so a bare homepage is
+  CORRECT".** An external tool must never be asked for an affiliate code. This
+  exemption has been broken twice; `test/linkhealth.test.ts` and
+  `test/linkguard.test.ts` both pin it.
+- **An `agrolloo.com` destination is rejected on save** (`programs.ts`) and
+  warned on by the guard (`own_redirect_layer`). That WordPress Pretty Links hop
+  was removed from all but 5 links on 2026-08-28; do not reintroduce it.
+- **Health's issue groups must PARTITION the issue list**, so the headline count
+  equals the cards on screen. The third group is a catch-all by construction —
+  an earlier version filtered against two hardcoded code sets and silently
+  dropped four whole issue classes.
+- **`unmapped_video` requires a recorded click.** Minting happens while a video
+  is still being made, so "has links, no YouTube id" also describes every draft.
+
+### Affiliate-code detection lives in `src/worker/linkhealth.ts`
+
+`creditWarnings()` answers "will this link actually pay?". It is deliberately
+**broad**: a false "not credited" trains the owner to ignore the guard, which is
+worse than a missed one the weekly chain probe would catch. Six ways a link can
+carry credit, including the owner's own handles (`agrollo|khushi|seema|kushal|hvd`)
+appearing anywhere in the URL. **Add a handle here when a new programme issues
+one** — that list is the most direct test of "does this identify me?".
+
+### Open for the owner
+
+Five programmes are tracked but earn nothing, because only the owner's affiliate
+dashboard has the real URL: **filmora** (approved on Impact — live lost
+revenue), **hostinger**, **d-id**, **lumen5**, **mailchimp**. Fixing one is a
+single field in Programs; no YouTube edit is needed, because the short link is
+the indirection. See `docs/2026-08-28-youtube-description-link-swaps.md`.
+
 ## Deploy (only on owner's "final")
 
 1. `npm run build`.
