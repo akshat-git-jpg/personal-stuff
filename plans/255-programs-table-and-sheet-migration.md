@@ -4,7 +4,7 @@ executor: codex
 model: gpt-5.6-terra
 test_cmd: cd apps/tutorial-tracker-app && npm test
 ui:
-deploy:
+deploy: cd apps/tutorial-tracker-app && npx wrangler d1 execute tracker-db --remote --file=migrations/0005_programs.sql && npm run deploy
 needs: []
 needs_prs: []
 touches: [apps/tutorial-tracker-app/migrations/0005_programs.sql, apps/tutorial-tracker-app/src/worker/programs.ts, apps/tutorial-tracker-app/src/worker/programs-import.ts, apps/tutorial-tracker-app/src/worker/index.ts, apps/tutorial-tracker-app/test/programs.test.ts, apps/tutorial-tracker-app/test/programs-import.test.ts]
