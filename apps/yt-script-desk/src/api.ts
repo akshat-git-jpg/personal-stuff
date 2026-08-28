@@ -51,6 +51,7 @@ function normalizeDoc(doc: VideoDoc): VideoDoc {
     beats: (doc.beats ?? []).map((b) => ({
       ...b,
       demo: b.demo ?? [],
+      ask: b.ask ?? [],
       show: b.show ?? [],
       edit: b.edit ?? [],
       facts: b.facts ?? [],

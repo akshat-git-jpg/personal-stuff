@@ -121,6 +121,13 @@ finally mean what they say.
   dropped silently — eleven sections' worth of research that never reached the
   desk. Guarded by `SECTION_FACTS_DROPPED` and `SECTION_FACTS_REPEATED` in
   `test/beats.test.mjs`.
+- **`**ASK**` is the owner's own open question, and it never leaves this repo.** A
+  question for Claude, written in the markdown while he reviews. It renders as a
+  purple card in the desk's left track; `buildWorksheet` cannot emit it, and
+  `desk.mjs publish` refuses while any remain (`--force` overrides and strips the
+  field anyway). It exists INSTEAD of a browser markup UI — the owner edits the
+  markdown in his editor, and this was the only gap. Do not grow it into one:
+  `SCRIPT-PLAN-INSTRUCTIONS.md`, "Why this instead of an editing UI".
 - **A body beat's `SAY` is a draft prompt, never finished copy.** It reaches the
   desk as **What to cover** in the instruction track — something he reads, not a
   line he can paste. Enforced by `BODY_DRAFTS_ARE_INSTRUCTIONS` in `lib/beats.mjs`

@@ -11,6 +11,8 @@ export type Beat = {
   say: string[] | null // raw quote lines; '' means a paragraph break. Only when mode==='read'
   angle: string[] | null // the body SAY draft, as an INSTRUCTION. Only when mode==='write'
   demo: string[] // a silent stretch: something plays, nobody speaks. Renders LEFT
+  ask: string[] // the OWNER's open question for Claude. Never the maker's business;
+  // `desk.mjs publish` refuses while any exists, and strips them if forced.
   show: string[]
   edit: string[]
   facts: string[]

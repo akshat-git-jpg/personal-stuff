@@ -102,6 +102,7 @@ export function buildBeats(md) {
   let curSection = null
   let curRules = []
   let curSectionFacts = []
+  let curSectionAsk = []
   let pending = null
 
   const flush = () => {
@@ -119,6 +120,7 @@ export function buildBeats(md) {
       curSection = null
       curRules = []
       curSectionFacts = []
+      curSectionAsk = []
       continue
     }
 
@@ -127,6 +129,7 @@ export function buildBeats(md) {
       curSection = b.text
       curRules = []
       curSectionFacts = []
+      curSectionAsk = []
       continue
     }
 
@@ -157,6 +160,15 @@ export function buildBeats(md) {
       continue
     }
 
+    // A section-level ASK - "this whole section drags" - has no beat to hang on, so
+    // it attaches to the section's FIRST beat, exactly like a section FACTS block.
+    // Without this it would hit `if (!pending) continue` below and vanish, which is
+    // the bug that ate every section FACTS block until 2026-08-28.
+    if (b.t === 'lane' && b.kind === 'ASK' && !pending) {
+      curSectionAsk.push(...b.raw)
+      continue
+    }
+
     if (b.t === 'beat') {
       flush()
       const m = b.text.match(BEAT_RE)
@@ -170,6 +182,7 @@ export function buildBeats(md) {
         say: null,
         angle: null,
         demo: [],
+        ask: curSectionAsk.splice(0),
         show: [],
         edit: [],
         facts: curSectionFacts.splice(0),
@@ -202,6 +215,11 @@ export function buildBeats(md) {
         pending.edit.push(...b.raw)
       } else if (b.kind === 'FACTS') {
         pending.facts.push(...b.raw)
+      } else if (b.kind === 'ASK') {
+        // The owner's own question for Claude, parked in the markdown while he
+        // reviews. It rides the beat so the desk can show it in place, and it is
+        // stripped before anything is published - see `desk.mjs publish`.
+        pending.ask.push(...b.raw)
       } else if (b.kind === 'DEMO') {
         // A silent stretch: something plays or is shown and NOBODY SPEAKS. It is
         // timeline content, not an instruction, which is why it renders in the
