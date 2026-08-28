@@ -85,13 +85,45 @@ async function handle(req: Request, env: Env, ctx: ExecutionContext): Promise<Re
     const ip = req.headers.get("cf-connecting-ip") ?? "";
     const ua = req.headers.get("user-agent") ?? "";
     const referer = req.headers.get("referer") ?? "";
-    ctx.waitUntil(logClick(env, slug, ip, ua, referer));
+    if (isRobot(ua)) {
+      // Not counted, still redirected. See isRobot for why this exists.
+      console.warn("robot click skipped", JSON.stringify({ slug, ua: ua.slice(0, 120) }));
+    } else {
+      ctx.waitUntil(logClick(env, slug, ip, ua, referer));
+    }
   }
 
   return new Response(null, {
     status: 302,
     headers: { location: target.url, "cache-control": "no-store" },
   });
+}
+
+/**
+ * Is this User-Agent a robot rather than a person?
+ *
+ * Why this exists (2026-08-28): the moment 65 YouTube descriptions were rewritten
+ * to point at this redirector, crawlers harvested every new URL. 269 GET requests
+ * arrived in 622 seconds from 143 distinct IPs but only 9 distinct User-Agents,
+ * hitting the slugs in exactly the order the descriptions had been saved. Each
+ * slug got one bare request then two or three more carrying a spoofed
+ * `referer: https://www.google.com/`. Not one came from youtube.com, which is
+ * what a real viewer clicking a description link sends.
+ *
+ * The HEAD-only rule above does not catch these because they are GETs, and the
+ * (slug, ip, ua, hour) dedup does not either because the IPs are all different.
+ * Left alone this multiplied the owner's real 57 clicks by nearly six, and it
+ * would recur on every future description edit.
+ *
+ * Matching on User-Agent is deliberately conservative: it skips the obvious
+ * self-identifying robots and nothing else. A miss costs one inflated count that
+ * can be deleted; a false positive silently loses a real click, which is worse.
+ * The redirect is never affected — a robot is still sent to the destination.
+ */
+export function isRobot(ua: string): boolean {
+  const s = ua.toLowerCase();
+  if (!s) return false;   // Absent UA is normal for some real browsers/privacy tools.
+  return /(bot|crawler|crawl|spider|slurp|scrap|fetcher|archiver|monitor|preview|validator|checker|probe|headless|phantom|puppeteer|playwright|selenium|curl|wget|python-requests|httpie|libwww|okhttp|java\/|go-http|axios|node-fetch|guzzle|apache-httpclient|facebookexternalhit|whatsapp|telegrambot|slackbot|discordbot|twitterbot|linkedinbot|embedly|quora link|pinterest|redditbot|applebot|bingpreview|yandex|baidu|duckduckbot|semrush|ahrefs|mj12|dotbot|petalbot|gptbot|claudebot|ccbot|bytespider|amazonbot|google-inspectiontool|googleother|adsbot|mediapartners|feedfetcher|apis-google|lighthouse|pagespeed|uptime|pingdom|statuscake|newrelic)/.test(s);
 }
 
 async function logClick(
