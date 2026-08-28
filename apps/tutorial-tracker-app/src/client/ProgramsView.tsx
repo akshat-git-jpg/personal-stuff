@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { creditWarnings } from "../worker/linkhealth";
-import { APPROVAL_LABELS, networkLabel } from "../worker/programs";
-import type { ApprovalStatus, Kind, ProgramRow } from "../worker/programs";
+import { APPROVAL_LABELS, APPROVAL_STATUSES, COUPON_LABELS, COUPON_STATUSES, networkLabel } from "../worker/programs";
+import type { ApprovalStatus, CouponStatus, Kind, ProgramRow } from "../worker/programs";
 
 /**
  * The Programs table: the affiliate/external catalogue that replaced the Google
@@ -85,6 +85,8 @@ type SortCol = "name" | "kind" | "destination" | "credit" | "coupon" | "approval
 interface SortState { col: SortCol; dir: "asc" | "desc" }
 type TypeFilter = "all" | Kind;
 type HealthFilter = "all" | "earning" | "no-code" | "no-link" | "attention";
+type ApprovalFilter = "all" | ApprovalStatus;
+type CouponFilter = "all" | CouponStatus;
 
 /**
  * Column order, and which ones sort. Header-click sorting matches the All videos
@@ -125,6 +127,12 @@ export function ProgramsView({
   const [showMore, setShowMore] = useState(false);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [health, setHealth] = useState<HealthFilter>("all");
+  const [approval, setApproval] = useState<ApprovalFilter>("all");
+  const [coupon, setCoupon] = useState<CouponFilter>("all");
+  // The quick filter, ON by default at the owner's request: day to day this
+  // screen is about the programmes that actually pay, and 102 rows including
+  // rejected and never-applied ones buries them. Click it off to see everything.
+  const [approvedOnly, setApprovedOnly] = useState(true);
   const [sort, setSort] = useState<SortState | null>({ col: "name", dir: "asc" });
 
   // Same semantics as PipelineBoard: re-clicking a column flips direction; a new
@@ -164,6 +172,12 @@ export function ProgramsView({
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     let list = decorated.filter(({ program, credit }) => {
+      // The quick filter narrows on BOTH axes at once — an approved external
+      // tool is not an affiliate programme, so it does not belong in the
+      // "programmes that pay" view either.
+      if (approvedOnly && !(program.kind === "affiliate" && program.approval_status === "approved")) return false;
+      if (approval !== "all" && program.approval_status !== approval) return false;
+      if (coupon !== "all" && program.coupon_status !== coupon) return false;
       if (typeFilter !== "all" && program.kind !== typeFilter) return false;
       if (health === "no-link" && program.target_url) return false;
       if (health === "no-code" && credit.label !== "no code found") return false;
@@ -204,10 +218,51 @@ export function ProgramsView({
       }
     });
     return list;
-  }, [decorated, query, typeFilter, health, sort]);
+  }, [decorated, query, typeFilter, health, approval, coupon, approvedOnly, sort]);
 
-  const hasPrecise = typeFilter !== "all" || health !== "all";
+  const hasPrecise = typeFilter !== "all" || health !== "all" || approval !== "all" || coupon !== "all";
+  // The quick filter is deliberately NOT part of hasFilters. It is the default
+  // state of this screen, not something you switched on, so Clear restores it
+  // rather than dropping it — and Clear must not appear on a screen nobody has
+  // touched yet. Turning it off is what shows every row.
   const hasFilters = hasPrecise || query.trim() !== "";
+
+  /** Back to the screen's defaults, quick filter included. */
+  function clearFilters() {
+    setQuery("");
+    setTypeFilter("all");
+    setHealth("all");
+    setApproval("all");
+    setCoupon("all");
+    setApprovedOnly(true);
+  }
+
+  const approvedAffiliateCount = useMemo(
+    () => programs.filter((p) => p.kind === "affiliate" && p.approval_status === "approved").length,
+    [programs],
+  );
+
+  // Option counts are over the WHOLE catalogue, not the current selection, so
+  // each option keeps telling you what you would get by picking it instead of
+  // reading zero for everything you are not already on. Same reasoning as the
+  // bucket counts in Filters.tsx.
+  const approvalCounts = useMemo(() => {
+    const out: Partial<Record<ApprovalStatus, number>> = {};
+    for (const p of programs) {
+      const key = p.approval_status as ApprovalStatus;
+      out[key] = (out[key] ?? 0) + 1;
+    }
+    return out;
+  }, [programs]);
+
+  const couponCounts = useMemo(() => {
+    const out: Partial<Record<CouponStatus, number>> = {};
+    for (const p of programs) {
+      const key = p.coupon_status as CouponStatus;
+      out[key] = (out[key] ?? 0) + 1;
+    }
+    return out;
+  }, [programs]);
 
   return (
     <section className="space-y-4">
@@ -283,6 +338,29 @@ export function ProgramsView({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
+            {/* The one quick filter. aria-pressed carries the on/off state, the
+                same contract the All-videos buckets use, so it reads correctly
+                to a screen reader and is testable without inspecting classes. */}
+            <button
+              type="button"
+              aria-pressed={approvedOnly}
+              data-testid="quick-approved"
+              onClick={() => setApprovedOnly((on) => !on)}
+              title={approvedOnly
+                ? "Showing only approved affiliate programmes. Click to show everything."
+                : "Showing everything. Click to show only approved affiliate programmes."}
+              className={cn(
+                "h-8 rounded-full border px-3 text-xs font-medium transition-colors",
+                approvedOnly
+                  // Green when active, matching the emerald the Affiliate code
+                  // column already uses for "this earns" — so on this screen
+                  // green consistently means money is being tracked.
+                  ? "border-emerald-600 bg-emerald-600 text-white dark:border-emerald-500 dark:bg-emerald-500 dark:text-emerald-950"
+                  : "border-border bg-card text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+              )}
+            >
+              Approved affiliate <span className="tabular-nums">{approvedAffiliateCount}</span>
+            </button>
             <div className="ml-auto flex items-center gap-2">
               <span className="text-xs tabular-nums text-muted-foreground" data-testid="program-count">
                 {shown.length} shown
@@ -303,7 +381,7 @@ export function ProgramsView({
                   size="sm"
                   type="button"
                   className="h-8"
-                  onClick={() => { setQuery(""); setTypeFilter("all"); setHealth("all"); }}
+                  onClick={clearFilters}
                 >
                   Clear
                 </Button>
@@ -333,6 +411,30 @@ export function ProgramsView({
                   {counts.attention > 0 && <option value="attention">Needs attention {counts.attention}</option>}
                 </select>
               </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-medium text-muted-foreground" htmlFor="p-approval">Approval</label>
+                <select id="p-approval" className={selectCls} value={approval}
+                  onChange={(e) => setApproval(e.target.value as ApprovalFilter)}>
+                  <option value="all">Any approval</option>
+                  {APPROVAL_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {APPROVAL_LABELS[status]} {approvalCounts[status] ?? 0}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-medium text-muted-foreground" htmlFor="p-coupon">Coupon</label>
+                <select id="p-coupon" className={selectCls} value={coupon}
+                  onChange={(e) => setCoupon(e.target.value as CouponFilter)}>
+                  <option value="all">Any coupon</option>
+                  {COUPON_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {COUPON_LABELS[status]} {couponCounts[status] ?? 0}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
 
@@ -342,7 +444,7 @@ export function ProgramsView({
               <button
                 type="button"
                 className="underline"
-                onClick={() => { setQuery(""); setTypeFilter("all"); setHealth("all"); }}
+                onClick={clearFilters}
               >
                 Clear filters
               </button>
