@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   fetchVideos,
+  type UnmatchedVideo,
   logout,
   UnauthorizedError,
   type LinkStat,
@@ -27,6 +28,9 @@ function dateMs(iso: string | null): number {
 
 export function App() {
   const [videos, setVideos] = useState<VideoStat[] | null>(null);
+  // Videos whose links exist but have no YouTube mapping. Their clicks are real
+  // and were invisible until 2026-08-28; they are listed separately, never dropped.
+  const [unmatched, setUnmatched] = useState<UnmatchedVideo[]>([]);
   const [generatedAt, setGeneratedAt] = useState<number | null>(null);
   const [ytError, setYtError] = useState<string | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
@@ -36,12 +40,20 @@ export function App() {
   const [tab, setTab] = useState<Tab>("clicks");
   const [sort, setSort] = useState<SortKey>("clicks");
 
+  // Unmapped videos split two ways: ones already losing clicks get a card, the
+  // rest (drafts, test cards) get a single count line so the section stays
+  // readable. 19 of the 27 unmapped rows on 2026-08-28 were test videos.
+  const unmatchedWithClicks = unmatched.filter((u) => u.total_all > 0);
+  const unmatchedNoClicks = unmatched.length - unmatchedWithClicks.length;
+  const unmatchedClicks = unmatched.reduce((n, u) => n + u.total_all, 0);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await fetchVideos();
       setVideos(data.videos);
+      setUnmatched(data.unmatched ?? []);
       setGeneratedAt(data.generated_at);
       setYtError(data.youtube_ok ? null : (data.youtube_error ?? "YouTube unavailable."));
       setNeedsAuth(false);
@@ -49,6 +61,7 @@ export function App() {
       if (err instanceof UnauthorizedError) {
         setNeedsAuth(true);
         setVideos(null);
+        setUnmatched([]);
       } else {
         setError(err instanceof Error ? err.message : "Something went wrong");
       }
@@ -219,6 +232,62 @@ export function App() {
             {shown.map((v) => (
               <VideoCard key={v.yt_video_id} video={v} />
             ))}
+
+            {unmatched.length > 0 && (
+              <section className="unmatched">
+                <div className="unmatched-head">
+                  <h2 className="unmatched-title">
+                    Not counted above &mdash; {unmatchedClicks.toLocaleString()} clicks
+                  </h2>
+                  <p className="unmatched-why">
+                    {unmatchedWithClicks.length > 0 ? (
+                      <>
+                        {unmatchedWithClicks.length === 1 ? "This video has" : "These videos have"}{" "}
+                        real links and real clicks, but no YouTube video is recorded against{" "}
+                        {unmatchedWithClicks.length === 1 ? "it" : "them"} in the tracker, so
+                        everything above excludes{" "}
+                        {unmatchedWithClicks.length === 1 ? "it" : "them"}. Set the YouTube link on
+                        the video in Tutorials Tracker to fold{" "}
+                        {unmatchedWithClicks.length === 1 ? "it" : "them"} in.
+                      </>
+                    ) : (
+                      <>
+                        Nothing is being lost right now. These videos have links but no YouTube
+                        video recorded against them, so any future clicks would not be counted
+                        above.
+                      </>
+                    )}
+                  </p>
+                  {unmatchedNoClicks > 0 && (
+                    <p className="unmatched-why">
+                      Plus {unmatchedNoClicks} unmapped{" "}
+                      {unmatchedNoClicks === 1 ? "video" : "videos"} with no clicks yet &mdash;
+                      mostly drafts and test cards, not shown.
+                    </p>
+                  )}
+                </div>
+                {unmatchedWithClicks.map((u) => (
+                  <article className="vcard vcard-unmatched" key={u.video_code}>
+                    <div className="vcard-head">
+                      <span className="vcard-title">
+                        {u.video_title} <code className="vcard-code">{u.video_code}</code>
+                      </span>
+                      <div className="vcard-metrics">
+                        <span className="metric">{u.total_30d.toLocaleString()} <em>30d</em></span>
+                        <span className="metric metric-strong">
+                          {u.total_all.toLocaleString()} <em>clicks</em>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="vcard-links">
+                      {u.links.map((l) => (
+                        <LinkLine key={l.slug} link={l} />
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </section>
+            )}
           </main>
         </>
       ) : tab === "uploads" ? (
@@ -287,7 +356,13 @@ function VideoCard({ video }: { video: VideoStat }) {
       </div>
 
       {video.links.length === 0 ? (
-        <div className="vcard-nolinks">No links for this video.</div>
+        // Two very different situations used to share one message, which is how
+        // 54 hidden clicks read as a healthy zero for months. Say which it is.
+        <div className="vcard-nolinks">
+          {video.video_code
+            ? "No links for this video."
+            : "No tracker video is mapped to this upload, so any links it has are not counted here."}
+        </div>
       ) : (
         <div className="vcard-links">
           {video.links.map((l) => (

@@ -23,8 +23,25 @@ export interface VideoStat {
   links: LinkStat[];
 }
 
+/**
+ * A shortener video carrying links but with no YouTube mapping in D1. Its clicks
+ * are real but cannot be attached to an upload, so the UI lists these separately
+ * instead of letting them read as zero (the 2026-08-28 bug: 54 of 69 clicks were
+ * dropped silently and four videos showed "No links for this video").
+ */
+export interface UnmatchedVideo {
+  video_code: string;
+  /** Working title from D1 — usually NOT the published YouTube title. */
+  video_title: string;
+  total_30d: number;
+  total_all: number;
+  links: LinkStat[];
+}
+
 export interface VideosResponse {
   videos: VideoStat[];
+  /** Videos with links but no YouTube mapping. Empty is the healthy state. */
+  unmatched: UnmatchedVideo[];
   /** False if YouTube was unconfigured or its API errored — list is then empty. */
   youtube_ok: boolean;
   youtube_error: string | null;

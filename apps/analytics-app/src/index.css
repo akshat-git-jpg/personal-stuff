@@ -930,3 +930,52 @@ a.up-row-title:hover {
 .rk-sub .rk-quota-left {
   color: var(--accent-soft);
 }
+
+/* ── Unmatched videos ──────────────────────────────────────────────────────
+   Shortener videos that carry links but have no YouTube mapping. Their clicks
+   are real; before 2026-08-28 they were dropped from the payload entirely and
+   the affected uploads rendered "No links for this video", which read as a
+   healthy zero. Amber, not red: nothing is broken, the mapping is just missing. */
+
+.unmatched {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-strong);
+}
+
+.unmatched-head {
+  margin-bottom: 12px;
+}
+
+.unmatched-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--accent-soft);
+  letter-spacing: -0.01em;
+}
+
+.unmatched-why {
+  margin: 0;
+  max-width: 78ch;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.vcard-unmatched {
+  border-color: rgba(251, 146, 60, 0.32);
+  background: linear-gradient(0deg, rgba(251, 146, 60, 0.05), rgba(251, 146, 60, 0.05)), var(--card);
+}
+
+.vcard-code {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
