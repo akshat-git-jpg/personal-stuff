@@ -54,8 +54,9 @@ mutation_timeout: 600
 - **Stop conditions**: anything would INSERT into or DELETE from `clicks`; a
   live short link's destination would change without an explicit confirm
 - **Test / verification for success**: pure unit tests on the catalogue adapter,
-  component tests on the grouped list and the mint flow, plus a grep gate proving
-  no new writer to `clicks`
+  component tests on the grouped list and the mint flow, plus the BEHAVIOURAL
+  `CLICKS_READONLY_GATE` (a fake D1 records every statement the code prepares),
+  whose mutation recipe boss runs to prove the gate can actually fail
 - **Open points for plan readiness**: none
 
 ## Executor instructions
@@ -94,8 +95,9 @@ retirement by pointing the minting path at the table.
 my count data to be unnecessarily impacted and give me the false counts. Those
 are my real analytics."* The `clicks` table in `clicks-db` is written by exactly
 one thing — the redirector Worker, when a human hits `go.agrolloo.com/...`. This
-plan reads that table and must never write to it. A grep gate in Done criteria
-enforces that.
+plan reads that table and must never write to it. Step 2b's
+`CLICKS_READONLY_GATE` enforces that behaviourally, and this plan's mutation
+recipe proves the gate can actually fail.
 
 ## Current state
 
