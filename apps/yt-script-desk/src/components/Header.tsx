@@ -1,4 +1,4 @@
-import { Check, CloudOff, Loader } from 'lucide-react'
+import { Check, CloudOff, Eye, Loader, Pencil } from 'lucide-react'
 import { useOverallSave } from '../hooks/useSaveStatus'
 type HeaderProps = {
   title: string
@@ -7,6 +7,11 @@ type HeaderProps = {
   totalWritable: number
   tab: 'write' | 'full'
   onTabChange: (tab: 'write' | 'full') => void
+  // Edit mode is LOCAL ONLY. On the hosted link these are undefined and no
+  // button renders - the freelancer must never be able to rewrite the plan he
+  // was sent, and the hosted Worker has no file to write anyway.
+  editing?: boolean
+  onToggleEdit?: () => void
 }
 
 // The one place that answers "is my work safe?". Per-box footers could only
@@ -36,9 +41,22 @@ function SaveBadge() {
   )
 }
 
-export function Header({ title, beatCount, writtenCount, totalWritable, tab, onTabChange }: HeaderProps) {
+export function Header({
+  title,
+  beatCount,
+  writtenCount,
+  totalWritable,
+  tab,
+  onTabChange,
+  editing,
+  onToggleEdit,
+}: HeaderProps) {
   const pct = totalWritable === 0 ? 0 : Math.round((writtenCount / totalWritable) * 100)
-  const subtitle = tab === 'full' ? `Full script · ${beatCount} beats` : `Beats 1–${beatCount} · voiceover script`
+  const subtitle = editing
+    ? 'Editing script-plan.md'
+    : tab === 'full'
+      ? `Full script · ${beatCount} beats`
+      : `Beats 1–${beatCount} · voiceover script`
 
   return (
     <header className="header">
@@ -69,6 +87,17 @@ export function Header({ title, beatCount, writtenCount, totalWritable, tab, onT
       </div>
 
       <div className="progress">
+        {onToggleEdit && (
+          <button
+            type="button"
+            className={editing ? 'edit-toggle edit-toggle-on' : 'edit-toggle'}
+            aria-pressed={editing}
+            onClick={onToggleEdit}
+          >
+            {editing ? <Eye size={14} /> : <Pencil size={14} />}
+            {editing ? 'Done' : 'Edit'}
+          </button>
+        )}
         <SaveBadge />
         <span>
           {writtenCount} of {totalWritable} written

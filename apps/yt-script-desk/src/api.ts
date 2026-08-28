@@ -1,4 +1,4 @@
-import type { VideoDoc } from './types'
+import type { SourceDoc, VideoDoc } from './types'
 
 // This shape is the contract plan 234's Cloudflare Worker must also serve —
 // do not change a call here without changing it there too. The call shapes
@@ -78,3 +78,23 @@ export const restoreSay = (key: string, num: string) =>
   j<{ lines: string[] }>(`${base}/beat/${num}/restore${keyQuery(key)}`, 'POST')
 
 export const postFinish = (key: string) => j(`${base}/finish${keyQuery(key)}`, 'POST')
+
+// Edit mode. LOCAL ONLY, and deliberately so: the hosted Worker serves a frozen
+// snapshot out of D1 and has no file to write. The freelancer READS the plan;
+// the owner is the only one who edits it, on his own machine, against the real
+// markdown. `isHosted` gates the button, and there is no hosted route to hit.
+export const getSource = (key: string) => j<SourceDoc>(`${base}/source${keyQuery(key)}`)
+
+export type SaveSourceResult = {
+  ok: true
+  stamp: string | null
+  text: string
+  edit: SourceDoc['edit']
+  doc: VideoDoc
+}
+
+// The whole file goes back on every save. It is 37KB against a server on
+// localhost, and it buys the thing that matters: one code path, one atomic
+// write, and no partial-update protocol that could half-apply.
+export const putSource = (key: string, text: string, stamp: string | null) =>
+  j<SaveSourceResult>(`${base}/source${keyQuery(key)}`, 'PUT', { text, stamp })

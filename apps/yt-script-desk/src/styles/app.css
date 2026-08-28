@@ -463,3 +463,249 @@
 
 .ask-card-line { font: 14px/1.55 var(--sans); color: var(--text-h); }
 .ask-card-line + .ask-card-line { margin-top: 3px; }
+
+/* ---------------------------------------------------------------- edit mode
+   The reading view with handles on it. Everything below borrows the existing
+   tokens on purpose: edit mode must read as the SAME page in a different state,
+   not as a second tool. The one new signal is the dashed left rule down each
+   block, which says "this is now a thing you can move" without adding colour. */
+
+.edit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--chip-bg);
+  color: var(--text-h);
+  font: 600 12.5px var(--sans);
+  cursor: pointer;
+}
+.edit-toggle:hover { border-color: var(--accent-brd); }
+.edit-toggle-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.ed-root { padding: 14px 40px 120px; }
+
+.ed-banner {
+  margin: 0 0 16px;
+  font: 13px/1.5 var(--sans);
+  color: var(--note);
+}
+.ed-banner code { font: 12.5px var(--mono); color: var(--text-h); }
+
+.ed-error {
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+  margin: 0 0 16px;
+  padding: 11px 40px 11px 14px;
+  border: 1px solid #d99;
+  border-radius: 10px;
+  background: #fff4f4;
+  color: #7a2222;
+  font: 13.5px/1.55 var(--sans);
+}
+.ed-error-x {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: 0;
+  background: none;
+  color: #7a2222;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ed-section { margin: 0 0 30px; }
+.ed-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 0 9px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--panel);
+  border-radius: 0 8px 8px 0;
+}
+.ed-section-kicker {
+  font: 600 10px var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--accent);
+}
+.ed-section-name { font: 600 15px var(--sans); color: var(--text-h); }
+
+.ed-beat { margin: 16px 0 0 14px; }
+.ed-beat-head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+  padding-bottom: 5px;
+}
+.ed-beat-num { font: 600 12px var(--mono); color: var(--text); }
+.ed-beat-title { font: 600 13.5px var(--sans); color: var(--text-h); }
+
+.ed-block {
+  margin: 7px 0 0 12px;
+  padding: 8px 12px;
+  border-left: 2px dashed var(--rule);
+  border-radius: 0 8px 8px 0;
+  background: var(--box-bg);
+}
+/* Spoken copy keeps the paper look it has in the reading view, so that even
+   mid-edit there is never a question about what gets read aloud. */
+.ed-block-say {
+  background: var(--paper);
+  border-left: 2px solid var(--paper-rail);
+}
+.ed-block-say .ed-line { font: 15px/1.6 var(--serif); color: var(--paper-ink); }
+.ed-block-ask { background: var(--accent-bg); border-left-color: var(--accent-brd); }
+.ed-block-rules { background: var(--warm-bg); border-left-color: var(--warm-brd); }
+
+.ed-block-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.ed-block-label {
+  font: 600 10px var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--note);
+}
+.ed-block-note { font: 11.5px var(--sans); color: var(--faint); }
+
+.ed-body {
+  display: block;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+  cursor: text;
+  font: inherit;
+}
+.ed-body:hover { background: var(--panel); }
+.ed-line { display: block; font: 14px/1.55 var(--sans); color: var(--text-h); }
+.ed-empty { color: var(--faint); font-style: italic; }
+
+.ed-textarea {
+  width: 100%;
+  min-height: 74px;
+  padding: 9px 11px;
+  border: 1px solid var(--accent-brd);
+  border-radius: 8px;
+  background: var(--box-bg);
+  color: var(--box-ink);
+  font: 13px/1.6 var(--mono);
+  resize: vertical;
+}
+.ed-editing-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.ed-save,
+.ed-cancel {
+  padding: 4px 12px;
+  border-radius: 7px;
+  font: 600 12px var(--sans);
+  cursor: pointer;
+}
+.ed-save { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.ed-cancel { border: 1px solid var(--border); background: var(--chip-bg); color: var(--text); }
+.ed-hint { font: 11.5px var(--sans); color: var(--faint); }
+
+/* The handles stay quiet until the row is hovered. With one on every block,
+   beat and section, showing them all at full strength turns the page into a
+   control panel and the script becomes the thing you have to look past. */
+.ed-handles { display: inline-flex; gap: 3px; margin-left: auto; opacity: 0.28; transition: opacity 0.12s; }
+.ed-block:hover .ed-handles,
+.ed-beat-head:hover .ed-handles,
+.ed-section-head:hover .ed-handles,
+.ed-handles:focus-within { opacity: 1; }
+
+.ed-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--chip-bg);
+  color: var(--text);
+  font: 12px var(--sans);
+  line-height: 1;
+  cursor: pointer;
+}
+.ed-btn:hover:not(:disabled) { border-color: var(--accent-brd); color: var(--text-h); }
+.ed-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.ed-btn-del:hover:not(:disabled) { border-color: #d99; color: #a33; }
+
+.ed-jump {
+  height: 22px;
+  max-width: 190px;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--chip-bg);
+  color: var(--text);
+  font: 11.5px var(--sans);
+  cursor: pointer;
+}
+
+.ed-add { display: flex; gap: 6px; margin: 7px 0 0 12px; flex-wrap: wrap; }
+.ed-add-btn {
+  padding: 3px 9px;
+  border: 1px dashed var(--border);
+  border-radius: 7px;
+  background: none;
+  color: var(--faint);
+  font: 11.5px var(--sans);
+  cursor: pointer;
+}
+.ed-add-btn:hover:not(:disabled) { border-color: var(--accent-brd); color: var(--accent); }
+
+/* Deleting a beat or a section takes a lot of work away at once, and the only
+   way back is a file in .desk-backups the owner would have to be told about.
+   So those two ask first; deleting one note does not. */
+.ed-confirm {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin: 7px 0;
+  padding: 9px 12px;
+  border: 1px solid #d99;
+  border-radius: 9px;
+  background: #fff4f4;
+  color: #7a2222;
+  font: 13px var(--sans);
+}
+.ed-confirm-yes {
+  padding: 3px 11px;
+  border: 1px solid #a33;
+  border-radius: 7px;
+  background: #a33;
+  color: #fff;
+  font: 600 12px var(--sans);
+  cursor: pointer;
+}
+.ed-confirm-no {
+  padding: 3px 11px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--chip-bg);
+  color: var(--text);
+  font: 600 12px var(--sans);
+  cursor: pointer;
+}

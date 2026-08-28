@@ -60,10 +60,23 @@ function requote(raw) {
   return raw.map((l) => (l ? '> ' + l : '>')).join(QUOTE_JOIN)
 }
 
+// Every block carries `line` (0-based index of its FIRST source line) and
+// `endLine` (exclusive index just past its LAST source line). Added 2026-08-28
+// for the desk's edit mode: the owner moves, deletes and adds blocks in the
+// browser, and every one of those actions is a line splice on this markdown.
+// Without a true source range there is nothing to splice.
+//
+// The range is what the parser ACTUALLY CONSUMED, not "up to the next block".
+// That difference matters: the `---` rules between sections are skipped by this
+// parser, so they sit outside every range and stay put when a section moves,
+// which is exactly right. A "up to the next block" range would drag one along.
 export function parse(md) {
   const lines = md.split(/\r?\n/)
   const blocks = []
   let i = 0
+
+  // `at` is the line the block started on; `i` has already advanced past it.
+  const push = (at, block) => blocks.push({ ...block, line: at, endLine: i })
 
   const flushQuote = () => {
     const quoted = []
@@ -78,51 +91,58 @@ export function parse(md) {
     const line = lines[i]
 
     if (/^#\s+/.test(line)) {
-      blocks.push({ t: 'title', text: line.replace(/^#\s+/, '').trim() })
+      const at = i
       i++
+      push(at, { t: 'title', text: line.replace(/^#\s+/, '').trim() })
       continue
     }
     if (/^##\s+(?!#)/.test(line)) {
-      blocks.push({ t: 'part', text: line.replace(/^##\s+/, '').trim() })
+      const at = i
       i++
+      push(at, { t: 'part', text: line.replace(/^##\s+/, '').trim() })
       continue
     }
     if (/^###\s+(?!#)/.test(line)) {
-      blocks.push({
+      const at = i
+      i++
+      push(at, {
         t: 'section',
         text: line.replace(/^###\s+/, '').replace(/^SECTION:\s*/i, '').trim(),
       })
-      i++
       continue
     }
     if (/^####\s+/.test(line)) {
-      blocks.push({ t: 'beat', text: line.replace(/^####\s+/, '').trim() })
+      const at = i
       i++
+      push(at, { t: 'beat', text: line.replace(/^####\s+/, '').trim() })
       continue
     }
 
     if (/^>/.test(line)) {
+      const at = i
       const raw = flushQuote()
       const head = raw[0] ?? ''
-      if (/^\*\*RULES\b/i.test(head)) blocks.push({ t: 'rules', raw })
+      if (/^\*\*RULES\b/i.test(head)) push(at, { t: 'rules', raw })
       else if (/^\*\*VERDICT/i.test(head)) {
-        blocks.push({
+        push(at, {
           t: 'verdict',
           text: raw.join(' ').replace(/^\*\*VERDICT:?\*\*:?\s*/i, '').trim(),
         })
-      } else blocks.push({ t: 'quote', raw })
+      } else push(at, { t: 'quote', raw })
       continue
     }
 
     const lane = line.trim().match(LANE_RE)
     if (lane) {
+      const at = i
       const kind = lane[1].toUpperCase()
       const note = (lane[2] || '').trim()
       i++
       while (i < lines.length && lines[i].trim() === '') i++
 
       if (i < lines.length && /^>/.test(lines[i])) {
-        blocks.push({ t: 'lane', kind, note, raw: flushQuote(), spoken: true })
+        const quoted = flushQuote()
+        push(at, { t: 'lane', kind, note, raw: quoted, spoken: true })
       } else {
         const body = []
         while (
@@ -136,7 +156,7 @@ export function parse(md) {
           body.push(lines[i])
           i++
         }
-        blocks.push({ t: 'lane', kind, note, raw: body, spoken: false })
+        push(at, { t: 'lane', kind, note, raw: body, spoken: false })
       }
       continue
     }
