@@ -1395,3 +1395,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 256-links-tab-programs-view — PR#217 256-links-tab-programs-view: Links tab — Programs view, Add and Edit — DONE
 - 259-close-the-youtube-mapping-gap — nothing ever wrote videos.yt_video_id; 54 of 69 clicks were invisible — TODO (needs 257, 258)
 - 257-tracking-links-view-and-mint-move — PR#218 257-tracking-links-view-and-mint-move: Tracking links view, and minting moves out of the video card — DONE
+- 258-link-guard-cron-and-health — PR#219 258-link-guard-cron-and-health: the link guard — cron, Health view, Telegram — DONE
