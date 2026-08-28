@@ -34,11 +34,12 @@ export async function insertLink(
   videoCode: string,
   tool: string,
   targetUrl: string,
+  kind: "affiliate" | "external",
 ): Promise<void> {
   const now = Math.floor(Date.now() / 1000);
   await db
-    .prepare("INSERT INTO links (slug, video_code, tool, target_url, created_at) VALUES (?, ?, ?, ?, ?)")
-    .bind(slug, videoCode, tool, targetUrl, now)
+    .prepare("INSERT INTO links (slug, video_code, tool, target_url, created_at, kind) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(slug, videoCode, tool, targetUrl, now, kind)
     .run();
 }
 

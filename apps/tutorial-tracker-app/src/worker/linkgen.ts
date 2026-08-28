@@ -4,6 +4,13 @@
  */
 
 import type { AffiliateRecord } from "./affiliate";
+import { creditWarnings, normalizeTargetUrl, type LinkWarning } from "./linkhealth";
+
+/** Undefined rather than [] so an unremarkable link adds no noise to the plan. */
+function warnOrNone(url: string, kind: "affiliate" | "external", repaired: boolean): LinkWarning[] | undefined {
+  const w = creditWarnings(url, kind, repaired);
+  return w.length ? w : undefined;
+}
 
 const BASE62 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const CODE_LENGTH = 4;
@@ -33,9 +40,9 @@ export interface ResolvedTool {
   targetUrl: string;         // "" when blocked
   couponCode: string;        // "" unless affiliate w/ coupon
   reason?: string;           // human-readable, for blocked
+  /** Advisory, non-blocking. Surfaced in the review screen before confirm. */
+  warnings?: LinkWarning[];
 }
-
-const HTTP_RE = /^https?:\/\/\S+$/i;
 
 /** Pure. Selection → resolved plan. NEVER invents a URL; blocked tools carry no URL. */
 export function resolveSelection(
@@ -49,13 +56,20 @@ export function resolveSelection(
       if (!rec) { out.push({ slug: t.slug, displayName: t.slug, status: "blocked", targetUrl: "", couponCode: "", reason: "not in affiliate catalog (deleted or renamed?)" }); continue; }
       if (!rec.isApproved) { out.push({ slug: rec.tool, displayName: rec.displayName, status: "blocked", targetUrl: "", couponCode: "", reason: `affiliate program not approved (status: ${rec.approvalStatus || "unknown"})` }); continue; }
       if (!rec.targetUrl.trim()) { out.push({ slug: rec.tool, displayName: rec.displayName, status: "blocked", targetUrl: "", couponCode: "", reason: "approved but no affiliate link set in the sheet" }); continue; }
-      out.push({ slug: rec.tool, displayName: rec.displayName, status: "affiliate", targetUrl: rec.targetUrl.trim(), couponCode: rec.couponCode.trim() });
+      // Until 2026-08-28 this branch trusted any non-empty cell, so a
+      // scheme-less value reached KV and crashed the redirector (Error 1101).
+      // The external branch below always validated; this one now matches it.
+      const affNorm = normalizeTargetUrl(rec.targetUrl);
+      if (!affNorm) { out.push({ slug: rec.tool, displayName: rec.displayName, status: "blocked", targetUrl: "", couponCode: "", reason: `affiliate link in the sheet is not a usable URL: ${JSON.stringify(rec.targetUrl.trim().slice(0, 60))}` }); continue; }
+      out.push({ slug: rec.tool, displayName: rec.displayName, status: "affiliate", targetUrl: affNorm.url, couponCode: rec.couponCode.trim(), warnings: warnOrNone(affNorm.url, "affiliate", affNorm.repaired) });
     } else {
-      const url = (t.url || "").trim();
       const name = (t.name || "").trim();
       const slug = name ? safeSlug(name) : "";
-      if (!name || !HTTP_RE.test(url)) { out.push({ slug: slug || "external", displayName: name || "(unnamed)", status: "blocked", targetUrl: "", couponCode: "", reason: "external tool needs a name and a valid https URL" }); continue; }
-      out.push({ slug, displayName: name, status: "external", targetUrl: url, couponCode: "" });
+      const extNorm = normalizeTargetUrl(t.url);
+      if (!name || !extNorm) { out.push({ slug: slug || "external", displayName: name || "(unnamed)", status: "blocked", targetUrl: "", couponCode: "", reason: "external tool needs a name and a valid https URL" }); continue; }
+      // kind "external" = no affiliate program exists, so a plain homepage is
+      // the CORRECT destination here and must not raise a credit warning.
+      out.push({ slug, displayName: name, status: "external", targetUrl: extNorm.url, couponCode: "", warnings: warnOrNone(extNorm.url, "external", extNorm.repaired) });
     }
   }
   return out;
@@ -79,7 +93,7 @@ export function externalCollisions(tools: VideoTool[], affiliates: Record<string
   return warns;
 }
 
-export interface LinkPlanItem { slug: string; displayName: string; short_url: string; target_url: string; status: ToolStatus; coupon: string; reason?: string; }
+export interface LinkPlanItem { slug: string; displayName: string; short_url: string; target_url: string; status: ToolStatus; coupon: string; reason?: string; warnings?: LinkWarning[]; }
 
 export function buildPlan(resolved: ResolvedTool[], videoCode: string, linkDomain: string): LinkPlanItem[] {
   return resolved.map(r => {
@@ -94,7 +108,8 @@ export function buildPlan(resolved: ResolvedTool[], videoCode: string, linkDomai
       target_url: r.targetUrl,
       status: r.status,
       coupon: r.couponCode,
-      reason: r.reason
+      reason: r.reason,
+      warnings: r.warnings
     };
   });
 }
