@@ -47,8 +47,7 @@ describe('FullScript', () => {
 
   it('never renders an instruction field in the full script view', () => {
     const beat = makeWriteBeat({
-      show: ['SHOW_MARKER instruction line'],
-      edit: ['EDIT_MARKER instruction line'],
+      video: ['VIDEO_MARKER instruction line'],
       facts: ['FACTS_MARKER instruction line'],
       angle: ['ANGLE_MARKER instruction line'],
       rules: ['RULES_MARKER instruction line'],
@@ -57,7 +56,7 @@ describe('FullScript', () => {
     const { container } = renderFull(doc)
 
     const text = container.textContent ?? ''
-    const instructionStrings = [...beat.show, ...beat.edit, ...beat.facts, ...(beat.angle ?? []), ...beat.rules]
+    const instructionStrings = [...beat.video, ...beat.facts, ...(beat.angle ?? []), ...beat.rules]
     for (const s of instructionStrings) {
       expect(text.includes(s), `INSTRUCTION_IN_FULL_SCRIPT: found "${s}" in the rendered output`).toBe(false)
     }

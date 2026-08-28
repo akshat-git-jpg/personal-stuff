@@ -89,7 +89,7 @@ audio/              120 - generated wavs, gitignored
 **`SCRIPT-PLAN-INSTRUCTIONS.md`**.
 
 The old `outline.md` was never an outline: it carried verbatim intro and
-conclusion copy plus 25+ beats with `SAY`/`SHOW`/`EDIT`/`FACTS` lanes, which is a
+conclusion copy plus 25+ beats with `SAY`/`VIDEO`/`FACTS` lanes, which is a
 draft script. Approving "the outline" therefore meant reading a finished
 document, and a wrong section order cost a full rewrite.
 

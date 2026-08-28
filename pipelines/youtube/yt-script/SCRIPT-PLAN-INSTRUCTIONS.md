@@ -53,8 +53,7 @@ anywhere.
 | `### SECTION: Live Demo` | A section inside the body (`SECTION:` is stripped) |
 | `#### 2.3 · HeyGen` | A beat |
 | `**SAY**` alone on a line, then a `>` blockquote | Amber chip, serif text, amber rail |
-| `**SHOW**` alone on a line, then plain lines | Teal chip, sans text, teal rail |
-| `**EDIT**` alone on a line, then plain lines | Rose chip, sans text, rose rail |
+| `**VIDEO**` alone on a line, then plain lines | Everything to do with the picture — filming, screen-recording and post |
 | `**FACTS**` alone on a line, then plain lines | Slate chip, sans text — numbers for this beat |
 | `**DEMO**` alone on a line, then plain lines | A silent block in the LEFT track — something plays, nobody speaks |
 | `**SAY** — lip-sync` | Same, with a small caption under the chip |
@@ -66,8 +65,8 @@ anywhere.
 not recognised. Blank lines between the label and its content are fine.
 
 **Spoken copy goes in a blockquote; instructions do not.** That indent is the
-only signal telling him what to read aloud. Quoting a SHOW or EDIT line breaks
-the one rule the whole document rests on.
+only signal telling him what to read aloud. Quoting a VIDEO line breaks the one
+rule the whole document rests on.
 
 For multi-paragraph spoken copy, keep every line inside the blockquote and
 separate paragraphs with a bare `>`.
@@ -93,6 +92,27 @@ outline with no FACTS lanes parses fine and the desk simply shows no facts.
 **FACTS is never spoken copy.** Putting it in a blockquote makes the parser
 treat it as prose, and the desk will not show it.
 
+## The VIDEO lane — one lane for the picture
+
+There used to be two: `SHOW` for what to film or screen-record, and `EDIT` for
+what to do with it afterwards. They merged on 2026-08-28. Owner: *"I don't like
+having screen recording notes and video editing notes, can you just club them
+both together and make it just video notes."*
+
+The split bought nothing. The same person does both jobs, back to back, on the
+same beat — so making him read two boxes to learn what one shot needs was pure
+overhead.
+
+```
+**VIDEO**
+Play about 12 seconds of a finished paper-cut shot.
+Its own music carries the silence. Duck it under the voice, do not cut it.
+```
+
+`SHOW` and `EDIT` still parse, and both fold into `video` in beat order, so an
+older plan loses nothing. **Never write them in a new plan.** The desk shows one
+block, headed **Video notes**.
+
 ## Beat headings are labels, not descriptions
 
 **A beat's `####` heading carries a short label, and the maker never sees it as
@@ -116,7 +136,7 @@ So write the label for **you and the reviewer**, not as a headline:
 - **What the beat *is*, not what it argues.** `Reveal` beats `Reveal, who this
   is for, and credibility`.
 
-What the beat covers already lives in `SAY`, `SHOW` and `EDIT`. The label is an
+What the beat covers already lives in `SAY` and `VIDEO`. The label is an
 index entry, so a human can find the beat in a 700-line file.
 
 ## The DEMO lane — a silent stretch
@@ -132,7 +152,7 @@ in the left side vertical timeline. It's confusing."*
 **DEMO**
 The finished Vox shot plays. No voiceover.
 
-**SHOW**
+**VIDEO**
 Roughly 12 seconds: locked background, cutouts landing, one slow camera push.
 No browser, no logo, no cursor.
 ```
@@ -145,11 +165,11 @@ simply does not appear, and the video looks like it starts on the first spoken
 line — which is what the owner hit on `vox-style-video-ai`.
 
 **Keep the DEMO line short and about the timeline.** One or two lines naming what
-plays and that nobody is speaking. **How to shoot it stays in `SHOW`; how to cut
-it stays in `EDIT`.** A DEMO lane that grows shooting notes has smuggled an
+plays and that nobody is speaking. **How to shoot it and how to cut it stay in
+`VIDEO`.** A DEMO lane that grows shooting notes has smuggled an
 instruction into the left track and the exception stops being one.
 
-**Not a blockquote.** Plain lines, like `SHOW` and `EDIT`. A blockquote means
+**Not a blockquote.** Plain lines, like `VIDEO`. A blockquote means
 spoken copy, and the whole point is that nothing here is spoken.
 
 **The silence comes first, so the spoken copy must read as coming after it.**
@@ -189,11 +209,49 @@ Use it wherever the video runs without narration: a cold open, a finished result
 playing before it gets explained, a demo the viewer watches in silence, a
 before-and-after held on screen.
 
+## Say the goal, not the steps
+
+**The maker is a professional. Give him the target and let him hit it.** Owner,
+2026-08-28: *"For the instruction part I like to give autonomy for my freelancers
+to take care of things. No need to go too deep and too spoon-feeding. Just
+mention the goal and major points which you want to focus on. If there are any
+references, then we can add the references, that's it."*
+
+**A lane carries three things at most, in this order:**
+
+1. **The goal.** One line. What this beat has to achieve on screen.
+2. **The points that are not obvious.** Only the ones a good maker would
+   otherwise get wrong, or that the video depends on. Usually one or two.
+3. **References.** A link, a number, a name — where he can go and look.
+
+Then stop. Anything a competent video person already knows is not written down.
+
+| Do not write | Write |
+|---|---|
+| `One second on each failure shot. No longer.`<br>`They are there to be recognised, not studied.`<br>`Keep the finished shot from 1.1 handy.`<br>`It comes back at the end of the video.` | `Three quick failure shots, about a second each.`<br>`Keep the 1.1 shot — it returns at the end.` |
+| `Each line appears as you say its name. No transitions between lines. Keep the list up through the last sentence. Then cut straight to the first body shot. No wipe.` | `The eleven section names build up one line at a time as you say them.` |
+
+**Three tests before a lane ships:**
+
+- **Would a good freelancer do this anyway?** Then cut the line.
+- **Is this taste, or is it a requirement?** Taste is his. Requirements are
+  yours — and a requirement gets one line saying why, not four saying how.
+- **Could he look it up?** Then link it instead of explaining it.
+
+**The one thing that is never trimmed is a `FACTS` line.** Facts are the
+references, and references are what buys the autonomy — cutting them does not
+make the lane leaner, it makes it guesswork.
+
+**Where a beat genuinely has a hard constraint, say it once, plainly.** `Do not
+show the OpenArt screen in this beat — 1.2 needs it hidden` is one line and it
+stays. A rule with a reason survives. A rule with three sentences of coaching
+around it does not.
+
 ## Write the instructions like the script
 
 **Every lane obeys the same language rules as the spoken copy.** T8 (everyday
 words) and T10 (short sentences, one idea each) are not about the blockquote.
-They are about the whole document. A `SHOW` lane written as one 60-word sentence
+They are about the whole document. A `VIDEO` lane written as one 60-word sentence
 of abstract direction is exactly as unusable as a spoken line written that way.
 
 Owner, 2026-08-28: *"all the instructions - i am finding too hard to understand.
@@ -270,7 +328,7 @@ him, and it is the whole reason there is no markup UI in the browser.
 ```
 #### 2.25 - Generic looks like
 
-**SHOW**
+**VIDEO**
 The generic boards, full screen.
 
 **ASK**
@@ -388,7 +446,7 @@ subscribe and sign off. Both monetisation beats always appear.
 conclusion CTAs. `SCRIPT-INSTRUCTIONS.md` has the cadence rules and the wording
 guidance; the plan's job is to **place** them.
 
-- Mark each one in the beat's `EDIT` lane as `CTA — link in description`, in the
+- Mark each one in the beat's `VIDEO` lane as `CTA — link in description`, in the
   beat where the tool has just visibly done something well.
 - Spread them across the document. Never two in adjacent sections.
 - Never place one in a beat whose subject is a limitation or a failure fix.
@@ -431,7 +489,7 @@ viewer came for.
 - **The `SAY` draft for a phase must carry the exact value** — the setting, the
   menu path, the price, the model name — wherever `knowledge.md` has one. This
   is the whole reason a viewer chose a tutorial over the tool's own docs.
-- **Give each phase's known failure mode a beat or an `EDIT` note**, where the
+- **Give each phase's known failure mode a beat or a `VIDEO` note**, where the
   knowledge names one. A tutorial that only shows the happy path is the one the
   viewer abandons at the first error.
 - **Approaches the owner rejected at gate 020 get at most one section**, saying
@@ -459,7 +517,7 @@ mechanics.
 
 ### On-screen tables
 
-A `SHOW` lane saying "on-screen graphic:" followed by a pipe table, then a
+A `VIDEO` lane saying "on-screen graphic:" followed by a pipe table, then a
 following beat that walks the rows — one `**SAY** — <row>` lane per row. The
 table is what the viewer sees; the lanes under it are what he says while it's
 up.
@@ -472,7 +530,7 @@ up.
 - **Lane labels sit alone on their line**, or the parser drops the lane.
 - **Spoken copy is always a blockquote. Nothing else is.** And a blockquote
   holds **only** what is said aloud — no notes, no labels, no bracketed
-  cross-references. Anything you want to say *about* the copy goes in `EDIT`.
+  cross-references. Anything you want to say *about* the copy goes in `VIDEO`.
 - **Repeated instruction means it belongs in the rules box.**
 - **Intro roadmap and section headings match word for word.**
 - **Every claim traces to `knowledge.md`.** No support, no line — raise the gap.

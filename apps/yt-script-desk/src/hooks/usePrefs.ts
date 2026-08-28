@@ -6,9 +6,9 @@ import { useCallback, useState } from 'react'
 export type Prefs = {
   instructions: boolean // the whole right column; master switch for the four below
   whatToCover: boolean // the body-beat brief (outline ANGLE)
-  screenRecording: boolean // what to film or screen-record (outline SHOW)
+  videoNotes: boolean // everything to do with the picture: filming, screen-recording
+  // AND post. One lane since 2026-08-28; was two chips, `screenRecording` + `videoEditor`.
   generalNotes: boolean // section rules + the beat's facts, merged
-  videoEditor: boolean // post-production notes (outline EDIT)
   beatLabels: boolean // the grey margin labels in the full script view
   scriptNotes: boolean // reserved; renders nothing yet
 }
@@ -16,9 +16,8 @@ export type Prefs = {
 const DEFAULTS: Prefs = {
   instructions: true,
   whatToCover: true, // the brief — on by default, or a body beat is a blank box
-  screenRecording: true,
+  videoNotes: true, // was SHOW on / EDIT off; merged, the one lane defaults ON
   generalNotes: true,
-  videoEditor: false,
   beatLabels: true,
   scriptNotes: false,
 }

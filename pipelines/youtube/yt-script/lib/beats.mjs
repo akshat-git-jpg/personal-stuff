@@ -32,7 +32,7 @@ const BEAT_RE = /^([0-9A-Za-z][0-9A-Za-z.]*)\s*·\s*(.*)$/
 
 // A pre-spec outline uses `### 1. Cold Open` for a beat and `**Voiceover**` /
 // `**Notes**` for its lanes. SCRIPT-PLAN-INSTRUCTIONS.md settled on `#### 1 · Cold
-// Open` with `**SAY**` / `**SHOW**` / `**EDIT**` / `**DEMO**`, and the block parser only
+// Open` with `**SAY**` / `**VIDEO**` / `**DEMO**`, and the block parser only
 // knows that spelling. Fed a legacy file it does not fail — it quietly returns
 // whichever stray `####` headings happen to exist, so the desk renders a short,
 // plausible, WRONG script. Measured 2026-08-23: ai-avatar-online-courses came
@@ -61,7 +61,7 @@ function refuse(found, parsed) {
     `LEGACY_OUTLINE_FORMAT: this outline predates SCRIPT-PLAN-INSTRUCTIONS.md — ` +
       `found ${found.beats} legacy "### N. Title" beats and ${found.lanes} ` +
       `"**Voiceover**"/"**Notes**" lanes, but parsed ${parsed} beats. ` +
-      `Rewrite it as "#### N · Title" with **SAY** / **SHOW** / **EDIT** lanes, ` +
+      `Rewrite it as "#### N · Title" with **SAY** / **VIDEO** lanes, ` +
       `or the desk will show a short, plausible, wrong script.`,
   )
 }
@@ -183,8 +183,7 @@ export function buildBeats(md) {
         angle: null,
         demo: [],
         ask: curSectionAsk.splice(0),
-        show: [],
-        edit: [],
+        video: [],
         facts: curSectionFacts.splice(0),
         rules: curRules.slice(),
         verdict: null,
@@ -209,10 +208,15 @@ export function buildBeats(md) {
           pending.say = b.raw.slice()
           pending.mode = 'read'
         }
-      } else if (b.kind === 'SHOW') {
-        pending.show.push(...b.raw)
-      } else if (b.kind === 'EDIT') {
-        pending.edit.push(...b.raw)
+      } else if (b.kind === 'VIDEO' || b.kind === 'SHOW' || b.kind === 'EDIT') {
+        // ONE lane for the picture. Filming, screen-recording and post used to be
+        // two lanes, SHOW and EDIT, and the split bought nothing: the same person
+        // does both, one after the other, on the same beat. Owner, 2026-08-28:
+        // *"I don't like having screen recording notes and video editing notes,
+        // can you just club them both together and make it just video notes."*
+        // SHOW and EDIT are kept as ALIASES, not as separate arrays, so a plan
+        // written before the merge parses with nothing dropped. Write VIDEO.
+        pending.video.push(...b.raw)
       } else if (b.kind === 'FACTS') {
         pending.facts.push(...b.raw)
       } else if (b.kind === 'ASK') {
@@ -226,7 +230,7 @@ export function buildBeats(md) {
         // desk's left track next to the spoken copy rather than in the right
         // one. Added 2026-08-27: the owner could not see the cold open in the
         // timeline, because 12 seconds of video playing with no voiceover had
-        // nowhere to live. How to shoot it still belongs in SHOW and EDIT.
+        // nowhere to live. How to shoot it still belongs in the VIDEO lane.
         pending.demo.push(...b.raw)
       }
       continue

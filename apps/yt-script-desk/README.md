@@ -6,7 +6,7 @@ A two-track script editor for YouTube tutorial makers, replacing the old PDF han
 
 The desk separates instructions from content. It splits every beat into two columns:
 - **Left track (Script):** The exact words that will be spoken on camera.
-- **Right track (instructions):** four blocks, each behind its own toggle — **What to cover** (the brief for a body beat), **Screen Recording notes**, **General Notes** (the section rules plus the beat's facts), **Video Editor Notes**. The `Instructions` toggle is the master for all four.
+- **Right track (instructions):** three blocks, each behind its own toggle — **What to cover** (the brief for a body beat), **Video notes** (filming and post, one lane since 2026-08-28), **General Notes** (the section rules plus the beat's facts), **Video Editor Notes**. The `Instructions` toggle is the master for all four.
 
 This separation prevents the maker from accidentally reading production notes as part of the script, and prevents instructions from bleeding into the final voiceover feed.
 

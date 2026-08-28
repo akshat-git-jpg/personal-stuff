@@ -7,9 +7,8 @@ import type { Prefs } from '../../hooks/usePrefs'
 const allOnPrefs: Prefs = {
   instructions: true,
   whatToCover: true,
-  screenRecording: true,
+  videoNotes: true,
   generalNotes: true,
-  videoEditor: true,
   beatLabels: true,
   scriptNotes: false,
 }
@@ -37,7 +36,7 @@ describe('WriteView', () => {
     renderView([beat])
 
     const leftText = screen.getAllByTestId('left-cell').map((c) => c.textContent ?? '').join(' ')
-    const instructionStrings = [...beat.show, ...beat.edit, ...beat.facts, ...(beat.angle ?? [])]
+    const instructionStrings = [...beat.video, ...beat.facts, ...(beat.angle ?? [])]
     for (const s of instructionStrings) {
       expect(leftText.includes(s), `INSTRUCTION_IN_SCRIPT_TRACK: found "${s}" in the left track`).toBe(false)
     }

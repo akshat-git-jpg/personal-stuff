@@ -7,7 +7,7 @@ type ToggleRailProps = {
 }
 
 // `Instructions` is the MASTER: it shows or hides the whole right column, and
-// the four after it only choose what goes inside it. They used to sit in one
+// the three after it only choose what goes inside it. They used to sit in one
 // flat row, so switching the master off left them looking live while clicking
 // them did nothing. The divider and the disabled state below are what say so.
 const MASTER: { key: keyof Prefs; label: string } = { key: 'instructions', label: 'Instructions' }
@@ -16,9 +16,8 @@ const MASTER: { key: keyof Prefs; label: string } = { key: 'instructions', label
 // (WriteView's LANES). Same words in both places — owner's rule 2026-08-23.
 const CHIPS: Array<{ key: keyof Prefs; label: string }> = [
   { key: 'whatToCover', label: 'What to cover' },
-  { key: 'screenRecording', label: 'Screen Recording notes' },
-  { key: 'generalNotes', label: 'General Notes' },
-  { key: 'videoEditor', label: 'Video Editor Notes' },
+  { key: 'videoNotes', label: 'Video notes' },
+  { key: 'generalNotes', label: 'General notes' },
 ]
 
 export const FULL_SCRIPT_CHIPS: Array<{ key: keyof Prefs; label: string }> = [{ key: 'beatLabels', label: 'Beat labels' }]

@@ -393,3 +393,51 @@ problem.
 like the script", plus the owner's read at gate 055. Nothing mechanical catches
 an abstraction.
 
+
+---
+
+## T12 — Instructions state the goal. The maker decides how.
+
+**From:** vox-style-video-ai, 2026-08-28. Owner: *"For the instruction part I
+like to give autonomy for my freelancers to take care of things. No need to go
+too deep and too spoon-feeding. Just mention the goal and major points which you
+want to focus on. If there are any references, then we can add the references,
+that's it. But I like to keep it short and simple and let freelancer able to
+handle it."*
+
+The person receiving these lanes edits video for a living. A lane that tells him
+to cut on the beat, hold a frame, or not stack two transitions is not helping —
+it is spending his attention on things he already knows, so that the one line
+that actually matters gets the same weight as four that do not.
+
+**A lane carries at most three things:** the goal, the one or two points that are
+not obvious, and any reference he can go and look at. Nothing else.
+
+**The trims, concretely:**
+
+- **Cut craft.** Pacing, cut rhythm, transition choice, framing — his call.
+- **Cut the justification.** *"They are there to be recognised, not studied"*
+  explains a decision he does not need to re-derive. State the requirement.
+- **Cut the restatement.** Saying the same constraint twice in different words
+  reads as two constraints.
+- **Keep the reason on a constraint that would otherwise look arbitrary.** *"Do
+  not show the OpenArt screen here — 1.2 needs it hidden"* is one line, and the
+  clause after the dash is what stops him overriding it.
+- **Never cut a `FACTS` line.** Facts are references, and references are what
+  make the autonomy safe. Trimming those is not brevity, it is guesswork.
+
+**Why it is a rule and not a style note:** length reads as diligence. A four-line
+lane looks more thorough than a two-line lane, so the failure mode is invisible
+to the person writing it and only shows up when the reader stops reading. The
+owner hit exactly this on the first plan through the flow, twice in one day —
+first the wording (T11), then the volume.
+
+**Tension with T11 — resolve it this way.** T11 says an abstract instruction
+needs an example. T12 says stop writing abstract instructions in the first place.
+An `Example:` line is the fix for a lane you cannot make concrete, not a licence
+to keep one that should have been cut. If the goal is stated concretely, no
+example is needed and none is added.
+
+**Applies to:** 030, 050, 100
+**Enforced by:** `SCRIPT-PLAN-INSTRUCTIONS.md`, section "Say the goal, not the
+steps", plus the owner's read at gate 055.

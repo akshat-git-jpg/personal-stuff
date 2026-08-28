@@ -5,7 +5,8 @@
 ### The two-track rule
 **The left track is the audio timeline. Instructions never enter it.** The desk splits every beat into two columns:
 1. The audio timeline on the left: words that will be spoken, lines the maker writes himself, and a **DEMO** block marking a stretch where nothing is spoken at all.
-2. Instructions on the right, in four toggleable blocks: What to cover, Screen Recording notes, General Notes, Video Editor Notes.
+2. Instructions on the right, in three toggleable blocks: What to cover, Video notes, General notes.
+   (Video notes was two blocks until 2026-08-28 — Screen Recording and Video Editor merged, because one person does both jobs on the same beat.)
 
 **DEMO is the one thing in the left track that is not spoken copy, and it is not an exception to the rule.** A silent stretch is timeline content: something plays and nobody talks. Added 2026-08-27, because a 12-second cold open with no voiceover had nowhere to appear, so the timeline read as if the video began on the first spoken line. How to shoot it stays in SHOW; how to cut it stays in EDIT. A DEMO lane that grows shooting notes has smuggled an instruction into the left track. Guarded by `src/components/__tests__/demoLane.test.tsx`.
 

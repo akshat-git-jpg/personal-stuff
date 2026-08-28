@@ -42,7 +42,7 @@ The draft's words are the maker's. The line is **sound, not substance**.
 - Fix a typo, a tense slip, or a doubled word.
 - Move a stray production instruction out of Voiceover and into Notes.
 - Tighten filler that reads as dictation ("so basically what I did here was").
-- Fold the beat's `SHOW`/`EDIT` lanes from `outline.md` into its `Notes` block —
+- Fold the beat's `VIDEO` lane from `outline.md` into its `Notes` block —
   he no longer writes Notes at all.
 
 **Never change silently** — flag these to the owner instead:

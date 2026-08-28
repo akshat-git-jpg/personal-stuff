@@ -14,15 +14,14 @@ import type { Prefs } from '../../hooks/usePrefs'
 const ALL_ON: Prefs = {
   instructions: true,
   whatToCover: true,
-  screenRecording: true,
+  videoNotes: true,
   generalNotes: true,
-  videoEditor: true,
   beatLabels: true,
   scriptNotes: false,
 }
 
 // The master is deliberately NOT here — it names the column, not a block.
-const LANE_LABELS = ['What to cover', 'Screen Recording notes', 'General Notes', 'Video Editor Notes']
+const LANE_LABELS = ['What to cover', 'Video notes', 'General notes']
 
 function noop() {}
 
@@ -60,10 +59,9 @@ describe('a toggle and its block say the same words', () => {
   it('renders each block under exactly the label its chip uses', () => {
     const beat = makeWriteBeat({
       angle: ['Say roughly this.'],
-      show: ['Film the panel.'],
+      video: ['Film the panel, then trim the pause.'],
       rules: ['No scores yet.'],
       facts: ['It launched in 2024.'],
-      edit: ['Trim the pause.'],
     })
     renderView([beat])
 
@@ -73,12 +71,12 @@ describe('a toggle and its block say the same words', () => {
   })
 })
 
-describe('General Notes merges the section rules with the beat facts', () => {
+describe('General notes merges the section rules with the beat facts', () => {
   it('shows both under one header', () => {
-    const beat = makeWriteBeat({ rules: ['No scores yet.'], facts: ['It launched in 2024.'], angle: [], show: [], edit: [] })
+    const beat = makeWriteBeat({ rules: ['No scores yet.'], facts: ['It launched in 2024.'], angle: [], video: [] })
     renderView([beat])
 
-    expect(screen.getByText('General Notes')).toBeTruthy()
+    expect(screen.getByText('General notes')).toBeTruthy()
     expect(screen.getByText('No scores yet.')).toBeTruthy()
     expect(screen.getByText('It launched in 2024.')).toBeTruthy()
     expect(screen.queryByText('Rules')).toBeNull()
@@ -86,7 +84,7 @@ describe('General Notes merges the section rules with the beat facts', () => {
   })
 
   it('hides both when the toggle is off', () => {
-    const beat = makeWriteBeat({ rules: ['No scores yet.'], facts: ['It launched in 2024.'], angle: [], show: [], edit: [] })
+    const beat = makeWriteBeat({ rules: ['No scores yet.'], facts: ['It launched in 2024.'], angle: [], video: [] })
     renderView([beat], { ...ALL_ON, generalNotes: false })
 
     expect(screen.queryByText('No scores yet.')).toBeNull()
@@ -96,7 +94,7 @@ describe('General Notes merges the section rules with the beat facts', () => {
 
 describe('What to cover is the body brief and has its own switch', () => {
   it('shows the angle when on and hides it when off', () => {
-    const beat = makeWriteBeat({ angle: ['Say roughly this.'], show: [], rules: [], facts: [], edit: [] })
+    const beat = makeWriteBeat({ angle: ['Say roughly this.'], video: [], rules: [], facts: [] })
 
     const { unmount } = renderView([beat])
     expect(screen.getByText('Say roughly this.')).toBeTruthy()
@@ -128,7 +126,7 @@ describe('Instructions is a master switch, and looks like one', () => {
   })
 
   it('drops the whole right column when off', () => {
-    const beat = makeWriteBeat({ show: ['Film the panel.'] })
+    const beat = makeWriteBeat({ video: ['Film the panel.'] })
     renderView([beat], { ...ALL_ON, instructions: false })
     expect(document.querySelectorAll('[data-testid="right-cell"]').length).toBe(0)
   })
@@ -166,8 +164,7 @@ describe('markdown emphasis in an instruction line', () => {
       rules: ['**This is the one demo block.** Everything else references it.'],
       facts: [],
       angle: [],
-      show: [],
-      edit: [],
+      video: [],
     })
     renderView([beat])
 

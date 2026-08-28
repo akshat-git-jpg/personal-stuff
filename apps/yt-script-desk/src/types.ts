@@ -13,8 +13,8 @@ export type Beat = {
   demo: string[] // a silent stretch: something plays, nobody speaks. Renders LEFT
   ask: string[] // the OWNER's open question for Claude. Never the maker's business;
   // `desk.mjs publish` refuses while any exists, and strips them if forced.
-  show: string[]
-  edit: string[]
+  video: string[] // ONE lane for the picture: what to film or screen-record AND
+  // what to do with it in post. Merged from the old `show`+`edit` pair 2026-08-28.
   facts: string[]
   rules: string[] // section-level rules
   verdict: string | null

@@ -93,9 +93,8 @@ export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSay
 // to an action to take.
 const LANES: Array<{ pref: keyof Prefs; label: string; lines: (b: Beat) => string[] }> = [
   { pref: 'whatToCover', label: 'What to cover', lines: (b) => b.angle ?? [] },
-  { pref: 'screenRecording', label: 'Screen Recording notes', lines: (b) => b.show },
-  { pref: 'generalNotes', label: 'General Notes', lines: (b) => [...b.rules, ...b.facts] },
-  { pref: 'videoEditor', label: 'Video Editor Notes', lines: (b) => b.edit },
+  { pref: 'videoNotes', label: 'Video notes', lines: (b) => b.video },
+  { pref: 'generalNotes', label: 'General notes', lines: (b) => [...b.rules, ...b.facts] },
 ]
 
 function renderRightCell(beat: Beat, prefs: Prefs): ReactNode {

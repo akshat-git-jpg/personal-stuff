@@ -7,16 +7,10 @@
 **DEMO**
 The finished Vox shot plays. No voiceover. The first spoken line lands after it.
 
-**SHOW**
-Play about 12 seconds of a finished paper-cut shot.
-In it: a still background, cutouts landing, a caption punching on, one slow camera push.
-No browser, no logo, no cursor. Nothing that shows which tool made it.
-Hold the shot on screen while the first lines are spoken. It does not cut away.
-
-**EDIT**
-The shot's own music and sound carry the silent part.
-Duck them under your voice when it starts. Do not cut them.
-Do NOT show the OpenArt screen anywhere in this beat. The reveal in 1.2 needs it hidden.
+**VIDEO**
+About 12 seconds of a finished paper-cut shot, held under the first spoken lines.
+Nothing on screen that names the tool. No browser, no logo, no cursor — 1.2 is the reveal.
+Its own audio carries the silence, then ducks under the voice.
 
 **SAY** — final
 > You have probably seen shots like this one before.
@@ -26,15 +20,10 @@ Do NOT show the OpenArt screen anywhere in this beat. The reveal in 1.2 needs it
 
 #### 1.2 · The reveal
 
-**SHOW**
-Cut to the OpenArt Director chat. One clean full-screen frame.
-Then, while you list the failures, three quick shots of things going wrong.
-Example: a caption that came out as nonsense letters; a flat boring board; a face that changes between two frames.
-
-**EDIT**
-One second on each failure shot. No longer.
-They are there to be recognised, not studied.
-Keep the finished shot from 1.1 handy. It comes back at the end of the video.
+**VIDEO**
+The OpenArt Director chat, one clean full-screen frame. That is the reveal.
+Then three quick failure shots as you list them: nonsense caption letters, a flat board, a face that changes between frames.
+Keep the 1.1 shot — it returns in the conclusion.
 
 **SAY** — final
 > What you just watched was made with AI.
@@ -64,13 +53,8 @@ Keep the finished shot from 1.1 handy. It comes back at the end of the video.
 
 #### 1.3 · Roadmap
 
-**SHOW**
-A plain list of the eleven section names, appearing one line at a time as you say them.
-
-**EDIT**
-Each line appears as you say its name. No transitions between lines.
-Keep the list up through the last sentence.
-Then cut straight to the first body shot. No wipe.
+**VIDEO**
+The eleven section names build up one line at a time as you say them.
 
 **SAY** — final
 > By the end of this video, you will be able to do this with any topic.
@@ -105,9 +89,8 @@ Then cut straight to the first body shot. No wipe.
 ### SECTION: What makes it look like Vox
 
 > **RULES — WHOLE SECTION**
-> - Nothing gets made in this section. No tool is open. You are training the eye before you spend anything.
-> - Every point here is about the LOOK, never about the tool. The tool shows up in the next section.
-> - Use real Vox clips, or your own finished clip. Never a generated stand-in.
+> - No tool is open. This section is about the look only — the tool arrives in the next one.
+> - Real Vox clips or your own finished clip. Never a generated stand-in.
 
 **FACTS**
 Things every one of the eight sources named: one narrator carrying the story.
@@ -133,14 +116,10 @@ Say why that makes it feel like one long shot instead of a cut every two seconds
 Then say what a normal edit does instead, so the difference is clear.
 Example of the point: "a normal edit cuts to a new picture. This one just moves things around on the same picture."
 
-**SHOW**
-Two clips side by side. Same shot: once with the background moving, once with it still.
-Then pull one real shot apart into its three layers.
-Example: back layer is the sky, middle layer is the buildings, front layer is the person.
-
-**EDIT**
-Hold the three-layer frame for 4 seconds or more.
-This is the frame people will screenshot.
+**VIDEO**
+Same shot twice, side by side: background moving, background still.
+Then one real shot pulled apart into its three layers — sky, buildings, person.
+Hold the layer frame 4 seconds or more. It is the screenshot of this section.
 
 #### 2.2 · Paper and frame rate
 
@@ -151,9 +130,9 @@ Two: a frame rate that is jerky on purpose.
 Say clearly that the jerkiness is a choice, not a fault.
 That matters because people try to fix it.
 
-**SHOW**
-Zoom into a paper edge at 200% so the texture is obvious.
-Then the same movement played smooth, then played jerky, back to back.
+**VIDEO**
+A paper edge at 200% so the grain is unmissable.
+Then one movement played smooth, then jerky, back to back.
 
 **FACTS**
 Both Thomas Creates and Joseph say the jerky low frame rate is on purpose.
@@ -167,7 +146,7 @@ Text, main object, background, small extras, camera.
 For each one, say what it does. Then say what it never does.
 The "never does" half is the more useful half.
 
-**SHOW**
+**VIDEO**
 On-screen graphic:
 
 | The asset | What it does | What it never does |
@@ -178,9 +157,8 @@ On-screen graphic:
 | Small extras | a faint drift, nothing more | pull the eye |
 | Camera | one push-in or one slow pan | both, in the same shot |
 
-**EDIT**
-Keep this table up while 2.4 plays.
-It is the reference for the rest of the video.
+**VIDEO**
+Keep this table up through 2.4. It is the reference for the rest of the video.
 
 #### 2.4 · Maps and captions
 
@@ -191,9 +169,9 @@ Then cover the two moves the table misses.
 One: a map or arrow that draws itself across the screen.
 Two: a caption that lands exactly as you say the word.
 
-**SHOW**
+**VIDEO**
 A map drawing a route.
-Then a caption landing on a beat, played twice: once at normal speed, once slowed down so the timing is visible.
+Then a caption landing on a beat, twice — normal speed, then slowed so the timing is visible.
 
 #### 2.5 · Which niches
 
@@ -207,17 +185,17 @@ Example of what it does not suit: a product review, or anything that needs two p
 Finance, documentary, true crime (Leo Ai). Crime, documentary, history, money and power (Ai-Seekify).
 Vox's own subjects: political and historical, backed by numbers.
 
-**EDIT**
-No verdict card. This is a tutorial. Nothing has been ranked.
+**VIDEO**
+No verdict card. This is a tutorial — nothing has been ranked.
 
 ---
 
 ### SECTION: Why one tool beats five
 
 > **RULES — WHOLE SECTION**
-> - This is the only section where other tools get named. Name them, say what they cost you, move on. Never demonstrate one.
-> - No prices from any other platform. Their credit costs are theirs.
-> - Name the tool plainly here. Do not tease it.
+> - The only section where rival tools get named. Name, cost, move on — never demonstrate one.
+> - No prices from any other platform.
+> - Name OpenArt plainly. Do not tease it.
 
 **FACTS**
 The same five steps run under every method: topic and script; voiceover; style lock; a picture per scene; picture to video, then stitch.
@@ -241,10 +219,9 @@ Once they see the steps, no tool can confuse them.
 List the five.
 Then say the only thing a tool changes: how many windows those five steps are spread across.
 
-**SHOW**
+**VIDEO**
 On-screen graphic: the five steps as one horizontal strip.
-Then the same strip twice.
-Example: first with five different tool logos scattered along it, then with one logo covering the whole strip.
+Then the strip twice — five scattered tool logos, then one logo covering all of it.
 
 #### 2.7 · One chat
 
@@ -254,13 +231,9 @@ Say what it puts in one place: the script, the boards, the voice, the music, the
 Be specific about what that removes.
 It removes exporting and re-importing between tools. It does not remove the thinking.
 
-**EDIT**
-CTA — link in description. Put it at the end of this beat, right after the benefit lands.
-Mention the discount code. This is the first body CTA.
-
-**SHOW**
-The Director chat with the left column visible.
-One clean pass. No clicking yet.
+**VIDEO**
+The Director chat, left column visible. One clean pass, no clicking yet.
+CTA — link in description, first body CTA. End of the beat, after the benefit lands. Mention the code.
 
 #### 2.8 · The other routes
 
@@ -270,7 +243,7 @@ One line each: what it is, and the one thing it costs you.
 Give the Abacus route a bit more room. It is the closest real alternative.
 Be straight about the code route: it made the best-performing video in this space, and it still means running code.
 
-**SHOW**
+**VIDEO**
 On-screen graphic:
 
 | The route | What it costs you |
@@ -292,21 +265,18 @@ Start to finish is faster, and worse for a first attempt.
 Guide me lets you stop and fix at every stage.
 Recommend guide me, and say why.
 
-**SHOW**
+**VIDEO**
 The mode choice on screen. Click guide me.
-
-**EDIT**
-End the section by saying what to have open before section three.
-Two things: the Director tab, and a browser you can install an extension into.
+Close the section by naming what to have open next: the Director tab, and a browser that takes extensions.
 
 ---
 
 ### SECTION: Getting the AI to study real Vox videos
 
 > **RULES — WHOLE SECTION**
-> - This is the section that separates this video from every other one on the topic. Give it room.
-> - The style breakdown is a document the viewer keeps and reuses. Say so out loud.
-> - Do not make a single picture in this section.
+> - This is what separates the video from every other one on the topic. Give it room.
+> - Say out loud that the breakdown is a document the viewer keeps and reuses.
+> - No pictures get made in this section.
 
 **FACTS**
 Thomas Creates uses VidIQ. A free YouTube research tool that pulls real data off YouTube.
@@ -328,9 +298,8 @@ The AI already sort of knows what Vox looks like. That is the trouble.
 Sort of is what gives everyone the same generic first attempt.
 Say that this beat is the reason section six goes smoothly.
 
-**SHOW**
-A generic first-attempt board next to a real Vox frame.
-No words on screen. The gap does the work.
+**VIDEO**
+A generic first-attempt board next to a real Vox frame. No words on screen — the gap does the work.
 
 #### 2.11 · Connect the extension
 
@@ -339,12 +308,9 @@ Walk through the install and the connection.
 Keep it quick. It is four clicks.
 The point to land: the AI stops guessing from memory and starts reading real videos.
 
-**SHOW**
-Screen recording of the whole path.
-Example: the VidIQ site, the install button, the drop-down inside Claude, connect, authorize.
-
-**EDIT**
-Skip the loading between authorize and connected. Cut straight to connected.
+**VIDEO**
+Screen recording of the whole path: VidIQ site, install button, the drop-down inside Claude, connect, authorize.
+Cut the loading wait.
 
 #### 2.12 · Ask for the breakdown
 
@@ -355,9 +321,8 @@ One set of words for making pictures. A separate set for making them move.
 Say why they stay separate: the same word means different things to a picture model and a video model.
 Example: "slow pan" means one thing to a picture model and something else to a video model.
 
-**SHOW**
-The prompt on screen.
-Then the document that comes back, scrolled slowly enough to read the headings.
+**VIDEO**
+The prompt on screen, then the document that comes back — scrolled slowly enough to read the headings.
 
 #### 2.13 · The seven checks
 
@@ -365,7 +330,7 @@ Then the document that comes back, scrolled slowly enough to read the headings.
 Go through Joseph's checklist as a test: is this breakdown good enough to build on?
 If it does not name all seven, it is too vague. Ask again.
 
-**SHOW**
+**VIDEO**
 On-screen graphic:
 
 | What to check for | Why it matters |
@@ -378,9 +343,8 @@ On-screen graphic:
 | Small detail | the grain, the shadow, the torn edge |
 | Textures | the thing that stops it looking computer-made |
 
-**EDIT**
-CTA — link in description. Second body CTA. Put it after the checklist lands.
-Note that this breakdown document gets reused on every video they make.
+**VIDEO**
+CTA — link in description, second body CTA, after the checklist lands. Point out the breakdown gets reused on every video.
 
 #### 2.14 · Keep the document
 
@@ -394,8 +358,8 @@ Say plainly that this is the part that survives when the tool changes. Nothing e
 ### SECTION: Picking a topic that holds up
 
 > **RULES — WHOLE SECTION**
-> - Nothing gets made here. This is preparation, in a notes file.
-> - Every number the viewer writes down must be real. This is where the video earns the right to say "fact-checked" later.
+> - Nothing gets made here. It is preparation, in a notes file.
+> - Every number the viewer writes down is real. This is where the video earns the right to say "fact-checked".
 
 **FACTS**
 Skai Generated's script builder template does three things.
@@ -414,10 +378,8 @@ Explain the one rule that decides whether a topic works.
 One voice has to carry the whole thing. No cutting to a second person.
 Give the test: if the topic needs two experts disagreeing, it is the wrong topic for this style.
 
-**SHOW**
-Two topic examples side by side. One that passes, one that does not.
-Example that passes: "why this shipping route changed the world."
-Example that fails: "is this tool better than that one."
+**VIDEO**
+Two topic examples side by side — passes: "why this shipping route changed the world." Fails: "is this tool better than that one."
 
 #### 2.16 · The ending first
 
@@ -439,9 +401,8 @@ Each one gets checked at the source.
 Say that this part is boring.
 Then say what it buys: a video that survives the comments.
 
-**SHOW**
-A plain notes file with a short list of figures.
-Each figure has its source written next to it.
+**VIDEO**
+A plain notes file: a short list of figures, each with its source next to it.
 
 #### 2.18 · Do not invent
 
@@ -450,16 +411,15 @@ Give the instruction almost word for word: use these facts, and do not invent a 
 Explain what happens without it.
 You get a script full of believable figures that nobody can check.
 
-**EDIT**
-Put this instruction on screen as text.
-It is the single most copyable thing in this section.
+**VIDEO**
+Put the instruction on screen as text. It is the most copyable line in the section.
 
 ---
 
 ### SECTION: Writing the script
 
 > **RULES — WHOLE SECTION**
-> - Never show the first script being accepted as-is. The editing beat is the point of this section.
+> - Never show the first script accepted as-is. The editing beat is the point of the section.
 > - The finished script gets locked on screen. Section six inherits that lock.
 
 **FACTS**
@@ -478,8 +438,8 @@ Walk the template being filled with the three things from the last section.
 Keep it quick. The work was already done.
 That is the point worth making: this beat is fast because section four was slow.
 
-**SHOW**
-The filled template on screen. Then hit send.
+**VIDEO**
+The filled template on screen, then send.
 
 #### 2.20 · What comes back
 
@@ -489,8 +449,8 @@ Not a wall of text.
 Be fair: the first draft is usually already decent.
 Then say why decent is not finished.
 
-**SHOW**
-The returned draft, scrolled so all three parts are visible.
+**VIDEO**
+The returned draft, scrolled so hook, build and payoff are all visible.
 
 #### 2.21 · Edit in place
 
@@ -501,12 +461,9 @@ Explain the difference.
 Asking again throws away the parts that were already right. Editing keeps them.
 Then tighten a real line on screen, so the viewer sees the kind of change worth making.
 
-**SHOW**
-Click into the script. Edit two or three lines live. Save.
-
-**EDIT**
-Do not speed this up. Editing in real time is more convincing than a cut.
-CTA — link in description. Third body CTA. Put it after the edit lands, on how much easier editing in place is than re-prompting.
+**VIDEO**
+Click into the script, edit two or three lines live, save. Real time, not sped up — the point is that it is a document.
+CTA — link in description, third body CTA, after the edit lands.
 
 #### 2.22 · Check and lock
 
@@ -532,8 +489,8 @@ So a weak line here becomes a weak shot four steps from now.
 ### SECTION: Locking the look
 
 > **RULES — WHOLE SECTION**
-> - Show the generic first attempt. Do not cut to the good version. The recovery is the lesson.
-> - From the end of this section on, on-screen words stay still in every later shot. Say it here and stick to it.
+> - Show the generic first attempt in full. The recovery is the lesson, not the good version.
+> - From here on, on-screen words stay still in every later shot.
 
 **FACTS**
 Skai: do not just describe the style and hope it sticks.
@@ -555,9 +512,8 @@ Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM · Luuk Allema
 Make the first set using the words from the style breakdown.
 Say what changed because of section three: the ask is specific now, not hopeful.
 
-**SHOW**
-The board prompt, built from the breakdown document.
-Then the set that comes back.
+**VIDEO**
+The board prompt, built from the breakdown document. Then the set that comes back.
 
 #### 2.25 · Generic looks like
 
@@ -568,12 +524,8 @@ Flat colour. Plain icons. No texture. No cutouts.
 Say this still happens even with a good breakdown.
 It is a starting point, not a failure.
 
-**SHOW**
-The generic boards, full screen, with nothing done to flatter them.
-
-**EDIT**
-Do not apologise for the output.
-Naming the weakness plainly is what makes the next beat land.
+**VIDEO**
+The generic boards, full screen, nothing done to flatter them.
 
 #### 2.26 · Ask for the makeover
 
@@ -582,14 +534,10 @@ Here is the fix, and it is the most useful sentence in the section.
 Describe the look you want in ordinary words. Name the actual colours. Let it rebuild every board.
 Show the real description you typed, and the rebuild.
 
-**SHOW**
-The plain-English request typed out. Then the rebuilt set.
-Before and after on one screen.
-
-**EDIT**
-Hold the before-and-after for 5 seconds or more.
-CTA — link in description. Fourth and final body CTA. Put it here, on the rebuild.
+**VIDEO**
+The plain-English request typed out, then the rebuilt set. Before and after on one screen, held 5 seconds or more.
 This is the strongest visible result in the video.
+CTA — link in description, fourth and final body CTA, on the rebuild.
 
 #### 2.27 · Approve the set
 
@@ -627,8 +575,8 @@ Zero glitches, and a better picture anyway.
 ### SECTION: Picking the voice
 
 > **RULES — WHOLE SECTION**
-> - Play real audio in this section. A voice section with no voice in it is worthless.
-> - Cast the voice before any motion exists. Say why, because the temptation is to leave this until last.
+> - Real audio plays in this section. A voice section with no voice in it is worthless.
+> - The voice is cast before any motion exists. Say why — the temptation is to leave it until last.
 
 **FACTS**
 Ask the director for ten voices, five male and five female, each reading your own script.
@@ -645,8 +593,8 @@ Explain the audition, and the one detail that makes it work.
 They read YOUR script, not a sample paragraph.
 Say why that matters: a voice that sounds fine on a generic line can fall apart on your actual sentences.
 
-**SHOW**
-The request you typed. Then the ten options listed.
+**VIDEO**
+The request you typed, then the ten options listed.
 
 #### 2.31 · A bad read
 
@@ -656,12 +604,8 @@ Name the difference in plain terms.
 Do not use audio words. Say what a normal listener would notice.
 Example: "that one sounds like it is reading. This one sounds like it is telling you something."
 
-**SHOW**
-Two reads of the same line. One weak, one strong.
-
-**EDIT**
-Play the weak one first.
-Let it run long enough to be uncomfortable.
+**VIDEO**
+Two reads of the same line, weak one first, long enough to be uncomfortable.
 
 #### 2.32 · What to listen for
 
@@ -682,8 +626,8 @@ Say plainly that this is what makes locking safe, not final.
 ### SECTION: Picking the music
 
 > **RULES — WHOLE SECTION**
-> - Play the music under a real narration line, never on its own. Music judged on its own is judged wrong.
-> - The copyright point is a warning, not a legal lecture. One sentence.
+> - Music always plays under a real narration line, never on its own. Judged alone it is judged wrong.
+> - Copyright gets one sentence, not a lecture.
 
 **FACTS**
 Ask for ten tracks with different moods.
@@ -699,9 +643,8 @@ Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM
 Cover the audition briefly.
 It works the same way as the voice section, so keep it shorter than that one was.
 
-**SHOW**
-The ten tracks listed.
-Then two of them played under the same narration line.
+**VIDEO**
+The ten tracks listed, then two of them under the same narration line.
 
 #### 2.35 · When it competes
 
@@ -710,8 +653,8 @@ Explain the one thing that decides a track: its pace against your read.
 Too slow and it drags you down. Too busy and it fights you.
 Show both problems using the same line.
 
-**EDIT**
-Play the competing version loud enough that the problem is obvious without you explaining it.
+**VIDEO**
+The competing track plays loud enough that the problem is obvious before you name it.
 
 #### 2.36 · Keep it original
 
@@ -728,17 +671,17 @@ Say what they are about to watch is a narrated slideshow.
 Say it is supposed to feel flat.
 And say that flatness is the timing everything else gets built on.
 
-**SHOW**
-The narrated slideshow playing. 15 seconds, uncut.
+**VIDEO**
+The narrated slideshow, 15 seconds, uncut.
 
 ---
 
 ### SECTION: Adding the motion
 
 > **RULES — WHOLE SECTION**
-> - Show a too-busy version. The restraint lesson does not land without it.
-> - Never remake a whole set to fix one shot. Show the single-asset fix every time.
-> - Motion is timed to the voice, not to itself. Say it once here and stick to it.
+> - A too-busy version has to be shown. The restraint lesson does not land without it.
+> - Never remake a whole set to fix one shot — show the single-asset fix.
+> - Motion is timed to the voice, not to itself.
 
 **FACTS**
 Skai: this is where most beginners throw the whole project away.
@@ -768,10 +711,8 @@ One simple movement per board, timed to the line underneath it.
 The timing is what makes it feel deliberate.
 The simplicity is what makes the timing readable.
 
-**SHOW**
-One board with one movement, played against its narration line.
-Then the same board with the sound off.
-That shows how much the timing was carrying.
+**VIDEO**
+One board, one movement, played against its narration line. Then the same board with the sound off, so the viewer hears how much the timing was carrying.
 
 #### 2.40 · Too much motion
 
@@ -781,11 +722,8 @@ A board where every single thing animates.
 Name what it costs: the eye has nowhere to rest, and the words stop landing.
 Be specific. Do not just call it cluttered.
 
-**SHOW**
-The over-animated version, full screen, played twice.
-
-**EDIT**
-Do not soften this with a cut. Let it be unpleasant.
+**VIDEO**
+The over-animated version, full screen, twice. Let it be unpleasant.
 
 #### 2.41 · The whole set
 
@@ -806,8 +744,8 @@ When one shot is wrong, do not start over in a fresh chat.
 Point at the one thing that is wrong, say what is wrong, and ask for versions.
 Say what this protects: every take that was already good.
 
-**SHOW**
-The @ selection. The complaint typed in. Three versions back. One picked.
+**VIDEO**
+The @ selection, the complaint typed in, three versions back, one picked.
 
 #### 2.43 · Redraw the board
 
@@ -826,8 +764,8 @@ The glitching map was replaced with a person thinking over a chessboard. Zero gl
 ### SECTION: Putting it all together
 
 > **RULES — WHOLE SECTION**
-> - The stitch is held to the timing base from section eight. Say so out loud. This is the thing people get wrong.
-> - Watch the cut for continuity only. Do not review the style here. That was locked in section six.
+> - The stitch is held to the timing base from section eight. Say it out loud — this is what people get wrong.
+> - The cut is watched for continuity only. Style was locked in section six and is not reopened.
 
 **FACTS**
 Ask the director to stitch the final cut, timed exactly as in the base.
@@ -845,8 +783,8 @@ Ask for the stitch.
 Name the one condition that matters: held to the timing base, not re-timed.
 Explain what happens if you leave that out.
 
-**SHOW**
-The request you typed. Then the full cut playing.
+**VIDEO**
+The request you typed, then the full cut playing.
 
 #### 2.45 · One watch
 
@@ -864,8 +802,8 @@ Objects merging into each other mid-shot.
 A person who changes between scenes.
 Give the plain-English fix for the second.
 
-**SHOW**
-A real continuity break, played twice. Then the fixed version.
+**VIDEO**
+A real continuity break, twice, then the fixed version.
 
 #### 2.47 · Export
 
@@ -879,9 +817,9 @@ This is the least interesting beat in the video, and padding it would show.
 ### SECTION: When you need more control
 
 > **RULES — WHOLE SECTION**
-> - Everything here is on the SAME account and the same platform. Say that in the first beat, or this reads as a second tutorial.
-> - This section is optional for the viewer. Frame it that way, not as a required step.
-> - Every setting named here is Thomas Creates' from the OpenArt panels. No settings from any other platform.
+> - Same account, same platform. Say it in the first beat or this reads as a second tutorial.
+> - Optional for the viewer. Frame it that way.
+> - Every setting named is from the OpenArt panels. Nothing from another platform.
 
 **FACTS**
 Thomas Creates drives OpenArt's own panels: left sidebar, image panel, video panel.
@@ -910,9 +848,8 @@ Same account, same platform, one level down.
 The chat is a layer sitting over these two panels.
 Say when to come down here: when you want a specific model or a specific setting the chat will not give you.
 
-**SHOW**
-The left sidebar, image panel and video panel.
-On the same logged-in account you used all video.
+**VIDEO**
+The left sidebar, image panel and video panel — visibly the same logged-in account used all video.
 
 #### 2.49 · Picture settings
 
@@ -922,7 +859,7 @@ Give the real values.
 Explain the 4K choice as a consequence, not a preference.
 The first frame is what every later frame in that shot is built from.
 
-**SHOW**
+**VIDEO**
 On-screen graphic:
 
 | Setting | Value | Why |
@@ -938,7 +875,7 @@ Walk the video panel and give the values plainly.
 Land on duration as the one people get wrong.
 Say what 6 seconds buys you.
 
-**SHOW**
+**VIDEO**
 On-screen graphic:
 
 | Setting | Value |
@@ -960,12 +897,9 @@ Told to animate a map, the model redraws it every frame, and the map stops being
 Then the fix: make a before picture and an after picture, and let the model move between them instead of drawing anything.
 Say the idea out loud, because it works everywhere: give the model less to redraw.
 
-**SHOW**
-Frame one. Frame two. Then the finished shot with the route drawing itself.
-
-**EDIT**
-Show the two still frames side by side before you play the result.
-The trick only lands if the viewer sees how similar they are.
+**VIDEO**
+The two still frames side by side FIRST — the trick only lands if the viewer sees how similar they are.
+Then the finished shot with the route drawing itself.
 
 #### 2.52 · Three pictures
 
@@ -1006,6 +940,5 @@ Duration for a three-frame build: 15 seconds.
 > That is what I am making next.
 > See you then.
 
-**EDIT**
-Hold on the finished shot from the cold open under the last two sentences.
-That closes the loop on the opening image.
+**VIDEO**
+Hold the cold-open shot from 1.1 under the last two sentences. That closes the loop.
