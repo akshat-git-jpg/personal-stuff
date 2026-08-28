@@ -155,3 +155,70 @@ skips it both ways.
   out for now; revisit if you hit enough caption-less videos to need it.
 - **Video metadata** (title, channel) — that needs OAuth/the Data API; use the
   `youtube` MCP's `get_video` for that.
+
+---
+
+# pp-youtube — the Data API CLI (sibling tool)
+
+`pp-youtube` is the OAuth'd YouTube **Data API** CLI in this folder. It shares
+`tooling/mcp/google-shared` tokens with the gmail/sheets/drive CLIs.
+`pp-yt-transcript` above needs no auth; this one does.
+
+```bash
+./pp-youtube accounts                                       # who has a token
+./pp-youtube channel <id|@handle> --account <email>
+./pp-youtube channel-videos <channel-id> --account <email> --max 300
+./pp-youtube video <id|url> --account <email>                # includes description
+./pp-youtube search "<query>" --account <email> --max 20
+./pp-youtube rss <channel-id>                               # no OAuth, no quota
+```
+
+## ⚠️ Which account can WRITE (read access proves nothing)
+
+`videos.list` returns any **public** video to **any** token. So a channel can
+read perfectly from an account that cannot change a byte of it — `videos.update`
+then returns a flat `403 Forbidden`. Ask `channels.list(mine=true)` instead:
+
+| Channel | Owner account |
+|---|---|
+| **Agrollo Reviews** `UCXuXNNuyhtdsiw9bZr0pUxw` | `adelpaul2526@gmail.com` |
+| Kushal Bakliwal | `kushalbakliwal25@gmail.com` |
+| Seema Bakliwal | `seemabakliwal19@gmail.com` |
+
+**Adding an editor/manager in Studio → Permissions does NOT grant API write
+access.** The Data API ignores channel permissions entirely; a delegated
+account's token still 403s. Only the channel's own account, or a Content Owner
+(CMS) account needing an MCN agreement, can write.
+
+`adelpaul2526@gmail.com` holds a **YouTube-scope-only** token, deliberately
+narrower than the nine scopes `setup_auth.py` grants — a description editor has
+no business holding Gmail and Drive access. It is the one token in this repo
+created that way; re-create it with a one-scope consent, not `setup_auth.py`.
+
+**To test write access safely, do a no-op write**: read an object's current
+state and send it straight back. On the channel's lowest-view video that costs
+nothing and surfaces a 403 before you have changed anything real.
+
+## Gotchas
+
+- **`--max` above 50 used to lie.** `channel-videos` made one
+  `playlistItems().list` call and the API clamps a page to 50, so `--max 300` on
+  a 68-video channel returned 50 rows, **exit 0, no warning**. Fixed 2026-08-28
+  to follow `nextPageToken`. If you see a suspiciously round 50, suspect
+  pagination in whatever other subcommand you are using — `search`, `comments`
+  and `subscriptions` still pass `--max` straight through.
+- **`channel-videos` returns `description`.** Use it to identify a video
+  EXACTLY — e.g. by the `go.agrolloo.com/<code>/<tool>` links in it — rather
+  than by fuzzy title matching, which scored zero confident matches against
+  working titles like `higgsfiled vs openart vs synthesa`.
+- **`videos.update` REPLACES the part you send, it does not patch it.** A
+  `snippet` body without `title`/`categoryId`/`tags` **blanks them**. Always read
+  the live snippet and send it back whole with one field changed.
+- **A localization entry with no `title` is rejected** (`400
+  invalidVideoMetadata`), and `localizations` is also a full replace — omitting a
+  language **deletes that translation**.
+- **Read-after-write is lagged.** Verifying one second after an update can return
+  the old value. Poll a fresh `videos.list`; never verify from the update
+  *response*, which reorders `tags` and will look like a spurious mismatch.
+- Quota: `videos.update` is **50 units**, `videos.list`/`playlistItems` are 1,
+  `search.list` is 100. Default daily quota is 10,000.
