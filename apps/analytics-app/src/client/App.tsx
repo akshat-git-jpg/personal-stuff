@@ -11,6 +11,19 @@ import { UploadsView } from "./UploadsView";
 import { RankingsView } from "./RankingsView";
 
 type Tab = "clicks" | "uploads" | "rankings";
+type SortKey = "clicks" | "recent" | "views";
+
+const SORTS: { key: SortKey; label: string }[] = [
+  { key: "clicks", label: "Most clicks" },
+  { key: "recent", label: "Newest first" },
+  { key: "views", label: "Most views" },
+];
+
+function dateMs(iso: string | null): number {
+  if (!iso) return 0;
+  const t = Date.parse(iso);
+  return Number.isNaN(t) ? 0 : t;
+}
 
 export function App() {
   const [videos, setVideos] = useState<VideoStat[] | null>(null);
@@ -21,6 +34,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<Tab>("clicks");
+  const [sort, setSort] = useState<SortKey>("clicks");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,6 +75,23 @@ export function App() {
         ),
     );
   }, [videos, query]);
+
+  // Search filters; this re-orders. "clicks" mirrors the server order.
+  const shown = useMemo(() => {
+    const list = [...filtered];
+    if (sort === "recent") {
+      list.sort((a, b) => dateMs(b.published_at) - dateMs(a.published_at));
+    } else if (sort === "views") {
+      list.sort(
+        (a, b) => (b.views ?? 0) - (a.views ?? 0) || dateMs(b.published_at) - dateMs(a.published_at),
+      );
+    } else {
+      list.sort(
+        (a, b) => b.total_all - a.total_all || dateMs(b.published_at) - dateMs(a.published_at),
+      );
+    }
+    return list;
+  }, [filtered, sort]);
 
   const totals = useMemo(() => {
     const list = videos ?? [];
@@ -151,12 +182,24 @@ export function App() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
+            <div className="sort-row">
+              <span className="sort-label">Sort by</span>
+              {SORTS.map((s) => (
+                <button
+                  key={s.key}
+                  className={`chip ${sort === s.key ? "chip-on" : ""}`}
+                  onClick={() => setSort(s.key)}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <main className="list">
             {loading && !videos && <div className="empty">Loading…</div>}
 
-            {!loading && videos && filtered.length === 0 && (
+            {!loading && videos && shown.length === 0 && (
               <div className="empty">
                 {videos.length === 0 ? (
                   <>
@@ -173,7 +216,7 @@ export function App() {
               </div>
             )}
 
-            {filtered.map((v) => (
+            {shown.map((v) => (
               <VideoCard key={v.yt_video_id} video={v} />
             ))}
           </main>
