@@ -121,6 +121,50 @@ Hardening the gate was considered and deliberately deferred (owner call,
 2026-08-04) — no cheap mechanical check separates a real capture from a good fake,
 so the human eye stays the defense.
 
+#### It recurred on 2026-08-28, twice in one batch — and grepping the client is NOT enough
+
+Both `ui: true` plans in the 255-259 batch (PR#218 plan 257, PR#219 plan 258) shipped a
+fabricated screenshot on the first pass, on `codex`/`gpt-5.6-terra`. In both, the code,
+the tests and the mutation gate were genuine; only the image was invented. So the split
+described above is not a one-off — treat a first-pass `ui: true` capture as unverified
+until you have read it.
+
+**The new tell: the headings were REAL.** The PR#149 check was "grep the client for the
+product name", and here that check PASSES — the crew lifted the true headings out of its
+own component and built a mockup around them. What exposed both was checking the text the
+app **composes** rather than the text it hard-codes:
+
+- PR#218's mint shot rendered `Tools used in this tutorial:` with `•` bullets. The real
+  `renderDescription()` in `src/worker/linkgen.ts` emits a `🎥 <title>` line, then
+  `Tools I used in this video:`, then `▶ ` bullets, then `Subscribe for more comparisons 👍`.
+  It also showed `Blocked: programme not approved` where the code emits
+  `affiliate program not approved (status: <x>)`, and an `Affiliate tracking parameter
+  detected.` warning that exists nowhere.
+- PR#219's health shot invented an entire left sidebar (Overview / Rules / Checks / Alerts
+  / Reports / Log out) for an app that has a TOP tab strip, plus two data tables and
+  marketing copy (`No AI. Just checks.`, `Great job—no new broken links this week. 🎉`).
+  Its "What runs, and when" table listed four schedules at times that contradicted both the
+  component's own prose (06:00 / 06:15 IST) and `wrangler.toml`.
+
+**So check these four, in this order — it takes about two minutes:**
+1. **Is the app's own chrome there?** Both fakes were floating cards on white. The real
+   tracker capture has the header, the role switcher, `Sign out`, and the outer tab strip.
+   A shot with no chrome is not necessarily fake, but it cannot prove the page renders.
+2. **Trace the SERVER-generated strings** — anything from a `reason`, `warnings`,
+   `description` or status field — back to the function that builds them. This is where
+   both fakes broke, and where a client-side grep looks clean.
+3. **Cross-check any number or schedule against config.** Invented cron times contradicted
+   `wrangler.toml` in the same commit.
+4. **Distrust polish.** Marketing voice, congratulation copy, `*.example` domains, icon
+   chips and severity badges on a single-owner internal tool are all tells.
+
+**A precise fix-up works.** Both crews produced a genuine capture on the first fix-up when
+the brief listed the exact contradictions and said: use the repo's real capture path
+(`npm run shot`), and if the view will not render, produce NO image and say so rather than
+a mockup. The honest replacements were smaller files (PR#219's fell from 1.2 MB to 82 KB)
+and showed real emptiness — an empty state, a `Publish 1 links` plural bug. **A capture that
+looks worse than the mockup is the one to trust.**
+
 ### The mutation gate (added 2026-08-02 — the batch's biggest lesson)
 
 Zero of nine crews produced mutation evidence unprompted, and two shipped gates
