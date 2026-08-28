@@ -217,7 +217,7 @@ export async function getAuthMode(): Promise<{ dev: boolean }> {
 // ── Affiliate-link generation ────────────────────────────────────────────────
 
 export type ToolStatus = "affiliate" | "external" | "blocked";
-export interface LinkPlanItem { slug: string; displayName: string; short_url: string; target_url: string; status: ToolStatus; coupon: string; reason?: string; }
+export interface LinkPlanItem { slug: string; displayName: string; short_url: string; target_url: string; status: ToolStatus; coupon: string; reason?: string; warnings?: string[]; }
 export interface PreviewResult { video_code: string; items: LinkPlanItem[]; description: string; warnings: string[]; blocked: LinkPlanItem[]; plan_hash: string; }
 export interface ConfirmResult { ok: boolean; video_code: string; items: LinkPlanItem[]; description: string; }
 export interface DriftRow { row_id: string; video_title: string; slug: string; tool: string; minted_url: string; current_url: string; kind: "url_changed" | "deactivated" | "missing"; }
@@ -303,8 +303,8 @@ export async function linkDrift(): Promise<{ drift: DriftRow[] }> {
   return res.json() as Promise<{ drift: DriftRow[] }>;
 }
 
-export async function linkResync(slug: string): Promise<ResyncResult> {
-  const res = await postJSON("/api/link-resync", { slug });
+export async function linkResync(slug: string, target_url?: string): Promise<ResyncResult> {
+  const res = await postJSON("/api/link-resync", { slug, target_url });
   if (!res.ok) {
     if (res.status === 401) throw new UnauthorizedError();
     let msg = `Couldn't resync link (HTTP ${res.status})`;

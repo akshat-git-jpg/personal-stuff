@@ -1310,7 +1310,7 @@ app.get("/api/link-drift", async (c) => {
 app.post("/api/link-resync", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  let body: { slug?: string };
+  let body: { slug?: string; target_url?: string };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
   const slug = (body.slug ?? "").trim();
   if (!slug) return c.json({ error: "slug is required" }, 400);
@@ -1320,17 +1320,17 @@ app.post("/api/link-resync", async (c) => {
   if (!linkRow) return c.json({ error: "link not found" }, 404);
   
   const affiliates = await cachedAffiliates(c.env);
-  
   const rec = affiliates[linkRow.tool];
-  if (!rec || !rec.isApproved || !rec.targetUrl.trim()) {
-    return c.json({ error: "conflict", message: "Program is not approved or has no URL in sheet." }, 409);
+  const requestedUrl = body.target_url?.trim();
+  if (!requestedUrl && (!rec || !rec.isApproved || !rec.targetUrl.trim())) {
+    return c.json({ error: "conflict", message: "Program is not approved or has no URL in the catalogue." }, 409);
   }
   
   // This path writes KV directly, bypassing resolveSelection, so it needs the
   // same validation — otherwise a bad sheet cell can still reach the redirector.
-  const norm = normalizeTargetUrl(rec.targetUrl);
+  const norm = normalizeTargetUrl(requestedUrl || rec!.targetUrl);
   if (!norm) {
-    return c.json({ error: "conflict", message: `The sheet link for ${linkRow.tool} is not a usable URL: ${JSON.stringify(rec.targetUrl.trim().slice(0, 60))}` }, 409);
+    return c.json({ error: "conflict", message: "The new destination is not a usable URL." }, 409);
   }
   const url = norm.url;
   await clickstore.updateLinkTarget(db, slug, url);
