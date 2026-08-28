@@ -49,22 +49,82 @@ describe("structuralIssues", () => {
   it("LINKGUARD_GATE recognizes a healthy catalogue", () => expect(structuralIssues({ programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })], links: [{ slug: "v/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }], kv: { "v/openart": "https://openart.ai/?via=seema" } })).toEqual([]));
   it("LINKGUARD_GATE orders issues stably", () => expect(structuralIssues({ programs: [prog({ slug: "b", target_url: "bad" }), prog({ slug: "a", target_url: "bad" })], links: [], kv: {} }).map((issue) => issue.slug)).toEqual(["a", "b"]));
   it("LINKGUARD_GATE flags a video with links but no YouTube mapping", () => {
-    const issues = structuralIssues({ programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })], links: [{ slug: "vcfX/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }], kv: { "vcfX/openart": "https://openart.ai/?via=seema" }, videos: { vcfX: null } });
+    const issues = structuralIssues({ programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })], links: [{ slug: "vcfX/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }], kv: { "vcfX/openart": "https://openart.ai/?via=seema" }, videos: { vcfX: null }, clicks: { vcfX: 12 } });
     const issue = issues.find((item) => item.code === "unmapped_video");
     expect(issue).toBeDefined();
     expect(issue!.slug).toBe("vcfX");
     expect(issue!.detail).toContain("invisible in analytics");
+    expect(issue!.detail).toContain("12 recorded clicks");
   });
   it("LINKGUARD_GATE does not flag a mapped video", () => {
-    const issues = structuralIssues({ programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })], links: [{ slug: "vcfX/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }], kv: { "vcfX/openart": "https://openart.ai/?via=seema" }, videos: { vcfX: "TaBrgRQSqeU" } });
+    const issues = structuralIssues({ programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })], links: [{ slug: "vcfX/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }], kv: { "vcfX/openart": "https://openart.ai/?via=seema" }, videos: { vcfX: "TaBrgRQSqeU" }, clicks: { vcfX: 12 } });
     expect(issues.map((issue) => issue.code)).not.toContain("unmapped_video");
   });
   it("LINKGUARD_GATE reports an unmapped video once even with multiple links", () => {
-    const issues = structuralIssues({ programs: [prog({ slug: "a", target_url: "https://a.example/?ref=1" }), prog({ slug: "b", target_url: "https://b.example/?ref=1" })], links: [{ slug: "vcfX/a", tool: "a", target_url: "https://a.example/?ref=1", kind: "affiliate" }, { slug: "vcfX/b", tool: "b", target_url: "https://b.example/?ref=1", kind: "affiliate" }], kv: { "vcfX/a": "https://a.example/?ref=1", "vcfX/b": "https://b.example/?ref=1" }, videos: { vcfX: null } });
+    const issues = structuralIssues({ programs: [prog({ slug: "a", target_url: "https://a.example/?ref=1" }), prog({ slug: "b", target_url: "https://b.example/?ref=1" })], links: [{ slug: "vcfX/a", tool: "a", target_url: "https://a.example/?ref=1", kind: "affiliate" }, { slug: "vcfX/b", tool: "b", target_url: "https://b.example/?ref=1", kind: "affiliate" }], kv: { "vcfX/a": "https://a.example/?ref=1", "vcfX/b": "https://b.example/?ref=1" }, videos: { vcfX: null }, clicks: { vcfX: 3 } });
     expect(issues.filter((issue) => issue.code === "unmapped_video")).toHaveLength(1);
   });
   it("LINKGUARD_GATE omits mapping checks when no mapping is supplied", () => {
     const issues = structuralIssues({ programs: [prog({ slug: "a", target_url: "https://a.example/?ref=1" })], links: [{ slug: "vcfX/a", tool: "a", target_url: "https://a.example/?ref=1", kind: "affiliate" }], kv: { "vcfX/a": "https://a.example/?ref=1" } });
+    expect(issues.map((issue) => issue.code)).not.toContain("unmapped_video");
+  });
+
+  // Drafts. Minting a short link happens while a video is still being made, so
+  // "has links, no YouTube id" described 8 unpublished drafts on 2026-08-28 and
+  // nothing else - zero clicks between them, and none of their short links in
+  // any of the channel's 68 published descriptions. Eight daily cards the owner
+  // could do nothing about is how a guard trains you to stop reading it.
+  it("LINKGUARD_GATE does not flag an unmapped video with no clicks", () => {
+    const issues = structuralIssues({
+      programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })],
+      links: [{ slug: "R1k8/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }],
+      kv: { "R1k8/openart": "https://openart.ai/?via=seema" },
+      videos: { R1k8: null },
+      clicks: { R1k8: 0 },
+    });
+    expect(issues.map((issue) => issue.code)).not.toContain("unmapped_video");
+    expect(issues).toEqual([]);
+  });
+
+  // A code absent from the clicks map means zero, not unknown.
+  it("LINKGUARD_GATE treats a code missing from the clicks map as a draft", () => {
+    const issues = structuralIssues({
+      programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })],
+      links: [{ slug: "R1k8/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }],
+      kv: { "R1k8/openart": "https://openart.ai/?via=seema" },
+      videos: { R1k8: null },
+      clicks: {},
+    });
+    expect(issues.map((issue) => issue.code)).not.toContain("unmapped_video");
+  });
+
+  // The mirror, and the reason the check exists at all: one recorded click is
+  // proof the link is published and its traffic cannot be attributed. This is
+  // the case that was live earlier on 2026-08-28, when visible clicks read 2
+  // against a real 55 because most videos carried no YouTube id.
+  it("LINKGUARD_GATE flags an unmapped video the moment it has a click", () => {
+    const issues = structuralIssues({
+      programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })],
+      links: [{ slug: "R1k8/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }],
+      kv: { "R1k8/openart": "https://openart.ai/?via=seema" },
+      videos: { R1k8: null },
+      clicks: { R1k8: 1 },
+    });
+    const issue = issues.find((item) => item.code === "unmapped_video");
+    expect(issue).toBeDefined();
+    // Singular for one click - the owner reads these in Telegram.
+    expect(issue!.detail).toContain("1 recorded click ");
+  });
+
+  // Supplying videos without clicks skips the check rather than reporting every
+  // draft, so a caller that cannot count clicks degrades to silence.
+  it("LINKGUARD_GATE skips the mapping check when clicks are not supplied", () => {
+    const issues = structuralIssues({
+      programs: [prog({ slug: "openart", target_url: "https://openart.ai/?via=seema" })],
+      links: [{ slug: "R1k8/openart", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate" }],
+      kv: { "R1k8/openart": "https://openart.ai/?via=seema" },
+      videos: { R1k8: null },
+    });
     expect(issues.map((issue) => issue.code)).not.toContain("unmapped_video");
   });
   it("LINKGUARD_GATE buildReport is silent with nothing to say", () => expect(buildReport([], 0, 3, false)).toBeNull());

@@ -157,22 +157,44 @@ def cmd_channel(args) -> str:
 
 
 def cmd_channel_videos(args) -> str:
+    """Recent uploads, paginated.
+
+    The YouTube API caps playlistItems at 50 per page whatever `maxResults`
+    says, so a single call silently truncated any channel with more uploads
+    than that: `--max 300` on a 68-video channel returned 50 rows and reported
+    no problem, while the help text promised "any depth". Fixed 2026-08-28 —
+    follow nextPageToken until `--max` is satisfied or the playlist runs out.
+
+    `description` rides along because it is already in the snippet we fetch. It
+    is what lets a caller match a video by the go.agrolloo.com short links in
+    its description, which is exact, rather than by fuzzy title similarity.
+    """
     svc = _service(args.account)
     uploads = _channel_summary(_resolve_channel(svc, args.channel))["uploadsPlaylistId"]
     if not uploads:
         return "Channel has no uploads playlist."
-    resp = svc.playlistItems().list(
-        part="snippet,contentDetails", playlistId=uploads, maxResults=args.max
-    ).execute()
-    rows = []
-    for item in resp.get("items", []):
-        c = item.get("contentDetails", {})
-        rows.append({
-            "videoId": c.get("videoId"),
-            "title": (item.get("snippet", {}) or {}).get("title"),
-            "publishedAt": c.get("videoPublishedAt"),
-            "url": f"https://youtu.be/{c.get('videoId')}" if c.get("videoId") else None,
-        })
+
+    rows, token = [], None
+    while len(rows) < args.max:
+        resp = svc.playlistItems().list(
+            part="snippet,contentDetails",
+            playlistId=uploads,
+            maxResults=min(50, args.max - len(rows)),
+            pageToken=token,
+        ).execute()
+        for item in resp.get("items", []):
+            c = item.get("contentDetails", {}) or {}
+            snip = item.get("snippet", {}) or {}
+            rows.append({
+                "videoId": c.get("videoId"),
+                "title": snip.get("title"),
+                "description": snip.get("description"),
+                "publishedAt": c.get("videoPublishedAt"),
+                "url": f"https://youtu.be/{c.get('videoId')}" if c.get("videoId") else None,
+            })
+        token = resp.get("nextPageToken")
+        if not token:
+            break
     return _dump(rows)
 
 
