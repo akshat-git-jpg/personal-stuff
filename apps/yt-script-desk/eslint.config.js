@@ -16,5 +16,13 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // A leading underscore means "this argument exists for its TYPE, not its
+      // value". `vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => ...)`
+      // has to declare both so `fetchMock.mock.calls[0][0]` is typed at all —
+      // deleting them to satisfy the rule breaks `tsc`. This is the rule option
+      // that exists for exactly that case; it narrows nothing else.
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
   },
 ])
