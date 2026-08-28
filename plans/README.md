@@ -1394,3 +1394,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 255-programs-table-and-sheet-migration — PR#216 255-programs-table-and-sheet-migration: programs table + full Google Sheet migration — DONE
 - 256-links-tab-programs-view — PR#217 256-links-tab-programs-view: Links tab — Programs view, Add and Edit — DONE
 - 259-close-the-youtube-mapping-gap — nothing ever wrote videos.yt_video_id; 54 of 69 clicks were invisible — TODO (needs 257, 258)
+- 257-tracking-links-view-and-mint-move — PR#218 257-tracking-links-view-and-mint-move: Tracking links view, and minting moves out of the video card — DONE
