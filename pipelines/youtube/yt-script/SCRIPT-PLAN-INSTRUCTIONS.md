@@ -31,8 +31,17 @@ this file was the only one the step had been told to open.
 Two halves, two standards:
 
 - **Intro and conclusion — finished verbatim copy.** Nothing left to decide.
-- **Body — lane blocks.** Every beat carries the same lanes in the same order,
-  so his eye learns one position and never asks "is this something I say?"
+- **Body — section cards.** One card per section: the section heading, one flat
+  `**NOTES**` bullet list, and one thing for him to write. No sub-beats, no
+  second kind of note, nothing to look up in a different box.
+
+**The body changed shape on 2026-08-29.** It used to be five to seven `#### 2.n`
+beats per section, each carrying its own `SAY` draft, `VIDEO` lane and `FACTS`
+block — around fifty beats for an eleven-section video. Owner: *"there are
+currently too much spoon feeding and too much information which we are giving...
+I want high level section distinction and their information that's it don't
+break down too much that it's cluttering everything and removes the creative
+freedom from the freelancer."* See `TASTE.md` T13.
 
 ---
 
@@ -54,6 +63,7 @@ anywhere.
 | `#### 2.3 · HeyGen` | A beat |
 | `**SAY**` alone on a line, then a `>` blockquote | Amber chip, serif text, amber rail |
 | `**VIDEO**` alone on a line, then plain lines | Everything to do with the picture — filming, screen-recording and post |
+| `**NOTES**` alone on a line, then `- ` bullet lines | A body section CARD: the whole brief for that section, in one block |
 | `**FACTS**` alone on a line, then plain lines | Slate chip, sans text — numbers for this beat |
 | `**DEMO**` alone on a line, then plain lines | A silent block in the LEFT track — something plays, nobody speaks |
 | `**SAY** — lip-sync` | Same, with a small caption under the chip |
@@ -72,6 +82,76 @@ For multi-paragraph spoken copy, keep every line inside the blockquote and
 separate paragraphs with a bare `>`.
 
 ---
+
+## The NOTES lane — a body section card
+
+**A body section is ONE card.** The section heading, one flat bullet list, one
+write box. That is the whole of the body format.
+
+```
+### SECTION: What makes it look like Vox
+
+**NOTES**
+- Show what this style actually is. No tool on screen yet.
+- The background never moves. Cutouts move on top of it.
+- Rough paper texture, and a jerky frame rate on purpose.
+- Five parts in every scene: text, main object, background, small extras, camera.
+- Maps draw themselves. Captions land on the beat.
+- Say plainly it suits numbers and history, not every topic.
+- Use real Vox clips. Never a made-up stand-in.
+- Sources: Joseph https://youtu.be/PaXuebdY75U · Leo Ai https://youtu.be/WCDhGKNVrKU
+```
+
+**There is no `####` heading under a card.** `lib/beats.mjs` synthesizes the beat
+from the section, numbers it `<part>.<n>` in order, and titles it with the section
+name. The desk shows the section heading, one write box and one block headed
+**Notes**.
+
+**One bullet, one idea.** A bullet is a line, not a paragraph. If it needs an
+"and" to carry a second idea, it is two bullets.
+
+**What goes in the list, in this order:**
+
+1. **What the section has to do.** One bullet. The goal, not the route to it.
+2. **The points that are not obvious.** The things a good maker would otherwise
+   get wrong, or that the video depends on. Usually four to eight bullets.
+3. **The real values.** Settings, prices, model names, menu paths, numbers — every
+   one straight from `knowledge.md`. These are the reason he does not have to
+   guess, and they are never trimmed for brevity.
+4. **Any hard constraint, with its reason on the same line.** `Do not show the
+   OpenArt screen here — the intro reveal needs it hidden.`
+5. **`CTA — link in description`** where the section is a good place for one.
+6. **`Sources: <Name> <bare URL> · <Name> <bare URL>`** as the last bullet, for
+   every person the section names.
+
+**What does NOT go in it.** Craft. Pacing, cut rhythm, transition choice,
+framing, hold times, how to light a thing — his call, every time. A bullet a
+competent video person would do anyway is a bullet that makes the important ones
+harder to find.
+
+**Rough size: eight to thirteen bullets.** Below six and the section is probably
+two sections' worth of nothing. Past fifteen and the old spoon-feeding is back
+wearing bullet points. This is a range to sanity-check against, not a quota —
+merging two real bullets to hit a number helps nobody.
+
+### What this replaced, and why it is not coming back
+
+A section used to be five to seven `####` beats, each with a `SAY` draft, a
+`VIDEO` lane and sometimes a `FACTS` block. Three problems, all of them invisible
+to whoever wrote it:
+
+- **It read as thoroughness.** A fifty-beat plan looks more careful than an
+  eleven-card one. It is not; it is the same material cut into pieces too small
+  to act on.
+- **It took the job away from the person doing it.** Deciding how to break a
+  section into shots is what he is for.
+- **It split one brief across three boxes** — What to cover, Video notes, General
+  notes — sorted by which lane the writer happened to type a line into, which is
+  the writer's filing system leaking onto the reader's screen.
+
+**`SAY`, `VIDEO`, `FACTS` and `RULES` all still parse** so no older plan loses a
+line, and the desk folds every one of them into the same `Notes` block. **Never
+write them in a new body section.**
 
 ## The FACTS lane
 
@@ -114,6 +194,10 @@ older plan loses nothing. **Never write them in a new plan.** The desk shows one
 block, headed **Video notes**.
 
 ## Beat headings are labels, not descriptions
+
+**This applies to intro and conclusion beats only.** A body section is a card and
+has no `####` heading at all — see "The NOTES lane" above.
+
 
 **A beat's `####` heading carries a short label, and the maker never sees it as
 the beat's heading.** Owner, 2026-08-27, reading beats called `Cold open — a
@@ -217,42 +301,40 @@ to take care of things. No need to go too deep and too spoon-feeding. Just
 mention the goal and major points which you want to focus on. If there are any
 references, then we can add the references, that's it."*
 
-**A lane carries three things at most, in this order:**
+**Every bullet is one of three things:**
 
-1. **The goal.** One line. What this beat has to achieve on screen.
-2. **The points that are not obvious.** Only the ones a good maker would
-   otherwise get wrong, or that the video depends on. Usually one or two.
-3. **References.** A link, a number, a name — where he can go and look.
-
-Then stop. Anything a competent video person already knows is not written down.
+1. **The goal.** One bullet. What this section has to achieve on screen.
+2. **A point that is not obvious.** Only the ones a good maker would otherwise
+   get wrong, or that the video depends on.
+3. **A reference.** A link, a number, a setting, a name — where he can look.
 
 | Do not write | Write |
 |---|---|
 | `One second on each failure shot. No longer.`<br>`They are there to be recognised, not studied.`<br>`Keep the finished shot from 1.1 handy.`<br>`It comes back at the end of the video.` | `Three quick failure shots, about a second each.`<br>`Keep the 1.1 shot — it returns at the end.` |
 | `Each line appears as you say its name. No transitions between lines. Keep the list up through the last sentence. Then cut straight to the first body shot. No wipe.` | `The eleven section names build up one line at a time as you say them.` |
 
-**Three tests before a lane ships:**
+**Three tests before a bullet ships:**
 
-- **Would a good freelancer do this anyway?** Then cut the line.
+- **Would a good freelancer do this anyway?** Then cut the bullet.
 - **Is this taste, or is it a requirement?** Taste is his. Requirements are
   yours — and a requirement gets one line saying why, not four saying how.
 - **Could he look it up?** Then link it instead of explaining it.
 
-**The one thing that is never trimmed is a `FACTS` line.** Facts are the
-references, and references are what buys the autonomy — cutting them does not
-make the lane leaner, it makes it guesswork.
+**The one thing that is never trimmed is a fact.** A number, a price, a setting,
+a source link — those are the references, and references are what buys the
+autonomy. Cutting them does not make the card leaner, it makes it guesswork.
 
-**Where a beat genuinely has a hard constraint, say it once, plainly.** `Do not
-show the OpenArt screen in this beat — 1.2 needs it hidden` is one line and it
+**Where a section genuinely has a hard constraint, say it once, plainly.** `Do
+not show the OpenArt screen here — 1.2 needs it hidden` is one bullet and it
 stays. A rule with a reason survives. A rule with three sentences of coaching
 around it does not.
 
 ## Write the instructions like the script
 
-**Every lane obeys the same language rules as the spoken copy.** T8 (everyday
+**Every bullet obeys the same language rules as the spoken copy.** T8 (everyday
 words) and T10 (short sentences, one idea each) are not about the blockquote.
-They are about the whole document. A `VIDEO` lane written as one 60-word sentence
-of abstract direction is exactly as unusable as a spoken line written that way.
+They are about the whole document. A bullet written as one 60-word sentence of
+abstract direction is exactly as unusable as a spoken line written that way.
 
 Owner, 2026-08-28: *"all the instructions - i am finding too hard to understand.
 Can you please keep the instruction similarly a script? Basically simple and to
@@ -260,15 +342,15 @@ the point."*
 
 **Three rules, and they are the same three the script gets:**
 
-1. **One line per idea.** Break every lane onto separate lines the way a `SAY`
-   block is broken. If a lane is one long line with three ideas in it, it is
-   three lines.
+1. **One bullet per idea.** If a bullet is one long line with three ideas in
+   it, it is three bullets.
 2. **Everyday words.** No "unattended", "counterintuitive", "cohesive",
    "generalises", "brisk". If you would not say it to a friend, do not write it
-   in a lane.
-3. **An `Example:` line wherever the instruction is abstract.** This is the new
-   one. Any time a lane says *what* without saying *what that looks like*, the
-   next line starts with `Example:` and shows it.
+   in a bullet.
+3. **An `Example:` bullet wherever the instruction is abstract.** Any time a
+   bullet says *what* without saying *what that looks like*, the bullet under it
+   starts with `Example:` and shows it. Where you can make the first bullet
+   concrete instead, do that and drop the example — `TASTE.md` T12 beats T11.
 
 **The Example line is the fix that matters most**, because "be specific rather
 than calling it cluttered" is an instruction nobody can act on:
@@ -279,8 +361,8 @@ than calling it cluttered" is an instruction nobody can act on:
 | `A three-layer breakdown of one real shot.` | `Pull one real shot apart into its three layers.`<br>`Example: back layer is the sky, middle is the buildings, front is the person.` |
 | `Two topic examples, one that passes and one that does not.` | `Two topic examples side by side.`<br>`Example that passes: "why this shipping route changed the world."`<br>`Example that fails: "is this tool better than that one."` |
 
-**`FACTS` is one fact per line.** Never a paragraph of semicolons. The first pass
-on `vox-style-video-ai` put nine separate findings into a single 90-word sentence,
+**One fact per bullet.** Never a paragraph of semicolons. The first pass on
+`vox-style-video-ai` put nine separate findings into a single 90-word sentence,
 which is a wall the owner has to parse before he can check any one of them.
 
 **Where the instruction is already concrete, no example is needed.** `Hold the
@@ -295,11 +377,11 @@ Joseph"* — and to him those are three strangers with opinions. Owner, 2026-08-
 *"can we please add reference link wherever possible for my freelancer... you
 said Joseph's list, but I don't think my freelancer is aware of Joseph."*
 
-**Every section that names a person carries one reference line**, at the end of
-its first `FACTS` block, which reaches the desk as **General Notes**:
+**Every section that names a person carries one reference bullet**, as the LAST
+bullet of that section's `NOTES` list:
 
 ```
-Who these people are: Skai Generated https://youtu.be/Jkt4aTOpqpM · Luuk Alleman https://youtu.be/i5-tZegBvxU
+- Sources: Skai Generated https://youtu.be/Jkt4aTOpqpM · Luuk Alleman https://youtu.be/i5-tZegBvxU
 ```
 
 Only the people that section actually names. In first-mention order. Per section,
@@ -393,18 +475,17 @@ files rather than four plans.
 **The ASK lane is unaffected.** Leaving a question for Claude *in the document*
 is a different job from editing it, and this lane is still how it is done.
 
-## The rules box
+## The rules box — retired for the body
 
-Anything true for a whole section goes in a `RULES` blockquote directly under
-the section heading — **stated once**, never repeated inside each beat.
+**A body section carries no `RULES` box.** A rule true for the whole section is
+just a bullet in that section's `NOTES` list, because the card IS the section and
+there is nothing left for a rule to span.
 
-This is the single biggest readability fix. A rule like "never play a finished
-output in this section" is the instruction that breaks the video if missed.
-Buried in a paragraph it gets skimmed; restated in all five beats it becomes
-wallpaper.
+It existed to stop one instruction being restated in all five beats of a section.
+With one card per section there are no five beats, so the box has no job.
 
-If an instruction appears in more than one beat of a section, it belongs in the
-rules box instead.
+`RULES` still parses, and the desk still folds an older plan's box into that
+plan's `Notes` block. Never write one in a new body section.
 
 ## The intro — verbatim, no word limit
 
@@ -464,11 +545,12 @@ subscribe and sign off. Both monetisation beats always appear.
 conclusion CTAs. `SCRIPT-INSTRUCTIONS.md` has the cadence rules and the wording
 guidance; the plan's job is to **place** them.
 
-- Mark each one in the beat's `VIDEO` lane as `CTA — link in description`, in the
-  beat where the tool has just visibly done something well.
+- Mark each one as its own bullet in that section's `NOTES` list —
+  `CTA — link in description` — in a section where the tool has just visibly done
+  something well.
 - Spread them across the document. Never two in adjacent sections.
-- Never place one in a beat whose subject is a limitation or a failure fix.
-- Where a promo code or deal exists, say so in the lane so the writer knows to
+- Never place one in a section whose subject is a limitation or a failure fix.
+- Where a promo code or deal exists, say so in the bullet so the writer knows to
   name it.
 
 The maker will phrase them. Leaving the placement to him is how a video ends up
@@ -484,10 +566,10 @@ wearing his name. `SCRIPT-INSTRUCTIONS.md` has the pattern table.
 
 ## The body
 
-### Sections
+### Sections are the cards
 
 Named exactly as the intro's roadmap named them. Section count follows the
-material.
+material. **One section, one card, one `**NOTES**` list.**
 
 **`outline.md`'s first line carries `Format: tutorial` or `Format: comparison`.**
 Read it before writing a single section, and do not infer it from the section
@@ -496,60 +578,58 @@ names. The two shapes diverge here and stay diverged through step 100.
 **For a comparison**, organise **by factor with every tool swept inside each
 factor** — one Features section covering all tools, not one section per tool.
 Every section closes with a `> **VERDICT:**` line, because ranking is what the
-viewer came for.
+viewer came for. The verdict sits after the card's `NOTES` list.
 
 **For a tutorial**, sections are phases of the job in the order he performs them.
 
 - **No `> **VERDICT:**` line.** There is nothing being ranked, and a phase given
-  a verdict reads as a score on the maker's own work. Where a phase ends on a
-  real judgement — an approach picked at a fork, a setting that only suits one
-  case — that belongs in the beat's own lanes, not in a section-closing verdict.
-- **The `SAY` draft for a phase must carry the exact value** — the setting, the
-  menu path, the price, the model name — wherever `knowledge.md` has one. This
-  is the whole reason a viewer chose a tutorial over the tool's own docs.
-- **Give each phase's known failure mode a beat or a `VIDEO` note**, where the
-  knowledge names one. A tutorial that only shows the happy path is the one the
-  viewer abandons at the first error.
+  a verdict reads as a score on the maker's own work.
+- **The card must carry the exact values** — the setting, the menu path, the
+  price, the model name — wherever `knowledge.md` has one. This is the whole
+  reason a viewer chose a tutorial over the tool's own docs.
+- **Give each phase's known failure mode a bullet**, where the knowledge names
+  one. A tutorial that only shows the happy path is the one the viewer abandons
+  at the first error.
 - **Approaches the owner rejected at gate 020 get at most one section**, saying
   why the chosen one won. Never a second walkthrough. **This limits walkthroughs,
-  not material** - a technique, warning or framing from any source in
-  `knowledge.md` is fair game and combining them is expected. See the tutorial
-  rules in `OUTLINE-INSTRUCTIONS.md`. The one honesty limit: a price or setting
-  stays attached to the tool it came from and is never relabelled as the chosen
-  tool's.
+  not material** — a technique, warning or framing from any source in
+  `knowledge.md` is fair game and combining them is expected. The one honesty
+  limit: a price or setting stays attached to the tool it came from and is never
+  relabelled as the chosen tool's.
 
-### Beats
+### How many cards
 
-One beat per feature — one thing he can show and explain in a continuous
-stretch. Not one click, not a whole tool.
+**As many as the video has real phases, and no more.** Eleven is a long tutorial;
+six is a normal one. The test is whether you could show the list as title cards
+in the finished video without the viewer losing track — that is literally what
+they are.
 
-The `SAY` lane holds real spoken copy, written as a draft. He refines it into
-final script after exploring the tool, so give him something to react to rather
-than a blank page.
+A section that would need sub-headings to explain itself is two sections. A
+section whose bullets all say the same thing as its neighbour's is one section
+wearing two hats.
 
 ### The proof insert
 
-Where a section explains how to do something impressive, the first beat shows
-the **result** — the finished output, the real example. Motivation before
-mechanics.
+Where a section explains how to do something impressive, say in a bullet that the
+**result** is shown first — the finished output, the real example. Motivation
+before mechanics. How to shoot it is his call.
 
 ### On-screen tables
 
-A `VIDEO` lane saying "on-screen graphic:" followed by a pipe table, then a
-following beat that walks the rows — one `**SAY** — <row>` lane per row. The
-table is what the viewer sees; the lanes under it are what he says while it's
-up.
-
----
+A pipe table may sit inside a card, under the `NOTES` list, where the video shows
+a real on-screen graphic. It is the content of that graphic, not a shot list. Do
+not write a bullet per row: he reads the table.
 
 ## Hard rules
 
-- **Intro and conclusion are finished copy. Body beats are lanes.** Never mix.
+- **Intro and conclusion are finished copy. Body sections are cards.** Never mix.
+- **One card per body section.** No `####` beats in the body, no `SAY`, `VIDEO`,
+  `FACTS` or `RULES` block in a new one. They still parse, for older plans only.
 - **Lane labels sit alone on their line**, or the parser drops the lane.
 - **Spoken copy is always a blockquote. Nothing else is.** And a blockquote
   holds **only** what is said aloud — no notes, no labels, no bracketed
-  cross-references. Anything you want to say *about* the copy goes in `VIDEO`.
-- **Repeated instruction means it belongs in the rules box.**
+  cross-references. Anything you want to say *about* the copy is a bullet.
+- **A bullet a good freelancer would follow anyway does not get written.**
 - **Intro roadmap and section headings match word for word.**
 - **Every claim traces to `knowledge.md`.** No support, no line — raise the gap.
 - **No comparison section without a verdict.** A tutorial section carries none —

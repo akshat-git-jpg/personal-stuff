@@ -40,6 +40,7 @@ type Props = {
 // same thing in right view". A third vocabulary here would be a third thing to
 // learn for no reason.
 const BLOCK_LABEL: Record<string, string> = {
+  NOTES: 'Notes',
   VIDEO: 'Video notes',
   FACTS: 'Facts',
   ASK: 'Asked Claude',

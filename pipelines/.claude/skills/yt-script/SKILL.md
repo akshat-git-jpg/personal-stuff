@@ -1,6 +1,6 @@
 ---
 name: yt-script
-description: Turn owner-supplied knowledge into a YouTube outline, then a beat-by-beat script plan, then a VO-ready final script. Fourteen numbered steps with six owner gates, tabulated in the skill body, each with its own folder under pipelines/youtube/yt-script/steps/. Triggers on "yt-script", "outline for <video>", "write the outline", "write the script plan", "publish to the desk", "here's the completed draft", "finalise the script", "make it VO-ready".
+description: Turn owner-supplied knowledge into a YouTube outline, then a script plan of section cards, then a VO-ready final script. Fourteen numbered steps with six owner gates, tabulated in the skill body, each with its own folder under pipelines/youtube/yt-script/steps/. Triggers on "yt-script", "outline for <video>", "write the outline", "write the script plan", "publish to the desk", "here's the completed draft", "finalise the script", "make it VO-ready".
 user-invocable: true
 metadata:
   author: kbtg
@@ -29,7 +29,7 @@ knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  scri
 | `020-approve-knowledge-human` | **[OWNER]** | You fill the gaps it found, then say go |
 | `030-write-outline-llm` | [LLM] | One page: sections and headings only, no script |
 | `040-approve-outline-human` | **[OWNER]** | You approve the direction, while it is cheap to change |
-| `050-write-script-draft-llm` | [LLM] | Expands the approved outline into the full beat-by-beat draft |
+| `050-write-script-draft-llm` | [LLM] | Turns the approved outline into the intro, the conclusion, and one card per body section |
 | `055-review-plan-human` | **[OWNER]** | You read the markdown and the local desk side by side, and give feedback |
 | `070-publish-desk-run` | [RUN] | Publishes and prints the freelancer URL |
 | `080-freelancer-writes-human` | **[OWNER]** | He records, writes his lines, tells you he is done |
@@ -126,7 +126,7 @@ desk.
 | `videos/<key>/knowledge.md` | 010 | Every source, as TEXT, plus the `# Approaches` menu where the topic has one. The only input later steps read |
 | `videos/<key>/sources/` | 010 | The originals — screenshots, fetched pages, transcripts. Provenance, tracked |
 | `videos/<key>/outline.md` | 030 | A table of contents plus a card per section. Carries `Format:` and `Target:`. The direction |
-| `videos/<key>/script-plan.md` | 050 | The beat-by-beat document the desk publishes |
+| `videos/<key>/script-plan.md` | 050 | The document the desk publishes: verbatim intro and conclusion, plus one card per body section |
 | `videos/<key>/script-draft.md` | 090 | The maker's completed work, verbatim. Provenance, tracked |
 | `videos/<key>/script.md` | 100 | The final VO script, human-readable |
 | `videos/<key>/script.json` | 100 | The per-section engine feed. Step 120's input |
@@ -209,6 +209,27 @@ Each step is a folder, so changing one is local:
   is room to slot one in.
 - **Kinds** are `llm` (Claude writes it), `run` (a command), `human` (the owner
   decides). A `human` step with a `gate` field is a hard stop.
+
+## The body is section cards, not beats
+
+**One body section, one card.** `### SECTION: <name>` followed by a single
+`**NOTES**` bullet list. No `####` heading, no `SAY`, no `VIDEO`, no `FACTS`, no
+`RULES`. The intro and the conclusion are unchanged: still verbatim copy in
+numbered beats.
+
+Owner, 2026-08-29: *"I want high level section distinction and their information
+that's it don't break down too much that it's cluttering everything and removes
+the creative freedom from the freelancer."* The body had been ~50 beats across 11
+sections, each beat with three lanes, and the desk sorted those lanes into three
+separate boxes. It is now 11 cards and one box.
+
+**The failure this prevents:** granularity reads as diligence. A fifty-beat plan
+looks more careful than an eleven-card one, right up to the moment somebody has
+to work from it, and by then it is the maker's problem rather than the writer's.
+
+`TASTE.md` T13 is the rule and `SCRIPT-PLAN-INSTRUCTIONS.md`, section **"The
+NOTES lane, a body section card"**, is the format. The old lanes still parse, for
+plans written before the change; never write them in a new one.
 
 ## The `humanizer` skill writes the spoken words
 

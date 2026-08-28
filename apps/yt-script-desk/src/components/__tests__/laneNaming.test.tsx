@@ -1,27 +1,28 @@
-// The owner's rule, 2026-08-23: "whatever is in toggles, same thing in right
-// view." Before this, the chip said "Recording notes" and the block header said
-// "RECORDING", three of four chips were called "notes", and nothing said which
-// chip hid which block. These tests make the rule machine-checkable so a future
-// rename of one side alone fails instead of quietly drifting.
+// The right column is ONE block, headed `Notes`.
+//
+// It was three — `What to cover`, `Video notes`, `General notes` — one per lane
+// in the markdown, each with its own chip on the rail. Owner, 2026-08-29:
+// *"remove those sections about video notes separately, general notes
+// separately, everything else. Just need a simple bullet points on what to do
+// inside that video, and let the freelancer who will be working on this script
+// and video take care of the things."*
+//
+// These tests hold that shape. The old rule they replace — "whatever is in
+// toggles, same thing in right view" (2026-08-23) — is not gone: with one block
+// and no lane chips there is nothing left to drift apart.
 
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { WriteView } from '../WriteView'
 import { ToggleRail } from '../ToggleRail'
-import { makeReadBeat, makeWriteBeat } from '../../test/fixtures'
+import { makeReadBeat, makeWriteBeat, makeCardBeat } from '../../test/fixtures'
 import type { Prefs } from '../../hooks/usePrefs'
 
 const ALL_ON: Prefs = {
   instructions: true,
-  whatToCover: true,
-  videoNotes: true,
-  generalNotes: true,
   beatLabels: true,
   scriptNotes: false,
 }
-
-// The master is deliberately NOT here — it names the column, not a block.
-const LANE_LABELS = ['What to cover', 'Video notes', 'General notes']
 
 function noop() {}
 
@@ -44,19 +45,51 @@ function railLabels(): string[] {
   return Array.from(document.querySelectorAll('.chip')).map((c) => (c.textContent ?? '').trim())
 }
 
-describe('a toggle and its block say the same words', () => {
-  it('every lane chip in the rail names a block the right column can render', () => {
+describe('the rail carries one switch, and it names the column', () => {
+  it('has Instructions and nothing else', () => {
     render(<ToggleRail prefs={ALL_ON} setPrefs={noop} />)
-    const labels = railLabels()
-
-    expect(labels[0], 'the master chip must come first').toBe('Instructions')
     expect(
-      labels.slice(1),
-      'LANE_NAME_DRIFT: the rail chips no longer match the right-column block headers',
-    ).toEqual(LANE_LABELS)
+      railLabels(),
+      'LANE_CHIPS_BACK: a per-lane chip has returned, but the column is one block',
+    ).toEqual(['Instructions'])
   })
 
-  it('renders each block under exactly the label its chip uses', () => {
+  it('drops the whole right column when it is off', () => {
+    const beat = makeWriteBeat({ video: ['Film the panel.'] })
+    renderView([beat], { ...ALL_ON, instructions: false })
+    expect(document.querySelectorAll('[data-testid="right-cell"]').length).toBe(0)
+  })
+})
+
+describe('a body section card', () => {
+  it('shows its bullets under one header called Notes', () => {
+    renderView([makeCardBeat()])
+
+    expect(screen.getByText('Notes')).toBeTruthy()
+    expect(screen.getByText(/Show what the style actually is/)).toBeTruthy()
+    expect(screen.getByText(/The background never moves/)).toBeTruthy()
+  })
+
+  it('is headed by the section name, and gives the maker one write box', () => {
+    renderView([makeCardBeat()])
+
+    // Twice on purpose: the group heading above the card, and the card's own
+    // margin label. Both read the section name, because the card IS the section.
+    expect(screen.getAllByText('What makes it look like Vox').length).toBeGreaterThan(0)
+    expect(document.querySelectorAll('textarea').length).toBe(1)
+  })
+
+  it('never splits the brief into more than one block', () => {
+    renderView([makeCardBeat()])
+    const cell = document.querySelector('[data-testid="right-cell"]')
+    expect(cell?.querySelectorAll('.lane-label, h3, h4').length ?? 0).toBeLessThanOrEqual(1)
+  })
+})
+
+describe('a plan written in the older lane shape still reaches the reader', () => {
+  // SAY / VIDEO / FACTS / RULES lanes are still parsed, so an older
+  // script-plan.md must not lose a single line just because the column merged.
+  it('folds every old lane into the same Notes block', () => {
     const beat = makeWriteBeat({
       angle: ['Say roughly this.'],
       video: ['Film the panel, then trim the pause.'],
@@ -65,70 +98,18 @@ describe('a toggle and its block say the same words', () => {
     })
     renderView([beat])
 
-    for (const label of LANE_LABELS) {
-      expect(screen.getByText(label), `LANE_NAME_DRIFT: no block headed "${label}"`).toBeTruthy()
+    expect(screen.getByText('Notes')).toBeTruthy()
+    for (const line of [
+      'Say roughly this.',
+      'Film the panel, then trim the pause.',
+      'No scores yet.',
+      'It launched in 2024.',
+    ]) {
+      expect(screen.getByText(line), `LINE_LOST: "${line}" never reached the column`).toBeTruthy()
     }
-  })
-})
-
-describe('General notes merges the section rules with the beat facts', () => {
-  it('shows both under one header', () => {
-    const beat = makeWriteBeat({ rules: ['No scores yet.'], facts: ['It launched in 2024.'], angle: [], video: [] })
-    renderView([beat])
-
-    expect(screen.getByText('General notes')).toBeTruthy()
-    expect(screen.getByText('No scores yet.')).toBeTruthy()
-    expect(screen.getByText('It launched in 2024.')).toBeTruthy()
-    expect(screen.queryByText('Rules')).toBeNull()
-    expect(screen.queryByText('Facts')).toBeNull()
-  })
-
-  it('hides both when the toggle is off', () => {
-    const beat = makeWriteBeat({ rules: ['No scores yet.'], facts: ['It launched in 2024.'], angle: [], video: [] })
-    renderView([beat], { ...ALL_ON, generalNotes: false })
-
-    expect(screen.queryByText('No scores yet.')).toBeNull()
-    expect(screen.queryByText('It launched in 2024.')).toBeNull()
-  })
-})
-
-describe('What to cover is the body brief and has its own switch', () => {
-  it('shows the angle when on and hides it when off', () => {
-    const beat = makeWriteBeat({ angle: ['Say roughly this.'], video: [], rules: [], facts: [] })
-
-    const { unmount } = renderView([beat])
-    expect(screen.getByText('Say roughly this.')).toBeTruthy()
-    unmount()
-
-    renderView([beat], { ...ALL_ON, whatToCover: false })
-    expect(screen.queryByText('Say roughly this.')).toBeNull()
-  })
-})
-
-describe('Instructions is a master switch, and looks like one', () => {
-  it('disables every lane chip while it is off', () => {
-    render(<ToggleRail prefs={{ ...ALL_ON, instructions: false }} setPrefs={noop} />)
-    const chips = Array.from(document.querySelectorAll('.chip')) as HTMLButtonElement[]
-
-    expect(chips[0].disabled, 'the master itself must stay clickable').toBe(false)
-    for (const chip of chips.slice(1)) {
-      expect(
-        chip.disabled,
-        `MASTER_NOT_ENFORCED: "${chip.textContent?.trim()}" is clickable while Instructions is off, and changes nothing`,
-      ).toBe(true)
-    }
-  })
-
-  it('leaves every lane chip clickable while it is on', () => {
-    render(<ToggleRail prefs={ALL_ON} setPrefs={noop} />)
-    const chips = Array.from(document.querySelectorAll('.chip')) as HTMLButtonElement[]
-    for (const chip of chips) expect(chip.disabled).toBe(false)
-  })
-
-  it('drops the whole right column when off', () => {
-    const beat = makeWriteBeat({ video: ['Film the panel.'] })
-    renderView([beat], { ...ALL_ON, instructions: false })
-    expect(document.querySelectorAll('[data-testid="right-cell"]').length).toBe(0)
+    expect(screen.queryByText('What to cover')).toBeNull()
+    expect(screen.queryByText('Video notes')).toBeNull()
+    expect(screen.queryByText('General notes')).toBeNull()
   })
 })
 
@@ -140,8 +121,7 @@ describe('no length number appears on either screen', () => {
   const LENGTH_NUMBER = /\d+\s*(words?|min\b|minutes?)/i
 
   it('the write screen shows no word count and no read time', () => {
-    const beat = makeWriteBeat({ angle: ['Say roughly this.'] })
-    renderView([beat])
+    renderView([makeCardBeat()])
     expect(
       document.body.textContent ?? '',
       'LENGTH_NUMBER_SHOWN: the write screen is displaying a word count or read time',
@@ -149,22 +129,18 @@ describe('no length number appears on either screen', () => {
   })
 
   it('the beat progress counter survives, because it counts beats not words', () => {
-    const beat = makeWriteBeat({ angle: ['Say roughly this.'] })
-    renderView([beat])
+    renderView([makeCardBeat()])
     expect(document.body.textContent ?? '').not.toMatch(/\bwords\b/i)
   })
 })
 
-// Outline authors write "**This is the one demo block of the video.**" in a
-// RULES lane. The instruction track printed the asterisks literally, which read
-// as broken text in the middle of General Notes (seen live 2026-08-23).
+// Plan authors write "**This is the one demo block of the video.**" in a note.
+// The instruction track printed the asterisks literally, which read as broken
+// text in the middle of the column (seen live 2026-08-23).
 describe('markdown emphasis in an instruction line', () => {
   it('renders bold instead of printing asterisks', () => {
-    const beat = makeWriteBeat({
-      rules: ['**This is the one demo block.** Everything else references it.'],
-      facts: [],
-      angle: [],
-      video: [],
+    const beat = makeCardBeat({
+      notes: ['- **This is the one demo block.** Everything else references it.'],
     })
     renderView([beat])
 

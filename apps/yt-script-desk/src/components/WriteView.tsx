@@ -86,29 +86,28 @@ export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSay
   )
 }
 
-// Every label here MUST equal the toggle label in ToggleRail — the owner's
-// rule is that the switch and the block say the same words, so nobody has to
-// work out which chip hid which block. `General Notes` deliberately merges the
-// section's RULES with the beat's FACTS: both are context to know, as opposed
-// to an action to take.
-const LANES: Array<{ pref: keyof Prefs; label: string; lines: (b: Beat) => string[] }> = [
-  { pref: 'whatToCover', label: 'What to cover', lines: (b) => b.angle ?? [] },
-  { pref: 'videoNotes', label: 'Video notes', lines: (b) => b.video },
-  { pref: 'generalNotes', label: 'General notes', lines: (b) => [...b.rules, ...b.facts] },
-]
+// ONE block. It was three — `What to cover`, `Video notes`, `General notes` —
+// one per lane in the markdown, each with its own switch on the rail.
+//
+// The owner read the result as clutter, on 2026-08-29: *"remove those sections
+// about video notes separately, general notes separately, everything else. Just
+// need a simple bullet points on what to do inside that video, and let the
+// freelancer who will be working on this script and video take care of the
+// things."* The person reading this column does one job on one section. Sorting
+// his brief into three boxes by which lane it was typed into is the writer's
+// filing system leaking into the reader's screen.
+//
+// Order is deliberate and is the order the markdown is read in: the section
+// card's own bullets, then anything an older plan put in its other lanes. A plan
+// written in the new shape has only `notes` and the rest are empty.
+function laneLines(b: Beat): string[] {
+  return [...b.notes, ...(b.angle ?? []), ...b.video, ...b.rules, ...b.facts]
+}
 
-function renderRightCell(beat: Beat, prefs: Prefs): ReactNode {
-  const blocks: ReactNode[] = []
-
-  for (const lane of LANES) {
-    if (!prefs[lane.pref]) continue
-    const lines = lane.lines(beat)
-    if (lines.length === 0) continue
-    blocks.push(<InstructionBlock key={lane.pref} label={lane.label} lines={lines} />)
-  }
-
-  if (blocks.length === 0) return <p className="right-empty">No instructions for this beat.</p>
-  return blocks
+function renderRightCell(beat: Beat, _prefs: Prefs): ReactNode {
+  const lines = laneLines(beat)
+  if (lines.length === 0) return <p className="right-empty">No notes for this section.</p>
+  return <InstructionBlock label="Notes" lines={lines} />
 }
 
 // Two inline marks, and only two. Outline authors emphasise with markdown -

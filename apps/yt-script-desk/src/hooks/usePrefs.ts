@@ -1,23 +1,25 @@
 import { useCallback, useState } from 'react'
 
-// One name per thing, and the SAME name on the toggle and on the block header
-// in the right column — owner's rule 2026-08-23. Three of the old four chips
-// were called "notes" and none of them said which was which.
+// `instructions` is now the ONLY switch over the right column, because the right
+// column is now one block.
+//
+// It used to be a master over three sub-chips — `What to cover`, `Video notes`,
+// `General notes` — one per lane. Those three went on 2026-08-29 with the lanes
+// they named. Owner: *"remove those sections about video notes separately,
+// general notes separately, everything else. Just need a simple bullet points on
+// what to do inside that video."* A switch that hides a third of one bullet list
+// is not a setting, it is a puzzle.
+//
+// Old stored prefs are harmless: `loadPrefs` spreads DEFAULTS first, so a
+// leftover `videoNotes: false` in localStorage is simply an unread key.
 export type Prefs = {
-  instructions: boolean // the whole right column; master switch for the four below
-  whatToCover: boolean // the body-beat brief (outline ANGLE)
-  videoNotes: boolean // everything to do with the picture: filming, screen-recording
-  // AND post. One lane since 2026-08-28; was two chips, `screenRecording` + `videoEditor`.
-  generalNotes: boolean // section rules + the beat's facts, merged
+  instructions: boolean // the whole right column
   beatLabels: boolean // the grey margin labels in the full script view
   scriptNotes: boolean // reserved; renders nothing yet
 }
 
 const DEFAULTS: Prefs = {
   instructions: true,
-  whatToCover: true, // the brief — on by default, or a body beat is a blank box
-  videoNotes: true, // was SHOW on / EDIT off; merged, the one lane defaults ON
-  generalNotes: true,
   beatLabels: true,
   scriptNotes: false,
 }
