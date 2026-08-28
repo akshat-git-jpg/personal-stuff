@@ -20,7 +20,7 @@ describe("programToAffiliateRecord", () => {
   });
   it("carries linkgen fields and keys catalogues by slug", () => {
     expect(programToAffiliateRecord(row({ slug: "z", coupon_code: "AGR25" })).couponCode).toBe("AGR25");
-    expect(Object.keys(programsToCatalog([row({ slug: "a" }), row({ slug: "b" })]).sort())).toEqual(["a", "b"]);
+    expect(Object.keys(programsToCatalog([row({ slug: "a" }), row({ slug: "b" })])).sort()).toEqual(["a", "b"]);
   });
 });
 
