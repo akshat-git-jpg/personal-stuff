@@ -4,7 +4,7 @@ executor: codex
 model: gpt-5.6-terra
 test_cmd: cd apps/tutorial-tracker-app && npm test
 ui: true
-deploy:
+deploy: cd apps/tutorial-tracker-app && npx wrangler d1 execute tracker-db --remote --file=migrations/0006_link_checks.sql && npm run deploy
 needs: ["255, 256 and 257 must land first"]
 needs_prs: [216, 217, 218]
 touches: [apps/tutorial-tracker-app/src/worker/linkguard.ts, apps/tutorial-tracker-app/src/worker/linkprobe.ts, apps/tutorial-tracker-app/src/worker/notify-telegram.ts, apps/tutorial-tracker-app/src/worker/index.ts, apps/tutorial-tracker-app/src/client/LinkHealth.tsx, apps/tutorial-tracker-app/src/client/LinksTab.tsx, apps/tutorial-tracker-app/wrangler.toml, apps/tutorial-tracker-app/migrations/0006_link_checks.sql, apps/tutorial-tracker-app/test/linkguard.test.ts, apps/tutorial-tracker-app/test/linkprobe.test.ts, apps/tutorial-tracker-app/test/link-health-ui.test.tsx]
