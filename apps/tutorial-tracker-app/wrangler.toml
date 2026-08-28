@@ -4,8 +4,11 @@ compatibility_date = "2026-05-01"
 compatibility_flags = ["nodejs_compat"]
 
 # Cloudflare cron is UTC. 00:30 UTC = 06:00 IST.
+# ONE trigger, not three: Workers Free caps cron triggers at 5 PER ACCOUNT and
+# vps-watchdog/founders-tracker/gym-app already hold three. scheduled() branches on
+# the date instead, so all three guard passes still happen on their own cadence.
 [triggers]
-crons = ["30 0 * * *", "45 0 * * 7", "0 1 1 * *"]
+crons = ["30 0 * * *"]
 
 [assets]
 directory = "./dist"

@@ -1401,10 +1401,13 @@ app.get("*", (c) => c.env.ASSETS.fetch(c.req.raw));
 
 Object.assign(app, {
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    if (event.cron === "30 0 * * *") { ctx.waitUntil(runStructural(env)); return; }
-    if (event.cron === "45 0 * * 7") { ctx.waitUntil(runChainProbe(env)); return; }
-    if (event.cron === "0 1 1 * *") { ctx.waitUntil(runUnverifiableDigest(env)); return; }
-    console.warn("unknown cron", event.cron);
+    // One cron drives all three passes (Workers Free allows 5 per ACCOUNT and three
+    // are already spent). Branch on the scheduled date, never on wall-clock now:
+    // a retried or delayed invocation must make the same decision.
+    const when = new Date(event.scheduledTime);
+    ctx.waitUntil(runStructural(env));
+    if (when.getUTCDay() === 0) ctx.waitUntil(runChainProbe(env));
+    if (when.getUTCDate() === 1) ctx.waitUntil(runUnverifiableDigest(env));
   },
 });
 
