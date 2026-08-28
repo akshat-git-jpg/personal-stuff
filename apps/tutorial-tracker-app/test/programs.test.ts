@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toSlug, validateTargetUrl } from "../src/worker/programs";
+import { networkLabel, normalizeNetwork, toSlug, validateTargetUrl } from "../src/worker/programs";
 
 describe("toSlug", () => {
   it("matches the sheet's slug shape", () => {
@@ -35,5 +35,40 @@ describe("validateTargetUrl", () => {
   });
   it("does not apply the dashboard rule to external tools", () => {
     expect(validateTargetUrl("https://app.example.com/home", "external").ok).toBe(true);
+  });
+});
+
+/**
+ * Networks are an OPEN vocabulary (owner request 2026-08-28): joining a new
+ * affiliate network must not require a code change. The old closed enum silently
+ * coerced anything unknown to "other", losing the real name.
+ */
+describe("normalizeNetwork / networkLabel", () => {
+  it("folds a typed name into a stable token", () => {
+    expect(normalizeNetwork("CJ Affiliate")).toBe("cj-affiliate");
+    expect(normalizeNetwork("Impact.com")).toBe("impact-com");
+    expect(normalizeNetwork("  ShareASale  ")).toBe("shareasale");
+    expect(normalizeNetwork("Awin!!")).toBe("awin");
+  });
+
+  it("falls back to other rather than rejecting the save", () => {
+    expect(normalizeNetwork("")).toBe("other");
+    expect(normalizeNetwork("   ")).toBe("other");
+    expect(normalizeNetwork("!!!")).toBe("other");
+    expect(normalizeNetwork(null)).toBe("other");
+  });
+
+  it("caps the token so a pasted essay cannot become a network", () => {
+    expect(normalizeNetwork("x".repeat(200)).length).toBe(40);
+  });
+
+  it("keeps the seeded labels", () => {
+    expect(networkLabel("impact")).toBe("Impact.com");
+    expect(networkLabel("partnerstack")).toBe("PartnerStack");
+  });
+
+  it("title-cases a brand-new network with no code change", () => {
+    expect(networkLabel("cj-affiliate")).toBe("Cj Affiliate");
+    expect(networkLabel("shareasale")).toBe("Shareasale");
   });
 });

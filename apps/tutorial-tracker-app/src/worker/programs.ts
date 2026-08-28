@@ -10,7 +10,43 @@ import { normalizeTargetUrl } from "./linkhealth";
 export const NETWORKS = [
   "website", "impact", "partnerstack", "paykickstart", "network", "other",
 ] as const;
-export type Network = (typeof NETWORKS)[number];
+/**
+ * A network is free text, not a closed set. NETWORKS below is only the seed list
+ * (the values that existed in the retired Google Sheet); the owner joins new
+ * affiliate networks regularly and must be able to name one without a code
+ * change. Stored values are normalized by `normalizeNetwork`.
+ */
+export type Network = string;
+
+/** Seed values, kept for the label map and as the dropdown's starting options. */
+export type SeedNetwork = (typeof NETWORKS)[number];
+
+/**
+ * Fold a typed network name into a stable stored token: lower-case, spaces and
+ * punctuation to single dashes. "Impact.com" -> "impact-com", "CJ Affiliate" ->
+ * "cj-affiliate". Empty or unusable input falls back to "other" rather than
+ * rejecting the save — the network is metadata, never the money path.
+ */
+export function normalizeNetwork(raw: string | null | undefined): Network {
+  const token = (raw ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!token) return "other";
+  return token.slice(0, 40);
+}
+
+/**
+ * Display name for any network token, seeded or new. Unknown tokens are
+ * title-cased from the token itself, so a network added today reads properly
+ * without a code change.
+ */
+export function networkLabel(token: string): string {
+  const seeded = (NETWORK_LABELS as Record<string, string>)[token];
+  if (seeded) return seeded;
+  return token
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
 
 export const APPROVAL_STATUSES = [
   "approved", "applied", "to_apply", "rejected", "unknown",
@@ -26,7 +62,7 @@ export const KINDS = ["affiliate", "external"] as const;
 export type Kind = (typeof KINDS)[number];
 
 /** Labels the UI shows. Keys must stay in sync with the arrays above. */
-export const NETWORK_LABELS: Record<Network, string> = {
+export const NETWORK_LABELS: Record<SeedNetwork, string> = {
   website: "Website", impact: "Impact.com", partnerstack: "PartnerStack",
   paykickstart: "PayKickstart", network: "Network", other: "Other",
 };
