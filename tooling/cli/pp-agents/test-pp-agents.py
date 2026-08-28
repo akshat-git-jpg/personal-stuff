@@ -360,6 +360,98 @@ with tempfile.TemporaryDirectory() as tmp:
 
 # ----------------------------------------------------------------- commands
 
+section("the daemon is asked for the state, not the file")
+with tempfile.TemporaryDirectory() as tmp:
+    # WHY THIS EXISTS: `state.json` is a snapshot the daemon flushes LATER, so a
+    # session working right now sits on `Needs input` for tens of seconds.
+    # Measured on the real machine: `api=working disk=done` for the session that
+    # was running the commands. No cleverer read of the file can fix that.
+    good = os.path.join(tmp, "claude-good")
+    with open(good, "w") as fh:
+        fh.write('#!/bin/sh\ncat <<\'EOF\'\n'
+                 '[{"id":"aaa1","state":"WORKING"},'
+                 ' {"id":"aaa2","state":"done"},'
+                 ' {"id":"bad"},'
+                 ' "not even an object",'
+                 ' {"id":"aaa3","state":""}]\nEOF\n')
+    os.chmod(good, 0o755)
+    os.environ["PP_AGENTS_CLAUDE"] = good
+    check("the daemon's answer is read as {id: state}",
+          mod.live_states() == {"aaa1": "working", "aaa2": "done"},
+          str(mod.live_states()))
+    check("a state is lower-cased, so it matches the record's vocabulary",
+          mod.live_states().get("aaa1") == "working")
+    check("a row with no state is skipped rather than stored as None",
+          "bad" not in mod.live_states() and "aaa3" not in mod.live_states())
+    check("the command asked is claude agents --json",
+          mod.agents_cmd()[1:] == ["agents", "--json"], str(mod.agents_cmd()))
+
+    junk = os.path.join(tmp, "claude-junk")
+    with open(junk, "w") as fh:
+        fh.write("#!/bin/sh\necho 'not json at all'\n")
+    os.chmod(junk, 0o755)
+    os.environ["PP_AGENTS_CLAUDE"] = junk
+    # None, not {}: "the daemon says nothing is running" and "I could not ask"
+    # must not look the same, or one failed call blanks every state on screen.
+    check("output that is not json reads as 'could not ask', not 'nothing running'",
+          mod.live_states() is None)
+
+    notlist = os.path.join(tmp, "claude-notlist")
+    with open(notlist, "w") as fh:
+        fh.write('#!/bin/sh\necho \'{"agents": []}\'\n')
+    os.chmod(notlist, 0o755)
+    os.environ["PP_AGENTS_CLAUDE"] = notlist
+    check("and so does json of the wrong shape", mod.live_states() is None)
+
+    os.environ["PP_AGENTS_CLAUDE"] = "/nonexistent/claude"
+    check("a missing binary is reported as 'could not ask', not raised",
+          mod.live_states() is None)
+    os.environ.pop("PP_AGENTS_CLAUDE", None)
+
+section("the daemon's answer wins over the record")
+_jobs = [
+    {"short": "aaa1", "state": "blocked", "detail": "pick A or B"},
+    {"short": "aaa2", "state": "done", "detail": "purged"},
+    {"short": "gone", "state": "working", "detail": "still going"},
+]
+mod.merge_live(_jobs, {"aaa1": "working", "aaa2": "done"})
+check("a stale Needs input becomes Working", _jobs[0]["state"] == "working")
+check("a row the daemon agrees with is unchanged", _jobs[1]["state"] == "done")
+check("a row the daemon never mentions keeps its record",
+      _jobs[2]["state"] == "working", _jobs[2]["state"])
+
+_idle = [{"short": "new1", "state": "blocked",
+          "detail": "(idle \u2014 send a prompt to start)"}]
+mod.merge_live(_idle, {"new1": "working"})
+# The daemon calls a named session with no prompt `working`, which is true of the
+# process and useless to a reader: it is waiting for YOU.
+check("a session waiting for its first prompt stays Needs input",
+      _idle[0]["state"] == "blocked", _idle[0]["state"])
+
+_keep = [{"short": "aaa1", "state": "blocked", "detail": ""}]
+mod.merge_live(_keep, None)
+check("no answer changes nothing", _keep[0]["state"] == "blocked")
+mod.merge_live(_keep, {})
+check("an empty answer changes nothing either", _keep[0]["state"] == "blocked")
+
+section("polling is skipped whenever it cannot pay for itself")
+# Each call is 0.24s of CPU and 190 MB of peak RSS. These three rules are what
+# make the common tick spend nothing at all.
+_now = time.time()
+_live_job = [{"state": "working"}]
+check("a live session and a recent keypress is worth a call",
+      mod.should_poll(_live_job, _now, _now) is True)
+check("nothing live means no state CAN change, so no call",
+      mod.should_poll([{"state": "done"}], _now, _now) is False)
+check("an unattended view costs nothing",
+      mod.should_poll(_live_job, _now - mod.LIVE_IDLE_STOP - 1, _now) is False)
+check("and a second call inside the interval is refused",
+      mod.should_poll(_live_job, _now, _now, last_poll_at=_now) is False)
+check("blocked counts as live too, since it is the state that goes stale",
+      mod.should_poll([{"state": "blocked"}], _now, _now) is True)
+check("an empty list has nothing to poll for",
+      mod.should_poll([], _now, _now) is False)
+
 section("a lingering child cannot stall a claude call")
 with tempfile.TemporaryDirectory() as tmp:
     # A command that prints, then leaves a child holding its output open. Read
@@ -585,6 +677,10 @@ def stub_claude(tmp, linger=2):
     done = os.path.join(tmp, "finished.log")
     jobs = os.path.join(tmp, "work", "jobs")
     path = os.path.join(tmp, "claude")
+    agents_json = os.path.join(tmp, "agents.json")
+    if not os.path.exists(agents_json):
+        with open(agents_json, "w") as fh:
+            json.dump([{"id": "aaa1", "state": "working", "name": "chargeback"}], fh)
     with open(path, "w") as fh:
         fh.write(
             "#!/bin/sh\n"
@@ -595,6 +691,10 @@ def stub_claude(tmp, linger=2):
             '  attach) printf "\\033[?1000h\\033[?1002h\\033[?1003h\\033[?1006h";\n'
             f'          echo "ATTACHED $2"; sleep {linger} & wait $!; printf "%s\\n" "$2" >> {done} ;;\n'
             '  logs)   echo "LOGS $2" ;;\n'
+            # The daemon's answer, deliberately CONTRADICTING the fixture on
+            # disk: aaa1 is recorded `blocked` and reported `working`, which is
+            # the real discrepancy this feature exists for.
+            f'  agents) cat {agents_json} ;;\n'
             '  stop)   echo "stopped $2" ;;\n'
             # `claude --bg` starts `claude daemon run`, which outlives the
             # command and keeps whatever it inherited open - a pipe held that way
@@ -672,7 +772,8 @@ def scrape(raw):
     return re.sub(r"\x1b[()][AB0-2]", "", text)
 
 
-def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True, linger=2):
+def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True, linger=2,
+          live=False):
     """Run the real pp-agents in a pty, wait until it has drawn, then send keys.
 
     Returns (first_screen, screen_after_keys, recorded_claude_calls).
@@ -698,6 +799,10 @@ def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True, linger=2):
         "PP_AGENTS_ACCOUNTS": f"work={os.path.join(tmp, 'work')}:personal={os.path.join(tmp, 'personal')}",
         "PP_AGENTS_PINS": os.path.join(tmp, "pins.json"),
         "PP_AGENTS_CLAUDE": binp,
+        # Off by default. Polling spawns a subprocess on a timer, and a test that
+        # is not about the daemon should not have one running underneath it.
+        "PP_AGENTS_LIVE": "1" if live else "0",
+        "PP_AGENTS_LIVE_POLL": "0",
     })
     pid, fd = pty.fork()
     if pid == 0:
@@ -1194,6 +1299,21 @@ drained = queued_after_cleanup(MOUSE_JUNK, drain=True)
 kept = queued_after_cleanup(MOUSE_JUNK, drain=False)
 check("queued mouse packets are thrown away on the way out", drained == 0, str(drained))
 check("without the drain they survive, so this test can actually fail", kept > 0, str(kept))
+
+section("end to end: the screen shows the daemon's state, not the file's")
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    # The fixture records aaa1 (`chargeback`) as blocked. The stub daemon reports
+    # it working. The screen must end up saying Working.
+    _f, after, calls = drive(tmp, [(b"g", "Working"), b"q"], live=True)
+    check("the daemon is asked", "agents --json" in calls, repr(calls[:200]))
+    check("and its answer reaches the screen", "Working" in after, after[-500:])
+
+with tempfile.TemporaryDirectory() as tmp:
+    fixture(tmp)
+    _f, _after, calls = drive(tmp, [b"q"])
+    check("with polling off nothing asks the daemon",
+          "agents" not in calls, repr(calls[:200]))
 
 section("end to end: a fold outlives the process")
 with tempfile.TemporaryDirectory() as tmp:

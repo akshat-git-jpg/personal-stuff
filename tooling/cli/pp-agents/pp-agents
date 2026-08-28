@@ -46,6 +46,7 @@ import subprocess
 import sys
 import tempfile
 import termios
+import threading
 import time
 import tty
 
@@ -308,6 +309,89 @@ def write_tag(job, tag):
 
 LIVE_STATES = ("working", "blocked")
 
+# Polling `claude agents --json`.
+#
+# Costs no tokens: it reads the local daemon, and returns fine with the network
+# blocked and a bogus API key. It costs 0.24s and 190 MB of peak RSS per call, so
+# the point of every number here is to make most ticks skip the call entirely.
+LIVE_POLL = float(os.environ.get("PP_AGENTS_LIVE_POLL", "5"))
+# Stop polling when the keyboard has been quiet this long: an unattended view in
+# a background tab should cost nothing at all.
+LIVE_IDLE_STOP = float(os.environ.get("PP_AGENTS_LIVE_IDLE_STOP", "120"))
+LIVE_ENABLED = os.environ.get("PP_AGENTS_LIVE", "1") != "0"
+
+
+def agents_cmd():
+    return [claude_bin(), "agents", "--json"]
+
+
+def live_states(timeout=8.0):
+    """`{short id: state}` straight from the daemon, or None if that failed.
+
+    None rather than an empty dict on purpose: "the daemon told me nothing is
+    running" and "I could not ask" must not look the same, or one failed call
+    would blank every state on screen.
+    """
+    try:
+        out = subprocess.run(agents_cmd(), stdin=subprocess.DEVNULL,
+                             capture_output=True, text=True,
+                             timeout=timeout).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    try:
+        rows = json.loads(out)
+    except (ValueError, TypeError):
+        return None
+    if not isinstance(rows, list):
+        return None
+    found = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        short, state = row.get("id"), row.get("state")
+        if isinstance(short, str) and isinstance(state, str) and state:
+            found[short] = state.lower()
+    return found
+
+
+def should_poll(jobs, last_key_at, now, last_poll_at=0.0):
+    """Whether this tick should spend a `claude agents --json` call.
+
+    Three ways to answer no, and between them they cover almost every tick:
+
+    - nothing on screen is `working` or `blocked`, so no state CAN change
+    - the keyboard has been quiet for `LIVE_IDLE_STOP`, so nobody is reading it
+    - the last call was less than `LIVE_POLL` ago
+    """
+    if not LIVE_ENABLED:
+        return False
+    if now - last_key_at > LIVE_IDLE_STOP:
+        return False
+    if now - last_poll_at < LIVE_POLL:
+        return False
+    return any(j.get("state") in LIVE_STATES for j in jobs)
+
+
+def merge_live(jobs, live):
+    """Let the daemon's answer win over the record, in place.
+
+    A session the daemon does not mention keeps its recorded state: it has
+    usually finished and been forgotten, and the file is the only account of it
+    left. The idle-waiting rule is re-applied afterwards because the daemon calls
+    a session with a name and no prompt `working`, which is true of the process
+    and useless to a reader - it is waiting for you.
+    """
+    if not live:
+        return jobs
+    for job in jobs:
+        state = live.get(job["short"])
+        if not state:
+            continue
+        if state == "working" and WAITING_FOR_PROMPT in (job.get("detail") or "").lower():
+            state = "blocked"
+        job["state"] = state
+    return jobs
+
 
 def delete_record(job):
     """Remove a session's record directory. The LAST resort, not the first.
@@ -547,8 +631,10 @@ def flatten(groups):
 def claude_bin():
     """The binary to drive. `PP_AGENTS_CLAUDE` lets the tests stub it out.
 
-    Only ever invoked with published subcommands - attach, logs, stop, --bg - so
-    a new Claude Code release cannot change what this means underneath us.
+    Only ever invoked with published subcommands - attach, logs, stop, rm, agents
+    and --bg - so a new Claude Code release cannot change what this means
+    underneath us. The private daemon sockets stay untouched: `agents --json` is
+    the supported way to ask the daemon what it knows.
     """
     override = os.environ.get("PP_AGENTS_CLAUDE")
     if override:
@@ -1234,6 +1320,12 @@ class App:
         self.attr, self.attr_sel = init_colours()
         self.mode = "tag"
         self.folded = load_folds(self.mode)
+        # What the daemon last said, `{short: state}`. Empty until the first poll
+        # answers, so the view opens on the recorded states rather than blank.
+        self.live = {}
+        self.live_thread = None
+        self.last_poll_at = 0.0
+        self.last_key_at = time.time()
         self.query = ""
         self.pins = load_pins()
         self.cursor = 0
@@ -1243,8 +1335,29 @@ class App:
         self.reload()
 
     def reload(self):
-        self.jobs = load_jobs()
+        self.jobs = merge_live(load_jobs(), self.live)
         self.rebuild()
+
+    def poll_live(self):
+        """Ask the daemon on a worker thread and keep the answer for the next draw.
+
+        On a THREAD because a blocking call in the key handler is what froze this
+        view once already: the record existed, the row never appeared, and `n`
+        looked like a dead key for a day. Nothing here touches curses, and the
+        main loop only ever reads `self.live`, so the worst a slow or hung
+        `claude` can do is leave the states one tick stale.
+        """
+        if self.live_thread is not None and self.live_thread.is_alive():
+            return
+        self.last_poll_at = time.time()
+
+        def work():
+            found = live_states()
+            if found is not None:
+                self.live = found
+
+        self.live_thread = threading.Thread(target=work, daemon=True)
+        self.live_thread.start()
 
     def rebuild(self, keep_cursor=True):
         """Recompute the visible rows, keeping the cursor sensible.
@@ -1703,6 +1816,7 @@ class App:
 
     def loop(self):
         last = 0.0
+        shown = {}      # the daemon answer the current screen was drawn from
         while True:
             self.draw()
             self.scr.timeout(1000)
@@ -1717,10 +1831,18 @@ class App:
                         newest = max(newest, os.path.getmtime(os.path.join(j["dir"], "state.json")))
                     except OSError:
                         pass
-                if newest > last:
+                now = time.time()
+                if should_poll(self.jobs, self.last_key_at, now, self.last_poll_at):
+                    self.poll_live()
+                # Redraw when the file moved OR when the daemon's answer changed
+                # under us: the whole point is that those two disagree, so waiting
+                # for the file would put the fix back where the bug was.
+                if newest > last or self.live != shown:
                     last = newest
+                    shown = dict(self.live)
                     self.reload()
                 continue
+            self.last_key_at = time.time()
             self.status = ""
             if not self.handle(ch):
                 return
