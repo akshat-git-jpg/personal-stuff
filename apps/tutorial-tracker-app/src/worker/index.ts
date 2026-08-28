@@ -199,15 +199,20 @@ async function recordLinkCheck(env: Env, kind: CheckKind, checked: number, issue
   await env.TRACKER_DB.prepare("INSERT INTO link_checks (ran_at, kind, checked, ok_count, issue_count, unverifiable, issues_json, notified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(Math.floor(Date.now() / 1000), kind, checked, Math.max(0, checked - issues.length), issues.length, unverifiable, JSON.stringify(issues), notified ? 1 : 0).run();
 }
 async function runStructural(env: Env, kind: CheckKind = "structural"): Promise<GuardIssue[]> {
-  const [programs, links, videoRows] = await Promise.all([
+  const [programs, links, videoRows, clickRows] = await Promise.all([
     listPrograms(env.TRACKER_DB),
     clickstore.allLinks(env.DB),
     env.DB.prepare("SELECT video_code, yt_video_id FROM videos").all<{ video_code: string; yt_video_id: string | null }>(),
+    // Clicks per video code. The guard needs these to tell an unmapped
+    // PUBLISHED video from an unpublished draft that merely has links minted.
+    env.DB.prepare("SELECT substr(slug, 1, instr(slug, '/') - 1) AS video_code, COUNT(*) AS clicks FROM clicks WHERE instr(slug, '/') > 1 GROUP BY video_code")
+      .all<{ video_code: string; clicks: number }>(),
   ]);
   const kv: Record<string, string> = {};
   await Promise.all(links.map(async (link) => { const value = await env.CLICKS_KV.get(link.slug); if (value !== null) kv[link.slug] = value; }));
   const videos = Object.fromEntries(videoRows.results.map((row) => [row.video_code, row.yt_video_id]));
-  const issues = structuralIssues({ programs, links, kv, videos }); const report = buildReport(issues, 0, programs.length, false);
+  const clicks = Object.fromEntries((clickRows.results ?? []).map((row) => [row.video_code, row.clicks]));
+  const issues = structuralIssues({ programs, links, kv, videos, clicks }); const report = buildReport(issues, 0, programs.length, false);
   const notified = report ? await sendTelegram(env, report) : false;
   await recordLinkCheck(env, kind, programs.length, issues, 0, notified); return issues;
 }

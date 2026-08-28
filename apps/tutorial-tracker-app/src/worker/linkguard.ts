@@ -13,6 +13,12 @@ export interface GuardInput {
   kv: Record<string, string>;
   /** video_code -> YouTube video id (null when unmapped). */
   videos?: Record<string, string | null>;
+  /**
+   * video_code -> recorded clicks. Proof the short link is actually published
+   * somewhere; without it an unmapped video cannot be told apart from a draft.
+   * Omit to skip the mapping check entirely (see `unmapped_video` below).
+   */
+  clicks?: Record<string, number>;
 }
 
 /** Every structural fault, ordered by code then slug so two runs are diffable. */
@@ -48,14 +54,27 @@ export function structuralIssues(input: GuardInput): GuardIssue[] {
     if (kvValue === undefined) issues.push({ code: "kv_d1_mismatch", slug: link.slug, detail: "Recorded in the database but missing from the live redirects — this link 404s." });
     else if (kvValue.trim() !== link.target_url.trim()) issues.push({ code: "kv_d1_mismatch", slug: link.slug, detail: `Redirect sends visitors to ${kvValue} but the record says ${link.target_url}.` });
   }
-  if (input.videos) {
+  // An unmapped video is only a problem once its links are LIVE. Minting a
+  // short link happens while a video is still being made, so "links exist but
+  // no YouTube id" describes every draft as well as every genuinely broken
+  // mapping — on 2026-08-28 all 8 videos this reported were unpublished drafts:
+  // zero clicks between them, and none of their short links appeared in any of
+  // the channel's 68 published descriptions. Recorded clicks are the evidence
+  // that a link is out in the world and its traffic cannot be attributed,
+  // which is the actual analytics loss worth waking the owner for.
+  //
+  // `clicks` is optional so a caller that cannot supply it (or a test that does
+  // not care) skips the check rather than reporting every draft.
+  if (input.videos && input.clicks) {
     const codesWithLinks = new Set(links.map((link) => link.slug.split("/")[0]).filter(Boolean));
     for (const code of [...codesWithLinks].sort()) {
       if (!(code in input.videos) || input.videos[code]) continue;
+      const clicks = input.clicks[code] ?? 0;
+      if (clicks === 0) continue;
       issues.push({
         code: "unmapped_video",
         slug: code,
-        detail: `Video ${code} has links but no YouTube video recorded against it, so its clicks are invisible in analytics. Set the YouTube link on the card.`,
+        detail: `Video ${code} has ${clicks} recorded click${clicks === 1 ? "" : "s"} but no YouTube video against it, so that traffic is invisible in analytics. Set the YouTube link on the card.`,
       });
     }
   }
