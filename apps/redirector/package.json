@@ -5,8 +5,8 @@
   "scripts": {
     "dev": ". ../../scripts/node22-path.sh && wrangler dev",
     "deploy": ". ../../scripts/node22-path.sh && wrangler deploy",
-    "test": ". ../../scripts/node22-path.sh && vitest run --passWithNoTests",
-    "typecheck": ". ../../scripts/node22-path.sh && tsc --noEmit"
+    "test": ". ../../scripts/node22-path.sh && npm install && vitest run --passWithNoTests",
+    "typecheck": ". ../../scripts/node22-path.sh && npm install && tsc --noEmit"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250101.0",
