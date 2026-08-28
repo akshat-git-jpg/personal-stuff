@@ -77,10 +77,16 @@ async function handle(req: Request, env: Env, ctx: ExecutionContext): Promise<Re
     console.warn("repaired target", JSON.stringify({ slug, stored, sent: target.url }));
   }
 
-  const ip = req.headers.get("cf-connecting-ip") ?? "";
-  const ua = req.headers.get("user-agent") ?? "";
-  const referer = req.headers.get("referer") ?? "";
-  ctx.waitUntil(logClick(env, slug, ip, ua, referer));
+  // Count GET only. A HEAD is never a person: link-preview fetchers (WhatsApp,
+  // Slack, Twitter, Google) and security scanners all HEAD the URLs in a YouTube
+  // description, and counting those inflates the owner's real analytics. The
+  // redirect itself still answers HEAD normally — only the logging is skipped.
+  if (req.method === "GET") {
+    const ip = req.headers.get("cf-connecting-ip") ?? "";
+    const ua = req.headers.get("user-agent") ?? "";
+    const referer = req.headers.get("referer") ?? "";
+    ctx.waitUntil(logClick(env, slug, ip, ua, referer));
+  }
 
   return new Response(null, {
     status: 302,
