@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -91,6 +91,9 @@ type HealthFilter = "all" | "earning" | "no-code" | "no-link" | "attention";
  * board (PipelineBoard) on purpose — the owner asked for one consistent pattern
  * rather than a dropdown here and headers there.
  */
+/** Verbatim from Filters.tsx so the two filter panels match exactly. */
+const selectCls = "h-8 rounded-md border border-input bg-transparent px-2 text-xs shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40";
+
 const COLUMNS: { col: SortCol | null; label: string }[] = [
   { col: "name", label: "Program" },
   { col: "kind", label: "Type" },
@@ -119,6 +122,7 @@ export function ProgramsView({
   onAdd, onEdit, onDelete, onImport, onRetry,
 }: ProgramsViewProps) {
   const [query, setQuery] = useState("");
+  const [showMore, setShowMore] = useState(false);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [health, setHealth] = useState<HealthFilter>("all");
   const [sort, setSort] = useState<SortState | null>({ col: "name", dir: "asc" });
@@ -202,12 +206,8 @@ export function ProgramsView({
     return list;
   }, [decorated, query, typeFilter, health, sort]);
 
-  const chip = (active: boolean) =>
-    `h-8 rounded-full px-3 text-xs font-medium transition-colors ${
-      active
-        ? "bg-foreground text-background"
-        : "border border-border bg-card text-muted-foreground hover:text-foreground"
-    }`;
+  const hasPrecise = typeFilter !== "all" || health !== "all";
+  const hasFilters = hasPrecise || query.trim() !== "";
 
   return (
     <section className="space-y-4">
@@ -269,52 +269,72 @@ export function ProgramsView({
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Deliberately identical in shape to Filters.tsx on the All videos tab:
+              search left, "N shown" + More filters + Clear right, and the
+              precise controls hidden behind More filters. The owner asked for one
+              consistent pattern rather than a wall of chips here. */}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <Input
-              className="h-8 w-64"
-              placeholder="Search name, link, coupon or network…"
+              id="p-q"
+              type="search"
+              placeholder="Search name, link, coupon…"
+              aria-label="Search programs"
+              className="h-8 w-[240px] bg-transparent text-xs"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label="Search programs"
             />
-            <div className="flex gap-1" role="group" aria-label="Filter by type">
-              <button type="button" className={chip(typeFilter === "all")} onClick={() => setTypeFilter("all")}>
-                All {counts.all}
-              </button>
-              <button type="button" className={chip(typeFilter === "affiliate")} onClick={() => setTypeFilter("affiliate")}>
-                Affiliate
-              </button>
-              <button type="button" className={chip(typeFilter === "external")} onClick={() => setTypeFilter("external")}>
-                External
-              </button>
-            </div>
-            <div className="flex gap-1" role="group" aria-label="Filter by health">
-              <button type="button" className={chip(health === "all")} onClick={() => setHealth("all")}>
-                Any state
-              </button>
-              <button type="button" className={chip(health === "earning")} onClick={() => setHealth("earning")}
-                title="Has a destination and something identifying you">
-                Earning {counts.earning}
-              </button>
-              <button type="button" className={chip(health === "no-code")} onClick={() => setHealth("no-code")}
-                title="Affiliate programme whose link carries no code">
-                No code {counts.noCode}
-              </button>
-              <button type="button" className={chip(health === "no-link")} onClick={() => setHealth("no-link")}
-                title="No destination saved yet, so it cannot be published">
-                No link {counts.noLink}
-              </button>
-              {counts.attention > 0 && (
-                <button type="button" className={chip(health === "attention")} onClick={() => setHealth("attention")}
-                  title="The guard's last check found this earning nothing or dead">
-                  Needs attention {counts.attention}
-                </button>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-xs tabular-nums text-muted-foreground" data-testid="program-count">
+                {shown.length} shown
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                aria-expanded={showMore}
+                className={cn("h-8 gap-1.5", hasPrecise && "text-foreground")}
+                onClick={() => setShowMore((o) => !o)}
+              >
+                <SlidersHorizontal className="size-3.5" /> More filters
+              </Button>
+              {hasFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  className="h-8"
+                  onClick={() => { setQuery(""); setTypeFilter("all"); setHealth("all"); }}
+                >
+                  Clear
+                </Button>
               )}
             </div>
-            <span className="ml-auto text-xs text-muted-foreground">
-              Click a column heading to sort
-            </span>
           </div>
+
+          {(showMore || hasPrecise) && (
+            <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-medium text-muted-foreground" htmlFor="p-type">Type</label>
+                <select id="p-type" className={selectCls} value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}>
+                  <option value="all">All {counts.all}</option>
+                  <option value="affiliate">Affiliate</option>
+                  <option value="external">External</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-medium text-muted-foreground" htmlFor="p-state">State</label>
+                <select id="p-state" className={selectCls} value={health}
+                  onChange={(e) => setHealth(e.target.value as HealthFilter)}>
+                  <option value="all">Any state</option>
+                  <option value="earning">Earning {counts.earning}</option>
+                  <option value="no-code">No code {counts.noCode}</option>
+                  <option value="no-link">No link {counts.noLink}</option>
+                  {counts.attention > 0 && <option value="attention">Needs attention {counts.attention}</option>}
+                </select>
+              </div>
+            </div>
+          )}
 
           {shown.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
