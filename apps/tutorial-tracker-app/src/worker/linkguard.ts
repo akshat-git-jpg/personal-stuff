@@ -4,12 +4,15 @@ import type { ProgramRow } from "./programs";
 
 export type IssueCode = "bad_url" | "own_redirect_layer" | "points_at_dashboard"
   | "no_credit_marker" | "approved_no_link" | "duplicate_target"
-  | "kv_d1_mismatch" | "link_without_program" | "unclassified_kind" | "changed_destination";
+  | "kv_d1_mismatch" | "link_without_program" | "unclassified_kind" | "changed_destination"
+  | "unmapped_video";
 export interface GuardIssue { code: IssueCode; slug: string; detail: string; }
 export interface GuardInput {
   programs: ProgramRow[];
   links: { slug: string; tool: string; target_url: string; kind: string | null }[];
   kv: Record<string, string>;
+  /** video_code -> YouTube video id (null when unmapped). */
+  videos?: Record<string, string | null>;
 }
 
 /** Every structural fault, ordered by code then slug so two runs are diffable. */
@@ -44,6 +47,17 @@ export function structuralIssues(input: GuardInput): GuardIssue[] {
     const kvValue = kv[link.slug];
     if (kvValue === undefined) issues.push({ code: "kv_d1_mismatch", slug: link.slug, detail: "Recorded in the database but missing from the live redirects — this link 404s." });
     else if (kvValue.trim() !== link.target_url.trim()) issues.push({ code: "kv_d1_mismatch", slug: link.slug, detail: `Redirect sends visitors to ${kvValue} but the record says ${link.target_url}.` });
+  }
+  if (input.videos) {
+    const codesWithLinks = new Set(links.map((link) => link.slug.split("/")[0]).filter(Boolean));
+    for (const code of [...codesWithLinks].sort()) {
+      if (!(code in input.videos) || input.videos[code]) continue;
+      issues.push({
+        code: "unmapped_video",
+        slug: code,
+        detail: `Video ${code} has links but no YouTube video recorded against it, so its clicks are invisible in analytics. Set the YouTube link on the card.`,
+      });
+    }
   }
   issues.sort((a, b) => (a.code === b.code ? a.slug.localeCompare(b.slug) : a.code.localeCompare(b.code)));
   return issues;
