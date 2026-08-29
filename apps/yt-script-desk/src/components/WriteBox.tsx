@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useSaveReporter } from '../hooks/useSaveStatus'
+import { useAutoGrow } from '../hooks/useAutoGrow'
 import type { SaveState } from '../hooks/useSaveStatus'
 
 type WriteBoxProps = {
@@ -28,6 +29,7 @@ export function WriteBox({ value, onSave }: WriteBoxProps) {
   }
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const areaRef = useRef<HTMLTextAreaElement>(null)
 
   // A prop change (a fresh load, not the user's own keystroke) resets the
   // local draft — done during render, not an effect, so it can't cascade.
@@ -65,11 +67,16 @@ export function WriteBox({ value, onSave }: WriteBoxProps) {
     debounceRef.current = setTimeout(() => doSave(next), DEBOUNCE_MS)
   }
 
+  // Grows with what he types, so a long section never becomes a peephole. Same
+  // reason as the spoken card and the notes block — see useAutoGrow.
+  useAutoGrow(areaRef, text)
+
   const footerText = saveState === 'saved' ? 'Saved' : saveState === 'retrying' ? 'Not saved — retrying' : 'Saving…'
 
   return (
     <div className="write-box">
       <textarea
+        ref={areaRef}
         className="write-box-textarea"
         value={text}
         placeholder="Write what you saw…"

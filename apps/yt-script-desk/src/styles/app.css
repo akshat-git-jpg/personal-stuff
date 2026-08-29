@@ -229,12 +229,16 @@
   color: var(--note);
 }
 
+/* `overflow: hidden` and `resize: none` are what make auto-growing work: with a
+   scrollbar the box would scroll instead of growing, and a drag handle would set
+   a height that the next keystroke overwrites. See hooks/useAutoGrow.ts. */
 .say-textarea {
   width: 100%;
   min-height: 90px;
   border: none;
   outline: none;
-  resize: vertical;
+  overflow: hidden;
+  resize: none;
   background: transparent;
   font: 17px/1.66 var(--serif);
   color: var(--paper-ink);
@@ -286,7 +290,8 @@
   min-height: 100px;
   border: none;
   outline: none;
-  resize: vertical;
+  overflow: hidden;
+  resize: none;
   background: transparent;
   padding: 18px 22px 0;
   font: 17px/1.66 var(--serif);
@@ -786,12 +791,13 @@
 .right-block-area {
   width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
   padding: 10px 12px;
   border: 1px solid var(--accent);
   border-radius: 6px;
   background: var(--bg);
   color: var(--text-h);
   font: 400 13px/1.55 var(--sans);
-  resize: vertical;
+  resize: none;
 }
 .right-block-area:focus { outline: none; }

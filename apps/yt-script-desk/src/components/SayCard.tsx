@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pencil, RotateCcw } from 'lucide-react'
 import { ConfirmDialog } from './ConfirmDialog'
+import { useAutoGrow } from '../hooks/useAutoGrow'
 import type { Edit } from '../types'
 
 // Single mutation target: setting this to false lets the pencil unlock the card
@@ -28,6 +29,10 @@ export function SayCard({ lines, editable = true, editedInfo = null, onSave, onR
   useEffect(() => {
     if (unlocked) textareaRef.current?.focus()
   }, [unlocked])
+
+  // The box is exactly as tall as the copy, so a five-paragraph conclusion opens
+  // fully visible instead of two lines at a time. See useAutoGrow.
+  useAutoGrow(textareaRef, draftText, unlocked)
 
   const unlock = () => {
     setDraftText(lines.join('\n'))
