@@ -74,6 +74,20 @@ function writeDraft(key, data) {
   renameSync(tmp, p)
 }
 
+// A save that changes nothing must stage nothing.
+//
+// Every box on the local desk is live, so simply clicking through the page blurs
+// each one in turn and every blur used to stage an identical "edit". The owner's
+// first pass produced four staged items, three of which were byte-identical to
+// the file. A review list you have to read to find out it says nothing is worse
+// than no review list.
+//
+// It also does the right thing in the other direction: typing a change and then
+// undoing it by hand un-stages, because the text matches the file again.
+function sameLines(a, b) {
+  return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((l, i) => l === b[i])
+}
+
 function buildVideoDoc(key) {
   const outPath = outlinePath(key)
   if (!existsSync(outPath)) return null
@@ -205,13 +219,19 @@ const server = createServer(async (req, res) => {
       const lines = Array.isArray(body.lines) ? body.lines : []
       const doc = readDraft(key)
       if (doc.finished) return sendJson(res, 409, { error: 'finished' })
+      const planned = buildBeats(readFileSync(outlinePath(key), 'utf8')).beats.find(
+        (b) => b.num === num,
+      )
+      if (sameLines(lines, planned?.say ?? [])) {
+        delete doc.says[num]
+        delete doc.edits[num]
+        writeDraft(key, doc)
+        return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString(), staged: false })
+      }
       // The first edit captures the original; a later edit leaves it alone —
       // the original is the FIRST version, never the previous one.
       if (!doc.edits[num]) {
-        const outPath = outlinePath(key)
-        const { beats } = buildBeats(readFileSync(outPath, 'utf8'))
-        const beat = beats.find((b) => b.num === num)
-        doc.edits[num] = { original: beat?.say ?? [], at: new Date().toISOString() }
+        doc.edits[num] = { original: planned?.say ?? [], at: new Date().toISOString() }
       }
       doc.says[num] = lines
       writeDraft(key, doc)
@@ -230,10 +250,17 @@ const server = createServer(async (req, res) => {
       // The first edit captures the original; a later edit leaves it alone, so a
       // restore always returns to what the plan says rather than to the previous
       // edit. Same rule as `edits` for spoken copy.
+      const planned = buildBeats(readFileSync(outlinePath(key), 'utf8')).beats.find(
+        (b) => b.num === num,
+      )
+      if (sameLines(lines, planned?.notes ?? [])) {
+        delete doc.notes[num]
+        delete doc.noteEdits[num]
+        writeDraft(key, doc)
+        return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString(), staged: false })
+      }
       if (!doc.noteEdits[num]) {
-        const { beats } = buildBeats(readFileSync(outlinePath(key), 'utf8'))
-        const beat = beats.find((b) => b.num === num)
-        doc.noteEdits[num] = { original: beat?.notes ?? [], at: new Date().toISOString() }
+        doc.noteEdits[num] = { original: planned?.notes ?? [], at: new Date().toISOString() }
       }
       doc.notes[num] = lines
       writeDraft(key, doc)
