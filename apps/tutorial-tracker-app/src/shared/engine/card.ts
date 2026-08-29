@@ -23,6 +23,7 @@ export type Row = Record<string, string | undefined>;
 /** Fixed card-level fields ⇄ their `cards` table columns. */
 const CARD_FIELDS: Record<string, string> = {
   video_title: "title",
+  slug: "slug",
   video_notes: "notes",
   video_description: "description",
   category: "category",
@@ -36,7 +37,7 @@ const CARD_COL_BY_DB: Record<string, string> = Object.fromEntries(
 export interface CardRecord {
   id: string;
   pipeline_id: string;
-  title?: string; notes?: string; description?: string; category?: string; subcategory?: string;
+  title?: string; slug?: string; notes?: string; description?: string; category?: string; subcategory?: string;
   extra_json?: string;        // brief extras (e.g. topic_date) + passthrough of any stray legacy col
   created_at?: string;
   updated_at?: string;
