@@ -302,8 +302,23 @@ function readStaged(key) {
 const sameLines = (a, b) =>
   Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((l, i) => l === b[i])
 
+// What the desk SHOWS in the Notes column: the merged lanes, in the same order
+// WriteView merges them. Comparing a staged edit against this — rather than
+// against the `original` recorded when it was first staged — is what catches a
+// no-op on a beat that had no notes of its own to begin with. An intro beat's
+// column is built from its VIDEO lane, so `original` was `[]` and every diff
+// looked like an addition.
+function shownNotes(beat) {
+  if (!beat) return []
+  return [...(beat.notes ?? []), ...(beat.angle ?? []), ...(beat.video ?? []), ...(beat.rules ?? []), ...(beat.facts ?? [])]
+}
+
 function stagedList(key) {
   const st = readStaged(key)
+  const planPath = join(VIDEOS_ROOT, key, 'script-plan.md')
+  const planned = existsSync(planPath)
+    ? new Map(buildBeats(readFileSync(planPath, 'utf8')).beats.map((b) => [b.num, b]))
+    : new Map()
   const out = []
   for (const num of Object.keys(st.notes)) {
     out.push({ num, kind: 'NOTES', original: st.noteEdits[num]?.original ?? [], lines: st.notes[num] })
@@ -312,10 +327,16 @@ function stagedList(key) {
     out.push({ num, kind: 'SAY', original: st.edits[num]?.original ?? [], lines: st.says[num] })
   }
   // Belt and braces. The server stopped staging identical saves on 2026-08-29,
-  // but a store written before that has three of them in it, and an edit that
-  // changes nothing should not be in a review list whichever way it got there.
+  // but a store written before that has several in it, and an edit that changes
+  // nothing should not be in a review list whichever way it got there. Measured
+  // against the FILE, which is the only thing `apply` would actually change.
+  const unchanged = (it) => {
+    const beat = planned.get(it.num)
+    const inFile = it.kind === 'NOTES' ? shownNotes(beat) : (beat?.say ?? [])
+    return sameLines(it.lines, inFile) || sameLines(it.original, it.lines)
+  }
   return out
-    .filter((it) => !sameLines(it.original, it.lines))
+    .filter((it) => !unchanged(it))
     .sort((a, b) => a.num.localeCompare(b.num, undefined, { numeric: true }))
 }
 
