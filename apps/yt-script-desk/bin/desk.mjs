@@ -299,6 +299,9 @@ function readStaged(key) {
   }
 }
 
+const sameLines = (a, b) =>
+  Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((l, i) => l === b[i])
+
 function stagedList(key) {
   const st = readStaged(key)
   const out = []
@@ -308,7 +311,12 @@ function stagedList(key) {
   for (const num of Object.keys(st.says)) {
     out.push({ num, kind: 'SAY', original: st.edits[num]?.original ?? [], lines: st.says[num] })
   }
-  return out.sort((a, b) => a.num.localeCompare(b.num, undefined, { numeric: true }))
+  // Belt and braces. The server stopped staging identical saves on 2026-08-29,
+  // but a store written before that has three of them in it, and an edit that
+  // changes nothing should not be in a review list whichever way it got there.
+  return out
+    .filter((it) => !sameLines(it.original, it.lines))
+    .sort((a, b) => a.num.localeCompare(b.num, undefined, { numeric: true }))
 }
 
 function cmdEdits(key) {
@@ -359,6 +367,21 @@ function cmdApply(key, { dryRun = false } = {}) {
     if (owner) notesRangeFor.set(card.num, owner.blocks.find((b) => b.kind === 'NOTES'))
   })
 
+  // An INTRO or CONCLUSION beat has no `NOTES` lane — the desk's Notes block is
+  // built from its `VIDEO` lane, and editing it stages something that had nowhere
+  // to go. It was silently skipped, which is the wrong answer: the edit is real.
+  //
+  // So a beat whose notes came from exactly ONE source block writes back to that
+  // block, under that block's own header. Exactly one, because `laneLines` merges
+  // several lanes into one column and a merge cannot be undone — a beat with two
+  // of them is skipped LOUDLY instead.
+  const MERGED = new Set(['VIDEO', 'FACTS', 'RULES'])
+  for (const beat of model.beats) {
+    if (notesRangeFor.has(beat.num)) continue
+    const sources = beat.blocks.filter((b) => MERGED.has(b.kind))
+    if (sources.length === 1) notesRangeFor.set(beat.num, sources[0])
+  }
+
   const sayRangeFor = new Map()
   for (const beat of model.beats) {
     const say = beat.blocks.find((b) => b.kind === 'SAY' && b.spoken)
@@ -373,7 +396,10 @@ function cmdApply(key, { dryRun = false } = {}) {
       skipped.push(it)
       continue
     }
-    const header = it.kind === 'NOTES' ? '**NOTES**' : range.text.split('\n')[0]
+    // Keep the block's own header. A body card is `**NOTES**`; an intro beat's
+    // block is `**VIDEO**` and must stay that way, or the plan grows a NOTES lane
+    // in the introduction and the parser reads it as a body card.
+    const header = range.text.split('\n')[0]
     const body = it.kind === 'NOTES' ? it.lines : it.lines.map((l) => (l ? '> ' + l : '>'))
     splices.push({ range, text: [header, ...body].join('\n') })
   }

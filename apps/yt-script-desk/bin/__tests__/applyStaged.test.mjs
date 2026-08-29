@@ -31,6 +31,10 @@ const PLAN = `# Two Level Video
 
 #### A1 · Cold open
 
+**VIDEO**
+About 12 seconds of the finished shot.
+No browser, no logo.
+
 **SAY**
 > The first line.
 > The second line.
@@ -169,6 +173,49 @@ describe('desk.mjs apply', () => {
         expect(byNum['1'].notes).toEqual(['- FIRST.', '- FIRST B.', '- FIRST C.'])
         expect(byNum['2.1'].notes).toEqual(['- SECOND.'])
         expect(byNum['2.2'].notes).toEqual(['- THIRD.', '- THIRD B.'])
+      },
+    )
+  })
+
+  // An intro beat has no NOTES lane. The desk builds its Notes column from the
+  // beat's VIDEO lane, so an edit there has to land back in VIDEO — it was
+  // silently skipped until 2026-08-29, which threw the edit away.
+  it('APPLY_INTRO_VIDEO: a note edit on an intro beat writes back to its VIDEO lane', () => {
+    withFixture(
+      {
+        notes: { A1: ['Rewritten shot note.', 'And a second line.'] },
+        noteEdits: { A1: { original: ['About 12 seconds of the finished shot.'], at: 'x' } },
+      },
+      ({ md, out }) => {
+        expect(out, 'the edit was skipped instead of applied').not.toMatch(/SKIPPED/)
+        expect(md).toMatch(/^\*\*VIDEO\*\*$/m)
+        expect(md).toMatch(/^Rewritten shot note\.$/m)
+        expect(md).toMatch(/^And a second line\.$/m)
+        // The header must stay VIDEO. A `**NOTES**` lane in the introduction
+        // would be read as a body card by the parser.
+        expect(md.includes('**NOTES**\nRewritten shot note.')).toBe(false)
+
+        const beat = buildBeats(md).beats.find((b) => b.num === 'A1')
+        expect(beat.video).toEqual(['Rewritten shot note.', 'And a second line.'])
+        expect(beat.say, 'the spoken copy was touched').toEqual([
+          'The first line.',
+          'The second line.',
+        ])
+      },
+    )
+  })
+
+  // Clicking through a page of always-open boxes blurs every one of them. A blur
+  // that changed nothing must not appear in the review list.
+  it('NOOP_STAGED: an edit identical to the file is not listed', () => {
+    withFixture(
+      {
+        notes: { '2.2': ['- Edit the draft in place.'] },
+        noteEdits: { '2.2': { original: ['- Edit the draft in place.'], at: 'x' } },
+      },
+      ({ out, md }) => {
+        expect(out).toMatch(/nothing staged|applied 0/)
+        expect(md).toMatch(/^- Edit the draft in place\.$/m)
       },
     )
   })
