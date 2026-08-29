@@ -172,7 +172,7 @@ class D1Store implements DataStore {
     const cardCols = ["id", "pipeline_id", "title", "slug", "notes", "description", "category", "subcategory", "extra_json", "created_at", "updated_at", "status_since"];
     const stmts: D1PreparedStatement[] = [
       this.db.prepare(`INSERT INTO cards (${cardCols.map((x) => `"${x}"`).join(", ")}) VALUES (${cardCols.map(() => "?").join(", ")})`)
-        .bind(id, p.id, card.title ?? "", card.notes ?? "", card.description ?? "", card.category ?? "", card.subcategory ?? "", card.extra_json ?? null, now, now, card.status_since ?? null),
+        .bind(id, p.id, card.title ?? "", card.slug || null, card.notes ?? "", card.description ?? "", card.category ?? "", card.subcategory ?? "", card.extra_json ?? null, now, now, card.status_since ?? null),
     ];
     const stCols = ["card_id", "stage_id", "status", "assignee", "reviewer", "work_link", "instruction", "eta", "feedback", "extra_json", "status_since"];
     for (const s of stages) {
