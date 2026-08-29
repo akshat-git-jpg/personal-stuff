@@ -234,7 +234,6 @@
    a height that the next keystroke overwrites. See hooks/useAutoGrow.ts. */
 .say-textarea {
   width: 100%;
-  min-height: 90px;
   border: none;
   outline: none;
   overflow: hidden;

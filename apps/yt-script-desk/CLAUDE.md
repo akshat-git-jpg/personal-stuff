@@ -5,7 +5,7 @@
 ### The two-track rule
 **The left track is the audio timeline. Instructions never enter it.** The desk splits every beat into two columns:
 1. The audio timeline on the left: words that will be spoken, lines the maker writes himself, and a **DEMO** block marking a stretch where nothing is spoken at all.
-2. Instructions on the right, in ONE block headed **Notes**, behind the `Instructions` toggle. **Editable in place** in local mode: hover, pencil, type, blur.
+2. Instructions on the right, in ONE block headed **Notes**, behind the `Instructions` toggle. In local mode it is a live textarea — just type.
    (It was three blocks with three chips — What to cover, Video notes, General notes — until 2026-08-29. Owner: *"remove those sections about video notes separately, general notes separately, everything else. Just need a simple bullet points."* One reader, one job, one list.)
 
 **DEMO is the one thing in the left track that is not spoken copy, and it is not an exception to the rule.** A silent stretch is timeline content: something plays and nobody talks. Added 2026-08-27, because a 12-second cold open with no voiceover had nowhere to appear, so the timeline read as if the video began on the first spoken line. How to shoot it stays in SHOW; how to cut it stays in EDIT. A DEMO lane that grows shooting notes has smuggled an instruction into the left track. Guarded by `src/components/__tests__/demoLane.test.tsx`.
@@ -24,8 +24,19 @@ Verified 2026-08-29: Node 20.18.3 fails, Node 22.14.0 passes 146/146.
 
 ## Editing: in place, staged, applied in one go
 
-**The owner edits notes and spoken lines by clicking them.** The edit does NOT
-rewrite `script-plan.md`. It stages in `videos/<key>/desk-draft.json` (gitignored)
+**On the local desk every box is live.** No pencil, no confirmation — click the
+words and type. Owner, 2026-08-29: *"i think its better if we can have entire
+flow editable in place - on local. no need to click pencil."*
+
+**The hosted freelancer link is unchanged**: pencil plus a confirm dialog on
+spoken copy, and no way at all to edit the notes. That gate exists so a change to
+somebody else's locked copy is a decision he took rather than a stray keystroke.
+`alwaysEditable={!isHosted}` in `App.tsx` is the whole switch.
+
+**An always-open box saves on a 600ms pause as well as on blur**, because a box
+that is never closed may never be blurred either.
+
+**The edit does NOT rewrite `script-plan.md`.** It stages in `videos/<key>/desk-draft.json` (gitignored)
 and the card shows `edited, not yet applied` until it is.
 
 Owner, 2026-08-29: *"make the edit in place for script and instructions"* and
