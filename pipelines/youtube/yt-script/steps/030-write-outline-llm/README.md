@@ -1,8 +1,8 @@
 # 030 - write the outline
 
-**[LLM]** &nbsp; One page: sections and headings only, no script.
+**[LLM]** &nbsp; One page: sections, subsections and headings only, no script.
 
-`knowledge.md` -> `videos/<key>/outline.md`, following `OUTLINE-INSTRUCTIONS.md`. A table of contents that fits one screen, then one card per section: a one-line promise and three to six bullets naming what happens inside. Plus `Format:` and `Target:` lines, the intro's hook/credibility/roadmap as bullets, and one line on how the conclusion is organised. No spoken copy, no lanes, no tables. Added 2026-08-23; the one-line-per-section cap was removed 2026-08-27 at the owner's request.
+`knowledge.md` -> `videos/<key>/outline.md`, following `OUTLINE-INSTRUCTIONS.md`. A table of contents that fits one screen, then one card per section: a one-line promise and three to six bullets naming what happens inside. Plus `Format:` and `Target:` lines, the intro's hook/credibility/roadmap as bullets, and one line on how the conclusion is organised. No spoken copy, no lanes, no tables. Added 2026-08-23; the one-line-per-section cap was removed 2026-08-27 at the owner's request. Two levels since 2026-08-29 (`TASTE.md` T14) with search-written names (T15).
 
 **Reads:** `knowledge.md`
 
@@ -32,6 +32,18 @@ are fine, sentence case not Title Case, and no industry jargon
 happens on its own and is never chased, because a grammatical mould gets filled
 with jargon. `OUTLINE-INSTRUCTIONS.md` has the table of good and bad names, and
 `TASTE.md` T8 is the standing rule.
+
+**Two levels, and only where the split is real.** A few broad sections; the steps
+inside one of them are `### N.M` subsections under it. A section with no real
+parts stays flat, and that is a finished shape, not an unfinished one. Owner,
+2026-08-29: *"It's not necessary that every section has to be subsections. I
+think you are forcing it here."* `TASTE.md` T14.
+
+**Name every section for search.** The name is a YouTube chapter title and a line
+in a search result: `The Best AI Tool for Vox Style Videos`, never `Why one tool
+beats five`; `OpenArt Settings for More Control`, never `When you need more
+control`. Real nouns in, position-in-the-video out. It still has to be sayable,
+because the roadmap says every one of them aloud. `TASTE.md` T15.
 
 **Never make a section out of failures.** No `When It Breaks`, no `Common
 Mistakes`, no `Tips And Tricks`. A failure belongs in the phase where it happens.

@@ -498,3 +498,81 @@ less, but every piece of it load-bearing.
 section card", plus `CARD_DROPPED` and `CARD_ATE_A_BEAT` in
 `test/beats.test.mjs`. Nothing mechanical catches a card with twenty bullets in
 it — that one is the owner's read at gate 055.
+
+
+---
+
+## T14 — Two levels in the body. Broad sections, subsections under the ones that earn them.
+
+**From:** vox-style-video-ai, 2026-08-29. Owner: *"do you think that this sections
+like picking a topic that holds up, writing the script, locking the look and all
+those things this should be subsection of basically how to create main process of
+creating the vox style video they should not be having their main sections that
+should be subsections right... Have broader sections, have subsections."*
+
+The body has **a few broad sections**, and the steps inside one of them are
+**subsections**, not sections of their own. On `vox-style-video-ai` that turned
+eleven flat sections into four, with eight of them collapsing into `How to Make a
+Vox Style Video with AI` — because they were never eleven separate things, they
+were one process with eight steps.
+
+**Do not force it symmetrical.** Corrected in the same message: *"everything need
+to be a subsection just to keep it symmetrical it's fine that you are going ahead
+with one one sections and then for one section you are having some subsections.
+It's not necessary that every section has to be subsections. I think you are
+forcing it here."*
+
+So a section splits **only when it really has parts**. Two of the four sections
+on `vox-style-video-ai` have no subsections at all, and that is the correct
+shape, not an unfinished one. A section invented purely to be a parent for one
+child is the failure this half of the rule exists to stop.
+
+**The test:** would a viewer scrubbing the video read these as chapters? Chapters
+are where they jump to. Steps are where they follow along. A step promoted to a
+chapter makes the video look like eleven unrelated topics; a chapter demoted to a
+step buries it.
+
+**Applies to:** 030, 050
+**Enforced by:** `OUTLINE-INSTRUCTIONS.md` and `SCRIPT-PLAN-INSTRUCTIONS.md` carry
+the format. `SUBSECTION_NUMBERING` in `test/beats.test.mjs` proves the two shapes
+coexist. Nothing mechanical can tell a real subsection from a forced one — that
+is the owner's read at gate 040.
+
+## T15 — Name sections for search, not for cleverness.
+
+**From:** vox-style-video-ai, 2026-08-29. Owner: *"the section naming thing from a
+[SEO] perspective as well So that if someone is searching for someone something
+then you can but your sections is such that that section comes up in search
+engine result."*
+
+A section name is a chapter title on YouTube and a line in a search result. So it
+is written with the words someone would actually type.
+
+| Rejected | Chosen |
+|---|---|
+| `Why one tool beats five` | `The Best AI Tool for Vox Style Videos` |
+| `Getting the AI to study real Vox videos` | `Teaching the AI the Vox Style from Real Vox Videos` |
+| `When you need more control` | `OpenArt Settings for More Control` |
+| `Picking the voice` | `Picking the AI Voice` |
+| `Before you start` | (deleted — a generic bucket nobody searches for) |
+
+**What this actually means:**
+
+- **Name the subject, not the position.** `Before you start`, `Getting ready`,
+  `Wrapping up` describe where a section sits in the video. Nobody searches for
+  where something sits.
+- **Put the real nouns in.** The tool, the format, the thing being made —
+  `OpenArt`, `Vox style video`, `AI voice`, `map`. A name with none of them
+  cannot be found.
+- **A how-to section says how to.** `How to Animate a Map Without It Glitching`
+  is a question someone types. `The map trick` is a name only the author
+  understands.
+
+**This does not licence keyword stuffing**, and it does not beat T8. The name
+still has to be sayable out loud, because the intro roadmap says every one of
+them and `test/roadmap.test.mjs` checks it. A name you cannot get into a sentence
+is the wrong name whichever rule you reached it by.
+
+**Applies to:** 030, 050
+**Enforced by:** author judgement, plus `roadmap.test.mjs` for the sayable half.
+Nothing mechanical can tell a searchable name from a clever one.

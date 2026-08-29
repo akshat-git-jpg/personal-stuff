@@ -120,9 +120,12 @@ describe('the real script plan survives every operation', () => {
   it('the fixture is the real plan, not a stub', async () => {
     const { read, edit } = await model(md)
     expect(read.beats.length).toBeGreaterThan(10)
-    expect(edit.sections.length).toBeGreaterThan(5)
+    expect(edit.sections.length).toBeGreaterThan(2)
+    // One card per LEAF: a section with no subsections is itself a card, and a
+    // section with subsections contributes one card per subsection. So cards
+    // outnumber sections, and every one of them carries its own bullets.
     const cards = read.beats.filter((b: { partKind: string }) => b.partKind === 'body')
-    expect(cards.length, 'one card per body section').toBe(edit.sections.length)
+    expect(cards.length).toBeGreaterThanOrEqual(edit.sections.length)
     for (const c of cards) expect(c.notes.length).toBeGreaterThan(0)
   })
 
@@ -139,8 +142,8 @@ describe('the real script plan survives every operation', () => {
 
   it('MOVING A WHOLE SECTION keeps every beat in the document', async () => {
     const { edit, read } = await model(md)
-    const src = edit.sections[2]
-    const dst = edit.sections[7]
+    const src = edit.sections[0]
+    const dst = edit.sections[edit.sections.length - 1]
     const moved = moveRange(md, { line: src.line, endLine: src.endLine }, dst.endLine)
     const after = await model(moved)
 
@@ -158,8 +161,10 @@ describe('the real script plan survives every operation', () => {
   // bullet going missing on the way.
   it('MOVING A NOTES BLOCK between sections loses no bullets', async () => {
     const { edit } = await model(md)
-    const src = edit.sections[1]
-    const dst = edit.sections[5]
+    const src = edit.sections.find((x: { blocks: { kind: string | null }[] }) =>
+      x.blocks.some((b) => b.kind === 'NOTES'),
+    )!
+    const dst = edit.sections.find((x: { name: string }) => x.name !== src.name)!
     const block = src.blocks.find((b: { kind: string | null }) => b.kind === 'NOTES')!
     expect(block, 'the fixture no longer has a NOTES block to move').toBeTruthy()
 
@@ -190,7 +195,8 @@ describe('the real script plan survives every operation', () => {
     text = deleteRange(text, note)
 
     const m2 = await model(text)
-    text = moveRange(text, { line: m2.edit.sections[3].line, endLine: m2.edit.sections[3].endLine }, m2.edit.sections[6].endLine)
+    const secs = m2.edit.sections
+    text = moveRange(text, { line: secs[0].line, endLine: secs[0].endLine }, secs[secs.length - 1].endLine)
 
     const m3 = await model(text)
     const target = m3.edit.beats.find((b: { blocks: { kind: string }[] }) =>

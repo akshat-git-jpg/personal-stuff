@@ -128,12 +128,21 @@ finally mean what they say.
   field anyway). It exists INSTEAD of a browser markup UI — the owner edits the
   markdown in his editor, and this was the only gap. Do not grow it into one:
   `SCRIPT-PLAN-INSTRUCTIONS.md`, "Why this instead of an editing UI".
-- **A body section is ONE card, not a run of beats.** Since 2026-08-29 the body
-  format is `### SECTION:` followed by a single `**NOTES**` bullet list and no
-  `####` heading at all. `lib/beats.mjs` SYNTHESIZES the beat from the section, so
-  a section with no `NOTES` lane and no beats produces nothing — silently. Guarded
-  by `CARD_DROPPED` and `CARD_ATE_A_BEAT` in `test/beats.test.mjs`. The reason is
-  `TASTE.md` T13; the format is `SCRIPT-PLAN-INSTRUCTIONS.md`, "The NOTES lane".
+- **The body has TWO levels and a card is a LEAF.** `### SECTION:` is a broad
+  section. If it carries its own `**NOTES**` it is one card, numbered `1`, `2`. If
+  it carries `####` subsections instead, each of those is a card, numbered `3.1`,
+  `3.2`. A leaf card is SYNTHESIZED from the section by `lib/beats.mjs`, so a
+  section with neither a `NOTES` lane nor subsections produces nothing — silently.
+  Guarded by `CARD_DROPPED`, `CARD_ATE_A_BEAT` and `SUBSECTION_NUMBERING`. Rules:
+  `TASTE.md` T13 (cards), T14 (two levels), T15 (search-friendly names).
+- **Body `####` headings carry no number; intro and conclusion beats carry
+  LETTERS.** `#### A1 · Cold open`, `#### C1 · Wrap and sign-off`. A body section
+  numbered 3 with subsections produces `3.1`, and `draft`, `says` and `edits` are
+  all keyed on the number — a conclusion beat numbered `3.1` would share the
+  subsection's write box. Guarded by `DUPLICATE_BEAT_NUM`.
+- **Every plan opens with a `## Contents` block**, matching its headings exactly.
+  The desk builds its own from the headings and never reads the block; the block
+  is for whoever opens the file. `CONTENTS_DRIFT` keeps the two the same.
 - **The desk shows ONE instruction block, headed `Notes`.** `notes`, `angle`,
   `video`, `rules` and `facts` are all folded into it, in that order, so an older
   plan loses nothing. The three separate blocks and their three chips went on

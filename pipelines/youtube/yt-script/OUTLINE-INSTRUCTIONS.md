@@ -182,19 +182,68 @@ The same applies to any bucket-shaped section — `Tips And Tricks`, `Common
 Mistakes`, `Extra Notes`. If a card's bullets have nothing in common except
 that they did not fit anywhere else, it is not a section.
 
+## Two levels: sections and subsections
+
+**The body is a few broad sections, and the steps inside one of them are
+subsections.** `TASTE.md` T14. Write it as `## N. Section Name` with `### N.M
+Subsection Name` under it, and list both levels in the Contents block at the top.
+
+```
+## Contents
+1. What Makes a Vox Style Video Look Like Vox
+2. The Best AI Tool for Vox Style Videos
+3. How to Make a Vox Style Video with AI
+   3.1 Teaching the AI the Vox Style from Real Vox Videos
+   3.2 Picking a Topic That Holds Up
+4. OpenArt Settings for More Control
+   4.1 Image and Video Panel Settings
+```
+
+**Only split a section that really has parts.** Owner, 2026-08-29: *"It's not
+necessary that every section has to be subsections. I think you are forcing it
+here."* Two of the four above have no subsections and that is the finished shape,
+not an unfinished one. A section invented to parent a single child is worse than
+no split.
+
+**The test: chapters versus steps.** A viewer scrubbing the video jumps to
+chapters and follows along through steps. A step promoted to a chapter makes the
+video look like eleven unrelated topics. A chapter demoted to a step buries it.
+
+A subsection card gets the same three-to-six bullets a section card gets. A
+section that HAS subsections carries only its one-line promise — the bullets live
+in its children.
+
+## Name every section for search
+
+**`TASTE.md` T15.** A section name is a YouTube chapter title and a line in a
+search result, so it is written with the words someone would type.
+
+| Rejected | Chosen |
+|---|---|
+| `Why one tool beats five` | `The Best AI Tool for Vox Style Videos` |
+| `When you need more control` | `OpenArt Settings for More Control` |
+| `Picking the voice` | `Picking the AI Voice` |
+| `Before you start` | deleted — a generic bucket nobody searches for |
+
+Name the subject, never the position in the video. Put the real nouns in — the
+tool, the format, the thing being made. A how-to section says how to.
+
+**It still has to be sayable**, because the intro roadmap names every section and
+every subsection out loud and `test/roadmap.test.mjs` checks the match. T8 wins a
+tie: a keyword-stuffed name you cannot get into a sentence is the wrong name.
+
 ## Target length
 
 `Target:` is required, in minutes, and it drives the section count.
 
-**A section here becomes ONE card in `script-plan.md`** — one heading and one
-short bullet list, nothing under it. So the section list you write is the whole
-structure of the body; there is no second, finer level of breakdown coming later
-to rescue a section that is really two. `TASTE.md` T13 is the rule, and
-`SCRIPT-PLAN-INSTRUCTIONS.md` has the card format.
+**A leaf here becomes ONE card in `script-plan.md`** — one heading and one short
+bullet list, nothing under it. So the list you write here is the whole structure
+of the body; there is no third, finer level coming later to rescue a subsection
+that is really two. `TASTE.md` T13 is the rule, and `SCRIPT-PLAN-INSTRUCTIONS.md`
+has the card format.
 
-**The test: could these section names be title cards in the finished video?**
-That is what they are. A list nobody could hold in their head is too long, and a
-section that would need sub-headings to explain itself is two sections.
+**The test: could these section names be chapter titles in the finished video?**
+That is what they are.
 
 **Go as long as the material honestly carries** — see `TASTE.md` T6. Derive the
 number from what `knowledge.md` actually supports, section by section, and say so

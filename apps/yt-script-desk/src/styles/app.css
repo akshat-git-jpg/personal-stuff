@@ -709,3 +709,42 @@
   font: 600 12px var(--sans);
   cursor: pointer;
 }
+
+/* The table of contents, first thing on the page. Spans both tracks and paints
+   its own background, because `.rail` runs the full height of the grid behind
+   it — the same reason `.group-head` does. */
+.contents {
+  grid-column: 1 / -1;
+  padding: 32px 40px 30px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.contents-label {
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 14px;
+}
+.contents-list { list-style: none; margin: 0; padding: 0; }
+.contents-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 3px 0;
+  font: 500 14px/1.45 var(--sans);
+  color: var(--text-h);
+}
+/* Indented and quieter. A subsection is a step inside the section above it, and
+   the eye should be able to find the four section names without reading all
+   fourteen rows. */
+.contents-sub {
+  padding-left: 26px;
+  font-weight: 400;
+  color: var(--text);
+}
+.contents-num {
+  flex: 0 0 30px;
+  font: 500 11px var(--mono);
+  color: var(--faint);
+}

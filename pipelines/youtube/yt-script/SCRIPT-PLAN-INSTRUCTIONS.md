@@ -31,9 +31,11 @@ this file was the only one the step had been told to open.
 Two halves, two standards:
 
 - **Intro and conclusion — finished verbatim copy.** Nothing left to decide.
-- **Body — section cards.** One card per section: the section heading, one flat
-  `**NOTES**` bullet list, and one thing for him to write. No sub-beats, no
-  second kind of note, nothing to look up in a different box.
+- **Body — section cards, on two levels.** A broad `### SECTION:` heading, and
+  under it either its own `**NOTES**` bullet list (a section with no parts) or a
+  run of `####` subsections that each carry one. One card, one bullet list, one
+  thing for him to write. No second kind of note, nothing to look up in a
+  different box.
 
 **The body changed shape on 2026-08-29.** It used to be five to seven `#### 2.n`
 beats per section, each carrying its own `SAY` draft, `VIDEO` lane and `FACTS`
@@ -59,7 +61,9 @@ anywhere.
 |---|---|
 | `# Title` | Document title |
 | `## 1 · INTRODUCTION` | A numbered part |
-| `### SECTION: Live Demo` | A section inside the body (`SECTION:` is stripped) |
+| `### SECTION: Live Demo` | A broad section inside the body (`SECTION:` is stripped) |
+| `#### Picking a Topic That Holds Up` | A SUBSECTION of the section above it. Numbered for you: `3.1`, `3.2` |
+| `## Contents` then numbered lines | The table of contents at the top of the plan |
 | `#### 2.3 · HeyGen` | A beat |
 | `**SAY**` alone on a line, then a `>` blockquote | Amber chip, serif text, amber rail |
 | `**VIDEO**` alone on a line, then plain lines | Everything to do with the picture — filming, screen-recording and post |
@@ -80,6 +84,94 @@ rule the whole document rests on.
 
 For multi-paragraph spoken copy, keep every line inside the blockquote and
 separate paragraphs with a bare `>`.
+
+---
+
+## The Contents block
+
+**Every plan opens with a table of contents.** Straight after the `# Title`,
+before the introduction. Titles only, nothing else. Owner, 2026-08-29: *"at the
+top of the script can we show the outline? All sections, subsection, etc. Just
+the title."*
+
+```
+# How to Make Vox Style Videos with AI
+
+## Contents
+1. What Makes a Vox Style Video Look Like Vox
+2. The Best AI Tool for Vox Style Videos
+3. How to Make a Vox Style Video with AI
+   3.1 Teaching the AI the Vox Style from Real Vox Videos
+   3.2 Picking a Topic That Holds Up
+4. OpenArt Settings for More Control
+   4.1 Image and Video Panel Settings
+```
+
+**It must match the headings below it exactly** — same order, same numbers, same
+words. `CONTENTS_DRIFT` in `test/beats.test.mjs` fails if it does not, so a
+renamed section is caught rather than left to be noticed.
+
+**The desk does not read this block.** It builds its own contents from the
+headings, which is why the two can never disagree on screen. The block in the
+markdown is for whoever opens the file in an editor, and the test is what keeps
+it honest.
+
+`## Contents` is matched before the generic `##` part rule in the parser. Do not
+give any other block a `##` heading in a plan.
+
+---
+
+## Two levels: sections and subsections
+
+**The body has broad sections, and the steps inside one of them are
+subsections.** `TASTE.md` T14 is the rule. The shape on the page:
+
+```
+### SECTION: What Makes a Vox Style Video Look Like Vox
+
+**NOTES**
+- ...bullets for the whole section...
+
+### SECTION: How to Make a Vox Style Video with AI
+
+#### Picking a Topic That Holds Up
+
+**NOTES**
+- ...bullets for this step...
+
+#### Writing the Script
+
+**NOTES**
+- ...bullets for this step...
+```
+
+- **A section with no parts carries its own `**NOTES**`** and becomes one card,
+  numbered `1`, `2`.
+- **A section with parts carries no `**NOTES**` of its own.** Each `####` under
+  it is a card, numbered `3.1`, `3.2`.
+- **Never both.** A `**NOTES**` block under a section that also has `####`
+  subsections becomes a card the contents does not list.
+
+**Do not number a body `####` heading.** Write `#### Writing the Script` and the
+parser numbers it from its position. Numbering by hand meant renumbering eight
+headings to insert one, and every one of those numbers is also a key that the
+maker's saved draft hangs off.
+
+**Intro and conclusion beats keep their explicit numbers, and they are letters:**
+`#### A1 · Cold open`, `#### C1 · Wrap and sign-off`. They must not use digits.
+A body section numbered `3` with subsections produces `3.1`, and a conclusion
+beat numbered `3.1` would then be the same key — `draft`, `says` and `edits` are
+all keyed on the number, so the two beats would share one write box. Guarded by
+`DUPLICATE_BEAT_NUM`.
+
+**Do not force the split.** Two of the four sections on `vox-style-video-ai` have
+no subsections and that is correct. A section invented to be a parent for one
+child is worse than no split at all.
+
+**Section and subsection names are written for search.** `TASTE.md` T15. The name
+is a YouTube chapter title and a line in a search result, so it carries the real
+nouns — the tool, the format, the thing being made — and never describes where it
+sits in the video. `Before you start` is not a section name.
 
 ---
 
@@ -195,8 +287,9 @@ block, headed **Video notes**.
 
 ## Beat headings are labels, not descriptions
 
-**This applies to intro and conclusion beats only.** A body section is a card and
-has no `####` heading at all — see "The NOTES lane" above.
+**This applies to intro and conclusion beats only.** A body `####` heading is a
+SUBSECTION name from `outline.md`, approved at gate 040, and it is copied word for
+word — it is not a label you write here. See "Two levels" above.
 
 
 **A beat's `####` heading carries a short label, and the maker never sees it as
@@ -623,14 +716,18 @@ not write a bullet per row: he reads the table.
 ## Hard rules
 
 - **Intro and conclusion are finished copy. Body sections are cards.** Never mix.
-- **One card per body section.** No `####` beats in the body, no `SAY`, `VIDEO`,
-  `FACTS` or `RULES` block in a new one. They still parse, for older plans only.
+- **One card per leaf.** A section with no parts is one card; a section with parts
+  has one card per `####` subsection. No `SAY`, `VIDEO`, `FACTS` or `RULES` block
+  in a new one — they still parse, for older plans only.
+- **Every plan opens with a `## Contents` block that matches its headings.**
+- **A body `####` heading carries no number.** Intro and conclusion beats carry
+  letters (`A1`, `C1`), never digits.
 - **Lane labels sit alone on their line**, or the parser drops the lane.
 - **Spoken copy is always a blockquote. Nothing else is.** And a blockquote
   holds **only** what is said aloud — no notes, no labels, no bracketed
   cross-references. Anything you want to say *about* the copy is a bullet.
 - **A bullet a good freelancer would follow anyway does not get written.**
-- **Intro roadmap and section headings match word for word.**
+- **Intro roadmap names every section AND every subsection, word for word.**
 - **Every claim traces to `knowledge.md`.** No support, no line — raise the gap.
 - **No comparison section without a verdict.** A tutorial section carries none —
   see the tutorial rules above. This rule said "no section without a verdict"

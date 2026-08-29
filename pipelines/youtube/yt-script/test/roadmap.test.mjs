@@ -49,7 +49,22 @@ const plans = () =>
     .map((d) => ({ key: d.name, path: join(VIDEOS, d.name, 'script-plan.md') }))
     .filter((p) => existsSync(p.path))
 
-const sectionsOf = (md) => [...md.matchAll(/^### SECTION: (.+)$/gm)].map((m) => m[1].trim())
+// BOTH levels. A body section may hold `####` subsections since 2026-08-29, and
+// a subsection is a thing the viewer was promised exactly as much as a section
+// is — the owner chose, on the same day, to have the spoken roadmap name the
+// subsections rather than only the four chapters above them.
+//
+// Only BODY `####` headings count. Intro and conclusion beats (`A1 · Cold open`,
+// `C1 · Sign-off`) are beats inside finished copy, not outline headings, and
+// nothing promises them. They are excluded by the `·` in their heading, which a
+// subsection heading never has.
+const sectionsOf = (md) => {
+  const body = md.split(/^## \d+ · BODY/m)[1] ?? ''
+  return [
+    ...[...md.matchAll(/^### SECTION: (.+)$/gm)].map((m) => m[1].trim()),
+    ...[...body.matchAll(/^#### (.+)$/gm)].map((m) => m[1].trim()).filter((t) => !t.includes('·')),
+  ]
+}
 
 // Every line of a blockquote, across the whole document.
 const spokenLines = (md) =>
@@ -67,7 +82,7 @@ for (const { key, path } of plans()) {
   const sections = sectionsOf(md)
   if (sections.length === 0) continue
 
-  test(`${key}: the intro roadmap names every body section verbatim`, () => {
+  test(`${key}: the intro roadmap names every body section and subsection verbatim`, () => {
     const intro = introSpoken(md).toLowerCase()
     const missing = sections.filter((s) => !intro.includes(s.toLowerCase()))
     assert.deepEqual(

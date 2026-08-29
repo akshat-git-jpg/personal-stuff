@@ -4,26 +4,29 @@ Format: tutorial
 Target: 22 min
 
 ## Contents
-1. What makes it look like Vox
-2. Why one tool beats five
-3. Getting the AI to study real Vox videos
-4. Picking a topic that holds up
-5. Writing the script
-6. Locking the look
-7. Picking the voice
-8. Picking the music
-9. Adding the motion
-10. Putting it all together
-11. When you need more control
+1. What Makes a Vox Style Video Look Like Vox
+2. The Best AI Tool for Vox Style Videos
+3. How to Make a Vox Style Video with AI
+   3.1 Teaching the AI the Vox Style from Real Vox Videos
+   3.2 Picking a Topic That Holds Up
+   3.3 Writing the Script
+   3.4 Locking the Look
+   3.5 Picking the AI Voice
+   3.6 Picking the Music
+   3.7 Adding the Motion
+   3.8 Putting the Final Cut Together
+4. OpenArt Settings for More Control
+   4.1 Image and Video Panel Settings
+   4.2 How to Animate a Map Without It Glitching
 
 ## Intro
 - hook: a finished Vox shot plays cold, then the reveal that no frame of it touched After Effects and nobody designed a single board by hand
 - credibility: years of using these tools, and this whole video built in one chat with every setting and every mistake left on screen
-- roadmap: names the eleven sections above
+- roadmap: names all four sections and every subsection under them
 
 ---
 
-## 1. What makes it look like Vox
+## 1. What Makes a Vox Style Video Look Like Vox
 
 Learn to spot the style, so you can tell a good result from a bad one before you spend anything.
 
@@ -33,7 +36,7 @@ Learn to spot the style, so you can tell a good result from a bad one before you
 - maps and arrows that draw themselves, and big text that lands on the narrator's beat
 - the three kinds of channel already winning with this look, and why it suits them
 
-## 2. Why one tool beats five
+## 2. The Best AI Tool for Vox Style Videos
 
 See what every version of this workflow is really doing, then take the shortest way through it.
 
@@ -43,7 +46,11 @@ See what every version of this workflow is really doing, then take the shortest 
 - the choice between letting it run start to finish and walking it step by step
 - what to have open before the next step
 
-## 3. Getting the AI to study real Vox videos
+## 3. How to Make a Vox Style Video with AI
+
+The whole build, in the order it has to happen. Eight steps, and doing them out of order is what makes everything come out wrong.
+
+### 3.1 Teaching the AI the Vox Style from Real Vox Videos
 
 Hand the AI the actual look instead of hoping it guesses, so your first attempt is not generic.
 
@@ -53,7 +60,7 @@ Hand the AI the actual look instead of hoping it guesses, so your first attempt 
 - keeping the words for the pictures separate from the words for the movement
 - why doing this first is what saves you from the boring first attempt later
 
-## 4. Picking a topic that holds up
+### 3.2 Picking a Topic That Holds Up
 
 Get your three inputs right, because everything after this is built on them.
 
@@ -62,7 +69,7 @@ Get your three inputs right, because everything after this is built on them.
 - putting your real numbers in one place before you write a word
 - the one instruction that stops the AI making up a figure you never gave it
 
-## 5. Writing the script
+### 3.3 Writing the Script
 
 Turn your notes into a real story, then tighten it yourself.
 
@@ -72,7 +79,7 @@ Turn your notes into a real story, then tighten it yourself.
 - checking every number against your notes, then locking it
 - why this is the one step you cannot rush, and what breaks later if you do
 
-## 6. Locking the look
+### 3.4 Locking the Look
 
 Approve a handful of pictures so every later shot copies the same style.
 
@@ -83,7 +90,7 @@ Approve a handful of pictures so every later shot copies the same style.
 - keeping your on-screen words still from here on, and the glitch that forces it
 - why your own idea for a shot beats anything the AI picks on its own
 
-## 7. Picking the voice
+### 3.5 Picking the AI Voice
 
 Cast the narrator who carries the whole video, before any of it moves.
 
@@ -92,7 +99,7 @@ Cast the narrator who carries the whole video, before any of it moves.
 - what to listen for, and the one thing that matters most
 - locking the voice, and redoing a single line later without touching the rest
 
-## 8. Picking the music
+### 3.6 Picking the Music
 
 Find a track that sets the mood without fighting the narrator.
 
@@ -101,7 +108,7 @@ Find a track that sets the mood without fighting the narrator.
 - keeping your music original, and the copyright strike that makes it worth it
 - laying the voice and the music over your pictures to get the timing
 
-## 9. Adding the motion
+### 3.7 Adding the Motion
 
 Make it move, one picture at a time, timed to the voice, and know when to stop.
 
@@ -112,7 +119,7 @@ Make it move, one picture at a time, timed to the voice, and know when to stop.
 - fixing one bad shot without losing the good ones
 - redrawing a picture that keeps breaking, instead of fighting it
 
-## 10. Putting it all together
+### 3.8 Putting the Final Cut Together
 
 Get the finished video out, timed exactly to what you already approved.
 
@@ -121,14 +128,24 @@ Get the finished video out, timed exactly to what you already approved.
 - the two mistakes worth checking for by name
 - exporting, and the handful of settings that matter here
 
-## 11. When you need more control
+## 4. OpenArt Settings for More Control
 
 Step out of the chat and drive the picture and video tools yourself, on the same account.
 
-- the two panels sitting behind the chat, and when the chat is not enough
+### 4.1 Image and Video Panel Settings
+
+The two panels behind the chat, and the exact values worth changing.
+
+- the two panels, and when the chat is not enough
 - the picture settings worth changing, and the one that matters most
 - the video settings, and how long a single shot should be
-- the trick for a map or a chart: never animate it, make a before and an after
+
+### 4.2 How to Animate a Map Without It Glitching
+
+The best trick in the video, and the idea behind it works everywhere.
+
+- why telling it to animate a map always breaks
+- making a before picture and an after picture, and moving between them
 - what to do when a shot needs three pictures instead of two
 
 ---

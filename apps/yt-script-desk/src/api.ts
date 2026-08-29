@@ -59,6 +59,10 @@ function normalizeDoc(doc: VideoDoc): VideoDoc {
       // `edit` instead of `video`. Fold them here, in the one place a document
       // enters the app, so an already-published desk link keeps rendering.
       video: b.video ?? [...(asLegacy(b).show ?? []), ...(asLegacy(b).edit ?? [])],
+      // A snapshot published BEFORE the 2026-08-29 section-card change carries
+      // no `notes` at all. The instruction column spreads it, so undefined here
+      // is a crash on an already-published link, not a missing block.
+      notes: b.notes ?? [],
       facts: b.facts ?? [],
       rules: b.rules ?? [],
     })),
