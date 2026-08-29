@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getSource, getVideo, isHosted, postFinish, putDraft, putSay, putSource, restoreSay } from './api'
+import {
+  getSource,
+  getVideo,
+  isHosted,
+  postFinish,
+  putDraft,
+  putNotes,
+  putSay,
+  putSource,
+  restoreNotes,
+  restoreSay,
+} from './api'
 import type { SourceDoc, VideoDoc } from './types'
 import { useChromeOffset } from './hooks/useChromeOffset'
 import { usePrefs } from './hooks/usePrefs'
@@ -21,6 +32,16 @@ function getKeyFromUrl(): string {
 function hasVideoIdentity(key: string): boolean {
   return isHosted || key !== ''
 }
+
+// The whole-file markdown editor is HIDDEN. Notes and spoken lines are edited in
+// place in the write view since 2026-08-29, which is what the owner actually does
+// day to day, and a second way to change the same file is one more thing to keep
+// straight.
+//
+// It is kept, not deleted, because in-place editing cannot do what it does: move
+// a section, delete one, add a block. Reach it with `?edit=1` on the local URL.
+// Owner, asked whether to remove it outright: *"Keep it, just hidden."*
+const MARKDOWN_EDIT_MODE = new URLSearchParams(window.location.search).get('edit') === '1'
 
 function isFinishedError(err: unknown): boolean {
   return err instanceof Error && /-> 409/.test(err.message)
@@ -131,6 +152,45 @@ export function App() {
     })
   }
 
+  // Instruction notes, edited in place. The edit is STAGED in the desk's scratch
+  // store; `script-plan.md` is untouched until `bin/desk.mjs apply` runs. Owner,
+  // 2026-08-29: *"can we do commit in 1 go. i will edit wherever required and
+  // tell you once all are reviewed and done."*
+  const handleNotesSave = async (num: string, lines: string[]) => {
+    await putNotes(key, num, lines)
+    setDoc((prev) => {
+      if (!prev) return prev
+      const beat = prev.beats.find((b) => b.num === num)
+      const original = prev.noteEdits?.[num]?.original ?? beat?.notes ?? []
+      return {
+        ...prev,
+        beats: prev.beats.map((b) => (b.num === num ? { ...b, notes: lines } : b)),
+        notes: { ...(prev.notes ?? {}), [num]: lines },
+        noteEdits: {
+          ...(prev.noteEdits ?? {}),
+          [num]: prev.noteEdits?.[num] ?? { original, at: new Date().toISOString() },
+        },
+      }
+    })
+  }
+
+  const handleNotesRestore = async (num: string) => {
+    const { lines } = await restoreNotes(key, num)
+    setDoc((prev) => {
+      if (!prev) return prev
+      const nextNotes = { ...(prev.notes ?? {}) }
+      delete nextNotes[num]
+      const nextNoteEdits = { ...(prev.noteEdits ?? {}) }
+      delete nextNoteEdits[num]
+      return {
+        ...prev,
+        notes: nextNotes,
+        noteEdits: nextNoteEdits,
+        beats: prev.beats.map((b) => (b.num === num ? { ...b, notes: lines } : b)),
+      }
+    })
+  }
+
   // Entering edit mode reads the file fresh, so it always starts from what is on
   // disk rather than from whatever this tab loaded ten minutes ago.
   const handleToggleEdit = async () => {
@@ -198,7 +258,7 @@ export function App() {
           tab={tab}
           onTabChange={setTab}
           editing={source !== null}
-          onToggleEdit={isHosted ? undefined : handleToggleEdit}
+          onToggleEdit={isHosted || !MARKDOWN_EDIT_MODE ? undefined : handleToggleEdit}
         />
         {!source && (
           <ToggleRail prefs={prefs} setPrefs={setPrefs} chips={tab === 'full' ? FULL_SCRIPT_CHIPS : undefined} />
@@ -226,6 +286,9 @@ export function App() {
               onDraftSave={handleDraftSave}
               onSaySave={handleSaySave}
               onSayRestore={handleSayRestore}
+              onNotesSave={isHosted ? undefined : handleNotesSave}
+              onNotesRestore={isHosted ? undefined : handleNotesRestore}
+              noteEdits={doc.noteEdits ?? {}}
             />
           )
         ) : (

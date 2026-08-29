@@ -31,6 +31,12 @@ export type VideoDoc = {
   draft: Record<string, string> // beat.num -> the maker's typed text
   edits: Record<string, Edit> // beat.num -> the original spoken lines, kept
   says: Record<string, string[]> // beat.num -> current spoken lines, when edited
+  // STAGED instruction edits, local mode only. `notes` is the current text and
+  // `noteEdits` holds the FIRST original, so a restore goes back to what the plan
+  // says. Nothing here has reached script-plan.md yet — `bin/desk.mjs apply`
+  // splices them all in at once when the owner says he is done reviewing.
+  notes?: Record<string, string[]>
+  noteEdits?: Record<string, Edit>
   finished: boolean
 }
 

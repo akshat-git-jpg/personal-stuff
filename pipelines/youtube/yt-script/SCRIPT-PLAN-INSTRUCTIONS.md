@@ -561,12 +561,45 @@ The constraint was never "the desk must not write". It was **"do not build me a
 second copy of my script."** Edit mode has none, which is why it is four small
 files rather than four plans.
 
-**The rule that survives:** anything that stores an edit anywhere other than
-`script-plan.md` is the rejected design wearing a new hat. See
-`apps/yt-script-desk/CLAUDE.md`, "Edit mode", for the guards on the write path.
-
 **The ASK lane is unaffected.** Leaving a question for Claude *in the document*
 is a different job from editing it, and this lane is still how it is done.
+
+### Amended 2026-08-29: editing in place, and a queue
+
+Two more things changed, both at the owner's request, and both need stating
+because the second one bends the rule written above.
+
+**Notes and spoken lines are now editable IN PLACE in the write view** — *"make
+the edit in place for script and instructions"*. Hover, pencil, type, blur. The
+whole-file editor is hidden behind `?edit=1` and kept only for what in-place
+editing cannot do: move a section, delete one, add a block. *"Keep it, just
+hidden."*
+
+**And an in-place edit is STAGED, not written straight through.** *"can we do
+commit in 1 go. i will edit wherever required and tell you once all are reviewed
+and done. then you can update/edit in 1 go."* It lands in
+`videos/<key>/desk-draft.json` and `bin/desk.mjs apply` splices every staged edit
+into `script-plan.md` in one pass afterwards.
+
+**That contradicts the old wording**, which said any edit stored anywhere other
+than `script-plan.md` was the rejected design in a new hat. The wording was too
+broad; the thing it was protecting is not. What was rejected was a **permanent
+parallel copy** that someone would have to reconcile by hand, forever. What
+exists is a **queue with one drain**:
+
+| Rejected, and still rejected | Built |
+|---|---|
+| A second copy that lives alongside the script | A queue that empties into the script |
+| Reconciled by a human, item by item | One command, all at once, atomically |
+| No way to see the two had diverged | Every staged card says `edited, not yet applied` |
+| Grows a comment layer, a composer, a toolbar | A pencil and a textarea |
+
+**The rule, restated:** an edit may be held only in a store that has **one
+command that drains it completely**, and only while the UI says on the card that
+it is unapplied. Anything longer-lived than that is the rejected design.
+
+See `apps/yt-script-desk/CLAUDE.md` for the write-path guards and the `apply`
+command.
 
 ## The rules box — retired for the body
 

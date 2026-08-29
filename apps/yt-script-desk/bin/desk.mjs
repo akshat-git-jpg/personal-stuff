@@ -19,10 +19,15 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buildBeats } from '../../../pipelines/youtube/yt-script/lib/beats.mjs'
+import { buildBeats, buildEditModel } from '../../../pipelines/youtube/yt-script/lib/beats.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
-const VIDEOS_ROOT = resolve(HERE, '..', '..', '..', 'pipelines', 'youtube', 'yt-script', 'videos')
+// Overridable ONLY so `apply`'s tests can point at a scratch directory. Writing
+// a fixture into the real `videos/` tree would be picked up by every test that
+// walks it (roadmap, sourceLinks), and a crashed run would leave one behind.
+const VIDEOS_ROOT =
+  process.env.DESK_VIDEOS_ROOT ||
+  resolve(HERE, '..', '..', '..', 'pipelines', 'youtube', 'yt-script', 'videos')
 const DEFAULT_BASE = 'https://script-desk.agrolloo.com'
 
 // Reject any key with a path-traversal or separator character before it ever
@@ -231,7 +236,7 @@ async function cmdPull(key, { base, fixturePath, outPath, force }) {
 // ------------------------------------------------------------ CLI plumbing
 
 function parseArgs(argv) {
-  const args = { base: DEFAULT_BASE, force: false }
+  const args = { base: DEFAULT_BASE, force: false, dryRun: false }
   const positional = []
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
@@ -239,6 +244,7 @@ function parseArgs(argv) {
     else if (a === '--fixture') args.fixture = argv[++i]
     else if (a === '--out') args.out = argv[++i]
     else if (a === '--force') args.force = true
+    else if (a === '--dry-run') args.dryRun = true
     else positional.push(a)
   }
   return { positional, ...args }
@@ -265,9 +271,145 @@ async function cmdList(base) {
   }
 }
 
+// ---------------------------------------------------------------- staged edits
+//
+// The owner edits notes and spoken lines IN PLACE in the local desk, and those
+// edits stage in `desk-draft.json` rather than rewriting `script-plan.md`. Owner,
+// 2026-08-29: *"can we do commit in 1 go. i will edit wherever required and tell
+// you once all are reviewed and done. then you can update/edit in 1 go."*
+//
+// `edits` shows what is waiting. `apply` splices all of it into the markdown in
+// one pass and clears the store, so the next commit carries the whole review.
+
+function draftFile(key) {
+  return join(VIDEOS_ROOT, key, 'desk-draft.json')
+}
+
+function readStaged(key) {
+  const p = draftFile(key)
+  if (!existsSync(p)) return { notes: {}, noteEdits: {}, says: {}, edits: {}, draft: {}, finished: false }
+  const raw = JSON.parse(readFileSync(p, 'utf8'))
+  return {
+    notes: raw.notes ?? {},
+    noteEdits: raw.noteEdits ?? {},
+    says: raw.says ?? {},
+    edits: raw.edits ?? {},
+    draft: raw.draft ?? {},
+    finished: raw.finished ?? false,
+  }
+}
+
+function stagedList(key) {
+  const st = readStaged(key)
+  const out = []
+  for (const num of Object.keys(st.notes)) {
+    out.push({ num, kind: 'NOTES', original: st.noteEdits[num]?.original ?? [], lines: st.notes[num] })
+  }
+  for (const num of Object.keys(st.says)) {
+    out.push({ num, kind: 'SAY', original: st.edits[num]?.original ?? [], lines: st.says[num] })
+  }
+  return out.sort((a, b) => a.num.localeCompare(b.num, undefined, { numeric: true }))
+}
+
+function cmdEdits(key) {
+  if (!isSafeKey(key)) throw new Error(`unsafe key: ${key}`)
+  const items = stagedList(key)
+  if (items.length === 0) {
+    console.log('nothing staged — script-plan.md matches the desk')
+    return
+  }
+  for (const it of items) {
+    console.log(`${it.num}  ${it.kind}`)
+    for (const l of it.original) console.log('  - ' + l)
+    for (const l of it.lines) console.log('  + ' + l)
+    console.log('')
+  }
+  console.log(`${items.length} staged edit(s). Apply with: node bin/desk.mjs apply ${key}`)
+}
+
+// Splice every staged edit into script-plan.md. Ranges come from
+// `buildEditModel`, so each one is the real source lines of that block, and they
+// are applied BOTTOM-UP so an earlier splice cannot shift a later range.
+function cmdApply(key, { dryRun = false } = {}) {
+  if (!isSafeKey(key)) throw new Error(`unsafe key: ${key}`)
+  const planPath = join(VIDEOS_ROOT, key, 'script-plan.md')
+  if (!existsSync(planPath)) throw new Error(`no script-plan.md for ${key}`)
+
+  const items = stagedList(key)
+  if (items.length === 0) {
+    console.log('nothing staged — nothing to apply')
+    return
+  }
+
+  const md = readFileSync(planPath, 'utf8')
+  const model = buildEditModel(md)
+  const owners = [...model.beats, ...model.sections]
+
+  // A NOTES block hangs off the `####` subsection that owns it, or — for a
+  // section with no subsections — off the section itself. `buildBeats` numbers
+  // those synthesized cards, `buildEditModel` does not, so match by position:
+  // the Nth body card in reading order is the Nth notes-carrying owner.
+  const notesOwners = owners
+    .filter((o) => o.blocks.some((b) => b.kind === 'NOTES'))
+    .sort((a, b) => a.line - b.line)
+  const bodyCards = buildBeats(md).beats.filter((b) => b.partKind === 'body')
+  const notesRangeFor = new Map()
+  bodyCards.forEach((card, i) => {
+    const owner = notesOwners[i]
+    if (owner) notesRangeFor.set(card.num, owner.blocks.find((b) => b.kind === 'NOTES'))
+  })
+
+  const sayRangeFor = new Map()
+  for (const beat of model.beats) {
+    const say = beat.blocks.find((b) => b.kind === 'SAY' && b.spoken)
+    if (say) sayRangeFor.set(beat.num, say)
+  }
+
+  const splices = []
+  const skipped = []
+  for (const it of items) {
+    const range = it.kind === 'NOTES' ? notesRangeFor.get(it.num) : sayRangeFor.get(it.num)
+    if (!range) {
+      skipped.push(it)
+      continue
+    }
+    const header = it.kind === 'NOTES' ? '**NOTES**' : range.text.split('\n')[0]
+    const body = it.kind === 'NOTES' ? it.lines : it.lines.map((l) => (l ? '> ' + l : '>'))
+    splices.push({ range, text: [header, ...body].join('\n') })
+  }
+
+  const lines = md.split(/\r?\n/)
+  for (const sp of splices.sort((a, b) => b.range.line - a.range.line)) {
+    lines.splice(sp.range.line, sp.range.endLine - sp.range.line, ...sp.text.split('\n'))
+  }
+  const next = lines.join('\n')
+
+  // Never write markdown that does not parse. Same guard the browser editor has.
+  try {
+    const { beats } = buildBeats(next)
+    if (!beats.length) throw new Error('that leaves the plan with no beats at all')
+  } catch (err) {
+    throw new Error(`refusing to write: ${String(err?.message ?? err)}`)
+  }
+
+  if (dryRun) {
+    console.log(`${splices.length} edit(s) would be applied; ${skipped.length} skipped`)
+    return
+  }
+
+  writeFileSync(planPath, next)
+  const st = readStaged(key)
+  writeFileSync(
+    draftFile(key),
+    JSON.stringify({ ...st, notes: {}, noteEdits: {}, says: {}, edits: {} }, null, 2) + '\n',
+  )
+  console.log(`applied ${splices.length} edit(s) to ${planPath}`)
+  for (const it of skipped) console.log(`  SKIPPED ${it.num} ${it.kind} — no matching block in the plan`)
+}
+
 async function main(argv) {
   const [cmd, ...rest] = argv
-  const { positional, base, fixture, out, force } = parseArgs(rest)
+  const { positional, base, fixture, out, force, dryRun } = parseArgs(rest)
   const key = positional[0]
 
   if (cmd === 'publish') {
@@ -290,7 +432,23 @@ async function main(argv) {
     return cmdList(base)
   }
 
-  console.error('usage: node bin/desk.mjs <publish|pull|list> ...')
+  if (cmd === 'edits') {
+    if (!key) {
+      console.error('usage: node bin/desk.mjs edits <key>')
+      process.exit(1)
+    }
+    return cmdEdits(key)
+  }
+
+  if (cmd === 'apply') {
+    if (!key) {
+      console.error('usage: node bin/desk.mjs apply <key> [--dry-run]')
+      process.exit(1)
+    }
+    return cmdApply(key, { dryRun })
+  }
+
+  console.error('usage: node bin/desk.mjs <publish|pull|list|edits|apply> ...')
   process.exit(1)
 }
 

@@ -111,15 +111,38 @@ describe('the DEMO lane in the write view', () => {
   })
 })
 
+// REVERSED 2026-08-29. This used to require the opposite: that the read-through
+// printed the silent stretch as `[The finished shot plays. No voiceover.]`.
+//
+// Owner, seeing it on the cold open: *"why is [The finished Vox shot plays. No
+// voiceover...] showing in full script.. it's not part of script vocal right..
+// fix it generically."* He is right. The full script is the read-through — the
+// words the narrator says, in order — and brackets do not stop a line in the
+// same serif face at the top of the page reading as something to say.
+//
+// The lane is unchanged everywhere else. It still renders in the write view's
+// LEFT track, which is the audio timeline, and a silent stretch is timeline
+// content. The two views answer different questions.
 describe('the DEMO lane in the full script', () => {
-  it('renders as a bracketed stage direction', () => {
+  it('does not appear at all, because nobody says it', () => {
     render(
       <FullScript doc={docOf([makeDemoBeat()])} loadError={null} beatLabels onRetry={noop} onFinish={noop} />,
     )
-    const el = document.querySelector('[data-testid="fs-demo"]')
-    expect(el, 'FS_DEMO_MISSING: the read-through skipped the silent stretch entirely').not.toBeNull()
-    expect(el?.textContent ?? '').toContain('The finished shot plays. No voiceover.')
-    expect(el?.textContent ?? '', 'FS_DEMO_UNBRACKETED: it must not read as a line to say').toContain('[')
+    expect(
+      document.querySelector('[data-testid="fs-demo"]'),
+      'FS_DEMO_BACK: a stage direction is in the read-through again',
+    ).toBeNull()
+    expect(
+      document.body.textContent ?? '',
+      'FS_DEMO_BACK: the silent-stretch text reached the read-through',
+    ).not.toContain('The finished shot plays. No voiceover.')
+  })
+
+  it('still shows the spoken copy of a beat that opens on silence', () => {
+    render(
+      <FullScript doc={docOf([makeDemoBeat()])} loadError={null} beatLabels onRetry={noop} onFinish={noop} />,
+    )
+    expect(document.body.textContent ?? '').toContain('This is the spoken line.')
   })
 
   it('a demo-only beat does not read as unwritten', () => {

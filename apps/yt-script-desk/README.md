@@ -6,7 +6,7 @@ A two-track script editor for YouTube tutorial makers, replacing the old PDF han
 
 The desk separates instructions from content. It splits every beat into two columns:
 - **Left track (Script):** The exact words that will be spoken on camera.
-- **Right track (instructions):** ONE block headed **Notes** — the whole brief for that section, as it was written in the plan's `**NOTES**` bullet list. The `Instructions` toggle shows or hides the column. It was three separately-toggled blocks until 2026-08-29.
+- **Right track (instructions):** ONE block headed **Notes**, editable in place in local mode (pencil on hover; the edit stages until `bin/desk.mjs apply` runs) — the whole brief for that section, as it was written in the plan's `**NOTES**` bullet list. The `Instructions` toggle shows or hides the column. It was three separately-toggled blocks until 2026-08-29.
 
 This separation prevents the maker from accidentally reading production notes as part of the script, and prevents instructions from bleeding into the final voiceover feed.
 
