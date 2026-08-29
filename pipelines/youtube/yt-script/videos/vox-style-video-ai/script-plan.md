@@ -1,8 +1,24 @@
 # How to Make Vox Style Videos with AI
 
+## Contents
+1. What Makes a Vox Style Video Look Like Vox
+2. The Best AI Tool for Vox Style Videos
+3. How to Make a Vox Style Video with AI
+   3.1 Teaching the AI the Vox Style from Real Vox Videos
+   3.2 Picking a Topic That Holds Up
+   3.3 Writing the Script
+   3.4 Locking the Look
+   3.5 Picking the AI Voice
+   3.6 Picking the Music
+   3.7 Adding the Motion
+   3.8 Putting the Final Cut Together
+4. OpenArt Settings for More Control
+   4.1 Image and Video Panel Settings
+   4.2 How to Animate a Map Without It Glitching
+
 ## 1 · INTRODUCTION
 
-#### 1.1 · Cold open
+#### A1 · Cold open
 
 **DEMO**
 The finished Vox shot plays. No voiceover. The first spoken line lands after it.
@@ -18,7 +34,7 @@ Let the shot's own sound play, then drop it under the voice.
 > This kind of thing used to mean hiring a motion designer.
 > Or spending weeks learning After Effects.
 
-#### 1.2 · The reveal
+#### A2 · The reveal
 
 **VIDEO**
 The OpenArt Director chat, one clean full-screen frame. That is the reveal.
@@ -52,32 +68,36 @@ Keep the 1.1 shot — it comes back in the conclusion.
 > One real topic, start to finish.
 > Every setting on screen, and nothing cut out when it went wrong.
 
-#### 1.3 · Roadmap
+#### A3 · Roadmap
 
 **VIDEO**
-The eleven section names build up one line at a time as you say them.
+The four section names build up one line at a time as you say them.
+The eight steps sit indented under the third one.
 
 **SAY** — final
 > By the end of this video, you will be able to do this with any topic.
 > And when a shot comes out wrong, you will know exactly which step to go back to.
 >
 > Here is what we are going to cover.
-> First, what makes it look like Vox, so you can judge your own results properly.
-> Then, why one tool beats five.
-> After that, getting the AI to study real Vox videos.
-> That is the step almost nobody does, and it is the one that saves you the most trouble later.
+> First, what makes a Vox style video look like Vox, so you can judge your own results properly.
+> Then, the best AI tool for Vox style videos, and why one beats five.
 >
-> Then we get to work.
+> After that, how to make a Vox style video with AI, from nothing to a finished cut.
+> That part is eight steps, and the order matters more than any of them.
+> Teaching the AI the Vox style from real Vox videos.
 > Picking a topic that holds up.
 > Writing the script.
 > Locking the look.
-> Picking the voice.
+> Picking the AI voice.
 > Picking the music.
 > Adding the motion.
-> And putting it all together.
+> And putting the final cut together.
 >
-> Then right at the end, when you need more control.
-> That one is for the point where the chat stops being enough.
+> That first step is the one almost nobody does, and it saves you the most trouble later.
+>
+> Then right at the end, OpenArt settings for more control.
+> The image and video panel settings.
+> And how to animate a map without it glitching, which is the best trick in this whole video.
 >
 > If you want to follow along, everything I use is linked in the description.
 > There is a code down there too that takes some money off.
@@ -87,7 +107,7 @@ The eleven section names build up one line at a time as you say them.
 
 ## 2 · BODY
 
-### SECTION: What makes it look like Vox
+### SECTION: What Makes a Vox Style Video Look Like Vox
 
 **NOTES**
 - Goal: show what this style actually is, so the viewer can judge their own results later.
@@ -105,7 +125,7 @@ The eleven section names build up one line at a time as you say them.
 
 ---
 
-### SECTION: Why one tool beats five
+### SECTION: The Best AI Tool for Vox Style Videos
 
 **NOTES**
 - Goal: give the viewer the map before the tool, so no tool can confuse them later.
@@ -124,7 +144,9 @@ The eleven section names build up one line at a time as you say them.
 
 ---
 
-### SECTION: Getting the AI to study real Vox videos
+### SECTION: How to Make a Vox Style Video with AI
+
+#### Teaching the AI the Vox Style from Real Vox Videos
 
 **NOTES**
 - Goal: get the AI to read real Vox videos instead of guessing from memory. This is the step almost nobody does, so give it room.
@@ -143,7 +165,7 @@ The eleven section names build up one line at a time as you say them.
 
 ---
 
-### SECTION: Picking a topic that holds up
+#### Picking a Topic That Holds Up
 
 **NOTES**
 - Goal: pick a topic the style can carry, and gather the real numbers before writing a word.
@@ -160,7 +182,7 @@ The eleven section names build up one line at a time as you say them.
 
 ---
 
-### SECTION: Writing the script
+#### Writing the Script
 
 **NOTES**
 - Goal: get to a locked script, and show that the editing pass is what makes it good.
@@ -178,7 +200,7 @@ The eleven section names build up one line at a time as you say them.
 
 ---
 
-### SECTION: Locking the look
+#### Locking the Look
 
 **NOTES**
 - Goal: show the generic first attempt in full, then the plain-English fix that rebuilds it. The recovery is the lesson, not the good version.
@@ -197,7 +219,7 @@ The eleven section names build up one line at a time as you say them.
 
 ---
 
-### SECTION: Picking the voice
+#### Picking the AI Voice
 
 **NOTES**
 - Goal: pick the narrator, and play real audio while doing it. A voice section with no voice in it is worthless.
@@ -212,7 +234,7 @@ The eleven section names build up one line at a time as you say them.
 
 ---
 
-### SECTION: Picking the music
+#### Picking the Music
 
 **NOTES**
 - Goal: pick the track and lay down the timing base. Keep this shorter than the voice section — it works the same way.
@@ -226,7 +248,7 @@ The eleven section names build up one line at a time as you say them.
 
 ---
 
-### SECTION: Adding the motion
+#### Adding the Motion
 
 **NOTES**
 - Goal: add movement without wrecking the timing. Skai says this is where most beginners throw the whole project away.
@@ -242,7 +264,7 @@ The eleven section names build up one line at a time as you say them.
 
 ---
 
-### SECTION: Putting it all together
+#### Putting the Final Cut Together
 
 **NOTES**
 - Goal: get the final cut out, held to the timing base.
@@ -257,24 +279,22 @@ The eleven section names build up one line at a time as you say them.
 
 ---
 
-### SECTION: When you need more control
+### SECTION: OpenArt Settings for More Control
+
+#### Image and Video Panel Settings
 
 **NOTES**
-- Goal: show the level below the chat, for the point where the chat stops being enough. Frame it as optional for the viewer.
+- Goal: show the level below the chat, for the point where the chat stops being enough. Frame the whole section as optional for the viewer.
 - Say in the first line that it is the same account and the same platform, one level down, or this reads as a second tutorial. The chat is a layer sitting over these two panels.
 - Say when to come down here: when you want a specific model or a specific setting the chat will not give you.
-- Thomas drives OpenArt's own panels — left sidebar, image panel, video panel. Every setting named comes from those panels, nothing from another platform.
+- Thomas drives OpenArt's own panels: left sidebar, image panel, video panel. Every setting named comes from those panels, nothing from another platform.
 - Explain the 4K choice as a consequence, not a preference: the first frame is what every later frame in that shot is built from.
 - Land on duration as the setting people get wrong, and say what 6 seconds buys you.
-- The best trick in the whole video: never animate a map. Told to animate one, the model redraws it every frame and it stops being the same map.
-- The fix is a before picture and an after picture, and letting the model move between them instead of drawing anything. Frame one is a clean map with no route. Frame two is the same map with a route arrow and a small paper tag added and nothing else touched — made with add visual references, from references, attaching frame one. Then the start and end frame option, frame one as start, frame two as end. Because the frames are identical apart from the route, there is nothing to redraw.
-- Say the idea out loud, because it works everywhere: give the model less to redraw. Show the two still frames side by side FIRST, or the trick does not land.
-- For three frames instead of two, the start-and-end option only takes two images. Switch to the text with reference tab, open add visual references, go to from creations, load all three in order, and paste an animation prompt telling it to open on the empty version and build each part up in turn. Duration 15 seconds for that shot.
-- Be honest about the fault Thomas hit: the map's colour and texture shifted slightly between frame one and frame two.
+- Seedance 2.5 is already in OpenArt and gives smoother results than 2.0.
 - Sources: Thomas Creates https://youtu.be/edrUbfeSPio
 
 **VIDEO**
-On-screen graphic — the image panel settings:
+On-screen graphic, the image panel settings:
 
 | Setting | Value | Why |
 |---|---|---|
@@ -283,7 +303,7 @@ On-screen graphic — the image panel settings:
 | Resolution | 4K | everything later inherits it |
 
 **VIDEO**
-On-screen graphic — the video panel settings:
+On-screen graphic, the video panel settings:
 
 | Setting | Value |
 |---|---|
@@ -295,11 +315,26 @@ On-screen graphic — the video panel settings:
 | Duration | 6 seconds |
 | Mode | normal |
 
+#### How to Animate a Map Without It Glitching
+
+**NOTES**
+- Goal: give the best trick in the whole video, and the idea behind it, which works everywhere.
+- Explain the failure first: told to animate a map, the model redraws it every frame, and the map stops being the same map.
+- The fix is a before picture and an after picture, and letting the model move between them instead of drawing anything.
+- Frame one is a clean map with no route. Frame two is the same map with a route arrow and a small paper tag added, and nothing else touched.
+- Make frame two with add visual references, from references, attaching frame one. Then use the start and end frame option: frame one as start, frame two as end.
+- Because the frames are identical apart from the route, there is nothing to redraw. Say the idea out loud: give the model less to redraw.
+- Show the two still frames side by side FIRST, or the trick does not land. The finished shot comes after.
+- For three frames instead of two: the start-and-end option only takes two images. Switch to the text with reference tab, open add visual references, go to from creations, load all three in order.
+- Paste an animation prompt telling it to open on the empty version and build each part up in turn. Duration 15 seconds for that shot.
+- Be honest about the fault Thomas hit: the map's colour and texture shifted slightly between frame one and frame two.
+- Sources: Thomas Creates https://youtu.be/edrUbfeSPio
+
 ---
 
 ## 3 · CONCLUSION
 
-#### 3.1 · Wrap and sign-off
+#### C1 · Wrap and sign-off
 
 **SAY** — final
 > So that is the whole thing.

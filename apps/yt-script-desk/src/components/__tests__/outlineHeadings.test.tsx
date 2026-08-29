@@ -51,12 +51,50 @@ function docOf(beats: ReturnType<typeof makeReadBeat>[]): VideoDoc {
 }
 
 describe('a beat is labelled by the outline heading', () => {
-  it('never prints the invented beat title', () => {
-    renderView([makeReadBeat({ title: CONFUSING_TITLE })])
+  // CHANGED 2026-08-29, when body sections gained subsections. `beat.title` is
+  // now an outline heading itself — the subsection name the owner approved at
+  // gate 040 — so showing it is the requirement rather than the bug.
+  //
+  // The 2026-08-27 defect this replaces was invented PROSE titles like
+  // "Cold open — a finished Vox shot, no logos, no UI". That is now prevented
+  // where it is caused: SCRIPT-PLAN-INSTRUCTIONS.md, "Beat headings are labels,
+  // not descriptions". A UI cannot tell an invented title from a real one, and
+  // hiding the title was only ever a workaround for a plan-format problem.
+  it('labels the card with its own outline heading', () => {
+    renderView([
+      makeWriteBeat({
+        num: '3.2',
+        section: 'How to Make a Vox Style Video with AI',
+        title: 'Picking a Topic That Holds Up',
+      }),
+    ])
+    const label = document.querySelector('.beat-num')?.textContent ?? ''
     expect(
-      document.body.textContent ?? '',
-      'INVENTED_TITLE_SHOWN: the beat title is back in the left track — the outline section is the heading',
-    ).not.toContain(CONFUSING_TITLE)
+      label,
+      'SUBSECTION_NOT_LABELLED: eight cards under one chapter all read as the chapter',
+    ).toContain('Picking a Topic That Holds Up')
+
+    const head = document.querySelector('[data-testid="group-head"]')?.textContent ?? ''
+    expect(head, 'PARENT_NOT_SHOWN: the card lost the section it sits under').toContain(
+      'How to Make a Vox Style Video with AI',
+    )
+  })
+
+  it('shows the table of contents at the top, sections and subsections', () => {
+    renderView([
+      makeWriteBeat({ num: '1', section: 'What Makes a Vox Style Video Look Like Vox', title: 'What Makes a Vox Style Video Look Like Vox' }),
+      makeWriteBeat({ num: '2.1', section: 'How to Make a Vox Style Video with AI', title: 'Picking a Topic That Holds Up' }),
+      makeWriteBeat({ num: '2.2', section: 'How to Make a Vox Style Video with AI', title: 'Writing the Script' }),
+    ])
+    const rows = [...document.querySelectorAll('[data-testid="contents"] .contents-row')].map(
+      (n) => (n.textContent ?? '').trim(),
+    )
+    expect(rows, 'CONTENTS_MISSING: the plan has no table of contents at the top').toEqual([
+      '1What Makes a Vox Style Video Look Like Vox',
+      '2How to Make a Vox Style Video with AI',
+      '2.1Picking a Topic That Holds Up',
+      '2.2Writing the Script',
+    ])
   })
 
   // The name lives in the section header, ONCE, and the beat carries only its
@@ -81,13 +119,16 @@ describe('a beat is labelled by the outline heading', () => {
   // introduction 1.2 introduction"*. The duplication was never the complaint;
   // the SHOUTING was. So the name belongs in the label, in sentence case, and
   // this test now guards that instead of guarding its absence.
-  it('labels the beat with its number AND its section', () => {
-    renderView([makeWriteBeat({ section: 'Locking the look', title: 'some invented prose' })])
+  it('labels the beat with its number AND its heading', () => {
+    // A section with NO subsections: the card IS the section, so its own heading
+    // and its parent's are the same string and the label reads the same as it
+    // did before subsections existed.
+    renderView([makeWriteBeat({ section: 'Locking the look', title: 'Locking the look' })])
     const label = document.querySelector('.beat-num')?.textContent ?? ''
     expect(label, 'BEAT_NUM_MISSING: the beat lost its number').toContain('2.4')
     expect(
       label,
-      'BEAT_SECTION_MISSING: the beat label no longer names its section, so a beat read on its own says nothing about where it sits',
+      'BEAT_HEADING_MISSING: the beat label no longer names its heading, so a beat read on its own says nothing about where it sits',
     ).toContain('Locking the look')
   })
 

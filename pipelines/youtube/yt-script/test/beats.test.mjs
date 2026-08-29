@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buildBeats } from '../lib/beats.mjs'
+import { buildBeats, writtenContents } from '../lib/beats.mjs'
 import { buildWorksheet } from '../render-worksheet.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -442,8 +442,8 @@ test('CARD_DROPPED: a body section with a NOTES lane becomes one card beat', () 
   )
   assert.deepEqual(
     body.map((b) => b.num),
-    ['2.1', '2.2'],
-    'cards number from the part number, in order',
+    ['1', '2'],
+    'a section with no subsections is numbered by its position in the body',
   )
   for (const card of body) {
     assert.equal(card.mode, 'write', 'a card is something he writes')
@@ -485,4 +485,106 @@ test('CARD_HAS_NO_WORKSHEET_SLOT: the desk-down fallback still gives him a place
   // so count the slot HEADINGS rather than the word.
   assert.equal((md.match(/^#### B\d+ · /gm) ?? []).length, 2, 'one write slot per card')
   assert.ok(!md.includes('The background never moves.'), 'bullets stay out of the worksheet')
+})
+
+// ---------------------------------------------------------------- subsections
+//
+// A body section may hold `####` SUBSECTIONS since 2026-08-29, and then each
+// subsection is the card and the section is only a heading over them. Owner:
+// *"Have broader sections, have subsections... It's not necessary that every
+// section has to be subsections."* So the two shapes coexist in one document,
+// and these guard that they do not interfere.
+
+const TWO_LEVEL = `# Two Level Video
+
+## Contents
+1. What Makes a Vox Style Video Look Like Vox
+2. How to Make a Vox Style Video with AI
+   2.1 Picking a Topic That Holds Up
+   2.2 Writing the Script
+
+## 1 · INTRODUCTION
+
+#### A1 · Cold open
+
+**SAY**
+> The first line.
+
+## 2 · BODY
+
+### SECTION: What Makes a Vox Style Video Look Like Vox
+
+**NOTES**
+- The background never moves.
+
+### SECTION: How to Make a Vox Style Video with AI
+
+#### Picking a Topic That Holds Up
+
+**NOTES**
+- One narrator has to carry it.
+
+#### Writing the Script
+
+**NOTES**
+- Edit the draft in place.
+
+## 3 · CONCLUSION
+
+#### C1 · Sign-off
+
+**SAY**
+> Thanks for watching.
+`
+
+test('SUBSECTION_NUMBERING: a leaf section and a parent section number correctly together', () => {
+  const { beats } = buildBeats(TWO_LEVEL)
+  const body = beats.filter((b) => b.partKind === 'body')
+
+  assert.deepEqual(
+    body.map((b) => b.num),
+    ['1', '2.1', '2.2'],
+    'a leaf takes its section number; a subsection takes section.sub',
+  )
+  assert.deepEqual(body.map((b) => b.title), [
+    'What Makes a Vox Style Video Look Like Vox',
+    'Picking a Topic That Holds Up',
+    'Writing the Script',
+  ])
+  assert.deepEqual(
+    body.map((b) => b.section),
+    [
+      'What Makes a Vox Style Video Look Like Vox',
+      'How to Make a Vox Style Video with AI',
+      'How to Make a Vox Style Video with AI',
+    ],
+    'a subsection keeps its parent section, which is what groups it in the desk',
+  )
+})
+
+test('DUPLICATE_BEAT_NUM: no two beats share a number', () => {
+  // `draft`, `says` and `edits` are all keyed on the beat number, so two beats
+  // sharing one share a write box. It nearly happened on 2026-08-29: intro beats
+  // were `1.1`-`1.3` and the conclusion `3.1`, and a body section numbered 3 with
+  // subsections produces `3.1` too. Intro and conclusion went to `A1`/`C1`.
+  for (const md of [TWO_LEVEL, CARDS, FIXTURE, ...REAL.map((k) =>
+    readFileSync(join(VIDEOS, k, 'script-plan.md'), 'utf8'),
+  )]) {
+    const nums = buildBeats(md).beats.map((b) => b.num)
+    const dupes = nums.filter((n, i) => nums.indexOf(n) !== i)
+    assert.deepEqual(dupes, [], `two beats share a number: ${JSON.stringify(dupes)}`)
+  }
+})
+
+test('CONTENTS_DRIFT: the written table of contents matches the headings below it', () => {
+  for (const key of REAL) {
+    const md = readFileSync(join(VIDEOS, key, 'script-plan.md'), 'utf8')
+    const written = writtenContents(md)
+    assert.ok(written, `${key}: no "## Contents" block at the top of the plan`)
+    assert.deepEqual(
+      written,
+      buildBeats(md).contents,
+      `${key}: the Contents block no longer matches the section and subsection headings`,
+    )
+  }
 })

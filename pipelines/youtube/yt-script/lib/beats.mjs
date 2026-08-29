@@ -100,7 +100,20 @@ export function buildBeats(md) {
   let curPart = null
   let curPartKind = 'intro'
   let curSection = null
-  let cardCount = 0
+  // Two levels in the body since 2026-08-29. `sectionCount` numbers the top-level
+  // `### SECTION:` headings 1..N; `subCount` numbers the `####` subsections
+  // inside the current one. A section with NO subsections is one card numbered
+  // `3`; a section WITH them has cards `3.1`, `3.2`. Owner: *"Have broader
+  // sections, have subsections... It's not necessary that every section has to
+  // be subsections."*
+  let sectionCount = 0
+  let subCount = 0
+  // The table of contents, DERIVED from the headings rather than read from the
+  // `## Contents` block in the markdown. The desk renders this one, so it can
+  // never disagree with the document below it. The markdown block is for whoever
+  // opens the file in an editor, and `CONTENTS_DRIFT` in test/beats.test.mjs is
+  // what keeps the two the same.
+  const contents = []
   let curRules = []
   let curSectionFacts = []
   let curSectionAsk = []
@@ -118,7 +131,8 @@ export function buildBeats(md) {
       flush()
       curPart = b.text
       curPartKind = partKindFor(n)
-      cardCount = 0
+      sectionCount = 0
+      subCount = 0
       curSection = null
       curRules = []
       curSectionFacts = []
@@ -129,6 +143,11 @@ export function buildBeats(md) {
     if (b.t === 'section') {
       flush()
       curSection = b.text
+      if (curPartKind === 'body') {
+        sectionCount += 1
+        subCount = 0
+        contents.push({ num: String(sectionCount), title: b.text, level: 1 })
+      }
       curRules = []
       curSectionFacts = []
       curSectionAsk = []
@@ -181,10 +200,11 @@ export function buildBeats(md) {
     // the section's first real beat, exactly as before, so every plan written in
     // the old shape parses unchanged.
     if (b.t === 'lane' && b.kind === 'NOTES' && !pending && curPartKind === 'body') {
-      cardCount += 1
-      const partNum = (curPart || '').match(/^\s*(\d+)/)?.[1] ?? '2'
+      // A LEAF section: `**NOTES**` sits directly under `### SECTION:` with no
+      // `####` between them, so the section itself is the card and takes the
+      // section's own number.
       pending = {
-        num: `${partNum}.${cardCount}`,
+        num: String(sectionCount),
         title: curSection ?? 'Untitled section',
         part: curPart,
         partKind: curPartKind,
@@ -215,8 +235,20 @@ export function buildBeats(md) {
     if (b.t === 'beat') {
       flush()
       const m = b.text.match(BEAT_RE)
+      // In the BODY a `####` heading is a SUBSECTION of the section above it, and
+      // its number is derived rather than typed: `3.1`, `3.2`. Writing the number
+      // by hand meant renumbering eight headings to insert one. An explicit
+      // `#### 3.2 · Name` still wins, so intro and conclusion beats — which carry
+      // their own `1.1`, `3.1` — are untouched.
+      let num
+      if (m) num = m[1]
+      else if (curPartKind === 'body') {
+        subCount += 1
+        num = `${sectionCount}.${subCount}`
+        contents.push({ num, title: b.text.trim(), level: 2 })
+      } else num = String(beats.length + 1)
       pending = {
-        num: m ? m[1] : String(beats.length + 1),
+        num,
         title: (m ? m[2] : b.text).trim(),
         part: curPart,
         partKind: curPartKind,
@@ -289,7 +321,20 @@ export function buildBeats(md) {
   flush()
   assertNotLegacyBeats(md, beats)
 
-  return { title, beats }
+  return { title, contents, beats }
+}
+
+// The `## Contents` block as it is WRITTEN in the markdown, normalised to the
+// same shape `buildBeats` derives. Only `CONTENTS_DRIFT` uses it: the desk always
+// renders the derived list, so a stale block in the file is a documentation bug
+// rather than a rendering one, and this is what turns it into a failing test.
+export function writtenContents(md) {
+  const block = parse(md).find((b) => b.t === 'contents')
+  if (!block) return null
+  return block.raw
+    .map((l) => l.trim().match(/^([0-9]+(?:\.[0-9]+)?)[.)]?\s+(.*)$/))
+    .filter(Boolean)
+    .map((m) => ({ num: m[1], title: m[2].trim(), level: m[1].includes('.') ? 2 : 1 }))
 }
 
 // ---------------------------------------------------------------- CLI

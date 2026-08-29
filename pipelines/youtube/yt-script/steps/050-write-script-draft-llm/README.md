@@ -32,11 +32,15 @@ step was never told to open.
 
 - **Intro (130-160 words) and conclusion (80-100 words)** - finished verbatim
   copy. Nothing left to decide.
-- **Body** - one card per section. `### SECTION:` then a single `**NOTES**`
-  bullet list. No `####` beats, no `SAY`, no `VIDEO`, no `FACTS`, no `RULES`.
+- **Body** - one card per section, on two levels. `### SECTION:` is a broad
+  section; it either carries its own `**NOTES**` bullet list or a run of `####`
+  subsections that each carry one. No `SAY`, no `VIDEO`, no `FACTS`, no `RULES`.
   Nothing in a card is spoken copy: the maker writes the words himself, and a
   card that starts drafting his lines has collapsed the two documents into one.
-  `TASTE.md` T13 is the rule; `SCRIPT-PLAN-INSTRUCTIONS.md` has the format.
+  `TASTE.md` T13, T14 and T15 are the rules; `SCRIPT-PLAN-INSTRUCTIONS.md` has
+  the format.
+- **A `## Contents` block at the top**, listing every section and subsection by
+  title, matching the headings below it exactly.
 
 ## Run the `humanizer` skill, in Mode B
 
@@ -84,8 +88,13 @@ calling it cluttered"*, *"contrast with what a normal edit does"* — which read
 thorough and is unusable. Owner: *"all the instructions - i am finding too hard to
 understand."* All 56 beats had to be rewritten.
 
-**And then the beats themselves went.** Rewriting them plainly was not enough:
+**And then the beats themselves went, and then came back one level up.** Rewriting them plainly was not enough:
 the owner read 56 beats across 11 sections as clutter that took the job away from
 the person doing it. *"I want high level section distinction and their
-information that's it don't break down too much."* The body is 11 cards now.
-`TASTE.md` T13.
+information that's it don't break down too much."* The body became 11 cards.
+
+The next day it grew a second level: eight of those eleven were steps of one
+process, not eleven separate topics, so they became subsections of `How to Make a
+Vox Style Video with AI` and the body went to four sections. Two of the four have
+no subsections, on purpose — *"I think you are forcing it here."* `TASTE.md` T13
+and T14.

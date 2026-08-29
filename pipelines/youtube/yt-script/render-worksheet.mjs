@@ -102,6 +102,22 @@ export function parse(md) {
       push(at, { t: 'title', text: line.replace(/^#\s+/, '').trim() })
       continue
     }
+    // `## Contents` is the table of contents at the top of the plan, not a part.
+    // Added 2026-08-29. It must be matched BEFORE the generic `##` part rule, or
+    // it becomes a fourth part and `partKindFor` mislabels the whole intro.
+    // Owner: *"at the top of the script can we show the outline? All sections,
+    // subsection, etc. Just the title."*
+    if (/^##\s+Contents\s*$/i.test(line)) {
+      const at = i
+      i++
+      const raw = []
+      while (i < lines.length && !/^#{1,4}\s/.test(lines[i]) && !/^---\s*$/.test(lines[i])) {
+        if (lines[i].trim()) raw.push(lines[i])
+        i++
+      }
+      push(at, { t: 'contents', raw })
+      continue
+    }
     if (/^##\s+(?!#)/.test(line)) {
       const at = i
       i++

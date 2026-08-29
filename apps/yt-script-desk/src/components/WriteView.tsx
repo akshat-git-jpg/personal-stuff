@@ -30,6 +30,7 @@ export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSay
   return (
     <div className={`tracks${prefs.instructions ? '' : ' no-notes'}`}>
       {prefs.instructions && <div className="rail" />}
+      <Contents beats={beats} />
       {beats.map((beat, i) => (
         <Fragment key={beat.num}>
           {groupOf(beat) !== groupOf(beats[i - 1]) && (
@@ -50,7 +51,7 @@ export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSay
                 the number rather than compete with the header. */}
             <div className="beat-num">
               <span className="beat-num-n">{beat.num}</span>
-              <span className="beat-num-sec">{groupOf(beat)}</span>
+              <span className="beat-num-sec">{labelOf(beat)}</span>
             </div>
             <span className={`tag ${beat.mode === 'read' ? 'tag-say' : 'tag-write'}`}>
               {beat.mode === 'read' ? 'Read as written' : 'You write this'}
@@ -153,6 +154,57 @@ function renderEmphasis(line: string): ReactNode[] {
 // all, so the eleven section names he approved at gate 040 were invisible here
 // and what he read instead was prose the script plan had made up. `beat.title`
 // is still parsed and still in the data; it is simply not what labels a beat.
+// The heading for the card itself. For a SUBSECTION that is its own name
+// (`Picking a Topic That Holds Up`); for a section with no subsections the card
+// IS the section, so the two read the same. Both come from the outline.
+//
+// It showed `groupOf` — the parent — until 2026-08-29, which was right while a
+// body section was one flat card and wrong the moment sections got subsections:
+// eight cards under one chapter all carried the chapter's name and nothing said
+// which step you were on.
+function labelOf(beat: Beat): string {
+  return beat.title || groupOf(beat)
+}
+
+// The table of contents, at the top of the page. Owner, 2026-08-29: *"at the top
+// of the script can we show the outline? All sections, subsection, etc. Just the
+// title."*
+//
+// DERIVED from the beats rather than sent by the API, so it cannot disagree with
+// the document under it and no snapshot needs republishing to gain one. A body
+// beat's number carries the shape: `3` is a section, `3.1` is a subsection of
+// section 3.
+function Contents({ beats }: { beats: Beat[] }) {
+  const rows: { num: string; title: string; level: number }[] = []
+  let lastSection: string | null = null
+
+  for (const b of beats) {
+    if (b.partKind !== 'body') continue
+    const sectionNum = b.num.split('.')[0]
+    if (sectionNum !== lastSection) {
+      rows.push({ num: sectionNum, title: b.section ?? b.title, level: 1 })
+      lastSection = sectionNum
+    }
+    if (b.num.includes('.')) rows.push({ num: b.num, title: b.title, level: 2 })
+  }
+
+  if (rows.length === 0) return null
+
+  return (
+    <div className="contents" data-testid="contents">
+      <div className="contents-label">What this video covers</div>
+      <ol className="contents-list">
+        {rows.map((r) => (
+          <li key={r.num} className={r.level === 2 ? 'contents-row contents-sub' : 'contents-row'}>
+            <span className="contents-num">{r.num}</span>
+            <span className="contents-title">{r.title}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
 function groupOf(beat: Beat | undefined): string {
   if (!beat) return ''
   if (beat.section) return beat.section

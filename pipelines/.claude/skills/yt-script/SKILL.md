@@ -210,12 +210,26 @@ Each step is a folder, so changing one is local:
 - **Kinds** are `llm` (Claude writes it), `run` (a command), `human` (the owner
   decides). A `human` step with a `gate` field is a hard stop.
 
-## The body is section cards, not beats
+## The body is section cards on two levels
 
-**One body section, one card.** `### SECTION: <name>` followed by a single
-`**NOTES**` bullet list. No `####` heading, no `SAY`, no `VIDEO`, no `FACTS`, no
-`RULES`. The intro and the conclusion are unchanged: still verbatim copy in
-numbered beats.
+**The body has two levels, and a card is a leaf.**
+
+- `### SECTION: <name>` is a broad section. It is a chapter of the video.
+- If it carries its own `**NOTES**` bullet list, it is one card.
+- If it carries `#### <name>` SUBSECTIONS instead, each of those is a card with
+  its own `**NOTES**`, and the section carries none.
+- **Only split a section that really has parts.** Owner: *"It's not necessary
+  that every section has to be subsections. I think you are forcing it here."*
+
+No `SAY`, no `VIDEO`, no `FACTS`, no `RULES` in a new card. The intro and the
+conclusion are unchanged: verbatim copy in beats, numbered `A1`, `A2`, `C1`.
+
+**Every plan opens with a `## Contents` block** listing sections and subsections,
+titles only. It must match the headings below it.
+
+**Section names are written for search** — the tool, the format, the thing being
+made. `The Best AI Tool for Vox Style Videos`, never `Why one tool beats five`.
+`TASTE.md` T15.
 
 Owner, 2026-08-29: *"I want high level section distinction and their information
 that's it don't break down too much that it's cluttering everything and removes
@@ -227,8 +241,8 @@ separate boxes. It is now 11 cards and one box.
 looks more careful than an eleven-card one, right up to the moment somebody has
 to work from it, and by then it is the maker's problem rather than the writer's.
 
-`TASTE.md` T13 is the rule and `SCRIPT-PLAN-INSTRUCTIONS.md`, section **"The
-NOTES lane, a body section card"**, is the format. The old lanes still parse, for
+`TASTE.md` T13 (cards), T14 (two levels) and T15 (search-friendly names) are the
+rules; `SCRIPT-PLAN-INSTRUCTIONS.md` is the format. The old lanes still parse, for
 plans written before the change; never write them in a new one.
 
 ## The `humanizer` skill writes the spoken words
