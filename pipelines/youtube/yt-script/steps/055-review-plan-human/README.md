@@ -180,9 +180,11 @@ something already shipped. This was the real bug on 2026-08-23, when the old ste
 
 ## Editing while you review
 
-**Click what you want to change.** Notes and spoken lines are editable in place in
-the local desk since 2026-08-29. The card shows `edited, not yet applied` and the
-edit sits in `desk-draft.json` — `script-plan.md` is untouched until you say so.
+**Just type.** Every box on the local desk is live — no pencil, no confirmation.
+Notes and spoken lines alike. The card shows `edited, not yet applied` and the
+edit sits in `desk-draft.json`; `script-plan.md` is untouched until you say so.
+
+It saves on a pause in typing, so you can close the tab mid-sentence.
 
 **Then it all lands in one commit:**
 

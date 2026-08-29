@@ -289,6 +289,7 @@ export function App() {
               onNotesSave={isHosted ? undefined : handleNotesSave}
               onNotesRestore={isHosted ? undefined : handleNotesRestore}
               noteEdits={doc.noteEdits ?? {}}
+              alwaysEditable={!isHosted}
             />
           )
         ) : (

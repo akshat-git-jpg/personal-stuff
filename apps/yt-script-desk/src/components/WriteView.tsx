@@ -20,6 +20,10 @@ type WriteViewProps = {
   onNotesSave?: (num: string, lines: string[]) => Promise<void> | void
   onNotesRestore?: (num: string) => Promise<void> | void
   noteEdits?: Record<string, Edit>
+  // LOCAL MODE: every box on the page is live. No pencil anywhere. Owner,
+  // 2026-08-29: *"i think its better if we can have entire flow editable in
+  // place - on local. no need to click pencil."*
+  alwaysEditable?: boolean
 }
 
 // The governing rule: the left track is the AUDIO TIMELINE. Three things live
@@ -45,6 +49,7 @@ export function WriteView({
   onNotesSave,
   onNotesRestore,
   noteEdits = {},
+  alwaysEditable = false,
 }: WriteViewProps) {
   return (
     <div className={`tracks${prefs.instructions ? '' : ' no-notes'}`}>
@@ -82,6 +87,7 @@ export function WriteView({
             {beat.mode === 'read' && (
               <SayCard
                 lines={says[beat.num] ?? beat.say ?? []}
+                alwaysEditable={alwaysEditable}
                 editedInfo={edits[beat.num] ?? null}
                 onSave={(lines) => onSaySave(beat.num, lines)}
                 onRestore={() => onSayRestore(beat.num)}
@@ -99,6 +105,7 @@ export function WriteView({
             <div className="rowR" data-testid="right-cell">
               {renderRightCell(beat, {
                 edited: Boolean(noteEdits[beat.num]),
+                alwaysOpen: alwaysEditable,
                 onSave: onNotesSave ? (lines) => onNotesSave(beat.num, lines) : undefined,
                 onRestore: onNotesRestore ? () => onNotesRestore(beat.num) : undefined,
               })}
@@ -124,12 +131,16 @@ export function WriteView({
 // Order is deliberate and is the order the markdown is read in: the section
 // card's own bullets, then anything an older plan put in its other lanes. A plan
 // written in the new shape has only `notes` and the rest are empty.
+// How long after the last keystroke an always-open notes box saves itself.
+const NOTES_DEBOUNCE_MS = 600
+
 function laneLines(b: Beat): string[] {
   return [...b.notes, ...(b.angle ?? []), ...b.video, ...b.rules, ...b.facts]
 }
 
 type NoteEditing = {
   edited: boolean
+  alwaysOpen?: boolean
   onSave?: (lines: string[]) => void | Promise<void>
   onRestore?: () => void | Promise<void>
 }
@@ -312,26 +323,54 @@ function InstructionBlock({
   lines: string[]
   editing: NoteEditing
 }) {
-  const [open, setOpen] = useState(false)
+  const alwaysOpen = Boolean(editing.alwaysOpen && editing.onSave)
+  const [openedByPencil, setOpenedByPencil] = useState(false)
   const [text, setText] = useState(lines.join('\n'))
+  const [prevLines, setPrevLines] = useState(lines)
   const areaRef = useRef<HTMLTextAreaElement>(null)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const open = alwaysOpen || openedByPencil
+
+  // An always-open box never re-reads `lines` on open, so a restore or a reload
+  // has to land in it here. During render, so it cannot cascade.
+  if (alwaysOpen && lines !== prevLines) {
+    setPrevLines(lines)
+    setText(lines.join('\n'))
+  }
 
   useEffect(() => {
-    if (open) areaRef.current?.focus()
-  }, [open])
+    if (openedByPencil) areaRef.current?.focus()
+  }, [openedByPencil])
+
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+    }
+  }, [])
 
   useAutoGrow(areaRef, text, open)
 
   const start = () => {
     setText(lines.join('\n'))
-    setOpen(true)
+    setOpenedByPencil(true)
+  }
+
+  // Blank lines are how a bullet list gets accidentally broken in a textarea, and
+  // an empty trailing line would land in the markdown as one.
+  const clean = (t: string) => t.split('\n').filter((l, i, all) => l.trim() || i < all.length - 1)
+
+  // An always-open box may never be blurred, so typing saves it too.
+  const handleChange = (next: string) => {
+    setText(next)
+    if (!alwaysOpen) return
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => editing.onSave?.(clean(next)), NOTES_DEBOUNCE_MS)
   }
 
   const finish = () => {
-    setOpen(false)
-    // Blank lines are how a bullet list gets accidentally broken in a textarea,
-    // and an empty trailing line would land in the markdown as one.
-    editing.onSave?.(text.split('\n').filter((l, i, all) => l.trim() || i < all.length - 1))
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    if (!alwaysOpen) setOpenedByPencil(false)
+    editing.onSave?.(clean(text))
   }
 
   return (
@@ -339,12 +378,16 @@ function InstructionBlock({
       <div className="right-block-head">
         <div className="right-block-label">{label}</div>
         {editing.edited && <span className="right-block-flag">edited, not yet applied</span>}
-        {editing.onSave && !open && (
+        {editing.onSave && !alwaysOpen && !open && (
           <button type="button" className="right-block-btn" onClick={start} aria-label="Edit notes">
             <Pencil size={13} strokeWidth={2} />
           </button>
         )}
-        {editing.edited && editing.onRestore && !open && (
+        {/* `!openedByPencil`, NOT `!open`: in local mode the box is open for the
+            whole session, and gating undo on "not open" made it unreachable
+            there. It is only hidden while a pencil-opened box is mid-edit, when
+            the change has not been committed to anything yet. */}
+        {editing.edited && editing.onRestore && !openedByPencil && (
           <button
             type="button"
             className="right-block-btn"
@@ -360,7 +403,7 @@ function InstructionBlock({
           ref={areaRef}
           className="right-block-area"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           onBlur={finish}
         />
       ) : lines.length === 0 ? (
