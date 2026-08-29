@@ -3,6 +3,7 @@ import { Pencil, RotateCcw } from 'lucide-react'
 import type { Beat, Edit } from '../types'
 import type { Prefs } from '../hooks/usePrefs'
 import { SayCard } from './SayCard'
+import { useAutoGrow } from '../hooks/useAutoGrow'
 import { WriteBox } from './WriteBox'
 
 type WriteViewProps = {
@@ -319,6 +320,8 @@ function InstructionBlock({
     if (open) areaRef.current?.focus()
   }, [open])
 
+  useAutoGrow(areaRef, text, open)
+
   const start = () => {
     setText(lines.join('\n'))
     setOpen(true)
@@ -357,7 +360,6 @@ function InstructionBlock({
           ref={areaRef}
           className="right-block-area"
           value={text}
-          rows={Math.max(6, text.split('\n').length + 1)}
           onChange={(e) => setText(e.target.value)}
           onBlur={finish}
         />
