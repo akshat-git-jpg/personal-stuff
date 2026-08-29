@@ -136,7 +136,7 @@ case "$verb" in
     # head_before/pid are overwritten below.
     boss_fixup_claim "$id" || exit 3
     model=$(meta_get "$id" model) || model=""
-    [ -n "$model" ] || model="${CODEX_DEFAULT_MODEL:-gpt-5.6-sol}"
+    [ -n "$model" ] || model="${CODEX_DEFAULT_MODEL:-gpt-5.6-terra}"
     meta_set "$id" head_before "$(git -C "$worktree" rev-parse HEAD 2>/dev/null || echo none)"
     # Clear any thread id a PREVIOUS crew on this PR recorded. A dispatch always
     # starts a NEW codex thread; leaving the old id on the meta would make a later
@@ -202,7 +202,7 @@ CODEX
     test_cmd=$(meta_get "$id" test_cmd) || test_cmd=""
     test_timeout=$(meta_get "$id" test_timeout) || test_timeout=600
     model=$(meta_get "$id" model) || model=""
-    [ -n "$model" ] || model="${CODEX_DEFAULT_MODEL:-gpt-5.6-sol}"
+    [ -n "$model" ] || model="${CODEX_DEFAULT_MODEL:-gpt-5.6-terra}"
     rbrief="$STATE_DIR/$id.resume.md"
     {
       echo "You ran out of wall-clock mid-task. This is the SAME thread, so you still have"

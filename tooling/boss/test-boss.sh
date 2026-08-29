@@ -601,6 +601,7 @@ case "$verb" in
     printf '%s\n' "$id" >> "${AGY_STUB_LOG:-/dev/null}"
     wt=$(meta_get "$id" worktree) || { echo "ERROR: no worktree for $id" >&2; exit 1; }
     [ -f "${3:-}" ] || { echo "ERROR: brief unreadable: ${3:-}" >&2; exit 1; }
+    boss_fixup_claim "$id" || exit 3
     meta_set "$id" head_before "$(git -C "$wt" rev-parse HEAD 2>/dev/null || echo none)"
     ( exec sleep "${LAND_STUB_SLEEP:-60}" ) & pid=$!
     disown "$pid" 2>/dev/null || true
@@ -612,6 +613,38 @@ case "$verb" in
 esac
 LANDAGYEOF
 chmod +x "$LAND_BOSS/executors/agy.sh"
+
+# Stub fallback executor. Same contract, its own log, and it claims the fix-up budget
+# exactly like executors/claude-p.sh — which is what makes L10 a real test of the
+# refund: without it, boss_fixup_claim refuses the fallback dispatch outright.
+CLAUDEP_LOG="$TMP/land-claudep.log"
+: > "$CLAUDEP_LOG"
+cat > "$LAND_BOSS/executors/claude-p.sh" <<'LANDCPEOF'
+#!/bin/bash
+set -uo pipefail
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../bin" && pwd)/boss-lib.sh"
+verb="${1:?}"; id="${2:?}"
+case "$verb" in
+  dispatch)
+    wt=$(meta_get "$id" worktree) || { echo "ERROR: no worktree for $id" >&2; exit 1; }
+    [ -f "${3:-}" ] || { echo "ERROR: brief unreadable: ${3:-}" >&2; exit 1; }
+    # The claim comes BEFORE the log line, unlike the agy stub: this log is what L10
+    # reads to decide whether the fallback actually RAN, so a refused dispatch must
+    # leave it empty or the test passes on a dispatch that never happened.
+    boss_fixup_claim "$id" || exit 3
+    printf '%s\n' "$id" >> "${CLAUDEP_STUB_LOG:-/dev/null}"
+    meta_set "$id" head_before "$(git -C "$wt" rev-parse HEAD 2>/dev/null || echo none)"
+    ( exec sleep "${LAND_STUB_SLEEP:-60}" ) & pid=$!
+    disown "$pid" 2>/dev/null || true
+    meta_set "$id" pid "$pid"; meta_set "$id" dispatched_at "$(date +%s)" ;;
+  alive)
+    pid=$(meta_get "$id" pid) || exit 2; [ -n "$pid" ] || exit 2
+    kill -0 "$pid" 2>/dev/null && exit 0; exit 1 ;;
+  *) exit 2 ;;
+esac
+LANDCPEOF
+chmod +x "$LAND_BOSS/executors/claude-p.sh"
+export CLAUDEP_STUB_LOG="$CLAUDEP_LOG"
 
 LAND_WS="$TMP/land-ws"
 mkdir -p "$LAND_WS"
@@ -758,6 +791,161 @@ echo "$l6_out" | grep -q 'CAPPED' || fail "(L6) a 6th transient retry was not ca
 [ ! -s "$AGY_LOG" ] || fail "(L6) a 6th transient retry dispatched: $(cat "$AGY_LOG")"
 land_reset
 echo "PASS: the transient bound holds"
+
+# (L7-L9) added 2026-08-27, after land-work-pp-agents-ui stalled for 36 minutes.
+# A quota-dead fix-up consumed the whole REAL budget and the cap was announced only to a
+# stdout nobody reads, so two finished commits silently stopped reaching main.
+echo "--- (L7) a fix-up that never RAN refunds the real attempt and pays transient ---"
+land_reset
+land_entry boss-l7 "verify failed: npm test"
+LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l7a.out" 2>&1
+[ -f "$LANDS/land-boss-l7.dispatching" ] \
+  || fail "(L7) the land was not dispatched: $(cat "$TMP/l7a.out")"
+[ "$(land_field "$LANDS/land-boss-l7.dispatching" real_attempts)" = "1" ] \
+  || fail "(L7) dispatch did not charge a real attempt"
+# The executor's own envelope: an agy 429, exactly as recorded on 2026-08-27.
+printf '%s\n' '{"status":"ERROR","response":"","error":"RESOURCE_EXHAUSTED (code 429): Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 44m2s.","num_turns":1}' \
+  > "$LANDS/land-boss-l7.out"
+l7_out=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l7_out" | grep -q 'INFRA ' \
+  || fail "(L7) a quota death was not classified as infra: $l7_out"
+echo "$l7_out" | grep -q 'CAPPED' \
+  && fail "(L7) a quota death capped the land: $l7_out"
+l7e="$LANDS/land-boss-l7.dispatching"
+[ -f "$l7e" ] || l7e="$LANDS/land-boss-l7.blocked"
+[ "$(land_field "$l7e" transient_attempts)" = "1" ] \
+  || fail "(L7) a quota death did not charge the transient budget (got '$(land_field "$l7e" transient_attempts)')"
+[ "$(land_field "$l7e" real_attempts)" -le 1 ] \
+  || fail "(L7) a quota death consumed a real attempt (got '$(land_field "$l7e" real_attempts)')"
+echo "PASS: an executor that never ran costs the transient budget, not the real one"
+
+echo "--- (L8) one fix-up costs exactly one real attempt, charged at dispatch ---"
+land_reset
+land_entry boss-l8 "verify failed: npm test"
+LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l8a.out" 2>&1
+[ -f "$LANDS/land-boss-l8.dispatching" ] \
+  || fail "(L8) the land was not dispatched: $(cat "$TMP/l8a.out")"
+l8_before=$(land_field "$LANDS/land-boss-l8.dispatching" real_attempts)
+[ "$l8_before" = "1" ] \
+  || fail "(L8) dispatch did not charge exactly one real attempt (got '$l8_before')"
+# Freeze phase B so the reap is measured ALONE. reap_one does not look at
+# no_auto_resolve, so it still runs; sweep_one HOLDs and restores byte-identically, which
+# leaves the reap's own counters readable with no second dispatch mixed in.
+printf 'no_auto_resolve=1\n' >> "$LANDS/land-boss-l8.dispatching"
+printf '%s\n' '{"status":"SUCCESS","response":"I read the failing test and could not find a safe fix.","num_turns":24}' \
+  > "$LANDS/land-boss-l8.out"
+l8_out=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l8_out" | grep -q 'NOADVANCE' \
+  || fail "(L8) a real no-commit fix-up was not reaped: $l8_out"
+echo "$l8_out" | grep -q 'INFRA' \
+  && fail "(L8) ordinary agent output was misread as an infra death: $l8_out"
+l8_after=$(land_field "$LANDS/land-boss-l8.blocked" real_attempts)
+[ "$l8_after" = "$l8_before" ] \
+  || fail "(L8) the reap charged a SECOND attempt for one fix-up ($l8_before then $l8_after) — REAL_CAP buys half what it says"
+echo "PASS: one fix-up costs one real attempt, and only an executor that never ran is refunded"
+
+echo "--- (L8b) REAL_CAP really buys REAL_CAP dispatches ---"
+land_reset
+land_entry boss-l8b "verify failed: npm test"
+l8b_n=0
+for _ in 1 2 3 4; do
+  printf '%s\n' '{"status":"SUCCESS","response":"no safe fix","num_turns":9}' \
+    > "$LANDS/land-boss-l8b.out"
+  LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l8b.out" 2>&1
+  l8b_n=$(grep -c 'boss-l8b' "$AGY_LOG" || true)
+done
+[ "$l8b_n" = "2" ] \
+  || fail "(L8b) REAL_CAP=2 bought $l8b_n dispatch(es), expected 2"
+land_reset
+echo "PASS: two dispatches for a cap of two, then it stops"
+
+echo "--- (L9) a capped land notifies, exactly once ---"
+land_reset
+: > "$TMP/notify.log"
+land_entry boss-l9 "verify failed: npm test" "real_attempts=2"
+l9_out=$(BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l9_out" | grep -q 'CAPPED' || fail "(L9) the land was not capped: $l9_out"
+grep -q 'land-boss-l9' "$TMP/notify.log" \
+  || fail "(L9) a capped land sent no notification: $(cat "$TMP/notify.log" 2>/dev/null)"
+[ "$(land_field "$LANDS/land-boss-l9.blocked" capped_notified)" = "1" ] \
+  || fail "(L9) the notified flag was not recorded in the entry"
+l9_n=$(grep -c 'land-boss-l9' "$TMP/notify.log")
+BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > /dev/null 2>&1
+BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > /dev/null 2>&1
+l9_n2=$(grep -c 'land-boss-l9' "$TMP/notify.log")
+[ "$l9_n" = "$l9_n2" ] \
+  || fail "(L9) a capped land re-notified on every sweep ($l9_n then $l9_n2)"
+land_reset
+echo "PASS: a capped land is announced once, not silently and not repeatedly"
+
+echo "--- (L10) after an infra death the next fix-up falls back to claude-p on sonnet ---"
+land_reset
+: > "$CLAUDEP_LOG"
+land_entry boss-l10 "verify failed: npm test"
+LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" > "$TMP/l10a.out" 2>&1
+grep -q 'boss-l10' "$AGY_LOG" \
+  || fail "(L10) the first dispatch did not use the primary executor: $(cat "$TMP/l10a.out")"
+[ ! -s "$CLAUDEP_LOG" ] || fail "(L10) the fallback ran before anything had failed"
+# A fix-up round is already spent. Without the refund in reap_one, boss_fixup_claim
+# REFUSES the fallback (BOSS_MAX_FIXUPS=1) and the outage takes the land down with it.
+printf 'fixups=1\n' >> "$LANDS/land-boss-l10.meta"
+printf '%s\n' '{"status":"ERROR","response":"","error":"RESOURCE_EXHAUSTED (code 429): Individual quota reached.","num_turns":1}' \
+  > "$LANDS/land-boss-l10.out"
+l10_out=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+grep -q 'boss-l10' "$CLAUDEP_LOG" \
+  || fail "(L10) a quota death did not fall back to claude-p: $l10_out"
+[ "$(land_field "$LANDS/land-boss-l10.meta" executor)" = "claude-p" ] \
+  || fail "(L10) the meta does not name the fallback executor (got '$(land_field "$LANDS/land-boss-l10.meta" executor)')"
+[ "$(land_field "$LANDS/land-boss-l10.meta" model)" = "sonnet" ] \
+  || fail "(L10) the fallback model was not pinned to sonnet (got '$(land_field "$LANDS/land-boss-l10.meta" model)')"
+land_reset
+echo "PASS: a provider outage hands the fix-up to claude-p on sonnet"
+
+echo "--- (L11) an entry whose land already SUCCEEDED is dropped, not dispatched ---"
+# 2026-08-27. pp-land clears its own entry with `rm -f land-<slug>.blocked` once a land
+# finishes — but a sweep that runs mid-land has already RENAMED that file to
+# `.dispatching`, so the rm hits a name that no longer exists and the entry outlives a
+# land that worked. work/land-retry-hardening landed 09:41:41 -> 09:51:22 (a 9m41s verify
+# suite) and a session-start sweep claimed its entry at 09:51:06, sixteen seconds early:
+# an agy fix-up was dispatched to repair a branch that was already on main, and every
+# later sweep would have done it again. The guard is pp-land's own question asked here —
+# is the workspace HEAD an ancestor of origin/main?
+land_reset
+: > "$CLAUDEP_LOG"
+l11_origin="$TMP/l11-origin.git"; l11_ws="$TMP/l11-ws"
+rm -rf "$l11_origin" "$l11_ws"
+git init -q --bare -b main "$l11_origin"
+git clone -q "$l11_origin" "$l11_ws" 2>/dev/null || true
+git -C "$l11_ws" symbolic-ref HEAD refs/heads/main
+git -C "$l11_ws" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+git -C "$l11_ws" push -q origin main
+l11_entry() {
+  {
+    printf 'workspace=%s\n' "$l11_ws"
+    printf 'branch=%s\n' "boss/l11"
+    printf 'reason=%s\n' "verify failed: npm test"
+    printf 'attempts=1\n'
+    printf 'at=2026-08-27T00:00:00Z\n'
+  } > "$LANDS/land-boss-l11.blocked"
+}
+l11_entry
+l11_out=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l11_out" | grep -q 'LANDED' \
+  || fail "(L11) a land already on origin/main was not reported as landed: $l11_out"
+[ -e "$LANDS/land-boss-l11.blocked" ] && fail "(L11) the stale entry was kept"
+[ -e "$LANDS/land-boss-l11.dispatching" ] && fail "(L11) the stale entry was claimed for dispatch"
+grep -q 'boss-l11' "$AGY_LOG" && fail "(L11) a fix-up was dispatched for a land already on main"
+# The negative half, and the reason this guard is safe: a workspace carrying a commit
+# that is NOT on origin/main is a genuinely blocked land and must still dispatch.
+# Without this case the guard could silence the whole queue and still pass.
+land_reset
+l11_entry
+git -C "$l11_ws" -c user.email=t@t -c user.name=t commit -q --allow-empty -m unlanded
+l11_out2=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+grep -q 'boss-l11' "$AGY_LOG" \
+  || fail "(L11) an unlanded workspace was wrongly treated as landed: $l11_out2"
+land_reset
+echo "PASS: a stale entry for a landed branch is dropped; an unlanded one still dispatches"
 
 echo "--- (D1) boss_dep_prelude installs deps for the dirs a command cd's into ---"
 # The verify and the mutation gate run in a POOL slot, not the crew's worktree, and

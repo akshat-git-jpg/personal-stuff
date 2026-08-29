@@ -1,4 +1,4 @@
-import type { VideoDoc } from './types'
+import type { SourceDoc, VideoDoc } from './types'
 
 // This shape is the contract plan 234's Cloudflare Worker must also serve —
 // do not change a call here without changing it there too. The call shapes
@@ -34,7 +34,43 @@ async function j<T = { ok: true }>(url: string, method = 'GET', body?: unknown):
   return (await res.json()) as T
 }
 
-export const getVideo = (key: string) => j<VideoDoc>(`${base}/video${keyQuery(key)}`)
+// A beat field added after a video was published is ABSENT from that video's
+// stored snapshot, and the UI must not crash on it. Hosted mode serves
+// `beats_json` written into D1 at publish time, and local mode is served by a
+// long-running node process that imported the parser at startup — so a freshly
+// added field is missing in both until a republish or a restart.
+//
+// Seen live 2026-08-27: `demo` was added, the Vite frontend hot-reloaded, the
+// API process did not, and `beat.demo.length` on undefined blanked the whole
+// page. Every freelancer holding an older link would have hit the same thing.
+// Normalising here, at the one place a document enters the app, is what keeps
+// that from being a crash.
+type LegacyBeat = { show?: string[]; edit?: string[] }
+const asLegacy = (b: unknown): LegacyBeat => b as LegacyBeat
+
+function normalizeDoc(doc: VideoDoc): VideoDoc {
+  return {
+    ...doc,
+    beats: (doc.beats ?? []).map((b) => ({
+      ...b,
+      demo: b.demo ?? [],
+      ask: b.ask ?? [],
+      // A snapshot published BEFORE the 2026-08-28 lane merge carries `show` and
+      // `edit` instead of `video`. Fold them here, in the one place a document
+      // enters the app, so an already-published desk link keeps rendering.
+      video: b.video ?? [...(asLegacy(b).show ?? []), ...(asLegacy(b).edit ?? [])],
+      // A snapshot published BEFORE the 2026-08-29 section-card change carries
+      // no `notes` at all. The instruction column spreads it, so undefined here
+      // is a crash on an already-published link, not a missing block.
+      notes: b.notes ?? [],
+      facts: b.facts ?? [],
+      rules: b.rules ?? [],
+    })),
+  }
+}
+
+export const getVideo = (key: string) =>
+  j<VideoDoc>(`${base}/video${keyQuery(key)}`).then(normalizeDoc)
 
 export const putDraft = (key: string, num: string, text: string) =>
   j(`${base}/beat/${num}${keyQuery(key)}`, 'PUT', { text })
@@ -42,7 +78,35 @@ export const putDraft = (key: string, num: string, text: string) =>
 export const putSay = (key: string, num: string, lines: string[]) =>
   j(`${base}/beat/${num}/say${keyQuery(key)}`, 'PUT', { lines })
 
+// Staged instruction edits. Local mode only — the hosted Worker has no such
+// route, and the freelancer must not be able to rewrite his own brief.
+export const putNotes = (key: string, num: string, lines: string[]) =>
+  j(`${base}/beat/${num}/notes${keyQuery(key)}`, 'PUT', { lines })
+
+export const restoreNotes = (key: string, num: string) =>
+  j<{ lines: string[] }>(`${base}/beat/${num}/notes/restore${keyQuery(key)}`, 'POST')
+
 export const restoreSay = (key: string, num: string) =>
   j<{ lines: string[] }>(`${base}/beat/${num}/restore${keyQuery(key)}`, 'POST')
 
 export const postFinish = (key: string) => j(`${base}/finish${keyQuery(key)}`, 'POST')
+
+// Edit mode. LOCAL ONLY, and deliberately so: the hosted Worker serves a frozen
+// snapshot out of D1 and has no file to write. The freelancer READS the plan;
+// the owner is the only one who edits it, on his own machine, against the real
+// markdown. `isHosted` gates the button, and there is no hosted route to hit.
+export const getSource = (key: string) => j<SourceDoc>(`${base}/source${keyQuery(key)}`)
+
+export type SaveSourceResult = {
+  ok: true
+  stamp: string | null
+  text: string
+  edit: SourceDoc['edit']
+  doc: VideoDoc
+}
+
+// The whole file goes back on every save. It is 37KB against a server on
+// localhost, and it buys the thing that matters: one code path, one atomic
+// write, and no partial-update protocol that could half-apply.
+export const putSource = (key: string, text: string, stamp: string | null) =>
+  j<SaveSourceResult>(`${base}/source${keyQuery(key)}`, 'PUT', { text, stamp })

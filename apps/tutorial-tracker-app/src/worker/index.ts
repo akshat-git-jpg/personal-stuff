@@ -26,9 +26,17 @@ import type { Env, Variables } from "./auth";
 import { getUser, loginRedirect, logout, oauthCallback, requireSession } from "./auth";
 import { getAccessToken, ConflictError, SheetsError } from "./sheets";
 import { getStore } from "./datastore";
-import { loadAffiliateRecords, type AffiliateRecord } from "./affiliate";
+import { type AffiliateRecord } from "./affiliate";
+import { loadCatalog, type CatalogEnv } from "./catalog";
 import { resolveSelection, externalCollisions, buildPlan, renderDescription, validateDescription, planHash, generateVideoCode } from "./linkgen";
 import * as clickstore from "./clickstore";
+import { normalizeTargetUrl, creditWarnings } from "./linkhealth";
+import {
+  listPrograms, getProgram, upsertProgram, deleteProgram, validateTargetUrl,
+  toSlug, NETWORKS, normalizeNetwork, APPROVAL_STATUSES, COUPON_STATUSES, KINDS,
+  type ProgramInput,
+} from "./programs";
+import { readSheetForImport, harvestExternalTools } from "./programs-import";
 import {
   visibleColsForRoles, canEditForRoles, projectRowForRoles,
   isApproverRoles, isAdminRoles, isApprover,
@@ -53,6 +61,10 @@ import { liveHoldingsFor, rolesRemoved } from "../shared/engine/holdings";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
 import { sendNotification } from "./notifications";
+import { structuralIssues, buildReport, type GuardIssue } from "./linkguard";
+import { probeAll, type ProbeOne } from "./linkprobe";
+import { sendTelegram } from "./notify-telegram";
+import { syncYouTubeId } from "./ytsync";
 
 // ---------------------------------------------------------------------------
 // KV-backed read cache for board rows (~60 s TTL)
@@ -114,8 +126,7 @@ async function cachedAffiliates(env: Env): Promise<Record<string, AffiliateRecor
     try { return JSON.parse(fresh) as Record<string, AffiliateRecord>; } catch { /* fall through */ }
   }
   try {
-    const token = await getAccessToken(env.GOOGLE_SA_JSON);
-    const records = await loadAffiliateRecords(token, env.AFFILIATE_PROGRAMS_SHEET_URL);
+    const records = await loadCatalog(env as unknown as CatalogEnv, () => getAccessToken(env.GOOGLE_SA_JSON));
     const body = JSON.stringify(records);
     await env.SESSIONS.put(AFFILIATE_CACHE_KEY, body, { expirationTtl: AFFILIATE_CACHE_TTL });
     await env.SESSIONS.put(AFFILIATE_STALE_KEY, body, { expirationTtl: AFFILIATE_STALE_TTL });
@@ -181,6 +192,47 @@ const ASSIGNEE_COL_ROLE: Record<string, string> = (() => {
 })();
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
+
+type CheckKind = "structural" | "chain" | "manual";
+interface CheckRow { ran_at: number; kind: CheckKind; checked: number; ok_count: number; issue_count: number; unverifiable: number; issues_json: string; notified: number; }
+async function recordLinkCheck(env: Env, kind: CheckKind, checked: number, issues: GuardIssue[], unverifiable: number, notified: boolean): Promise<void> {
+  await env.TRACKER_DB.prepare("INSERT INTO link_checks (ran_at, kind, checked, ok_count, issue_count, unverifiable, issues_json, notified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(Math.floor(Date.now() / 1000), kind, checked, Math.max(0, checked - issues.length), issues.length, unverifiable, JSON.stringify(issues), notified ? 1 : 0).run();
+}
+async function runStructural(env: Env, kind: CheckKind = "structural"): Promise<GuardIssue[]> {
+  const [programs, links, videoRows, clickRows] = await Promise.all([
+    listPrograms(env.TRACKER_DB),
+    clickstore.allLinks(env.DB),
+    env.DB.prepare("SELECT video_code, yt_video_id FROM videos").all<{ video_code: string; yt_video_id: string | null }>(),
+    // Clicks per video code. The guard needs these to tell an unmapped
+    // PUBLISHED video from an unpublished draft that merely has links minted.
+    env.DB.prepare("SELECT substr(slug, 1, instr(slug, '/') - 1) AS video_code, COUNT(*) AS clicks FROM clicks WHERE instr(slug, '/') > 1 GROUP BY video_code")
+      .all<{ video_code: string; clicks: number }>(),
+  ]);
+  const kv: Record<string, string> = {};
+  await Promise.all(links.map(async (link) => { const value = await env.CLICKS_KV.get(link.slug); if (value !== null) kv[link.slug] = value; }));
+  const videos = Object.fromEntries(videoRows.results.map((row) => [row.video_code, row.yt_video_id]));
+  const clicks = Object.fromEntries((clickRows.results ?? []).map((row) => [row.video_code, row.clicks]));
+  const issues = structuralIssues({ programs, links, kv, videos, clicks }); const report = buildReport(issues, 0, programs.length, false);
+  const notified = report ? await sendTelegram(env, report) : false;
+  await recordLinkCheck(env, kind, programs.length, issues, 0, notified); return issues;
+}
+async function runChainProbe(env: Env, onlySlug?: string, kind: CheckKind = "chain"): Promise<GuardIssue[]> {
+  const programs = await listPrograms(env.TRACKER_DB);
+  const candidates: ProbeOne[] = programs.filter((program) => program.probe_enabled === 1 && !!program.target_url && (!onlySlug || program.slug === onlySlug)).map((program) => ({ slug: program.slug, targetUrl: program.target_url, kind: program.kind }));
+  const results = await probeAll(candidates, fetch); const issues: GuardIssue[] = [];
+  for (const result of results) { const program = programs.find((item) => item.slug === result.slug); if (!program) continue;
+    if (result.finalUrl && program.last_final_url && result.finalUrl !== program.last_final_url) issues.push({ code: "changed_destination", slug: program.slug, detail: `Was ${program.last_final_url}; now ${result.finalUrl}.` });
+    await env.TRACKER_DB.prepare("UPDATE programs SET previous_final_url = last_final_url, last_final_url = ?, last_status = ?, last_checked_at = ? WHERE slug = ?").bind(result.finalUrl, result.status, Math.floor(Date.now() / 1000), program.slug).run();
+    if (result.status === "no_credit") issues.push({ code: "no_credit_marker", slug: result.slug, detail: result.detail });
+    if (result.status === "dead") issues.push({ code: "bad_url", slug: result.slug, detail: result.detail }); }
+  const unverifiable = results.filter((result) => result.status === "unverifiable").length; const report = buildReport(issues, unverifiable, candidates.length, true);
+  const notified = report ? await sendTelegram(env, report) : false; await recordLinkCheck(env, kind, candidates.length, issues, unverifiable, notified); return issues;
+}
+async function runUnverifiableDigest(env: Env): Promise<void> {
+  const programs = await listPrograms(env.TRACKER_DB); const blocked = programs.filter((program) => program.last_status === "unverifiable");
+  const report = buildReport(blocked.map((program) => ({ code: "bad_url" as const, slug: program.slug, detail: "Blocks automated checks; open this destination yourself." })), blocked.length, programs.length, true);
+  if (report) await sendTelegram(env, report);
+}
 
 // ---------------------------------------------------------------------------
 // Auth routes (no session required)
@@ -609,6 +661,16 @@ app.post("/api/update", async (c) => {
       return c.json({ error: "conflict", message: "Someone else changed this just now — reloading.", current: err.current }, 409);
     }
     throw err;
+  }
+
+  // Keep analytics mapping in step without putting the card save at risk.
+  if (typedCol === "yt_link") {
+    const code = String(targetRow.video_code ?? "").trim();
+    c.executionCtx.waitUntil(
+      syncYouTubeId(c.env.DB, code, value)
+        .then((outcome) => { if (outcome !== "skipped") console.log("ytsync", JSON.stringify({ code, outcome })); })
+        .catch((error) => console.error("ytsync failed", error)),
+    );
   }
   
   const stage = derive(pipe).byStatusCol.get(typedCol);
@@ -1113,7 +1175,7 @@ app.post("/api/link-confirm", async (c) => {
   for (const i of finalItems.filter(x => x.status !== "blocked")) {
     const fullSlug = `${finalVideoCode}/${i.slug}`;
     if (!existing.has(fullSlug)) {
-      await clickstore.insertLink(db, fullSlug, finalVideoCode, i.slug, i.target_url);
+      await clickstore.insertLink(db, fullSlug, finalVideoCode, i.slug, i.target_url, i.status === "affiliate" ? "affiliate" : "external");
       await c.env.CLICKS_KV.put(fullSlug, i.target_url);
     }
   }
@@ -1143,6 +1205,171 @@ app.post("/api/link-confirm", async (c) => {
   return c.json({ ok: true, video_code: finalVideoCode, items: finalItems, description });
 });
 
+// GET /api/programs -> the whole catalogue plus the vocabularies the UI renders
+app.get("/api/programs", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  const programs = await listPrograms(c.env.TRACKER_DB);
+  return c.json({
+    programs,
+    vocab: {
+      kinds: KINDS,
+      // Seed list plus every network already in use, so one added by hand shows
+      // up as an option for the next program without a code change.
+      networks: [...new Set([...NETWORKS, ...programs.map((p) => p.network).filter(Boolean)])].sort(),
+      approvalStatuses: APPROVAL_STATUSES, couponStatuses: COUPON_STATUSES,
+    },
+  });
+});
+
+app.get("/api/link-health", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  const [latest, programs] = await Promise.all([
+    c.env.TRACKER_DB.prepare("SELECT ran_at, kind, checked, ok_count, issue_count, unverifiable, issues_json, notified FROM link_checks ORDER BY ran_at DESC LIMIT 1").first<CheckRow>(),
+    listPrograms(c.env.TRACKER_DB),
+  ]);
+  return c.json({ latest: latest ?? null, programs });
+});
+
+app.post("/api/link-health/recheck", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: { slug?: string } = {};
+  try { body = await c.req.json(); } catch { /* empty body rechecks structural state */ }
+  const structural = await runStructural(c.env, "manual");
+  const chain = body.slug?.trim() ? await runChainProbe(c.env, body.slug.trim(), "manual") : [];
+  return c.json({ ok: true, issues: [...structural, ...chain] });
+});
+
+// GET /api/links -> every minted link, with analytics and last program check.
+// Read-only: clicks is written solely by the redirector Worker.
+app.get("/api/links", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  const [links, counts, rows, programs, dbTitles] = await Promise.all([
+    clickstore.allLinks(c.env.DB),
+    clickstore.clickCounts(c.env.DB),
+    cachedReadRows(c.env),
+    listPrograms(c.env.TRACKER_DB),
+    clickstore.videoTitles(c.env.DB),
+  ]);
+  // The videos table is the base layer — it has a title for every code. A tracker
+  // card, when one exists, wins because its title is the one being edited. Only 2
+  // of 76 cards carry a video_code, so without the base layer 85 of 87 groups
+  // rendered as "Untitled video" and looked like deletable test rows.
+  const titleByCode: Record<string, string> = { ...dbTitles };
+  for (const r of rows as Record<string, unknown>[]) {
+    const code = ((r.video_code as string) ?? "").trim();
+    const title = ((r.video_title as string) ?? "").trim();
+    if (code && title) titleByCode[code] = title;
+  }
+  const bySlug: Record<string, (typeof programs)[number]> = {};
+  for (const p of programs) bySlug[p.slug] = p;
+  return c.json({
+    links: links.map((l) => ({
+      ...l,
+      clicks: counts[l.slug] ?? 0,
+      video_title: titleByCode[l.video_code] ?? "",
+      last_status: bySlug[l.tool]?.last_status ?? null,
+      last_final_url: bySlug[l.tool]?.last_final_url ?? null,
+      last_checked_at: bySlug[l.tool]?.last_checked_at ?? null,
+    })),
+  });
+});
+
+// POST /api/programs/validate -> what the Add/Edit form calls as you type.
+app.post("/api/programs/validate", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: { target_url?: string; kind?: string };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+  const kind = body.kind === "external" ? "external" : "affiliate";
+  const validation = validateTargetUrl(body.target_url ?? "", kind);
+  return c.json({
+    ok: validation.ok,
+    value: validation.value ?? "",
+    error: validation.error ?? null,
+    warnings: validation.ok && validation.value ? creditWarnings(validation.value, kind) : [],
+  });
+});
+
+// POST /api/programs -> create or update (the Edit path uses the same route)
+app.post("/api/programs", async (c) => {
+  const { roles, email } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: Partial<ProgramInput> & { name?: string };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+
+  const name = (body.name ?? "").trim();
+  if (!name) return c.json({ error: "invalid", message: "Name is required." }, 400);
+  const slug = toSlug(body.slug ?? name);
+  if (!slug) return c.json({ error: "invalid", message: "Could not build a slug from that name." }, 400);
+
+  const kind = body.kind === "external" ? "external" : "affiliate";
+  const validation = validateTargetUrl(body.target_url ?? "", kind);
+  if (!validation.ok) return c.json({ error: "invalid", message: validation.error }, 400);
+
+  const pick = <T extends readonly string[]>(vals: T, value: unknown, fallback: T[number]) =>
+    (typeof value === "string" && (vals as readonly string[]).includes(value)) ? value as T[number] : fallback;
+
+  await upsertProgram(c.env.TRACKER_DB, {
+    slug, name, kind,
+    target_url: validation.value ?? "",
+      // Free text on purpose: the owner joins new affiliate networks and must be
+      // able to name one without a code change. Normalized, never rejected.
+      network: normalizeNetwork(typeof body.network === "string" ? body.network : ""),
+    approval_status: pick(APPROVAL_STATUSES, body.approval_status, "unknown"),
+    coupon_status: pick(COUPON_STATUSES, body.coupon_status, "unknown"),
+    coupon_code: (body.coupon_code ?? "").trim(),
+    coupon_url: (body.coupon_url ?? "").trim(),
+    coupon_terms: (body.coupon_terms ?? "").trim(),
+    dashboard_url: (body.dashboard_url ?? "").trim(),
+    dashboard_credentials: (body.dashboard_credentials ?? "").trim(),
+    notes: (body.notes ?? "").trim(),
+    probe_enabled: body.probe_enabled === 0 ? 0 : 1,
+  }, email ?? "");
+
+  const saved = await getProgram(c.env.TRACKER_DB, slug);
+  return c.json({
+    ok: true, program: saved,
+    warnings: saved?.target_url ? creditWarnings(saved.target_url, kind) : [],
+  });
+});
+
+// DELETE /api/programs/:slug
+app.delete("/api/programs/:slug", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  await deleteProgram(c.env.TRACKER_DB, c.req.param("slug"));
+  return c.json({ ok: true });
+});
+
+// POST /api/programs/import-from-sheet -> the one-time migration, re-runnable.
+app.post("/api/programs/import-from-sheet", async (c) => {
+  const { roles, email } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const sheet = await readSheetForImport(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const allRows = await cachedReadRows(c.env);
+  const external = harvestExternalTools(allRows as { row_id?: string; video_tools?: unknown }[]);
+
+  const updatedBy = email ?? "import";
+  for (const program of sheet.programs) await upsertProgram(c.env.TRACKER_DB, program, updatedBy);
+  for (const program of external.programs) {
+    // Never let a harvested external tool clobber a real affiliate programme.
+    const existing = await getProgram(c.env.TRACKER_DB, program.slug);
+    if (existing) continue;
+    await upsertProgram(c.env.TRACKER_DB, program, updatedBy);
+  }
+  return c.json({
+    ok: true,
+    imported: { affiliate: sheet.programs.length, external: external.programs.length },
+    issues: [...sheet.issues, ...external.issues],
+    droppedCells: sheet.droppedCells,
+  });
+});
+
 app.get("/api/link-drift", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
@@ -1169,7 +1396,7 @@ app.get("/api/link-drift", async (c) => {
 app.post("/api/link-resync", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  let body: { slug?: string };
+  let body: { slug?: string; target_url?: string };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
   const slug = (body.slug ?? "").trim();
   if (!slug) return c.json({ error: "slug is required" }, 400);
@@ -1179,17 +1406,23 @@ app.post("/api/link-resync", async (c) => {
   if (!linkRow) return c.json({ error: "link not found" }, 404);
   
   const affiliates = await cachedAffiliates(c.env);
-  
   const rec = affiliates[linkRow.tool];
-  if (!rec || !rec.isApproved || !rec.targetUrl.trim()) {
-    return c.json({ error: "conflict", message: "Program is not approved or has no URL in sheet." }, 409);
+  const requestedUrl = body.target_url?.trim();
+  if (!requestedUrl && (!rec || !rec.isApproved || !rec.targetUrl.trim())) {
+    return c.json({ error: "conflict", message: "Program is not approved or has no URL in the catalogue." }, 409);
   }
   
-  const url = rec.targetUrl.trim();
+  // This path writes KV directly, bypassing resolveSelection, so it needs the
+  // same validation — otherwise a bad sheet cell can still reach the redirector.
+  const norm = normalizeTargetUrl(requestedUrl || rec!.targetUrl);
+  if (!norm) {
+    return c.json({ error: "conflict", message: "The new destination is not a usable URL." }, 409);
+  }
+  const url = norm.url;
   await clickstore.updateLinkTarget(db, slug, url);
   await c.env.CLICKS_KV.put(slug, url);
-  
-  return c.json({ ok: true, slug, target_url: url });
+
+  return c.json({ ok: true, slug, target_url: url, warnings: creditWarnings(url, "affiliate", norm.repaired) });
 });
 
 // ---------------------------------------------------------------------------
@@ -1197,5 +1430,17 @@ app.post("/api/link-resync", async (c) => {
 // ---------------------------------------------------------------------------
 
 app.get("*", (c) => c.env.ASSETS.fetch(c.req.raw));
+
+Object.assign(app, {
+  async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    // One cron drives all three passes (Workers Free allows 5 per ACCOUNT and three
+    // are already spent). Branch on the scheduled date, never on wall-clock now:
+    // a retried or delayed invocation must make the same decision.
+    const when = new Date(event.scheduledTime);
+    ctx.waitUntil(runStructural(env));
+    if (when.getUTCDay() === 0) ctx.waitUntil(runChainProbe(env));
+    if (when.getUTCDate() === 1) ctx.waitUntil(runUnverifiableDigest(env));
+  },
+});
 
 export default app;

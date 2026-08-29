@@ -50,6 +50,8 @@ export type Env = {
   GEMINI_API_KEY: string;
   LINK_DOMAIN: string;
   AFFILIATE_PROGRAMS_SHEET_URL: string;
+  TELEGRAM_BOT_TOKEN?: string;
+  TELEGRAM_CHAT_ID?: string;
 };
 
 export type Variables = {

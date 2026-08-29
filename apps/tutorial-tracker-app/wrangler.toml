@@ -3,6 +3,13 @@ main = "src/worker/index.ts"
 compatibility_date = "2026-05-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Cloudflare cron is UTC. 00:30 UTC = 06:00 IST.
+# ONE trigger, not three: Workers Free caps cron triggers at 5 PER ACCOUNT and
+# vps-watchdog/founders-tracker/gym-app already hold three. scheduled() branches on
+# the date instead, so all three guard passes still happen on their own cadence.
+[triggers]
+crons = ["30 0 * * *"]
+
 [assets]
 directory = "./dist"
 binding = "ASSETS"
@@ -31,6 +38,9 @@ database_id = "1562469d-ffd1-4cc2-b9f7-7095b84128ad"
 [vars]
 # Data backend: "d1" (Cloudflare D1) or "sheets" (Google Sheets fallback). Flip + redeploy to switch.
 DATA_BACKEND = "d1"
+# Affiliate catalogue source: "d1" (the programs table) or "sheets" (the legacy
+# Google Sheet, via affiliate.ts). Flip + redeploy to switch. Plan 256 reads it.
+PROGRAMS_BACKEND = "d1"
 LINK_DOMAIN = "go.agrolloo.com"
 AFFILIATE_PROGRAMS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1dl_nj9djJuXuwwE_5qTnZkS0Y9VW6MmkMxuYNL92tsQ/edit?usp=sharing"
 # GEMINI_API_KEY is a secret: `npx wrangler secret put GEMINI_API_KEY` (+ add to .dev.vars locally).

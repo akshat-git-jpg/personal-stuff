@@ -6,13 +6,13 @@ A two-track script editor for YouTube tutorial makers, replacing the old PDF han
 
 The desk separates instructions from content. It splits every beat into two columns:
 - **Left track (Script):** The exact words that will be spoken on camera.
-- **Right track (instructions):** four blocks, each behind its own toggle — **What to cover** (the brief for a body beat), **Screen Recording notes**, **General Notes** (the section rules plus the beat's facts), **Video Editor Notes**. The `Instructions` toggle is the master for all four.
+- **Right track (instructions):** ONE block headed **Notes**, editable in place in local mode (pencil on hover; the edit stages until `bin/desk.mjs apply` runs) — the whole brief for that section, as it was written in the plan's `**NOTES**` bullet list. The `Instructions` toggle shows or hides the column. It was three separately-toggled blocks until 2026-08-29.
 
 This separation prevents the maker from accidentally reading production notes as part of the script, and prevents instructions from bleeding into the final voiceover feed.
 
 ## The two views
 
-1. **Freelancer view**: The maker reads the **What to cover** brief and writes their lines in the left track. They cannot edit the instructions.
+1. **Freelancer view**: The maker reads the **Notes** for a section and writes that section's lines in the left track. They cannot edit the notes.
 2. **Review view**: The owner sees what was changed against the locked pre-filled copy and approves or restores lines.
 
 ## Running locally
@@ -21,7 +21,7 @@ This separation prevents the maker from accidentally reading production notes as
 npm install
 npm run dev:local
 ```
-Then open `http://localhost:5175/?key=character-consistency-ai` (or any other valid video key you are working on).
+Then open `http://localhost:5175/?key=vox-style-video-ai` (or any other valid video key you are working on).
 
 ## CLI Workflow
 
@@ -51,3 +51,17 @@ This downloads their final words to `videos/<key>/script-draft.md` in the pipeli
 
 The freelancer receives a secret link to the desk. There is no login.
 They see a clean, two-column UI where they write their lines on the left, guided by the non-editable instructions on the right.
+
+## Edit mode (local only)
+
+Hit **Edit** in the header and the reading view grows handles: move, delete or
+add a note, a beat or a whole section, and click any note to edit its raw
+markdown in place. Every action writes `script-plan.md` straight back — there is
+no separate save, no draft and no second copy of the script.
+
+It never appears on a hosted link. The freelancer reads the plan he was sent.
+
+The write path refuses markdown that will not parse, refuses to overwrite a file
+that changed on disk since the page loaded, and copies the last good version
+into `.desk-backups/` (gitignored) before every write. See `CLAUDE.md` for why
+each of those is there.

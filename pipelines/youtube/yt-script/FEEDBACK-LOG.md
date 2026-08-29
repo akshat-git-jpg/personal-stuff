@@ -13,7 +13,208 @@ and that is a useful thing to know later.
 
 ## Rows
 
+**Tag names are written bare here, never in backticks.** `test/feedback-surfaces.test.mjs`
+fails if this file wraps a tag name in backticks, because step 130 is the only
+file allowed to define the vocabulary and a backticked tag here reads as a second
+definition.
+
 | Date | Video | `kind` | What the owner said (verbatim) | Fixed in | Promoted |
 |---|---|---|---|---|---|
+| 2026-08-27 | vox-style-video-ai | gate-report | "going forward you can take the call whether a video is supposed to be a tutorial or comparison" | `steps/010-take-knowledge-llm/README.md`, `steps/020-approve-knowledge-human/README.md`, `OUTLINE-INSTRUCTIONS.md`, `yt-script/SKILL.md` | No T rule. Flow spec — decision rights, not taste. Owner asked for it standing ("going forward"), so it did not wait for a repeat. |
+| 2026-08-27 | vox-style-video-ai | gate-report | "claude said 8 different tool stacks.. but claude never shared the details - it should give options for me to choose and i can combine and give entirely new approach" | `steps/010-take-knowledge-llm/README.md` (new `# Approaches` section), `steps/020-approve-knowledge-human/README.md` (the four-part gate message) | No T rule. Flow spec — what a gate must show. Owner asked for it standing ("it should give options"). |
+| 2026-08-27 | vox-style-video-ai | structure | "pls have distinction between tutorial videos and comparison video throught out the skill and feedback.. so as to avoid any issues and degrading quality" | `SCRIPT-PLAN-INSTRUCTIONS.md`, `SCRIPT-INSTRUCTIONS.md`, `OUTLINE-INSTRUCTIONS.md`, `TASTE.md` (scoping table only), both `SKILL.md` files | No T rule. Format specs plus a scoping table in `TASTE.md`. T2–T5 were left verbatim; the table says how each reads in a tutorial. |
+| 2026-08-27 | vox-style-video-ai | gate-report | "when you give approaches.. i would like youtube video name and channel name as well. i like some channels so i wll be able to decide approaches more better" | `steps/010-take-knowledge-llm/README.md` (new "Always fetch YouTube metadata" section), `videos/vox-style-video-ai/knowledge.md` (Sources table rebuilt, every approach and technique attributed by channel) | No T rule. Flow spec. Third row of this tag in one session — see the note below. |
+| 2026-08-27 | vox-style-video-ai | structure | "i prefer longer videos without making audience bored. i prefre longer videos only. keep the entire flow interesting but always try to make as long video as possible." | `TASTE.md` T6, `OUTLINE-INSTRUCTIONS.md` (required `Target:` line and the section count that serves it) | **T6** — owner asked for it long-term, so it did not wait for a repeat |
+| 2026-08-27 | vox-style-video-ai | gate-report | "dont' ask about credibilty. - assume that if its already propven by differnt videos given during knowldge base - then it can be done, no need to question it" | `steps/010-take-knowledge-llm/README.md` (new "Which gaps are worth asking" section) | No T rule. Flow spec. 4th row of this tag. |
+| 2026-08-27 | vox-style-video-ai | evidence | "pls always assume that i know things. you can add claim about prior experince. assume i have explored tools for yeards and know my stuff. if i need to make changes in script - i will do during review." | `TASTE.md` T7 | **T7** — owner asked for it long-term. Raised against the "never invent facts" hard rule first; he reaffirmed, so T7 is scoped to claims about himself only. |
+| 2026-08-27 | vox-style-video-ai | format | "i prefer outline to be proper table of contens... i prefer simple heading and symmetricall. it should be like a title... 'when it breaks' - thats a bad section name.. infact that should not be even a section name" | `OUTLINE-INSTRUCTIONS.md` (new "Section names" and "Never make a section out of failures" sections), `steps/030-write-outline-llm/README.md` | No T rule. Format spec — 130's table sends outline shape and section-line content to this file, never to `TASTE.md`. |
+| 2026-08-27 | vox-style-video-ai | format | "i need more details what we are planning inside each section so that i can visualize.. make the outline little more detailed" | `OUTLINE-INSTRUCTIONS.md` rewritten to a contents-plus-cards shape; `test/desk-docs.test.mjs` re-pointed at the new boundary; `steps/030`, `steps/040`, `CLAUDE.md`, `SCRIPT-PLAN-INSTRUCTIONS.md`, `SKILL.md` de-referenced | No T rule. Format spec. **Removed a stated rule** — see the last note below. |
+| 2026-08-27 | vox-style-video-ai | format | "i take back my call - we can have phrases in section name" | `OUTLINE-INSTRUCTIONS.md` "Section names" rewritten and the reversal recorded in place, `steps/030-write-outline-llm/README.md` | No T rule. Format spec. **Reverses a rule written the same day** — see the last note. |
+| 2026-08-27 | vox-style-video-ai | jargon | "also need language to be simple day to day.. , intutive we use day to day.. no one uses ' The Music Bed' .." | `TASTE.md` T8, `OUTLINE-INSTRUCTIONS.md` (bad-name table), all eleven section names of `vox-style-video-ai` rewritten | **T8** — owner stated it as a general preference about language, not only about names, so it is taste and not only format |
+| 2026-08-27 | vox-style-video-ai | structure | "remove 11,also was 10 present in refernce video? if not - lets remove that as well" | `OUTLINE-INSTRUCTIONS.md` (every tutorial section must trace to the chosen approach's own source; a plug is not a section), `videos/vox-style-video-ai/outline.md` (sections 10 and 11 cut, target 22 to 20 min), `knowledge.md` (affiliate moved to the CTA) | No T rule. Format spec — the scope rule already existed in `knowledge.md`'s CHOSEN block and was broken in the outline, so it is now stated where it gets broken. |
+| 2026-08-27 | vox-style-video-ai | structure | "this is wrong. i am totally ok with comnbing approaches. i am giving you diff erent videos and selecting one approach doesn't mean we have to only do all things from that video.. keep the idea/approach of the selected approach but obsiosuly we can take ideas from all diff videos, knowdlget base and make our own combined way - thats obiosuly alloed.. you made opposidte rule.." | `OUTLINE-INSTRUCTIONS.md` (the source-fence rule replaced with spine-not-fence, plus the one honesty limit), `SCRIPT-PLAN-INSTRUCTIONS.md`, `SCRIPT-INSTRUCTIONS.md`, `knowledge.md` CHOSEN block rewritten, outline back to 12 sections | No T rule. Format spec. **Reverses the rule logged in the row above it, written minutes earlier.** |
+| 2026-08-27 | vox-style-video-ai | structure | "i already said dont include don't include cost breadkdow and yt ban parts. those are just feedbacks for this topic, not general.." | `videos/vox-style-video-ai/outline.md` (costs section cut again, 12 sections to 11, target 22 min), `knowledge.md` (recorded under "Cut from this video by the owner — instance only, not a rule") | **Instance only. Deliberately no rule anywhere.** The owner named it as topic feedback, not a preference. |
+| 2026-08-27 | vox-style-video-ai | tone | "my main goal of making all these scripts and videos is affiliate... Be genuine, be authentic. Obviously, don't oversell the tools. But keep that in mind that I want to get affiliate commissions... I want them to understand the benefit of these tools... It should be subtle, not oversell." | `TASTE.md` T9 | **T9** — owner asked for it standing ("always have that in mind"). First tone row. |
+| 2026-08-27 | vox-style-video-ai | cta-placement | "from time to time, whenever we are giving CTA, we should mention link in description. Best buy link in description. Something like that." | `SCRIPT-INSTRUCTIONS.md` (new "CTA cadence" section), `SCRIPT-PLAN-INSTRUCTIONS.md` (new "Body CTAs" section) | No T rule. Format spec — cadence and placement, not taste. T9 covers everything between the mentions. |
+| 2026-08-27 | vox-style-video-ai | tone | "Can you confirm if we use humanizer skill for all those writings inside the skill especially when writing the actual script... My script should not look AI generated, so use the humanizer skill" | `steps/050-write-script-draft-llm/README.md` (Mode B), `steps/100-write-script-llm/README.md` (Mode A), `SCRIPT-INSTRUCTIONS.md` (new "Reading as a human" section, pattern table, the pattern-28 conflict resolved), `SCRIPT-PLAN-INSTRUCTIONS.md`, `yt-script/SKILL.md` | No T rule. Process wiring, and it was simply missing — `humanizer` appeared **zero** times in the whole skill despite the owner's global rule listing video scripts under it. |
+| 2026-08-27 | vox-style-video-ai | structure | "I was wondering if both of this can be done in parallel… merge the two steps" and "no instant live refresh required I can just refresh the browser" | `steps/055-review-plan-human/` (merged, renamed from `055-review-plan-md-human`), `steps/060-review-local-desk-human/` deleted, `test/steps.test.mjs` and `test/desk-docs.test.mjs` re-pointed, `SKILL.md` table and gate count, `CLAUDE.md` | No T rule. Flow spec — two gates became one. Five owner gates now, not six. |
+| 2026-08-27 | vox-style-video-ai | claim-density | "I like to keep my script very simple and in human readable day-to-day language. Currently I feel that the script is too gibberish, too much is going on in a small frame of time, it doesn't look like our day-to-day language." | `SCRIPT-INSTRUCTIONS.md` (new "One sentence per line" section), `videos/vox-style-video-ai/script-plan.md` (all four verbatim beats rewritten) | No T rule. **The taste rules already existed** — T2 (short sentences) and T8 (everyday words). The session broke them, and the missing piece was a format convention nobody had written down: `EXAMPLE-SCRIPT.md` puts one sentence on each line. That is a format spec, so it went to the instruction file. |
+| 2026-08-27 | vox-style-video-ai | pacing | "I like my sentences to be shorter and not too long. thats one feedback basically on the same line of when I said I like my script to be simple in simple language, easier to follow on the same line." | TASTE.md T10, steps/050 README (now required to read SCRIPT-INSTRUCTIONS.md too), SCRIPT-PLAN-INSTRUCTIONS.md pointer, two long sentences trimmed in the plan | **T10** - second reaction of this shape in a row, so the threshold fired. Also exposed a wiring bug: see the note below. |
+| 2026-08-27 | vox-style-video-ai | structure | "there are multiple areas during our script where we are not even saying anything, we are just showing something on the UI... that doesn't come in the left side vertical timeline. It's confusing... I want to make a left side part like that where it's a section of just demo without voiceover" | New DEMO lane: `render-worksheet.mjs` LANE_RE, `lib/beats.mjs`, `SCRIPT-PLAN-INSTRUCTIONS.md`, desk `types.ts` / `WriteView.tsx` / `FullScript.tsx` / css, `demoLane.test.tsx` (8 tests), desk `CLAUDE.md`, and beat 1.1 of this video | No T rule. Format plus code. Bends the desk's two-track rule on purpose: a silent stretch is timeline content, not an instruction. |
+| 2026-08-27 | vox-style-video-ai | format | "you have added this title for each section so beat. I don't like it. These are too confusing. I prefer that this heading should be the actual outline headings... you can keep that as intro as a heading and then you can just make it intro 1.1 intro 1.2" | `SCRIPT-PLAN-INSTRUCTIONS.md` (beat headings are labels), desk `WriteView.tsx` + `FullScript.tsx` (heading comes from the outline section, printed once per section), `outlineHeadings.test.tsx` (5 tests), all 56 labels in this video shortened | No T rule. Format spec plus code. **The real defect was worse than the titles:** the desk never rendered `beat.section` at all, so the owner's approved section names were invisible in the review tool. |
+| 2026-08-27 | vox-style-video-ai | structure | "You said just watch this for a second and after that there is no demo section. Not sure what you are trying to do here... Is the sequencing wrong?" | `SCRIPT-PLAN-INSTRUCTIONS.md` (new ordering rule in the DEMO lane section, with a wrong/right table), `videos/vox-style-video-ai/script-plan.md` beats 1.1 and 1.2, `test/desk-docs.test.mjs` | No T rule. Format spec, and the gap was in a section written hours earlier the same day. The lane was specified as *where* it renders and never as *what that means for the words*: `DEMO` is pinned to the top of its beat, so every spoken line in that beat is heard after the silence. The session then wrote a forward-pointing tease into it. Owner chose "silence first, then talk" over splitting into two beats. |
+| 2026-08-28 | vox-style-video-ai | format | "What are these texts in the bracket and why are they in read as written? This is a major gap, right?" | `SCRIPT-PLAN-INSTRUCTIONS.md` (roadmap rule rewritten from verbatim-match to coverage, plus the blockquote hard rule), new `test/roadmap.test.mjs` (2 checks per plan), 25 annotations stripped across `vox-style-video-ai`, `ai-avatar-generator-comparison` and `character-consistency-ai`, plus the last one's worksheet | No T rule. Format spec plus a test. **Removed a stated rule** — the old "roadmap must match the section headings exactly" is what caused this: with a heading like "Summary Table" there is no way to obey it and still sound human, so the session wrote the natural sentence and bolted the heading on in brackets, inside the spoken blockquote. Found in three videos going back to the earliest, so it was a standing habit. |
+| 2026-08-28 | vox-style-video-ai | jargon | "all the instructions - i am finding too hard to understand.. Can you please keep the instruction similarly a script? Basically simple and to the point. Maybe you can explain it with a simple example so that it's easy easier to follow what you're asking for that section." | `TASTE.md` T11 (new) and T8 (scoped to the instruction lanes), `SCRIPT-PLAN-INSTRUCTIONS.md` (new "Write the instructions like the script"), `steps/050-write-script-draft-llm/README.md`, all 56 beats and 11 rules boxes of `vox-style-video-ai/script-plan.md` rewritten | **T11** — owner asked for it standing ("keep the instruction similarly a script"), so it did not wait for a repeat. **T8 and T10 already covered this and were read as spoken-copy-only.** Both now say out loud that they govern the whole document. The genuinely new part is the Example line: an abstract instruction reads as complete on the page and only turns out to say nothing at filming time. |
+| 2026-08-28 | vox-style-video-ai | format | "can we please add refernce link wheerevre possible for my freelancer... you said Joseph's list, but I don't think my freelancer is aware of Joseph. Similarly for other things, so try to add links in the notes section wherever you are referencing something." | `SCRIPT-PLAN-INSTRUCTIONS.md` (new "Name a source, link the source"), a "Who these people are:" line in all 11 sections of `vox-style-video-ai/script-plan.md`, URL auto-linking in desk `WriteView.tsx` + `app.css`, new `test/sourceLinks.test.mjs` (3 per plan) and `laneLinks.test.tsx` (5) | No T rule. Format spec plus code. The plan had been written as if its reader shared the session's knowledge of the eight sources; the freelancer shares none of it. **First attempt was wrong** — linking every inline mention mangled the names ("Skai (Skai Generated, url) Generated"), so it is one reference line per section instead, and that mistake is recorded in the spec. |
+| 2026-08-28 | vox-style-video-ai | structure | "http://localhost:5175/?key=vox-style-video-ai, not seeing." (the source links added the row above) | `lib/beats.mjs` (a section-level FACTS block now attaches to the section's first beat), `test/beats.test.mjs` (2 new tests), reference lines reinserted inside the section FACTS blocks of `vox-style-video-ai/script-plan.md` | No T rule. **A parser bug, not a content one, and it predates this session.** A `FACTS` block between a `### SECTION:` heading and the section's first beat hit `if (!pending) continue` and was dropped with no error. All eleven sections had one, ten to fifteen lines each, and none of it had ever reached the desk. RULES were already section-scoped; FACTS were not, and nothing said so. Only visible because the owner asked for links, they landed in those blocks, and he could not find them. |
+| 2026-08-28 | vox-style-video-ai | structure | "I want this entire local host to be editable. especially the right side note section" -> then, after the mock: "I feel that this will be too complex. making comments, edits, all those things one by one on the URL when I have the entire thing as a text in my MD file, which I can easily cut paste everything. I can't do that easily on the UI." | New `**ASK**` lane: one word in `render-worksheet.mjs` LANE_RE, `lib/beats.mjs` (beat + section level), desk `types.ts` / `api.ts` / `WriteView.tsx` AskCard / `app.css`, `bin/desk.mjs` publish gate + `openAsks`/`stripAsks`, `.vscode/yt-script.code-snippets`, `SCRIPT-PLAN-INSTRUCTIONS.md`, steps 055 + 070, both CLAUDE.md files, `test/askLane.test.mjs` (5) + `bin/__tests__/askGate.test.mjs` (7) + `askCard.test.tsx` (6) | No T rule. Flow spec plus code. **The owner reversed his own request mid-design and was right to.** A four-plan markup UI was designed and published as a mock; he then asked whether there was a simpler way, and there was. The desk is the better reader, his editor is the better writer, and the only real gap was leaving a question in place. That is one lane. Recorded in the spec as a standing "do not grow this into an editor". |
+| 2026-08-28 | vox-style-video-ai | format | "Currently all the instructions are too detailed. For the instruction part I like to give autonomy for my freelancers to take care of things. No need to go too deep and too spoon-feeding. Just mention the goal and major points which you want to focus on. If there are any references, then we can add the references that's it." | **TASTE T12** — instructions state the goal, the maker decides how. Spec section "Say the goal, not the steps" in `SCRIPT-PLAN-INSTRUCTIONS.md`. Every `VIDEO` lane and all 11 rules boxes rewritten: instruction words 1008 -> 746, rules words 2113 -> 1687. `FACTS` untouched by rule. | **Second `kind: format` row on instruction language in one day**, so it clears the promotion threshold on its own — the first (2026-08-28, jargon) fixed the WORDS, this one fixes the VOLUME. Named failure mode: **length reads as diligence.** A four-line lane looks more thorough than a two-line lane, so the author cannot see the defect and only the reader can. The trim rule is craft is his, requirements are yours, references always stay. |
+| 2026-08-28 | vox-style-video-ai | structure | "I don't like having screen recording notes and video editing notes can you just club them both together and make it just video notes." | `SHOW` + `EDIT` -> one `VIDEO` lane. `render-worksheet.mjs` LANE_RE, `lib/beats.mjs` (both fold into `video`), desk `types.ts` / `api.ts` (`normalizeDoc` folds a pre-merge snapshot) / `WriteView.tsx` / `ToggleRail.tsx` / `usePrefs.ts` (`videoNotes`, default on), the whole plan, 9 docs, `beats.test.mjs` alias test + `oldSnapshot.test.ts` fold test | No T rule — a lane vocabulary change, so it lives in the format spec. The split was never a real one: **the same person does both jobs back to back on the same beat**, so two boxes per beat was pure reading overhead. `SHOW` and `EDIT` still parse as aliases so an older plan loses nothing, but nothing writes them. |
+| 2026-08-29 | vox-style-video-ai | structure | "the MD file is obviously yes it's very easy I can easily cut, paste, delete things, add things, etcetera is easy to but it's not easy to read while editing. I'm not able to follow the script too much things is going on... I can do all the things in UI and in UI itself I can do entire edit which was possible in the MD file in local." | Edit mode on the local desk. `parse()` now tracks line ranges; new `buildEditModel()` in `lib/beats.mjs`; `src/lib/edits.ts` splice engine; `EditView.tsx`; `GET|PUT /api/source` with three guards (won't-parse / changed-on-disk / backup-first); `.desk-backups/` gitignored. 37 new tests. Reversed the "reader, not an editor" note in 3 docs. | No T rule - a tool change, not a taste one. **This REVERSES a decision made the same day, and the reversal is the lesson.** The markup-UI design he killed was killed for being a PARALLEL system - an overlay store reconciled back into the markdown later. The note written up from that said "the desk is a reader, do not build editing into it", which generalised his objection one step too far. The real constraint was *do not build me a second copy of my script*. Edit mode has no second copy - every click is a line splice written straight back - which is why it is four files and not four plans. **Failure mode to watch: recording a rejection as a wider rule than the owner actually stated.** |
 
-<!-- No rows yet. The first fold appends here. -->
+## Notes on these first three rows
+
+**gate-report is a new tag**, approved by the owner on 2026-08-27 in the Phase
+4 summary, and added to step 130's vocabulary and to
+`test/feedback-surfaces.test.mjs` in the same change. It exists because the
+eleven original tags are all about the script — hook length, tone, pacing — and
+these two items are about how a gate behaves. Forcing them into the structure tag
+would have made two unlike items look like a repeat, which is exactly what the
+threshold must not do.
+
+**Step 130 gained a routing row in the same change**: how a step behaves routes
+to that step's own README. Before it there was no surface for a lesson about
+decision rights, only surfaces for wording, markup and code.
+
+**Three gate-report rows arrived in one session, and they are one pattern.** All
+three say the same thing: the session made or presented a decision with the
+evidence stripped out — the format call turned into a question, eight approaches
+flattened to eight names, then those approaches left anonymous. The tag's
+threshold does not apply the way a taste tag's does: gate-report routes to a step
+README, and a flow spec IS the durable fix, so there is nothing waiting on a
+second occurrence. What the repeat does tell us is that brevity was the failure
+mode every time, which is now written into step 010 as its own "do not": the
+5-line cap is on the summary and on nothing else.
+
+## The one-line-per-section cap was removed, not relaxed (2026-08-27)
+
+`OUTLINE-INSTRUCTIONS.md` and `steps/030-write-outline-llm/README.md` both opened
+on *"One line per section. Never two."*, and `test/desk-docs.test.mjs` asserted
+it. The step followed it exactly and produced a document the owner could not
+picture. He asked for cards.
+
+**This is the first fold that deleted an existing rule rather than adding one, so
+the reasoning is recorded here.** The rule was a proxy. What actually separates
+`outline.md` from `script-plan.md` is spoken copy and parsed lanes; a line count
+was standing in for that, and it failed in the safe-looking direction by making
+the document too thin to approve. The test now guards the real boundary: no
+spoken copy, no lanes, no prose paragraph under a heading, and a hard cap of six
+bullets per card.
+
+**What did not change:** every ban that made the outline cheap. If a future
+session finds a card carrying a `SAY` lane, or a sentence the maker would read
+aloud, that is the same failure the deleted rule was aimed at, and the test still
+catches it.
+
+## Two T rules landed in one batch (2026-08-27)
+
+T6 (length) and T7 (assume the owner's expertise) were both written on a first
+occurrence, on the explicit-ask path rather than the repeat path — the owner said
+*"only if you are sure - accomodate the changes long term in feedback"* and then
+confirmed both. Neither waited for a second row.
+
+T7 is worth re-reading before it is ever widened. It sits against the skill's
+hard rule that claims come from `knowledge.md` and nowhere else, so it is scoped
+to claims about the owner himself and stays that way. The conflict was raised
+with him before the rule was written, and he reaffirmed it; that exchange is why
+the rule names its own scope twice.
+
+## A rule written this morning was reversed this afternoon (2026-08-27)
+
+The owner asked for section names that were *"simple heading and symmetricall…
+like a title"*. That became a rule requiring a noun phrase of two to five words,
+Title Case, no `When`/`Why`/`What` clauses, and one grammatical shape across the
+whole outline. Followed exactly, it turned all eleven sections of
+`vox-style-video-ai` into `The <Noun>` and produced `The Music Bed`, `The Motion
+Pass`, `The Final Stitch` and `The Narrator Audition`. He reversed it the same
+day: *"i take back my call - we can have phrases in section name"*, with
+*"no one uses ' The Music Bed'"* as the example.
+
+**Why it went wrong, and it is worth remembering.** The rule specified a
+grammatical *shape*, and a shape can be satisfied by jargon — in fact jargon is
+the easiest thing to fit into one, because industry terms are already compact
+noun phrases. So the rule did not merely fail to prevent jargon; it selected for
+it. T8 replaces the shape requirement with a spoken test, which no jargon passes.
+
+**The general shape of this mistake:** a preference stated as a *feeling* ("simple
+and symmetrical") was written down as a *mechanism* (noun phrase, N words, Title
+Case). The mechanism was checkable and the feeling was not, so the mechanism won
+and the feeling was lost. Where a taste item resists mechanisation, the rule
+should say how to judge it, not what shape it takes — `TASTE.md` T1 already
+implies this and this is the first concrete instance of it.
+
+**Two rows, one lesson.** The reversal is logged as a format row and the plain-
+language preference as a jargon row, because they are genuinely two things: what
+a section name is *allowed* to be, and which words may appear anywhere in the
+script. Collapsing them into one row would have hidden the second behind the
+first.
+
+## Not every reaction wants a rule (2026-08-27)
+
+The costs and platform-risk sections were cut from `vox-style-video-ai` twice.
+The first time, the session read *"was 10 present in refernce video?"* as a
+principle and wrote a rule banning material from unchosen approaches. The owner
+reversed that. The second time it read the same instruction correctly:
+
+> *"those are just feedbacks for this topic, not general.."*
+
+**A reaction to one video's content is usually not a preference about all
+videos.** "I do not want a costs section in this video" and "I never want a costs
+section" are different statements, and only the owner knows which he means. Where
+he does not say, the answer is the instance fix plus a log row - which is what the
+threshold in `steps/130-learn-from-feedback-llm/README.md` has always said, and
+what got skipped here.
+
+**The tell:** if the reaction names *this topic, this tool, this section*, it is
+probably an instance. If it names *how you work, what you always do, what you
+should never ask* - the way T6, T7 and T8 all do - it is probably a rule. When
+both readings are live, ask; the owner answered this one before being asked, twice.
+
+## A prose constraint nobody can check gets satisfied by writing the proof into the script (2026-08-27/28)
+
+Two bugs the same night, the same shape:
+
+- The DEMO lane spec said *where* the lane renders and never what that implied for
+  the words, so a forward-pointing tease went into a beat where the demo had
+  already played.
+- The roadmap rule said the spoken lines *"must match the `### SECTION:` headings
+  exactly"* and nothing checked it, so the headings were appended in brackets to
+  the sentences that already contained them — as the session's own proof of the
+  match, in the voiceover.
+
+**The pattern: a rule stated in prose, verifiable by nobody, gets satisfied by
+putting the verification inside the artefact.** The bracketed heading was not a
+typo. It was a compliance artifact.
+
+Two things fix it, and both are needed:
+
+1. **If a rule is mechanically checkable, check it.** `test/roadmap.test.mjs`
+   now proves the coverage on every plan, which is exactly why no annotation is
+   ever needed again.
+2. **A rule you cannot obey without breaking another rule is the bug.** The
+   verbatim requirement collided with T8 the moment a heading was not natural
+   speech. The session should have raised that instead of writing both. Writing
+   the test is what surfaced it: `ai-avatar-generators` paraphrases three
+   headings and reads better than verbatim would.
+
+## The owner asking "is there an easier way?" is a signal to take seriously (2026-08-28)
+
+The session spent a long turn designing a review-and-markup UI for the desk: ten
+artboards, four plans, an overlay store, six components. It was a good design of the
+wrong thing. What killed it was one question from the owner:
+
+> *"Do you think is there any easier way by which we can accomplish the same goal
+> without increasing complexity on my end or anyone's end... Because I feel that
+> this will be too complex."*
+
+The honest answer was yes, and it was ~1/10th the work.
+
+**The mistake was not the design. It was not asking who does each job better.**
+Laid out as a table it is obvious:
+
+| | His editor | The desk |
+|---|---|---|
+| Read the script | ok | **better** |
+| Edit text, cut, paste | **better, always** | worse |
+| Leave a question in place | cannot | the gap |
+
+Only one row was a real gap. The session had proposed rebuilding the row his editor
+already wins, in a worse tool.
+
+**The tell:** a build that recreates something the owner already has, in a place he
+has less control. When the ask is "make the UI editable" and the content is already
+a text file he owns, stop and check which tool is actually better at editing.
+
+**Second tell, same turn:** he then said *"writing ask is I think time consuming"* -
+and the fix was a committed editor snippet, three lines of JSON, not a UI. Friction
+in a text workflow is usually a keystroke problem, not an interface problem.

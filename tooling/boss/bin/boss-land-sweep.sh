@@ -43,6 +43,13 @@ export BOSS_CHROME_WAIT_MIN
 source "$BOSS_BIN/boss-lib.sh"
 
 AGY="$BOSS_ROOT/executors/agy.sh"
+CLAUDE_P="$BOSS_ROOT/executors/claude-p.sh"
+# The executor a land falls back to when the primary one never RAN (see fixup_never_ran).
+# agy's 429 is an Antigravity ACCOUNT quota, not a per-model one, so retrying another
+# agy model would hit the same wall -- the fallback has to be a different provider.
+# claude-p bills the owner's Claude subscription, which is a separate bucket.
+LAND_FALLBACK_EXECUTOR="${BOSS_LAND_FALLBACK_EXECUTOR:-claude-p}"
+LAND_FALLBACK_MODEL="${BOSS_LAND_FALLBACK_MODEL:-sonnet}"
 SWEEP_LOCK="$LANDS_DIR/sweep.lock"
 LOCK_STALE_SECS="${BOSS_LAND_LOCK_STALE_SECS:-1800}"
 LOCK_MAX_WAIT="${BOSS_LAND_LOCK_MAX_WAIT:-60}"
@@ -53,6 +60,25 @@ LOCK_HELD=0
 DISPATCHED_THIS_RUN=0
 
 log()  { printf 'boss-land-sweep: %s\n' "$1" >&2; }
+
+# exec_bin <name> — the executor script for a name. Unknown names resolve to agy, the
+# primary: a typo in BOSS_LAND_FALLBACK_EXECUTOR must not leave a land undispatchable.
+exec_bin() {
+  case "$1" in
+    claude-p) printf '%s' "$CLAUDE_P" ;;
+    *)        printf '%s' "$AGY" ;;
+  esac
+}
+
+# land_exec_bin <slug> — the executor a DISPATCHED land is actually running under, read
+# from its meta. `alive` must be asked of the right script: asking agy about a live
+# claude-p fix-up reads as dead, and reap_one would then charge the attempt and
+# re-dispatch a second agent into a workspace that already has one.
+land_exec_bin() {
+  local e
+  e=$(meta_get "land-$1" executor 2>/dev/null) || e=""
+  exec_bin "${e:-agy}"
+}
 say()  { printf '%s\n' "$1"; }
 
 # ---------------------------------------------------------------------------
@@ -129,6 +155,43 @@ entry_rewrite() {
 }
 
 # ---------------------------------------------------------------------------
+# Already landed? pp-land clears its own entry on success — but the clear is an `rm -f`
+# on the `.blocked` NAME, and this sweep's claim RENAMES that file to `.dispatching`. A
+# sweep that runs mid-land therefore moves the file out from under pp-land's own
+# cleanup, and the entry outlives a land that worked.
+#
+# 2026-08-27, work/land-retry-hardening: the land ran 09:41:41 -> 09:51:22 (9m41s, a
+# full verify suite) and a session-start sweep claimed its entry at 09:51:06 — sixteen
+# seconds before the success. pp-land's rm hit a name that no longer existed, so the
+# entry survived, and an agy fix-up was dispatched to repair a branch already on main.
+# Every later sweep would have done the same thing, forever.
+#
+# The test is pp-land's own (pp-land:317): the workspace HEAD being an ancestor of
+# origin/main IS the definition of landed. Asking it HERE is robust to how the entry
+# went stale — this race, a hand land, a coalesced cycle — in a way that teaching
+# pp-land's rm about `.dispatching` would not be, and it cannot race: an entry that is
+# already on main stays on main.
+# ---------------------------------------------------------------------------
+LAND_FETCHED=0
+land_already_landed() {
+  local f="$1" ws sha
+  ws=$(entry_get "$f" workspace)
+  [ -n "$ws" ] && [ -d "$ws" ] || return 1
+  sha=$(git -C "$ws" rev-parse HEAD 2>/dev/null) || return 1
+  # One fetch per sweep run — this is asked for every entry. It goes through the
+  # WORKSPACE, not REPO_ROOT: a pp-work workspace shares the repo's refs, so the two are
+  # the same fetch in production, and routing it through the entry keeps this helper
+  # self-contained (and testable against a throwaway origin). A failed fetch falls
+  # through to the local origin/main, which is stale only in the SAFE direction: it
+  # under-reports "landed", so the worst case is exactly the behaviour we had before.
+  if [ "$LAND_FETCHED" -eq 0 ]; then
+    LAND_FETCHED=1
+    git -C "$ws" fetch origin main >/dev/null 2>&1 || true
+  fi
+  git -C "$ws" merge-base --is-ancestor "$sha" origin/main 2>/dev/null
+}
+
+# ---------------------------------------------------------------------------
 # The attempt classifier. THE policy of this script — see tooling/boss/CLAUDE.md.
 #
 #   transient  a blip: resets the real-attempt counter, bounded at TRANSIENT_CAP per
@@ -190,11 +253,60 @@ land_class() {
 }
 
 # ---------------------------------------------------------------------------
+# WHY a dispatched fix-up produced nothing. `boss_head_advanced` answers "did it
+# commit", never "did it get to run at all", and reap_one charged both to the REAL
+# budget. On 2026-08-27 the agy fix-up for land-work-pp-agents-ui died in 4.4s on
+# `RESOURCE_EXHAUSTED (code 429): Individual quota reached` -- it never read the branch --
+# and that outage alone drove real_attempts to REAL_CAP, so the land stalled silently
+# with a verify that passed 16 minutes later. An executor that never ran is an INFRA
+# blip and belongs to the transient budget, next to every other blip.
+#
+# Reads the executor's own envelope ($LANDS_DIR/land-<slug>.out). No file, or no match,
+# means "it ran and failed" -- the safe default, because that is what keeps the REAL cap
+# doing its job for a land that is genuinely broken. The patterns are deliberately
+# narrow: a loose match here would refund the budget for real failures and turn REAL_CAP
+# into an infinite retry.
+# ---------------------------------------------------------------------------
+FIXUP_DEATH_CAUSE=""
+fixup_never_ran() {
+  local out="$LANDS_DIR/land-$1.out" body
+  FIXUP_DEATH_CAUSE=""
+  [ -f "$out" ] || return 1
+  body=$(tr -d '\n' < "$out" 2>/dev/null) || return 1
+  case "$body" in
+    *RESOURCE_EXHAUSTED*|*"quota reached"*|*"Individual quota"*|*"code 429"*\
+      |*"upgrade your subscription"*|*"usage limit reached"*|*"rate limit exceeded"*)
+      FIXUP_DEATH_CAUSE="provider quota / rate limit"; return 0 ;;
+    *"agy not installed"*|*"no worktree for"*)
+      FIXUP_DEATH_CAUSE="executor could not start"; return 0 ;;
+  esac
+  return 1
+}
+
+# ---------------------------------------------------------------------------
+# One notification per capped entry. The CAPPED line goes to this script's stdout, which
+# is read only by whoever runs a sweep by hand or reads boss-session-start's output -- so
+# in practice a capped land is SILENT: finished work simply stops arriving on main, with
+# nothing anywhere to say so. land-work-pp-agents-ui sat capped for 36 minutes and was
+# found only because the owner went looking.
+#
+# The flag lives IN the entry file, which entry_rewrite preserves and pp-land's next
+# write_blocked (a full rewrite) drops -- so one cap notifies once, and a fresh block
+# that caps again notifies again.
+# ---------------------------------------------------------------------------
+notify_capped() {
+  local f="$1" msg="$2"
+  [ "$(entry_get "$f" capped_notified)" = "1" ] && return 0
+  printf 'capped_notified=1\n' >> "$f"
+  boss_notify "boss:land capped -- $msg"
+}
+
+# ---------------------------------------------------------------------------
 # The brief. Written to an ABSOLUTE path: the executor cd's into the worktree first, so a
 # relative brief path is unreadable from there (recorded lesson boss-fixup-brief-absolute-path).
 # ---------------------------------------------------------------------------
 write_brief() {
-  local file="$1" slug="$2" ws="$3" branch="$4" reason="$5" conflicts="$6"
+  local file="$1" slug="$2" ws="$3" branch="$4" reason="$5" conflicts="$6" runlog="${7:-}"
   cat > "$file" <<BRIEF
 Fix a BLOCKED land, in place.
 
@@ -202,6 +314,7 @@ Workspace (already exists — work HERE, and nowhere else): $ws
 Branch (already checked out there):                       $branch
 Why the land did not complete:                            $reason
 Conflicting paths (if any):                               ${conflicts:-none recorded}
+Full run output (READ THIS FIRST, it says which check broke): ${runlog:-not recorded}
 
 What to do:
 
@@ -231,10 +344,19 @@ BRIEF
 # MERGED PRs were still labelled boss:in-progress).
 # ---------------------------------------------------------------------------
 reap_one() {
-  local f="$1" slug real tr win
+  local f="$1" slug real tr win now fx
   slug=$(basename "$f" .dispatching); slug=${slug#land-}
-  if "$AGY" alive "land-$slug" >/dev/null 2>&1; then
+  if "$(land_exec_bin "$slug")" alive "land-$slug" >/dev/null 2>&1; then
     say "RUNNING    land-$slug — fix-up still working"
+    return 0
+  fi
+  # Landed while the fix-up was in flight — or before it ever started, if this entry is
+  # the mid-land claim land_already_landed describes. Either way there is nothing left to
+  # repair, and falling through to ADVANCED would credit the fix-up for someone else's
+  # commit.
+  if land_already_landed "$f"; then
+    say "LANDED     land-$slug — already on origin/main; dropping the stale entry"
+    rm -f "$f"
     return 0
   fi
   if boss_head_advanced "land-$slug"; then
@@ -242,11 +364,54 @@ reap_one() {
     rm -f "$f"
     return 0
   fi
-  # HEAD never advanced: the fix-up produced nothing. That is a real failure.
+  # HEAD never advanced. WHY decides which budget pays. An executor that never ran costs
+  # the transient budget and REFUNDS the attempt sweep_one charged at dispatch time --
+  # nothing was tried, so nothing was learned about the land. Bounded by TRANSIENT_CAP
+  # per window: a provider that is down for good then falls through to the real budget
+  # and caps normally, rather than retrying forever.
   real=$(num_or "$(entry_get "$f" real_attempts)" 0)
   tr=$(num_or "$(entry_get "$f" transient_attempts)" 0)
   win=$(num_or "$(entry_get "$f" transient_window_start)" 0)
-  real=$((real + 1))
+  now=$(date +%s)
+  if fixup_never_ran "$slug"; then
+    if [ "$win" -eq 0 ] || [ $((now - win)) -ge "$TRANSIENT_WINDOW" ]; then win=$now; tr=0; fi
+    if [ "$tr" -lt "$TRANSIENT_CAP" ]; then
+      [ "$real" -gt 0 ] && real=$((real - 1))
+      tr=$((tr + 1))
+      # Refund the fix-up round too. boss_fixup_claim counts any dispatch against a meta
+      # that already carries a pid, and BOSS_MAX_FIXUPS is 1 — so without this the
+      # fallback dispatch below is REFUSED (exit 3) by the very outage it exists for.
+      fx=$(num_or "$(meta_get "land-$slug" fixups 2>/dev/null)" 0)
+      [ "$fx" -gt 0 ] && meta_set "land-$slug" fixups $((fx - 1))
+      # Arm the fallback: the provider that just refused us does not get the next turn.
+      # entry_rewrite preserves this line, and pp-land's next write_blocked drops it, so
+      # a fresh block starts from the primary again.
+      if [ "$(entry_get "$f" fallback_executor)" != "$LAND_FALLBACK_EXECUTOR" ]; then
+        printf 'fallback_executor=%s\n' "$LAND_FALLBACK_EXECUTOR" >> "$f"
+      fi
+      entry_rewrite "$f" "$real" "$tr" "$win"
+      mv -f "$f" "${f%.dispatching}.blocked"
+      say "INFRA      land-$slug — fix-up never ran ($FIXUP_DEATH_CAUSE); transient $tr/$TRANSIENT_CAP, real $real/$REAL_CAP, next executor $LAND_FALLBACK_EXECUTOR"
+      return 0
+    fi
+    say "INFRA-CAP  land-$slug — fix-up never ran ($FIXUP_DEATH_CAUSE) $tr times this window; charging the real budget"
+    # Out of transient budget: this attempt is charged like any real failure. That is the
+    # dispatch charge STANDING, not a second one -- see below.
+    entry_rewrite "$f" "$real" "$tr" "$win"
+    mv -f "$f" "${f%.dispatching}.blocked"
+    say "NOADVANCE  land-$slug — fix-up produced no commit (real attempts $real/$REAL_CAP)"
+    return 0
+  fi
+  # The real budget is charged ONCE, by sweep_one at dispatch. This reap used to charge a
+  # second time for the same fix-up, so REAL_CAP=2 really bought ONE attempt: dispatch
+  # took it to 1, the reap took it to 2, and the next sweep capped. land-work-pp-agents-ui
+  # hit that on 2026-08-27 -- a single quota-dead fix-up exhausted a budget of two.
+  #
+  # Charging at dispatch (not here) is what the cap actually reads, and it is the safer
+  # half of the pair: an entry cannot be re-dispatched while it is .dispatching, so a
+  # sweep killed before the reap still leaves the attempt paid for. A fix-up that DID
+  # commit never reaches this line -- boss_head_advanced deletes the entry above -- and a
+  # later park rewrites the entry from scratch, which resets the budget on real progress.
   entry_rewrite "$f" "$real" "$tr" "$win"
   mv -f "$f" "${f%.dispatching}.blocked"
   say "NOADVANCE  land-$slug — fix-up produced no commit (real attempts $real/$REAL_CAP)"
@@ -257,15 +422,22 @@ reap_one() {
 # Phase B — claim and dispatch.
 # ---------------------------------------------------------------------------
 sweep_one() {
-  local f="$1" slug claimed ws branch reason conflicts no_auto
+  local f="$1" slug claimed ws branch reason conflicts no_auto ex ex_bin
   local real tr win class now brief pid rc lock_ok
   slug=$(basename "$f" .blocked); slug=${slug#land-}
 
   # A live fix-up for this slug means pp-land re-wrote the .blocked entry while the
   # fix-up was still running. Dispatching a second one would have two agents editing
   # one workspace.
-  if "$AGY" alive "land-$slug" >/dev/null 2>&1; then
+  if "$(land_exec_bin "$slug")" alive "land-$slug" >/dev/null 2>&1; then
     say "RUNNING    land-$slug — fix-up still working, not re-dispatching"
+    return 0
+  fi
+  # The land this entry describes may have SUCCEEDED since it was written — see
+  # land_already_landed. Dispatching now repairs nothing and spends a real attempt.
+  if land_already_landed "$f"; then
+    say "LANDED     land-$slug — already on origin/main; dropping the stale entry"
+    rm -f "$f"
     return 0
   fi
   if [ -e "${f%.blocked}.dispatching" ]; then
@@ -315,6 +487,7 @@ sweep_one() {
       if [ "$win" -eq 0 ] || [ $((now - win)) -ge "$TRANSIENT_WINDOW" ]; then win=$now; tr=0; fi
       if [ "$tr" -ge "$TRANSIENT_CAP" ]; then
         entry_rewrite "$claimed" "$real" "$tr" "$win"
+        notify_capped "$claimed" "land-$slug: $tr transient retries this window (cap $TRANSIENT_CAP) — $branch is not reaching main"
         mv -f "$claimed" "$f"
         say "CAPPED     land-$slug — $tr transient retries in this window (cap $TRANSIENT_CAP); listed, not dispatched"
         return 0
@@ -323,6 +496,7 @@ sweep_one() {
     real)
       if [ "$real" -ge "$REAL_CAP" ]; then
         entry_rewrite "$claimed" "$real" "$tr" "$win"
+        notify_capped "$claimed" "land-$slug: $real real attempts (cap $REAL_CAP) — $branch is not reaching main — $reason"
         mv -f "$claimed" "$f"
         say "CAPPED     land-$slug — $real real attempts (cap $REAL_CAP); listed, not dispatched — $reason"
         return 0
@@ -334,12 +508,24 @@ sweep_one() {
   # The synthetic meta. agy.sh takes no path argument — it resolves the worktree from
   # $STATE_DIR/$id.meta — so without this it exits 1 on the FIRST attempt, every time.
   # meta_set appends and meta_get tails, so re-stating a field overrides it.
+  ex=$(entry_get "$claimed" fallback_executor)
+  case "$ex" in
+    agy|claude-p) ;;
+    *) ex=agy ;;
+  esac
+  ex_bin=$(exec_bin "$ex")
   meta_set "land-$slug" worktree "$ws"
-  meta_set "land-$slug" model ""
-  meta_set "land-$slug" executor agy
+  # A blank model means "the executor's own default" — Gemini 3.1 Pro (High) for agy.
+  # The fallback is pinned instead, because its default is the thing being chosen.
+  if [ "$ex" = agy ]; then
+    meta_set "land-$slug" model ""
+  else
+    meta_set "land-$slug" model "$LAND_FALLBACK_MODEL"
+  fi
+  meta_set "land-$slug" executor "$ex"
 
   brief="$STATE_DIR/land-$slug.brief.md"
-  write_brief "$brief" "$slug" "$ws" "$branch" "$reason" "$conflicts"
+  write_brief "$brief" "$slug" "$ws" "$branch" "$reason" "$conflicts" "$(entry_get "$claimed" log)"
 
   # Hiding land metas from boss_crews_running removes the crew-wait heuristic that used to
   # keep browser-driving work apart (PR#134 lost a merge cycle to 44 live Chrome
@@ -356,10 +542,10 @@ sweep_one() {
     return 0
   fi
 
-  "$AGY" dispatch "land-$slug" "$brief" >/dev/null 2>&1
+  "$ex_bin" dispatch "land-$slug" "$brief" >/dev/null 2>&1
   rc=$?
   if [ "$rc" -ne 0 ]; then
-    # A mechanical dispatch failure (agy missing, no meta) is transient, not the land's
+    # A mechanical dispatch failure (executor missing, no meta) is transient, not the land's
     # fault — so it must not have consumed a real attempt.
     [ "$lock_ok" -eq 1 ] && boss_chrome_lock_release
     if [ "$win" -eq 0 ] || [ $((now - win)) -ge "$TRANSIENT_WINDOW" ]; then win=$now; tr=0; fi
@@ -379,7 +565,7 @@ sweep_one() {
     boss_chrome_lock_release
   fi
   DISPATCHED_THIS_RUN=1
-  say "DISPATCHED land-$slug — fix-up in $ws (real $real/$REAL_CAP, transient $tr/$TRANSIENT_CAP) — $reason"
+  say "DISPATCHED land-$slug — $ex fix-up in $ws (real $real/$REAL_CAP, transient $tr/$TRANSIENT_CAP) — $reason"
   return 0
 }
 

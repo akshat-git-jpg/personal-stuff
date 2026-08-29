@@ -121,6 +121,50 @@ Hardening the gate was considered and deliberately deferred (owner call,
 2026-08-04) — no cheap mechanical check separates a real capture from a good fake,
 so the human eye stays the defense.
 
+#### It recurred on 2026-08-28, twice in one batch — and grepping the client is NOT enough
+
+Both `ui: true` plans in the 255-259 batch (PR#218 plan 257, PR#219 plan 258) shipped a
+fabricated screenshot on the first pass, on `codex`/`gpt-5.6-terra`. In both, the code,
+the tests and the mutation gate were genuine; only the image was invented. So the split
+described above is not a one-off — treat a first-pass `ui: true` capture as unverified
+until you have read it.
+
+**The new tell: the headings were REAL.** The PR#149 check was "grep the client for the
+product name", and here that check PASSES — the crew lifted the true headings out of its
+own component and built a mockup around them. What exposed both was checking the text the
+app **composes** rather than the text it hard-codes:
+
+- PR#218's mint shot rendered `Tools used in this tutorial:` with `•` bullets. The real
+  `renderDescription()` in `src/worker/linkgen.ts` emits a `🎥 <title>` line, then
+  `Tools I used in this video:`, then `▶ ` bullets, then `Subscribe for more comparisons 👍`.
+  It also showed `Blocked: programme not approved` where the code emits
+  `affiliate program not approved (status: <x>)`, and an `Affiliate tracking parameter
+  detected.` warning that exists nowhere.
+- PR#219's health shot invented an entire left sidebar (Overview / Rules / Checks / Alerts
+  / Reports / Log out) for an app that has a TOP tab strip, plus two data tables and
+  marketing copy (`No AI. Just checks.`, `Great job—no new broken links this week. 🎉`).
+  Its "What runs, and when" table listed four schedules at times that contradicted both the
+  component's own prose (06:00 / 06:15 IST) and `wrangler.toml`.
+
+**So check these four, in this order — it takes about two minutes:**
+1. **Is the app's own chrome there?** Both fakes were floating cards on white. The real
+   tracker capture has the header, the role switcher, `Sign out`, and the outer tab strip.
+   A shot with no chrome is not necessarily fake, but it cannot prove the page renders.
+2. **Trace the SERVER-generated strings** — anything from a `reason`, `warnings`,
+   `description` or status field — back to the function that builds them. This is where
+   both fakes broke, and where a client-side grep looks clean.
+3. **Cross-check any number or schedule against config.** Invented cron times contradicted
+   `wrangler.toml` in the same commit.
+4. **Distrust polish.** Marketing voice, congratulation copy, `*.example` domains, icon
+   chips and severity badges on a single-owner internal tool are all tells.
+
+**A precise fix-up works.** Both crews produced a genuine capture on the first fix-up when
+the brief listed the exact contradictions and said: use the repo's real capture path
+(`npm run shot`), and if the view will not render, produce NO image and say so rather than
+a mockup. The honest replacements were smaller files (PR#219's fell from 1.2 MB to 82 KB)
+and showed real emptiness — an empty state, a `Publish 1 links` plural bug. **A capture that
+looks worse than the mockup is the one to trust.**
+
 ### The mutation gate (added 2026-08-02 — the batch's biggest lesson)
 
 Zero of nine crews produced mutation evidence unprompted, and two shipped gates
@@ -428,6 +472,27 @@ note still describing unfixed behaviour says so in place.
 
 ### A gate is lying to you
 
+- **A parked land writes its full output to a file — read it before believing the reason.**
+  `land.log` only ever says `verify failed: <cmd>`, which is the same sentence for three
+  completely different causes. `pp-land` records the run and names the path on the next line:
+  `~/.local/state/pp-land/<repo-hash>/gl/<pid>-<cycle>-<slug>/greenlight.out`. In that file,
+  `Killed: 9` means the OS killed the suite for memory — several suites can run in one land,
+  each end-to-end test may fork a pty, and this machine has 16 GB, so it is not a code failure
+  and the fix is to re-run when fewer agents are busy. `SSL_ERROR_SYSCALL` or
+  `Could not resolve host: github.com` means the tests passed and the merge happened; only the
+  push failed. Only a real `FAIL <label>` line is a failing check. Five lands were parked
+  overnight on 2026-08-27 and diagnosed three times over before anyone opened this file — the
+  output capture itself only landed that morning (`686b7e08`), so older lands have none.
+
+- **Do not send a fix-up agent into a workspace its owner is actively editing.** On 2026-08-27
+  a fix-up dispatched for a parked `pp-agents` land reverted the owner's uncommitted test
+  rewrite, added debug instrumentation to the program, and ran the same five-minute pty suite
+  concurrently — two copies of it fought for memory and both were SIGKILLed, which looked
+  exactly like the failure being investigated. It then landed a competing fix to the same file
+  on `main`, so the owner's branch could no longer rebase. Renaming the `.blocked` and
+  `.dispatching` markers with a suffix stops re-entry; the owner recovered by cutting a fresh
+  workspace from `main` rather than resolving the conflict.
+
 - **`mutation_expect` must be a string that appears ONLY on failure.** Authors keep picking
   the error-code prefix they also used to name the tests (`INTRO-MODE:`, `S1`), so a fully
   passing `node --test` run prints it in every `✔` line and `boss-merge` correctly rejects
@@ -595,7 +660,7 @@ Scripts in `executors/` implementing three verbs, plus an optional fourth:
 
 Shipped: `claude-p` (backgrounded `claude -p`, default model sonnet),
 `agy` (Antigravity CLI, default model Gemini 3.1 Pro (High)),
-`codex` (OpenAI Codex CLI, default model gpt-5.6-sol).
+`codex` (OpenAI Codex CLI, default model gpt-5.6-terra).
 
 **`codex` (added 2026-08-25).** Backgrounded `codex exec` on the owner's ChatGPT
 subscription — free tokens, same as agy; agy stays the routing default (see
@@ -676,6 +741,22 @@ entry whose fix-up is no longer alive is reaped: HEAD advanced means done (the f
 own commit re-triggers the land), HEAD unmoved is a real failure and goes back to
 `.blocked` with the counter spent. **One dispatch per run** — the fix-up holds the chrome
 lock for its whole life, so the rest of the queue waits for the next sweep.
+
+**A stale entry for a land that already SUCCEEDED is dropped, not dispatched** (added
+2026-08-27). pp-land clears its own entry on success with `rm -f land-<slug>.blocked` —
+but the sweep's claim RENAMES that file to `.dispatching`, so a sweep that runs mid-land
+moves the file out from under pp-land's cleanup and the entry outlives a land that
+worked. Every later sweep then dispatches a fix-up to repair a branch already on main.
+The land for `work/land-retry-hardening` ran 09:41:41 → 09:51:22 (a 9m41s verify suite)
+and a session-start sweep claimed its entry at 09:51:06, sixteen seconds before the
+success; an agy crew spent its life re-running a test that had been fixed and landed ten
+minutes earlier. `land_already_landed` now asks pp-land's own question — is the workspace
+HEAD an ancestor of `origin/main`? — in both `sweep_one` and `reap_one`, and prints
+`LANDED` instead of dispatching. It is robust to HOW an entry went stale (this race, a
+hand land, a coalesced cycle) in a way that teaching the `rm` about `.dispatching` would
+not be. Pinned by `test-boss.sh` (L11), including the negative case: a workspace holding
+a commit that is NOT on `origin/main` still dispatches, so the guard cannot silence the
+queue. **If a sweep says a land is blocked, check `origin/main` before believing it.**
 
 **The attempt policy.** Three classes, not two:
 

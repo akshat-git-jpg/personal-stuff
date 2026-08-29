@@ -1387,3 +1387,13 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 252-yt-script-wire-voiceover — PR#213 252-yt-script-wire-voiceover: Wire yt-script step 120 to the yt-vo engine — DONE
 - 253-yt-script-feedback-skill — PR#214 253-yt-script-feedback-skill: Learn the owner's script preferences — DONE
 - 254-taste-format-split — PR#215 254-taste-format-split: Move the taste rules out of SCRIPT-INSTRUCTIONS.md, and fix what 252 left behind — DONE
+- 255-programs-table-and-sheet-migration — programs table + full Google Sheet migration — TODO
+- 256-links-tab-programs-view — Links tab: Programs view, Add and Edit — TODO (needs 255)
+- 257-tracking-links-view-and-mint-move — Tracking links view, and minting moves out of the video card — TODO (needs 255, 256)
+- 258-link-guard-cron-and-health — the link guard: cron, Health view, Telegram — TODO (needs 255, 256, 257)
+- 255-programs-table-and-sheet-migration — PR#216 255-programs-table-and-sheet-migration: programs table + full Google Sheet migration — DONE
+- 256-links-tab-programs-view — PR#217 256-links-tab-programs-view: Links tab — Programs view, Add and Edit — DONE
+- 259-close-the-youtube-mapping-gap — nothing ever wrote videos.yt_video_id; 54 of 69 clicks were invisible — TODO (needs 257, 258)
+- 257-tracking-links-view-and-mint-move — PR#218 257-tracking-links-view-and-mint-move: Tracking links view, and minting moves out of the video card — DONE
+- 258-link-guard-cron-and-health — PR#219 258-link-guard-cron-and-health: the link guard — cron, Health view, Telegram — DONE
+- 259-close-the-youtube-mapping-gap — PR#220 259-close-the-youtube-mapping-gap: nothing ever wrote videos.yt_video_id — DONE

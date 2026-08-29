@@ -5,10 +5,10 @@
 // contract (src/api.ts) in production — keep both in sync.
 
 import { createServer } from 'node:http'
-import { readFileSync, writeFileSync, renameSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, renameSync, existsSync, statSync, copyFileSync, mkdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buildBeats } from '../../../pipelines/youtube/yt-script/lib/beats.mjs'
+import { buildBeats, buildEditModel } from '../../../pipelines/youtube/yt-script/lib/beats.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.API_PORT) || 4327
@@ -34,19 +34,35 @@ function outlinePath(key) {
   return join(VIDEOS_ROOT, key, 'script-plan.md')
 }
 
+// `notes` and `noteEdits` are STAGED instruction edits. Added 2026-08-29.
+//
+// Editing a note in the browser does NOT rewrite `script-plan.md`. Owner: *"can
+// we do commit in 1 go. i will edit wherever required and tell you once all are
+// reviewed and done. then you can update/edit in 1 go."* So an edit lands here,
+// in the gitignored scratch file, and `bin/desk.mjs apply` splices every staged
+// edit into the markdown in one pass when he says he is done.
+//
+// It mirrors `says`/`edits` exactly, which have worked this way for spoken copy
+// since the desk existed: the current text in one map, the FIRST original in the
+// other, so a restore always goes back to what the plan said rather than to the
+// previous edit.
+const EMPTY_DRAFT = () => ({ draft: {}, says: {}, edits: {}, notes: {}, noteEdits: {}, finished: false })
+
 function readDraft(key) {
   const p = draftPath(key)
-  if (!existsSync(p)) return { draft: {}, says: {}, edits: {}, finished: false }
+  if (!existsSync(p)) return EMPTY_DRAFT()
   try {
     const raw = JSON.parse(readFileSync(p, 'utf8'))
     return {
       draft: raw.draft ?? {},
       says: raw.says ?? {},
       edits: raw.edits ?? {},
+      notes: raw.notes ?? {},
+      noteEdits: raw.noteEdits ?? {},
       finished: raw.finished ?? false,
     }
   } catch {
-    return { draft: {}, says: {}, edits: {}, finished: false }
+    return EMPTY_DRAFT()
   }
 }
 
@@ -58,25 +74,92 @@ function writeDraft(key, data) {
   renameSync(tmp, p)
 }
 
+// A save that changes nothing must stage nothing.
+//
+// Every box on the local desk is live, so simply clicking through the page blurs
+// each one in turn and every blur used to stage an identical "edit". The owner's
+// first pass produced four staged items, three of which were byte-identical to
+// the file. A review list you have to read to find out it says nothing is worse
+// than no review list.
+//
+// It also does the right thing in the other direction: typing a change and then
+// undoing it by hand un-stages, because the text matches the file again.
+function sameLines(a, b) {
+  return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((l, i) => l === b[i])
+}
+
 function buildVideoDoc(key) {
   const outPath = outlinePath(key)
   if (!existsSync(outPath)) return null
   const md = readFileSync(outPath, 'utf8')
   const { title, beats } = buildBeats(md)
   const doc = readDraft(key)
-  // Apply any edited spoken lines on top of the parsed beats before returning.
-  const beatsWithSays = beats.map((b) =>
-    doc.says[b.num] ? { ...b, say: doc.says[b.num] } : b,
-  )
+  // Apply any staged edits on top of the parsed beats before returning: edited
+  // spoken lines, and edited instruction notes.
+  const beatsWithEdits = beats.map((b) => {
+    let out = b
+    if (doc.says[b.num]) out = { ...out, say: doc.says[b.num] }
+    if (doc.notes[b.num]) out = { ...out, notes: doc.notes[b.num] }
+    return out
+  })
   return {
     key,
     title,
-    beats: beatsWithSays,
+    beats: beatsWithEdits,
     draft: doc.draft,
     edits: doc.edits,
     says: doc.says,
+    notes: doc.notes,
+    noteEdits: doc.noteEdits,
     finished: doc.finished,
   }
+}
+
+// ---------------------------------------------------------------- edit mode
+//
+// The desk's edit mode writes `script-plan.md` itself. That is the whole point
+// — no second copy, no sync — and it is also why these three guards exist.
+// Added 2026-08-28.
+
+// 1. NEVER WRITE MARKDOWN THAT DOES NOT PARSE. The owner can delete a heading by
+//    accident, and a plan the parser refuses is a page that renders nothing. The
+//    incoming text is parsed BEFORE it goes anywhere near the disk; if it throws
+//    the write is refused and the browser keeps his text so he can fix it.
+function validatePlan(text) {
+  try {
+    const { title, beats } = buildBeats(text)
+    if (!beats.length) return { ok: false, error: 'that leaves the plan with no beats at all' }
+    return { ok: true, title, beats, edit: buildEditModel(text) }
+  } catch (err) {
+    return { ok: false, error: String(err?.message ?? err) }
+  }
+}
+
+// 2. NEVER CLOBBER AN EDIT MADE SOMEWHERE ELSE. He may have the same file open in
+//    his editor. The browser sends back the mtime it loaded; if the file on disk
+//    has moved on since, the save is refused rather than silently winning.
+function planStamp(key) {
+  const p = outlinePath(key)
+  return existsSync(p) ? String(statSync(p).mtimeMs) : null
+}
+
+// 3. KEEP THE LAST GOOD VERSION. Every write copies the current file into
+//    `.desk-backups/` first, newest last. A splice bug that eats a section is
+//    invisible until he scrolls to it, and `script-plan.md` is hours of work.
+function backupPlan(key) {
+  const src = outlinePath(key)
+  if (!existsSync(src)) return
+  const dir = join(VIDEOS_ROOT, key, '.desk-backups')
+  mkdirSync(dir, { recursive: true })
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+  copyFileSync(src, join(dir, `script-plan.${stamp}.md`))
+}
+
+function writePlan(key, text) {
+  const p = outlinePath(key)
+  const tmp = `${p}.tmp`
+  writeFileSync(tmp, text)
+  renameSync(tmp, p)
 }
 
 function sendJson(res, status, body) {
@@ -136,17 +219,66 @@ const server = createServer(async (req, res) => {
       const lines = Array.isArray(body.lines) ? body.lines : []
       const doc = readDraft(key)
       if (doc.finished) return sendJson(res, 409, { error: 'finished' })
+      const planned = buildBeats(readFileSync(outlinePath(key), 'utf8')).beats.find(
+        (b) => b.num === num,
+      )
+      if (sameLines(lines, planned?.say ?? [])) {
+        delete doc.says[num]
+        delete doc.edits[num]
+        writeDraft(key, doc)
+        return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString(), staged: false })
+      }
       // The first edit captures the original; a later edit leaves it alone —
       // the original is the FIRST version, never the previous one.
       if (!doc.edits[num]) {
-        const outPath = outlinePath(key)
-        const { beats } = buildBeats(readFileSync(outPath, 'utf8'))
-        const beat = beats.find((b) => b.num === num)
-        doc.edits[num] = { original: beat?.say ?? [], at: new Date().toISOString() }
+        doc.edits[num] = { original: planned?.say ?? [], at: new Date().toISOString() }
       }
       doc.says[num] = lines
       writeDraft(key, doc)
       return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString() })
+    }
+
+    // PUT /api/beat/:num/notes?key=<key> — a STAGED instruction edit. It does not
+    // touch script-plan.md; `bin/desk.mjs apply` does that, in one pass, later.
+    const notesMatch = url.pathname.match(/^\/api\/beat\/([^/]+)\/notes$/)
+    if (req.method === 'PUT' && notesMatch) {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const num = decodeURIComponent(notesMatch[1])
+      const body = await readBody(req)
+      const lines = Array.isArray(body.lines) ? body.lines : []
+      const doc = readDraft(key)
+      // The first edit captures the original; a later edit leaves it alone, so a
+      // restore always returns to what the plan says rather than to the previous
+      // edit. Same rule as `edits` for spoken copy.
+      const planned = buildBeats(readFileSync(outlinePath(key), 'utf8')).beats.find(
+        (b) => b.num === num,
+      )
+      if (sameLines(lines, planned?.notes ?? [])) {
+        delete doc.notes[num]
+        delete doc.noteEdits[num]
+        writeDraft(key, doc)
+        return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString(), staged: false })
+      }
+      if (!doc.noteEdits[num]) {
+        doc.noteEdits[num] = { original: planned?.notes ?? [], at: new Date().toISOString() }
+      }
+      doc.notes[num] = lines
+      writeDraft(key, doc)
+      return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString() })
+    }
+
+    // POST /api/beat/:num/notes/restore?key=<key>
+    const notesRestoreMatch = url.pathname.match(/^\/api\/beat\/([^/]+)\/notes\/restore$/)
+    if (req.method === 'POST' && notesRestoreMatch) {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const num = decodeURIComponent(notesRestoreMatch[1])
+      const doc = readDraft(key)
+      delete doc.notes[num]
+      delete doc.noteEdits[num]
+      writeDraft(key, doc)
+      const { beats } = buildBeats(readFileSync(outlinePath(key), 'utf8'))
+      const beat = beats.find((b) => b.num === num)
+      return sendJson(res, 200, { lines: beat?.notes ?? [] })
     }
 
     // POST /api/beat/:num/restore?key=<key>
@@ -171,6 +303,48 @@ const server = createServer(async (req, res) => {
       doc.finished = true
       writeDraft(key, doc)
       return sendJson(res, 200, { ok: true })
+    }
+
+    // GET /api/source?key=<key> — the raw markdown, plus the structural model
+    // edit mode renders from and the stamp a later save is checked against.
+    if (req.method === 'GET' && url.pathname === '/api/source') {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const p = outlinePath(key)
+      if (!existsSync(p)) return sendJson(res, 404, { error: `no plan for ${key}` })
+      const text = readFileSync(p, 'utf8')
+      return sendJson(res, 200, { text, stamp: planStamp(key), edit: buildEditModel(text) })
+    }
+
+    // PUT /api/source?key=<key> — the whole file, after an edit in the browser.
+    if (req.method === 'PUT' && url.pathname === '/api/source') {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const p = outlinePath(key)
+      if (!existsSync(p)) return sendJson(res, 404, { error: `no plan for ${key}` })
+      const body = await readBody(req)
+      if (typeof body.text !== 'string') return sendJson(res, 400, { error: 'no text' })
+
+      const current = planStamp(key)
+      if (body.stamp != null && body.stamp !== current) {
+        return sendJson(res, 409, {
+          error:
+            'script-plan.md changed on disk since this page loaded — most likely your editor ' +
+            'also has it open. Reload the desk to pick that up. Nothing was written.',
+        })
+      }
+
+      const check = validatePlan(body.text)
+      if (!check.ok) return sendJson(res, 422, { error: check.error })
+
+      backupPlan(key)
+      writePlan(key, body.text)
+      const doc = buildVideoDoc(key)
+      return sendJson(res, 200, {
+        ok: true,
+        stamp: planStamp(key),
+        text: body.text,
+        edit: check.edit,
+        doc,
+      })
     }
 
     sendJson(res, 404, { error: 'not found' })

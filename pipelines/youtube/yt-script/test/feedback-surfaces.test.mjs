@@ -37,6 +37,11 @@ const KINDS = [
   'structure',
   'evidence',
   'format',
+  // Added 2026-08-27 with the owner's sign-off in the yt-script-feedback Phase 4
+  // summary: the eleven above are all about the script, and none of them covers
+  // what a gate puts in front of the owner or which calls the session makes
+  // for him.
+  'gate-report',
 ]
 
 test('all four feedback surfaces exist', () => {

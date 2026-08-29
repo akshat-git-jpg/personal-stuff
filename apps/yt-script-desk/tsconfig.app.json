@@ -4,7 +4,11 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
-    "types": ["vite/client", "vitest/globals"],
+    // "node" is here for the TESTS under src/, not for components. The splice
+    // tests drive the real 1000-line script-plan.md off disk, because a fixture
+    // proves the splices work on a fixture. Nothing in a component may use a
+    // node API - that fails in the browser long before a type would catch it.
+    "types": ["vite/client", "vitest/globals", "node"],
     "skipLibCheck": true,
 
     /* Bundler mode */

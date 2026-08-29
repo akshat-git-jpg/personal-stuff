@@ -34,20 +34,35 @@ describe('usePrefs', () => {
     const { result } = renderHook(() => usePrefs())
 
     act(() => {
-      result.current.setPrefs({ videoEditor: true })
+      result.current.setPrefs({ instructions: false })
     })
 
-    expect(result.current.prefs.videoEditor).toBe(true)
+    expect(result.current.prefs.instructions).toBe(false)
     const stored = JSON.parse(localStorage.getItem('script-desk:prefs') ?? '{}')
-    expect(stored.videoEditor).toBe(true)
+    expect(stored.instructions).toBe(false)
   })
 
   it('merges new pref keys over an old stored shape without losing what was saved', () => {
-    localStorage.setItem('script-desk:prefs', JSON.stringify({ generalNotes: false }))
+    localStorage.setItem('script-desk:prefs', JSON.stringify({ instructions: false }))
 
     const { result } = renderHook(() => usePrefs())
 
     expect(result.current.prefs.beatLabels).toBe(true)
-    expect(result.current.prefs.generalNotes).toBe(false)
+    expect(result.current.prefs.instructions).toBe(false)
+  })
+
+  // The three lane chips went on 2026-08-29 with the lanes they named. A browser
+  // that toggled one of them still has it in localStorage, and it must be read as
+  // an unknown key rather than crashing or reappearing in the prefs object.
+  it('ignores a pref key that no longer exists', () => {
+    localStorage.setItem(
+      'script-desk:prefs',
+      JSON.stringify({ videoNotes: false, generalNotes: false, beatLabels: false }),
+    )
+
+    const { result } = renderHook(() => usePrefs())
+
+    expect(result.current.prefs.instructions).toBe(true)
+    expect(result.current.prefs.beatLabels).toBe(false)
   })
 })

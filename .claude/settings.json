@@ -13,6 +13,15 @@
             "command": "bash \"$(cygpath -u \"$CLAUDE_PROJECT_DIR\" 2>/dev/null || printf %s \"$CLAUDE_PROJECT_DIR\")/.claude/hooks/no-history-in-main.sh\""
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(cygpath -u \"$CLAUDE_PROJECT_DIR\" 2>/dev/null || printf %s \"$CLAUDE_PROJECT_DIR\")/.claude/hooks/no-edits-in-main.sh\""
+          }
+        ]
       }
     ],
     "Stop": [

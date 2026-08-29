@@ -42,7 +42,7 @@ The draft's words are the maker's. The line is **sound, not substance**.
 - Fix a typo, a tense slip, or a doubled word.
 - Move a stray production instruction out of Voiceover and into Notes.
 - Tighten filler that reads as dictation ("so basically what I did here was").
-- Fold the beat's `SHOW`/`EDIT` lanes from `outline.md` into its `Notes` block —
+- Fold the beat's `VIDEO` lane from `outline.md` into its `Notes` block —
   he no longer writes Notes at all.
 
 **Never change silently** — flag these to the owner instead:
@@ -96,12 +96,45 @@ Every section separates two things, always labeled:
   what to show on screen, what NOT to reveal yet, pacing cues like "skip
   loading screens"). Notes are never spoken.
 
-For a comparison across N options, structure the walk as:
+### Read the outline's `Format:` line first
+
+`outline.md` carries `Format: tutorial` or `Format: comparison` on its first
+line, set at step 010 and approved at gate 040. Everything below forks on it,
+and the two shapes do not mix. If the line is missing, stop and ask - do not
+infer it from the section names.
+
+### For a comparison across N options
+
+Structure the walk as:
 1. One short paragraph per option (quick overview) before any evaluation.
 2. A `Notes` block per option covering setup specifics and what stays hidden.
 3. An `ON-SCREEN — <TABLE NAME>` table when scoring, immediately followed by a
    Voiceover paragraph per row/metric explaining the numbers — never leave a
    table to speak for itself.
+
+### For a tutorial
+
+Structure the walk as the phases of the job, in performance order. What changes
+from the comparison shape:
+
+1. **No scorecard and no per-option verdicts.** Nothing is being ranked, so
+   there is nothing to score. A tutorial that grades its own steps has drifted
+   into the wrong format.
+2. **Every phase states the exact setting, path or value** the maker used, in
+   Voiceover or in `Notes`, wherever `knowledge.md` supplies one. A tutorial
+   whose value was the specifics and that ships without them has failed, however
+   well it reads.
+3. **`Notes` carries what breaks at that phase**, and the fix, where the
+   knowledge names one. The failure modes are the part a viewer cannot get from
+   the tool's own documentation.
+4. **An `ON-SCREEN — <TABLE NAME>` table is still fine** for settings, costs or
+   options at a fork - the ban is on scoring tables, not on all tables.
+5. **The approaches the owner did not pick get at most one section**, and it
+   says why the chosen one won. It is not a second tutorial. **Their ideas,
+   though, are fair game everywhere** - the chosen approach fixes the workflow,
+   not the sources the material may come from, and folding the best of all of
+   them into one route is the goal. A borrowed price or setting keeps the name of
+   the tool it belongs to.
 
 ## Opening convention (Part A)
 
@@ -117,6 +150,30 @@ For a comparison across N options, structure the walk as:
 4. **First CTA** — links in the description, then a one-line transition into
    the body ("Now let's put them to the test").
 
+## CTA cadence — more than the two bookends
+
+**The intro and the conclusion are not the only places the links get mentioned.**
+Owner, 2026-08-27: *"from time to time, whenever we are giving CTA, we should
+mention link in description. Best buy link in description. Something like that."*
+
+- **Two to four mentions across the body**, on top of the intro and final CTAs.
+  Spread them; never two in adjacent sections.
+- **Each one is one sentence, inside the flow of the work.** It rides a moment
+  where the viewer has just seen the tool do something, not a moment invented to
+  hold it. A paragraph break for a mid-roll ad is not this.
+- **Always name the description as the place to get it.** "Link's in the
+  description", "the link and the code are down below" — the wording is yours,
+  the destination is not optional. Where a promo code or a deal exists, the
+  mention says so, because that is the part that converts.
+- **Never stack a CTA onto a limitation.** Naming a weakness and asking for the
+  click in the same breath reads as a sale. Put the mention on a win.
+- **Do not repeat one form of words.** Four identical "link in the description"
+  sentences read as a script hitting its quota.
+
+`TASTE.md` T9 governs what happens between these mentions — the benefit lands
+through the work, and the limits get named honestly. The cadence here is the only
+place the ask itself is made.
+
 ## Closing convention (Part C)
 
 1. **Honest Verdict, weakest to strongest.** Walk every option in ascending
@@ -129,14 +186,135 @@ For a comparison across N options, structure the walk as:
    comment prompt → like + subscribe → sign-off ("I'll see you in the next
    one").
 
-## Word budget and pacing (rough, calibrate to the topic)
+## Length and pacing
 
-- Cold open + reveal: 100-160 words combined.
-- Roadmap: 60-100 words.
+**The intro and the conclusion have no word limit.** Owner, 2026-08-27: *"I
+don't need the limits on intro and conclusion… depending on the video, if I am
+making a very long video and very detailed video, then obviously I would want my
+intro to be more hooky, more hook and more detailed, so that once intro is over
+we have our audience attention. If it's a short video then maybe short intro is
+fine."*
+
+**Size them against the video, not against a number.** A 25-minute tutorial with
+eleven sections needs an intro that earns 25 minutes of attention: a longer hook,
+more of the reveal, a roadmap that actually names eleven things. A six-minute
+video needs none of that and a long intro would kill it.
+
+The intro's job is what constrains it, and the job is done when:
+
+- the hook has bought the viewer past the first few seconds
+- they know what they are getting and roughly in what order
+- they know why this person is the one explaining it
+- the links have been mentioned once
+
+Say all of that and stop. **What is still banned is padding**, which is the same
+rule as `TASTE.md` T6: repetition, restating the promise twice, or narrating what
+is about to happen. A long intro that earns its length is right; a long intro
+because the target said so is not, and neither is a short one that skipped the
+hook to hit a count.
+
+The same applies to the conclusion. It closes the loop, gives the one thing to do
+next, mentions the links, and asks for the comment and the subscribe. Length
+follows from how much closing the video actually needs.
+
+**These body figures stay** as rough guides for a comparison, where the shape
+repeats per option and consistency between options matters more than it does in
+an intro:
+
 - Per-option quick overview: 25-40 words each.
 - Per-metric scorecard explanation: 50-90 words.
 - Per-option honest-verdict paragraph: 50-80 words.
-- Final CTA: 100-140 words.
+
+## One sentence per line
+
+**Every spoken line is one sentence on its own line.** This is how
+`EXAMPLE-SCRIPT.md` is written, and it was never written down as a rule until
+2026-08-27, when a script plan came back in paragraphs and the owner said the
+whole thing read as *"too gibberish, too much is going on in a small frame of
+time, it doesn't look like our day-to-day language"*.
+
+Look at the reference script:
+
+```
+"Most people think they can instantly tell when they're looking at an AI avatar.
+They expect awkward lip-sync, unnatural expressions, or something that just feels... off.
+But AI avatar technology has come a long way.
+So before I tell you anything else... remember this moment."
+```
+
+Four lines, four sentences. Then compare what the same content looks like as a
+paragraph: identical words, and it reads twice as fast and half as clearly.
+
+**The line break is not formatting. It is the pacing.** It is where the narrator
+breathes, and writing paragraphs removes every one of those breaths at once. That
+is the mechanism behind the owner's *"too much is going on in a small frame of
+time"* — not word choice, sentence packing.
+
+Three rules that follow from it:
+
+- **One idea per sentence, one sentence per line.** If a line needs an "and" to
+  hold two ideas together, it is two lines.
+- **Blank line between thought groups**, roughly every three or four lines. That
+  is the paragraph, and it is where the narrator takes a longer beat.
+- **Do not stack three parallel fragments as a drumbeat.** Three real, distinct
+  items on three lines is fine and the reference script does it. Three
+  rewordings of one item is `humanizer` pattern 35.
+
+**Claim density is the other half.** A line carries one claim. Four claims in
+sixty words is a paragraph a listener cannot follow, however plain the words are,
+because speech gives them no chance to re-read. When a beat has four things to
+say, it needs four lines and a breath, not a denser sentence.
+
+## Reading as a human
+
+**The `humanizer` skill is part of writing a script here, not a polish option.**
+Owner, 2026-08-27: *"My script should not look AI generated, so use the humanizer
+skill"*. Step 050 runs it in Mode B (new copy), step 100 in Mode A (editing the
+maker's draft, protecting his voice). Their READMEs carry the mode; this section
+carries what matters for speech.
+
+Two hard rules, both already true of the reference script and now named:
+
+- **Zero em dashes and zero en dashes.** Scan for them before delivering. A
+  regular hyphen in a compound word is fine.
+- **Straight quotes only.** No curly quotes.
+
+The patterns that do real damage to a spoken line, in rough order of how often
+they show up in a video script:
+
+| Pattern | The shape | The fix |
+|---|---|---|
+| Fake-profound kicker | a short mic-drop line closing a section: "and that's the whole game" | delete it, do not improve it. End on the last concrete sentence |
+| Binary contrast | "this isn't X, it's Y" / "the question isn't X, it's Y" | state Y directly |
+| Throat-clearing | "here's the thing", "let me be clear", "I'll be honest" | cut, start on the point |
+| Faux-insight setup | "what nobody tells you", "the part everyone skips" | cut the setup, let the claim stand |
+| Colon reveal | a noun phrase, a colon, a dramatic payoff | write it as a plain sentence |
+| Dramatic fragmentation | "X. And Y. And Z." or stacked one-word lines | complete sentences. Varied rhythm is one short line among longer ones, not a drumbeat |
+| Rule of three | every list forced to exactly three items | use the number of items there actually are |
+| Undue significance | "underscores the importance of", "marks a shift" | say what happened |
+| -ing tails | "…, highlighting the need for…" | end the sentence |
+| Interpretive metadiscourse | "that matters more than it sounds", "as you can see" | delete, or replace with the fact that would make it land |
+
+Formatting patterns (boldface, emojis, heading case, inline-header lists) do not
+apply inside a `Voiceover` block. They still apply to `Notes` and to anything the
+desk or the owner reads.
+
+### Where the house convention and the skill disagree
+
+**The spoken roadmap stays.** `humanizer` pattern 28 bans signposting, and the
+opening convention above *requires* a roadmap that names every body section out
+loud. That is not a conflict once you see what 28 is aimed at: it bans **empty
+announcements** — "let's dive in", "without further ado", "let's break this
+down" — sentences that describe the act of speaking instead of saying anything.
+
+A roadmap carries real information: it tells the viewer what they are getting and
+in what order, which is why it earns its place and why retention depends on it.
+**Keep the roadmap, and keep it concrete.** What 28 forbids is the wind-up around
+it. "Now let's dive into the first one" is a signpost; naming the section and
+moving is not.
+
+The same distinction settles the CTA cadence: "link's in the description" is
+information. "But before we get into it, make sure to…" is a wind-up.
 
 ## Never appears in a spoken line
 

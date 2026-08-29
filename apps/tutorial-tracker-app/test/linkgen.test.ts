@@ -37,8 +37,8 @@ describe("generateVideoCode", () => {
 
 describe("resolveSelection", () => {
   const affiliates: Record<string, AffiliateRecord> = {
-    railway: aff({ tool: "railway", displayName: "Railway", isApproved: true, targetUrl: "https://aff/railway", couponCode: "SAVE10" }),
-    render: aff({ tool: "render", displayName: "Render", isApproved: false, targetUrl: "https://aff/render" }),
+    railway: aff({ tool: "railway", displayName: "Railway", isApproved: true, targetUrl: "https://aff.example.com/railway?via=agrollo", couponCode: "SAVE10" }),
+    render: aff({ tool: "render", displayName: "Render", isApproved: false, targetUrl: "https://aff.example.com/render?via=agrollo" }),
     blank: aff({ tool: "blank", displayName: "Blank", isApproved: true, targetUrl: " " }),
   };
 
@@ -46,7 +46,7 @@ describe("resolveSelection", () => {
     const tools: VideoTool[] = [{ kind: "catalog", slug: "railway" }];
     const res = resolveSelection(tools, affiliates);
     expect(res).toEqual([
-      { slug: "railway", displayName: "Railway", status: "affiliate", targetUrl: "https://aff/railway", couponCode: "SAVE10" }
+      { slug: "railway", displayName: "Railway", status: "affiliate", targetUrl: "https://aff.example.com/railway?via=agrollo", couponCode: "SAVE10" }
     ]);
   });
 

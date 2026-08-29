@@ -86,6 +86,16 @@ pipeline:
 - **The instruction file is stale.** `SCRIPT-INSTRUCTIONS.md` still describes
   parts of the pre-2026-08-23 flow. A step following it faithfully can produce
   something the owner does not want.
+- **A comparison rule applied to a tutorial, or the reverse.** Check
+  `outline.md`'s `Format:` line first. `TASTE.md`'s tutorial/comparison table
+  and the fork rows in `SCRIPT-PLAN-INSTRUCTIONS.md` and
+  `SCRIPT-INSTRUCTIONS.md` exist because T3–T5 were seeded from comparison
+  scripts. A tutorial that grew a scorecard, or a comparison with no verdicts,
+  is almost always this and not a writing failure.
+- **A gate that asked instead of deciding, or decided without showing its
+  work.** Step 010 owns the format call and the `# Approaches` menu; step 020's
+  README lists the four parts its gate message must carry. "I could not choose
+  from what you gave me" routes here, with `kind` gate-report.
 
 ## Phase 3 — Discuss
 

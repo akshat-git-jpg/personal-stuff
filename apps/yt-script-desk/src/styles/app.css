@@ -113,8 +113,46 @@
 .rowL { grid-column: 1; padding: 20px 40px 26px; border-top: 1px solid var(--rule); }
 .rowR { grid-column: 3; padding: 20px 32px 26px; border-top: 1px solid var(--rule); background: var(--panel); }
 
-.beat-num { font: 11px var(--mono); text-transform: uppercase; color: var(--faint); }
+.beat-num { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+.beat-num-n { font: 600 12px var(--mono); color: var(--text); }
+/* Sentence case, sans, semibold. Never uppercase: the section name is a long
+   phrase now that T8 bans jargon headings, and a long phrase in caps mono is
+   what made this look machine-generated the first time.
+   Sized UP twice. It was 11px on --faint (#a9a297) against --bg, which the owner
+   could not read at all: *"It's currently invisible... I'm not even able to read
+   it"*. --faint is for hairlines and disabled text, not for a label that has to
+   be read. 13.5px/600 on --text clears 4.5:1. */
+.beat-num-sec { font: 600 13.5px/1.2 var(--sans); color: var(--text); letter-spacing: -0.005em; }
 .beat-title { margin-top: 3px; font: 600 14.5px/1.3 var(--sans); color: var(--text-h); }
+
+/* The outline's own heading, once per section, spanning both tracks. This is the
+   structure the owner approved at gate 040; before 2026-08-27 the desk never
+   showed it and labelled each beat with an invented title instead. */
+.group-head {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 44px 40px 16px;
+  border-top: 1px solid var(--border);
+  font: 600 17px/1.3 var(--sans);
+  letter-spacing: -0.01em;
+  color: var(--text-h);
+  background: var(--bg);
+}
+/* The one accent placement per section, and the signature detail: a short tick
+   that lines the eye up with the heading. One accent, one use, per section. */
+.group-head-tick {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 15px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+/* The header already draws the divider, so the first row under it must not draw
+   a second one 16px later. DOM order inside .tracks is group-head, rowL, rowR. */
+.group-head + .rowL,
+.group-head + .rowL + .rowR { border-top: none; }
 
 .tag {
   display: inline-block;
@@ -151,6 +189,31 @@
   position: relative;
 }
 .say.editable { padding-right: 96px; }
+
+/* A silent stretch: something plays, nobody speaks. Deliberately NOT paper and
+   NOT serif — it sits in the left track because it is timeline content, but it
+   must never read as a line to say. Dashed rail, muted panel, sans text. */
+.demo-card {
+  margin-top: 10px;
+  background: var(--panel);
+  border: 1px dashed var(--border);
+  border-left: 3px dashed var(--faint);
+  border-radius: 10px;
+  padding: 13px 18px;
+}
+.demo-card-label {
+  font: 11px/1.6 var(--sans);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--faint);
+  margin-bottom: 5px;
+}
+.demo-card-line {
+  font: 15px/1.6 var(--sans);
+  color: var(--note);
+}
+.demo-card-line + .demo-card-line { margin-top: 4px; }
 .say p { margin: 0 0 11px; font: 17px/1.66 var(--serif); color: var(--paper-ink); letter-spacing: 0.1px; }
 .say p:last-child { margin-bottom: 0; }
 
@@ -166,12 +229,15 @@
   color: var(--note);
 }
 
+/* `overflow: hidden` and `resize: none` are what make auto-growing work: with a
+   scrollbar the box would scroll instead of growing, and a drag handle would set
+   a height that the next keystroke overwrites. See hooks/useAutoGrow.ts. */
 .say-textarea {
   width: 100%;
-  min-height: 90px;
   border: none;
   outline: none;
-  resize: vertical;
+  overflow: hidden;
+  resize: none;
   background: transparent;
   font: 17px/1.66 var(--serif);
   color: var(--paper-ink);
@@ -223,7 +289,8 @@
   min-height: 100px;
   border: none;
   outline: none;
-  resize: vertical;
+  overflow: hidden;
+  resize: none;
   background: transparent;
   padding: 18px 22px 0;
   font: 17px/1.66 var(--serif);
@@ -351,3 +418,385 @@
 /* Set from JS to the header's real height - hard-coding it breaks the moment
    the header wraps onto two lines on a narrow window. */
 .toggle-rail { top: var(--chrome-top, 74px); }
+
+/* A source link in the instruction track. Underlined, in the accent, because the
+   freelancer has to spot it as openable inside a paragraph of notes. The scheme
+   prefix is stripped in the label so a long YouTube URL does not swamp the line. */
+.lane-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+.lane-link:hover { text-decoration-thickness: 2px; }
+
+/* The owner's open question to Claude. Purple, because purple is already this
+   app's action colour and an unanswered question is an action. Deliberately NOT
+   the paper/serif treatment: nothing purple is ever on paper, so a note to
+   Claude can never be read aloud by mistake. */
+.ask-card {
+  margin-top: 10px;
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-brd);
+  border-radius: 10px;
+  padding: 11px 14px;
+}
+
+.ask-card-dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 7px;
+}
+
+.ask-card-body { flex: 1; min-width: 0; }
+
+.ask-card-label {
+  font: 600 10px/1 var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+
+.ask-card-line { font: 14px/1.55 var(--sans); color: var(--text-h); }
+.ask-card-line + .ask-card-line { margin-top: 3px; }
+
+/* ---------------------------------------------------------------- edit mode
+   The reading view with handles on it. Everything below borrows the existing
+   tokens on purpose: edit mode must read as the SAME page in a different state,
+   not as a second tool. The one new signal is the dashed left rule down each
+   block, which says "this is now a thing you can move" without adding colour. */
+
+.edit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--chip-bg);
+  color: var(--text-h);
+  font: 600 12.5px var(--sans);
+  cursor: pointer;
+}
+.edit-toggle:hover { border-color: var(--accent-brd); }
+.edit-toggle-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.ed-root { padding: 14px 40px 120px; }
+
+.ed-banner {
+  margin: 0 0 16px;
+  font: 13px/1.5 var(--sans);
+  color: var(--note);
+}
+.ed-banner code { font: 12.5px var(--mono); color: var(--text-h); }
+
+.ed-error {
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+  margin: 0 0 16px;
+  padding: 11px 40px 11px 14px;
+  border: 1px solid #d99;
+  border-radius: 10px;
+  background: #fff4f4;
+  color: #7a2222;
+  font: 13.5px/1.55 var(--sans);
+}
+.ed-error-x {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: 0;
+  background: none;
+  color: #7a2222;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ed-section { margin: 0 0 30px; }
+.ed-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 0 9px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--panel);
+  border-radius: 0 8px 8px 0;
+}
+.ed-section-kicker {
+  font: 600 10px var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--accent);
+}
+.ed-section-name { font: 600 15px var(--sans); color: var(--text-h); }
+
+.ed-beat { margin: 16px 0 0 14px; }
+.ed-beat-head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+  padding-bottom: 5px;
+}
+.ed-beat-num { font: 600 12px var(--mono); color: var(--text); }
+.ed-beat-title { font: 600 13.5px var(--sans); color: var(--text-h); }
+
+.ed-block {
+  margin: 7px 0 0 12px;
+  padding: 8px 12px;
+  border-left: 2px dashed var(--rule);
+  border-radius: 0 8px 8px 0;
+  background: var(--box-bg);
+}
+/* Spoken copy keeps the paper look it has in the reading view, so that even
+   mid-edit there is never a question about what gets read aloud. */
+.ed-block-say {
+  background: var(--paper);
+  border-left: 2px solid var(--paper-rail);
+}
+.ed-block-say .ed-line { font: 15px/1.6 var(--serif); color: var(--paper-ink); }
+.ed-block-ask { background: var(--accent-bg); border-left-color: var(--accent-brd); }
+.ed-block-rules { background: var(--warm-bg); border-left-color: var(--warm-brd); }
+
+.ed-block-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.ed-block-label {
+  font: 600 10px var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--note);
+}
+.ed-block-note { font: 11.5px var(--sans); color: var(--faint); }
+
+.ed-body {
+  display: block;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+  cursor: text;
+  font: inherit;
+}
+.ed-body:hover { background: var(--panel); }
+.ed-line { display: block; font: 14px/1.55 var(--sans); color: var(--text-h); }
+.ed-empty { color: var(--faint); font-style: italic; }
+
+.ed-textarea {
+  width: 100%;
+  min-height: 74px;
+  padding: 9px 11px;
+  border: 1px solid var(--accent-brd);
+  border-radius: 8px;
+  background: var(--box-bg);
+  color: var(--box-ink);
+  font: 13px/1.6 var(--mono);
+  resize: vertical;
+}
+.ed-editing-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.ed-save,
+.ed-cancel {
+  padding: 4px 12px;
+  border-radius: 7px;
+  font: 600 12px var(--sans);
+  cursor: pointer;
+}
+.ed-save { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.ed-cancel { border: 1px solid var(--border); background: var(--chip-bg); color: var(--text); }
+.ed-hint { font: 11.5px var(--sans); color: var(--faint); }
+
+/* The handles stay quiet until the row is hovered. With one on every block,
+   beat and section, showing them all at full strength turns the page into a
+   control panel and the script becomes the thing you have to look past. */
+.ed-handles { display: inline-flex; gap: 3px; margin-left: auto; opacity: 0.28; transition: opacity 0.12s; }
+.ed-block:hover .ed-handles,
+.ed-beat-head:hover .ed-handles,
+.ed-section-head:hover .ed-handles,
+.ed-handles:focus-within { opacity: 1; }
+
+.ed-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--chip-bg);
+  color: var(--text);
+  font: 12px var(--sans);
+  line-height: 1;
+  cursor: pointer;
+}
+.ed-btn:hover:not(:disabled) { border-color: var(--accent-brd); color: var(--text-h); }
+.ed-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.ed-btn-del:hover:not(:disabled) { border-color: #d99; color: #a33; }
+
+.ed-jump {
+  height: 22px;
+  max-width: 190px;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--chip-bg);
+  color: var(--text);
+  font: 11.5px var(--sans);
+  cursor: pointer;
+}
+
+.ed-add { display: flex; gap: 6px; margin: 7px 0 0 12px; flex-wrap: wrap; }
+.ed-add-btn {
+  padding: 3px 9px;
+  border: 1px dashed var(--border);
+  border-radius: 7px;
+  background: none;
+  color: var(--faint);
+  font: 11.5px var(--sans);
+  cursor: pointer;
+}
+.ed-add-btn:hover:not(:disabled) { border-color: var(--accent-brd); color: var(--accent); }
+
+/* Deleting a beat or a section takes a lot of work away at once, and the only
+   way back is a file in .desk-backups the owner would have to be told about.
+   So those two ask first; deleting one note does not. */
+.ed-confirm {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin: 7px 0;
+  padding: 9px 12px;
+  border: 1px solid #d99;
+  border-radius: 9px;
+  background: #fff4f4;
+  color: #7a2222;
+  font: 13px var(--sans);
+}
+.ed-confirm-yes {
+  padding: 3px 11px;
+  border: 1px solid #a33;
+  border-radius: 7px;
+  background: #a33;
+  color: #fff;
+  font: 600 12px var(--sans);
+  cursor: pointer;
+}
+.ed-confirm-no {
+  padding: 3px 11px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--chip-bg);
+  color: var(--text);
+  font: 600 12px var(--sans);
+  cursor: pointer;
+}
+
+/* The table of contents, first thing on the page. Spans both tracks and paints
+   its own background, because `.rail` runs the full height of the grid behind
+   it — the same reason `.group-head` does. */
+.contents {
+  grid-column: 1 / -1;
+  padding: 32px 40px 30px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.contents-label {
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 14px;
+}
+.contents-list { list-style: none; margin: 0; padding: 0; }
+.contents-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 3px 0;
+  font: 500 14px/1.45 var(--sans);
+  color: var(--text-h);
+}
+/* Indented and quieter. A subsection is a step inside the section above it, and
+   the eye should be able to find the four section names without reading all
+   fourteen rows. */
+.contents-sub {
+  padding-left: 26px;
+  font-weight: 400;
+  color: var(--text);
+}
+.contents-num {
+  flex: 0 0 30px;
+  font: 500 11px var(--mono);
+  color: var(--faint);
+}
+
+/* Notes edited in place. The pencil only appears on hover, because it sits in
+   the reading column and a permanent button there reads as a thing to press. */
+.right-block-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.right-block-head .right-block-label { margin-bottom: 0; }
+.right-block-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.right-block-btn + .right-block-btn { margin-left: 0; }
+.rowR:hover .right-block-btn,
+.right-block-btn:focus-visible { opacity: 1; }
+.right-block-btn:hover { border-color: var(--border); color: var(--text); }
+
+/* An edit that has not reached script-plan.md yet. The bar is the whole signal:
+   it says "this is not what the file says" without shouting. */
+.right-block-edited { border-left: 2px solid var(--accent); padding-left: 12px; margin-left: -14px; }
+.right-block-flag {
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.right-block-area {
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: 400 13px/1.55 var(--sans);
+  resize: none;
+}
+.right-block-area:focus { outline: none; }

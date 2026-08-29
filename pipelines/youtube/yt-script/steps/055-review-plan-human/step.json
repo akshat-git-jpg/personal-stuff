@@ -1,0 +1,16 @@
+{
+  "number": "055",
+  "slug": "055-review-plan-human",
+  "title": "review the plan",
+  "actor": "human",
+  "actorLabel": "**[OWNER]**",
+  "oneLiner": "You read the markdown and the desk side by side, and give feedback.",
+  "consumes": [
+    "script-plan.md"
+  ],
+  "produces": [],
+  "gate": "the words are right AND the plan reads right in the actual UI",
+  "external": false,
+  "optional": false,
+  "summary": "The owner reviews `videos/<key>/script-plan.md` two ways at once: the raw markdown in an editor, and the same file rendered by the local desk at `localhost:5175`. One gate, one pass. Feedback goes in the terminal and the session edits that same file; the owner can also edit it directly. Merged from the old 055 (markdown only) and 060 (desk only) on 2026-08-27."
+}

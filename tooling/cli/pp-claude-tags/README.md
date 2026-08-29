@@ -1,76 +1,54 @@
-# pp-claude-tags
+# pp-claude-tags (superseded)
 
-Unlocks Claude Code's built-in session tags in the agents view, and keeps them
-unlocked across updates.
+> **Superseded by [`pp-agents`](../pp-agents/README.md) on 2026-08-26.** Use that
+> for the tag view. This is kept for the gate-finding research and because the
+> patch still works on 2.1.245 and earlier. It no longer runs on a schedule and
+> no longer writes `fleetViewGroupMode`.
 
-Claude Code ships the feature (it calls them **groups**) but the agents view
-hardcodes its gate to `false`, so `ctrl+e` and the tag view are unreachable.
-This flips that one gate byte, re-signs the binary (macOS kills an unsigned
-arm64 binary), and verifies it still runs — restoring the original byte if
-anything fails.
+## What broke, and why patching was abandoned
+
+2.1.246 changed how the bundle is built. The executed code no longer comes from
+the JavaScript text this patches, so flipping the byte became **cosmetic**: the
+byte reads `unlocked`, `find_gate` agrees, the stamp is current, the log says
+`already unlocked` - and the tag view is gone. No signal anywhere.
+
+Proven by rendering the agents view in a pty with `fleetViewGroupMode=group` on
+both builds:
+
+| Build | Headers it drew | Verdict |
+|---|---|---|
+| 2.1.245 | `pp`, `source-filter 2`, `spends-automation`, `vi-prod 2`, `Ungrouped` | patch works |
+| 2.1.246 | `Ready for review`, `Needs input`, `Working`, `Completed` | patch ignored |
+
+The second row is `groupMode: o==="group" && !gate ? "state" : o` taking its
+gate-off branch on a binary whose gate byte says otherwise.
+
+Ruled out along the way: the hardlinked `ClaudeCode.app` binary (same inode,
+same patch) and bytecode compilation as such (2.1.243 and 2.1.245 carry ~1,390
+`@bun @bytecode` markers too, and the patch worked there). What changed in 246
+is the chunk layout around the gate - the enclosing marker span went from ~1.3MB
+to 179KB, and the binary from 376MB to 231MB.
+
+A patch that can go cosmetic without saying so cannot be trusted, and the same
+thing can land on any release. `pp-agents` reads the session records and drives
+published commands instead, so no release can do this to it again.
+
+## What this still does
+
+Flips the gate byte and re-signs the binary, nothing else. Useful only on
+2.1.245 and earlier.
 
 ```bash
-pp-claude-tags        # patch if needed, else a ~0.05s no-op
-pp-claude-tags -q     # quiet, for shell startup
+pp-claude-tags        # patch if the build allows it, else say so
+pp-claude-tags -q     # quiet
 ```
 
-## Surviving updates
-
-An update installs a whole new binary, so the patch has to be re-applied. Two
-triggers cover the two ways an update lands:
-
-1. **`~/.zshrc`** — `claude-work()` / `claude-personal()` call it, so `clw` and
-   `clp` re-apply it. Covers a new terminal.
-2. **`~/Library/LaunchAgents/com.kbtg.pp-claude-tags.plist`** — watches
-   `~/.local/share/claude/versions` and also ticks every 2 minutes. Covers the
-   case that actually bit: Claude Code updating and restarting **itself**, with
-   no shell involved. The interval is the backstop for a watch that fires while
-   a ~310MB binary is still being written, and it also bounds how long the view
-   setting below can stay wrong.
-
-Both are idempotent and serialised by a lock file, so a burst of triggers
-patches once instead of racing.
-
-### The setting also has to survive the update
-
-Patching the new binary is only half of it, and the other half is what has
-broken three times.
-
-Every Claude Code session reads `fleetViewGroupMode` once at startup and writes
-it back on its next save. A session running a **gate-off** build clamps it to a
-mode the locked view still allows. A session running a **patched** build re-saves
-whatever the value happened to be when it started. Either way an update leaves
-live sessions that overwrite the good value minutes or hours later. Your tags are
-all still on disk; the view just stops being the tag view, which looks identical
-to losing them.
-
-So the setting is re-selected on **every** run, not only on a fresh patch.
-
-The first attempt at that healed only while a Claude Code process older than the
-patch was still alive, on the reasoning that nothing else could clamp the setting
-and a deliberate `ctrl+s` should therefore be respected. That gate lost the race.
-On 2026-08-26 the agents view sat on folders all day with 2.1.246 patched
-correctly at 07:20 and all 16 tag files present: the overwriting write landed
-after the last process old enough to be recognised, so every tick said "already
-unlocked" and returned without ever looking at the setting. Nothing looked wrong
-anywhere - not the stamp, not the log, not the patch.
-
-It is now corrected unconditionally. The cost is that `ctrl+s` to the folder or
-state view does not stick; it goes back to tags on the next tick. To keep a
-different view, opt out:
-
-    touch ~/.cache/pp-claude-tags-noheal      # stop healing the setting
-    rm ~/.cache/pp-claude-tags-noheal         # resume
-
-A tick cannot stop a live session from writing the value back again, so a session
-that keeps doing it produces a heal on every tick. After three in a row you get a
-**macOS notification** telling you to quit that session or press `ctrl+s` in it -
-otherwise the two trade writes silently for as long as that session lives.
+The `~/.zshrc` hook in `clw` / `clp` still calls it and is harmless. The launch
+agent is gone: it ticked every two minutes and rewrote the view setting, which
+after 246 only undid a deliberate `ctrl+s`.
 
 ```bash
-launchctl list | grep pp-claude-tags        # is the watcher registered
-tail ~/.cache/pp-claude-tags.log            # what it did
-launchctl unload ~/Library/LaunchAgents/com.kbtg.pp-claude-tags.plist   # stop it
+launchctl unload ~/Library/LaunchAgents/com.kbtg.pp-claude-tags.plist   # already done
 ```
 
 ## How the gate is found
@@ -160,25 +138,6 @@ editor's end-of-line key instead.
 - Stamp: `~/.cache/pp-claude-tags.json`. Lock: `~/.cache/pp-claude-tags.lock`.
   Log: `~/.cache/pp-claude-tags.log`.
 
-## Tests
-
-    python3 tooling/cli/pp-claude-tags/test-pp-claude-tags.py
-
-Everything runs against temp files, so no test reads the real `.claude.json`, the
-real stamp or the real binary, and none can fire a desktop notification. It
-covers the two things that have actually broken: the view setting (healed
-unconditionally, counts a fight, respects the opt-out, survives a missing or
-half-written config) and gate detection against a synthetic bundle, including the
-two cases where it must refuse to patch — no anchor, and two candidate anchors.
-
-Registered in `tooling/cli/pp-land/verify-map.tsv`, so a land that touches this
-folder runs it.
-
-## Reverting to stock
-
-Remove the two `pp-claude-tags` lines from `~/.zshrc`, unload the launch agent,
-then reinstall Claude Code.
-
 ## Tagging a session automatically
 
 Tagging by hand gets tedious for a folder you open often. `.claude/hooks/session-group.sh`
@@ -219,3 +178,14 @@ To see what it decided:
 ```bash
 CLAUDE_SESSION_GROUP_DEBUG=1 claude      # then read /tmp/session-group.log
 ```
+
+## Tests
+
+```bash
+python3 tooling/cli/pp-claude-tags/test-pp-claude-tags.py
+```
+
+Covers gate detection against a synthetic bundle - including the two cases where
+it must refuse rather than guess - and asserts the retirement: no heal, no
+config paths compiled in, no launch agent.
+

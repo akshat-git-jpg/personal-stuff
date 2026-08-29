@@ -34,11 +34,12 @@ export async function insertLink(
   videoCode: string,
   tool: string,
   targetUrl: string,
+  kind: "affiliate" | "external",
 ): Promise<void> {
   const now = Math.floor(Date.now() / 1000);
   await db
-    .prepare("INSERT INTO links (slug, video_code, tool, target_url, created_at) VALUES (?, ?, ?, ?, ?)")
-    .bind(slug, videoCode, tool, targetUrl, now)
+    .prepare("INSERT INTO links (slug, video_code, tool, target_url, created_at, kind) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(slug, videoCode, tool, targetUrl, now, kind)
     .run();
 }
 
@@ -49,6 +50,27 @@ export async function linksForVideo(db: D1Database, videoCode: string): Promise<
 
 export async function updateLinkTarget(db: D1Database, slug: string, targetUrl: string): Promise<void> {
   await db.prepare("UPDATE links SET target_url = ? WHERE slug = ?").bind(targetUrl, slug).run();
+}
+
+/** Click totals per slug. READ ONLY: redirector owns writes to clicks. */
+export async function clickCounts(db: D1Database): Promise<Record<string, number>> {
+  const { results } = await db
+    .prepare("SELECT slug, COUNT(*) AS n FROM clicks GROUP BY slug")
+    .all<{ slug: string; n: number }>();
+  const out: Record<string, number> = {};
+  for (const r of results ?? []) out[r.slug] = r.n;
+  return out;
+}
+
+/** Every minted link with its video code. READ ONLY. */
+export async function allLinks(
+  db: D1Database,
+): Promise<{ slug: string; video_code: string; tool: string; target_url: string; kind: string | null; created_at: number }[]> {
+  const { results } = await db
+    .prepare(`SELECT slug, video_code, tool, target_url, kind, created_at
+              FROM links ORDER BY video_code, tool`)
+    .all();
+  return (results ?? []) as { slug: string; video_code: string; tool: string; target_url: string; kind: string | null; created_at: number }[];
 }
 
 export interface DriftRow {
@@ -93,4 +115,21 @@ export function linkDriftDiff(
     }
   }
   return drift;
+}
+
+/**
+ * video_code -> video_title from the videos table. READ ONLY.
+ *
+ * The links list used to title its groups only from tracker cards, but just 2 of
+ * 76 cards carry a video_code (links minted before that field existed have none),
+ * so 85 of 87 groups rendered as "Untitled video" — indistinguishable from a real
+ * test entry. The owner nearly deleted a live video because of it (2026-08-28).
+ */
+export async function videoTitles(db: D1Database): Promise<Record<string, string>> {
+  const { results } = await db
+    .prepare("SELECT video_code, video_title FROM videos")
+    .all<{ video_code: string; video_title: string }>();
+  const out: Record<string, string> = {};
+  for (const r of results ?? []) out[r.video_code] = r.video_title ?? "";
+  return out;
 }

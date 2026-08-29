@@ -1,0 +1,1877 @@
+#!/usr/bin/env python3
+"""pp-agents - the agents view, grouped by tag, without patching Claude Code.
+
+Claude Code ships session tags (it calls them groups) but the agents view
+hardcodes its gate to false. `pp-claude-tags` used to flip that byte; 2.1.246
+changed the build so the executed code no longer comes from the text we patched,
+and the flip became silently cosmetic - the byte read "unlocked" while the
+feature stayed off. That failure mode is unfixable from outside and will recur
+on any release, so this replaces the approach instead of chasing it.
+
+Nothing here patches, signs or inspects the binary. It reads the same on-disk
+session records Claude Code writes, and it acts only through published commands:
+
+    claude attach <id>      open a session in this terminal
+    claude logs <id>        dump recent output
+    claude stop <id>        stop a session
+    claude --bg "<prompt>"  dispatch a new background session
+
+An update can therefore never break this the way it broke the patch. If the
+record format ever moves, the loader says so out loud instead of showing an
+empty list.
+
+Two things the built-in view cannot do come free here: both accounts (work and
+personal) appear in one list, and the tag is the primary grouping.
+
+Inside a session `shift+left` brings you back here, instantly. It is swallowed
+before Claude Code ever sees it, so nothing has to be guessed from the screen
+and the plain left arrow keeps working as an ordinary cursor key.
+
+    kbc                       # the view (`pp-agents` is the same program)
+    kbc --list                # one line per session, for scripts
+    kbc --dump                # exactly what the view would draw, as plain text
+    kbc --doctor              # check what it can read and act with
+"""
+import curses
+import errno
+import fcntl
+import json
+import os
+import pty
+import select
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import termios
+import threading
+import time
+import tty
+
+def _accounts_from_env():
+    """`PP_AGENTS_ACCOUNTS=work=/tmp/a:personal=/tmp/b` overrides the real stores.
+
+    This exists so the tests can drive the whole program - including the screen -
+    against fixture directories, instead of reading the live session store. A
+    view that is only ever tested by hand is how the last approach shipped a
+    silent regression.
+    """
+    raw = os.environ.get("PP_AGENTS_ACCOUNTS")
+    if not raw:
+        return None
+    out = []
+    for part in raw.split(":"):
+        if "=" in part:
+            name, _, path = part.partition("=")
+            out.append((name, os.path.expanduser(path)))
+    return out or None
+
+
+# The two stores, and the command name that selects each. `pp-agents` is the
+# original name and keeps the work store, which is what it always listed first.
+STORES = {
+    "work": os.path.expanduser("~/.claude-work"),
+    "personal": os.path.expanduser("~/.claude-personal"),
+}
+COMMAND_ACCOUNT = {"kbc": "work", "kbcp": "personal", "pp-agents": "work"}
+
+
+def account_from_argv(argv0, override=None):
+    """Which store this invocation owns.
+
+    Read from the name the program was called as, so `kbc` and `kbcp` can be two
+    symlinks to one file. An unrecognised name gets the work store rather than an
+    error: a rename should never leave the tool unusable.
+    """
+    if override in STORES:
+        return override
+    env = os.environ.get("PP_AGENTS_ACCOUNT")
+    if env in STORES:
+        return env
+    return COMMAND_ACCOUNT.get(os.path.basename(argv0 or ""), "work")
+
+
+def _account_flag(argv):
+    for i, arg in enumerate(argv):
+        if arg == "--account" and i + 1 < len(argv):
+            return argv[i + 1]
+        if arg.startswith("--account="):
+            return arg.split("=", 1)[1]
+    return None
+
+
+ACCOUNT = account_from_argv(sys.argv[0] if sys.argv else "",
+                            _account_flag(sys.argv[1:]))
+ACCOUNTS = _accounts_from_env() or [(ACCOUNT, STORES[ACCOUNT])]
+# Everything the view remembers between runs: pins, and which groups are folded.
+# Per account, so the two commands cannot reach into each other's state. The name
+# says pins because that is all it held first; one file beats two, since both are
+# the same question ("how was this view left?") and both want the same atomic
+# write.
+PIN_STORE = os.path.expanduser(
+    os.environ.get("PP_AGENTS_PINS", f"~/.cache/pp-agents/pins-{ACCOUNT}.json"))
+UNTAGGED = "Ungrouped"
+
+# state.json's `state`, mapped to the words the built-in view uses, and the
+# order they sort in: what is waiting on you first, what is finished last.
+STATE_LABEL = {
+    "blocked": "Needs input",
+    "working": "Working",
+    "done": "Done",
+    "idle": "Idle",
+    "error": "Error",
+}
+STATE_RANK = {"blocked": 0, "error": 1, "working": 2, "idle": 3, "done": 4}
+GROUP_MODES = ("tag", "folder", "state")
+
+
+# ---------------------------------------------------------------- loading
+
+def account_dirs():
+    """The config dirs that actually exist, newest-relevant first."""
+    return [(name, path) for name, path in ACCOUNTS if os.path.isdir(os.path.join(path, "jobs"))]
+
+
+def read_json(path):
+    try:
+        with open(path) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return None
+
+
+def load_jobs(accounts=None):
+    """Every session Claude Code has recorded, as plain dicts.
+
+    Reads `jobs/<short>/state.json` - the same record the built-in view renders
+    - plus `jobs/<short>/group`, which is Claude Code's own tag file. Writing
+    that file is what `ctrl+e` does, so a tag set here shows up there too if the
+    feature is ever ungated, and vice versa. Nothing else is written into a job
+    directory.
+    """
+    accounts = accounts if accounts is not None else account_dirs()
+    jobs = []
+    for account, root in accounts:
+        jobs_dir = os.path.join(root, "jobs")
+        try:
+            shorts = os.listdir(jobs_dir)
+        except OSError:
+            continue
+        for short in shorts:
+            jdir = os.path.join(jobs_dir, short)
+            st = read_json(os.path.join(jdir, "state.json"))
+            if not isinstance(st, dict):
+                continue  # an empty or half-written record, not an error
+            tag = None
+            try:
+                with open(os.path.join(jdir, "group")) as fh:
+                    tag = fh.read().strip() or None
+            except OSError:
+                pass
+            jobs.append({
+                "short": short,
+                "account": account,
+                "config_dir": root,
+                "dir": jdir,
+                "tag": tag,
+                "name": display_name(st) or short,
+                "detail": (st.get("detail") or st.get("needs") or "").replace("\n", " ").strip(),
+                "state": session_state(st),
+                "cwd": st.get("cwd") or st.get("originCwd") or "",
+                "updated": st.get("updatedAt") or st.get("createdAt") or "",
+                "tokens": st.get("tokens") or 0,
+                "session_id": st.get("sessionId") or "",
+            })
+    return jobs
+
+
+NO_TASK_YET = "awaiting task description"
+
+# What Claude Code writes as the detail of a session that has a name and no work
+# yet. Matched loosely: the surrounding text is decorative and has changed shape
+# before, the middle of the sentence has not.
+WAITING_FOR_PROMPT = "send a prompt to start"
+
+
+def session_state(st):
+    """Which bucket a record belongs in.
+
+    A session created with a name and no prompt records `working` while doing
+    nothing at all - it sits at `(idle - send a prompt to start)`, waiting for
+    YOU. That is the definition of needing input, so it is filed under `blocked`
+    and sorts to the top with everything else that wants you. Believing the
+    record here would bury a session you just made in the middle of the Working
+    group, which is the one place you would not look for it.
+    """
+    state = (st.get("state") or "").lower()
+    detail = (st.get("detail") or "").lower()
+    if state == "working" and WAITING_FOR_PROMPT in detail:
+        return "blocked"
+    return state
+
+
+def display_name(state):
+    """The label for a row.
+
+    A session started from here carries the name you typed and an empty `intent`,
+    so `name` is simply used. The `intent` fallback covers records made some
+    other way - `claude --bg "<prompt>"` from a shell, where Claude Code guesses
+    a name from one line of prompt and can guess badly, and where until it has
+    guessed there is nothing but the prompt to show.
+    """
+    name = (state.get("name") or "").strip()
+    intent = (state.get("intent") or "").strip()
+    detail = (state.get("detail") or "").strip().lower()
+    if intent and (not name or detail == NO_TASK_YET):
+        return intent
+    return name or intent
+
+
+def load_view():
+    """Everything remembered from the last run, or an empty dict."""
+    data = read_json(PIN_STORE)
+    return data if isinstance(data, dict) else {}
+
+
+def save_view(**changes):
+    """Merge `changes` into the remembered state and write it atomically.
+
+    Read-modify-write rather than a full overwrite, so saving a fold cannot drop
+    a pin written a moment earlier by the same run.
+    """
+    data = load_view()
+    data.update(changes)
+    os.makedirs(os.path.dirname(PIN_STORE), exist_ok=True)
+    tmp = PIN_STORE + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump(data, fh)
+    os.replace(tmp, PIN_STORE)
+
+
+def load_pins():
+    pins = load_view().get("pins", [])
+    return set(pins) if isinstance(pins, list) else set()
+
+
+def save_pins(pins):
+    save_view(pins=sorted(pins))
+
+
+def _fold_map():
+    folds = load_view().get("folded", {})
+    return folds if isinstance(folds, dict) else {}
+
+
+def load_folds(mode):
+    """Which groups are collapsed, for one grouping mode.
+
+    Keyed by mode because a fold name only means anything inside one. `pp` is a
+    tag; `Needs input` is a state; `s` swaps which vocabulary is on screen. A
+    single flat list would collapse a state group because a tag of the same name
+    had been collapsed, which is why switching modes used to just clear them.
+    """
+    names = _fold_map().get(mode, [])
+    return set(names) if isinstance(names, list) else set()
+
+
+def save_folds(mode, folded):
+    folds = _fold_map()
+    folds[mode] = sorted(folded)
+    save_view(folded=folds)
+
+
+# ---------------------------------------------------------------- tagging
+
+def write_tag(job, tag):
+    """Set or clear a session's tag, in Claude Code's own `group` file.
+
+    An empty tag removes the file rather than leaving a blank one, because the
+    built-in view treats a present-but-empty file as a tag named "".
+    """
+    path = os.path.join(job["dir"], "group")
+    tag = (tag or "").strip()
+    if not tag:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+        job["tag"] = None
+        return None
+    tmp = path + ".tmp"
+    with open(tmp, "w") as fh:
+        fh.write(tag + "\n")
+    os.replace(tmp, path)
+    job["tag"] = tag
+    return tag
+
+
+LIVE_STATES = ("working", "blocked")
+
+# Polling `claude agents --json`.
+#
+# Costs no tokens: it reads the local daemon, and returns fine with the network
+# blocked and a bogus API key. It costs 0.24s and 190 MB of peak RSS per call, so
+# the point of every number here is to make most ticks skip the call entirely.
+LIVE_POLL = float(os.environ.get("PP_AGENTS_LIVE_POLL", "5"))
+# Stop polling when the keyboard has been quiet this long: an unattended view in
+# a background tab should cost nothing at all.
+LIVE_IDLE_STOP = float(os.environ.get("PP_AGENTS_LIVE_IDLE_STOP", "120"))
+LIVE_ENABLED = os.environ.get("PP_AGENTS_LIVE", "1") != "0"
+
+
+def agents_cmd():
+    return [claude_bin(), "agents", "--json"]
+
+
+def live_states(timeout=8.0):
+    """`{short id: state}` straight from the daemon, or None if that failed.
+
+    None rather than an empty dict on purpose: "the daemon told me nothing is
+    running" and "I could not ask" must not look the same, or one failed call
+    would blank every state on screen.
+    """
+    try:
+        out = subprocess.run(agents_cmd(), stdin=subprocess.DEVNULL,
+                             capture_output=True, text=True,
+                             timeout=timeout).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    try:
+        rows = json.loads(out)
+    except (ValueError, TypeError):
+        return None
+    if not isinstance(rows, list):
+        return None
+    found = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        short, state = row.get("id"), row.get("state")
+        if isinstance(short, str) and isinstance(state, str) and state:
+            found[short] = state.lower()
+    return found
+
+
+def should_poll(jobs, last_key_at, now, last_poll_at=0.0):
+    """Whether this tick should spend a `claude agents --json` call.
+
+    Three ways to answer no, and between them they cover almost every tick:
+
+    - nothing on screen is `working` or `blocked`, so no state CAN change
+    - the keyboard has been quiet for `LIVE_IDLE_STOP`, so nobody is reading it
+    - the last call was less than `LIVE_POLL` ago
+    """
+    if not LIVE_ENABLED:
+        return False
+    if now - last_key_at > LIVE_IDLE_STOP:
+        return False
+    if now - last_poll_at < LIVE_POLL:
+        return False
+    return any(j.get("state") in LIVE_STATES for j in jobs)
+
+
+def merge_live(jobs, live):
+    """Let the daemon's answer win over the record, in place.
+
+    A session the daemon does not mention keeps its recorded state: it has
+    usually finished and been forgotten, and the file is the only account of it
+    left. The idle-waiting rule is re-applied afterwards because the daemon calls
+    a session with a name and no prompt `working`, which is true of the process
+    and useless to a reader - it is waiting for you.
+    """
+    if not live:
+        return jobs
+    for job in jobs:
+        state = live.get(job["short"])
+        if not state:
+            continue
+        if state == "working" and WAITING_FOR_PROMPT in (job.get("detail") or "").lower():
+            state = "blocked"
+        job["state"] = state
+    return jobs
+
+
+def delete_record(job):
+    """Remove a session's record directory. The LAST resort, not the first.
+
+    `claude rm <id>` is the real delete and is what `act_delete` calls: it tells
+    the daemon, which owns the session list. Removing the directory behind the
+    daemon's back does not work - it rewrote both probe records minutes after they
+    were deleted this way - so this is only used to tidy a directory that survives
+    a successful `rm`.
+
+    The path is re-derived from the account root and checked against the job's
+    own short id first, so a malformed record can never turn this into a delete
+    of something else.
+    """
+    root = os.path.realpath(os.path.join(job["config_dir"], "jobs"))
+    target = os.path.realpath(job["dir"])
+    if os.path.dirname(target) != root or os.path.basename(target) != job["short"]:
+        raise ValueError(f"refusing to delete {target}: not a session record")
+    shutil.rmtree(target)
+
+
+SHORT_ID = re.compile(r"\b([0-9a-f]{8})\b")
+
+
+def run_claude(cmd, cwd=None, env=None, timeout=45.0):
+    """Run a `claude` subcommand and return its combined output.
+
+    Output goes to a temp FILE, never a pipe. `claude --bg` spawns a
+    `claude daemon run` child that outlives the command, and a pipe is only at
+    EOF once every holder closes it - so `capture_output=True` waits for the
+    daemon, i.e. forever, freezing this view mid-keystroke while the session it
+    started runs happily in the background. A file has no such handshake.
+
+    stdin is closed for the same class of reason: this view holds the terminal in
+    raw mode, and a child must never be able to read the keys meant for it.
+    """
+    with tempfile.TemporaryFile("w+") as fh:
+        try:
+            subprocess.run(cmd, cwd=cwd or None, env=env,
+                           stdin=subprocess.DEVNULL, stdout=fh,
+                           stderr=subprocess.STDOUT,
+                           start_new_session=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            fh.seek(0)
+            return (fh.read() + f"\ntimed out after {timeout:.0f}s").strip()
+        except OSError as exc:
+            return f"could not run {cmd[0]}: {exc}"
+        fh.seek(0)
+        return fh.read().strip()
+
+
+def start_claude(cmd, cwd=None, env=None):
+    """Launch a `claude` subcommand and DO NOT wait for it. Returns (proc, log path).
+
+    Waiting is the thing being avoided. A dispatch that blocks the key handler
+    freezes the whole view, and a frozen curses program looks exactly like a
+    working one showing a stale frame - which is how a dead `n` key went
+    undiagnosed for a day. Output goes to a file the caller can read afterwards,
+    and the child gets its own session and no stdin, so it can neither read the
+    keys meant for this view nor die with it.
+    """
+    fh = tempfile.NamedTemporaryFile("w+", prefix="pp-agents-dispatch-",
+                                     suffix=".log", delete=False)
+    try:
+        proc = subprocess.Popen(cmd, cwd=cwd or None, env=env,
+                                stdin=subprocess.DEVNULL, stdout=fh,
+                                stderr=subprocess.STDOUT, start_new_session=True)
+    except OSError as exc:
+        fh.write(f"could not run {cmd[0]}: {exc}\n")
+        fh.close()
+        return None, fh.name
+    fh.close()
+    return proc, fh.name
+
+
+def last_line(path):
+    """The last non-empty line of a log file, for the status bar."""
+    try:
+        with open(path) as fh:
+            lines = [l.strip() for l in fh if l.strip()]
+    except OSError:
+        return ""
+    return lines[-1] if lines else ""
+
+
+def dispatched_id(text):
+    """The short id `claude --bg` reported, or None.
+
+    It prints `backgrounded · <id>` followed by four hint lines, so the id has to
+    be read out rather than inferred from the last line of output - which is what
+    the status bar used to show.
+    """
+    plain = re.sub(r"\x1b\[[0-9;]*m", "", text)
+    for line in plain.splitlines():
+        if "backgrounded" in line:
+            found = SHORT_ID.search(line)
+            if found:
+                return found.group(1)
+    found = SHORT_ID.search(plain)
+    return found.group(1) if found else None
+
+
+def record_exists(short, accounts=None):
+    """True once some account holds a readable `state.json` for `short`."""
+    for _name, root in (accounts if accounts is not None else account_dirs()):
+        if os.path.isfile(os.path.join(root, "jobs", short, "state.json")):
+            return True
+    return False
+
+
+def store_stamp(accounts=None):
+    """Newest mtime across the account `jobs` DIRECTORIES.
+
+    A new session is a new subdirectory, which bumps its parent's mtime. Watching
+    only the records of known sessions - which is what this used to do - can never
+    see one arrive.
+    """
+    newest = 0.0
+    for _name, root in (accounts if accounts is not None else account_dirs()):
+        try:
+            newest = max(newest, os.path.getmtime(os.path.join(root, "jobs")))
+        except OSError:
+            pass
+    return newest
+
+
+def default_cwd(jobs):
+    """Where a new session should start: the folder this view was opened in.
+
+    An earlier version offered the folder MOST sessions already run in, which is
+    a fact about history rather than about intent - open the view in one repo and
+    it proposed a different one, because that is where the backlog happens to
+    live. The terminal's own directory is the thing you actually chose, so that
+    wins; the busy folder is only a fallback for the case where there is no
+    usable one, and `tab` still completes to any folder in the list.
+    """
+    try:
+        here = os.getcwd()
+        if os.path.isdir(here):
+            return here
+    except OSError:
+        pass
+    counts = {}
+    for job in jobs:
+        if job["cwd"]:
+            counts[job["cwd"]] = counts.get(job["cwd"], 0) + 1
+    if counts:
+        return max(sorted(counts), key=lambda c: counts[c])
+    return os.path.expanduser("~")
+
+
+def known_tags(jobs):
+    return sorted({j["tag"] for j in jobs if j["tag"]})
+
+
+def complete_tag(prefix, tags):
+    """First tag that starts with what has been typed, for tab completion."""
+    for t in tags:
+        if t.startswith(prefix) and t != prefix:
+            return t
+    return None
+
+
+# ---------------------------------------------------------- grouping / sort
+
+def sort_key(job, pins):
+    return (
+        0 if job["short"] in pins else 1,
+        STATE_RANK.get(job["state"], 9),
+        # newest first within a state; the timestamps are ISO so they sort as text
+        [-ord(c) for c in job["updated"]],
+    )
+
+
+def header_of(job, mode):
+    if mode == "folder":
+        cwd = job["cwd"] or "(no folder)"
+        home = os.path.expanduser("~")
+        return "~" + cwd[len(home):] if cwd.startswith(home) else cwd
+    if mode == "state":
+        return STATE_LABEL.get(job["state"], job["state"] or "Unknown")
+    return job["tag"] or UNTAGGED
+
+
+def matches(job, query):
+    if not query:
+        return True
+    q = query.lower()
+    return any(q in str(job[f]).lower() for f in ("name", "detail", "tag", "cwd", "short"))
+
+
+def group_jobs(jobs, mode="tag", pins=(), query="", folded=()):
+    """Ordered [(header, count, [job, ...]), ...]; a folded header keeps its count.
+
+    Untagged sessions sink to the bottom in tag mode. That matters: it is what
+    makes folding every tag but one behave as a tag picker, the way the built-in
+    view does it.
+    """
+    pins = set(pins)
+    folded = set(folded)
+    buckets = {}
+    for job in jobs:
+        if not matches(job, query):
+            continue
+        buckets.setdefault(header_of(job, mode), []).append(job)
+
+    def header_rank(item):
+        head, rows = item
+        if mode == "tag":
+            sinks = 1 if head == UNTAGGED else 0
+        elif mode == "state":
+            sinks = min(STATE_RANK.get(r["state"], 9) for r in rows)
+        else:
+            sinks = 0
+        pinned = 0 if any(r["short"] in pins for r in rows) else 1
+        return (sinks, pinned, head.lower())
+
+    out = []
+    for head, rows in sorted(buckets.items(), key=header_rank):
+        rows.sort(key=lambda j: sort_key(j, pins))
+        out.append((head, len(rows), [] if head in folded else rows))
+    return out
+
+
+def flatten(groups):
+    """Rows for the cursor to walk: ('head', name) and ('job', job)."""
+    rows = []
+    for head, count, jobs in groups:
+        rows.append(("head", (head, count)))
+        for job in jobs:
+            rows.append(("job", job))
+    return rows
+
+
+# ---------------------------------------------------------------- actions
+
+def claude_bin():
+    """The binary to drive. `PP_AGENTS_CLAUDE` lets the tests stub it out.
+
+    Only ever invoked with published subcommands - attach, logs, stop, rm, agents
+    and --bg - so a new Claude Code release cannot change what this means
+    underneath us. The private daemon sockets stay untouched: `agents --json` is
+    the supported way to ask the daemon what it knows.
+    """
+    override = os.environ.get("PP_AGENTS_CLAUDE")
+    if override:
+        return os.path.expanduser(override)
+    return shutil.which("claude") or os.path.expanduser("~/.local/bin/claude")
+
+
+def job_env(job):
+    """Environment for a command about this session - the right account.
+
+    CLAUDE_CONFIG_DIR is what separates the work and personal stores, so a
+    command aimed at a personal session must not inherit the work value from
+    whatever shell launched this tool.
+    """
+    env = dict(os.environ)
+    env["CLAUDE_CONFIG_DIR"] = job["config_dir"]
+    return env
+
+
+def dispatch_env(account_dir):
+    """Environment for CREATING a session, pinned to a store this view reads.
+
+    Without this the new session goes wherever the launching shell points, and a
+    shell that never selected an account points at Claude Code's default
+    `~/.claude` - which this view does not read. The session is then created,
+    reported, and invisible. `--doctor` names any store in that state.
+    """
+    env = dict(os.environ)
+    env["CLAUDE_CONFIG_DIR"] = account_dir
+    return env
+
+
+def foreign_stores(candidates=None):
+    """Stores holding session records that this view does NOT read.
+
+    `~/.claude` is Claude Code's default and is not one of the accounts here, so
+    anything dispatched by a shell with no account selected lands there unseen.
+    """
+    # Both stores are known even when only one is being shown: the other one
+    # belongs to the sibling command, not to nobody.
+    known = {os.path.realpath(root) for _name, root in account_dirs()}
+    known |= {os.path.realpath(p) for p in STORES.values()}
+    out = []
+    for root in (candidates if candidates is not None
+                 else (os.path.expanduser("~/.claude"),)):
+        if os.path.realpath(root) in known:
+            continue
+        jobs = os.path.join(root, "jobs")
+        try:
+            found = [s for s in os.listdir(jobs)
+                     if os.path.isfile(os.path.join(jobs, s, "state.json"))]
+        except OSError:
+            continue
+        if found:
+            out.append((root, len(found)))
+    return out
+
+
+def attach_cmd(job):
+    return [claude_bin(), "attach", job["short"]]
+
+
+def logs_cmd(job):
+    return [claude_bin(), "logs", job["short"]]
+
+
+def stop_cmd(job):
+    return [claude_bin(), "stop", job["short"]]
+
+
+def rm_cmd(job):
+    return [claude_bin(), "rm", job["short"]]
+
+
+def dispatch_cmd(name):
+    """Start an idle session under a name you chose. No prompt is sent.
+
+    `claude --bg` with a name and nothing else creates a session parked at
+    `(idle - send a prompt to start)`, which is exactly the shape this view
+    wants: the name is for the list, the conversation happens after you attach.
+
+    Passing a prompt instead - what this did first - put the opening turn of a
+    conversation into a one-line field in a list view, and then let Claude Code
+    name the session from that one line, which is how `test1` came back as
+    `onboarding empty state message`. `--name` writes `nameSource: user`, so
+    the name you typed is never replaced by a generated summary.
+    """
+    return [claude_bin(), "--bg", "--name", name]
+
+
+# Coming back out of a session.
+#
+# One key, swallowed here and never forwarded, so leaving is instant and depends
+# on nothing Claude Code prints. An earlier version forwarded the plain left
+# arrow and watched for Claude Code's own agents view to appear before detaching.
+# That worked, but it could not be quick by construction: Claude Code's list had
+# to finish drawing first, so every exit flashed the wrong screen. Reserving a
+# key removes the wait and the flash together, and leaves the left arrow free to
+# do its ordinary job of moving the cursor while you edit a prompt.
+#
+# `shift+left` is the choice because it sits under the same finger as the arrow
+# it replaces, and a real session ignores it completely. `ctrl+o` was the old
+# second fallback and is deliberately gone: Claude Code binds it to "see full
+# summary", so swallowing it took a working shortcut away.
+RESERVED_KEYS = {
+    "\x1b[1;2D": "shift+left",
+}
+BACK_KEY = os.environ.get("PP_AGENTS_BACK_KEY", "")     # optional extra key
+BACK_KEY_LABEL = os.environ.get("PP_AGENTS_BACK_KEY_LABEL", "shift+left")
+
+# Terminal modes a borrowed program can leave switched on.
+#
+# `claude attach` turns on mouse reporting (1000/1002/1003/1006) and normally
+# turns it off on the way out. Detaching does not let it exit normally, so the
+# terminal keeps sending mouse packets - and the next thing to read stdin, your
+# shell, prints them as text: `65;59;21M65;59;21M...` every time you move the
+# mouse. Clearing these is not optional politeness; skipping it corrupts the
+# shell you return to.
+MOUSE_OFF = "".join(f"\x1b[?{m}l" for m in (1000, 1001, 1002, 1003, 1005, 1006, 1015))
+BORROWED_MODES_OFF = (
+    MOUSE_OFF
+    + "\x1b[?1004l"     # focus in/out reporting
+    + "\x1b[?2004l"     # bracketed paste
+)
+CURSOR_AND_COLOUR = "\x1b[?25h\x1b[0m"
+
+
+def clear_borrowed_modes(extra="", drain=True):
+    """Switch off input modes another program turned on. Safe to call anywhere.
+
+    Switching mouse reporting off stops the terminal producing NEW packets. It
+    does nothing about the ones already queued on stdin, and those are read by
+    whatever runs next - your shell - which prints them as `35;3;19M` gibberish.
+    So after the modes go off, wait a beat for anything in flight to land, then
+    throw the queue away. `drain=False` is for callers that must not lose a
+    keystroke.
+    """
+    try:
+        sys.stdout.write(BORROWED_MODES_OFF + extra)
+        sys.stdout.flush()
+    except (OSError, ValueError):
+        pass
+    if not drain:
+        return
+    try:
+        fd = sys.stdin.fileno()
+        if os.isatty(fd):
+            time.sleep(0.06)                  # let in-flight packets arrive
+            termios.tcflush(fd, termios.TCIFLUSH)
+    except (OSError, ValueError, termios.error):
+        pass
+
+
+def end_child(pid, grace=0.9):
+    """Ask a child to exit, and give it time to tidy the terminal first.
+
+    A signalled program still gets to run its exit handlers; `SIGKILL` does not.
+    Claude Code resets the modes it set when it can, so try the polite signals
+    with a real grace period and keep `SIGKILL` as the last resort.
+    """
+    for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.kill(pid, sig)
+        except OSError:
+            return
+        waited = 0.0
+        while waited < grace:
+            try:
+                if os.waitpid(pid, os.WNOHANG)[0]:
+                    return
+            except OSError:
+                return
+            time.sleep(0.05)
+            waited += 0.05
+
+
+DEBUG_LOG = os.environ.get("PP_AGENTS_DEBUG", "")
+
+
+def dbg(msg):
+    """Append a line to PP_AGENTS_DEBUG, if set. Silent otherwise.
+
+    The proxy makes its decisions with the screen handed to another program, so
+    there is nowhere to print. Without this the only way to find out why a detach
+    did or did not happen is to guess.
+    """
+    if not DEBUG_LOG:
+        return
+    try:
+        with open(DEBUG_LOG, "a") as fh:
+            fh.write(f"{time.time():.3f} {msg}\n")
+    except OSError:
+        pass
+
+
+def first_reserved(data, extra=""):
+    """(offset, label) of the first reserved key in `data`, or (-1, None).
+
+    Reserved keys are swallowed here and never reach Claude Code, so they must be
+    keys nobody needs while typing.
+    """
+    best, label = -1, None
+    keys = dict(RESERVED_KEYS)
+    if extra:
+        keys[extra] = "the configured key"
+    for seq, name in keys.items():
+        at = data.find(seq.encode())
+        if at != -1 and (best == -1 or at < best):
+            best, label = at, name
+    return best, label
+
+
+def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
+    """Run `cmd` on a pty we own, and come straight back here on `back`.
+
+    Why this is not a plain `subprocess.call`: `claude attach` binds the left
+    arrow to "back to the agents view" and opens **Claude Code's** ungrouped one,
+    which strands you outside this view - and `esc` there does not exit, so there
+    is no way home. Claude Code decides that internally and exposes no flag.
+    `claude --resume` is not an alternative either; it refuses a background agent
+    outright and tells you to use `claude agents`.
+
+    So the bytes go through here. Everything is forwarded verbatim in both
+    directions - alt-screen, mouse, bracketed paste, resizes - except one
+    reserved key, which never reaches Claude Code and instead detaches and
+    returns. The plain left arrow is forwarded like any other key, so it still
+    moves the cursor; and if you do land in Claude Code's own list, the reserved
+    key still brings you back from there.
+
+    Detaching kills only the attach *client*. The session itself lives in the
+    daemon and keeps running, exactly as it would if the terminal were closed.
+
+    Returns the child's exit status, or None if it was detached.
+    """
+    if not sys.stdin.isatty():
+        return subprocess.call(cmd, env=env, cwd=cwd or None)
+
+    stdin_fd = sys.stdin.fileno()
+    out_fd = sys.stdout.fileno()
+    saved = termios.tcgetattr(stdin_fd)
+    pid, master = pty.fork()
+    if pid == 0:
+        try:
+            if cwd:
+                os.chdir(cwd)
+        except OSError:
+            pass
+        os.execvpe(cmd[0], cmd, env)
+        os._exit(127)                                    # unreachable on success
+
+    def sync_size(*_):
+        try:
+            size = fcntl.ioctl(out_fd, termios.TIOCGWINSZ, b"\0" * 8)
+            fcntl.ioctl(master, termios.TIOCSWINSZ, size)
+            os.kill(pid, signal.SIGWINCH)
+        except (OSError, ValueError):
+            pass
+
+    prev_winch = signal.getsignal(signal.SIGWINCH)
+    detached = False
+    try:
+        tty.setraw(stdin_fd)
+        signal.signal(signal.SIGWINCH, sync_size)
+        sync_size()
+        while True:
+            try:
+                readable, _, _ = select.select([stdin_fd, master], [], [])
+            except (OSError, select.error) as exc:
+                if getattr(exc, "errno", None) == errno.EINTR:
+                    continue                             # a resize woke select
+                break
+            if master in readable:
+                try:
+                    data = os.read(master, 1 << 16)
+                except OSError:
+                    break
+                if not data:
+                    break
+                os.write(out_fd, data)
+            if stdin_fd in readable:
+                try:
+                    data = os.read(stdin_fd, 1 << 16)
+                except OSError:
+                    break
+                if not data:
+                    break
+                hit, key = first_reserved(data, back)
+                if hit != -1:
+                    dbg(f"reserved key {key!r} -> detaching")
+                    if hit:
+                        os.write(master, data[:hit])     # send what came before
+                    detached = True
+                    break
+                os.write(master, data)
+    finally:
+        signal.signal(signal.SIGWINCH, prev_winch)
+        termios.tcsetattr(stdin_fd, termios.TCSADRAIN, saved)
+        if detached:
+            end_child(pid)
+        # Whether it exited on its own or was detached, switch off the input modes
+        # it may have left on. Mouse reporting is the one that bites: left on, the
+        # terminal keeps emitting mouse packets and whatever reads stdin next
+        # prints them as `65;59;21M` gibberish.
+        clear_borrowed_modes()
+        try:
+            os.close(master)
+        except OSError:
+            pass
+    if detached:
+        return None
+    try:
+        return os.waitpid(pid, 0)[1] >> 8
+    except OSError:
+        return 0
+
+
+def run_attached(cmd, env, cwd=None):
+    """Hand the whole terminal to a real command, then take it back.
+
+    Curses owns the screen, so it must be suspended before `claude attach` draws
+    its own full-screen UI. `def_prog_mode` / `reset_prog_mode` is the pattern
+    that survives the round trip - calling `initscr()` a second time instead
+    leaves the program wedged and takes the view down with it.
+    """
+    # A session's folder often no longer exists - worktrees get reaped, branches
+    # get cleaned up. Launching in a missing directory raises, and an unhandled
+    # raise here takes the whole view down, so fall back to wherever we are.
+    if cwd and not os.path.isdir(cwd):
+        cwd = None
+    curses.def_prog_mode()
+    curses.endwin()
+    try:
+        return run_proxied(cmd, env, cwd)
+    except OSError as exc:
+        print(f"pp-agents: could not run {cmd[0]}: {exc}")
+        return 127
+    finally:
+        curses.reset_prog_mode()
+
+
+# ---------------------------------------------------------------- rendering
+
+def fmt_age(iso):
+    """'4m', '3h', '2d' - the built-in view's shape, from an ISO timestamp."""
+    if not iso:
+        return ""
+    try:
+        t = time.mktime(time.strptime(iso[:19], "%Y-%m-%dT%H:%M:%S"))
+    except ValueError:
+        return ""
+    # state.json stamps UTC; compare in the same frame
+    secs = max(0, time.time() - (t - time.timezone))
+    for cutoff, div, unit in ((60, 1, "s"), (3600, 60, "m"), (86400, 3600, "h")):
+        if secs < cutoff:
+            return f"{int(secs // div)}{unit}"
+    return f"{int(secs // 86400)}d"
+
+
+# The built-in view carries a permanent input line at the bottom - "describe a
+# task for a new session" - and that line is the whole reason anyone knows the
+# feature exists. `n` did the same job here from the start and nobody could find
+# it, so the line is reproduced. It is a prompt-shaped label, not a live input:
+# in this view the letters are shortcuts, so typing into it would collide with
+# `j`, `k`, `e`, `d` and the rest.
+NEW_HINT = "\u203a n   name a new session"
+
+# How long to watch the store for a dispatched session before saying so.
+# Generous, because it never blocks anything: the view redraws every pass.
+DISPATCH_WAIT = float(os.environ.get("PP_AGENTS_DISPATCH_WAIT", "15"))
+
+# The name this was invoked as, so the title matches what you typed.
+PROG_NAME = os.path.basename(sys.argv[0]) if sys.argv else "kbc"
+
+PIN_MARK = "▸"
+FOLD_OPEN = "▾"      # open group
+FOLD_SHUT = "▸"      # folded group          # a small right-pointing triangle
+
+# One glyph per state, so the list can be skimmed by shape as well as by colour.
+GLYPH = {
+    "blocked": "●",     # filled circle - wants you
+    "working": "◐",     # half-filled - busy
+    "error": "▲",       # triangle - trouble
+    "idle": "○",        # hollow circle
+}
+
+
+def state_glyph(state):
+    return GLYPH.get(state, "·")   # middle dot for done and anything else
+
+
+STATE_W = 12   # widest label, "Needs input", plus a space
+AGE_W = 5
+# the fixed cells around the elastic columns: two lead spaces, pin, glyph, and
+# the single spaces after the glyph and after the name
+ROW_CHROME = 6
+
+
+def row_segments(job, width, pins):
+    """One session line as [(text, kind), ...] - the single layout definition.
+
+    The screen colours each segment by `kind`; `--dump` joins them into plain
+    text. Both go through here so a rendering test means something: if the two
+    drifted apart, the plain-text assertions would stop describing the screen.
+
+    Layout is marker, name, state, last message, age. The name column is elastic
+    and the right-hand columns are fixed so the ages line up.
+    """
+    pinned = job["short"] in pins
+    label = STATE_LABEL.get(job["state"], job["state"] or "?")
+    age = fmt_age(job["updated"])
+    # In a narrow terminal the last message is the first thing to go: a readable
+    # session name matters more than a truncated fragment of its last line.
+    if width < 90:
+        name_w = max(8, width - STATE_W - AGE_W - ROW_CHROME)
+        detail_w = 0
+    else:
+        name_w = max(12, min(44, width - 42))
+        detail_w = max(0, width - name_w - STATE_W - AGE_W - ROW_CHROME)
+    name = f"{job['name']}"[:name_w].ljust(name_w)
+    segs = [
+        ("  ", "plain"),
+        (PIN_MARK if pinned else " ", "pin"),
+        (state_glyph(job["state"]), job["state"] or "done"),
+        (" ", "plain"),
+        (name, "name"),
+        (" ", "plain"),
+        (f"{label:<{STATE_W}}", job["state"] or "done"),
+    ]
+    if detail_w:
+        segs.append((job["detail"][:detail_w].ljust(detail_w), "detail"))
+    segs.append((f"{age:>{AGE_W}}", "age"))
+    # never let the composed line exceed the width - an overflowing row corrupts
+    # a curses screen rather than merely looking wrong
+    out, used = [], 0
+    for text, kind in segs:
+        if used >= width:
+            break
+        text = text[:width - used]
+        used += len(text)
+        out.append((text, kind))
+    return out
+
+
+def row_text(job, width, pins):
+    return "".join(t for t, _ in row_segments(job, width, pins))
+
+
+# ---------------------------------------------------------------- non-TUI
+
+def cmd_list(argv):
+    jobs = load_jobs()
+    pins = load_pins()
+    mode = "tag"
+    for i, a in enumerate(argv):
+        if a == "--group" and i + 1 < len(argv):
+            mode = argv[i + 1]
+    for head, count, rows in group_jobs(jobs, mode, pins):
+        print(f"{head} ({count})")
+        for j in rows:
+            print(f"  {j['short']}  {j['account']:<9}{STATE_LABEL.get(j['state'], j['state']):<12}"
+                  f"{fmt_age(j['updated']):>4}  {j['name']}")
+    return 0
+
+
+def cmd_dump(argv):
+    """Print exactly what the view would draw, as plain text.
+
+    The TUI and this share `group_jobs`, `flatten` and `row_text`, so the layout
+    can be asserted on character by character without a terminal. Curses only
+    ever sends the cells that changed, which makes scraping a live screen an
+    unreliable way to prove a key did the right thing - and unreliable tests are
+    how the approach this replaces shipped broken.
+
+        pp-agents --dump [--group tag|folder|state] [--filter Q]
+                         [--fold HEADER] [--width N] [--pin SHORT]
+    """
+    def opt(flag, default=None):
+        return argv[argv.index(flag) + 1] if flag in argv and argv.index(flag) + 1 < len(argv) else default
+
+    mode = opt("--group", "tag")
+    if mode not in GROUP_MODES:
+        print(f"unknown grouping {mode!r}; expected one of {', '.join(GROUP_MODES)}", file=sys.stderr)
+        return 2
+    width = int(opt("--width", "170"))
+    folded = {argv[i + 1] for i, a in enumerate(argv) if a == "--fold" and i + 1 < len(argv)}
+    pins = {argv[i + 1] for i, a in enumerate(argv) if a == "--pin" and i + 1 < len(argv)}
+    pins |= load_pins()
+
+    jobs = load_jobs()
+    counts = {}
+    for j in jobs:
+        counts[j["state"]] = counts.get(j["state"], 0) + 1
+    # The store belongs in the header for the same reason it is in the TUI title:
+    # `kbc` and `kbcp` print the same shapes, and the only thing telling them
+    # apart is this line.
+    print(f"{PROG_NAME} {ACCOUNTS[0][0]}  grouped by {mode}   "
+          f"{counts.get('blocked', 0)} need input, "
+          f"{counts.get('working', 0)} working, {counts.get('done', 0)} done")
+    groups = group_jobs(jobs, mode, pins, opt("--filter", ""), folded)
+    if not groups:
+        print("(nothing matched)")
+        return 0
+    for head, count, rows in groups:
+        mark = FOLD_SHUT if head in folded else FOLD_OPEN
+        print(f" {mark} {head}  {count}")
+        for j in rows:
+            print(row_text(j, width, pins))
+    return 0
+
+
+def cmd_doctor():
+    """Say plainly what can be read and what can be driven.
+
+    The patch it replaces failed by reporting success, so this reports the two
+    things that actually matter and never guesses.
+    """
+    ok = True
+    accounts = account_dirs()
+    print("accounts:")
+    for name, path in accounts:
+        n = len(os.listdir(os.path.join(path, "jobs")))
+        print(f"  {name:<9}{path}  ({n} job records)")
+    if not accounts:
+        print("  none found - expected ~/.claude-work/jobs or ~/.claude-personal/jobs")
+        ok = False
+
+    stray = foreign_stores()
+    if stray:
+        print("\nsessions in a store this view does NOT read:")
+        for path, count in stray:
+            print(f"  {path}  ({count} records)")
+        print("  a shell with no CLAUDE_CONFIG_DIR set dispatches into Claude")
+        print("  Code's own default, and nothing here lists it. `claude rm <id>`")
+        print("  clears one; new sessions from this view can no longer land there.")
+
+    jobs = load_jobs(accounts)
+    readable = [j for j in jobs if j["state"] or j["name"]]
+    print(f"\nsession records parsed: {len(readable)} of {len(jobs)}")
+    if jobs and not readable:
+        print("  every record parsed empty - the on-disk format may have changed")
+        ok = False
+    print(f"tags found: {', '.join(known_tags(jobs)) or '(none yet)'}")
+
+    binp = claude_bin()
+    print(f"\nclaude binary: {binp}")
+    if not os.path.exists(binp):
+        print("  MISSING - attach/logs/stop cannot run")
+        return 1
+    for sub in ("attach", "logs", "stop", "rm"):
+        out = subprocess.run([binp, sub, "--help"], capture_output=True, text=True, timeout=60)
+        good = f"claude {sub} <id>" in (out.stdout + out.stderr)
+        print(f"  {sub:<7}{'ok' if good else 'NOT AVAILABLE'}")
+        ok = ok and good
+    print("\n" + ("all good" if ok else "problems above"))
+    return 0 if ok else 1
+
+
+# ---------------------------------------------------------------- the TUI
+
+HELP = [
+    ("up/down, j/k", "move"),
+    ("enter", "open the session"),
+    ("shift+left", "inside a session: come back here"),
+    ("ctrl+e / e", "tag this session (tab completes an existing tag)"),
+    ("ctrl+x / x", "remove this session's tag"),
+    ("d", "delete this session (asks first; stops it if still running)"),
+    ("ctrl+t / t", "pin to top"),
+    ("ctrl+s / s", "cycle grouping: tag -> folder -> state"),
+    ("space", "fold / unfold the group under the cursor"),
+    ("/", "filter; esc clears"),
+    ("l", "show recent output (claude logs)"),
+    ("K", "stop this session (asks first)"),
+    ("n", "start a new session: the task, then the folder (claude --bg)"),
+    ("g", "refresh now"),
+    ("?", "this help"),
+    ("q", "quit"),
+]
+
+
+# The palette, in one place.
+#
+# Only the STATE colours are saturated, because they are the only thing worth
+# your eye jumping to: what needs you, what is running, what is finished. Every
+# other element - headers, counts, last message, age, the bars - is a muted grey
+# or a soft steel blue. The first version coloured the chrome as loudly as the
+# states, which made the whole list shout and nothing stand out.
+#
+# 256-colour numbers, with an 8-colour fallback below.
+GREY_TEXT = 245         # the last message
+GREY_FAINT = 243        # counts, age
+GREY_BAR_FG = 252       # bar text
+GREY_BAR_BG = 236       # bar background: chrome, not a neon strip
+SEL_BG = 237            # the cursor row: a shade lifted, not inverted
+STEEL = 110             # group headers: present without shouting
+AMBER_SOFT = 179        # the pin marker
+
+
+def init_colours():
+    """Two attribute maps: (normal, cursor-row). Keyed by segment kind.
+
+    `use_default_colors` is load-bearing: without it curses paints every cell
+    with its own idea of "black", which on a themed terminal shows up as
+    rectangular blocks behind the text instead of a background.
+
+    The cursor row gets its own map rather than `A_REVERSE` over the normal one.
+    Reverse video inverts the saturated state colours into full-width blocks of
+    yellow or green, which is exactly the "popping" this palette avoids; a second
+    set of pairs sharing one background keeps the row legible and the state
+    colours intact.
+    """
+    mono = {
+        "header": curses.A_BOLD, "count": curses.A_DIM, "name": curses.A_NORMAL,
+        "detail": curses.A_DIM, "age": curses.A_DIM, "pin": curses.A_BOLD,
+        "blocked": curses.A_BOLD, "working": curses.A_BOLD, "error": curses.A_BOLD,
+        "idle": curses.A_DIM, "done": curses.A_NORMAL, "plain": curses.A_NORMAL,
+        "bar": curses.A_REVERSE, "hint": curses.A_DIM,
+    }
+    mono_sel = {k: v | curses.A_REVERSE for k, v in mono.items()}
+    try:
+        curses.start_color()
+        curses.use_default_colors()
+    except curses.error:
+        return mono, mono_sel
+    if not curses.has_colors():
+        return mono, mono_sel
+
+    rich = curses.COLORS >= 256
+    counter = [1]
+
+    def pair(fg, bg=-1, attr=0):
+        idx = counter[0]
+        counter[0] += 1
+        try:
+            curses.init_pair(idx, fg, bg)
+            return curses.color_pair(idx) | attr
+        except curses.error:
+            return attr
+
+    def states(bg):
+        # unchanged, and the only saturated colours in the list
+        return {
+            "blocked": pair(curses.COLOR_YELLOW, bg, curses.A_BOLD),
+            "working": pair(curses.COLOR_CYAN, bg),
+            "done": pair(curses.COLOR_GREEN, bg),
+            "error": pair(curses.COLOR_RED, bg, curses.A_BOLD),
+        }
+
+    def chrome(bg):
+        grey = GREY_TEXT if rich else curses.COLOR_WHITE
+        faint = GREY_FAINT if rich else curses.COLOR_WHITE
+        steel = STEEL if rich else curses.COLOR_BLUE
+        amber = AMBER_SOFT if rich else curses.COLOR_YELLOW
+        dim = 0 if rich else curses.A_DIM
+        plain = pair(-1, bg) if bg != -1 else curses.A_NORMAL
+        out = {
+            "header": pair(steel, bg, curses.A_BOLD),
+            "count": pair(faint, bg, dim),
+            "name": plain,
+            "detail": pair(grey, bg, dim),
+            "age": pair(faint, bg, dim),
+            "pin": pair(amber, bg),
+            "idle": pair(faint, bg, dim),
+            "plain": plain,
+            "hint": pair(grey, bg, dim),
+        }
+        out.update(states(bg))
+        return out
+
+    normal = chrome(-1)
+    # the bars are chrome: light text on a dark grey band, no reverse video
+    normal["bar"] = (pair(GREY_BAR_FG, GREY_BAR_BG) if rich
+                     else curses.A_REVERSE | curses.A_BOLD)
+    selected = chrome(SEL_BG if rich else -1)
+    if not rich:
+        selected = {k: v | curses.A_REVERSE for k, v in selected.items()}
+    selected["bar"] = normal["bar"]
+    return normal, selected
+
+
+class App:
+    def __init__(self, scr):
+        self.scr = scr
+        self.attr, self.attr_sel = init_colours()
+        self.mode = "tag"
+        self.folded = load_folds(self.mode)
+        # What the daemon last said, `{short: state}`. Empty until the first poll
+        # answers, so the view opens on the recorded states rather than blank.
+        self.live = {}
+        self.live_thread = None
+        self.last_poll_at = 0.0
+        self.last_key_at = time.time()
+        self.query = ""
+        self.pins = load_pins()
+        self.cursor = 0
+        self.placed = False
+        self.status = ""
+        self.show_help = False
+        self.reload()
+
+    def reload(self):
+        self.jobs = merge_live(load_jobs(), self.live)
+        self.rebuild()
+
+    def poll_live(self):
+        """Ask the daemon on a worker thread and keep the answer for the next draw.
+
+        On a THREAD because a blocking call in the key handler is what froze this
+        view once already: the record existed, the row never appeared, and `n`
+        looked like a dead key for a day. Nothing here touches curses, and the
+        main loop only ever reads `self.live`, so the worst a slow or hung
+        `claude` can do is leave the states one tick stale.
+        """
+        if self.live_thread is not None and self.live_thread.is_alive():
+            return
+        self.last_poll_at = time.time()
+
+        def work():
+            found = live_states()
+            if found is not None:
+                self.live = found
+
+        self.live_thread = threading.Thread(target=work, daemon=True)
+        self.live_thread.start()
+
+    def rebuild(self, keep_cursor=True):
+        """Recompute the visible rows, keeping the cursor sensible.
+
+        On the first build the cursor lands on the first *session*, not on the
+        header above it: every action except folding needs a session, and having
+        to press down once before anything works is the kind of friction that
+        stops a replacement being used.
+        """
+        self.groups = group_jobs(self.jobs, self.mode, self.pins, self.query, self.folded)
+        self.rows = flatten(self.groups)
+        if not self.rows:
+            self.cursor = 0
+            return
+        if not self.placed or not keep_cursor:
+            self.cursor = next((i for i, (k, _) in enumerate(self.rows) if k == "job"), 0)
+            self.placed = True
+        self.cursor = max(0, min(self.cursor, len(self.rows) - 1))
+
+    def focused(self):
+        if not self.rows:
+            return None, None
+        kind, payload = self.rows[self.cursor]
+        return kind, payload
+
+    def focused_job(self):
+        kind, payload = self.focused()
+        return payload if kind == "job" else None
+
+    # -------------------------------------------------------- drawing
+
+    def put(self, y, x, text, attr=0):
+        """Write clipped text and return the next column.
+
+        curses raises if anything reaches the bottom-right cell, so every write
+        goes through here rather than trusting the caller's arithmetic.
+        """
+        h, w = self.scr.getmaxyx()
+        if y < 0 or y >= h or x >= w - 1:
+            return x
+        text = text[:max(0, w - 1 - x)]
+        if text:
+            try:
+                self.scr.addstr(y, x, text, attr)
+            except curses.error:
+                pass
+        return x + len(text)
+
+    def draw(self):
+        self.scr.erase()
+        h, w = self.scr.getmaxyx()
+        counts = {}
+        for j in self.jobs:
+            counts[j["state"]] = counts.get(j["state"], 0) + 1
+        bits = [f"{counts.get('blocked', 0)} need input"]
+        if counts.get("working"):
+            bits.append(f"{counts['working']} working")
+        bits.append(f"{counts.get('done', 0)} done")
+        title = (f" {PROG_NAME} · {ACCOUNTS[0][0]} · by {self.mode} · "
+                 + " · ".join(bits))
+        self.put(0, 0, title.ljust(w - 1), self.attr["bar"])
+
+        if self.show_help:
+            self.draw_help(h, w)
+        else:
+            self.draw_rows(h, w)
+
+        if h >= 4 and not self.show_help:
+            self.put(h - 2, 0, NEW_HINT.ljust(w - 1), self.attr["hint"])
+
+        if self.status:
+            bar, attr = " " + self.status, self.attr["bar"]
+        elif self.query:
+            bar, attr = f" filter: {self.query}   (esc clears)", self.attr["bar"]
+        else:
+            bar, attr = (" enter open · shift+left back · e tag · d delete · "
+                         "t pin · s group · / filter · ? help · q quit"), self.attr["bar"]
+        self.put(h - 1, 0, bar.ljust(w - 1), attr)
+        self.scr.refresh()
+
+    def draw_help(self, h, w):
+        self.put(2, 2, "keys", self.attr["header"])
+        for i, (k, d) in enumerate(HELP):
+            if 4 + i >= h - 2:
+                break
+            x = self.put(4 + i, 4, f"{k:<16}", self.attr["blocked"])
+            self.put(4 + i, x, d, self.attr["name"])
+        line = 5 + len(HELP)
+        for j, note in enumerate((
+                "tags live in Claude Code's own group file, so nothing is lost",
+                "if the built-in tag view ever starts working again.")):
+            if line + j < h - 2:
+                self.put(line + j, 2, note, self.attr["detail"])
+
+    def draw_rows(self, h, w):
+        """Draw headers and sessions, colouring each piece by what it means.
+
+        Only the cursor row gets a background. Everything else is foreground
+        colour on the terminal's own background, which is what stops the list
+        looking like a grid of black rectangles.
+        """
+        # h-1 is the status bar and h-2 is the new-session line, so the list
+        # stops two rows early. On a terminal too short for the hint it is not
+        # drawn, and the row is the list's again.
+        last = h - 2 if h >= 4 else h - 1
+        body = max(1, last - 1)
+        first = 0
+        if self.cursor >= body:
+            first = self.cursor - body + 1
+        y = 1
+        for idx in range(first, len(self.rows)):
+            if y >= last:
+                break
+            kind, payload = self.rows[idx]
+            sel = idx == self.cursor
+            attr = self.attr_sel if sel else self.attr
+            if sel:
+                # lay the row's background down first so it spans the full width
+                self.put(y, 0, " " * (w - 1), attr["plain"])
+            if kind == "head":
+                head, count = payload
+                arrow = FOLD_SHUT if head in self.folded else FOLD_OPEN
+                x = self.put(y, 0, f" {arrow} ", attr["header"])
+                x = self.put(y, x, head, attr["header"])
+                self.put(y, x, f"  {count}", attr["count"])
+            else:
+                x = 0
+                for text, seg in row_segments(payload, w - 2, self.pins):
+                    x = self.put(y, x, text, attr.get(seg, attr["plain"]))
+            y += 1
+        if not self.rows:
+            msg = ("nothing matched that filter" if self.query
+                   else "no sessions found - run  pp-agents --doctor")
+            self.put(2, 2, msg, self.attr["hint"])
+
+    # -------------------------------------------------------- input
+
+    def prompt(self, label, complete_from=(), preset=""):
+        """One-line input on the status bar. Returns None if cancelled.
+
+        `preset` starts the line filled in and editable, which is what makes a
+        sensible default worth offering: accept it with enter, or backspace it
+        away.
+        """
+        h, w = self.scr.getmaxyx()
+        buf = preset
+        curses.curs_set(1)
+        self.scr.timeout(-1)        # same sticky-timeout trap as confirm()
+        try:
+            while True:
+                shown = f"{label}{buf}"
+                hint = ""
+                if complete_from:
+                    c = complete_tag(buf, complete_from)
+                    if c:
+                        hint = f"   (tab -> {c})"
+                self.put(h - 1, 0, (shown + hint).ljust(w - 1), self.attr["bar"])
+                self.scr.refresh()
+                ch = self.scr.getch()
+                if ch in (10, 13):
+                    return buf
+                if ch == 27:
+                    return None
+                if ch in (curses.KEY_BACKSPACE, 127, 8):
+                    buf = buf[:-1]
+                elif ch == 9 and complete_from:
+                    c = complete_tag(buf, complete_from)
+                    if c:
+                        buf = c
+                elif 32 <= ch < 127:
+                    buf += chr(ch)
+        finally:
+            curses.curs_set(0)
+            self.scr.timeout(1000)
+
+    def confirm(self, question):
+        """Ask a yes/no question on the status bar and WAIT for the answer.
+
+        `timeout(-1)` is the point. The main loop runs `timeout(1000)` so it can
+        wake up and refresh; that setting is sticky, so without this a question
+        answers itself "no" after one second of hesitation and reports "not
+        stopped" as though you had declined it.
+        """
+        h, w = self.scr.getmaxyx()
+        self.put(h - 1, 0, (question + "  [y/N]").ljust(w - 1), self.attr["bar"])
+        self.scr.refresh()
+        self.scr.timeout(-1)
+        try:
+            return self.scr.getch() in (ord("y"), ord("Y"))
+        finally:
+            self.scr.timeout(1000)
+
+    def move(self, delta):
+        if not self.rows:
+            return
+        self.cursor = max(0, min(len(self.rows) - 1, self.cursor + delta))
+
+    def act_open(self):
+        job = self.focused_job()
+        if not job:
+            self.toggle_fold()
+            return
+        code = run_attached(attach_cmd(job), job_env(job), job["cwd"])
+        self.restore_screen()
+        self.reload()
+        # `None` is `run_proxied` saying the back key was pressed, which is the
+        # ordinary way out of a session and the only way for one that is still
+        # alive. Reading it as an exit code printed `<name> exited None` every
+        # single time you came back, which looks exactly like a crash.
+        self.status = (f"back from {job['name']}" if code in (None, 0)
+                       else f"{job['name']} exited {code}")
+
+    def act_logs(self):
+        job = self.focused_job()
+        if not job:
+            return
+        curses.def_prog_mode()
+        curses.endwin()
+        try:
+            subprocess.call(logs_cmd(job), env=job_env(job))
+            try:
+                input("\n-- enter to return to pp-agents --")
+            except (EOFError, KeyboardInterrupt):
+                pass
+        finally:
+            clear_borrowed_modes()
+            curses.reset_prog_mode()
+        self.restore_screen()
+
+    def act_stop(self):
+        job = self.focused_job()
+        if not job:
+            return
+        if not self.confirm(f"stop {job['name']}?"):
+            self.status = "not stopped"
+            return
+        blob = run_claude(stop_cmd(job), env=job_env(job))
+        self.status = blob.splitlines()[-1] if blob else "stop issued"
+        self.reload()
+
+    def act_delete(self):
+        """Delete the focused session, stopping it first if it is still running.
+
+        Deleting a live session would leave the daemon writing into a directory
+        that no longer exists, so it is stopped and given a moment to notice
+        before the record goes. The question says which of the two is happening.
+        """
+        job = self.focused_job()
+        if not job:
+            return
+        live = job["state"] in LIVE_STATES
+        question = (f"stop AND delete {job['name']}?" if live
+                    else f"delete {job['name']}?")
+        if not self.confirm(question):
+            self.status = "not deleted"
+            return
+        if live:
+            run_claude(stop_cmd(job), env=job_env(job))
+            time.sleep(0.4)
+        # `claude rm` is the published delete and the only one the daemon honours
+        blob = run_claude(rm_cmd(job), env=job_env(job))
+        deadline = time.time() + 4.0
+        while time.time() < deadline and record_exists(job["short"]):
+            time.sleep(0.1)
+        if record_exists(job["short"]):
+            # rm reported success but left the directory: tidy it ourselves
+            try:
+                delete_record(job)
+            except (OSError, ValueError) as exc:
+                self.status = f"not deleted: {blob or exc}"
+                return
+        self.pins.discard(job["short"])
+        save_pins(self.pins)
+        self.reload()
+        self.status = f"deleted {job['name']}"
+
+    def act_tag(self):
+        job = self.focused_job()
+        if not job:
+            return
+        tags = known_tags(self.jobs)
+        cur = job["tag"] or ""
+        new = self.prompt(f"tag [{cur}]: ", tags)
+        if new is None:
+            self.status = "unchanged"
+            return
+        write_tag(job, new if new.strip() else cur if new == "" else new)
+        self.rebuild()
+        self.status = f"tag = {job['tag'] or '(none)'}"
+
+    def act_untag(self):
+        job = self.focused_job()
+        if not job:
+            return
+        write_tag(job, "")
+        self.rebuild()
+        self.status = "tag removed"
+
+    def act_pin(self):
+        job = self.focused_job()
+        if not job:
+            return
+        self.pins.symmetric_difference_update({job["short"]})
+        save_pins(self.pins)
+        self.rebuild()
+        self.status = "pinned" if job["short"] in self.pins else "unpinned"
+
+    def act_new(self):
+        """Create an idle session under a name, then open it.
+
+        The name is what you already have in your head when you reach for this;
+        the folder is a detail, so it comes second and arrives pre-filled with
+        the folder you launched from. Nothing is asked about the work, because
+        the work is discussed inside the session.
+        """
+        task = self.prompt("new session - name it: ")
+        if not task or not task.strip():
+            self.status = "nothing dispatched"
+            return
+        cwds = sorted({j["cwd"] for j in self.jobs if j["cwd"]})
+        where = self.prompt("folder: ", cwds, preset=default_cwd(self.jobs))
+        if not where:
+            self.status = "nothing dispatched"
+            return
+        where = os.path.expanduser(where.strip())
+        prompt = task
+        if not os.path.isdir(where):
+            self.status = f"no such folder: {where}"
+            return
+        before = {j["short"] for j in self.jobs}
+        account, account_dir = account_dirs()[0]
+        proc, log = start_claude(dispatch_cmd(prompt), cwd=where,
+                                 env=dispatch_env(account_dir))
+        self.status = "starting a session ..."
+        self.draw()
+
+        # Watch for the session to APPEAR rather than for the command to finish.
+        # The record is what the owner is waiting to see, the command is not, and
+        # nothing here can block: every pass redraws, so the view stays alive.
+        short = None
+        deadline = time.time() + DISPATCH_WAIT
+        while time.time() < deadline:
+            self.reload()
+            fresh = sorted({j["short"] for j in self.jobs} - before)
+            if fresh:
+                short = fresh[0]
+                break
+            self.draw()
+            time.sleep(0.25)
+
+        if short:
+            landed = self.select_short(short)
+            self.status = f"started {short}"
+            try:
+                os.unlink(log)
+            except OSError:
+                pass
+            # Open it. The name was the only thing this flow needed from you and
+            # the session is parked waiting for a prompt, so stopping on the list
+            # to make you press one more key serves nothing. `shift+left` comes
+            # straight back. If a filter is hiding the new row there is nothing
+            # to open, and the id in the status line is the way back to it.
+            if landed:
+                self.act_open()
+            return
+        if proc is None or proc.poll() not in (None, 0):
+            self.status = last_line(log) or f"dispatch failed - see {log}"
+        else:
+            self.status = (f"no session appeared in {DISPATCH_WAIT:.0f}s "
+                           f"under {account} - see {log}")
+
+    def select_short(self, short):
+        """Move the cursor onto a session by short id. False if it is not listed."""
+        for idx, (kind, payload) in enumerate(self.rows):
+            if kind == "job" and payload["short"] == short:
+                self.cursor = idx
+                return True
+        return False
+
+    def toggle_fold(self):
+        kind, payload = self.focused()
+        if kind == "head":
+            head = payload[0]
+            self.folded.symmetric_difference_update({head})
+        elif kind == "job":
+            head = header_of(payload, self.mode)
+            self.folded.add(head)
+        save_folds(self.mode, self.folded)
+        self.rebuild()
+
+    def restore_screen(self):
+        """Repaint after another program had the terminal.
+
+        `redrawwin` is the part that matters: curses still believes the screen
+        holds what it last drew, so without it the view comes back as fragments
+        of itself over whatever `claude attach` left behind.
+        """
+        curses.curs_set(0)
+        self.scr.keypad(True)
+        self.scr.redrawwin()
+        self.scr.refresh()
+
+    def handle(self, ch):
+        if self.show_help:
+            self.show_help = False
+            return True
+        if ch in (ord("q"), 27) and not self.query:
+            return False
+        if ch == 27:
+            self.query = ""
+            self.rebuild()
+            return True
+        if ch in (curses.KEY_DOWN, ord("j")):
+            self.move(1)
+        elif ch in (curses.KEY_UP, ord("k")):
+            self.move(-1)
+        elif ch == curses.KEY_NPAGE:
+            self.move(10)
+        elif ch == curses.KEY_PPAGE:
+            self.move(-10)
+        elif ch in (10, 13):
+            self.act_open()
+        elif ch == ord(" "):
+            self.toggle_fold()
+        elif ch in (5, ord("e")):            # ctrl+e
+            self.act_tag()
+        elif ch in (24, ord("x")):           # ctrl+x
+            self.act_untag()
+        elif ch in (20, ord("t")):           # ctrl+t
+            self.act_pin()
+        elif ch in (19, ord("s")):           # ctrl+s
+            self.mode = GROUP_MODES[(GROUP_MODES.index(self.mode) + 1) % len(GROUP_MODES)]
+            # Not cleared: each mode keeps its own folds, so cycling `s` all the
+            # way round comes back to the view you left rather than a fresh one.
+            self.folded = load_folds(self.mode)
+            self.rebuild()
+            self.status = f"grouped by {self.mode}"
+        elif ch == ord("/"):
+            q = self.prompt("filter: ")
+            self.query = q or ""
+            self.rebuild()
+        elif ch == ord("l"):
+            self.act_logs()
+        elif ch == ord("K"):
+            self.act_stop()
+        elif ch == ord("d"):
+            self.act_delete()
+        elif ch == ord("n"):
+            self.act_new()
+        elif ch == ord("g"):
+            self.reload()
+            self.status = "refreshed"
+        elif ch == ord("?"):
+            self.show_help = True
+        return True
+
+    def loop(self):
+        last = 0.0
+        shown = {}      # the daemon answer the current screen was drawn from
+        while True:
+            self.draw()
+            self.scr.timeout(1000)
+            ch = self.scr.getch()
+            if ch == -1:
+                # cheap auto-refresh: only re-read when something changed.
+                # `store_stamp` is the half that notices a session ARRIVING - the
+                # per-record loop below only ever sees the ones already listed.
+                newest = store_stamp()
+                for j in self.jobs:
+                    try:
+                        newest = max(newest, os.path.getmtime(os.path.join(j["dir"], "state.json")))
+                    except OSError:
+                        pass
+                now = time.time()
+                if should_poll(self.jobs, self.last_key_at, now, self.last_poll_at):
+                    self.poll_live()
+                # Redraw when the file moved OR when the daemon's answer changed
+                # under us: the whole point is that those two disagree, so waiting
+                # for the file would put the fix back where the bug was.
+                if newest > last or self.live != shown:
+                    last = newest
+                    shown = dict(self.live)
+                    self.reload()
+                continue
+            self.last_key_at = time.time()
+            self.status = ""
+            if not self.handle(ch):
+                return
+
+
+def main(argv):
+    if "--help" in argv or "-h" in argv:
+        print(__doc__)
+        return 0
+    if "--doctor" in argv:
+        return cmd_doctor()
+    if "--dump" in argv:
+        return cmd_dump(argv)
+    if "--list" in argv:
+        return cmd_list(argv)
+
+    def run(scr):
+        curses.curs_set(0)
+        App(scr).loop()
+
+    try:
+        curses.wrapper(run)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # A borrowed program's modes outlive it. Leave the shell as we found it.
+        clear_borrowed_modes(CURSOR_AND_COLOUR)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

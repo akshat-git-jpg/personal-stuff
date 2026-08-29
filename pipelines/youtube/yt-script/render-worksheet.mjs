@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Render a script-plan.md into script-worksheet.md — the WRITE artifact the remote
 // tutorial maker fills in. SCRIPT ONLY: the spoken copy that is already final,
-// plus an empty slot per beat he has to write. No SHOW, no EDIT, no rules boxes,
+// plus an empty slot per beat he has to write. No VIDEO lane, no rules boxes,
 // no reference drafts and no fact packs — all of that is in outline.pdf, which he
 // keeps open beside this file.
 //
@@ -30,7 +30,26 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
-const LANE_RE = /^\*\*(SAY|SHOW|EDIT|FACTS)\*\*(?:\s*[—-]\s*(.*))?$/i
+// ASK is the owner's own question to Claude, left in place while he reviews. It is
+// NOT script content and NOT an instruction for the maker: `buildWorksheet` only ever
+// emits SAY blocks, so an ASK can never reach the worksheet, and `desk.mjs publish`
+// refuses while any ASK remains. Added 2026-08-28, replacing a whole browser markup
+// UI: the owner edits the markdown in his own editor, where cut and paste actually
+// work, and this one lane is the only thing the editor could not give him.
+// VIDEO is the one lane for everything the maker does with the picture: what to
+// film or screen-record AND what to do with it afterwards. It replaced SHOW and
+// EDIT on 2026-08-28 - owner: *"I don't like having screen recording notes and
+// video editing notes, can you just club them both together and make it just
+// video notes."* SHOW and EDIT stay in this regex as ALIASES so a plan written
+// before the merge still parses and loses nothing; `lib/beats.mjs` folds all
+// three into one `video` array. Never write SHOW or EDIT in a new plan.
+// NOTES is the BODY SECTION CARD lane, added 2026-08-29. A body section is one
+// card: one heading, one flat bullet list, one thing for the maker to write. It
+// replaced the old shape of five to seven `####` beats per section, each with its
+// own SAY/VIDEO/FACTS lanes. Owner: *"I want high level section distinction and
+// their information that's it don't break down too much that it's cluttering
+// everything and removes the creative freedom from the freelancer."*
+const LANE_RE = /^\*\*(SAY|VIDEO|SHOW|EDIT|FACTS|DEMO|ASK|NOTES)\*\*(?:\s*[—-]\s*(.*))?$/i
 
 // Strip the blockquote marker, keeping everything after ONE optional space so a
 // continuation line's own indentation survives.
@@ -47,10 +66,23 @@ function requote(raw) {
   return raw.map((l) => (l ? '> ' + l : '>')).join(QUOTE_JOIN)
 }
 
+// Every block carries `line` (0-based index of its FIRST source line) and
+// `endLine` (exclusive index just past its LAST source line). Added 2026-08-28
+// for the desk's edit mode: the owner moves, deletes and adds blocks in the
+// browser, and every one of those actions is a line splice on this markdown.
+// Without a true source range there is nothing to splice.
+//
+// The range is what the parser ACTUALLY CONSUMED, not "up to the next block".
+// That difference matters: the `---` rules between sections are skipped by this
+// parser, so they sit outside every range and stay put when a section moves,
+// which is exactly right. A "up to the next block" range would drag one along.
 export function parse(md) {
   const lines = md.split(/\r?\n/)
   const blocks = []
   let i = 0
+
+  // `at` is the line the block started on; `i` has already advanced past it.
+  const push = (at, block) => blocks.push({ ...block, line: at, endLine: i })
 
   const flushQuote = () => {
     const quoted = []
@@ -65,51 +97,74 @@ export function parse(md) {
     const line = lines[i]
 
     if (/^#\s+/.test(line)) {
-      blocks.push({ t: 'title', text: line.replace(/^#\s+/, '').trim() })
+      const at = i
       i++
+      push(at, { t: 'title', text: line.replace(/^#\s+/, '').trim() })
+      continue
+    }
+    // `## Contents` is the table of contents at the top of the plan, not a part.
+    // Added 2026-08-29. It must be matched BEFORE the generic `##` part rule, or
+    // it becomes a fourth part and `partKindFor` mislabels the whole intro.
+    // Owner: *"at the top of the script can we show the outline? All sections,
+    // subsection, etc. Just the title."*
+    if (/^##\s+Contents\s*$/i.test(line)) {
+      const at = i
+      i++
+      const raw = []
+      while (i < lines.length && !/^#{1,4}\s/.test(lines[i]) && !/^---\s*$/.test(lines[i])) {
+        if (lines[i].trim()) raw.push(lines[i])
+        i++
+      }
+      push(at, { t: 'contents', raw })
       continue
     }
     if (/^##\s+(?!#)/.test(line)) {
-      blocks.push({ t: 'part', text: line.replace(/^##\s+/, '').trim() })
+      const at = i
       i++
+      push(at, { t: 'part', text: line.replace(/^##\s+/, '').trim() })
       continue
     }
     if (/^###\s+(?!#)/.test(line)) {
-      blocks.push({
+      const at = i
+      i++
+      push(at, {
         t: 'section',
         text: line.replace(/^###\s+/, '').replace(/^SECTION:\s*/i, '').trim(),
       })
-      i++
       continue
     }
     if (/^####\s+/.test(line)) {
-      blocks.push({ t: 'beat', text: line.replace(/^####\s+/, '').trim() })
+      const at = i
       i++
+      push(at, { t: 'beat', text: line.replace(/^####\s+/, '').trim() })
       continue
     }
 
     if (/^>/.test(line)) {
+      const at = i
       const raw = flushQuote()
       const head = raw[0] ?? ''
-      if (/^\*\*RULES\b/i.test(head)) blocks.push({ t: 'rules', raw })
+      if (/^\*\*RULES\b/i.test(head)) push(at, { t: 'rules', raw })
       else if (/^\*\*VERDICT/i.test(head)) {
-        blocks.push({
+        push(at, {
           t: 'verdict',
           text: raw.join(' ').replace(/^\*\*VERDICT:?\*\*:?\s*/i, '').trim(),
         })
-      } else blocks.push({ t: 'quote', raw })
+      } else push(at, { t: 'quote', raw })
       continue
     }
 
     const lane = line.trim().match(LANE_RE)
     if (lane) {
+      const at = i
       const kind = lane[1].toUpperCase()
       const note = (lane[2] || '').trim()
       i++
       while (i < lines.length && lines[i].trim() === '') i++
 
       if (i < lines.length && /^>/.test(lines[i])) {
-        blocks.push({ t: 'lane', kind, note, raw: flushQuote(), spoken: true })
+        const quoted = flushQuote()
+        push(at, { t: 'lane', kind, note, raw: quoted, spoken: true })
       } else {
         const body = []
         while (
@@ -123,7 +178,7 @@ export function parse(md) {
           body.push(lines[i])
           i++
         }
-        blocks.push({ t: 'lane', kind, note, raw: body, spoken: false })
+        push(at, { t: 'lane', kind, note, raw: body, spoken: false })
       }
       continue
     }
@@ -179,6 +234,7 @@ export function buildWorksheet(md) {
 
   const counters = { A: 0, B: 0, C: 0 }
   let pendingBeat = null
+  let curSection = null
 
   for (let n = 0; n < blocks.length; n++) {
     const b = blocks[n]
@@ -192,13 +248,14 @@ export function buildWorksheet(md) {
     }
 
     if (b.t === 'section') {
+      curSection = b.text
       out.push(`### SECTION: ${b.text}`)
       out.push('')
       continue
     }
 
     // Record the heading only. The counter increments when a SAY lane actually
-    // EMITS a beat — a beat with only SHOW/EDIT produces nothing in a
+    // EMITS a beat — a beat with only VIDEO produces nothing in a
     // voiceover-only file, and must not consume a number and leave a gap.
     if (b.t === 'beat') {
       pendingBeat = { text: b.text.replace(/^[\d.]+\s*·\s*/, '') }
@@ -209,6 +266,25 @@ export function buildWorksheet(md) {
       out.push(`> **VERDICT** ${PREFILLED_TAG}`)
       out.push(`> ${b.text}`)
       out.push('')
+      continue
+    }
+
+    // A body section CARD: one NOTES lane, no `####` beat, and nothing spoken
+    // written for him. He still needs a slot to write the section into, so the
+    // card emits one keyed on the section name. The bullets themselves stay out
+    // of this file for the same reason every other instruction does — he reads
+    // them in the desk, or in script-plan.md beside this one.
+    if (b.t === 'lane' && b.kind === 'NOTES' && letterFor(n) === 'B') {
+      counters.B += 1
+      const id = `B${counters.B}`
+      out.push(`#### ${id} · ${pendingBeat?.text ?? curSection ?? 'Untitled section'}    target — words`)
+      out.push('')
+      out.push('**Voiceover**')
+      out.push('>')
+      out.push('>')
+      out.push('>')
+      out.push('')
+      pendingBeat = null
       continue
     }
 
@@ -242,7 +318,7 @@ export function buildWorksheet(md) {
       continue
     }
 
-    // SHOW, EDIT, rules, plain quotes, prose: dropped on purpose. They belong to
+    // VIDEO, rules, plain quotes, prose: dropped on purpose. They belong to
     // outline.pdf. Repeating them here is the mistake this format exists to avoid.
   }
 

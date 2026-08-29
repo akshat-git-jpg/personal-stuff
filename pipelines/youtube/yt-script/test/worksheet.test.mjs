@@ -8,7 +8,11 @@ import { buildWorksheet, parse, bodyPartIndex } from '../render-worksheet.mjs'
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(HERE, '..')
 const VIDEOS = join(ROOT, 'videos')
-const REAL = ['ai-avatar-generator-comparison', 'ai-avatar-generators', 'character-consistency-ai']
+// Was the three 2026-08 videos. The owner deleted them on 2026-08-28 — *"You can
+// remove older videos scripts, consider this as the first video which we are
+// testing using this flow"* — so `vox-style-video-ai` is now the only real plan
+// and the only fixture. Add a key here when a second video reaches step 050.
+const REAL = ['vox-style-video-ai']
 
 // A minimal outline exercising every construct this generator must handle.
 const FIXTURE = `# Test Video Title
@@ -22,10 +26,10 @@ const FIXTURE = `# Test Video Title
 >
 >  Scene two. Different face."
 
-**SHOW**
+**VIDEO**
 One portrait full-screen. Hard cut through three scenes.
 
-**EDIT**
+**VIDEO**
 Red box. Glitch sound.
 
 #### First CTA
@@ -45,7 +49,7 @@ Red box. Glitch sound.
 **SAY**
 > "Quick intros. OpenArt, InVideo, Higgsfield."
 
-**SHOW**
+**VIDEO**
 Skim each platform panel.
 
 > **VERDICT:** Five tools, five approaches.
@@ -115,9 +119,9 @@ test('verdicts are pre-filled wherever they appear', () => {
   assert.match(buildWorksheet(FIXTURE), /> \*\*VERDICT\*\* ✎ pre-filled[^\n]*\n> Five tools, five approaches\./)
 })
 
-test('SHOW, EDIT and RULES never reach the worksheet', () => {
+test('VIDEO and RULES never reach the worksheet', () => {
   const ws = buildWorksheet(FIXTURE)
-  for (const banned of ['**SHOW**', '**EDIT**', 'RULES', 'One portrait full-screen', 'Red box. Glitch sound.', 'Skim each platform panel', 'Orientation only']) {
+  for (const banned of ['**VIDEO**', '**VIDEO**', 'RULES', 'One portrait full-screen', 'Red box. Glitch sound.', 'Skim each platform panel', 'Orientation only']) {
     assert.ok(!ws.includes(banned), `worksheet must not contain ${banned}`)
   }
 })
@@ -191,11 +195,14 @@ for (const key of REAL) {
   })
 }
 
+// Re-pointed from character-consistency-ai to vox-style-video-ai on 2026-08-28,
+// when the owner deleted the older scripts. The assertion is unchanged in
+// substance: one real cold-open line, checked verbatim end to end.
 test('byte identity covers a real intro end to end', () => {
-  const md = readFileSync(join(VIDEOS, 'character-consistency-ai', 'script-plan.md'), 'utf8')
+  const md = readFileSync(join(VIDEOS, 'vox-style-video-ai', 'script-plan.md'), 'utf8')
   const ws = buildWorksheet(md)
   assert.ok(
-    ws.includes('> "Perfect face. Perfect outfit. Exactly the character you wanted.'),
+    ws.includes('> You have probably seen shots like this one before.'),
     'PREFILLED_DRIFT: the real cold-open line did not survive verbatim'
   )
 })

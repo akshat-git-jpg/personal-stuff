@@ -20,6 +20,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Cron architecture (Pattern B) | [`VPS-CRONS.md`](VPS-CRONS.md) |
 | Background jobs on the MacBook (launchd agents) | [`MAC-LAUNCHD.md`](MAC-LAUNCHD.md) |
 | Every live URL across this repo (incl. `pipelines/`) | [`my-hosted-sites.md`](my-hosted-sites.md) |
+| **Affiliate links, click tracking, "why is this link not earning"** — the money path | `apps/tutorial-tracker-app/CLAUDE.md` (**Links tab** section: the catalogue, its invariants, affiliate-code detection) then `apps/redirector/CLAUDE.md` (**What counts as a click**). Chain: YouTube description → `go.agrolloo.com/<code>/<tool>` → `CLICKS_KV` → affiliate URL, with the click logged to `clicks-db` |
 | Who I am, active bets, product inventory, idea backlog | `context/` (start at [`context/CLAUDE.md`](context/CLAUDE.md)) |
 | A custom Claude skill (source of truth) | `.claude/skills/` for anything a root-level session needs; `pipelines/.claude/skills/` for pipelines-domain skills (symlinked up so a root session sees them). Skills are **repo-scoped** — no global store, no per-account manifest (decisions.md 2026-08-25) |
 | Repo hygiene — the maintainer agent, its jobs and how to run one | [`tooling/maintainer/README.md`](tooling/maintainer/README.md) |
@@ -27,7 +28,8 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Auditing Claude's file-based memory (what it is for, the four-question test, the audit) | [`tooling/maintainer/jobs/memory/runbook.md`](tooling/maintainer/jobs/memory/runbook.md) |
 | CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude, cf-email, drive, heygen-web, local-apps-dashboard, flights, flow-queue) | `tooling/cli/` |
 | Printing Press Go CLIs (`paypal-txns-pp-cli`, `impact-pp-cli`, others) and where their source is backed up | `tooling/press-clis/README.md` |
-| Session tags in the Claude Code agents view (ctrl+e / tag view unlock, auto-repatch) | `tooling/cli/pp-claude-tags/README.md` |
+| Session tags across your Claude Code sessions - the agents view grouped by tag (`pp-agents`) | `tooling/cli/pp-agents/README.md` |
+| Why the old binary-patch approach to tags was abandoned on 2.1.246 | `tooling/cli/pp-claude-tags/README.md` |
 | Send image-gen prompts to Google Flow from any pipeline (approve-the-look gates) | `tooling/cli/flow-queue/README.md` + the browser extension in `pipelines/video/zapi-flow-ext/` |
 | Flight search with live prices | `tooling/cli/flights/README.md` (`pp-flights`) |
 | Trains, railway timetables, fares, PNR | [`docs/indian-railways-data-sources.md`](docs/indian-railways-data-sources.md) — read before trusting any train result |
@@ -48,6 +50,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Implementation plans for executor agents (write or run one) | [`plans/README.md`](plans/README.md) — convention in [`plans/WORKFLOW.md`](plans/WORKFLOW.md) |
 | Infra (docker compose, VPS watchdog, secrets, secrets escrow) | `infra/` |
 | DSA practice notes/solutions | `learning/DSA/` |
+| System design study — Kafka, taught visually (Excalidraw diagrams + interview answers, food delivery example) | `learning/System-Design/Kafka/kafka-food-delivery/` |
 | Repo-wide scripts + external path dependencies | `scripts/README.md` |
 
 
@@ -63,11 +66,27 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 
 - **When making technical decisions, don't weight development cost as if humans were writing the code.** Models estimate effort from human training data and implicitly reject good solutions as "too expensive" — an agent builds in minutes what it estimates in weeks. Pick the right design, not the cheap one.
 
+- **This repo has TWO operators on TWO platforms. Build for both.** The owner is on
+  macOS. His sister has the same repo cloned on **Windows**, runs Claude Code in it,
+  uses the skills, and does real work here (video editing and adjacent jobs). She is
+  **not technical**: she will not debug a path, install a runtime, or read an error
+  and work out what it means.
+
+  So, for anything new: prefer what already works on both — a browser page over a
+  local server, a repo-committed file over a per-machine setting, `node`/`npm` over
+  a shell script, a forward-slash path over a platform-specific one. When a Windows
+  gotcha is unavoidable, `personal-stuff-build-and-env` (**"Windows / any machine
+  not running the dual-account scheme"**) is where it goes, with the fix inline.
+
+  **The escape hatch, when something genuinely can only be fixed on her machine:**
+  do not write her a runbook. Write a **prompt** the owner forwards to her Claude,
+  which does the fix locally. She should never be the one holding the instructions.
+
 - A folder's `README.md` orients a human; its `CLAUDE.md` (where present) tells Claude how to operate there.
 - `INFRA.md` — canonical Cloudflare + VPS + DNS inventory.
 - `VPS-CRONS.md` — cron architecture (Pattern B). It's a runbook, not auto-loaded; open it only for cron work.
 - `my-hosted-sites.md` — flat index of every live URL across this repo, including `pipelines/`.
 - Skills are **repo-scoped**: Claude Code reads `.claude/skills/` automatically for whoever opens the repo, so nothing depends on which Claude account is logged in. Two exceptions, both machine-local and both handled by `scripts/relink.sh`: Codex has no per-repo skill path (`.claude/codex-skills.txt` lists the few it gets globally), and five person-level skills are duplicated into the private `work-skills` plugin by `scripts/sync-shared-skills.sh`.
 - **Changing tracked files? Claim a workspace first.** `cd "$(pp-work claim --kind code --slug <task>)"` — the main checkout refuses to record git history (`.claude/hooks/no-history-in-main.sh`).
-- **On main: read, talk, and scratch only.** Any edit you intend to KEEP — including a one-line append to `decisions.md` — claims a workspace FIRST. There is no such thing as a safe "one-off" edit here: you cannot commit it in main, so it sits in a tree two sessions share until someone else's commit sweeps it up (2026-08-22) or you lose track of it. The Stop hook now nags on a dirty main checkout, but by then the work is already in the wrong place.
+- **On main: read, talk, and scratch only.** Any edit you intend to KEEP — including a one-line append to `decisions.md` — claims a workspace FIRST. There is no such thing as a safe "one-off" edit here: you cannot commit it in main, so it sits in a tree two sessions share until someone else's commit sweeps it up (2026-08-22) or you lose track of it. **Two walls enforce this now**, both `PreToolUse` hooks: `no-history-in-main.sh` refuses git verbs that record history, and `no-edits-in-main.sh` refuses an Edit/Write to a *tracked* file (untracked scratch stays allowed; one-off override is `touch .claude/allow-main-edit`, which expires after 10 minutes). The Stop hook still nags on a dirty checkout, as the backstop for whatever slips past both.
 - **The claim decision gets re-asked when the job grows.** A turn that starts as a question needs no workspace; the moment it turns into an edit you mean to keep, it does. Nothing prompts you at that boundary — 2026-08-23, a PayPal reporting question became a code fix plus two doc edits, all of them landing in main.

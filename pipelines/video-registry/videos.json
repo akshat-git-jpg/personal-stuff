@@ -40,6 +40,11 @@
       "minted": "2026-08-11",
       "aliases": []
     },
+    "higgsfield-alternatives": {
+      "title": "The Cheapest Higgsfield Alternative",
+      "minted": "2026-08-29",
+      "aliases": []
+    },
     "opusclip-vs-submagic": {
       "title": "OpusClip vs Submagic",
       "minted": "2026-08-04",
@@ -48,6 +53,11 @@
     "test-01": {
       "title": "Pipeline test fixture",
       "minted": "2026-07-18",
+      "aliases": []
+    },
+    "vox-style-video-ai": {
+      "title": "How to Make Vox Style Videos with AI",
+      "minted": "2026-08-27",
       "aliases": []
     }
   }

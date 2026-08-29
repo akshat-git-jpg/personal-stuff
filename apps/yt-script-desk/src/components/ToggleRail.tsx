@@ -6,20 +6,15 @@ type ToggleRailProps = {
   chips?: Array<{ key: keyof Prefs; label: string }>
 }
 
-// `Instructions` is the MASTER: it shows or hides the whole right column, and
-// the four after it only choose what goes inside it. They used to sit in one
-// flat row, so switching the master off left them looking live while clicking
-// them did nothing. The divider and the disabled state below are what say so.
+// `Instructions` shows or hides the whole right column. It used to be a MASTER
+// over three sub-chips, one per lane; the right column is one `Notes` block since
+// 2026-08-29, so there is nothing left for a sub-chip to choose between and the
+// list is empty. Keeping the list means a future second block needs no plumbing.
 const MASTER: { key: keyof Prefs; label: string } = { key: 'instructions', label: 'Instructions' }
 
 // Every label here MUST equal the block header rendered in the right column
 // (WriteView's LANES). Same words in both places — owner's rule 2026-08-23.
-const CHIPS: Array<{ key: keyof Prefs; label: string }> = [
-  { key: 'whatToCover', label: 'What to cover' },
-  { key: 'screenRecording', label: 'Screen Recording notes' },
-  { key: 'generalNotes', label: 'General Notes' },
-  { key: 'videoEditor', label: 'Video Editor Notes' },
-]
+const CHIPS: Array<{ key: keyof Prefs; label: string }> = []
 
 export const FULL_SCRIPT_CHIPS: Array<{ key: keyof Prefs; label: string }> = [{ key: 'beatLabels', label: 'Beat labels' }]
 

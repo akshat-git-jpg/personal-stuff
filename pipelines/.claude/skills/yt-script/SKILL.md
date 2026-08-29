@@ -1,6 +1,6 @@
 ---
 name: yt-script
-description: Turn owner-supplied knowledge into a YouTube outline, then a beat-by-beat script plan, then a VO-ready final script. Fourteen numbered steps with six owner gates, tabulated in the skill body, each with its own folder under pipelines/youtube/yt-script/steps/. Triggers on "yt-script", "outline for <video>", "write the outline", "write the script plan", "publish to the desk", "here's the completed draft", "finalise the script", "make it VO-ready".
+description: Turn owner-supplied knowledge into a YouTube outline, then a script plan of section cards, then a VO-ready final script. Fourteen numbered steps with six owner gates, tabulated in the skill body, each with its own folder under pipelines/youtube/yt-script/steps/. Triggers on "yt-script", "outline for <video>", "write the outline", "write the script plan", "publish to the desk", "here's the completed draft", "finalise the script", "make it VO-ready".
 user-invocable: true
 metadata:
   author: kbtg
@@ -29,9 +29,8 @@ knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  scri
 | `020-approve-knowledge-human` | **[OWNER]** | You fill the gaps it found, then say go |
 | `030-write-outline-llm` | [LLM] | One page: sections and headings only, no script |
 | `040-approve-outline-human` | **[OWNER]** | You approve the direction, while it is cheap to change |
-| `050-write-script-draft-llm` | [LLM] | Expands the approved outline into the full beat-by-beat draft |
-| `055-review-plan-md-human` | **[OWNER]** | You read the raw markdown and get your edits in cheap |
-| `060-review-local-desk-human` | **[OWNER]** | You open it on your machine and give feedback |
+| `050-write-script-draft-llm` | [LLM] | Turns the approved outline into the intro, the conclusion, and one card per body section |
+| `055-review-plan-human` | **[OWNER]** | You read the markdown and the local desk side by side, and give feedback |
 | `070-publish-desk-run` | [RUN] | Publishes and prints the freelancer URL |
 | `080-freelancer-writes-human` | **[OWNER]** | He records, writes his lines, tells you he is done |
 | `090-pull-draft-run` | [RUN] | Pulls his completed draft back into the repo |
@@ -43,9 +42,32 @@ knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  scri
 `ls steps/` is the check that keeps this table honest. A step on disk that is not
 in this table, or a row here with no folder, is a bug in the docs.
 
-**Six owner gates: 020, 040, 055, 060, 080, 110. None is skippable.** The owner drives
+**Five owner gates: 020, 040, 055, 080, 110. None is skippable.** The owner drives
 every transition — never advance a step on your own, and never treat "it looks
 fine" as approval.
+
+## Tutorial or comparison — the fork that runs through everything
+
+Every video here is one or the other, and the two shapes diverge at every
+writing step. **Step 010 calls it and the session states the call; it is never a
+question for the owner.** He overrides at gate 040, which is the last cheap
+moment. Owner decision, 2026-08-27.
+
+`outline.md` carries the call on its first line as `Format: tutorial` or
+`Format: comparison`, and steps 050 and 100 read it before writing. Where each
+file forks:
+
+| File | What forks |
+|---|---|
+| `steps/010-take-knowledge-llm/README.md` | who makes the call, and the `# Approaches` section a tutorial needs |
+| `OUTLINE-INSTRUCTIONS.md` | section shape, and the `Format:` line itself |
+| `SCRIPT-PLAN-INSTRUCTIONS.md` | by-factor vs by-phase, and whether a section closes on a `VERDICT` |
+| `SCRIPT-INSTRUCTIONS.md` | the walk's structure, scorecards, exact-value rules |
+| `TASTE.md` | how T3–T5 read outside the comparison scripts they were seeded from |
+
+**The failure this prevents:** a tutorial written with comparison habits becomes
+a ranked survey of approaches instead of a walkthrough of one. It reads fine and
+teaches nothing.
 
 ## What changed on 2026-08-23 (read this if you remember the old flow)
 
@@ -55,22 +77,29 @@ Three things, all owner decisions:
    never one — it held verbatim intro and conclusion copy plus 25+ beats with
    lanes, which is a draft script. It is now `script-plan.md` (step 050), and
    `outline.md` is a new, earlier, one-page document (step 030) holding sections
-   and one line each. The owner approves *direction* there, when changing it is
+   and a card each. The owner approves *direction* there, when changing it is
    still cheap.
 2. **The local review gate exists.** The old step 2 published the live freelancer
    URL *before* any owner review, then said "wait for approval" — approval of a
    link that already existed. Publishing is now step 070 and happens only after
-   the owner has seen the real UI at 060.
+   the owner has seen the real UI at 055.
 3. **No HTML or PDF.** `render-outline.mjs` and `render-script.mjs` are dropped
    from the flow. The script desk replaced the outline PDF as the handoff, and
    the VO engine reads the per-section `script.json` (`script.vo.txt`, which this
    note originally named, was dropped by plan 252), so nothing read the script PDF
    any more. The scripts still exist in the folder; the flow does not call them.
 
-4. **The markdown gets read before the desk boots (added 2026-08-23).** Step 055
-   is a plain read of `script-plan.md` in an editor — no server, no browser. The
-   wording and the section order settle there, cheaply, and 060 is left to ask the
-   only question the markdown cannot answer: does it work in the two-track UI.
+4. **The markdown and the desk are one gate (055).** Added as two separate gates
+   on 2026-08-23, merged on 2026-08-27 at the owner's request: *"merge the two
+   steps"*. He keeps `script-plan.md` open in an editor and the local desk open in
+   a browser at the same time, edits the markdown, and refreshes. The desk
+   re-reads the file on every request, so there is nothing to restart and no
+   session involvement in the loop.
+
+   The two questions the two views answer are still worth knowing, and 055's
+   README names them, along with a third that only appears when both are open: a
+   malformed lane label, which `lib/beats.mjs` drops to plain prose silently and
+   which the markdown therefore cannot show you.
 
 ## If the desk is down
 
@@ -94,10 +123,10 @@ desk.
 
 | File | Written by | What it is |
 |---|---|---|
-| `videos/<key>/knowledge.md` | 010 | Every source, as TEXT. The only input later steps read |
+| `videos/<key>/knowledge.md` | 010 | Every source, as TEXT, plus the `# Approaches` menu where the topic has one. The only input later steps read |
 | `videos/<key>/sources/` | 010 | The originals — screenshots, fetched pages, transcripts. Provenance, tracked |
-| `videos/<key>/outline.md` | 030 | One page. Sections and one line each. The direction |
-| `videos/<key>/script-plan.md` | 050 | The beat-by-beat document the desk publishes |
+| `videos/<key>/outline.md` | 030 | A table of contents plus a card per section. Carries `Format:` and `Target:`. The direction |
+| `videos/<key>/script-plan.md` | 050 | The document the desk publishes: verbatim intro and conclusion, plus one card per body section |
 | `videos/<key>/script-draft.md` | 090 | The maker's completed work, verbatim. Provenance, tracked |
 | `videos/<key>/script.md` | 100 | The final VO script, human-readable |
 | `videos/<key>/script.json` | 100 | The per-section engine feed. Step 120's input |
@@ -125,10 +154,21 @@ question for him, never a cue to go find the answer.
 
 ## Hard rules
 
-- **Never skip a gate.** 020, 040, 055, 060, 080, 110. "The outline is obviously fine"
+- **Never skip a gate.** 020, 040, 055, 080, 110. "The outline is obviously fine"
   is not approval.
-- **Never publish before 060.** Publishing mints a live secret URL. Reviewing
+- **Never publish before 055.** Publishing mints a live secret URL. Reviewing
   after that is reviewing something already shipped.
+- **Never ask the owner whether a video is a tutorial or a comparison.** 010
+  decides; gate 040 is where he overrides.
+- **Never name an approach without its detail.** The owner picks the approach at
+  gate 020, so a list of tool names with no cost, no steps and no failure modes
+  hands the decision back with the evidence removed.
+- **Never ask whether the method works, and never ask about the owner's
+  experience.** The sources prove the first; `TASTE.md` T7 settles the second.
+  Write the credibility claim as fact and let him correct it at review.
+- **Never pad to hit a length target.** `TASTE.md` T6 wants the video as long as
+  the material honestly carries, and says plainly that repetition breaks the rule
+  rather than serving it. Name the ceiling at the gate instead.
 - **Step 100 finalises someone else's draft.** You do not write the script from
   the script plan. If no draft has come back, there is nothing to do — say so
   instead of writing one yourself.
@@ -169,6 +209,66 @@ Each step is a folder, so changing one is local:
   is room to slot one in.
 - **Kinds** are `llm` (Claude writes it), `run` (a command), `human` (the owner
   decides). A `human` step with a `gate` field is a hard stop.
+
+## The body is section cards on two levels
+
+**The body has two levels, and a card is a leaf.**
+
+- `### SECTION: <name>` is a broad section. It is a chapter of the video.
+- If it carries its own `**NOTES**` bullet list, it is one card.
+- If it carries `#### <name>` SUBSECTIONS instead, each of those is a card with
+  its own `**NOTES**`, and the section carries none.
+- **Only split a section that really has parts.** Owner: *"It's not necessary
+  that every section has to be subsections. I think you are forcing it here."*
+
+No `SAY`, no `VIDEO`, no `FACTS`, no `RULES` in a new card. The intro and the
+conclusion are unchanged: verbatim copy in beats, numbered `A1`, `A2`, `C1`.
+
+**Every plan opens with a `## Contents` block** listing sections and subsections,
+titles only. It must match the headings below it.
+
+**Section names are written for search** — the tool, the format, the thing being
+made. `The Best AI Tool for Vox Style Videos`, never `Why one tool beats five`.
+`TASTE.md` T15.
+
+Owner, 2026-08-29: *"I want high level section distinction and their information
+that's it don't break down too much that it's cluttering everything and removes
+the creative freedom from the freelancer."* The body had been ~50 beats across 11
+sections, each beat with three lanes, and the desk sorted those lanes into three
+separate boxes. It is now 11 cards and one box.
+
+**The failure this prevents:** granularity reads as diligence. A fifty-beat plan
+looks more careful than an eleven-card one, right up to the moment somebody has
+to work from it, and by then it is the maker's problem rather than the writer's.
+
+`TASTE.md` T13 (cards), T14 (two levels) and T15 (search-friendly names) are the
+rules; `SCRIPT-PLAN-INSTRUCTIONS.md` is the format. The old lanes still parse, for
+plans written before the change; never write them in a new one.
+
+## The `humanizer` skill writes the spoken words
+
+Steps 050 and 100 both run it. It is required, not a polish option. Owner,
+2026-08-27: *"My script should not look AI generated, so use the humanizer
+skill"* — and the owner's global rule already lists video scripts as
+humanizer's territory.
+
+| Step | Mode | Why that mode |
+|---|---|---|
+| 050 | **B** (new copy) | nothing exists yet; write clean rather than patching |
+| 100 | **A** (edit) | the draft is the maker's. Strip AI tells, keep his voice |
+
+**Getting the mode wrong at 100 is the expensive mistake.** Mode B supplies a
+voice, and that step exists to preserve one. It is the same rule as "His words,
+not yours", reached from the other side.
+
+`SCRIPT-INSTRUCTIONS.md` has the pattern table for speech, the zero-em-dash rule,
+and the one place the house convention and the skill genuinely disagree (the
+spoken roadmap survives pattern 28, because a roadmap carries information and a
+signpost does not).
+
+Not every step is humanizer's. `knowledge.md` (010) and `outline.md` (030) are
+working documents the owner reads, not copy anyone hears. `TASTE.md` T8 already
+keeps their language plain.
 
 ## Not this skill's job
 

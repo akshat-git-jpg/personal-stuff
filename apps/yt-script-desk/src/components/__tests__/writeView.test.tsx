@@ -6,10 +6,6 @@ import type { Prefs } from '../../hooks/usePrefs'
 
 const allOnPrefs: Prefs = {
   instructions: true,
-  whatToCover: true,
-  screenRecording: true,
-  generalNotes: true,
-  videoEditor: true,
   beatLabels: true,
   scriptNotes: false,
 }
@@ -37,7 +33,7 @@ describe('WriteView', () => {
     renderView([beat])
 
     const leftText = screen.getAllByTestId('left-cell').map((c) => c.textContent ?? '').join(' ')
-    const instructionStrings = [...beat.show, ...beat.edit, ...beat.facts, ...(beat.angle ?? [])]
+    const instructionStrings = [...beat.video, ...beat.facts, ...(beat.angle ?? [])]
     for (const s of instructionStrings) {
       expect(leftText.includes(s), `INSTRUCTION_IN_SCRIPT_TRACK: found "${s}" in the left track`).toBe(false)
     }
@@ -68,10 +64,10 @@ describe('WriteView', () => {
     expect(leftCell.querySelectorAll('.say p').length).toBe(2)
   })
 
-  it('hides General Notes when its toggle is off, and drops right cells entirely when Instructions is off', () => {
+  it('drops right cells entirely when Instructions is off', () => {
     const beat = makeReadBeat({ facts: ['A fact line.'] })
-    const { rerender } = renderView([beat], { ...allOnPrefs, generalNotes: false })
-    expect(screen.queryByText('A fact line.')).toBeNull()
+    const { rerender } = renderView([beat])
+    expect(screen.getByText('A fact line.')).toBeTruthy()
 
     rerender(
       <WriteView

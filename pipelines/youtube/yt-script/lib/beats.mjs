@@ -32,7 +32,7 @@ const BEAT_RE = /^([0-9A-Za-z][0-9A-Za-z.]*)\s*·\s*(.*)$/
 
 // A pre-spec outline uses `### 1. Cold Open` for a beat and `**Voiceover**` /
 // `**Notes**` for its lanes. SCRIPT-PLAN-INSTRUCTIONS.md settled on `#### 1 · Cold
-// Open` with `**SAY**` / `**SHOW**` / `**EDIT**`, and the block parser only
+// Open` with `**SAY**` / `**VIDEO**` / `**DEMO**`, and the block parser only
 // knows that spelling. Fed a legacy file it does not fail — it quietly returns
 // whichever stray `####` headings happen to exist, so the desk renders a short,
 // plausible, WRONG script. Measured 2026-08-23: ai-avatar-online-courses came
@@ -61,7 +61,7 @@ function refuse(found, parsed) {
     `LEGACY_OUTLINE_FORMAT: this outline predates SCRIPT-PLAN-INSTRUCTIONS.md — ` +
       `found ${found.beats} legacy "### N. Title" beats and ${found.lanes} ` +
       `"**Voiceover**"/"**Notes**" lanes, but parsed ${parsed} beats. ` +
-      `Rewrite it as "#### N · Title" with **SAY** / **SHOW** / **EDIT** lanes, ` +
+      `Rewrite it as "#### N · Title" with **SAY** / **VIDEO** lanes, ` +
       `or the desk will show a short, plausible, wrong script.`,
   )
 }
@@ -100,7 +100,23 @@ export function buildBeats(md) {
   let curPart = null
   let curPartKind = 'intro'
   let curSection = null
+  // Two levels in the body since 2026-08-29. `sectionCount` numbers the top-level
+  // `### SECTION:` headings 1..N; `subCount` numbers the `####` subsections
+  // inside the current one. A section with NO subsections is one card numbered
+  // `3`; a section WITH them has cards `3.1`, `3.2`. Owner: *"Have broader
+  // sections, have subsections... It's not necessary that every section has to
+  // be subsections."*
+  let sectionCount = 0
+  let subCount = 0
+  // The table of contents, DERIVED from the headings rather than read from the
+  // `## Contents` block in the markdown. The desk renders this one, so it can
+  // never disagree with the document below it. The markdown block is for whoever
+  // opens the file in an editor, and `CONTENTS_DRIFT` in test/beats.test.mjs is
+  // what keeps the two the same.
+  const contents = []
   let curRules = []
+  let curSectionFacts = []
+  let curSectionAsk = []
   let pending = null
 
   const flush = () => {
@@ -115,15 +131,26 @@ export function buildBeats(md) {
       flush()
       curPart = b.text
       curPartKind = partKindFor(n)
+      sectionCount = 0
+      subCount = 0
       curSection = null
       curRules = []
+      curSectionFacts = []
+      curSectionAsk = []
       continue
     }
 
     if (b.t === 'section') {
       flush()
       curSection = b.text
+      if (curPartKind === 'body') {
+        sectionCount += 1
+        subCount = 0
+        contents.push({ num: String(sectionCount), title: b.text, level: 1 })
+      }
       curRules = []
+      curSectionFacts = []
+      curSectionAsk = []
       continue
     }
 
@@ -136,11 +163,92 @@ export function buildBeats(md) {
       continue
     }
 
+    // A `FACTS` block between a `### SECTION:` heading and that section's first
+    // `#### beat` belongs to the SECTION, the way a RULES box does.
+    //
+    // Until 2026-08-28 it fell through to `if (!pending) continue` below and was
+    // dropped in SILENCE. Every one of the eleven sections in vox-style-video-ai
+    // had one — the research behind the section, ten to fifteen lines of it — and
+    // none of it ever reached the desk. It looked correct in the markdown, so
+    // nothing pointed at it until the owner added source links to those blocks
+    // and could not find them in the UI.
+    //
+    // It attaches to the section's FIRST beat only, not to every beat: RULES
+    // repeat because breaking one breaks the video, while FACTS are context to
+    // read once. `splice(0)` is what makes it once.
+    if (b.t === 'lane' && b.kind === 'FACTS' && !pending) {
+      curSectionFacts.push(...b.raw)
+      continue
+    }
+
+    // A BODY SECTION CARD. Added 2026-08-29.
+    //
+    // A body section used to hold five to seven `#### 2.n` beats, each with its
+    // own SAY / VIDEO / FACTS lanes. The owner read the result as clutter that
+    // took the job away from the person doing it: *"I want high level section
+    // distinction and their information that's it don't break down too much that
+    // it's cluttering everything and removes the creative freedom from the
+    // freelancer."* So a body section is now ONE card: the section heading, one
+    // flat `**NOTES**` bullet list, one thing to write.
+    //
+    // There is no `####` heading to hang that on, so the card beat is
+    // SYNTHESIZED from the section. `title` is the section name, which is also
+    // what the desk shows as the heading (`groupOf` reads `beat.section`), so
+    // nothing about the rendered card is invented here.
+    //
+    // Only `NOTES` triggers this. A section FACTS or ASK block still attaches to
+    // the section's first real beat, exactly as before, so every plan written in
+    // the old shape parses unchanged.
+    if (b.t === 'lane' && b.kind === 'NOTES' && !pending && curPartKind === 'body') {
+      // A LEAF section: `**NOTES**` sits directly under `### SECTION:` with no
+      // `####` between them, so the section itself is the card and takes the
+      // section's own number.
+      pending = {
+        num: String(sectionCount),
+        title: curSection ?? 'Untitled section',
+        part: curPart,
+        partKind: curPartKind,
+        section: curSection,
+        mode: 'write',
+        say: null,
+        angle: null,
+        demo: [],
+        ask: curSectionAsk.splice(0),
+        video: [],
+        notes: b.raw.slice(),
+        facts: curSectionFacts.splice(0),
+        rules: curRules.slice(),
+        verdict: null,
+      }
+      continue
+    }
+
+    // A section-level ASK - "this whole section drags" - has no beat to hang on, so
+    // it attaches to the section's FIRST beat, exactly like a section FACTS block.
+    // Without this it would hit `if (!pending) continue` below and vanish, which is
+    // the bug that ate every section FACTS block until 2026-08-28.
+    if (b.t === 'lane' && b.kind === 'ASK' && !pending) {
+      curSectionAsk.push(...b.raw)
+      continue
+    }
+
     if (b.t === 'beat') {
       flush()
       const m = b.text.match(BEAT_RE)
+      // In the BODY a `####` heading is a SUBSECTION of the section above it, and
+      // its number is derived rather than typed: `3.1`, `3.2`. Writing the number
+      // by hand meant renumbering eight headings to insert one. An explicit
+      // `#### 3.2 · Name` still wins, so intro and conclusion beats — which carry
+      // their own `1.1`, `3.1` — are untouched.
+      let num
+      if (m) num = m[1]
+      else if (curPartKind === 'body') {
+        subCount += 1
+        num = `${sectionCount}.${subCount}`
+        contents.push({ num, title: b.text.trim(), level: 2 })
+      } else num = String(beats.length + 1)
       pending = {
-        num: m ? m[1] : String(beats.length + 1),
+        num,
         title: (m ? m[2] : b.text).trim(),
         part: curPart,
         partKind: curPartKind,
@@ -148,9 +256,11 @@ export function buildBeats(md) {
         mode: curPartKind === 'body' ? 'write' : 'read',
         say: null,
         angle: null,
-        show: [],
-        edit: [],
-        facts: [],
+        demo: [],
+        ask: curSectionAsk.splice(0),
+        video: [],
+        notes: [],
+        facts: curSectionFacts.splice(0),
         rules: curRules.slice(),
         verdict: null,
       }
@@ -174,12 +284,35 @@ export function buildBeats(md) {
           pending.say = b.raw.slice()
           pending.mode = 'read'
         }
-      } else if (b.kind === 'SHOW') {
-        pending.show.push(...b.raw)
-      } else if (b.kind === 'EDIT') {
-        pending.edit.push(...b.raw)
+      } else if (b.kind === 'VIDEO' || b.kind === 'SHOW' || b.kind === 'EDIT') {
+        // ONE lane for the picture. Filming, screen-recording and post used to be
+        // two lanes, SHOW and EDIT, and the split bought nothing: the same person
+        // does both, one after the other, on the same beat. Owner, 2026-08-28:
+        // *"I don't like having screen recording notes and video editing notes,
+        // can you just club them both together and make it just video notes."*
+        // SHOW and EDIT are kept as ALIASES, not as separate arrays, so a plan
+        // written before the merge parses with nothing dropped. Write VIDEO.
+        pending.video.push(...b.raw)
+      } else if (b.kind === 'NOTES') {
+        // The section card's bullet list. Normally the card was synthesized by
+        // the branch above and this never fires; it does fire for a SECOND NOTES
+        // block in one section, which appends rather than starting a new card.
+        pending.notes.push(...b.raw)
       } else if (b.kind === 'FACTS') {
         pending.facts.push(...b.raw)
+      } else if (b.kind === 'ASK') {
+        // The owner's own question for Claude, parked in the markdown while he
+        // reviews. It rides the beat so the desk can show it in place, and it is
+        // stripped before anything is published - see `desk.mjs publish`.
+        pending.ask.push(...b.raw)
+      } else if (b.kind === 'DEMO') {
+        // A silent stretch: something plays or is shown and NOBODY SPEAKS. It is
+        // timeline content, not an instruction, which is why it renders in the
+        // desk's left track next to the spoken copy rather than in the right
+        // one. Added 2026-08-27: the owner could not see the cold open in the
+        // timeline, because 12 seconds of video playing with no voiceover had
+        // nowhere to live. How to shoot it still belongs in the VIDEO lane.
+        pending.demo.push(...b.raw)
       }
       continue
     }
@@ -188,7 +321,20 @@ export function buildBeats(md) {
   flush()
   assertNotLegacyBeats(md, beats)
 
-  return { title, beats }
+  return { title, contents, beats }
+}
+
+// The `## Contents` block as it is WRITTEN in the markdown, normalised to the
+// same shape `buildBeats` derives. Only `CONTENTS_DRIFT` uses it: the desk always
+// renders the derived list, so a stale block in the file is a documentation bug
+// rather than a rendering one, and this is what turns it into a failing test.
+export function writtenContents(md) {
+  const block = parse(md).find((b) => b.t === 'contents')
+  if (!block) return null
+  return block.raw
+    .map((l) => l.trim().match(/^([0-9]+(?:\.[0-9]+)?)[.)]?\s+(.*)$/))
+    .filter(Boolean)
+    .map((m) => ({ num: m[1], title: m[2].trim(), level: m[1].includes('.') ? 2 : 1 }))
 }
 
 // ---------------------------------------------------------------- CLI
@@ -211,4 +357,122 @@ function main(argv) {
 
 if (process.argv[1] && basename(process.argv[1]) === 'beats.mjs') {
   main(process.argv.slice(2))
+}
+
+// ---------------------------------------------------------------- edit model
+
+// `buildBeats` above answers "what does the maker read?" — lanes merged into
+// arrays, section rules copied onto every beat, section facts folded into the
+// first beat. That shape is right for READING and useless for EDITING: once
+// two `VIDEO` blocks have been concatenated into one `video` array there is no
+// way back to the two places in the file they came from.
+//
+// `buildEditModel` answers the other question: "what is actually in the file,
+// and where?" Every block keeps its own source range, in source order, owned by
+// the beat or section it physically sits under. The desk's edit mode renders
+// from THIS, so a delete or a move is always a splice of real lines the owner
+// can see, never a guess at which half of a merged array to remove.
+//
+// Added 2026-08-28 for the desk editor. Owner: *"I want it to be editable in
+// such a way that I can cut and move sections here and there or I can delete
+// sections or I can add more notes or delete notes."*
+//
+// Deliberately a SEPARATE pass over the same `parse()` output rather than extra
+// fields threaded through `buildBeats`. The read path is load-bearing and well
+// tested; the editor must not be able to break it.
+export function buildEditModel(md) {
+  const blocks = parse(md)
+  const lines = md.split(/\r?\n/)
+  const textOf = (b) => lines.slice(b.line, b.endLine).join('\n')
+
+  const asBlock = (b) => ({
+    t: b.t,
+    kind: b.kind ?? null,
+    note: b.note ?? '',
+    spoken: b.spoken ?? false,
+    line: b.line,
+    endLine: b.endLine,
+    text: textOf(b),
+  })
+
+  const parts = []
+  const sections = []
+  const beats = []
+  let curPart = null
+  let curSection = null
+  let curBeat = null
+
+  // A block belongs to the most recent beat; failing that, to the most recent
+  // section (that is where a section RULES or FACTS box lives); failing that it
+  // is loose, and edit mode leaves it alone rather than inventing an owner.
+  const own = (b) => {
+    if (curBeat) curBeat.blocks.push(asBlock(b))
+    else if (curSection) curSection.blocks.push(asBlock(b))
+  }
+
+  for (const b of blocks) {
+    if (b.t === 'title') continue
+
+    if (b.t === 'part') {
+      curPart = { text: b.text, line: b.line, endLine: b.endLine }
+      parts.push(curPart)
+      curSection = null
+      curBeat = null
+      continue
+    }
+
+    if (b.t === 'section') {
+      curSection = {
+        name: b.text,
+        part: curPart?.text ?? null,
+        line: b.line,
+        endLine: b.endLine,
+        // `head` is the heading line ALONE. `line..endLine` is widened below to
+        // cover everything the section owns, so renaming a section — as opposed
+        // to moving all of it — has to splice this narrower range instead.
+        head: { line: b.line, endLine: b.endLine },
+        blocks: [],
+        beatNums: [],
+      }
+      sections.push(curSection)
+      curBeat = null
+      continue
+    }
+
+    if (b.t === 'beat') {
+      const m = b.text.match(BEAT_RE)
+      curBeat = {
+        num: m ? m[1] : String(beats.length + 1),
+        title: (m ? m[2] : b.text).trim(),
+        part: curPart?.text ?? null,
+        section: curSection?.name ?? null,
+        line: b.line,
+        endLine: b.endLine,
+        head: { line: b.line, endLine: b.endLine },
+        blocks: [],
+      }
+      beats.push(curBeat)
+      curSection?.beatNums.push(curBeat.num)
+      continue
+    }
+
+    own(b)
+  }
+
+  // A beat's range runs from its heading to the end of its last block, and a
+  // section's from its heading to the end of its last beat. Both are computed
+  // from what is actually there rather than from the next heading, so the `---`
+  // separators between sections sit outside every range and stay where they are
+  // when a section is moved.
+  const spanTo = (owner, kids) => {
+    const last = kids[kids.length - 1]
+    owner.endLine = last ? Math.max(owner.endLine, last.endLine) : owner.endLine
+  }
+  for (const beat of beats) spanTo(beat, beat.blocks)
+  for (const sec of sections) {
+    const own = beats.filter((x) => x.section === sec.name && x.part === sec.part)
+    spanTo(sec, [...sec.blocks, ...own])
+  }
+
+  return { parts, sections, beats }
 }
