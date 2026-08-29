@@ -69,9 +69,21 @@ export function FullScript({ doc, loadError, beatLabels, onRetry, onFinish }: Fu
 function BeatRows({ beat, doc, beatLabels }: { beat: Beat; doc: VideoDoc; beatLabels: boolean }) {
   const paragraphs = resolveBeatParagraphs(beat, doc)
   const hasVerdict = Boolean(beat.verdict && beat.verdict.trim().length > 0)
+  // The DEMO lane does NOT appear here. This view is the read-through — the
+  // words that come out of the narrator's mouth, in order, and nothing else.
+  // A silent stretch has no words, so it printed as `[The finished Vox shot
+  // plays. No voiceover.]` in the middle of the copy, in the same serif face,
+  // reading as a line to say. Owner, 2026-08-29: *"why is [The finished Vox shot
+  // plays...] showing in full script.. it's not part of script vocal right.. fix
+  // it generically."*
+  //
+  // It is still in the model and still renders in the WRITE view's left track,
+  // which is the audio TIMELINE and where a silent stretch belongs. The two
+  // views answer different questions: the timeline asks "what happens when", the
+  // read-through asks "what do I say".
   const hasDemo = beat.demo.length > 0
   // A beat that is only a silent stretch is not unwritten — there is nothing to
-  // write. Counting it as unwritten put "Not written yet." on the cold open.
+  // write, and nothing to read out either, so it contributes no rows at all.
   const isUnwritten = paragraphs.length === 0 && !hasVerdict && !hasDemo
   const label = beatLabels ? beat.num : ''
   // The outline's heading, not a title invented for the beat — same rule as the
@@ -92,11 +104,6 @@ function BeatRows({ beat, doc, beatLabels }: { beat: Beat; doc: VideoDoc; beatLa
       </div>
       <div className="bd">
         {!LABELS_LIVE_IN_THE_MARGIN && inProse && <span className="mk-in-prose">{inProse} </span>}
-        {hasDemo && (
-          <p className="fs-demo" data-testid="fs-demo">
-            [{beat.demo.join(' ')}]
-          </p>
-        )}
         {isUnwritten ? (
           <p className="not-written">Not written yet.</p>
         ) : (

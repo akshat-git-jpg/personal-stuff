@@ -177,3 +177,28 @@ something already shipped. This was the real bug on 2026-08-23, when the old ste
 ## Also registered in localapps
 
 `tooling/cli/local-apps-dashboard/apps.json`, id `script-desk`, ports 5175 + 4327.
+
+## Editing while you review
+
+**Click what you want to change.** Notes and spoken lines are editable in place in
+the local desk since 2026-08-29. The card shows `edited, not yet applied` and the
+edit sits in `desk-draft.json` — `script-plan.md` is untouched until you say so.
+
+**Then it all lands in one commit:**
+
+```bash
+cd apps/yt-script-desk
+node bin/desk.mjs edits <key>     # everything staged, as a diff
+node bin/desk.mjs apply <key>     # spliced into script-plan.md, stage cleared
+```
+
+Owner, 2026-08-29: *"can we do commit in 1 go. i will edit wherever required and
+tell you once all are reviewed and done. then you can update/edit in 1 go."*
+
+Editing the markdown in your own editor still works and always will — the desk
+re-reads the file on every request. The two are interchangeable, but do not do
+both to the same block in one sitting: `apply` writes the staged version over
+whatever is on disk.
+
+**`?edit=1`** on the local URL brings back the whole-file editor, for moving or
+deleting a section — the things in-place editing cannot do.

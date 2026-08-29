@@ -5,7 +5,7 @@
 ### The two-track rule
 **The left track is the audio timeline. Instructions never enter it.** The desk splits every beat into two columns:
 1. The audio timeline on the left: words that will be spoken, lines the maker writes himself, and a **DEMO** block marking a stretch where nothing is spoken at all.
-2. Instructions on the right, in ONE block headed **Notes**, behind the `Instructions` toggle.
+2. Instructions on the right, in ONE block headed **Notes**, behind the `Instructions` toggle. **Editable in place** in local mode: hover, pencil, type, blur.
    (It was three blocks with three chips — What to cover, Video notes, General notes — until 2026-08-29. Owner: *"remove those sections about video notes separately, general notes separately, everything else. Just need a simple bullet points."* One reader, one job, one list.)
 
 **DEMO is the one thing in the left track that is not spoken copy, and it is not an exception to the rule.** A silent stretch is timeline content: something plays and nobody talks. Added 2026-08-27, because a 12-second cold open with no voiceover had nowhere to appear, so the timeline read as if the video began on the first spoken line. How to shoot it stays in SHOW; how to cut it stays in EDIT. A DEMO lane that grows shooting notes has smuggled an instruction into the left track. Guarded by `src/components/__tests__/demoLane.test.tsx`.
@@ -21,6 +21,44 @@ PATH="/opt/homebrew/opt/node@22/bin:$PATH" npx vitest run
 ```
 
 Verified 2026-08-29: Node 20.18.3 fails, Node 22.14.0 passes 146/146.
+
+## Editing: in place, staged, applied in one go
+
+**The owner edits notes and spoken lines by clicking them.** The edit does NOT
+rewrite `script-plan.md`. It stages in `videos/<key>/desk-draft.json` (gitignored)
+and the card shows `edited, not yet applied` until it is.
+
+Owner, 2026-08-29: *"make the edit in place for script and instructions"* and
+*"can we do commit in 1 go. i will edit wherever required and tell you once all
+are reviewed and done. then you can update/edit in 1 go."*
+
+```bash
+node bin/desk.mjs edits <key>            # what is staged, as a diff
+node bin/desk.mjs apply <key>            # splice it all into script-plan.md, clear the stage
+node bin/desk.mjs apply <key> --dry-run  # count only, write nothing
+```
+
+`apply` resolves each block's real source range from `buildEditModel` and splices
+**bottom-up**, so one edit cannot shift another's range. It refuses to write
+markdown that does not parse. Guarded by `bin/__tests__/applyStaged.test.mjs` —
+`APPLY_WRONG_CARD` is the one that matters, because a splice landing on the wrong
+card rewrites a section nobody was looking at.
+
+**Notes editing is local only.** The hosted freelancer link passes no handler, so
+the pencil never renders and he cannot rewrite his own brief.
+
+**The whole-file markdown editor is hidden**, not deleted. `?edit=1` on the local
+URL brings it back. It still does the thing in-place editing cannot: move a
+section, delete one, add a block. Owner, asked whether to remove it: *"Keep it,
+just hidden."*
+
+## The DEMO lane is not in the full script
+
+The read-through is what the narrator says, in order. A silent stretch has no
+words, so it does not appear there — it printed as `[The finished Vox shot plays.
+No voiceover.]` in the same serif face until 2026-08-29 and read as a line to
+say. It still renders in the write view's LEFT track, which is the audio
+timeline, and that is where it belongs.
 
 `npm run dev:local` runs two things: Vite (watches `src/`, reloads on save) and `server/local.mjs` (a plain node process that imported `buildBeats` **at startup**). Change the parser in `pipelines/youtube/yt-script/lib/` and the frontend picks it up while the API keeps serving the old shape. **Restart `dev:local` after any parser change.**
 

@@ -748,3 +748,50 @@
   font: 500 11px var(--mono);
   color: var(--faint);
 }
+
+/* Notes edited in place. The pencil only appears on hover, because it sits in
+   the reading column and a permanent button there reads as a thing to press. */
+.right-block-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.right-block-head .right-block-label { margin-bottom: 0; }
+.right-block-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.right-block-btn + .right-block-btn { margin-left: 0; }
+.rowR:hover .right-block-btn,
+.right-block-btn:focus-visible { opacity: 1; }
+.right-block-btn:hover { border-color: var(--border); color: var(--text); }
+
+/* An edit that has not reached script-plan.md yet. The bar is the whole signal:
+   it says "this is not what the file says" without shouting. */
+.right-block-edited { border-left: 2px solid var(--accent); padding-left: 12px; margin-left: -14px; }
+.right-block-flag {
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.right-block-area {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: 400 13px/1.55 var(--sans);
+  resize: vertical;
+}
+.right-block-area:focus { outline: none; }

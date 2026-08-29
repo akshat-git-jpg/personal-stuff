@@ -1,4 +1,5 @@
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
+import { Pencil, RotateCcw } from 'lucide-react'
 import type { Beat, Edit } from '../types'
 import type { Prefs } from '../hooks/usePrefs'
 import { SayCard } from './SayCard'
@@ -13,6 +14,11 @@ type WriteViewProps = {
   onDraftSave: (num: string, text: string) => Promise<void> | void
   onSaySave: (num: string, lines: string[]) => Promise<void> | void
   onSayRestore: (num: string) => Promise<void> | void
+  // Instruction editing is LOCAL ONLY. On the hosted freelancer link these are
+  // undefined, the pencil never renders, and the notes are read-only.
+  onNotesSave?: (num: string, lines: string[]) => Promise<void> | void
+  onNotesRestore?: (num: string) => Promise<void> | void
+  noteEdits?: Record<string, Edit>
 }
 
 // The governing rule: the left track is the AUDIO TIMELINE. Three things live
@@ -26,7 +32,19 @@ type WriteViewProps = {
 // instruction. Added 2026-08-27, because a cold open of 12 seconds of video with
 // no voiceover had nowhere to appear, so the timeline read as if the video
 // started on the first spoken line.
-export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSaySave, onSayRestore }: WriteViewProps) {
+export function WriteView({
+  beats,
+  prefs,
+  draft,
+  edits,
+  says,
+  onDraftSave,
+  onSaySave,
+  onSayRestore,
+  onNotesSave,
+  onNotesRestore,
+  noteEdits = {},
+}: WriteViewProps) {
   return (
     <div className={`tracks${prefs.instructions ? '' : ' no-notes'}`}>
       {prefs.instructions && <div className="rail" />}
@@ -78,7 +96,11 @@ export function WriteView({ beats, prefs, draft, edits, says, onDraftSave, onSay
 
           {prefs.instructions && (
             <div className="rowR" data-testid="right-cell">
-              {renderRightCell(beat, prefs)}
+              {renderRightCell(beat, {
+                edited: Boolean(noteEdits[beat.num]),
+                onSave: onNotesSave ? (lines) => onNotesSave(beat.num, lines) : undefined,
+                onRestore: onNotesRestore ? () => onNotesRestore(beat.num) : undefined,
+              })}
             </div>
           )}
         </Fragment>
@@ -105,10 +127,18 @@ function laneLines(b: Beat): string[] {
   return [...b.notes, ...(b.angle ?? []), ...b.video, ...b.rules, ...b.facts]
 }
 
-function renderRightCell(beat: Beat, _prefs: Prefs): ReactNode {
+type NoteEditing = {
+  edited: boolean
+  onSave?: (lines: string[]) => void | Promise<void>
+  onRestore?: () => void | Promise<void>
+}
+
+function renderRightCell(beat: Beat, editing: NoteEditing): ReactNode {
   const lines = laneLines(beat)
-  if (lines.length === 0) return <p className="right-empty">No notes for this section.</p>
-  return <InstructionBlock label="Notes" lines={lines} />
+  if (lines.length === 0 && !editing.onSave) {
+    return <p className="right-empty">No notes for this section.</p>
+  }
+  return <InstructionBlock label="Notes" lines={lines} editing={editing} />
 }
 
 // Two inline marks, and only two. Outline authors emphasise with markdown -
@@ -261,15 +291,85 @@ function DemoCard({ lines }: { lines: string[] }) {
   )
 }
 
-function InstructionBlock({ label, lines }: { label: string; lines: string[] }) {
+// The notes block, editable IN PLACE. Owner, 2026-08-29: *"make the edit in
+// place for script and instructions."*
+//
+// The edit is STAGED, not written to script-plan.md — *"i will edit wherever
+// required and tell you once all are reviewed and done. then you can update/edit
+// in 1 go."* So this saves to the desk's scratch store and `bin/desk.mjs apply`
+// splices every staged edit into the markdown in one pass afterwards.
+//
+// Deliberately simpler than SayCard: no confirmation dialog. A spoken line is
+// locked copy someone else has to read aloud, so unlocking it is a decision. A
+// note is the owner's own instruction and he is the only one who ever edits it.
+function InstructionBlock({
+  label,
+  lines,
+  editing,
+}: {
+  label: string
+  lines: string[]
+  editing: NoteEditing
+}) {
+  const [open, setOpen] = useState(false)
+  const [text, setText] = useState(lines.join('\n'))
+  const areaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (open) areaRef.current?.focus()
+  }, [open])
+
+  const start = () => {
+    setText(lines.join('\n'))
+    setOpen(true)
+  }
+
+  const finish = () => {
+    setOpen(false)
+    // Blank lines are how a bullet list gets accidentally broken in a textarea,
+    // and an empty trailing line would land in the markdown as one.
+    editing.onSave?.(text.split('\n').filter((l, i, all) => l.trim() || i < all.length - 1))
+  }
+
   return (
-    <div className="right-block">
-      <div className="right-block-label">{label}</div>
-      {lines.map((line, i) => (
-        <div className="right-block-line" key={i}>
-          {renderEmphasis(line)}
-        </div>
-      ))}
+    <div className={`right-block${editing.edited ? ' right-block-edited' : ''}`}>
+      <div className="right-block-head">
+        <div className="right-block-label">{label}</div>
+        {editing.edited && <span className="right-block-flag">edited, not yet applied</span>}
+        {editing.onSave && !open && (
+          <button type="button" className="right-block-btn" onClick={start} aria-label="Edit notes">
+            <Pencil size={13} strokeWidth={2} />
+          </button>
+        )}
+        {editing.edited && editing.onRestore && !open && (
+          <button
+            type="button"
+            className="right-block-btn"
+            onClick={() => editing.onRestore?.()}
+            aria-label="Undo note edit"
+          >
+            <RotateCcw size={13} strokeWidth={2} />
+          </button>
+        )}
+      </div>
+      {open ? (
+        <textarea
+          ref={areaRef}
+          className="right-block-area"
+          value={text}
+          rows={Math.max(6, text.split('\n').length + 1)}
+          onChange={(e) => setText(e.target.value)}
+          onBlur={finish}
+        />
+      ) : lines.length === 0 ? (
+        <p className="right-empty">No notes for this section.</p>
+      ) : (
+        lines.map((line, i) => (
+          <div className="right-block-line" key={i}>
+            {renderEmphasis(line)}
+          </div>
+        ))
+      )}
     </div>
   )
 }

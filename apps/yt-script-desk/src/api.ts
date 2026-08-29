@@ -78,6 +78,14 @@ export const putDraft = (key: string, num: string, text: string) =>
 export const putSay = (key: string, num: string, lines: string[]) =>
   j(`${base}/beat/${num}/say${keyQuery(key)}`, 'PUT', { lines })
 
+// Staged instruction edits. Local mode only — the hosted Worker has no such
+// route, and the freelancer must not be able to rewrite his own brief.
+export const putNotes = (key: string, num: string, lines: string[]) =>
+  j(`${base}/beat/${num}/notes${keyQuery(key)}`, 'PUT', { lines })
+
+export const restoreNotes = (key: string, num: string) =>
+  j<{ lines: string[] }>(`${base}/beat/${num}/notes/restore${keyQuery(key)}`, 'POST')
+
 export const restoreSay = (key: string, num: string) =>
   j<{ lines: string[] }>(`${base}/beat/${num}/restore${keyQuery(key)}`, 'POST')
 

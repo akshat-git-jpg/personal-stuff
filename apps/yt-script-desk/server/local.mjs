@@ -34,19 +34,35 @@ function outlinePath(key) {
   return join(VIDEOS_ROOT, key, 'script-plan.md')
 }
 
+// `notes` and `noteEdits` are STAGED instruction edits. Added 2026-08-29.
+//
+// Editing a note in the browser does NOT rewrite `script-plan.md`. Owner: *"can
+// we do commit in 1 go. i will edit wherever required and tell you once all are
+// reviewed and done. then you can update/edit in 1 go."* So an edit lands here,
+// in the gitignored scratch file, and `bin/desk.mjs apply` splices every staged
+// edit into the markdown in one pass when he says he is done.
+//
+// It mirrors `says`/`edits` exactly, which have worked this way for spoken copy
+// since the desk existed: the current text in one map, the FIRST original in the
+// other, so a restore always goes back to what the plan said rather than to the
+// previous edit.
+const EMPTY_DRAFT = () => ({ draft: {}, says: {}, edits: {}, notes: {}, noteEdits: {}, finished: false })
+
 function readDraft(key) {
   const p = draftPath(key)
-  if (!existsSync(p)) return { draft: {}, says: {}, edits: {}, finished: false }
+  if (!existsSync(p)) return EMPTY_DRAFT()
   try {
     const raw = JSON.parse(readFileSync(p, 'utf8'))
     return {
       draft: raw.draft ?? {},
       says: raw.says ?? {},
       edits: raw.edits ?? {},
+      notes: raw.notes ?? {},
+      noteEdits: raw.noteEdits ?? {},
       finished: raw.finished ?? false,
     }
   } catch {
-    return { draft: {}, says: {}, edits: {}, finished: false }
+    return EMPTY_DRAFT()
   }
 }
 
@@ -64,17 +80,23 @@ function buildVideoDoc(key) {
   const md = readFileSync(outPath, 'utf8')
   const { title, beats } = buildBeats(md)
   const doc = readDraft(key)
-  // Apply any edited spoken lines on top of the parsed beats before returning.
-  const beatsWithSays = beats.map((b) =>
-    doc.says[b.num] ? { ...b, say: doc.says[b.num] } : b,
-  )
+  // Apply any staged edits on top of the parsed beats before returning: edited
+  // spoken lines, and edited instruction notes.
+  const beatsWithEdits = beats.map((b) => {
+    let out = b
+    if (doc.says[b.num]) out = { ...out, say: doc.says[b.num] }
+    if (doc.notes[b.num]) out = { ...out, notes: doc.notes[b.num] }
+    return out
+  })
   return {
     key,
     title,
-    beats: beatsWithSays,
+    beats: beatsWithEdits,
     draft: doc.draft,
     edits: doc.edits,
     says: doc.says,
+    notes: doc.notes,
+    noteEdits: doc.noteEdits,
     finished: doc.finished,
   }
 }
@@ -194,6 +216,42 @@ const server = createServer(async (req, res) => {
       doc.says[num] = lines
       writeDraft(key, doc)
       return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString() })
+    }
+
+    // PUT /api/beat/:num/notes?key=<key> — a STAGED instruction edit. It does not
+    // touch script-plan.md; `bin/desk.mjs apply` does that, in one pass, later.
+    const notesMatch = url.pathname.match(/^\/api\/beat\/([^/]+)\/notes$/)
+    if (req.method === 'PUT' && notesMatch) {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const num = decodeURIComponent(notesMatch[1])
+      const body = await readBody(req)
+      const lines = Array.isArray(body.lines) ? body.lines : []
+      const doc = readDraft(key)
+      // The first edit captures the original; a later edit leaves it alone, so a
+      // restore always returns to what the plan says rather than to the previous
+      // edit. Same rule as `edits` for spoken copy.
+      if (!doc.noteEdits[num]) {
+        const { beats } = buildBeats(readFileSync(outlinePath(key), 'utf8'))
+        const beat = beats.find((b) => b.num === num)
+        doc.noteEdits[num] = { original: beat?.notes ?? [], at: new Date().toISOString() }
+      }
+      doc.notes[num] = lines
+      writeDraft(key, doc)
+      return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString() })
+    }
+
+    // POST /api/beat/:num/notes/restore?key=<key>
+    const notesRestoreMatch = url.pathname.match(/^\/api\/beat\/([^/]+)\/notes\/restore$/)
+    if (req.method === 'POST' && notesRestoreMatch) {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const num = decodeURIComponent(notesRestoreMatch[1])
+      const doc = readDraft(key)
+      delete doc.notes[num]
+      delete doc.noteEdits[num]
+      writeDraft(key, doc)
+      const { beats } = buildBeats(readFileSync(outlinePath(key), 'utf8'))
+      const beat = beats.find((b) => b.num === num)
+      return sendJson(res, 200, { lines: beat?.notes ?? [] })
     }
 
     // POST /api/beat/:num/restore?key=<key>
