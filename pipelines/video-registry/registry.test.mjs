@@ -112,7 +112,14 @@ test('whereIs finds a folder that sits under an ALIAS, not the canonical key', (
   // script-side folder of best-ai-video-generator, which is on disk as
   // ai-video-tools-comparison. Aliasing exists so folders never move, so
   // whereIs must look under every registered name.
-  const spots = whereIs('best-ai-video-generator');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vreg-whereis-'));
+  const reg = empty();
+  reg.videos['best-ai-video-generator'] = { aliases: ['ai-video-tools-comparison'] };
+
+  fs.mkdirSync(path.join(dir, PIPELINE_VIDEO_ROOTS.script, 'ai-video-tools-comparison'), { recursive: true });
+  fs.mkdirSync(path.join(dir, PIPELINE_VIDEO_ROOTS.visuals, 'best-ai-video-generator'), { recursive: true });
+
+  const spots = whereIs('best-ai-video-generator', dir, reg);
   assert.equal(spots.script.exists, true, 'script-side folder should be found under its alias');
   assert.equal(spots.script.name, 'ai-video-tools-comparison');
   assert.equal(spots.visuals.exists, true);
