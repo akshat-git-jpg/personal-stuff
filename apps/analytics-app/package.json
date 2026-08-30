@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": ". ../../scripts/node22-path.sh && vite",
-    "build": ". ../../scripts/node22-path.sh && tsc -b && vite build",
+    "build": ". ../../scripts/node22-path.sh && npm run sync:income && tsc -b && vite build",
     "lint": "eslint .",
-    "typecheck": ". ../../scripts/node22-path.sh && tsc -b",
+    "typecheck": ". ../../scripts/node22-path.sh && npm install && tsc -b",
     "preview": ". ../../scripts/node22-path.sh && vite preview",
     "test": ". ../../scripts/node22-path.sh && npm install && vitest run",
-    "deploy": ". ../../scripts/node22-path.sh && npm run build && wrangler deploy"
+    "deploy": ". ../../scripts/node22-path.sh && npm run build && wrangler deploy",
+    "sync:income": "node scripts/sync-income.mjs"
   },
   "dependencies": {
     "hono": "^4.12.23",
@@ -20,17 +21,18 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260529.1",
     "@eslint/js": "^10.0.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/react": "^16.3.3",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
     "jsdom": "^25.0.1",
+    "puppeteer-core": "^25.9.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12",

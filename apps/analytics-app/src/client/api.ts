@@ -156,6 +156,49 @@ export async function checkVideoRankings(ytVideoId: string): Promise<CheckResult
   return (await res.json()) as CheckResult;
 }
 
+// ── Income ──────────────────────────────────────────────────────────────────
+
+/** One PayPal program (payer) inside a month. Amounts arrive as strings. */
+export interface IncomeProgram {
+  program: string;
+  received: string;
+  bank_amount: string;
+  count: number;
+}
+
+export interface IncomePayPalMonth {
+  month: string;
+  currency: string;
+  received: string;
+  bank_amount: string;
+  programs: IncomeProgram[];
+}
+
+export interface IncomeStatement {
+  file: string;
+  transactions: number;
+  period_start: string | null;
+  period_end: string | null;
+}
+
+export interface IncomeResponse {
+  /** ISO timestamp of the last ingest, or null if nothing has been ingested. */
+  generated_at: string | null;
+  statements: IncomeStatement[];
+  /** rail id → display label, e.g. { paypal: "PayPal" }. */
+  rails: Record<string, string>;
+  /** "2026-01" → { paypal: 24711.29, personal: 10950 }. Non-rail keys are not income. */
+  bank_by_month: Record<string, Record<string, number>>;
+  paypal?: { months: IncomePayPalMonth[] };
+}
+
+export async function fetchIncome(): Promise<IncomeResponse> {
+  const res = await fetch("/api/income", { credentials: "same-origin" });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error(`Failed to load income (${res.status})`);
+  return (await res.json()) as IncomeResponse;
+}
+
 export async function login(password: string): Promise<void> {
   const res = await fetch("/api/login", {
     method: "POST",

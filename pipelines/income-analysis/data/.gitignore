@@ -1,0 +1,6 @@
+# Everything under data/ is raw bank material: account numbers, addresses,
+# family names, UPI handles. THIS REPO IS PUBLIC. Nothing here may be committed.
+#
+# Only the aggregated numbers in ../summary.json go into git.
+*
+!.gitignore
