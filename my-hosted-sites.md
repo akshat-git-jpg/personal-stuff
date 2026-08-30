@@ -6,6 +6,7 @@
 - Personal dashboard — https://my-dashboard.agrolloo.com
 - Tutorials tracker — https://tutorials-tracker.agrolloo.com
 - YT Analytics (link click dashboard) — https://yt-analytics.agrolloo.com (password-gated)
+- Kushal Income (personal SBI account: salary in, spending by category) — https://kushal-income.agrolloo.com (password-gated) — snapshot only, refreshed by `pipelines/personal-finance/summarise.py` then `npm run deploy`; the bundled data names real counterparties so it is gitignored, never committed; app at `apps/kushal-income`
 - Founders tracker (Khushi + Kushal action items) — https://founders.agrolloo.com (password-gated)
 - Lists (categorized personal lists) — https://lists.agrolloo.com (password-gated)
 - URL shortener — https://go.agrolloo.com
