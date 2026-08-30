@@ -13,7 +13,7 @@
 
 | # | Blocker | Evidence (2026-08-30) |
 |---|---|---|
-| 1 | **Mailboxes** for `@agrolloo.com` — provenance unconfirmed | The panel calls it **Free Business Email**, so it is not what the ₹5,388 buys. Its expiry reads **2026-11-10** — the *domain* date, not the hosting date (10-27) — and the sibling `@agrollo.com` plan is dead *while hosting is active* because that domain lapsed. Both point at email following **domain ownership**, but Hostinger's own marketing says free email ships "with website hosting plans". **Confirm with support before Step 4.** |
+| 1 | **Mailboxes die with the hosting** — SETTLED 2026-08-30 | Hostinger's own tooltip: *"Free email plans renew along with your hosting plan."* Their agent: *"cancelling the hosting plan will also delete the free email accounts, **even if you keep paying for the domain**."* This **contradicts** the earlier inference from the expiry date — email follows the HOSTING, not the domain. The ₹5,388 buys nothing but 2 live mailboxes, and email must be rehomed before cancelling. |
 | 2 | **5 live short links** hop through the WordPress on that hosting | `links` rows `5MyF/filmora`, `L2Is/lumen5`, `SB2g/hostinger`, `f5g4/d-id`, `zhaY/mailchimp` all target `https://agrolloo.com/<tool>`; each returns 302→WordPress→vendor today. |
 | 3 | **`agrolloo.com` is registered in this account** | `--account web api GET /api/domains/v1/portfolio` returns it; the VPS account's token reports it as "not registered at Hostinger". Every app and the money path sit on this domain. |
 
