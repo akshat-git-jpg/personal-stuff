@@ -19,6 +19,7 @@
  */
 
 import type { Env } from "./auth";
+import { DEFAULT_CHANNEL_ID, linkDomainFor, uploadsPlaylistFor } from "./channels";
 
 /** Videos at or under this duration are treated as Shorts and excluded. */
 const SHORTS_MAX_SECONDS = 60;
@@ -104,22 +105,21 @@ interface YtVideo {
   duration_seconds: number;
 }
 
-export async function getVideoStats(env: Env): Promise<VideoStatsResult> {
+export async function getVideoStats(env: Env, channelId: string): Promise<VideoStatsResult> {
   // D1 link/click data, keyed by YouTube video id. D1 is the click source only.
-  const { byYt: linksByYt, unmatched } = await loadLinksByYouTubeId(env);
+  const { byYt: linksByYt, unmatched } = await loadLinksByYouTubeId(env, channelId);
 
   // YouTube uploads are the source of truth for which videos exist.
-  if (!env.YT_API_KEY || !env.CHANNEL_ID) {
+  if (!env.YT_API_KEY) {
     return {
       videos: [],
       youtube_ok: false,
       unmatched,
-      youtube_error: "YouTube isn't configured (missing API key or channel id).",
+      youtube_error: "YouTube isn't configured (missing API key).",
     };
   }
 
-  // Uploads playlist id = channel id with the "UC" prefix swapped to "UU".
-  const uploadsPlaylist = "UU" + env.CHANNEL_ID.slice(2);
+  const uploadsPlaylist = uploadsPlaylistFor(channelId);
   let ytVideos: YtVideo[];
   try {
     const ids = await fetchUploadVideoIds(env, uploadsPlaylist);
@@ -180,11 +180,21 @@ function dateMs(iso: string | null): number {
  *               hid 54 of 69 recorded clicks. They are now returned so the UI can
  *               say so out loud.
  */
-async function loadLinksByYouTubeId(env: Env): Promise<{
+async function loadLinksByYouTubeId(env: Env, channelId: string): Promise<{
   byYt: Map<string, { video_code: string; links: LinkStat[] }>;
   unmatched: UnmatchedVideo[];
 }> {
   const cutoffHour = Math.floor((Math.floor(Date.now() / 1000) - 30 * 86400) / 3600);
+
+  let whereClause: string;
+  let params: string[];
+  if (channelId === DEFAULT_CHANNEL_ID) {
+    whereClause = "WHERE v.channel_id = ? OR v.channel_id IS NULL";
+    params = [channelId];
+  } else {
+    whereClause = "WHERE v.channel_id = ?";
+    params = [channelId];
+  }
 
   // Every shortener video, mapped or not. The `WHERE v.yt_video_id IS NOT NULL`
   // filter used to live here and was the whole bug: an unmapped video's links
@@ -201,8 +211,11 @@ async function loadLinksByYouTubeId(env: Env): Promise<{
                 l.target_url  AS target_url
          FROM videos v
          LEFT JOIN links l ON l.video_code = v.video_code
+         ${whereClause}
          ORDER BY l.tool ASC`,
-      ).all<LinkRow>()
+      )
+        .bind(...params)
+        .all<LinkRow>()
     ).results ?? [];
 
   const countRows =
@@ -227,13 +240,14 @@ async function loadLinksByYouTubeId(env: Env): Promise<{
     counts.set(r.slug, { all: r.clicks_all ?? 0, d30: r.clicks_30d ?? 0 });
   }
 
+  const domain = linkDomainFor(channelId);
   const statOf = (row: LinkRow, slug: string): LinkStat => {
     const c = counts.get(slug) ?? { all: 0, d30: 0 };
     return {
       slug,
       tool: row.tool ?? "",
       target_url: row.target_url ?? "",
-      short_url: `https://${env.LINK_DOMAIN}/${slug}`,
+      short_url: `https://${domain}/${slug}`,
       clicks_30d: c.d30,
       clicks_all: c.all,
     };

@@ -12,6 +12,7 @@
  */
 
 import type { Env } from "./auth";
+import { DEFAULT_CHANNEL_ID } from "./channels";
 
 /** Search depth — beyond this the video is reported as "not in top N". */
 const SEARCH_DEPTH = 50;
@@ -100,12 +101,24 @@ interface CheckRow {
 }
 
 /** All tracked keywords + their check history, grouped by yt_video_id. */
-export async function getRankings(env: Env): Promise<KeywordsByVideo> {
+export async function getRankings(env: Env, channelId: string): Promise<KeywordsByVideo> {
+  let whereClause: string;
+  let params: string[];
+  if (channelId === DEFAULT_CHANNEL_ID) {
+    whereClause = "WHERE channel_id = ? OR channel_id IS NULL";
+    params = [channelId];
+  } else {
+    whereClause = "WHERE channel_id = ?";
+    params = [channelId];
+  }
+
   const keywordRows =
     (
       await env.RANKINGS_DB.prepare(
-        `SELECT id, yt_video_id, keyword, created_at FROM keywords ORDER BY created_at ASC`,
-      ).all<KeywordRow>()
+        `SELECT id, yt_video_id, keyword, created_at FROM keywords ${whereClause} ORDER BY created_at ASC`,
+      )
+        .bind(...params)
+        .all<KeywordRow>()
     ).results ?? [];
 
   const checkRows =
@@ -138,6 +151,7 @@ export async function getRankings(env: Env): Promise<KeywordsByVideo> {
 /** Add a keyword to a video. Idempotent on (video, keyword). Returns the row id. */
 export async function addKeyword(
   env: Env,
+  channelId: string,
   ytVideoId: string,
   keyword: string,
 ): Promise<{ id: number } | { error: string }> {
@@ -146,9 +160,9 @@ export async function addKeyword(
   if (kw.length > 200) return { error: "keyword too long" };
 
   await env.RANKINGS_DB.prepare(
-    `INSERT OR IGNORE INTO keywords (yt_video_id, keyword, created_at) VALUES (?, ?, ?)`,
+    `INSERT OR IGNORE INTO keywords (yt_video_id, keyword, created_at, channel_id) VALUES (?, ?, ?, ?)`,
   )
-    .bind(ytVideoId, kw, Math.floor(Date.now() / 1000))
+    .bind(ytVideoId, kw, Math.floor(Date.now() / 1000), channelId)
     .run();
 
   const row = await env.RANKINGS_DB.prepare(
