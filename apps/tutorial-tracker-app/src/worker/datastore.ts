@@ -93,7 +93,9 @@ class D1Store implements DataStore {
     for (const card of cardsRes.results ?? []) {
       if (String(card.title ?? "").trim() === "") continue; // title-less rows ignored (legacy parity)
       const p = getPipeline(card.pipeline_id);
-      rows.push(assembleRow(p, card as CardRecord, byCard.get(card.id) ?? []) as unknown as Row);
+      const row = assembleRow(p, card as CardRecord, byCard.get(card.id) ?? []) as unknown as Row;
+      row.channel_id = card.channel_id as string | undefined;
+      rows.push(row);
     }
     return rows;
   }
@@ -169,10 +171,10 @@ class D1Store implements DataStore {
     const { card, stages } = decomposeRow(p, row, true);
     const now = new Date().toISOString();
 
-    const cardCols = ["id", "pipeline_id", "title", "slug", "notes", "description", "category", "subcategory", "extra_json", "created_at", "updated_at", "status_since"];
+    const cardCols = ["id", "pipeline_id", "channel_id", "title", "slug", "notes", "description", "category", "subcategory", "extra_json", "created_at", "updated_at", "status_since"];
     const stmts: D1PreparedStatement[] = [
       this.db.prepare(`INSERT INTO cards (${cardCols.map((x) => `"${x}"`).join(", ")}) VALUES (${cardCols.map(() => "?").join(", ")})`)
-        .bind(id, p.id, card.title ?? "", card.slug || null, card.notes ?? "", card.description ?? "", card.category ?? "", card.subcategory ?? "", card.extra_json ?? null, now, now, card.status_since ?? null),
+        .bind(id, p.id, values.channel_id ?? null, card.title ?? "", card.slug || null, card.notes ?? "", card.description ?? "", card.category ?? "", card.subcategory ?? "", card.extra_json ?? null, now, now, card.status_since ?? null),
     ];
     const stCols = ["card_id", "stage_id", "status", "assignee", "reviewer", "work_link", "instruction", "eta", "feedback", "extra_json", "status_since"];
     for (const s of stages) {

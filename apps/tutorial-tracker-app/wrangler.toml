@@ -41,6 +41,8 @@ DATA_BACKEND = "d1"
 # Affiliate catalogue source: "d1" (the programs table) or "sheets" (the legacy
 # Google Sheet, via affiliate.ts). Flip + redeploy to switch. Plan 256 reads it.
 PROGRAMS_BACKEND = "d1"
+# DEPRECATED for minting. Short-link domains now come from config/channels.json via
+# src/worker/channels.ts, because one var can only ever be right for one channel.
 LINK_DOMAIN = "go.agrolloo.com"
 AFFILIATE_PROGRAMS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1dl_nj9djJuXuwwE_5qTnZkS0Y9VW6MmkMxuYNL92tsQ/edit?usp=sharing"
 # GEMINI_API_KEY is a secret: `npx wrangler secret put GEMINI_API_KEY` (+ add to .dev.vars locally).
