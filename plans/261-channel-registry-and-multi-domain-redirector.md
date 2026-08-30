@@ -3,7 +3,7 @@ executor: agy
 model:
 test_cmd: node --test config/channels.test.mjs && (cd apps/redirector && npm test)
 ui:
-deploy:
+deploy: cd apps/redirector && . ../../scripts/node22-path.sh && npx wrangler d1 migrations apply clicks-db --remote && npx wrangler deploy
 needs: []
 needs_prs: []
 touches: [config/channels.json, config/channels.mjs, config/channels.test.mjs, pipelines/common/channels.py, pipelines/common/channels_test.py, apps/redirector/wrangler.toml, apps/redirector/src/index.ts, apps/redirector/test/routes.test.ts, apps/redirector/migrations/0004_videos_channel.sql, apps/redirector/CLAUDE.md]
