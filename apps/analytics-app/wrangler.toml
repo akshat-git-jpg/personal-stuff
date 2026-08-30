@@ -25,9 +25,6 @@ migrations_dir = "migrations"
 
 [vars]
 LINK_DOMAIN = "go.agrolloo.com"
-# Channel whose PUBLIC uploads are the source of truth for the video list
-# (@AgrolloReviews). Uploads playlist is derived as "UU" + id.slice(2).
-CHANNEL_ID = "UCXuXNNuyhtdsiw9bZr0pUxw"
 # Secrets (set with `npx wrangler secret put <NAME>`, and mirror in .dev.vars for local):
 #   APP_PASSWORD    — the shared password for the gate
 #   SESSION_SECRET  — random string used to sign the auth cookie
