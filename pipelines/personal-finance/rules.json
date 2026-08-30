@@ -1,0 +1,52 @@
+{
+  "_comment": [
+    "Counterparty -> category for the owner's personal SBI account.",
+    "",
+    "Matching is on the UPI/NEFT remark, which carries the payee's short name and",
+    "VPA. Match on the VPA or the bank code where possible: the short name is",
+    "truncated to 8 characters by the bank and two different people can collide.",
+    "",
+    "RULE: never invent a category for a counterparty you cannot identify. An",
+    "unmatched payee lands in 'unknown' with its remark intact, exactly like",
+    "untraced money in the income tally. A wrong label on a spending summary is",
+    "worse than an honest gap, because the owner acts on these numbers."
+  ],
+  "categories": {
+    "salary": {
+      "label": "Salary",
+      "kind": "income",
+      "match": ["ZLURI TE", "ZLURI TECHNOLOGIES"],
+      "note": "Zluri Technologies, the owner's employer. Paid by IMPS or NEFT."
+    },
+    "interest": {
+      "label": "Bank interest",
+      "kind": "income",
+      "match": ["INTEREST CREDIT"],
+      "note": "SBI savings interest, paid quarterly."
+    },
+    "rent": {
+      "label": "Rent",
+      "kind": "expense",
+      "match": ["08satyam-1", "/SATYAM /SBIN/"],
+      "note": "Paid to Satyam. Some months carry the literal word 'Rent' in the remark."
+    },
+    "to_mummy": {
+      "label": "To mummy",
+      "kind": "transfer",
+      "match": ["seemabakli"],
+      "note": "Seema Bakliwal, the owner's mother, at Punjab National Bank (PUNB). This is the same account the yt-income tally reads, so money leaving here arrives there — see pipelines/income-analysis."
+    },
+    "credit_card": {
+      "label": "Credit card",
+      "kind": "expense",
+      "match": ["cred.club@", "credpay.ea", "credccbp.a"],
+      "note": "CRED. A card bill is a payment for spending that already happened, so it double-counts against the categories below if both are summed as 'spending'."
+    },
+    "education": {
+      "label": "BITS fees",
+      "kind": "expense",
+      "match": ["8937852298"],
+      "note": "Paid to Shirish, remark says 'Bits'. The owner studies at BITS Pilani Goa."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+# Everything under data/ is real financial data. Never commit any of it:
+# statements name the account holder, the counterparties and the balances.
+# The password lives in config.json here too.
+#
+*
+!.gitignore
