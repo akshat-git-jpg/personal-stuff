@@ -1,0 +1,19 @@
+{
+  "_comment": "How a bank credit is classified. Patterns are case-insensitive substrings of the transaction remarks; first match wins, income_rails before non_income. A credit matching nothing falls through to 'personal' and is EXCLUDED from income. Add a new rail here when a new affiliate network starts paying the bank directly.",
+
+  "income_rails": [
+    { "id": "paypal", "label": "PayPal", "match": ["PAYPAL"] },
+    { "id": "airwallex", "label": "Airwallex", "match": ["AIRWALLE"] }
+  ],
+
+  "_non_income_comment": "Real money, but not earnings. Kept separate from 'personal' so the future personal-dashboard can chart owner->mother transfers without re-deriving them, and so they can never be mistaken for income.",
+  "non_income": [
+    {
+      "id": "self_transfer",
+      "label": "From Kushal",
+      "match": ["/KUSHAL/SBIN/9111681541", "/KUSHAL/SBIN/KUSHALBAKLIW"],
+      "note": "Owner topping up his mother's account. Both UPI handles seen in the Jan-Aug 2026 statement; the second wraps as 'kushalbakliw al2' in the PDF, so match the un-wrapped prefix only. Add the owner's account number here when he supplies it."
+    },
+    { "id": "interest", "label": "Bank interest", "match": ["INT.PD"] }
+  ]
+}

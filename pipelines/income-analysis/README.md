@@ -24,6 +24,71 @@ The plan: every income source gets its own CLI or MCP that reads its data, and t
 - How to query: in Claude, just ask ("my impact.com income by program last month") and the pp-impact skill handles it. By hand: source the creds and run the CLI.
 - Notes: local-only. The account id is baked into the URL so it can't be published. The token sits in `personal-stuff/infra/secrets/impact.env` (gitignored) and I can revoke it from impact.com settings anytime. Read-only reporting.
 
+### Bank passbook (the half that cannot be automated)
+
+- Account: the owner's mother's PNB account. PayPal settles here by NEFT, and some
+  affiliate networks pay it directly, so the passbook is the only complete view of
+  income actually received.
+- Tool: `ingest.py` in this folder, driven by the `yt-income` skill. It reads
+  password-protected PNB PDF statements with `pypdf` (no poppler, so it works on
+  Windows too), classifies every credit using `rules.json`, and writes
+  `summary.json`.
+- Trigger: manual. The owner exports a statement from PNB ONE and says
+  "here's the passbook". There is no API and no schedule.
+- The PDF password is the account number. It lives in the gitignored
+  `data/config.json`, or `$PASSBOOK_PASSWORD`.
+
+```bash
+cp ~/Downloads/PNBONE_STMT_*.pdf data/raw/
+python3 ingest.py --with-paypal
+```
+
+## Privacy — read before touching data/
+
+**This repo is public.** A passbook carries the account number, the address,
+family names and UPI handles.
+
+- `data/` is gitignored in full (`data/.gitignore` allows only itself). Raw PDFs
+  and per-transaction JSON never leave the machine.
+- `summary.json` **is** committed. It holds only month totals per rail plus PayPal
+  program names — no counterparties, no account numbers. Anything added to it has
+  to clear that same bar.
+
+## What counts as income
+
+`rules.json` decides. Patterns are case-insensitive substrings of a transaction's
+remarks; first match wins.
+
+- **Income rails** — `paypal` (NEFT from Citi, `PAYPAL PAYMENTS`) and `airwallex`
+  (IMPS, `AIRWALLE`).
+- **Not income, but tracked** — `self_transfer` (the owner topping up his mother's
+  account) and `interest`.
+- **Everything else** falls through to `personal` and is excluded. That is the safe
+  default, but it hides a new payout rail, so `yt-income` step 4 lists the large
+  unclassified credits every run.
+
+Reconciliation is the trust check: bank NEFT credits from PayPal must equal what
+`paypal-txns-pp-cli` says it settled. For 1 Jan – 30 Aug 2026 the difference is
+**INR 0.00**.
+
+**Open question:** the `airwallex` rail is real but unattributed. impact.com
+earnings over Jan–Aug 2026 were ~INR 29,017 against ~INR 88,347 of Airwallex
+credits, so it is not (only) impact.com.
+
+## The dashboard
+
+The numbers surface as the **Income** tab of `yt-analytics.agrolloo.com`
+(`apps/analytics-app`), behind the app's existing password.
+`apps/analytics-app/scripts/sync-income.mjs` copies `summary.json` into the Worker
+bundle as part of `npm run build`, so a deploy cannot ship stale figures.
+
+Two views of the same money, and they are not interchangeable:
+
+- **Landed** — by the date money hit the bank. Complete; includes Airwallex.
+- **PayPal earned** — by the month a program paid. PayPal only.
+
+Same PayPal total, different months.
+
 ## Snapshots
 
 Dated pulls live in `snapshots/`. Most recent: [2026-06-20](snapshots/2026-06-20.md).
