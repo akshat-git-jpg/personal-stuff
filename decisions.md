@@ -1242,3 +1242,40 @@ frozen snapshot and the freelancer never rewrites the plan he was sent.
 - 2026-08-30 — **`digest.sh` was swallowing the reason every time the summarizer failed, because `VAR=$(cmd)` under `set -e` kills the script before the next line runs.** Found while proving the new IMAP path end to end: the fetch worked (the Lovable affiliate mail came back with correct sender, subject, date and a clean body) and the run then died with **exit 1 and completely empty stdout**. The cause was not the new code. `DIGEST_OUTPUT=$("$CLAUDE_BIN" …)` is a plain assignment, so a non-zero exit terminates the script at that line — the shape check below it, which is the only thing that prints an `ERROR:` line, is never reached. `run.sh` then falls back to its own placeholder and sends *"digest.sh failed with no output"*, which is exactly the alert you cannot act on. Wrapped in `if ! DIGEST_OUTPUT=$(…)` (an assignment inside a condition is exempt from `set -e`), with stderr captured to a temp file so the success path is not polluted, and a fallback to stdout because **the quota message arrives on stdout, not stderr**. The shape-check error now also prints the first 200 chars of whatever came back. Verified live on the VPS: the alert now reads *"ERROR: claude failed for kushalbakliwal@agrolloo.com — You've hit your weekly limit · resets 12pm (UTC)"*. **The quota finding is the second half and it is not specific to this change:** every LLM cron on the box shares one Pro account (`kushalbakliwal25@gmail.com`), so a weekly limit hit by interactive work silently disables `gmail-digest` for all six mailboxes *and* `my-planner`, and until this fix the only evidence would have been seven identical "no output" alerts. **General principle: `set -e` turns a command substitution's failure into a silent exit, so any assignment whose failure you intend to report has to be inside an `if`, not on a line of its own — and the thing most worth reporting is usually written to stdout by the tool that failed, not stderr.**
 
 - 2026-08-30 — **Sharing one daemon poll across `kbc` windows was proposed by the review, priced, and declined. Do not rebuild it without asking.** Each window polls `claude agents --json --all` on its own clock, so N windows cost N times 0.27s of CPU and 187 MB of transient RSS every 5s; the owner had three open, making it ~16% of a core instead of 5.4%. The proposed fix was a `~/.cache/pp-agents/live-<account>.json` cache written under `flock`, with the other windows reading it: correct, and roughly an hour of work. **Declined because the 3x was forgotten windows, not the design.** Two of the three had been open since Aug 27 and Aug 28 and were running pre-fix code the owner had stopped looking at; the cost disappears by closing them, which he had reason to do anyway. Adding a lock file, a staleness check and a cross-process cache to work around windows nobody is reading is machinery bought for a habit. Owner's call, explicitly: option B of two. **Revisit only if he genuinely wants several `kbc` windows open at once as a working style** - at that point the cache is the right answer and the reasoning above becomes an argument for it rather than against. Related: a landed fix only reaches NEW windows, since Python reads the script once at startup and `kbc` is a symlink to the repo file, so "the fix isn't working" on this tool should always start by comparing `ps -eo pid,lstart` against the land time.
+
+- **2026-08-30 — Security audit: three internet-facing holes closed, plus the Global API Key.** A
+  full sweep of the repo, git history, all 11 live sites, the VPS, Cloudflare and both Hostinger
+  accounts. **Git history is clean** — every blob across 3,358 commits scanned, no real secret has
+  ever been committed, so the `.gitignore` + `secrets-guard` setup has held even though the repo is
+  public. Four things were wrong. **(1) `gym-app` had no server-side auth at all.** The login lived
+  only in `src/client/`, so all 12 `/api/*` routes — including every POST/PUT/DELETE — were open to
+  the internet; anyone could read or wipe `gym-db`. Fixed by porting the house `auth.ts` (signed
+  stateless cookie, ported from timeblock) and putting `requireAuth` above every data route; the
+  PIN screen finally uses the `.pin-*`/`.keypad` CSS that had sat unused in `index.css`. All 10
+  routes verified 401 unauthenticated, login round-trip verified. **(2) ntfy was world-writable.**
+  It ran on public `:8888` (Docker's DNAT bypasses UFW, so the "22/80/443 only" firewall never
+  applied) with `auth-default-access: read-write`, so anyone could read every topic and publish to
+  it. The 2026-06-13 audit had recorded this as "by design — topic name is the secret"; that threat
+  model is security-by-obscurity and gave permanent read+write to anyone who ever saw a topic name.
+  It also had **0 subscribers** and 23 lifetime messages, so the fallback delivered nothing. Retired
+  entirely (option A): container removed, port closed, `infra/docker/ntfy/` and `tooling/cli/ntfy/`
+  deleted, the fallback branch dropped from `notify`, and the greenlight/notify self-tests rewritten
+  to assert the Telegram path. Telegram is now the only channel. **(3) The Cloudflare Global API Key
+  sat in `pipelines/.env`.** It is account-wide including billing, cannot be scoped, and cannot be
+  revoked without reissuing. It existed only because `cf-email` needed `/email/routing` endpoints the
+  scoped token could not reach. **Chosen fix: widen the token, do not scope it down** — the owner
+  explicitly refused narrow scopes ("I don't want the headache of something not having the scope").
+  `personal-cloudflare-tk` gained Zone Read, Zone Settings Write, Email Routing Rules/Addresses Read,
+  DNS Read, Workers R2 Storage Read/Write + Bucket Item Read/Write, Workers Scripts Write. It now
+  does everything the Global Key did for this repo, still cannot touch billing or delete the account,
+  and can be revoked in one click. Global Key deleted from disk; `setup-routing.mjs` also stopped
+  reading the long-dead `/Users/kbtg/codebase/TY/.env` path and now reads `pipelines/.env`.
+  **(4) D1 backups lived on the machine they backed up.** The nightly dump went only to MinIO on the
+  VPS. `d1-backup/run.sh` (in `vps-crons`) now also PUTs every dump to the R2 bucket `d1-backups` via
+  the CF API, soft-failing so a broken offsite copy never fails a good local one. Verified: 7 objects
+  uploaded and read back as valid SQL. Also: local secret files went 644 → 600 (12 files), and a VPS
+  snapshot was taken — but note Hostinger snapshots **expire after 24h**, so INFRA.md now records the
+  recovery posture honestly (weekly Hostinger backup = real DR; snapshot = pre-change undo only).
+  **Left deliberately unfixed at the owner's call:** the shared `APP_PASSWORD` is still 4 digits and
+  reused across 6 surfaces, with no lockout and no WAF rate-limit (Free plan). That is the largest
+  remaining exposure and it is a known, accepted risk, not an oversight.

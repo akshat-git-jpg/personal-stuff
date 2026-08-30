@@ -77,7 +77,7 @@ The evidence bar for any statement that leaves a session — in docs, skills, `d
 - **Studying working external stacks in source** — the whole 033–038 batch came from reading kunchenguid's tools, not their READMEs.
 - **improve/audit runs** — plans/README.md's deferred + rejected findings sections are audit output; the tracker person-centric revamp (plans 014–017) came from a focused audit (decisions.md 2026-07-05).
 - **Incident postmortems** — branch-guard hook from the 054/055 shared-checkout tangle (2026-07-10); enforced dirty-main check from two silently parked batches (2026-07-08); plan 057's silent-failure alerts after my-planner's refresh token failed silently for a month (decisions.md 2026-07-06).
-- **Owner's operating pain** — captain v2 from hitting the 3-parallel-features wall; `tooling/cli/notify` because ntfy pushes didn't reach the owner's iPhone; the tracker pipeline engine from "had to do multiple redo" (all in decisions.md / failure-archaeology).
+- **Owner's operating pain** — captain v2 from hitting the 3-parallel-features wall; `tooling/cli/notify` because ntfy pushes didn't reach the owner's iPhone (ntfy retired 2026-08-30); the tracker pipeline engine from "had to do multiple redo" (all in decisions.md / failure-archaeology).
 
 ## When NOT to use this skill
 

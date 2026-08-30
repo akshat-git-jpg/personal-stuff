@@ -44,26 +44,41 @@ grep -q "https://api.telegram.org/bottest-token-123/sendMessage" "$CURL_LOG" \
 grep -q "chat_id=999999" "$CURL_LOG" || fail "(a) chat_id not passed to curl"
 grep -q "text=hello world" "$CURL_LOG" || fail "(a) text not passed to curl"
 
-# --- (b) without creds, with stub pp-ntfy + NTFY_TOPIC, falls back to ntfy ---
-NTFY_LOG="$STUB_DIR/ntfy.log"
-cat > "$STUB_DIR/pp-ntfy" << EOF
+# --- (b) creds present but the telegram send FAILS -> exit 3, warn, no crash ---
+# (ntfy was the fallback here until 2026-08-30; it is retired, so a failed
+#  Telegram send is now simply undeliverable. It must still not crash callers.)
+cat > "$STUB_DIR/curl" << 'EOF'
 #!/bin/bash
-echo "\$@" >> "$NTFY_LOG"
+exit 7
+EOF
+chmod +x "$STUB_DIR/curl"
+
+cat > "$ENV_FILE" << 'EOF'
+TELEGRAM_BOT_TOKEN=test-token-123
+TELEGRAM_CHAT_ID=999999
+EOF
+STDERR_OUT=$(mktemp)
+set +e
+"$NOTIFY" send "failing message" 2>"$STDERR_OUT"
+code=$?
+set -e
+[ "$code" -eq 3 ] || fail "(b) expected exit 3 on telegram failure, got $code"
+grep -q "WARN" "$STDERR_OUT" || fail "(b) expected WARN on stderr"
+rm -f "$STDERR_OUT"
+
+# restore the logging curl stub for later cases
+cat > "$STUB_DIR/curl" << EOF
+#!/bin/bash
+echo "\$@" >> "$CURL_LOG"
 exit 0
 EOF
-chmod +x "$STUB_DIR/pp-ntfy"
+chmod +x "$STUB_DIR/curl"
 
-: > "$ENV_FILE"  # empty creds
-rm -f "$NTFY_LOG"
-NTFY_TOPIC="test-topic" "$NOTIFY" send "fallback message" \
-  || fail "(b) expected exit 0 via ntfy fallback, got $?"
-grep -q "fallback message" "$NTFY_LOG" || fail "(b) pp-ntfy stub not called"
-
-# --- (c) with neither telegram creds nor ntfy topic, exits 3 and warns ---
+# --- (c) with no telegram creds at all, exits 3 and warns ---
 : > "$ENV_FILE"
 STDERR_OUT=$(mktemp)
 set +e
-NTFY_TOPIC="" "$NOTIFY" send "undeliverable message" 2>"$STDERR_OUT"
+"$NOTIFY" send "undeliverable message" 2>"$STDERR_OUT"
 code=$?
 set -e
 [ "$code" -eq 3 ] || fail "(c) expected exit 3, got $code"

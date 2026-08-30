@@ -37,7 +37,7 @@ A hook rewrites shell commands through `rtk` transparently (60–90% token savin
 | Google Drive | `pp-drive --account <email>` or `google-drive` MCP | idempotent find-or-create; `--overwrite` to replace |
 | Hostinger VPS/DNS/snapshots via API | `hostinger` skill → `pp-hostinger` | |
 | Cloudflare D1/KV/DNS ad hoc | `cloudflare` MCP tools | Python pipelines use `common/cloudflare.py` instead |
-| Push notification to phone | `tooling/cli/notify/` — Telegram-first, ntfy as fallback (used by greenlight) | `pp-ntfy send\|alarm\|test` still works standalone: exit 0 ack, 3 timeout, 2 config/HTTP; topic name IS the secret; server is plain HTTP |
+| Push notification to phone | `tooling/cli/notify/` — Telegram only (used by greenlight) | `notify send "<msg>"`: exit 0 sent, 3 undeliverable, 2 usage. The self-hosted ntfy server was retired 2026-08-30 (public `:8888`, read-write to anyone); do not reintroduce a fallback that is open by default. |
 | Isolated worktree for an agent run | `tooling/cli/wt/` (pool manager) | managed runs only — owner sessions, deploys, skill edits stay on the main checkout |
 | Land a finished branch hands-free | `tooling/cli/greenlight/` | validation pipeline used by boss; parks merges if main is dirty |
 | RapidAPI market research | `tooling/cli/rapidapi/pp-rapidapi search\|gaps\|competition` | unofficial, research only |

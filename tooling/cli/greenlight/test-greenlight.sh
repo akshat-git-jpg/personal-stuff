@@ -17,23 +17,26 @@ export GREENLIGHT_STATE_ROOT="$STUB_DIR/gl-state"
 # Inherited env must not decide what this suite observes. pp-land runs greenlight with
 # GREENLIGHT_QUIET=1 (it lands on every workspace commit and the owner ruled pings out),
 # and once this path is mapped in verify-map.tsv the suite runs INSIDE that land — so it
-# would inherit the switch and case (b)'s "ntfy was called" assertion would fail for a
+# would inherit the switch and case (b)'s "notify was called" assertion would fail for a
 # reason that has nothing to do with greenlight.
 unset GREENLIGHT_QUIET
 
-# greenlight now calls tooling/cli/notify (Telegram-first, ntfy fallback)
-# instead of pp-ntfy directly. Force the ntfy-fallback path deterministically:
-# point at a telegram env file that never exists so notify always falls
-# through to (stubbed) pp-ntfy, regardless of whether the real repo's
-# infra/secrets/telegram.env has been filled in by the owner.
-export NOTIFY_ENV_FILE="$STUB_DIR/no-such-telegram.env"
-export NTFY_TOPIC="test-topic"
-
-cat > "$STUB_DIR/pp-ntfy" << 'EOF'
-#!/bin/bash
-echo "$*" >> "$HOME/kb-scratch/test-ntfy.log"
+# greenlight calls tooling/cli/notify, which is Telegram-only since the ntfy
+# server was retired (2026-08-30). Point notify at a stub env with fake creds
+# and stub the curl it uses, so the assertion below is deterministic no matter
+# what the real repo's infra/secrets/telegram.env holds.
+export NOTIFY_ENV_FILE="$STUB_DIR/telegram.env"
+cat > "$STUB_DIR/telegram.env" << 'EOF'
+TELEGRAM_BOT_TOKEN=test-token-123
+TELEGRAM_CHAT_ID=999999
 EOF
-chmod +x "$STUB_DIR/pp-ntfy"
+
+cat > "$STUB_DIR/curl" << 'EOF'
+#!/bin/bash
+echo "$*" >> "$HOME/kb-scratch/test-notify.log"
+exit 0
+EOF
+chmod +x "$STUB_DIR/curl"
 
 cat > "$STUB_DIR/wt" << 'EOF'
 #!/bin/bash
@@ -124,7 +127,7 @@ GREENLIGHT_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/greenlight"
 
 # Create test repo
 TEST_REPO=$(mktemp -d)
-trap 'rm -rf "$TEST_REPO" "$HOME/kb-scratch/test-ntfy.log" "$HOME/kb-scratch/test-push.log"' EXIT
+trap 'rm -rf "$TEST_REPO" "$HOME/kb-scratch/test-notify.log" "$HOME/kb-scratch/test-push.log"' EXIT
 cd "$TEST_REPO"
 git init >/dev/null 2>&1
 git branch -m main >/dev/null 2>&1 || true
@@ -156,12 +159,12 @@ git commit -m "feat" >/dev/null 2>&1
 # (b) canned review with an ask-user finding. Review is OPT-IN now (--review),
 # so the finding only gates the land when the pass is explicitly requested.
 export MOCK_CLAUDE_RESPONSE='{"result": "{\"findings\": [{\"id\": \"r1\", \"severity\": \"warning\", \"file\": \"file.txt\", \"line\": 1, \"description\": \"test\", \"action\": \"ask-user\"}], \"risk_level\": \"low\"}", "usage": {"input_tokens": 0, "output_tokens": 0}}'
-rm -f "$HOME/kb-scratch/test-ntfy.log"
+rm -f "$HOME/kb-scratch/test-notify.log"
 "$GREENLIGHT_BIN" run --branch feat-branch --repo "$TEST_REPO" --review >/dev/null 2>&1 || true
 run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
 state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
 [ "$state" = "parked" ] || fail "(b) ask-user state=$state, expected parked"
-grep -q "parked" "$HOME/kb-scratch/test-ntfy.log" || fail "(b) ntfy not called with parked"
+grep -q "parked" "$HOME/kb-scratch/test-notify.log" || fail "(b) notify not called with parked"
 
 # (c) canned all-green run
 export MOCK_CLAUDE_RESPONSE='{"result": "{\"findings\": [], \"risk_level\": \"low\", \"passed\": true, \"tested\": [], \"evidence\": [], \"updated\": [], \"unresolved\": []}", "usage": {"input_tokens": 0, "output_tokens": 0}}'

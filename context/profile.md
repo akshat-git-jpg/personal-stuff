@@ -9,7 +9,7 @@ this file was inferred from repo code alone and named the wrong person).
 - **Day job**: Senior Software Engineer at **Zluri** (B2B SaaS). Work email `kushal.b@zluri.com`.
 - **Personal email**: `kushalbakliwal25@gmail.com`.
 - **Personal git/brand identity**: this repo is pushed as GitHub user `akshat-git-jpg`
-  (`akshatparty17@gmail.com`); the `ntfy` server admin user is `akshat`. Work repos push as
+  (`akshatparty17@gmail.com`). Work repos push as
   `kushal-zluri` - see the `github-router` skill before any commit or push.
 - **Professional focus**: HLD and LLD. Wants better solutioning quality and architecture
   decisions, and treats the work as personal learning, not just delivery.
@@ -63,7 +63,7 @@ this file was inferred from repo code alone and named the wrong person).
 
 ## Tools & Accounts I Drive Everything With
 - **Hostinger VPS**: 
-  - Ubuntu 24.04 LTS VPS (`srv1377177.hstgr.cloud` / `72.61.241.170`) running Docker containers (Traefik, n8n, MinIO, ntfy, and personal-dashboard).
+  - Ubuntu 24.04 LTS VPS (`srv1377177.hstgr.cloud` / `72.61.241.170`) running Docker containers (Traefik, n8n, MinIO, hyperframes-render, and personal-dashboard).
   - Configured with crons that sync repository skills every 15 minutes, generate daily digests (Telegram alerts), and run automated watchdogs.
 - **Cloudflare Edge**:
   - Handles zone DNS and hosts 10+ serverless Cloudflare Workers (like `redirector`, `tutorials-tracker`, `lists-app`, `yt-analytics`, etc.) backed by KV namespaces and D1 SQLite databases.

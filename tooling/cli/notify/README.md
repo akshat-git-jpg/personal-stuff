@@ -1,13 +1,15 @@
 # notify
 
-Telegram-first phone-ping CLI, with [ntfy](../ntfy/README.md) as a fallback
-channel. Used by `greenlight` for phone notifications.
+Telegram phone-ping CLI. Used by `greenlight` for phone notifications.
 
 ## Why this exists
 
-ntfy delivery is unreliable on the owner's iPhone. Telegram is the primary
-channel now; ntfy stays wired in as a fallback — both for the window before
-Telegram creds exist, and for the rare case a Telegram send itself fails.
+ntfy delivery was unreliable on the owner's iPhone, so Telegram became the
+primary channel. The self-hosted ntfy fallback was retired on 2026-08-30: the
+server was published on port 8888 with `auth-default-access: read-write`, so
+anyone on the internet could read its topics and publish to them, and it had 0
+subscribers, so the fallback delivered nothing anyway. Telegram is now the only
+channel. See decisions.md 2026-08-30.
 
 ## Contract
 
@@ -16,16 +18,13 @@ notify send "<message>"   # exit 0 sent, 3 undeliverable, 2 usage error
 notify setup               # one-time: derive TELEGRAM_CHAT_ID
 ```
 
-`notify send` never crashes the caller: a Telegram/ntfy failure prints a
-`WARN` to stderr and exits 3 (undeliverable), it does not raise past that.
+`notify send` never crashes the caller: a Telegram failure prints a `WARN` to
+stderr and exits 3 (undeliverable), it does not raise past that.
 
-## Fallback order
+## Delivery
 
 1. **Telegram** — if `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are both set
    in `infra/secrets/telegram.env`, POSTs to the Bot API. Success → exit 0.
-2. **ntfy** — if Telegram creds are missing or the Telegram send fails, and
-   `pp-ntfy` is on `PATH` and `NTFY_TOPIC` is set, falls back to
-   `pp-ntfy send`.
 3. **Undeliverable** — otherwise prints the message to stderr with a `WARN`
    prefix and exits 3.
 

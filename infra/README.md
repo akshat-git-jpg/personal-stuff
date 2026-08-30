@@ -4,7 +4,7 @@ Infrastructure code for the VPS and Cloudflare setup. The canonical inventory of
 
 | Folder | What it is |
 |---|---|
-| `docker/` | Compose files for VPS containers (currently ntfy). |
+| `docker/` | Compose files for VPS containers. |
 | `vps-watchdog/` | Cloudflare Worker on a 2-minute cron — pings the dashboard and reboots the VPS if it's down. |
 | `secrets/` | Local-only credentials. Gitignored, never committed. |
 | `escrow/` | gpg-encrypted archive of every gitignored secret, pushed offsite to Google Drive for Mac/VPS-loss recovery. |

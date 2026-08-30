@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import { ToastHost } from "./ui";
+import { Login } from "./Login";
+import { api } from "./api";
 import { GymProvider } from "./store";
 import { Home } from "./Home";
 import { GroupView } from "./GroupView";
@@ -315,6 +317,27 @@ function Router() {
 }
 
 export default function App() {
+  // null = still asking the server. The blank hold is deliberate: flashing the
+  // PIN screen at someone who already has a valid cookie looks broken.
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    api
+      .me()
+      .then((r) => live && setAuthed(r.authenticated))
+      .catch(() => live && setAuthed(false));
+    const drop = () => setAuthed(false);
+    window.addEventListener("gym:unauthorized", drop);
+    return () => {
+      live = false;
+      window.removeEventListener("gym:unauthorized", drop);
+    };
+  }, []);
+
+  if (authed === null) return <div className="pin-wrap" />;
+  if (!authed) return <Login onSuccess={() => setAuthed(true)} />;
+
   return (
     <ToastHost>
       <GymProvider>
