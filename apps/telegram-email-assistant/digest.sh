@@ -159,15 +159,30 @@ CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude || echo /root/.local/bin/claude)}"
 # Run Claude non-interactively and validate the output SHAPE before shipping.
 # run.sh (vps-crons) only catches empty output; a non-empty refusal or error
 # dump that exits 0 would otherwise go to Telegram as if it were the digest.
-DIGEST_OUTPUT=$("$CLAUDE_BIN" -p \
-  --output-format text \
-  --permission-mode acceptEdits \
-  <<< "$FULL_PROMPT")
+#
+# The `if !` matters: a bare `VAR=$(...)` assignment under `set -e` kills the
+# script the instant claude exits non-zero, so the reason never reaches
+# Telegram and run.sh can only say "digest.sh failed with no output". Quota
+# exhaustion ("You've hit your weekly limit") is the common case and is worth
+# reading in the alert — observed 2026-08-30.
+CLAUDE_STDERR=$(mktemp)
+if ! DIGEST_OUTPUT=$("$CLAUDE_BIN" -p \
+      --output-format text \
+      --permission-mode acceptEdits \
+      2>"$CLAUDE_STDERR" \
+      <<< "$FULL_PROMPT"); then
+  REASON=$(tr -d '\r' < "$CLAUDE_STDERR" | head -c 300)
+  rm -f "$CLAUDE_STDERR"
+  # The quota message arrives on stdout, so fall back to it when stderr is empty.
+  echo "ERROR: claude failed for $EMAIL — ${REASON:-${DIGEST_OUTPUT:-no output}}"
+  exit 1
+fi
+rm -f "$CLAUDE_STDERR"
 
 if [[ ${#DIGEST_OUTPUT} -lt 200 \
       || "$DIGEST_OUTPUT" != *"Part 1: Overall summary"* \
       || "$DIGEST_OUTPUT" != *"Part 2: Per your preferences"* ]]; then
-  echo "ERROR: digest output failed shape check (${#DIGEST_OUTPUT} chars, expected Part 1/Part 2 sections) for $EMAIL"
+  echo "ERROR: digest output failed shape check for $EMAIL (${#DIGEST_OUTPUT} chars, expected Part 1/Part 2 sections) — got: $(printf '%.200s' "$DIGEST_OUTPUT")"
   exit 1
 fi
 
