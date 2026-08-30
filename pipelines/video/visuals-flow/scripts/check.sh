@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(git rev-parse --show-toplevel)/scripts/node22-path.sh"
 cd "$(dirname "$0")/.."
 # The step registry gates everything below it: run.sh's verb list and step
 # folders, lib/run-log.mjs's valid ledger keys and PIPELINE.md's table all
