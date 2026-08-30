@@ -7,7 +7,7 @@ import { canEditForRoles, isAdminRoles } from "../shared/engine/rbac";
 import { PROTECTED_ADMIN_EMAIL } from "../shared/engine/registry";
 import { holdsRoleInSystem } from "../shared/engine/memberships";
 import { pipeOf, stageByIdIn, statusOf, showColumns, editColumns, requiredToApprove, requiredToSubmitFrom, missingColumns, colOf, isReviewable, feedbackColOf, isBrief, isStageComplete, isGateOpen, holderOf, sinceOf, type RoleKind } from "./stages";
-import { applyTransition, updateCell, displayName, personLabel, getCardEvents, type BoardRow, type CardEvent } from "./api";
+import { applyTransition, updateCell, displayName, personLabel, getCardEvents, getCachedChannels, type BoardRow, type CardEvent } from "./api";
 import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl } from "./labels";
 import { daysSince } from "./pipeline";
 import { StatusPill } from "./Card";
@@ -46,6 +46,9 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
 
   const contextStage = stageByIdIn(pipeline, contextStageId ?? "") ?? pipeline.stages[0];
   const [showAll, setShowAll] = useState(false);
+  const channelsData = getCachedChannels();
+  const cid = (row as Record<string, string>).channel_id;
+  const channelName = channelsData?.channels.find(c => c.id === cid)?.name;
 
   const kind: RoleKind = perspective === "reviewer" ? "reviewer" : "worker";
   const ctxStatus = statusOf(contextStage, row);
@@ -322,7 +325,11 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
       open
       onOpenChange={(o) => {
         if (!o) closeCard(); }} > <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"> <DialogHeader className="border-b border-border px-5 py-4"> <DialogTitle className="flex items-center gap-2 pr-6 text-lg tracking-tight">
-            <span className="text-balance">{title}</span> <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground/70">{pipeline.name}</span> </DialogTitle>
+            <span className="text-balance">{title}</span> 
+            {channelName && channelsData?.channels.length && channelsData.channels.length > 1 && (
+              <span className="shrink-0 rounded-full bg-secondary/70 px-2 py-0.5 text-xs font-medium text-secondary-foreground">{channelName}</span>
+            )}
+            <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground/70">{pipeline.name}</span> </DialogTitle>
         </DialogHeader> {} <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4"> {} <div className="space-y-2" data-testid="card-detail-your-part"> <div className="flex items-baseline justify-between gap-3"> <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{perspective === "doer" ? "Your part in this video" : "Progress"}</h3>
               <span className="text-xs text-muted-foreground">{whereLine}</span> </div> <div className="flex items-center gap-1.5"> {railStages.map((s) => {
                 const done = isStageComplete(s, row as Row);

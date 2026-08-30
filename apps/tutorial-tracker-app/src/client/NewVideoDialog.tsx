@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getPipeline, createFieldsOf } from "./stages";
-import { createVideo, resolveDefaults, personLabel } from "./api";
+import { createVideo, resolveDefaults, personLabel, getChannels } from "./api";
 import type { PipelineSummary } from "./Board";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +47,19 @@ export function NewVideoDialog({
   const [nvError, setNvError] = useState<string | null>(null);
   const [prefillNotice, setPrefillNotice] = useState<string>("");
   const [slugTouched, setSlugTouched] = useState(false);
+  const [channelsData, setChannelsData] = useState<{ channels: { id: string; name: string }[]; defaultId: string } | null>(null);
 
+  useEffect(() => {
+    let active = true;
+    const fetchC = async () => {
+      try {
+        const data = await getChannels();
+        if (active) setChannelsData({ channels: data.channels, defaultId: data.default_channel_id });
+      } catch (e) { console.warn("Failed to fetch channels", e); }
+    };
+    void fetchC();
+    return () => { active = false; };
+  }, []);
   useEffect(() => {
     if (open) {
       // eslint-disable-next-line
@@ -136,8 +148,9 @@ export function NewVideoDialog({
         </DialogHeader>
 
         <div data-testid="new-video-body" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+        <div className="flex gap-4 mb-4">
         {pipelines.length > 1 && (
-          <div className="mb-4 space-y-1.5 w-64">
+          <div className="space-y-1.5 w-64">
             <label className="text-xs font-medium text-foreground/80">Pipeline <span className="text-primary">*</span></label>
             <Select value={nvPipeline} onValueChange={(p) => { setNvPipeline(p); setNv(Object.fromEntries(createFieldsOf(getPipeline(p)).map(f => [f.col, ""])) as Record<string, string>); setPrefillNotice(""); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -147,6 +160,18 @@ export function NewVideoDialog({
             </Select>
           </div>
         )}
+        {channelsData && channelsData.channels.length > 1 && (
+          <div className="space-y-1.5 w-64">
+            <label className="text-xs font-medium text-foreground/80">Channel <span className="text-primary">*</span></label>
+            <Select value={nv.channel_id ?? channelsData.defaultId} onValueChange={(ch) => set("channel_id", ch)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {channelsData.channels.map((ch) => <SelectItem key={ch.id} value={ch.id}>{ch.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        </div>
 
         {/* One column on a narrow window — two cramped columns on a small
             laptop is what made this dialog so tall in the first place. */}

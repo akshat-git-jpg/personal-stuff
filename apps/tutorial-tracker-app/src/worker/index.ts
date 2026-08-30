@@ -285,7 +285,21 @@ app.get("/dev-login", async (c) => {
 
 app.use("/api/*", requireSession);
 
+import { DEFAULT_CHANNEL_ID, getChannel, listChannels, channelIdOf, linkDomainFor } from "./channels";
+
 app.get("/api/me", (c) => c.json(getUser(c)));
+
+app.get("/api/channels", (c) => {
+  return c.json({
+    channels: listChannels().map((ch) => ({
+      id: ch.id,
+      name: ch.name,
+      handle: ch.handle,
+      link_domain: ch.link_domain,
+    })),
+    default_channel_id: DEFAULT_CHANNEL_ID,
+  });
+});
 
 app.get("/api/team", async (c) => {
   const { roles } = getUser(c);
@@ -541,6 +555,7 @@ app.get("/api/board", async (c) => {
       // rehydrate the selection on reopen.
       video_tools: (r.video_tools as string) ?? "",
       video_code: (r.video_code as string) ?? "",
+      channel_id: channelIdOf(r as any),
     };
   });
 
@@ -933,6 +948,13 @@ app.post("/api/video", async (c) => {
 
   // Which system this video runs on (defaults to standard).
   const pipe = getPipeline((body.pipeline ?? DEFAULT_PIPELINE_ID).trim());
+  // Which channel will publish it (defaults to the registry's default channel).
+  const channelId = (body.channel_id ?? DEFAULT_CHANNEL_ID).trim();
+  try {
+    getChannel(channelId); // throws CHANNEL_UNKNOWN on a bad id — reject, never guess
+  } catch (err: any) {
+    return c.json({ error: "unknown_channel", message: err.message }, 400);
+  }
 
   const fieldLabel = (col: string) => {
     const f = createFieldsOf(pipe).find((x) => x.col === col);
@@ -982,6 +1004,7 @@ app.post("/api/video", async (c) => {
     ...explicitAssignees,                         // explicit assignees from the create screen
     ...values,                                    // the brief fields (win on any overlap)
     pipeline: pipe.id,                            // stamp the system
+    channel_id: channelId,                        // stamp the channel
     [colOf(firstStage, "status")]: "To Do",       // explicit — never blank
     topic_date: today,
     [colOf(firstStage, "assignee")]: PROTECTED_ADMIN_EMAIL, // admin owns the brief stage
@@ -1097,6 +1120,7 @@ app.post("/api/link-preview", async (c) => {
   const affiliates = await cachedAffiliates(c.env);
   const resolved = resolveSelection(tools, affiliates);
   
+  const channelId = channelIdOf(target as { channel_id?: string | null });
   let videoCode = (target.video_code as string)?.trim();
   if (!videoCode) {
     // Reserve a real short-code NOW so the preview (and any copied description)
@@ -1105,15 +1129,16 @@ app.post("/api/link-preview", async (c) => {
     // redirects (KV), the links rows, and the description write all still wait
     // for Confirm & Save. So no money-affecting artifact is created here.
     videoCode = generateVideoCode(await clickstore.existingCodes(c.env.DB));
-    await clickstore.insertVideo(c.env.DB, videoCode, title);
+    await clickstore.insertVideo(c.env.DB, videoCode, title, channelId);
     await getStore(c.env).updateCells(rowId, { video_code: videoCode });
     await bustBoardCache(c.env);
   }
 
-  const items = buildPlan(resolved, videoCode, c.env.LINK_DOMAIN);
+  const linkDomain = linkDomainFor(channelId);
+  const items = buildPlan(resolved, videoCode, linkDomain);
   const description = renderDescription(title, items);
   try {
-    validateDescription(description, items, c.env.LINK_DOMAIN);
+    validateDescription(description, items, linkDomain);
   } catch (err: any) {
     return c.json({ error: "validation", message: err.message }, 500);
   }
@@ -1144,11 +1169,14 @@ app.post("/api/link-confirm", async (c) => {
   const affiliates = await cachedAffiliates(c.env);
   const resolved = resolveSelection(tools, affiliates);
   
+  const channelId = channelIdOf(target as { channel_id?: string | null });
+  const linkDomain = linkDomainFor(channelId);
+
   let previewVideoCode = (target.video_code as string)?.trim();
   if (!previewVideoCode) {
     previewVideoCode = "(new)";
   }
-  const previewItems = buildPlan(resolved, previewVideoCode, c.env.LINK_DOMAIN);
+  const previewItems = buildPlan(resolved, previewVideoCode, linkDomain);
   const hash = await planHash(previewVideoCode, previewItems);
   
   if (hash !== planHashInput) {
@@ -1161,15 +1189,15 @@ app.post("/api/link-confirm", async (c) => {
   
   if (finalVideoCode === "(new)") {
     finalVideoCode = generateVideoCode(await clickstore.existingCodes(db));
-    await clickstore.insertVideo(db, finalVideoCode, title);
+    await clickstore.insertVideo(db, finalVideoCode, title, channelId);
     codeUpdates.video_code = finalVideoCode;
   } else if (!((target.video_code as string)?.trim())) {
     codeUpdates.video_code = finalVideoCode;
   }
 
-  const finalItems = buildPlan(resolved, finalVideoCode, c.env.LINK_DOMAIN);
+  const finalItems = buildPlan(resolved, finalVideoCode, linkDomain);
   const description = renderDescription(title, finalItems);
-  validateDescription(description, finalItems, c.env.LINK_DOMAIN);
+  validateDescription(description, finalItems, linkDomain);
 
   const existing = await clickstore.existingSlugs(db, finalVideoCode);
   for (const i of finalItems.filter(x => x.status !== "blocked")) {

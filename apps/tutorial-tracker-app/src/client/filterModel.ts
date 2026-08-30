@@ -10,10 +10,11 @@ export interface AdminFilters {
   bucket: Bucket;     // quick "what state is it in" bucket, or "" for everything
   assignee: string;   // email (lowercase) or ""
   stage: string;      // stage id or ""
+  channel: string;    // channel id or ""
   showPublished: boolean;
 }
 
-export const EMPTY_FILTERS: AdminFilters = { q: "", bucket: "", assignee: "", stage: "", showPublished: false };
+export const EMPTY_FILTERS: AdminFilters = { q: "", bucket: "", assignee: "", stage: "", channel: "", showPublished: false };
 
 export const BUCKETS: { key: Bucket; label: string; rule: string }[] = [
   { key: "needsyou", label: "Waiting on you", rule: "Submitted and needs your approval" },
@@ -70,5 +71,6 @@ export function rowMatchesFilters(row: Row, filters: AdminFilters, viewerEmail?:
     const hit = cols.some((c) => (r[c] ?? "").trim().toLowerCase() === filters.assignee);
     if (!hit) return false;
   }
+  if (filters.channel && r.channel_id !== filters.channel) return false;
   return true;
 }

@@ -5,7 +5,7 @@ import {
   pipeOf, stageByStatusColIn, normalizeStatusIn, feedbackColOf, assigneeColOf, sinceOf,
   etaColOf, workLinkColOf, requiredToSubmitFrom, missingColumns,
 } from "./stages";
-import { displayName } from "./api";
+import { displayName, getCachedChannels } from "./api";
 import { daysSince } from "./pipeline";
 import { statusMeta, toneBadge, toneDot } from "./status";
 import { cn } from "@/lib/utils";
@@ -130,6 +130,10 @@ export function Card({
   if (showSystem) metaParts.push(p.name);
   if (showAssignee && assignee) metaParts.push(displayName(assignee, names));
 
+  const channelsData = getCachedChannels();
+  const cid = (row as Record<string, string>).channel_id;
+  const channelName = channelsData?.channels.find(c => c.id === cid)?.name;
+
   const locks = (row as Record<string, unknown>)._locks as Record<string, string> | undefined;
   const etaCol = stage ? etaColOf(stage) : undefined;
   const linkCol = stage ? workLinkColOf(stage) : undefined;
@@ -157,7 +161,12 @@ export function Card({
     >
       <div className="flex items-start gap-4">
         <div className="min-w-0 flex-1 space-y-1">
-          <h3 className="text-[17px] font-semibold leading-snug tracking-tight text-balance text-foreground">{title}</h3>
+          <div className="flex items-start gap-2">
+            <h3 className="text-[17px] font-semibold leading-snug tracking-tight text-balance text-foreground">{title}</h3>
+            {channelName && channelsData?.channels.length && channelsData.channels.length > 1 && (
+              <span className="mt-1 shrink-0 inline-flex items-center rounded-sm bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">{channelName}</span>
+            )}
+          </div>
           {metaParts.length > 0 && (
             <div className="text-xs text-muted-foreground">{metaParts.join(" · ")}</div>
           )}
