@@ -163,6 +163,14 @@ Copy-paste kickoff prompts: [docs/two-session-kickoff.md](docs/two-session-kicko
 - **E. Sound + mix stage**: semantic SFX, ducked music, −14 LUFS master (frame-exact sync).
 - **F. Effects vocabulary + variants**: marker family, snap-in plates, auto-rotated layout variants for reused cards.
 - **G. Per-video manifest + tokens**: `video.json` and `brand.json` make re-skinning a simple swap.
+  `lib/brand-inline.mjs`'s `loadBrand()` resolves which brand file a video gets, in this
+  order (plan 264): (1) `video.json`'s own `brand`, when it names something other than
+  the literal `"default"` — an explicit per-video override always wins; (2) otherwise
+  the channel's `profile.brand` — the channel is `video.json`'s `channel` field if set,
+  else the channel the video is registered under in `video-registry`, else the channel
+  registry's default; (3) otherwise `"default"`. Only one channel (`agrollo`) exists
+  today, so this only matters once a second channel's `brands/<name>.json` ships — see
+  `config/README.md`'s **Profiles** section.
 - **H. Head layout modes**: full, panel, and hidden compositing for the talking head.
 - **I. Board upgrade**: Storyboard + Final Cut tabs with point-pinned notes, global playback, and version history.
 
