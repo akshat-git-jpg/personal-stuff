@@ -23,6 +23,11 @@ description: Use when answering anything about personal-stuff's live URLs — wh
 | lists.agrolloo.com | `apps/lists-app/` | Worker (SPA) + D1 | password, HMAC cookie |
 | go.agrolloo.com | `apps/redirector/` | Worker (zone route `/*`) + KV + D1 | public by design |
 | bridebestie.com (+www) | `apps/pinterest-landing-pages/bridebestie/` | assets-only Worker, own zone | public |
+
+**Two Hostinger logins exist.** `pp-hostinger` needs `--account vps|web`; a domain in the
+sibling account reports as *"not registered at Hostinger"*. `agrolloo.com` and the web
+hosting live in **web**; the VPS lives in **vps**. Retiring the second account was
+investigated and parked — see `plans/260-close-hostinger-web-account.md`.
 | my-dashboard.agrolloo.com | `apps/personal-dashboard/` | **VPS Docker** behind Traefik | password (hash self-heals into DB) |
 | render2.agrolloo.com | `apps/hyperframes-render/` | **VPS Docker** behind Traefik | password |
 | localhost:4319 | `tooling/cli/ccusage-dashboard/` | local only (`ccu-dash`) | n/a |

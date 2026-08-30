@@ -1,143 +1,154 @@
 # Plan 260: Close the second Hostinger account (web hosting)
 
-## Summary
+> **STATUS: PARKED — 2026-08-30, owner's call.** The investigation is finished and three
+> cleanup steps already shipped; only the migration itself is parked. Reason: the annual
+> saving lands at **~₹4,300**, which the owner judged too small for the work and the
+> deadline pressure. Nothing here is blocked or broken — the account can stay as it is
+> indefinitely. **Read this file before re-opening the topic; everything below is
+> already-verified fact, so nothing needs re-investigating, only re-pricing.**
 
-- **Problem statement**: Two Hostinger logins exist. The second ("web") holds the
-  `agrolloo.com` **registration**, a Premium Web Hosting plan (₹5,388/yr) running a
-  WordPress, and the **mailboxes for @agrolloo.com** used to sign up to affiliate
-  programmes. The owner wants one account, cleanly, without risking anything.
-- **Goal**: retire the web account. Hosting first (the only real waste), domain second.
-- **Non-goal**: moving Cloudflare Workers to the VPS. See "What must NOT move".
+## Read this first (context for a fresh session)
 
-## The three things that block closing it
+The owner has **two Hostinger logins**. He dislikes maintaining both and asked whether the
+second could be closed. The answer is yes, but not for free, and the arithmetic is thin.
 
-| # | Blocker | Evidence (2026-08-30) |
+**A Hostinger API token only sees its own account.** A domain in the sibling account comes
+back as *"Domain is not registered at Hostinger"*, which reads exactly like "you don't own
+this". `pp-hostinger` takes `--account vps|web`; if a domain you know exists looks missing,
+you are asking the wrong account.
+
+```bash
+pp-hostinger --account web api GET /api/domains/v1/portfolio       # domains + expiry
+pp-hostinger --account web api GET /api/billing/v1/subscriptions   # what renews, when, price
+pp-hostinger --account web api GET /api/billing/v1/payment-methods # the card/UPI on file
+pp-hostinger --account web dns list agrolloo.com                   # Hostinger's INTENDED zone
+```
+
+That last one is the useful trick: it returns the zone Hostinger *wants*, even though DNS is
+delegated to Cloudflare. It is how the DKIM targets were recovered without opening the panel.
+
+**The Hostinger API has no email endpoints at all** (nine paths probed, all 404 — it covers
+domains, VPS, hosting, DNS, billing). Mailbox questions genuinely require the panel or a
+screenshot from the owner. Do not promise to look them up.
+
+## What is in each account (verified 2026-08-30)
+
+| Account | Contents | Cost/yr | Renews |
+|---|---|---|---|
+| **vps** (default) | KVM 2 VPS. Card: Visa, valid to 2032 | ₹16,788 | 2027-01-31 |
+| **web** | Premium Web Hosting (`m_68705591`) | ₹5,388 | **10-27, yearly** |
+| **web** | `.COM Domain` = `agrolloo.com` (`m_68705617`) | ₹1,516 | **10-14, yearly** |
+
+`agrolloo.com` expires **2026-11-10**; auto-renew is **ON**; payment is UPI
+`khushibakliwal125@okicici`, valid to 2028. Domain is `is_locked: true` (normal).
+
+## Why the account cannot simply be closed
+
+Two independent blockers. Solving one does not help with the other.
+
+### Blocker 1 — the mailboxes die with the hosting  *(SETTLED, do not re-litigate)*
+
+`@agrolloo.com` runs on **Free Business Email**, which is *not* what the ₹5,388 buys —
+except that it is. Hostinger's own tooltip: *"Free email plans renew along with your hosting
+plan."* Their support agent: *"cancelling the hosting plan will also delete the free email
+accounts, **even if you keep paying for the domain**."*
+
+An earlier inference said the opposite, reasoning from the email plan's expiry date matching
+the *domain* date (2026-11-10) rather than the hosting date. **That inference was wrong.**
+Email follows the HOSTING.
+
+Two live mailboxes, both real and in use:
+
+| Mailbox | Size | Role |
 |---|---|---|
-| 1 | **Mailboxes die with the hosting** — SETTLED 2026-08-30 | Hostinger's own tooltip: *"Free email plans renew along with your hosting plan."* Their agent: *"cancelling the hosting plan will also delete the free email accounts, **even if you keep paying for the domain**."* This **contradicts** the earlier inference from the expiry date — email follows the HOSTING, not the domain. The ₹5,388 buys nothing but 2 live mailboxes, and email must be rehomed before cancelling. |
-| 2 | **5 live short links** hop through the WordPress on that hosting | `links` rows `5MyF/filmora`, `L2Is/lumen5`, `SB2g/hostinger`, `f5g4/d-id`, `zhaY/mailchimp` all target `https://agrolloo.com/<tool>`; each returns 302→WordPress→vendor today. |
-| 3 | **`agrolloo.com` is registered in this account** | `--account web api GET /api/domains/v1/portfolio` returns it; the VPS account's token reports it as "not registered at Hostinger". Every app and the money path sit on this domain. |
+| `khushibakliwal@agrolloo.com` | 160 MB | primary |
+| `kushalbakliwal@agrolloo.com` | 81 MB | secondary |
+| `khushibakliwal251@agrolloo.com` | 232 KB | unused (0%) |
 
-`agrollo.com` (one fewer `o`) is a second vhost on the plan. `whois` says **No match** —
-the domain does not exist. Dead weight; ignore it.
+These are the addresses used to sign up to affiliate programmes, so they hold approval
+mails, payout notices and password-reset paths. **Any migration must export them first —
+that is the only irreversible step in the whole plan.**
 
-## What must NOT move
+A second plan on `@agrollo.com` (one fewer `o`) held three mailboxes on a domain that does
+not exist (`whois` → No match), so none could receive anything. **Deleted by the owner
+2026-08-30.** Do not go looking for it.
 
-The owner's phrase was "move everything to the VPS". Most of it is already somewhere
-better and moving it would be a downgrade:
+### Blocker 2 — the domain is registered in this account
 
-- **13 of ~15 public apps are Cloudflare Workers**, not VPS containers. Workers are free
-  at this volume, need no patching, and have no SSH surface. The VPS runs only
-  `personal-dashboard`, `hyperframes-render`, `n8n`, `minio`, `traefik`.
-- **A domain cannot live "on a VPS"** — registration is a registrar function. The honest
-  target is **fewer providers**, not one: today Cloudflare + VPS + 2 Hostinger logins;
-  after this plan, Cloudflare + VPS.
+`agrolloo.com` carries every app and the `go.agrolloo.com` affiliate money path. Closing the
+account without transferring it loses all of that. **Email and domain are separate problems;
+fixing email alone does not close the account.**
 
-## Decisions confirmed
+## Already done (do not redo)
 
-- Email → **not self-hosted on the VPS** (deliverability + maintenance; see Step 2 rationale).
-- Domain → **Cloudflare Registrar**, at-cost, next to the DNS that already serves it.
-- Timing → **hosting cancelled first, domain transferred later**. The two are separate
-  subscriptions in one account; cancelling one does not touch the other.
+| Done | What |
+|---|---|
+| 2026-08-30 | **The 5 WordPress-hop links were repointed.** `5MyF/filmora`, `L2Is/lumen5`, `SB2g/hostinger`, `f5g4/d-id`, `zhaY/mailchimp` now go straight to their vendors in both `CLICKS_KV` and `links`. **Rows depending on `agrolloo.com`: 5 → 0.** No YouTube edit was needed. The hosting no longer serves any link. |
+| 2026-08-30 | **DKIM was fixed.** Both `hostingermail-a/b._domainkey` CNAMEs existed in Cloudflare but were `proxied: true`, so they answered with Cloudflare's proxy IPs instead of the signing key and DKIM failed on every message. Flipped to DNS-only; both now return `v=DKIM1`. Cost ₹0. |
+| 2026-08-30 | The dead `@agrollo.com` email plan was deleted. |
 
----
+**Still open from that work:** DMARC is `p=none`. Tighten to `p=quarantine` only after DKIM
+has demonstrably passed in the wild for ~2 weeks. Also, all five repointed links still carry
+**no affiliate code and earn ₹0** — `filmora` is the one worth fixing (approved on Impact).
 
-## Phase 1 — kill the hosting (deadline: before 2026-10-27)
+## The migration, if it is ever resumed
 
-Saves ₹5,388/yr. Nothing here touches the domain.
+### Why it was parked — the arithmetic
 
-### Step 1 — inventory the mailboxes  *(owner)* — **DONE 2026-08-30**
-The Hostinger API has **no email endpoints at all** (nine paths probed, all 404): it covers
-domains, VPS, hosting, DNS and billing only. Mailboxes exist solely in the panel, so this
-step cannot be automated.
+| | Now | After migration |
+|---|---|---|
+| VPS (Hostinger #1) | ₹16,788 | ₹16,788 |
+| Web hosting (Hostinger #2) | ₹5,388 | — |
+| Domain (Hostinger #2) | ₹1,516 | — |
+| Email (new provider) | — | ~₹1,700 |
+| Domain (Cloudflare Registrar, at-cost) | — | ~₹900 |
+| **Total** | **₹23,692** | **~₹19,388** |
 
-`@agrolloo.com`, Free Business Email, 3/100 mailboxes, auto-renew ON, expires 2026-11-10:
-`khushibakliwal251@`, `khushibakliwal@`, `kushalbakliwal@` (~240 MB total).
+**Saving ≈ ₹4,300/yr**, and the vendor count stays at **three** either way (a registrar, a
+mail host, a VPS host — three is the floor; "everything on the VPS" is not reachable). The
+only real gain is that the duplicate Hostinger login disappears. The owner judged that not
+worth the migration risk. **If you re-open this, re-price it first — these are 2026 numbers.**
 
-A second plan, `@agrollo.com` (one fewer `o`), held `akshat.p@`, `jessica.p@` and
-`seankerman@` — **on a domain that does not exist** (`whois` → No match), so none of them
-could receive anything. Deleted by the owner 2026-08-30.
+### The email options, as researched 2026-08-30
 
-### Step 1b — fix DKIM  *(claude)* — **DONE 2026-08-30**
-Hostinger's "some domain records are missing" warning was real, but not the missing-record
-problem it looked like. Both DKIM CNAMEs (`hostingermail-a/b._domainkey`) **already existed
-in Cloudflare and were set to `proxied: true`** — so they resolved to Cloudflare's proxy IPs
-(104.21.68.2) instead of the signing key, and DKIM failed for every message sent. Flipped
-both to DNS-only; both now return `v=DKIM1;k=rsa;p=…`. **Cost ₹0 and no provider change —
-this, not the mail host, was the deliverability problem.** DMARC is still `p=none`; leave it
-until DKIM has passed in the wild for ~2 weeks, then tighten.
+Requirement: the owner **must be able to reply as `@agrolloo.com`**. That rules out
+Cloudflare Email Routing, which forwards but cannot send.
 
-> Hostinger's *intended* zone (including the DKIM records) is readable even though DNS lives
-> at Cloudflare: `pp-hostinger --account web dns list agrolloo.com`. Handy whenever a mail
-> provider says records are missing but will not say which.
+| Option | ₹/yr | IMAP/SMTP | Reply as @agrolloo | Notes |
+|---|---|---|---|---|
+| Stay on Hostinger hosting | 5,388 | ✅ | ✅ | Keeps the second account alive. The status quo. |
+| Hostinger Business Email ×2 | ~3,300 | ✅ | ✅ | Priced **per mailbox** (~$1.59/mo each at renewal). Still keeps the second account. |
+| Zoho Mail **free** | 0 | ❌ | webmail only | **Free tier excludes IMAP/POP/ActiveSync.** No phone app. Rejected. |
+| Zoho Mail Lite ×2 | ~2,000–3,000 | ✅ | ✅ | Bigger brand, Indian company. **Exact INR price was never confirmed** — their pricing page does not expose it. |
+| **Migadu Micro** | **~1,700** | ✅ | ✅ | Swiss, self-funded. Webmail + full IMAP/SMTP/POP3 on every plan. Free trial, no card. Limits: 20 outgoing/day, 200 incoming/day, **5 GB shared across all mailboxes** (currently using 241 MB). |
+| Cloudflare Email Routing | 0 | n/a | ❌ | **Rejected** — cannot send. |
 
-### Step 2 — stand up replacement email  *(claude + owner)*
-Chosen: a **managed provider**, not the VPS.
+Leading candidate was **Migadu Micro**.
 
-> Why not the VPS: a fresh VPS IP has no sending reputation, so Gmail and Outlook
-> spam-folder or reject it until it is warmed; it needs SPF, DKIM, DMARC, a correct PTR
-> record, blocklist monitoring and ongoing patching of the mail stack; and Hostinger
-> commonly blocks outbound port 25 on VPS plans. The failure mode is an affiliate
-> password-reset landing in spam — losing access to a money account to save a few
-> hundred rupees. This is the one place where self-hosting adds exactly the "future
-> workload and risk" the owner said to avoid.
+### The domain, if resumed
 
-- If replies as `@agrolloo.com` are needed → **Zoho Mail free tier** (own domain, real
-  IMAP/SMTP, up to 5 mailboxes, ₹0).
-- If receiving only → **Cloudflare Email Routing** (₹0, zero maintenance, already used
-  for `bridebestie.com`; `tooling/cli/cf-email/setup-routing.mjs` automates it).
+Transfer `agrolloo.com` to **Cloudflare Registrar** — at-cost with no markup, and it lands
+beside the DNS that already serves the zone. **A registrar transfer does not touch DNS, so
+nothing goes down.** Needs: unlock the domain in hPanel, copy the EPP/auth code, paste it
+into Cloudflare, approve the email, wait 5–7 days.
 
-Then: create matching addresses, repoint MX + SPF (+ DKIM) on the Cloudflare zone,
-send a test both ways, and **leave the Hostinger mailboxes running in parallel for
-7 days** before Step 4.
+### Sequence that would be safe
 
-### Step 3 — take the 5 links off the WordPress  *(claude)* — **DONE 2026-08-30**
-`CLICKS_KV` and the `links` rows were repointed straight at each vendor:
-`5MyF/filmora`→filmora.wondershare.net, `L2Is/lumen5`→lumen5.com,
-`SB2g/hostinger`→hostinger.com, `f5g4/d-id`→d-id.com, `zhaY/mailchimp`→mailchimp.com.
-All five verified live (302 straight to the vendor). **`links` rows depending on
-`agrolloo.com`: 5 → 0.** No YouTube edit was needed — descriptions already point at
-`go.agrolloo.com`, which is exactly what that indirection is for.
+1. Migadu trial → add domain → create the 2 mailboxes.
+2. **Export both mailboxes from Hostinger** (the irreversible step).
+3. Repoint MX / SPF / DKIM to the new provider; test send and receive both ways.
+4. Run both in parallel for 7 days.
+5. Transfer the domain to Cloudflare — **before 10-14**, to skip Hostinger's renewal.
+6. Cancel Premium Web Hosting — **before 10-27**.
+7. Close the second Hostinger account.
 
-Mailchimp's stored URL carried a **stranger's Google Ads `gclid`**, so that click was
-crediting whoever ran the ad; it now goes to the plain homepage. All five still carry no
-affiliate code and earn **₹0** — `filmora` is the one worth fixing (approved on Impact).
+Steps 5 and 6 are the annual deadlines and they recur every year, so any future attempt
+should start by **early September** to keep six weeks of margin.
 
-### Step 4 — cancel the hosting subscription  *(owner)*
-hPanel → Billing → Subscriptions → **Premium Web Hosting** (`m_68705591`) → cancel /
-turn off auto-renew. **Leave `.COM Domain` (`m_68705617`) alone with auto-renew ON.**
-Download a WordPress backup first if any post content is worth keeping.
+## Unverified, if this is resumed
 
-### Step 5 — verify  *(claude)*
-`https://agrolloo.com/<tool>` may now 404 — expected. Re-probe all 107 links and confirm
-none targets `agrolloo.com`; confirm mail to `@agrolloo.com` still arrives.
-
----
-
-## Phase 2 — move the domain (no hard deadline)
-
-Let the domain auto-renew once on **2026-10-14** (₹1,516). A transfer takes 5–7 days and
-is riskiest near expiry; paying one more year buys a calm window, and the domain carries
-every app plus the affiliate money path.
-
-1. hPanel → Domains → `agrolloo.com` → **unlock** (`is_locked` is currently `true`) and
-   copy the **EPP/auth code**.
-2. Cloudflare dash → Domain Registration → **Transfer Domains** → `agrolloo.com` → paste
-   the code. DNS is already on Cloudflare, so records do not change and **nothing goes down**.
-3. Approve the transfer email. Wait 5–7 days. Confirm with
-   `whois agrolloo.com | grep -i Registrar` → expect Cloudflare.
-4. Set auto-renew ON at Cloudflare. Update the renewals table in `INFRA.md`.
-5. Only now: close the Hostinger web account.
-
----
-
-## Rollback
-
-- Phase 1 is reversible up to Step 4; hosting cancellation is not, hence the backup.
-- Phase 2 has no window where the domain is unreachable — a registrar transfer does not
-  move DNS, and DNS is already at Cloudflare.
-
-## Open questions for the owner
-
-1. The mailbox list from Step 1 — how many, and which are used for affiliate logins?
-2. Do you ever *reply* from `@agrolloo.com`, or only receive? (Decides Zoho vs Cloudflare.)
-3. Is there anything on the WordPress at `agrolloo.com` worth keeping (posts, pages)?
+1. Zoho Mail Lite's exact INR price.
+2. Cloudflare Registrar's exact `.com` price (at-cost model confirmed; the figure is not on their page).
+3. Whether transferring the domain out *early* also ends the Hostinger free email. Their
+   stated rule is hosting-based, so it should not — which is why the sequence above moves
+   email first regardless.

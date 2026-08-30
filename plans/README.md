@@ -1397,4 +1397,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 257-tracking-links-view-and-mint-move — PR#218 257-tracking-links-view-and-mint-move: Tracking links view, and minting moves out of the video card — DONE
 - 258-link-guard-cron-and-health — PR#219 258-link-guard-cron-and-health: the link guard — cron, Health view, Telegram — DONE
 - 259-close-the-youtube-mapping-gap — PR#220 259-close-the-youtube-mapping-gap: nothing ever wrote videos.yt_video_id — DONE
-- 260-close-hostinger-web-account — retire the 2nd Hostinger login: kill the ₹5,388 hosting (blocked on email + 5 WordPress-hop links), then transfer agrolloo.com to Cloudflare — TODO (owner steps)
+- 260-close-hostinger-web-account — retire the 2nd Hostinger login (hosting + agrolloo.com registration) — **PARKED 2026-08-30**: saving is only ~₹4,300/yr and the vendor count stays at 3. Investigation is COMPLETE; read the file before re-opening. The DKIM fix and the 5 WordPress-hop links already shipped.
