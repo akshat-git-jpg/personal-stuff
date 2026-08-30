@@ -23,7 +23,7 @@ This document lists the active business, content, and career bets being pursued 
 - **Where it lives**:
   - **ABANDONED 2026-08-25** — owner dropped Pinterest entirely. Pin data and generators archived at `pipelines/archive/pinterest/`; all four `pinterest-*` skills archived. The `keto-kitchen` Worker and its source were deleted 2026-08-30 (it cost nothing beyond the already-paid `agrolloo.com` registration); `bridebestie.com` is still deployed and untouched.
   - Deployable landing pages: `apps/pinterest-landing-pages/`
-  - Main brand domain: `bridebestie.com` — **to be cancelled before it renews on 2027-06-02**; see the domain-renewals table in [INFRA.md](file:///Users/kbtg/codebase/personal-stuff/INFRA.md) (see [my-hosted-sites.md](file:///Users/kbtg/codebase/personal-stuff/my-hosted-sites.md))
+  - Main brand domain: `bridebestie.com` — **auto-renew already off; it lapses on its own 2027-06-02**; see the domain-renewals table in [INFRA.md](file:///Users/kbtg/codebase/personal-stuff/INFRA.md) (see [my-hosted-sites.md](file:///Users/kbtg/codebase/personal-stuff/my-hosted-sites.md))
 - **Status & Metrics**:
   - Income tracking: [pipelines/income-analysis/](file:///Users/kbtg/codebase/personal-stuff/pipelines/income-analysis/README.md) (refer to Gumroad/Skool CLIs and snapshot logs)
 - <!-- TODO(owner interview): Detail target lead generation metrics, product pricing, and traffic targets. -->
