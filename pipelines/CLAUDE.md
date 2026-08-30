@@ -74,6 +74,7 @@ npx ts-node run.ts --niche <slug>
 | [`income-analysis/`](income-analysis/README.md) | Gumroad/Skool income snapshot retrieval CLIs | Python |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script. | Python |
 | [`video-registry/`](video-registry/CLAUDE.md) | The shared video key — mints a video's kebab slug ONCE and resolves old/alternate names to it, so `yt-script` and `visuals-flow` agree on what a video is called. Both call `vreg ensure`; neither owns naming | Node |
+| Channel profiles (per-channel voice, avatar, brand, taste file) | Not a pipelines folder — the registry is [`../config/README.md`](../config/README.md)'s **Profiles** section (`config/channels.json`'s `profile` block, validated by `config/profiles.mjs`). Consumed here by `video-registry`'s `channel` field and `video/visuals-flow`'s brand resolution | — |
 | [`video/`](#) | Video production and rendering assets | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/tts/`](video/tts/CLAUDE.md) | TTS asset hub — reference voices, engines (IndexTTS-2 on Modal), voiceover manifest; consumed by the youtube pipelines | Python |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/heygen/`](video/heygen/CLAUDE.md) | Avatar asset hub — character registry + reference images, render manifest, HeyGen + fal-lipsync flows | Python + JSON |

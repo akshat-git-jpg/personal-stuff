@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { defaultChannel } from '../../../config/channels.mjs';
 
 export const REGISTRY_PATH = path.resolve(import.meta.dirname, '..', 'videos.json');
 export const REPO_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
@@ -55,11 +56,20 @@ export function namesFor(key, reg = load()) {
   return [key, ...(v.aliases || [])];
 }
 
-export function list(reg = load()) {
-  return Object.entries(reg.videos).map(([key, v]) => ({ key, ...v }));
+/**
+ * The channel a registered video belongs to. An entry with no `channel` field
+ * (or a name the registry does not know) resolves to the channel registry's
+ * default — this NEVER throws, matching resolveKey's contract.
+ */
+export function channelOf(key, reg = load()) {
+  return reg.videos[key]?.channel || defaultChannel().id;
 }
 
-export function mint(key, { title = '', minted, aliases = [], card_id } = {}, reg = load()) {
+export function list(reg = load()) {
+  return Object.entries(reg.videos).map(([key, v]) => ({ key, ...v, channel: channelOf(key, reg) }));
+}
+
+export function mint(key, { title = '', minted, aliases = [], card_id, channel } = {}, reg = load()) {
   if (!isValidKey(key)) {
     throw new Error(`E-REGISTRY: "${key}" is not a valid key (lowercase kebab-case, <=60 chars)`);
   }
@@ -71,6 +81,7 @@ export function mint(key, { title = '', minted, aliases = [], card_id } = {}, re
   }
   const entry = { title, minted: minted ?? new Date().toISOString().slice(0, 10), aliases };
   if (card_id) entry.card_id = card_id;
+  entry.channel = channel || defaultChannel().id;
   reg.videos[key] = entry;
   return reg;
 }
@@ -84,10 +95,10 @@ export function mint(key, { title = '', minted, aliases = [], card_id } = {}, re
  * Returns { key, minted, reg } so a caller can tell "I created this" from
  * "it already existed".
  */
-export function ensure(name, { title = '' } = {}, reg = load()) {
+export function ensure(name, { title = '', channel } = {}, reg = load()) {
   const existing = resolveKey(name, reg);
   if (existing) return { key: existing, minted: false, reg };
-  return { key: name, minted: true, reg: mint(name, { title }, reg) };
+  return { key: name, minted: true, reg: mint(name, { title, channel }, reg) };
 }
 
 /**

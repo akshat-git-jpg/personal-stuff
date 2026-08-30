@@ -3,6 +3,7 @@ import {
   load, save, mint, addAlias, list, resolveKey,
   ensure, whereIs, unregisteredDirs, REGISTRY_PATH,
 } from '../lib/registry.mjs';
+import { defaultChannel, getChannel } from '../../../config/channels.mjs';
 import { fetchCards, planSync } from '../lib/tracker.mjs';
 import {
   planClicksDb, planDesk, diffInvariants, partitionCollisions,
@@ -20,7 +21,7 @@ function flag(name) {
 const positional = rest.filter((a, i) => !a.startsWith('--') && !(rest[i - 1] || '').startsWith('--'));
 
 function usage() {
-  console.log('usage: vreg ensure <name> [--title "..."]   get the key, minting only if new');
+  console.log('usage: vreg ensure <name> [--title "..."] [--channel <id>]   get the key, minting only if new');
   console.log('       vreg resolve <name>                  canonical key, exit 1 if unknown');
   console.log('       vreg where <name>                    which pipelines have a folder for it');
   console.log('       vreg list                            every registered video');
@@ -35,7 +36,7 @@ try {
   if (cmd === 'list') {
     for (const v of list()) {
       const al = v.aliases?.length ? `  (aka ${v.aliases.join(', ')})` : '';
-      console.log(`${v.key}  ${v.minted}  ${v.title || '-'}${al}`);
+      console.log(`${v.key}  ${v.minted}  ${v.channel}  ${v.title || '-'}${al}`);
     }
   } else if (cmd === 'resolve') {
     const key = resolveKey(positional[0]);
@@ -46,7 +47,12 @@ try {
     // stdout so a caller can use `$(vreg ensure ...)` directly; the human-facing
     // note goes to stderr.
     if (!positional[0]) { console.error('ensure needs a name'); process.exit(1); }
-    const { key, minted, reg } = ensure(positional[0], { title: flag('title') ?? '' });
+    const channelFlag = flag('channel');
+    // Validate BEFORE minting — an unknown id must never produce an entry that
+    // points nowhere. getChannel throws CHANNEL_UNKNOWN, caught by the outer
+    // try/catch below, which prints it and exits non-zero.
+    if (channelFlag) getChannel(channelFlag);
+    const { key, minted, reg } = ensure(positional[0], { title: flag('title') ?? '', channel: channelFlag });
     if (minted) save(reg);
     console.error(minted ? `minted new key: ${key}` : `already registered: ${key}`);
     console.log(key);
@@ -91,7 +97,9 @@ try {
       console.error(`skipped ${s.key} (${s.reason} with id ${s.id})`);
     }
     for (const m of plan.mints) {
-      reg.videos[m.key] = { title: m.title, minted: m.minted, aliases: [], card_id: m.card_id };
+      reg.videos[m.key] = {
+        title: m.title, minted: m.minted, aliases: [], card_id: m.card_id, channel: defaultChannel().id,
+      };
       console.error(`minted ${m.key}`);
     }
     for (const s of plan.stamps) {

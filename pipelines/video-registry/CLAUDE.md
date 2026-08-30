@@ -154,10 +154,27 @@ Where the mapping comes from: `cards.slug` is a real tracker column, but
 `video_code` is not — the tracker stores it inside the card's `extra_json` blob,
 so the verb `json_extract`s it out.
 
+## channel — which channel a video belongs to (plan 264)
+
+Every entry carries `"channel": "<id>"`, the `config/channels.json` id the video
+belongs to. `channelOf(key, reg)` is the getter: an entry with no `channel` field, or
+a key the registry does not know at all, resolves to the channel registry's default —
+it **never throws**, matching `resolveKey`'s contract. `list()` always fills the field
+in via `channelOf`, so a caller never sees it missing even on an older entry.
+
+`mint`/`ensure` default `channel` to the registry default when not given; `vreg ensure
+--channel <id>` validates the id BEFORE minting, so an unknown channel exits non-zero
+(`CHANNEL_UNKNOWN`) rather than minting an entry that points nowhere.
+
+`visuals-flow`'s brand resolution reads a video's channel to pick its `profile.brand`
+— see `config/README.md`'s **Profiles** section and `visuals-flow/PIPELINE.md`.
+
 ## Traps
 
 - **Do not add a `stages`, `paths`, `published`, `stage`, `yt_id`, or `flows` field to an entry.** The paths are derivable
-  from the key; recording them creates a second source of truth that drifts. `card_id` is the ONLY permitted new field, to link the tracker.
+  from the key; recording them creates a second source of truth that drifts. `card_id`
+  and `channel` are the only permitted new fields — `card_id` links the tracker,
+  `channel` links `config/channels.json`.
 - **Name similarity is not evidence that two videos are one video.**
   `ai-avatar-generators` (HeyGen/Synthesia talking heads) and
   `consistent-ai-influencer` (Nano Banana/Flux image consistency) look like a
