@@ -14,6 +14,17 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - `agrolloo.com` — main personal domain (apps + landing pages).
 - `bridebestie.com` — wedding-niche brand domain.
 
+### Domain renewals — check before each date
+
+| Domain | Registrar | Expires | Decision |
+|---|---|---|---|
+| `agrolloo.com` | Hostinger | **2026-11-10** | **RENEW.** Load-bearing: every live app and the `go.agrolloo.com` money path sit on it. Losing it takes down all of it and breaks every affiliate short link already published in YouTube descriptions. |
+| `bridebestie.com` | Cloudflare | **2027-06-02** | **CANCEL before renewal** (owner, 2026-08-30). Paid a year up front and the wedding/Pinterest bet is abandoned, so keep it until the paid term runs out, then let it lapse. Turn OFF auto-renew in the Cloudflare Registrar dashboard well before the date — Cloudflare renews automatically by default. |
+
+Every subdomain (`go.`, `kushal-tools.`, `keto-kitchen.` when it existed, …) is free; only these two
+registrations cost money. Re-read the live dates with `whois <domain> | grep -i "Registry Expiry"`
+rather than trusting this table, and update it when a renewal happens.
+
 ### Workers (14 deployed, no Pages projects)
 - **redirector** — `go.agrolloo.com/*` — URL shortener + click tracking. Bindings: `CLICKS_KV`, `clicks-db` (D1).
 - **kushal-tools** — `kushal-tools.agrolloo.com` — KushalTools hub: card launcher linking every live agrolloo.com site. Shared-password gate (stateless signed cookie, no KV). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. No bindings.
