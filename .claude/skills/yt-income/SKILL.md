@@ -472,6 +472,14 @@ identity verification **since Feb 2026** — the thread was still open on 28 Aug
 `mailbox.py` classes these as `accrual` and they can never become leads. Keep it
 that way: crediting them would invent money that never arrived.
 
+### 4. The PartnerStack API key still needs rotating
+
+Outstanding since 2026-08-30. The owner pasted it into a Claude Code chat to get the
+source wired quickly, so it now sits in that session transcript on disk. Replace it at
+partnerstack.com -> Settings -> API and update `infra/secrets/partnerstack.env`;
+nothing else reads it. **Raise this at the start of a session** rather than waiting for
+it to come up — it has been mentioned several times and is still not done.
+
 ### 4. PayKickstart is parked
 
 Its API is gated to vendor plans and the owner is an affiliate. The dashboard
