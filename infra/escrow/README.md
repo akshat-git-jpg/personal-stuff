@@ -21,6 +21,7 @@ Resolved dynamically at run time — only paths that exist are bundled. As of 20
 | `repo/pipelines/.env` | Python workspace (~21 keys) |
 | `repo/pipelines/credentials.json` | Google service account |
 | `repo/tooling/mcp/google-shared/credentials.json` + `tokens/` | OAuth client + 5 account tokens |
+| `repo/tooling/mcp/hostinger/.env` | Hostinger API tokens, both accounts (vps + web) |
 | `repo/infra/secrets/` | heygen cURLs, hostinger-vps.env, impact.env, minio.env |
 | `repo/apps/*/.dev.vars` | per-app Worker local dev secrets (7 apps) |
 | `home/.config/paypal-txns-pp-cli` | PayPal CLI creds |
