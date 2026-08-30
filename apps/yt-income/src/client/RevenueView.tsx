@@ -328,20 +328,36 @@ function ToolTable({
                 <td>{((t.amount / month.bank_total) * 100).toFixed(1)}%</td>
               </tr>
             ))}
-            {!clean && (
-              <tr className="row-untraced">
-                <td><span className="sw sw-hatch" />Untraced</td>
-                <td>
-                  <span className="chain">
-                    <span className="hop hop-unknown">source unknown</span>
-                    <span className="hop-arrow">→</span>
-                    <span className="hop hop-bank">Bank</span>
-                  </span>
-                </td>
-                <td>{money(un.amount)}</td>
-                <td>{((un.amount / month.bank_total) * 100).toFixed(1)}%</td>
-              </tr>
-            )}
+            {/* One row per rail, not one lump. We always know how the money
+                arrived even when we do not know who sent it, and naming the rail
+                is the difference between a dead end and a lead. */}
+            {!clean && untracedByRail(un.credits).map(([railLabel, credits]) => {
+              const amt = credits.reduce((s, c) => s + c.amount, 0);
+              return (
+                <tr className="row-untraced" key={railLabel}>
+                  <td><span className="sw sw-hatch" />Untraced</td>
+                  <td>
+                    <span className="chain">
+                      <span className="hop hop-unknown" title="Which tool sent this is not yet known">
+                        ? unidentified sender
+                      </span>
+                      <span className="hop-arrow">→</span>
+                      <span className="hop"
+                            style={HOP_HUE[railLabel]
+                              ? { background: `${HOP_HUE[railLabel]}22`, color: HOP_HUE[railLabel],
+                                  borderColor: `${HOP_HUE[railLabel]}55` }
+                              : undefined}>
+                        {railLabel}
+                      </span>
+                      <span className="hop-arrow">→</span>
+                      <span className="hop hop-bank">Bank</span>
+                    </span>
+                  </td>
+                  <td>{money(amt)}</td>
+                  <td>{((amt / month.bank_total) * 100).toFixed(1)}%</td>
+                </tr>
+              );
+            })}
           </tbody>
           <tfoot>
             <tr>
@@ -355,31 +371,79 @@ function ToolTable({
 
       {!clean && (
         <div className="untraced-why">
-          <strong>Why {money(un.amount)} is untraced.</strong>{" "}
-          It genuinely arrived in the bank — this is not missing money. We just cannot
-          yet say which tool it came from.
-          <ul>
-            {absent.map((s) => (
-              <li key={s.id}><strong>{s.label} is not connected</strong>, so none of its
-                commissions can be named.</li>
-            ))}
-            <li>A network paid a batch covering several months, so it matches no single
-              month&apos;s earnings.</li>
-            <li>Exchange-rate drift between what the network sent and what the bank received.</li>
-          </ul>
-          <div className="untraced-credits">
-            <span className="untraced-credits-h">Check these credits in the passbook:</span>
-            {un.credits.map((c, i) => (
-              <span className="ucredit" key={i}>{c.date} · {money(c.amount)} · {c.rail}</span>
-            ))}
-          </div>
+          <strong>Chasing {money(un.amount)}.</strong>{" "}
+          It genuinely arrived in the bank — this is not missing money. Everything we
+          do know about each credit is below. Quote the reference to the bank to ask
+          who sent it.
+          {absent.length > 0 && (
+            <p className="untraced-absent">
+              {absent.map((s) => s.label).join(", ")} {absent.length === 1 ? "is" : "are"} not
+              connected, so {absent.length === 1 ? "its" : "their"} commissions can never be
+              named until {absent.length === 1 ? "it is" : "they are"} wired in.
+            </p>
+          )}
+
+          {un.credits.map((c, i) => (
+            <div className="ucredit-card" key={i}>
+              <div className="ucredit-head">
+                <span className="ucredit-amt">{money(c.amount)}</span>
+                <span className="ucredit-meta">{c.date}</span>
+                <span className="ucredit-meta">arrived over <strong>{c.rail_label}</strong></span>
+                {c.ref && (
+                  <span className="ucredit-ref" title="Bank reference — quote this to the bank">
+                    ref {c.ref}
+                  </span>
+                )}
+              </div>
+              {c.leads.length > 0 ? (
+                <div className="ucredit-leads">
+                  <span className="ucredit-leads-h">Worth checking:</span>
+                  {c.leads.map((l, j) => (
+                    <span className="lead" key={j}>
+                      <strong>{l.source}</strong> — {l.what}
+                      <em>
+                        {l.gap_days} day{l.gap_days === 1 ? "" : "s"} before it landed
+                        {l.implied_fx != null && <> · would imply ₹{l.implied_fx}/USD</>}
+                      </em>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="ucredit-leads">
+                  <span className="ucredit-leads-h">
+                    No network payout anywhere near this date. Likely a source we have not
+                    connected at all.
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+
+          <p className="untraced-howto">
+            Found the answer? Add one entry to{" "}
+            <code>pipelines/income-analysis/rules.json</code> under{" "}
+            <code>manual_attribution</code> — date, amount, tool, route — and re-run{" "}
+            <code>yt-income</code>. It outranks every guess, so once recorded it stays named.
+          </p>
         </div>
       )}
     </div>
   );
 }
 
+/** Group untraced credits by the rail they arrived on, biggest first. */
+function untracedByRail(credits: MonthRevenue["untraced"]["credits"]) {
+  const by = new Map<string, typeof credits>();
+  for (const c of credits) {
+    const k = c.rail_label || c.rail;
+    by.set(k, [...(by.get(k) ?? []), c]);
+  }
+  return [...by.entries()].sort(
+    (a, b) => b[1].reduce((s, c) => s + c.amount, 0) - a[1].reduce((s, c) => s + c.amount, 0));
+}
+
 function confidenceHelp(c: string): string {
+  if (c === "confirmed") return "You established this one by hand and recorded it in rules.json. It outranks every heuristic.";
   if (c === "grouped") return "One batch of credits settled several programs; the month is exact, the per-credit split is not.";
   if (c === "matched") return "A dated network payout lined up with a bank credit on amount and exchange rate.";
   if (c === "inferred") return "No payout date available, so this is deduced from the amount and the usual payment lag.";

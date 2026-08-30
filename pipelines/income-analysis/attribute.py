@@ -24,6 +24,7 @@ import datetime as dt
 import itertools
 import json
 import pathlib
+import re
 from collections import defaultdict
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -59,11 +60,25 @@ def month_of(d):
 
 # ── inputs ──────────────────────────────────────────────────────────────────
 
+# Bank reference inside a credit's remarks. This is a transaction identifier, not
+# a person: quoting it to the bank is how the owner asks "who sent this?", which
+# is the whole point of surfacing it on an untraced row.
+REF_RE = re.compile(r"(?:IMPS-?\s*IN/(\d+)|NEFT_IN:\d*(CITIN\d+)|/([A-Z]{4}[A-Z0-9]{8,}))")
+
+
+def extract_ref(remarks):
+    m = REF_RE.search(remarks or "")
+    if not m:
+        return None
+    return next((g for g in m.groups() if g), None)
+
+
 def load_bank_credits(rails):
     """Income-rail credits from every parsed statement, newest last.
 
     Each carries a stable id so a pass can claim it and later passes can see it
-    is spoken for.
+    is spoken for, plus the bank reference so an untraced credit can be chased
+    rather than just reported.
     """
     out = []
     for f in sorted((DATA / "parsed").glob("*.json")):
@@ -78,6 +93,7 @@ def load_bank_credits(rails):
                 "date": d,
                 "amount": round(t["amount"], 2),
                 "rail": t["rail"],
+                "ref": extract_ref(t.get("remarks")),
             })
     return sorted(out, key=lambda c: (c["date"], c["amount"]))
 
@@ -85,6 +101,43 @@ def load_bank_credits(rails):
 def load_json(path, default=None):
     p = pathlib.Path(path)
     return json.loads(p.read_text()) if p.exists() else default
+
+
+# ── pass 0: what the owner has confirmed by hand ───────────────────────────
+
+def pass_manual(credits, manual):
+    """Attributions the owner established himself, from rules.json.
+
+    This is the exit route for untraced money. When he rings the bank about a
+    reference, or spots a payout in a network dashboard, he records it once here
+    and the credit is named forever after — no heuristic can undo it, because
+    this pass runs before every other and its claims are marked `confirmed`.
+
+    An entry matches on date + amount, which is unique in a passbook:
+
+        { "date": "19/03/2026", "amount": 22084.36,
+          "tool": "Base44", "route": ["impact.com", "Airwallex"],
+          "note": "confirmed in the impact.com dashboard, 2026-09-02" }
+    """
+    claims = []
+    for entry in manual or []:
+        d = parse_day(entry.get("date"))
+        amt = round(float(entry.get("amount", 0)), 2)
+        hit = next((c for c in credits
+                    if not c.get("claimed") and c["date"] == d
+                    and abs(c["amount"] - amt) <= PAISE), None)
+        if not hit:
+            continue
+        hit["claimed"] = True
+        claims.append({
+            "tool": entry["tool"],
+            "amount": hit["amount"],
+            "month": month_of(hit["date"]),
+            "route": entry.get("route") or [],
+            "confidence": "confirmed",
+            "credit_ids": [hit["id"]],
+        })
+    return claims
 
 
 # ── pass 1: PayPal ──────────────────────────────────────────────────────────
@@ -326,13 +379,62 @@ def pass_impact(credits, impact):
     return claims, notes
 
 
+# ── leads ───────────────────────────────────────────────────────────────────
+
+LEAD_WINDOW_DAYS = 45
+
+
+def leads_for(credit, ps, ps_notes, impact, im_notes):
+    """Network activity near an untraced credit, as investigation leads.
+
+    Not a claim — a starting point. If PartnerStack sent a payout a week before a
+    credit landed but the rate was off, that payout is the first thing to check
+    in the dashboard. Ranked nearest-first so the top lead is the likeliest.
+    """
+    out = []
+    unmatched_payouts = {n["payout"] for n in (ps_notes or [])}
+    for p in (ps or {}).get("payouts", []):
+        if p["key"] not in unmatched_payouts:
+            continue
+        pd = parse_day(p.get("date"))
+        if not pd:
+            continue
+        gap = (credit["date"] - pd).days
+        if 0 <= gap <= LEAD_WINDOW_DAYS:
+            out.append({
+                "source": "PartnerStack",
+                "what": f"payout {p['currency']} {p['amount']:.2f} on {p['date']}",
+                "gap_days": gap,
+                "implied_fx": round(credit["amount"] / p["amount"], 1) if p["amount"] else None,
+            })
+
+    unmatched_months = {n["month"] for n in (im_notes or []) if "month" in n}
+    for m in sorted(unmatched_months):
+        total = sum(x["amount"] for x in (impact or {}).get(m, []))
+        if total <= 0:
+            continue
+        gap = (credit["date"] - month_end(m)).days
+        if 0 <= gap <= LEAD_WINDOW_DAYS:
+            out.append({
+                "source": "impact.com",
+                "what": f"INR {total:,.2f} earned in {m}, payout date unknown",
+                "gap_days": gap,
+                "implied_fx": None,
+            })
+
+    return sorted(out, key=lambda x: x["gap_days"])[:3]
+
+
 # ── assembly ────────────────────────────────────────────────────────────────
 
-def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=()):
+def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
+              manual=None, rail_labels=None):
     """Run every pass and fold the result into per-month totals."""
     credits = load_bank_credits(set(rails))
+    rail_labels = rail_labels or {}
 
-    claims = pass_paypal(credits, paypal_months or [])
+    claims = pass_manual(credits, manual)
+    claims += pass_paypal(credits, paypal_months or [])
     ps_claims, ps_notes = pass_partnerstack(credits, ps)
     im_claims, im_notes = pass_impact(credits, impact)
     claims += ps_claims + im_claims
@@ -358,16 +460,24 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=()):
     for (m, tool, route, conf), amt in merged.items():
         months[m]["tools"][(tool, route, conf)] = round(amt, 2)
 
-    # Untraced is whatever the passes could not claim. Carrying the credit dates
-    # is what lets the owner check the statement by hand.
+    # Untraced is whatever the passes could not claim. Never render it as a bare
+    # "unknown": we always know the rail it came in on and its bank reference, and
+    # often which network payouts were nearby but failed to match. That is the
+    # material the owner needs to chase it down, so it all travels with the row.
     for c in credits:
         if c.get("claimed"):
             continue
         m = months[month_of(c["date"])]
         u = m["untraced"]
         u["amount"] = round(u["amount"] + c["amount"], 2)
-        u["credits"].append({"date": c["date"].strftime("%d/%m/%Y"),
-                             "amount": c["amount"], "rail": c["rail"]})
+        u["credits"].append({
+            "date": c["date"].strftime("%d/%m/%Y"),
+            "amount": c["amount"],
+            "rail": c["rail"],
+            "rail_label": rail_labels.get(c["rail"], c["rail"]),
+            "ref": c.get("ref"),
+            "leads": leads_for(c, ps, ps_notes, impact, im_notes),
+        })
 
     out = {}
     for m in sorted(months):
@@ -381,7 +491,9 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=()):
         untraced = d["untraced"]
         reasons = []
         if untraced["amount"] > PAISE:
-            reasons = sorted({c["rail"] for c in untraced["credits"]})
+            # The rail is the single most useful thing we know about untraced
+            # money, so it leads. "Arrived over Airwallex" beats "unknown".
+            reasons = sorted({c["rail_label"] for c in untraced["credits"]})
             if sources_absent:
                 reasons.append("source_not_connected")
         out[m] = {

@@ -124,14 +124,24 @@
       "untraced": {
         "amount": 3818.16,
         "reasons": [
-          "airwallex",
+          "Airwallex",
           "source_not_connected"
         ],
         "credits": [
           {
             "date": "25/02/2026",
             "amount": 3818.16,
-            "rail": "airwallex"
+            "rail": "airwallex",
+            "rail_label": "Airwallex",
+            "ref": "605665005631",
+            "leads": [
+              {
+                "source": "impact.com",
+                "what": "INR 1,383.00 earned in 2026-01, payout date unknown",
+                "gap_days": 25,
+                "implied_fx": null
+              }
+            ]
           }
         ]
       }
@@ -201,14 +211,24 @@
       "untraced": {
         "amount": 22084.36,
         "reasons": [
-          "airwallex",
+          "Airwallex",
           "source_not_connected"
         ],
         "credits": [
           {
             "date": "19/03/2026",
             "amount": 22084.36,
-            "rail": "airwallex"
+            "rail": "airwallex",
+            "rail_label": "Airwallex",
+            "ref": "607882704572",
+            "leads": [
+              {
+                "source": "impact.com",
+                "what": "INR 8,911.96 earned in 2026-02, payout date unknown",
+                "gap_days": 19,
+                "implied_fx": null
+              }
+            ]
           }
         ]
       }
@@ -232,14 +252,17 @@
       "untraced": {
         "amount": 12616.8,
         "reasons": [
-          "airwallex",
+          "Airwallex",
           "source_not_connected"
         ],
         "credits": [
           {
             "date": "17/04/2026",
             "amount": 12616.8,
-            "rail": "airwallex"
+            "rail": "airwallex",
+            "rail_label": "Airwallex",
+            "ref": "610740546200",
+            "leads": []
           }
         ]
       }
@@ -279,19 +302,39 @@
       "untraced": {
         "amount": 14895.03,
         "reasons": [
-          "airwallex",
+          "Airwallex",
           "source_not_connected"
         ],
         "credits": [
           {
             "date": "07/05/2026",
             "amount": 7988.68,
-            "rail": "airwallex"
+            "rail": "airwallex",
+            "rail_label": "Airwallex",
+            "ref": "612758926953",
+            "leads": [
+              {
+                "source": "PartnerStack",
+                "what": "payout USD 35.64 on 2026-05-04",
+                "gap_days": 3,
+                "implied_fx": 224.1
+              }
+            ]
           },
           {
             "date": "22/05/2026",
             "amount": 6906.35,
-            "rail": "airwallex"
+            "rail": "airwallex",
+            "rail_label": "Airwallex",
+            "ref": "614272483955",
+            "leads": [
+              {
+                "source": "PartnerStack",
+                "what": "payout USD 35.64 on 2026-05-04",
+                "gap_days": 18,
+                "implied_fx": 193.8
+              }
+            ]
           }
         ]
       }
@@ -347,14 +390,24 @@
       "untraced": {
         "amount": 14759.13,
         "reasons": [
-          "airwallex",
+          "Airwallex",
           "source_not_connected"
         ],
         "credits": [
           {
             "date": "30/06/2026",
             "amount": 14759.13,
-            "rail": "airwallex"
+            "rail": "airwallex",
+            "rail_label": "Airwallex",
+            "ref": "618142819866",
+            "leads": [
+              {
+                "source": "impact.com",
+                "what": "INR 18,721.74 earned in 2026-05, payout date unknown",
+                "gap_days": 30,
+                "implied_fx": null
+              }
+            ]
           }
         ]
       }
@@ -402,19 +455,45 @@
       "untraced": {
         "amount": 12605.66,
         "reasons": [
-          "airwallex",
+          "Airwallex",
           "source_not_connected"
         ],
         "credits": [
           {
             "date": "07/07/2026",
             "amount": 3363.6,
-            "rail": "airwallex"
+            "rail": "airwallex",
+            "rail_label": "Airwallex",
+            "ref": "618850220704",
+            "leads": [
+              {
+                "source": "PartnerStack",
+                "what": "payout USD 72.04 on 2026-07-01",
+                "gap_days": 6,
+                "implied_fx": 46.7
+              },
+              {
+                "source": "impact.com",
+                "what": "INR 18,721.74 earned in 2026-05, payout date unknown",
+                "gap_days": 37,
+                "implied_fx": null
+              }
+            ]
           },
           {
             "date": "23/07/2026",
             "amount": 9242.06,
-            "rail": "airwallex"
+            "rail": "airwallex",
+            "rail_label": "Airwallex",
+            "ref": "620464855840",
+            "leads": [
+              {
+                "source": "PartnerStack",
+                "what": "payout USD 72.04 on 2026-07-01",
+                "gap_days": 22,
+                "implied_fx": 128.3
+              }
+            ]
           }
         ]
       }

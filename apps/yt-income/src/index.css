@@ -177,11 +177,38 @@ tfoot td { font-weight: 700; border-bottom: none; padding-top: 14px; font-size: 
 .untraced-why strong { color: var(--warn-soft); }
 .untraced-why ul { margin: 8px 0 0; padding-left: 18px; }
 .untraced-why li { margin-top: 4px; }
-.untraced-credits { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
-.untraced-credits-h { color: var(--faint); }
-.ucredit {
-  padding: 3px 8px; border-radius: 5px; font-size: 11.5px;
-  background: var(--bg-soft); border: 1px solid var(--line-strong); color: var(--text);
+.untraced-absent { margin: 10px 0 0; color: var(--warn-soft); }
+
+/* One card per untraced credit — everything known about it, so it can be chased
+   rather than just reported. */
+.ucredit-card {
+  margin-top: 12px; padding: 11px 13px;
+  background: var(--bg-soft); border: 1px solid var(--line-strong); border-radius: 9px;
+}
+.ucredit-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.ucredit-amt { font-size: 15px; font-weight: 700; color: var(--text); }
+.ucredit-meta { color: var(--muted); font-size: 12px; }
+.ucredit-meta strong { color: var(--text); font-weight: 600; }
+.ucredit-ref {
+  margin-left: auto; padding: 2px 8px; border-radius: 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px;
+  background: var(--card); border: 1px solid var(--line-strong); color: var(--accent-soft);
+}
+.ucredit-leads { margin-top: 9px; display: flex; flex-direction: column; gap: 6px; }
+.ucredit-leads-h { color: var(--faint); font-size: 11.5px; }
+.lead {
+  display: flex; flex-direction: column; gap: 1px;
+  padding-left: 11px; border-left: 2px solid var(--line-strong); font-size: 12px;
+}
+.lead strong { color: var(--text); font-weight: 600; }
+.lead em { color: var(--faint); font-size: 11px; font-style: normal; }
+
+.untraced-howto {
+  margin: 14px 0 0; padding-top: 11px; border-top: 1px solid var(--line);
+  color: var(--faint); font-size: 12px;
+}
+.untraced-howto code {
+  background: var(--card); padding: 1.5px 5px; border-radius: 4px; color: var(--accent-soft);
 }
 
 /* ── chart ────────────────────────────────────────────── */

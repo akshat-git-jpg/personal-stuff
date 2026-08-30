@@ -15,5 +15,15 @@
       "note": "Owner topping up his mother's account. Both UPI handles seen in the Jan-Aug 2026 statement; the second wraps as 'kushalbakliw al2' in the PDF, so match the un-wrapped prefix only. Add the owner's account number here when he supplies it."
     },
     { "id": "interest", "label": "Bank interest", "match": ["INT.PD"] }
-  ]
+  ],
+
+  "_manual_comment": "THE EXIT ROUTE FOR UNTRACED MONEY. When the owner works out where a credit came from - a bank asking about the reference, a payout spotted in a network dashboard - record it here once and it is named forever. This runs before every heuristic pass and outranks all of them (confidence 'confirmed'), so nothing can un-name it. Match is on date + amount, which is unique in a passbook. Copy the date and amount straight off the Untraced row in the dashboard. 'route' is the hops before the bank; 'note' is for your future self, and is not shown in the UI.",
+  "_manual_example": {
+    "date": "19/03/2026",
+    "amount": 22084.36,
+    "tool": "Base44",
+    "route": ["impact.com", "Airwallex"],
+    "note": "confirmed against the impact.com payout report"
+  },
+  "manual_attribution": []
 }

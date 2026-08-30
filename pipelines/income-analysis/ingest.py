@@ -350,7 +350,9 @@ def main():
               if s["id"] == "paykickstart"]  # parked: affiliate accounts have no API
 
     months, notes = attribute.attribute(
-        rail_ids, paypal_months, ps_data, im_data, [s["id"] for s in absent])
+        rail_ids, paypal_months, ps_data, im_data, [s["id"] for s in absent],
+        manual=rules.get("manual_attribution"),
+        rail_labels={r["id"]: r["label"] for r in rules["income_rails"]})
 
     # Nothing below carries a counterparty, an account number or an address,
     # which is what makes summary.json safe to commit to a public repo.

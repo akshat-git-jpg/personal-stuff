@@ -41,6 +41,7 @@ export const HOP_HUE: Record<string, string> = {
 
 /** Confidence shown to the reader. `exact` is the silent default. */
 export const CONFIDENCE_LABEL: Record<string, string> = {
+  confirmed: "confirmed",
   exact: "",
   grouped: "batch",
   matched: "matched",

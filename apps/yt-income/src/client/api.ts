@@ -12,7 +12,7 @@ export class UnauthorizedError extends Error {
 }
 
 /** How strongly a tool row is claimed. Order matters: exact beats grouped beats inferred. */
-export type Confidence = "exact" | "grouped" | "matched" | "inferred";
+export type Confidence = "confirmed" | "exact" | "grouped" | "matched" | "inferred";
 
 export interface ToolRow {
   tool: string;
@@ -24,10 +24,23 @@ export interface ToolRow {
   implied_fx?: number;
 }
 
+/** A network payout near an untraced credit — a place to start looking, not a claim. */
+export interface Lead {
+  source: string;
+  what: string;
+  gap_days: number;
+  implied_fx: number | null;
+}
+
 export interface UntracedCredit {
   date: string;
   amount: number;
   rail: string;
+  /** Display name of the rail, e.g. "Airwallex". Always known. */
+  rail_label: string;
+  /** Bank reference — quote it to the bank to ask who sent the money. */
+  ref: string | null;
+  leads: Lead[];
 }
 
 export interface MonthRevenue {

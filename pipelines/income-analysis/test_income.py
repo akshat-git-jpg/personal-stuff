@@ -199,6 +199,83 @@ class EdgeCases(unittest.TestCase):
         self.assertEqual(mar["tools"][0]["confidence"], "exact")
 
 
+class ManualAttribution(unittest.TestCase):
+    """The exit route for untraced money: what the owner establishes by hand."""
+
+    def test_manual_entry_names_an_otherwise_untraced_credit(self):
+        credits = [credit("a", "19/03/2026", 22084.36, "airwallex")]
+        manual = [{"date": "19/03/2026", "amount": 22084.36, "tool": "Base44",
+                   "route": ["impact.com", "Airwallex"],
+                   "note": "confirmed in the dashboard"}]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["airwallex"], [], manual=manual)
+        mar = months["2026-03"]
+        self.assertEqual(mar["untraced"]["amount"], 0.0)
+        self.assertEqual(mar["tools"][0]["tool"], "Base44")
+        self.assertEqual(mar["tools"][0]["confidence"], "confirmed")
+        self.assertEqual(mar["tools"][0]["route"], ["impact.com", "Airwallex"])
+
+    def test_manual_outranks_every_heuristic(self):
+        """A hand-confirmed claim must survive a competing automatic match."""
+        credits = [credit("a", "06/03/2026", 7567.40, "airwallex")]
+        ps = {"payouts": [{"key": "p1", "date": "2026-03-03", "amount": 85.29,
+                           "currency": "USD", "status": "successful"}],
+              "rewards": [{"key": "r1", "date": "2026-02-01", "amount": 85.29,
+                           "tool": "Eleven Labs Inc."}]}
+        manual = [{"date": "06/03/2026", "amount": 7567.40, "tool": "Jungle Scout",
+                   "route": ["PartnerStack", "Airwallex"]}]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["airwallex"], [], ps=ps, manual=manual)
+        tools = months["2026-03"]["tools"]
+        self.assertEqual(len(tools), 1)
+        self.assertEqual(tools[0]["tool"], "Jungle Scout")
+        self.assertEqual(tools[0]["confidence"], "confirmed")
+
+    def test_manual_entry_that_matches_nothing_is_ignored(self):
+        credits = [credit("a", "19/03/2026", 22084.36, "airwallex")]
+        manual = [{"date": "01/01/2026", "amount": 999.0, "tool": "Ghost", "route": []}]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["airwallex"], [], manual=manual)
+        self.assertEqual(months["2026-03"]["untraced"]["amount"], 22084.36)
+        self.assertEqual(months["2026-03"]["tools"], [])
+
+
+class UntracedDetail(unittest.TestCase):
+    """Untraced must never be a bare 'unknown' — it carries what we do know."""
+
+    def test_carries_rail_label_and_bank_reference(self):
+        with mock.patch.object(attribute, "load_bank_credits", lambda rails: [
+            {"id": "a", "date": attribute.parse_day("19/03/2026"), "amount": 22084.36,
+             "rail": "airwallex", "ref": "607882704572"}]):
+            months, _ = attribute.attribute(
+                ["airwallex"], [], rail_labels={"airwallex": "Airwallex"})
+        c = months["2026-03"]["untraced"]["credits"][0]
+        self.assertEqual(c["rail_label"], "Airwallex")
+        self.assertEqual(c["ref"], "607882704572")
+        self.assertIn("Airwallex", months["2026-03"]["untraced"]["reasons"])
+
+    def test_extracts_reference_from_real_remark_shapes(self):
+        cases = [
+            ("IMPS-IN/607882704572/7259033210/AIRWALLE", "607882704572"),
+            ("IMPS- IN/620464855840/917259033210/AIRWALLE", "620464855840"),
+            ("NEFT_IN:34CITIN26717459833CITI0100000//CITIN26717459833/PAYPAL PAYMENTS",
+             "CITIN26717459833"),
+        ]
+        for remark, want in cases:
+            self.assertEqual(attribute.extract_ref(remark), want, remark)
+        self.assertIsNone(attribute.extract_ref("BY CASH"))
+
+    def test_leads_point_at_nearby_unmatched_payouts(self):
+        credits = [credit("a", "19/03/2026", 22084.36, "airwallex")]
+        impact = {"2026-02": [{"tool": "Base44", "amount": 8911.96}]}
+        with with_credits(credits):
+            months, _ = attribute.attribute(
+                ["airwallex"], [], impact=impact, rail_labels={"airwallex": "Airwallex"})
+        leads = months["2026-03"]["untraced"]["credits"][0]["leads"]
+        self.assertTrue(leads, "a nearby unmatched impact month should surface as a lead")
+        self.assertEqual(leads[0]["source"], "impact.com")
+
+
 class Privacy(unittest.TestCase):
     """The repo is public. These are the guarantees that keep it safe."""
 

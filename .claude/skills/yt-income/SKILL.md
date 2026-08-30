@@ -127,7 +127,7 @@ Baseline as of 30 Aug 2026 — if a run comes back much worse, something regress
 | PayPal reconciliation | ₹0.00 difference |
 
 Every rupee on the PayPal rail is traced. The untraced remainder is all
-Airwallex.
+Airwallex — and it shrinks as entries land in `manual_attribution` (see 4b).
 
 ### 4. If something looks wrong
 
@@ -144,10 +144,39 @@ Airwallex.
 - **`CERTIFICATE_VERIFY_FAILED`** — a python.org install without its CA bundle.
   `sources.ssl_context()` falls back to certifi; verification is never disabled.
 
+### 4b. Chasing untraced money — the standing job
+
+The owner wants untraced money to shrink over time, so treat every run as a chance
+to name one more credit. Untraced rows are never bare: each carries the **rail** it
+arrived on, the **bank reference**, and any **leads** — network payouts near that
+date that failed to match, and why.
+
+When he says he has worked one out ("the 19 March one was Base44"), record it in
+`rules.json` under `manual_attribution`:
+
+```json
+{ "date": "19/03/2026", "amount": 22084.36,
+  "tool": "Base44", "route": ["impact.com", "Airwallex"],
+  "note": "confirmed against the impact.com payout report, 2026-09-02" }
+```
+
+Match is on date + amount, which is unique in a passbook — copy both straight off
+the Untraced card in the dashboard. This runs as **pass 0**, before every heuristic,
+and its claims are marked `confirmed`, so nothing can later un-name them. Re-run
+`ingest.py` and the credit moves out of Untraced permanently.
+
+**If he tells you where money came from, write it down there.** Do not just report
+it back in chat — that knowledge is lost the moment the session ends, and he will
+have to work it out again.
+
+If the same sender turns up repeatedly, promote it: add a rail to `income_rails`
+so future statements classify it automatically, instead of one manual entry per
+credit.
+
 ### 5. Test, then publish
 
 ```bash
-python3 pipelines/income-analysis/test_income.py    # 15 tests, must be green
+python3 pipelines/income-analysis/test_income.py    # 21 tests, must be green
 cd apps/yt-income && npm run deploy                 # sync + typecheck + build + deploy
 ```
 
