@@ -103,20 +103,29 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 - Disk ~19% used. **No swap.**
 - SSH: key-only (`ssh -i ~/.ssh/hostinger_vps root@72.61.241.170`). Firewall `kb-vps-default`: inbound 22/80/443 only.
 - Claude auth on box: `kushalbakliwal25@gmail.com` (Pro). Weekly Hostinger backups.
+- **Recovery posture (checked 2026-08-30).** Three layers, and they are not equivalent:
+  1. **Hostinger weekly backup** — the real disaster-recovery layer for the whole box.
+  2. **Hostinger snapshot** — one slot, overwritten on create, and it **expires after
+     24 hours**. Restore takes ~30 min. Treat it as a pre-change undo button, NOT as a
+     backup: take one immediately before risky work, do not rely on one being there.
+  3. **D1 dumps in R2** (`d1-backups`) — the only copy that survives losing the VPS.
+     Data only, no box config; rebuilding the VPS is a separate job.
 
-### Docker containers (6, all up — verified via `docker ps` 2026-07-12)
+### Docker containers (5, all up — verified via `docker ps` 2026-08-30)
 - **n8n-traefik-1** (traefik) — reverse proxy + Let's Encrypt TLS; the box's public edge. Ports `:80`, `:443`.
 - **n8n-n8n-1** (n8nio/n8n) — workflow automation. Internal `:5678`.
 - **personal-dashboard** (local build) — mobile dashboard PWA at `my-dashboard.agrolloo.com`. Internal `:8787`.
 - **hyperframes-render** (local build) — Hyperframes → MP4 renderer at `render2.agrolloo.com`, behind Traefik.
-- **minio** (minio) — S3-style asset storage. **Loopback only** `:9000/9001`.
-- **ntfy** (ntfy) — push-notification server. **Public `:8888`, no TLS.**
+- **minio** (minio) — S3-style asset storage. **Loopback only** `:9000/9001` (reach via SSH tunnel).
 
 ### Cron jobs (Pattern B; canonical `/srv/crons/crontab.txt`)
 - `06:00 IST` (`30 0 * * *` UTC) → `my-planner` — Calendar + workout digest → Telegram.
 - `06:00 IST` (`30 0 * * *` UTC) → `gmail-digest` — Gmail summary → Telegram.
 - Every 15 min (`*/15 * * * *`) → `repo-sync` — pull personal-stuff + relink Claude skills so interactive Claude (Remote Control / mobile) stays current.
-- `01:00 IST` (`30 19 * * *` UTC) → `d1-backup` — nightly export of all 5 D1 databases.
+- `01:00 IST` (`30 19 * * *` UTC) → `d1-backup` — nightly export of all 6 D1 databases,
+  written to MinIO on this box **and** copied offsite to the Cloudflare R2 bucket
+  `d1-backups` (added 2026-08-30 — MinIO lives on the VPS it backs up, so a box loss
+  used to take the dumps with it). 30-day retention on MinIO; R2 keeps everything.
 - Hourly (`15 * * * *`) → `site-probe` — curls every URL in `my-hosted-sites.md`; Telegram on DOWN.
 - `05:00 IST` (`30 23 * * *` UTC) → `cred-probe` — credential/auth health probe → Telegram.
 - Sunday `08:00 IST` (`30 2 * * 0` UTC) → `route-audit` — weekly read-only routing audit (autonomy pilot, report-only).
@@ -175,7 +184,7 @@ The three former bare pushers now all call the gate: `tooling/cli/greenlight/gre
 
 - [x] Removed stale nginx vhost `n8n-website` (sites-enabled + sites-available). Backup: `/root/cleanup-backup-20260613/`. nginx still disabled.
 - [x] Decommissioned Hermes entirely on 2026-06-14 — removed the `hermes` + `hermes-dashboard` containers, the `nousresearch/hermes-agent` image (~4.8GB), `/docker/hermes`, and `/root/.hermes`.
-- ntfy public on `:8888` HTTP is **by design** — `docker/ntfy/README.md` threat model is "topic name = the secret" (keeps payloads off public ntfy.sh). No action.
+- ntfy is **retired** (2026-08-30). It ran public on `:8888` with `auth-default-access: read-write`, so the old "topic name = the secret" threat model gave anyone who ever saw a topic name permanent read AND write. It also had 0 subscribers, so the fallback delivered nothing. Container removed, port closed; Telegram is the only notification channel. See decisions.md 2026-08-30.
 - [x] Purged nginx entirely (`nginx`, `nginx-common`, `python3-certbot-nginx`); `/etc/nginx` removed. Traefik still owns 80/443; dashboard + n8n verified 200.
 - `send.notifications.agrolloo.com` + `resend._domainkey` DNS — **kept** (no app in this repo, but may be used externally). Revisit if confirmed unused.
 - Swap — **left off** by choice. Watch if n8n + MinIO spike together.

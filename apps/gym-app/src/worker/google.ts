@@ -9,6 +9,8 @@ export interface Env {
   GOOGLE_CLIENT_SECRET: string;
   GOOGLE_REFRESH_TOKEN: string;
   SHEET_ID: string;
+  APP_PASSWORD: string;
+  SESSION_SECRET: string;
 }
 
 const TOKEN_URL = "https://oauth2.googleapis.com/token";

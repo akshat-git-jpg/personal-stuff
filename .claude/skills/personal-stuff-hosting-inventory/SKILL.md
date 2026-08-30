@@ -32,7 +32,7 @@ investigated and parked — see `plans/260-close-hostinger-web-account.md`.
 | render2.agrolloo.com | `apps/hyperframes-render/` | **VPS Docker** behind Traefik | password |
 | localhost:4319 | `tooling/cli/ccusage-dashboard/` | local only (`ccu-dash`) | n/a |
 
-Not URLs but public surface: `agrolloo.com` apex + `www` → Hostinger **shared hosting** (`191.101.230.133`), not this repo; ntfy on VPS `:8888` (plain HTTP, topic-name-as-secret); `infra/vps-watchdog/` Worker (cron-only, no route).
+Not URLs but public surface: `agrolloo.com` apex + `www` → Hostinger **shared hosting** (`191.101.230.133`), not this repo; `infra/vps-watchdog/` Worker (cron-only, no route).
 
 `timeblock` (plan 054) is **deployed**, not just built — confirmed via `apps/timeblock/wrangler.toml` (`[[routes]] pattern = "timeblock.agrolloo.com"`, `custom_domain = true`) and its row in `my-hosted-sites.md`. Don't describe it as "built but not deployed" without re-checking those two.
 

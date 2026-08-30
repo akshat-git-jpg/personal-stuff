@@ -1,9 +1,11 @@
 #!/bin/bash
-# notify — Telegram-first phone-ping CLI, with ntfy as a fallback channel.
+# notify — Telegram phone-ping CLI.
 #
-# Why: ntfy delivery is unreliable on the owner's iPhone, so Telegram is the
-# primary channel. ntfy is kept as a fallback for the window before Telegram
-# creds exist, and in case a Telegram send ever fails.
+# Why: Telegram is the only channel. The self-hosted ntfy server it used to
+# fall back to was retired on 2026-08-30 — it was published on port 8888 with
+# `auth-default-access: read-write`, so anyone on the internet could read the
+# topics and publish to them, and it had 0 subscribers so it delivered nothing
+# anyway. See decisions.md 2026-08-30.
 #
 # Contract:
 #   notify send "<message>"   exit 0 sent, 3 undeliverable (never crashes caller)
@@ -45,14 +47,7 @@ function cmd_send() {
         --data-urlencode "text=${msg}" >/dev/null 2>&1; then
       exit 0
     fi
-    echo "WARN: notify: telegram send failed, falling back" >&2
-  fi
-
-  if command -v pp-ntfy >/dev/null 2>&1 && [ -n "${NTFY_TOPIC:-}" ]; then
-    if pp-ntfy send "$msg" >/dev/null 2>&1; then
-      exit 0
-    fi
-    echo "WARN: notify: pp-ntfy fallback failed" >&2
+    echo "WARN: notify: telegram send failed" >&2
   fi
 
   echo "WARN: notify: message undeliverable: $msg" >&2

@@ -7,36 +7,43 @@
 //   node setup-routing.mjs <domain> [hub-email]
 //   node setup-routing.mjs bridebestie.com jessicap123k@gmail.com
 //
-// Needs: export CLOUDFLARE_API_TOKEN="..."  (scopes: Email Routing Addresses:Edit [account],
-//   Email Routing Rules:Edit [zone], DNS:Edit [zone], Zone:Read [zone]; all zones + account)
+// Needs: CF_API_TOKEN in pipelines/.env (or export CLOUDFLARE_API_TOKEN).
+//   Scopes: Email Routing Addresses Read+Write [account], Email Routing Rules
+//   Read+Write [zone], DNS Read+Write [zone], Zone Read + Zone Settings Write
+//   [zone]; all zones + account. `personal-cloudflare-tk` already has these.
 
 import { readFileSync } from "fs";
-// Credentials: env first, then TY/.env (the machine's source of truth, shared with the MCP).
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
+
+// Credentials: env first, then pipelines/.env (the machine's source of truth).
+// This used to also accept CF_GLOBAL_API_KEY + CF_API_EMAIL, because the scoped
+// token could not reach /email/routing (settings). That fallback was removed on
+// 2026-08-30: the Global API Key cannot be scoped or revoked independently — it
+// is account-wide including billing — so keeping a copy of it on disk for one
+// script was the single largest blast radius in the repo. The token
+// `personal-cloudflare-tk` was widened instead (Zone Read + Zone Settings Write
+// + Email Routing Rules/Addresses Read) and now covers every endpoint below.
+// See decisions.md 2026-08-30.
+const ENV_FILE = resolve(dirname(fileURLToPath(import.meta.url)), "../../../pipelines/.env");
 function fromEnvFile(key) {
   if (process.env[key]) return process.env[key];
   try {
-    const m = readFileSync("/Users/kbtg/codebase/TY/.env", "utf8").match(new RegExp(`^${key}=(.*)$`, "m"));
+    const m = readFileSync(ENV_FILE, "utf8").match(new RegExp(`^${key}=(.*)$`, "m"));
     if (m) return m[1].trim().replace(/^['"]|['"]$/g, "");
   } catch {}
   return null;
 }
 const TOKEN = process.env.CLOUDFLARE_API_TOKEN || fromEnvFile("CF_API_TOKEN");
-const GLOBAL_KEY = fromEnvFile("CF_GLOBAL_API_KEY");
-const GLOBAL_EMAIL = fromEnvFile("CF_API_EMAIL");
-// Global API Key (full access) can hit the enable/settings endpoints that scoped tokens can't.
-// Prefer it when present; otherwise use the safe scoped token.
-const USING_GLOBAL = !!(GLOBAL_KEY && GLOBAL_EMAIL);
 function authHeaders() {
-  return USING_GLOBAL
-    ? { "X-Auth-Email": GLOBAL_EMAIL, "X-Auth-Key": GLOBAL_KEY }
-    : { Authorization: `Bearer ${TOKEN}` };
+  return { Authorization: `Bearer ${TOKEN}` };
 }
 const [, , domain, hubArg] = process.argv;
 const HUB = hubArg || "jessicap123k@gmail.com";
 
-if (!TOKEN && !USING_GLOBAL) { console.error("✗ No credentials. Set CF_API_TOKEN (scoped) or CF_GLOBAL_API_KEY + CF_API_EMAIL in TY/.env."); process.exit(1); }
+if (!TOKEN) { console.error(`✗ No credentials. Set CF_API_TOKEN in ${ENV_FILE} (or export CLOUDFLARE_API_TOKEN).`); process.exit(1); }
 if (!domain) { console.error("Usage: node setup-routing.mjs <domain> [hub-email]"); process.exit(1); }
-console.log(`auth: ${USING_GLOBAL ? "Global API Key (full access)" : "scoped API token"}`);
+console.log("auth: API token personal-cloudflare-tk");
 
 const API = "https://api.cloudflare.com/client/v4";
 async function cf(method, path, body) {

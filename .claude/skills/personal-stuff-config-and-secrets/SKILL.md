@@ -22,9 +22,18 @@ Secrets never enter git — they live in exactly six places, each with its own r
 
 Also per-CLI: the Hostinger API token lives at `tooling/mcp/hostinger/.env` (`API_TOKEN`) — the `pp-hostinger` CLI in `tooling/cli/hostinger/` reads it from there, NOT from a `.env` of its own; `~/.config/` holds `paypal-txns-pp-cli` creds. `GUMROAD_ACCESS_TOKEN` for the gumroad CLI.
 
-## `pipelines/.env` — real key list (21 keys, re-verified 2026-07-12)
+## `pipelines/.env` — real key list (21 keys, re-verified 2026-08-30)
 
-`YT_API_KEY`, `GEMINI_API_KEY`, `CREDENTIALS_FILE`, `YT_MAIN_SHEET_URL`, `YT_TRACKER_SHEET_URL`, `WORKFLOW_DEADLINES_SHEET_URL`, `KEYWORD_RESEARCH_SHEET_URL`, `AFFILIATE_PROGRAMS_SHEET_URL`, `ANALYSIS_INCOME_SHEET_URL`, `INCOME_ANALYSIS`, `GOOGLE_SHEET_URL`, `RANDOM_NOTES_SHEET_URL`, `PROBLEMS_AUTOMATIONS_SHEET_URL`, `MISC_CHANNELS_SHEET_URL`, `CF_API_TOKEN`, `CF_ACCOUNT_ID`, `CF_D1_DATABASE_ID`, `CF_KV_NAMESPACE_ID`, `LINK_DOMAIN`, `CF_GLOBAL_API_KEY`, `CF_API_EMAIL`.
+`YT_API_KEY`, `GEMINI_API_KEY`, `CREDENTIALS_FILE`, `YT_MAIN_SHEET_URL`, `YT_TRACKER_SHEET_URL`, `WORKFLOW_DEADLINES_SHEET_URL`, `KEYWORD_RESEARCH_SHEET_URL`, `AFFILIATE_PROGRAMS_SHEET_URL`, `ANALYSIS_INCOME_SHEET_URL`, `INCOME_ANALYSIS`, `GOOGLE_SHEET_URL`, `RANDOM_NOTES_SHEET_URL`, `PROBLEMS_AUTOMATIONS_SHEET_URL`, `MISC_CHANNELS_SHEET_URL`, `CF_API_TOKEN`, `CF_ACCOUNT_ID`, `CF_D1_DATABASE_ID`, `CF_KV_NAMESPACE_ID`, `LINK_DOMAIN`, `MODAL_TTS_URL`, `MODAL_TTS_TOKEN`.
+
+> **`CF_GLOBAL_API_KEY` and `CF_API_EMAIL` were removed on 2026-08-30.** The
+> Cloudflare Global API Key is account-wide — billing and account settings
+> included — cannot be scoped, and cannot be revoked without reissuing it. It
+> existed here only because `tooling/cli/cf-email` needed endpoints the scoped
+> token could not reach. The token `personal-cloudflare-tk` was widened instead
+> (added Zone Read, Zone Settings Write, Email Routing Rules Read, Email Routing
+> Addresses Read, DNS Read, Workers R2/Scripts Write), which covers every call
+> that script makes. Do not reintroduce the Global Key: widen the token instead.
 
 **TRAP:** `pipelines/.env.example` lists only 10 of these 21 (as of 2026-07-12). Rebuilding from the example alone breaks most sync scripts. `common/env.py` auto-loads `.env` keyed off its own file location (not CWD) — scripts never load it themselves. `common/cloudflare.py` hard-requires `CF_API_TOKEN`, `CF_ACCOUNT_ID`, `CF_D1_DATABASE_ID`/`CF_KV_NAMESPACE_ID` (raises `RuntimeError: <NAME> not set in .env`).
 
