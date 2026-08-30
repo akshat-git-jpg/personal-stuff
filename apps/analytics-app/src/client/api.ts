@@ -181,6 +181,21 @@ export interface IncomeStatement {
   period_end: string | null;
 }
 
+/** Money still sitting in PayPal at ingest time, per currency. */
+export interface IncomeHolding {
+  currency: string;
+  total: string;
+  available: string;
+  withheld: string;
+}
+
+export interface IncomePending {
+  /** PayPal's own as-of timestamp for the balance. */
+  as_of: string | null;
+  holdings: IncomeHolding[];
+  total_any_currency: number;
+}
+
 export interface IncomeResponse {
   /** ISO timestamp of the last ingest, or null if nothing has been ingested. */
   generated_at: string | null;
@@ -190,6 +205,8 @@ export interface IncomeResponse {
   /** "2026-01" → { paypal: 24711.29, personal: 10950 }. Non-rail keys are not income. */
   bank_by_month: Record<string, Record<string, number>>;
   paypal?: { months: IncomePayPalMonth[] };
+  /** Absent when the last ingest ran without --with-paypal. */
+  paypal_pending?: IncomePending;
 }
 
 export async function fetchIncome(): Promise<IncomeResponse> {

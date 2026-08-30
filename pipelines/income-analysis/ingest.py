@@ -118,16 +118,8 @@ def redact_filename(name):
     return re.sub(r"(?i)(XX)\d+", r"\1****", name)
 
 
-def paypal_by_month():
+def paypal_by_month(env):
     """Ask the PayPal CLI for money received, grouped by month then program."""
-    creds = pathlib.Path.home() / ".config/paypal-txns-pp-cli/creds.env"
-    env = dict(os.environ)
-    if creds.exists():
-        for line in creds.read_text().splitlines():
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, v = line.split("=", 1)
-                env[k.strip()] = v.strip().strip('"').strip("'")
     start = "2026-01-01"
     end = dt.date.today().isoformat()
     out = subprocess.run(
@@ -142,6 +134,55 @@ def paypal_by_month():
     except (ValueError, json.JSONDecodeError):
         print("  ! PayPal returned unreadable JSON", file=sys.stderr)
         return None
+
+
+def paypal_balance(env):
+    """Money still sitting in PayPal, not yet withdrawn to the bank.
+
+    Snapshotted here rather than read live by the dashboard: the Worker holds no
+    PayPal credentials, and the rest of the tab is an ingest-time snapshot too,
+    so one freshness story covers everything.
+    """
+    out = subprocess.run(
+        ["paypal-txns-pp-cli", "reporting", "balances-get", "--json"],
+        capture_output=True, text=True, env=env,
+    )
+    if out.returncode != 0:
+        print(f"  ! balance pull failed: {out.stderr.strip()[:200]}", file=sys.stderr)
+        return None
+    try:
+        res = json.loads(out.stdout[out.stdout.index("{"):])
+        res = res.get("results", res)
+    except (ValueError, json.JSONDecodeError):
+        print("  ! balance returned unreadable JSON", file=sys.stderr)
+        return None
+
+    holdings = [
+        {
+            "currency": b.get("currency"),
+            "total": (b.get("total_balance") or {}).get("value", "0.00"),
+            "available": (b.get("available_balance") or {}).get("value", "0.00"),
+            "withheld": (b.get("withheld_balance") or {}).get("value", "0.00"),
+        }
+        for b in res.get("balances", [])
+    ]
+    return {
+        "as_of": res.get("as_of_time"),
+        "holdings": holdings,
+        "total_any_currency": sum(float(h["total"] or 0) for h in holdings),
+    }
+
+
+def paypal_env():
+    creds = pathlib.Path.home() / ".config/paypal-txns-pp-cli/creds.env"
+    env = dict(os.environ)
+    if creds.exists():
+        for line in creds.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                env[k.strip()] = v.strip().strip('"').strip("'")
+    return env
 
 
 def main():
@@ -194,9 +235,15 @@ def main():
     }
 
     if args.with_paypal:
-        pp = paypal_by_month()
+        env = paypal_env()
+        pp = paypal_by_month(env)
         if pp:
             summary["paypal"] = pp.get("results", pp)
+        bal = paypal_balance(env)
+        if bal:
+            summary["paypal_pending"] = bal
+            print(f"  still in PayPal: USD {bal['total_any_currency']:,.2f}"
+                  f" (as of {bal['as_of']})")
 
     out = HERE / "summary.json"
     out.write_text(json.dumps(summary, indent=2))
