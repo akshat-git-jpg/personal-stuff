@@ -70,38 +70,3 @@ npm run deploy
 ```
 
 Cloudflare provisions DNS and SSL for `yt-analytics.agrolloo.com` automatically from the `[[routes]]` entry in `wrangler.toml`.
-
-## Income tab
-
-Affiliate income by month, source and program. Unlike the other tabs this data is
-**not live** — it is a static aggregate bundled into the Worker at build time.
-
-Half of the income arrives as a direct bank deposit that no API exposes, so the
-numbers come from a bank passbook the owner exports by hand, merged with the
-PayPal CLI. The pipeline lives in `pipelines/income-analysis/`; the `yt-income`
-skill runs it end to end and redeploys this app.
-
-- `GET /api/income` serves the bundled aggregate, behind the same password gate.
-- `scripts/sync-income.mjs` copies `pipelines/income-analysis/summary.json` into
-  `src/worker/income-summary.json`. It runs as part of `npm run build`, so a
-  deploy can never ship stale figures.
-- No raw transactions reach this app — only month totals per rail and PayPal
-  program names. The passbook itself is gitignored in the pipeline folder.
-
-The chart toggles between two views that are **not** interchangeable: *Landed in
-bank* (by credit date, includes non-PayPal rails) and *PayPal earned* (PayPal's
-own month attribution). The PayPal totals agree; the per-month split does not.
-
-### Local dev
-
-The local D1 starts empty, so `/api/videos` 500s and bounces you to the login
-screen. Seed it once:
-
-```bash
-for f in ../redirector/migrations/*.sql; do npx wrangler d1 execute clicks-db --local --file="$f"; done
-npx wrangler d1 migrations apply yt-rankings --local
-```
-
-`node scripts/shoot.mjs http://127.0.0.1:8792 .shots/income.png --tab=Income`
-screenshots a tab and prints what actually rendered, exiting non-zero on a page
-error.

@@ -11,9 +11,8 @@ import {
 import { Login } from "./Login";
 import { UploadsView } from "./UploadsView";
 import { RankingsView } from "./RankingsView";
-import { IncomeView } from "./IncomeView";
 
-type Tab = "clicks" | "uploads" | "rankings" | "income";
+type Tab = "clicks" | "uploads" | "rankings";
 type SortKey = "clicks" | "recent" | "views";
 
 const SORTS: { key: SortKey; label: string }[] = [
@@ -230,16 +229,10 @@ export function App() {
         >
           Rankings
         </button>
-        <button
-          className={`tab ${tab === "income" ? "tab-on" : ""}`}
-          onClick={() => setTab("income")}
-        >
-          Income
-        </button>
       </nav>
 
       {error && <div className="banner-error">{error}</div>}
-      {!error && ytError && tab !== "income" && (
+      {!error && ytError && (
         <div className="banner-error">
           Couldn&apos;t load {channels.find(c => c.id === channelId)?.name || "the channel"}&apos;s videos from YouTube — {ytError} The video list comes from your channel&apos;s public uploads, so nothing is shown until YouTube responds.
         </div>
@@ -365,19 +358,13 @@ export function App() {
             <UploadsView videos={videos ?? []} />
           )}
         </main>
-      ) : tab === "rankings" ? (
+      ) : (
         <main className="list">
           {loading && !videos ? (
             <div className="empty">Loading…</div>
           ) : (
             <RankingsView channelId={channelId || ""} videos={videos ?? []} youtubeOk={!ytError} onAuthLost={() => setNeedsAuth(true)} />
           )}
-        </main>
-      ) : (
-        // Income is channel-independent and does not touch YouTube, so it never
-        // waits on the video load or shows the YouTube banner.
-        <main className="list">
-          <IncomeView />
         </main>
       )}
     </div>
