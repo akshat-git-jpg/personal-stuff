@@ -37,6 +37,12 @@ HOSTINGER operations, UAB (IANA 1636). The domain therefore sits in a **differen
 login** from the one this token belongs to; that account holds only the VPS. Its auto-renew and
 its card can only be checked by signing in to the right account at `hpanel.hostinger.com`.
 
+**Retiring the second account was investigated and PARKED** (2026-08-30) — the full
+findings, per-account inventory, email options with prices, and the safe migration
+sequence live in [`plans/260-close-hostinger-web-account.md`](plans/260-close-hostinger-web-account.md).
+Read that before re-opening the topic. Two recurring deadlines if it is ever resumed:
+the hosting renews **10-27** and the domain **10-14**, every year.
+
 The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹16,788/year,
 `is_auto_renewed: true`, next billing **2027-01-31**; default Visa card on file, not expired
 (good to 2032-09-30).
