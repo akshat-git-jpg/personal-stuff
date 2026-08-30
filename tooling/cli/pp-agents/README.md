@@ -341,10 +341,21 @@ a dead port and `ANTHROPIC_API_KEY=bogus` it still returns the full list, exit 0
 almost every tick is arranged to skip it:
 
 - nothing on screen is `working` or `blocked`, so no state CAN change
-- the keyboard has been quiet for `LIVE_IDLE_STOP` (2 min), so nobody is reading
-- the last call was under `LIVE_POLL` (5s) ago
+- the last call was under the current interval ago: 5s while you are active,
+  30s once the keyboard has been quiet for 2 minutes
+- nothing at all has happened for 30 minutes, so the view was abandoned
 
-A view left open in a background tab therefore makes **no** calls at all. The
+The idle rule **backs off, it does not stop**, and the first version got that
+wrong in a way worth recording. It stopped after 2 minutes of no keypress, which
+broke the one use that most wants live states: watching the list to see when
+something finishes involves pressing nothing at all. Worse, `shift+left` is
+swallowed by the proxy and never reaches the main loop, so an hour spent inside a
+session counted as an hour of idleness - you came back to a list that had already
+stopped asking. `restore_screen()` now marks the return as activity and clears
+the poll clock so the next tick asks immediately. An unattended view costs 0.24s
+of CPU every 30s, under 1% of one core.
+
+The
 call runs on a worker thread and nothing in it touches curses: a blocking call in
 the key handler is what froze this view once already, and the worst a slow or
 hung `claude` can now do is leave the states one tick stale. A failed call
@@ -501,5 +512,7 @@ Used only by the test suite; unset in normal use.
 | `PP_AGENTS_PINS` | the remembered-state file (pins and folds) |
 | `PP_AGENTS_LIVE` | `0` stops asking the daemon for states |
 | `PP_AGENTS_LIVE_POLL` | seconds between daemon calls (default 5) |
-| `PP_AGENTS_LIVE_IDLE_STOP` | stop polling after this long with no keypress (default 120) |
+| `PP_AGENTS_LIVE_IDLE_AFTER` | slow down after this long with no keypress (default 120) |
+| `PP_AGENTS_LIVE_IDLE_POLL` | the slower interval, in seconds (default 30) |
+| `PP_AGENTS_LIVE_IDLE_STOP` | stop entirely after this long (default 1800) |
 | `PP_AGENTS_CLAUDE` | the binary to drive, so a stub can record calls |
