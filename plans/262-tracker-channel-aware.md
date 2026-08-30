@@ -3,7 +3,7 @@ executor: agy
 model:
 test_cmd: (cd apps/tutorial-tracker-app && npm test) && node --test config/channels.test.mjs
 ui: true
-deploy:
+deploy: cd apps/tutorial-tracker-app && . ../../scripts/node22-path.sh && npx wrangler d1 migrations apply tracker-db --remote && npm run deploy
 needs: ["261 must land first: this plan imports config/channels.mjs and writes clicks-db.videos.channel_id"]
 needs_prs: [261]
 touches: [apps/tutorial-tracker-app/migrations/0007_cards_channel.sql, apps/tutorial-tracker-app/src/worker/channels.ts, apps/tutorial-tracker-app/src/worker/index.ts, apps/tutorial-tracker-app/src/worker/clickstore.ts, apps/tutorial-tracker-app/src/worker/datastore.ts, apps/tutorial-tracker-app/src/client/api.ts, apps/tutorial-tracker-app/src/client/NewVideoDialog.tsx, apps/tutorial-tracker-app/src/client/Filters.tsx, apps/tutorial-tracker-app/src/client/Card.tsx, apps/tutorial-tracker-app/src/client/CardDetail.tsx, apps/tutorial-tracker-app/scripts/seed-local.ts, apps/tutorial-tracker-app/test/channels.test.ts, apps/tutorial-tracker-app/CLAUDE.md]
