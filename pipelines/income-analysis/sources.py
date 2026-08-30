@@ -21,6 +21,7 @@ import datetime as dt
 import json
 import os
 import pathlib
+import shutil
 import ssl
 import subprocess
 import sys
@@ -233,6 +234,71 @@ def fetch_impact_by_month(months):
         if got:
             out[m] = got["programs"]
     return out
+
+
+# ── preflight ───────────────────────────────────────────────────────────────
+
+def preflight():
+    """Check every income source before a run, and say what is missing.
+
+    This exists because a missing CLI or an unset credential is otherwise
+    invisible: the source simply returns nothing, its money lands in Untraced,
+    and the dashboard quietly understates how much it knows. A source that is
+    down must be *named* as down, not absorbed.
+
+    Returns a list of {id, label, ok, detail}.
+    """
+    out = []
+
+    # PayPal — CLI on PATH plus creds outside the repo.
+    pp_cli = shutil.which("paypal-txns-pp-cli")
+    pp_creds = pathlib.Path.home() / ".config/paypal-txns-pp-cli/creds.env"
+    out.append({
+        "id": "paypal", "label": "PayPal",
+        "ok": bool(pp_cli) and pp_creds.exists(),
+        "detail": "ready" if pp_cli and pp_creds.exists()
+        else "CLI missing (npx -y @mvanhorn/printing-press-library install paypal-txns --cli-only)"
+        if not pp_cli else f"no creds at {pp_creds}",
+    })
+
+    # impact.com — CLI on PATH plus both env vars from infra/secrets.
+    im_cli = shutil.which("impact-pp-cli")
+    im_env = load_env(repo_root() / "infra/secrets/impact.env")
+    im_ok = bool(im_cli) and bool(im_env.get("IMPACT_ACCOUNT_SID")) and bool(im_env.get("IMPACT_AUTH_TOKEN"))
+    out.append({
+        "id": "impact", "label": "impact.com", "ok": im_ok,
+        "detail": "ready" if im_ok
+        else "CLI missing" if not im_cli
+        else "infra/secrets/impact.env missing IMPACT_ACCOUNT_SID / IMPACT_AUTH_TOKEN",
+    })
+
+    # PartnerStack — a key is all it needs; this module calls the API directly.
+    ps_env = load_env(repo_root() / "infra/secrets/partnerstack.env")
+    ps_ok = bool(ps_env.get("PARTNERSTACK_API_KEY") or os.environ.get("PARTNERSTACK_API_KEY"))
+    out.append({
+        "id": "partnerstack", "label": "PartnerStack", "ok": ps_ok,
+        "detail": "ready" if ps_ok
+        else "infra/secrets/partnerstack.env missing PARTNERSTACK_API_KEY",
+    })
+
+    # PayKickstart — deliberately parked; reported so its absence is never a surprise.
+    out.append({
+        "id": "paykickstart", "label": "PayKickstart", "ok": False,
+        "detail": "parked — affiliate accounts have no API access",
+    })
+    return out
+
+
+def print_preflight(checks):
+    print("  Sources")
+    for c in checks:
+        mark = "ok  " if c["ok"] else "--  "
+        print(f"    {mark}{c['label']:<14} {c['detail']}")
+    missing = [c["label"] for c in checks if not c["ok"] and c["id"] != "paykickstart"]
+    if missing:
+        print(f"\n  !! {', '.join(missing)} unavailable — money from "
+              f"{'it' if len(missing) == 1 else 'them'} will show as UNTRACED, "
+              f"not as zero.")
 
 
 # ── entry point ─────────────────────────────────────────────────────────────

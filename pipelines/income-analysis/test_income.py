@@ -276,6 +276,26 @@ class UntracedDetail(unittest.TestCase):
         self.assertEqual(leads[0]["source"], "impact.com")
 
 
+class Preflight(unittest.TestCase):
+    """One trigger drives PayPal, impact.com and PartnerStack — and says so."""
+
+    def test_reports_every_source(self):
+        ids = {c["id"] for c in sources.preflight()}
+        self.assertEqual(ids, {"paypal", "impact", "partnerstack", "paykickstart"})
+
+    def test_missing_cli_is_reported_not_swallowed(self):
+        with mock.patch.object(sources.shutil, "which",
+                               lambda n: None if n == "impact-pp-cli" else "/usr/bin/" + n):
+            checks = {c["id"]: c for c in sources.preflight()}
+        self.assertFalse(checks["impact"]["ok"])
+        self.assertIn("CLI missing", checks["impact"]["detail"])
+
+    def test_paykickstart_is_reported_as_parked_not_broken(self):
+        pk = next(c for c in sources.preflight() if c["id"] == "paykickstart")
+        self.assertFalse(pk["ok"])
+        self.assertIn("parked", pk["detail"])
+
+
 class Privacy(unittest.TestCase):
     """The repo is public. These are the guarantees that keep it safe."""
 

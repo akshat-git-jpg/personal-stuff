@@ -97,15 +97,49 @@ The PDF password is the account number, kept in the gitignored
 ### 2. Ingest, attribute and tally — one command
 
 ```bash
-cd pipelines/income-analysis && python3 ingest.py --with-paypal
+cd pipelines/income-analysis && python3 ingest.py
 ```
 
-That single run: parses every PDF in `data/raw/`, pulls PayPal (income +
-balance), PartnerStack and impact.com, runs the four attribution passes, writes
-`summary.json`, and prints the tally.
+**This skill owns the whole chain. Do not invoke `pp-paypal-txns` or `pp-impact`
+separately as part of a refresh** — `ingest.py` drives both CLIs itself, plus the
+PartnerStack API, and tallies the results against the passbook. Reaching for them
+by hand gets you three sets of numbers that do not reconcile, which is the exact
+problem this pipeline exists to solve. (Those skills remain the right tool for a
+standalone ad-hoc question like *"what did PayPal pay me in June"*.)
 
-Drop `--with-paypal` to parse the passbook only — useful when an API is down.
-The previously fetched network data is then reused.
+One run does all of it:
+
+| Step | What it uses |
+|---|---|
+| Preflight | checks all three CLIs and credentials, names anything missing |
+| Passbook | `data/raw/*.pdf`, parsed with pypdf |
+| PayPal | `paypal-txns-pp-cli income` + `reporting balances-get` |
+| impact.com | `impact-pp-cli reports run partner_performance_by_program` |
+| PartnerStack | Partner API — payouts, rewards, partnerships |
+| Attribute | five passes, then writes `summary.json` |
+| Tally | prints the reconciliation and every untraced credit |
+
+**The preflight is the important part.** A missing CLI or an unset credential is
+otherwise invisible: the source returns nothing, its money lands in Untraced, and
+the dashboard understates what it knows. So the run names it up front:
+
+```
+  Sources
+    ok  PayPal         ready
+    --  impact.com     CLI missing
+    ok  PartnerStack   ready
+    --  PayKickstart   parked — affiliate accounts have no API access
+
+  !! impact.com unavailable — money from it will show as UNTRACED, not as zero.
+```
+
+If you see that, fix the source before trusting the split — the totals stay
+correct either way, but the attribution will be worse than it should be.
+
+`--offline` reuses the last fetched data from `data/networks/` and skips every
+network call. Totals come out identical; use it when an API is down or you are
+only re-parsing a passbook. (`--with-paypal` is still accepted and does nothing —
+fetching is now the default.)
 
 ### 3. Read the tally — this is the point
 
@@ -176,7 +210,7 @@ credit.
 ### 5. Test, then publish
 
 ```bash
-python3 pipelines/income-analysis/test_income.py    # 21 tests, must be green
+python3 pipelines/income-analysis/test_income.py    # 24 tests, must be green
 cd apps/yt-income && npm run deploy                 # sync + typecheck + build + deploy
 ```
 

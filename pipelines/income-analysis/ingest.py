@@ -51,23 +51,38 @@ def load_network(name):
     return json.loads(p.read_text()) if p.exists() else None
 
 
-def source_states(ps, im, pending):
-    """Report each source's state so the UI never has to infer it from silence."""
+def source_states(ps, im, pending, checks=None):
+    """Report each source's state so the UI never has to infer it from silence.
+
+    `checks` is the preflight result. When a source is configured but this run
+    could not reach it, that is a different thing from never having been set up,
+    and the dashboard says which — otherwise a broken credential looks exactly
+    like a deliberate omission.
+    """
+    reachable = {c["id"]: c["ok"] for c in (checks or [])}
+    detail = {c["id"]: c["detail"] for c in (checks or [])}
     out = []
     for s in SOURCE_CATALOGUE:
         e = dict(s)
-        if s["id"] == "paypal":
-            e["state"] = "connected" if pending else "stale"
-            e["as_of"] = (pending or {}).get("as_of")
-        elif s["id"] == "bank":
+        got = {"paypal": bool(pending), "partnerstack": bool(ps),
+               "impact": bool(im)}.get(s["id"])
+        if s["id"] == "bank":
             e["state"] = "manual"
-        elif s["id"] == "partnerstack":
-            e["state"] = "connected" if ps else "absent"
-            e["as_of"] = (ps or {}).get("fetched_at")
-        elif s["id"] == "impact":
-            e["state"] = "connected" if im else "absent"
+        elif s["id"] == "paykickstart":
+            e["state"] = "absent"
+        elif got:
+            e["state"] = "connected"
+        elif reachable.get(s["id"]):
+            # Configured and healthy, but this run has no data — offline mode.
+            e["state"] = "stale"
         else:
             e["state"] = "absent"
+            if detail.get(s["id"]):
+                e["note"] = detail[s["id"]]
+        if s["id"] == "paypal":
+            e["as_of"] = (pending or {}).get("as_of")
+        elif s["id"] == "partnerstack":
+            e["as_of"] = (ps or {}).get("fetched_at")
         out.append(e)
     return out
 
@@ -280,10 +295,16 @@ def print_tally(months, notes, paypal_months):
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--with-paypal", action="store_true",
-                    help="also refresh the PayPal earned-side numbers")
+    ap = argparse.ArgumentParser(
+        description="Parse the passbook, pull every income source, attribute each "
+                    "bank credit to a tool, and print the tally.")
+    ap.add_argument("--offline", action="store_true",
+                    help="skip all network calls and reuse the last fetched data")
+    # The old name for the default behaviour. Kept so anything still passing it
+    # keeps working; it is now a no-op because fetching is the default.
+    ap.add_argument("--with-paypal", action="store_true", help=argparse.SUPPRESS)
     args = ap.parse_args()
+    fetch = not args.offline
 
     rules = json.loads((HERE / "rules.json").read_text())
     pw = password()
@@ -316,7 +337,10 @@ def main():
                           if t["type"] == "CR" and t["rail"] in rail_ids})
 
     paypal_months, pending = [], None
-    if args.with_paypal:
+    checks = sources.preflight()
+    if fetch:
+        sources.print_preflight(checks)
+        print()
         env = paypal_env()
         pp = paypal_by_month(env)
         if pp:
@@ -325,6 +349,12 @@ def main():
         if pending:
             print(f"  still in PayPal: USD {pending['total_any_currency']:,.2f}"
                   f" (as of {pending['as_of']})")
+        # Cache alongside the other sources so --offline is a real option and not
+        # a silent downgrade that drops every PayPal attribution.
+        if paypal_months or pending:
+            NETWORKS.mkdir(parents=True, exist_ok=True)
+            (NETWORKS / "paypal.json").write_text(json.dumps(
+                {"months": paypal_months, "pending": pending}, indent=1, ensure_ascii=False))
 
         # The networks that pay the bank directly. Failing to reach one is not
         # fatal — its money simply stays untraced and the UI says so.
@@ -344,6 +374,13 @@ def main():
             (NETWORKS / "impact.json").write_text(json.dumps(im, indent=1, ensure_ascii=False))
             print(f"  impact.com: {len(im)} months")
 
+    if not fetch:
+        cached = load_network("paypal.json") or {}
+        paypal_months = cached.get("months", [])
+        pending = cached.get("pending")
+        print("  --offline: reusing the last fetched PayPal, PartnerStack and "
+              "impact.com data")
+
     ps_data = load_network("partnerstack.json")
     im_data = load_network("impact.json")
     absent = [s for s in SOURCE_CATALOGUE
@@ -362,7 +399,7 @@ def main():
                      "to": bank_months[-1] if bank_months else None},
         "statements": statements,
         "rails": {r["id"]: r["label"] for r in rules["income_rails"]},
-        "sources": source_states(ps_data, im_data, pending),
+        "sources": source_states(ps_data, im_data, pending, checks),
         "months": months,
     }
     if pending:

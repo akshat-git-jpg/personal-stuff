@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T19:29:48",
+  "generated_at": "2026-08-30T19:44:36",
   "coverage": {
     "from": "2026-01",
     "to": "2026-08"
@@ -41,7 +41,7 @@
       "label": "PartnerStack",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-30T19:29:41"
+      "as_of": "2026-08-30T19:44:21"
     },
     {
       "id": "paykickstart",
