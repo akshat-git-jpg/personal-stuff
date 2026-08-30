@@ -75,6 +75,14 @@
       ],
       "note": "Paid to Shirish, remark says 'Bits'. The owner studies at BITS Pilani Goa."
     },
+    "cook": {
+      "label": "Cook",
+      "kind": "expense",
+      "match": [
+        "/Ashabul /"
+      ],
+      "note": "Household cook, owner-confirmed 2026-08-30. Note that Abubakk was paid the same 7,000 on the same day from a different bank — a different person, and still unnamed. Matching on the amount or the date would wrongly catch both."
+    },
     "food": {
       "label": "Food",
       "kind": "expense",
