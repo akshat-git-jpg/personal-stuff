@@ -237,14 +237,24 @@ tool** — it may be one already on the list under another name. The owner's
 tracking links are the ground truth for what he actually promotes; query the
 `links` table of `clicks-db` for `SELECT DISTINCT tool` and cross-check.
 
-**Currently unidentified: "Nine Thirty Five LLC"** — paid ₹13,964.96 in Feb 2026
-via PayPal, no public company record, no matching tracking link. Ask the owner,
-then add it to `tool_aliases`.
+**Some payers are not tools at all** — affiliate agencies and processors that pay
+out on behalf of brands. Those go in `unidentified_payers`, never `tool_aliases`.
+Writing an agency's name in the Tool column claims the owner promotes it, which
+is false; he rejected exactly that on 2026-08-30. They render as **Unidentified**,
+keeping the payer as evidence the way untraced money keeps its bank reference,
+and the invariant becomes:
+
+    tools + unidentified + untraced == bank_total
+
+**Currently unidentified: DigitalWorks** (Дигитал Маркетинг Солутионс 2011 ООД,
+`a.todorova@digitalworks.net`) — ₹9,165.59 in Aug 2026. An affiliate-management
+agency, so the brand behind it is unknown. Ask the owner; when he knows, move it
+from `unidentified_payers` to `tool_aliases` and it becomes a normal tool row.
 
 ### 5. Test, then publish
 
 ```bash
-python3 pipelines/income-analysis/test_income.py    # 29 tests, must be green
+python3 pipelines/income-analysis/test_income.py    # 34 tests, must be green
 cd apps/yt-income && npm run deploy                 # sync + typecheck + build + deploy
 ```
 

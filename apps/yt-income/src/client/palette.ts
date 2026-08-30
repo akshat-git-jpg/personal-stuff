@@ -30,6 +30,14 @@ export const OTHER_HUE = "rgba(255,240,224,0.30)";
  */
 export const UNTRACED_HUE = "#c62828";
 
+/**
+ * Traced to a payer, but the payer is an agency, not a tool. A different problem
+ * from Untraced — we know exactly who sent the money, just not which product it
+ * was for — so it gets its own muted amber rather than sharing the red. Warm
+ * enough to read as "needs attention", quiet enough not to compete with the red.
+ */
+export const UNKNOWN_HUE = "#8a6d3b";
+
 /** How each hop in a route is tinted, so the table and chart agree. */
 export const HOP_HUE: Record<string, string> = {
   PayPal: "#3987e5",

@@ -465,16 +465,15 @@ def leads_for(credit, ps, ps_notes, impact, im_notes):
 # ── assembly ────────────────────────────────────────────────────────────────
 
 def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
-              manual=None, rail_labels=None, aliases=None, excluded=None):
+              manual=None, rail_labels=None, aliases=None, unidentified=None):
     """Run every pass and fold the result into per-month totals.
 
-    `excluded` names tools whose money is not the owner's revenue even though it
-    passed through this account. They stay in the bank reconciliation — the credit
-    really happened, and removing it would make the passbook disagree — but they
-    are held out of the revenue figure and labelled. So two invariants hold:
+    `unidentified` names payers that are not tools — agencies and processors that
+    pay out for other brands. Their money is real and traced to a payer, but the
+    tool behind it is unknown, so it gets its own bucket rather than a fake name
+    in the Tool column. The invariant becomes:
 
-        traced + excluded + untraced == bank_total     (the passbook)
-        revenue_total                == bank_total - excluded
+        tools + unidentified + untraced == bank_total
     """
     credits = load_bank_credits(set(rails))
     rail_labels = rail_labels or {}
@@ -529,19 +528,33 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
             "leads": leads_for(c, ps, ps_notes, impact, im_notes),
         })
 
-    excl = {e["tool"]: e for e in (excluded or [])}
+    # Key on the *canonical* name, because that is what the rows carry by the time
+    # we get here — suffix stripping has already turned "…2011 ООД" into "…2011",
+    # so keying on the raw payer name would silently never match.
+    unknown = {canonical_tool(k, aliases).strip().casefold(): {**v, "payer": k}
+               for k, v in (unidentified or {}).items()}
 
     out = {}
     for m in sorted(months):
         d = months[m]
-        tools = [
+        rows = [
             {"tool": t, "amount": a, "route": list(r), "confidence": conf,
              **({"implied_fx": meta[(m, t, r, conf)]["implied_fx"]}
-                if meta.get((m, t, r, conf), {}).get("implied_fx") else {}),
-             **({"excluded": True, "excluded_label": excl[t].get("label", "not your revenue")}
-                if t in excl else {})}
+                if meta.get((m, t, r, conf), {}).get("implied_fx") else {})}
             for (t, r, conf), a in sorted(d["tools"].items(), key=lambda kv: -kv[1])
         ]
+        # An agency or processor is not a tool. Writing its name in the Tool
+        # column would claim the owner promotes it, which is false — so it moves
+        # to its own bucket, keeping the payer as evidence the way untraced money
+        # keeps its bank reference.
+        tools, unknown_rows = [], []
+        for row in rows:
+            info = unknown.get(row["tool"].strip().casefold())
+            if info:
+                unknown_rows.append({**row, "payer": info.get("payer", row["tool"]),
+                                     "via": info.get("via", row["tool"])})
+            else:
+                tools.append(row)
         untraced = d["untraced"]
         reasons = []
         if untraced["amount"] > PAISE:
@@ -550,24 +563,26 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
             reasons = sorted({c["rail_label"] for c in untraced["credits"]})
             if sources_absent:
                 reasons.append("source_not_connected")
-        excluded_total = round(sum(t["amount"] for t in tools if t.get("excluded")), 2)
         out[m] = {
             "bank_total": round(d["bank_total"], 2),
-            # What the owner actually earned: the bank total less money that only
-            # passed through on its way to someone else.
-            "revenue_total": round(d["bank_total"] - excluded_total, 2),
-            "excluded_total": excluded_total,
             "rails": {k: v for k, v in sorted(d["rails"].items())},
             "tools": tools,
+            "unidentified": {
+                "amount": round(sum(r["amount"] for r in unknown_rows), 2),
+                "payers": unknown_rows,
+            },
             "untraced": {
                 "amount": round(untraced["amount"], 2),
                 "reasons": reasons,
                 "credits": untraced["credits"],
             },
         }
-        # The invariant this whole module exists to hold.
+        # The invariant this whole module exists to hold. Three buckets now, and
+        # only the first is money we can put a tool name against.
         traced = sum(t["amount"] for t in tools)
-        drift = abs(traced + untraced["amount"] - d["bank_total"])
-        assert drift <= 1.0, f"{m}: tools+untraced off bank total by {drift:.2f}"
+        unk = out[m]["unidentified"]["amount"]
+        drift = abs(traced + unk + untraced["amount"] - d["bank_total"])
+        assert drift <= 1.0, (
+            f"{m}: tools+unidentified+untraced off bank total by {drift:.2f}")
 
     return out, {"partnerstack": ps_notes, "impact": im_notes}

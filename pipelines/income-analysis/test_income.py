@@ -344,6 +344,52 @@ class ToolNames(unittest.TestCase):
         self.assertEqual(names, {"Book Bolt", "DigitalWorks"})
 
 
+class UnidentifiedPayers(unittest.TestCase):
+    """An agency is not a tool, and must never be written as one."""
+
+    UNKNOWN = {"Дигитал Маркетинг Солутионс 2011 ООД":
+               {"via": "DigitalWorks", "note": "affiliate agency"}}
+
+    def test_agency_is_kept_out_of_the_tool_list(self):
+        credits = [credit("a", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-08",
+                           [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, unidentified=self.UNKNOWN)
+        aug = months["2026-08"]
+        self.assertEqual(aug["tools"], [], "an agency must not appear as a tool")
+        self.assertAlmostEqual(aug["unidentified"]["amount"], 9165.59, places=2)
+        payer = aug["unidentified"]["payers"][0]
+        self.assertEqual(payer["via"], "DigitalWorks")
+        self.assertIn("Дигитал", payer["payer"])
+
+    def test_invariant_holds_with_three_buckets(self):
+        credits = [credit("a", "03/08/2026", 9165.59, "paypal"),
+                   credit("b", "06/08/2026", 7014.74, "paypal"),
+                   credit("c", "21/08/2026", 5000.00, "airwallex")]
+        pp = [paypal_month("2026-08",
+                           [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59),
+                            ("HeyGen", 7014.74)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(
+                ["paypal", "airwallex"], pp, unidentified=self.UNKNOWN)
+        aug = months["2026-08"]
+        total = (sum(t["amount"] for t in aug["tools"])
+                 + aug["unidentified"]["amount"] + aug["untraced"]["amount"])
+        self.assertAlmostEqual(total, aug["bank_total"], delta=1.0)
+
+    def test_matching_survives_suffix_stripping(self):
+        """The lookup keys on the canonical name, not the raw payer string."""
+        credits = [credit("a", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-08",
+                           [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, unidentified=self.UNKNOWN)
+        # " ООД" is stripped before the check; if the lookup used the raw name it
+        # would silently miss and the agency would show up as a tool.
+        self.assertEqual(months["2026-08"]["tools"], [])
+
+
 class Preflight(unittest.TestCase):
     """One trigger drives PayPal, impact.com and PartnerStack — and says so."""
 

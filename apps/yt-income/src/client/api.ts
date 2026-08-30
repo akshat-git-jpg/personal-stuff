@@ -43,10 +43,29 @@ export interface UntracedCredit {
   leads: Lead[];
 }
 
+/**
+ * Money traced to a payer that is not a tool — an agency or processor paying out
+ * on behalf of some brand. Kept out of the tool list on purpose: an agency name
+ * in the Tool column would claim it is something the owner promotes.
+ */
+export interface UnidentifiedPayer {
+  /** The payer as it appears on the transaction. */
+  payer: string;
+  /** Short readable name for that payer, e.g. "DigitalWorks". */
+  via: string;
+  amount: number;
+  route: string[];
+  confidence: Confidence;
+}
+
 export interface MonthRevenue {
   bank_total: number;
   rails: Record<string, number>;
   tools: ToolRow[];
+  unidentified: {
+    amount: number;
+    payers: UnidentifiedPayer[];
+  };
   untraced: {
     amount: number;
     reasons: string[];
