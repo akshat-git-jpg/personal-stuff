@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T17:04:26",
+  "generated_at": "2026-08-30T17:30:58",
   "statements": [
     {
       "file": "PNBONE_STMT_XX****_30082026.pdf",
@@ -418,5 +418,17 @@
     "windows": 8,
     "start": "2026-01-01",
     "end": "2026-08-30"
+  },
+  "paypal_pending": {
+    "as_of": "2026-08-30T09:59:59Z",
+    "holdings": [
+      {
+        "currency": "USD",
+        "total": "0.00",
+        "available": "0.00",
+        "withheld": "0.00"
+      }
+    ],
+    "total_any_currency": 0.0
   }
 }

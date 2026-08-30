@@ -13,7 +13,7 @@
  * Same PayPal total, different months. The toggle says which one is on screen.
  */
 import { useEffect, useMemo, useState } from "react";
-import { fetchIncome, UnauthorizedError, type IncomeResponse } from "./api";
+import { fetchIncome, UnauthorizedError, type IncomePending, type IncomeResponse } from "./api";
 
 /* Validated against this app's card surface (#181310) with the dataviz
    six-checks validator: all pairs clear the CVD and normal-vision floors and
@@ -128,6 +128,8 @@ export function IncomeView() {
 
   return (
     <div className="income" onMouseLeave={() => setTip(null)}>
+      <PendingStrip pending={data!.paypal_pending} generatedAt={data!.generated_at} />
+
       <section className="summary income-summary">
         <div className="stat stat-accent">
           <div className="stat-value">{money(total)}</div>
@@ -263,6 +265,66 @@ export function IncomeView() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── Money still sitting in PayPal, not yet withdrawn to the bank. ─────────
+      Snapshotted by ingest.py, never fetched from the browser: the Worker holds
+      no PayPal credentials, and a stale-but-labelled number beats a live call
+      that can hang or fail. The as-of line is therefore load-bearing — without
+      it a zero could be read as "nothing pending" when it really means
+      "nobody has run yt-income lately". */
+function PendingStrip({
+  pending, generatedAt,
+}: {
+  pending: IncomePending | undefined;
+  generatedAt: string | null;
+}) {
+  if (!pending) {
+    return (
+      <div className="pending pending-unknown">
+        <div className="pending-main">
+          <span className="pending-label">Still in PayPal</span>
+          <span className="pending-value">not checked</span>
+        </div>
+        <span className="pending-when">
+          Last ingest skipped PayPal. Re-run <code>yt-income</code> to fill this in.
+        </span>
+      </div>
+    );
+  }
+
+  const waiting = pending.holdings.filter((h) => parseFloat(h.total || "0") > 0);
+  const settled = waiting.length === 0;
+  const asOf = pending.as_of ? new Date(pending.as_of) : generatedAt ? new Date(generatedAt) : null;
+
+  return (
+    <div className={`pending ${settled ? "pending-clear" : "pending-waiting"}`}>
+      <div className="pending-main">
+        <span className="pending-label">Still in PayPal</span>
+        {settled ? (
+          <>
+            <span className="pending-value">₹0</span>
+            <span className="pending-tag">all settled to bank</span>
+          </>
+        ) : (
+          <>
+            {waiting.map((h) => (
+              <span className="pending-value" key={h.currency}>
+                {h.currency} {parseFloat(h.total).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              </span>
+            ))}
+            <span className="pending-tag">not yet in the bank</span>
+          </>
+        )}
+      </div>
+      <span className="pending-when">
+        {asOf ? `as of ${asOf.toLocaleString()}` : "no timestamp"}
+        {!settled && waiting.some((h) => parseFloat(h.withheld || "0") > 0) && (
+          <> · some of it is withheld by PayPal</>
+        )}
+      </span>
     </div>
   );
 }

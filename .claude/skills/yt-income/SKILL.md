@@ -97,8 +97,16 @@ later ones simply restate the same months. It prints the transaction count per
 file and the income total.
 
 `--with-paypal` also pulls `paypal-txns-pp-cli income` for the earned-side and
-per-program numbers. Drop the flag to skip PayPal (useful when the API is down;
-the bundled PayPal block is then left as-is).
+per-program numbers, **and the live PayPal balance** — money received but not yet
+withdrawn to the bank. That balance becomes the "Still in PayPal" strip at the top
+of the Income tab.
+
+The dashboard never calls PayPal itself: the Worker holds no PayPal credentials,
+so the strip is a snapshot taken here and labelled with its as-of time. A stale
+zero and a real zero look identical without that timestamp, which is why the strip
+always prints it. Drop the flag to skip PayPal entirely (useful when the API is
+down; the bundled PayPal block is then left as-is, and the strip keeps its old
+as-of date).
 
 ### 3. Reconcile — this is the check that matters
 
@@ -213,8 +221,10 @@ Give the owner, in this order:
 
 1. **Total real income** for the window, and the month-by-month split by rail.
 2. **The reconciliation number** — say "difference INR 0.00", not "it reconciles".
-3. **What was excluded** as personal, with the total, so a missing rail is visible.
-4. **Anything new** — a payer that did not match a rule, a month with no income.
+3. **Anything still in PayPal** — the balance and its as-of time. Zero is the good
+   answer; say it explicitly rather than staying silent.
+4. **What was excluded** as personal, with the total, so a missing rail is visible.
+5. **Anything new** — a payer that did not match a rule, a month with no income.
 
 Keep it short. The owner reads this tired.
 
