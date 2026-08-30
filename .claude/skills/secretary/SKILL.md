@@ -115,7 +115,9 @@ owner has to be able to see the call you made without opening five files.
 | #193 | 232 | `claude-p` | Sonnet | standard | screenshot | #192 |
 
 `Difficulty` comes from the plan's Status block, `UI gate` from `ui:` in the
-frontmatter, `Waits for` from `needs_prs`. If a batch mixes executors, add one
+frontmatter, `Waits for` from `needs_plans` (or `needs_prs`) — render it as the
+**PR** number once the batch is raised, since that is what the owner clicks. If a
+plan's dependency is a plan number, say so: `#221 (plan 261)`. If a batch mixes executors, add one
 sentence saying why — the owner reads that as the routing decision, and a silent
 mix reads as an accident.
 
