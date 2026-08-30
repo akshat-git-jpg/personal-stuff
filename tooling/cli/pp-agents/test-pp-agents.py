@@ -443,7 +443,7 @@ check("a live session and a recent keypress is worth a call",
       mod.should_poll(_live_job, _now, _now) is True)
 check("nothing live means no state CAN change, so no call",
       mod.should_poll([{"state": "done"}], _now, _now) is False)
-check("an unattended view costs nothing",
+check("an abandoned view eventually costs nothing",
       mod.should_poll(_live_job, _now - mod.LIVE_IDLE_STOP - 1, _now) is False)
 check("and a second call inside the interval is refused",
       mod.should_poll(_live_job, _now, _now, last_poll_at=_now) is False)
@@ -451,6 +451,27 @@ check("blocked counts as live too, since it is the state that goes stale",
       mod.should_poll([{"state": "blocked"}], _now, _now) is True)
 check("an empty list has nothing to poll for",
       mod.should_poll([], _now, _now) is False)
+
+# THE BUG THIS EXISTS FOR: the first version STOPPED polling after two minutes of
+# no keypress, and reading the list is silent - so watching for a session to
+# finish was the one use that switched live states off.
+check("an active view polls at the fast interval",
+      mod.poll_interval(_now, _now) == mod.LIVE_POLL)
+check("a quiet view slows down instead of stopping",
+      mod.poll_interval(_now - mod.LIVE_IDLE_AFTER - 1, _now) == mod.LIVE_IDLE_POLL)
+check("and slowing down is slower than the active rate, not equal to it",
+      mod.LIVE_IDLE_POLL > mod.LIVE_POLL)
+check("only an abandoned view stops entirely",
+      mod.poll_interval(_now - mod.LIVE_IDLE_STOP - 1, _now) is None)
+check("half an hour is what counts as abandoned, not two minutes",
+      mod.LIVE_IDLE_STOP >= 1800 and mod.LIVE_IDLE_AFTER < mod.LIVE_IDLE_STOP,
+      f"{mod.LIVE_IDLE_AFTER} / {mod.LIVE_IDLE_STOP}")
+check("a quiet view still polls once its slower interval has passed",
+      mod.should_poll(_live_job, _now - mod.LIVE_IDLE_AFTER - 1, _now,
+                      last_poll_at=_now - mod.LIVE_IDLE_POLL - 1) is True)
+check("but not before it has",
+      mod.should_poll(_live_job, _now - mod.LIVE_IDLE_AFTER - 1, _now,
+                      last_poll_at=_now - 1) is False)
 
 section("a lingering child cannot stall a claude call")
 with tempfile.TemporaryDirectory() as tmp:
@@ -1299,6 +1320,21 @@ drained = queued_after_cleanup(MOUSE_JUNK, drain=True)
 kept = queued_after_cleanup(MOUSE_JUNK, drain=False)
 check("queued mouse packets are thrown away on the way out", drained == 0, str(drained))
 check("without the drain they survive, so this test can actually fail", kept > 0, str(kept))
+
+section("coming back from a session counts as activity")
+# THE BUG THIS EXISTS FOR: `shift+left` is swallowed by the proxy and never
+# reaches the main loop, so an hour inside a session read as an hour of idleness.
+# You came back to a list that had stopped asking the daemon anything, which is
+# precisely when the states were most likely to be wrong.
+_src = open(SCRIPT).read()
+_restore = _src.split("def restore_screen(self):", 1)[1].split("def ", 1)[0]
+check("restore_screen marks the return as a keypress",
+      "self.last_key_at = time.time()" in _restore, _restore[:400])
+check("and clears the poll clock, so the very next tick asks",
+      "self.last_poll_at = 0.0" in _restore, _restore[:400])
+check("both attach and logs go through it",
+      _src.count("self.restore_screen()") >= 2,
+      str(_src.count("self.restore_screen()")))
 
 section("end to end: the screen shows the daemon's state, not the file's")
 with tempfile.TemporaryDirectory() as tmp:

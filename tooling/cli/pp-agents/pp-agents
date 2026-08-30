@@ -315,9 +315,13 @@ LIVE_STATES = ("working", "blocked")
 # blocked and a bogus API key. It costs 0.24s and 190 MB of peak RSS per call, so
 # the point of every number here is to make most ticks skip the call entirely.
 LIVE_POLL = float(os.environ.get("PP_AGENTS_LIVE_POLL", "5"))
-# Stop polling when the keyboard has been quiet this long: an unattended view in
-# a background tab should cost nothing at all.
-LIVE_IDLE_STOP = float(os.environ.get("PP_AGENTS_LIVE_IDLE_STOP", "120"))
+# After this long with no keypress, slow down rather than stop. The first version
+# stopped, and it stopped on the one use that most wants live states: watching the
+# list to see when something finishes involves pressing nothing at all.
+LIVE_IDLE_AFTER = float(os.environ.get("PP_AGENTS_LIVE_IDLE_AFTER", "120"))
+LIVE_IDLE_POLL = float(os.environ.get("PP_AGENTS_LIVE_IDLE_POLL", "30"))
+# And after THIS long, stop for real: half an hour of nothing means you left.
+LIVE_IDLE_STOP = float(os.environ.get("PP_AGENTS_LIVE_IDLE_STOP", "1800"))
 LIVE_ENABLED = os.environ.get("PP_AGENTS_LIVE", "1") != "0"
 
 
@@ -354,20 +358,34 @@ def live_states(timeout=8.0):
     return found
 
 
+def poll_interval(last_key_at, now):
+    """How long to wait between calls, given how recently a key was pressed.
+
+    Backing off rather than stopping, because a keypress is a bad proxy for
+    attention: reading the list is silent. `None` means stop entirely, and it
+    takes half an hour of nothing to get there.
+    """
+    quiet = now - last_key_at
+    if quiet > LIVE_IDLE_STOP:
+        return None
+    return LIVE_IDLE_POLL if quiet > LIVE_IDLE_AFTER else LIVE_POLL
+
+
 def should_poll(jobs, last_key_at, now, last_poll_at=0.0):
     """Whether this tick should spend a `claude agents --json` call.
 
     Three ways to answer no, and between them they cover almost every tick:
 
     - nothing on screen is `working` or `blocked`, so no state CAN change
-    - the keyboard has been quiet for `LIVE_IDLE_STOP`, so nobody is reading it
-    - the last call was less than `LIVE_POLL` ago
+    - nothing has happened for `LIVE_IDLE_STOP`, so the view was abandoned
+    - the last call was more recent than the current interval allows
     """
     if not LIVE_ENABLED:
         return False
-    if now - last_key_at > LIVE_IDLE_STOP:
+    every = poll_interval(last_key_at, now)
+    if every is None:
         return False
-    if now - last_poll_at < LIVE_POLL:
+    if now - last_poll_at < every:
         return False
     return any(j.get("state") in LIVE_STATES for j in jobs)
 
@@ -1755,6 +1773,14 @@ class App:
         holds what it last drew, so without it the view comes back as fragments
         of itself over whatever `claude attach` left behind.
         """
+        # Coming back IS activity, and the keys that got you here never reached
+        # this loop - `shift+left` is swallowed by the proxy. Without this, an
+        # hour inside a session reads as an hour of idleness, and you return to a
+        # list that stopped asking the daemon anything. Clearing `last_poll_at`
+        # makes the very next tick ask, so the states are right by the time you
+        # have finished looking at the screen.
+        self.last_key_at = time.time()
+        self.last_poll_at = 0.0
         curses.curs_set(0)
         self.scr.keypad(True)
         self.scr.redrawwin()
