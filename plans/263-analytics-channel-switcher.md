@@ -3,7 +3,7 @@ executor: agy
 model:
 test_cmd: (cd apps/analytics-app && npm test) && node --test config/channels.test.mjs
 ui: true
-deploy:
+deploy: cd apps/analytics-app && . ../../scripts/node22-path.sh && npx wrangler d1 migrations apply yt-rankings --remote && npm run deploy
 needs: ["261 must land first: this plan imports config/channels.mjs and reads clicks-db.videos.channel_id"]
 needs_prs: [261]
 touches: [apps/analytics-app/package.json, apps/analytics-app/vitest.config.ts, apps/analytics-app/src/worker/channels.ts, apps/analytics-app/src/worker/analytics.ts, apps/analytics-app/src/worker/rankings.ts, apps/analytics-app/src/worker/auth.ts, apps/analytics-app/src/worker/index.ts, apps/analytics-app/src/client/App.tsx, apps/analytics-app/src/client/api.ts, apps/analytics-app/src/client/RankingsView.tsx, apps/analytics-app/src/client/UploadsView.tsx, apps/analytics-app/migrations/0002_rankings_channel.sql, apps/analytics-app/wrangler.toml, apps/analytics-app/test/channels.test.ts, apps/analytics-app/CLAUDE.md]
