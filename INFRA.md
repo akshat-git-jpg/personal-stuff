@@ -18,12 +18,28 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 
 | Domain | Registrar | Expires | Decision |
 |---|---|---|---|
-| `agrolloo.com` | Hostinger | **2026-11-10** | **RENEW.** Load-bearing: every live app and the `go.agrolloo.com` money path sit on it. Losing it takes down all of it and breaks every affiliate short link already published in YouTube descriptions. |
-| `bridebestie.com` | Cloudflare | **2027-06-02** | **CANCEL before renewal** (owner, 2026-08-30). Paid a year up front and the wedding/Pinterest bet is abandoned, so keep it until the paid term runs out, then let it lapse. Turn OFF auto-renew in the Cloudflare Registrar dashboard well before the date — Cloudflare renews automatically by default. |
+| `agrolloo.com` | Hostinger | **2026-11-10** | **RENEW.** Load-bearing: every live app and the `go.agrolloo.com` money path sit on it. Losing it takes down all of it and breaks every affiliate short link already published in YouTube descriptions. **Auto-renew state is UNKNOWN from here** — see the caveat below. |
+| `bridebestie.com` | Cloudflare | **2027-06-02** | **Let it lapse** (owner, 2026-08-30) — the wedding/Pinterest bet is abandoned and the year was paid up front. `auto_renew` is already **false** (verified 2026-08-30 via the Registrar API), so no action is needed; it expires on its own. |
 
-Every subdomain (`go.`, `kushal-tools.`, `keto-kitchen.` when it existed, …) is free; only these two
-registrations cost money. Re-read the live dates with `whois <domain> | grep -i "Registry Expiry"`
-rather than trusting this table, and update it when a renewal happens.
+Every subdomain (`go.`, `kushal-tools.`, …) is free; only these two registrations cost money.
+Re-read live state rather than trusting this table, and update it when a renewal happens:
+
+```bash
+whois <domain> | grep -i "Registry Expiry"        # expiry, any registrar
+# Cloudflare Registrar auto-renew (needs the GLOBAL key; the scoped CF_API_TOKEN 403s here):
+curl -s "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/registrar/domains/<domain>"   -H "X-Auth-Email: $CF_API_EMAIL" -H "X-Auth-Key: $CF_GLOBAL_API_KEY"
+```
+
+**`agrolloo.com` is NOT visible to the Hostinger API token in `tooling/mcp/hostinger/.env`.**
+`GET /api/domains/v1/portfolio/agrolloo.com` returns *"Domain is not registered at Hostinger"*
+and the portfolio lists only an unused free-domain slot — yet `whois` says the registrar is
+HOSTINGER operations, UAB (IANA 1636). The domain therefore sits in a **different Hostinger
+login** from the one this token belongs to; that account holds only the VPS. Its auto-renew and
+its card can only be checked by signing in to the right account at `hpanel.hostinger.com`.
+
+The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹16,788/year,
+`is_auto_renewed: true`, next billing **2027-01-31**; default Visa card on file, not expired
+(good to 2032-09-30).
 
 ### Workers (14 deployed, no Pages projects)
 - **redirector** — `go.agrolloo.com/*` — URL shortener + click tracking. Bindings: `CLICKS_KV`, `clicks-db` (D1).
