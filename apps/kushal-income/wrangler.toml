@@ -1,0 +1,22 @@
+name = "kushal-income"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# SPA built into dist/, served by the Worker via the ASSETS binding.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# No D1, no R2, no upstream keys. The figures are baked into the bundle at build
+# time by scripts/sync-summary.mjs, so this Worker never holds a bank credential
+# and never reaches out to one.
+
+[[routes]]
+pattern = "kushal-income.agrolloo.com"
+custom_domain = true
+
+# Secrets (set with `npx wrangler secret put <NAME>`, mirror in .dev.vars locally):
+#   APP_PASSWORD    - the shared password for the gate
+#   SESSION_SECRET  - random string used to sign the auth cookie

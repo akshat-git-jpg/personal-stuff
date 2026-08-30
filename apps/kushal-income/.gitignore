@@ -1,0 +1,15 @@
+node_modules
+dist
+.wrangler
+.dev.vars
+*.local
+.DS_Store
+.shots
+node_modules/.tmp
+
+# The bundled data names real counterparties -- people the owner pays. It ships
+# to a password-gated Worker, but it must never reach this public repo. The
+# yt-income equivalent IS committed because its summary is PII-stripped; this
+# one is not, and cannot be, because the payee name is the whole point of the
+# "not named yet" list.
+src/worker/summary.json
