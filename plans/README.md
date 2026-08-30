@@ -1404,3 +1404,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 264-channel-profiles-for-the-pipelines — channel profiles, so several channels don't all sound the same — TODO (needs 261)
 - 261-channel-registry-and-multi-domain-redirector — PR#221 261-channel-registry-and-multi-domain-redirector: the channel registry, and a redirector that serves more than one domain — DONE
 - 264-channel-profiles-for-the-pipelines — PR#224 264-channel-profiles-for-the-pipelines: channel profiles, so several channels don't all sound the same — DONE
+- 263-analytics-channel-switcher — PR#223 263-analytics-channel-switcher: the analytics dashboard gets a channel switcher — DONE
