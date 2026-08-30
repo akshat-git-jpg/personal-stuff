@@ -27,6 +27,49 @@ HERE = pathlib.Path(__file__).resolve().parent
 DATA = HERE / "data"
 RAW = DATA / "raw"
 PARSED = DATA / "parsed"
+NETWORKS = DATA / "networks"
+
+sys.path.insert(0, str(HERE))
+import attribute  # noqa: E402
+import sources    # noqa: E402
+
+# Every source the dashboard knows about, including ones with no credentials.
+# A source that is absent must be *named* as absent — silence reads as zero.
+SOURCE_CATALOGUE = [
+    {"id": "paypal", "label": "PayPal", "kind": "api"},
+    {"id": "bank", "label": "Bank passbook", "kind": "manual"},
+    {"id": "impact", "label": "impact.com", "kind": "api"},
+    {"id": "partnerstack", "label": "PartnerStack", "kind": "api"},
+    {"id": "paykickstart", "label": "PayKickstart", "kind": "api",
+     "note": "No credentials. Affiliate accounts have no API access, so any "
+             "PayKickstart commission shows up as untraced."},
+]
+
+
+def load_network(name):
+    p = NETWORKS / name
+    return json.loads(p.read_text()) if p.exists() else None
+
+
+def source_states(ps, im, pending):
+    """Report each source's state so the UI never has to infer it from silence."""
+    out = []
+    for s in SOURCE_CATALOGUE:
+        e = dict(s)
+        if s["id"] == "paypal":
+            e["state"] = "connected" if pending else "stale"
+            e["as_of"] = (pending or {}).get("as_of")
+        elif s["id"] == "bank":
+            e["state"] = "manual"
+        elif s["id"] == "partnerstack":
+            e["state"] = "connected" if ps else "absent"
+            e["as_of"] = (ps or {}).get("fetched_at")
+        elif s["id"] == "impact":
+            e["state"] = "connected" if im else "absent"
+        else:
+            e["state"] = "absent"
+        out.append(e)
+    return out
 
 # "29/08/2026 14000.0 DR 3365.98 UPI/DR/660790621973/SHRI"
 TXN_RE = re.compile(
@@ -185,6 +228,57 @@ def paypal_env():
     return env
 
 
+def print_tally(months, notes, paypal_months):
+    """Print the same tally the dashboard publishes.
+
+    The owner's rule: a discrepancy is reported in both places or in neither.
+    Untraced money is loud but never blocking — it is the normal state today, and
+    a gate that fails on the normal case gets switched off within a week. Only a
+    broken PayPal reconciliation exits non-zero, because that is a real bug.
+    """
+    print("\n" + "=" * 66)
+    print("  REVENUE TALLY — bank credits are the truth")
+    print("=" * 66)
+
+    g_bank = g_traced = g_untraced = 0.0
+    for m in sorted(months):
+        d = months[m]
+        traced = sum(t["amount"] for t in d["tools"])
+        un = d["untraced"]["amount"]
+        g_bank += d["bank_total"]; g_traced += traced; g_untraced += un
+        pct = (traced / d["bank_total"] * 100) if d["bank_total"] else 100.0
+        mark = "ok " if un <= 1 else "!! "
+        print(f"  {mark}{m}  bank {d['bank_total']:>11,.2f}   "
+              f"traced {traced:>11,.2f} ({pct:5.1f}%)   untraced {un:>10,.2f}")
+        for c in d["untraced"]["credits"]:
+            print(f"        untraced credit  {c['date']}  {c['amount']:>10,.2f}  {c['rail']}")
+
+    print("  " + "-" * 64)
+    share = (g_untraced / g_bank * 100) if g_bank else 0.0
+    print(f"     TOTAL  bank {g_bank:>11,.2f}   traced {g_traced:>11,.2f}   "
+          f"untraced {g_untraced:>10,.2f}")
+    if g_untraced > 1:
+        print(f"\n  !! {share:.1f}% of income cannot be traced to a tool.")
+        for src, items in notes.items():
+            for n in items[:6]:
+                print(f"     {src}: {n}")
+
+    # PayPal reconciliation — the one hard gate.
+    settled = sum(float(m.get("bank_amount") or 0) for m in paypal_months)
+    on_rail = sum(v for d in months.values() for k, v in d["rails"].items() if k == "paypal")
+    diff = round(on_rail - settled, 2)
+    if paypal_months:
+        print(f"\n  PayPal reconciliation")
+        print(f"     bank NEFT from PayPal  {on_rail:>11,.2f}")
+        print(f"     PayPal says settled    {settled:>11,.2f}")
+        print(f"     difference             {diff:>11,.2f}")
+        if abs(diff) > 1.0:
+            print("\n  FAIL: PayPal and the bank disagree. Numbers not trustworthy.")
+            sys.exit(1)
+        print("     tallies")
+    print("=" * 66)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--with-paypal", action="store_true",
@@ -217,44 +311,66 @@ def main():
         all_txns.extend(txns)
         print(f"  {pdf.name}: {len(txns)} transactions")
 
-    # Aggregate credits by month and rail. Nothing below carries a name or an
-    # account number, which is what makes summary.json safe to commit.
-    months = collections.defaultdict(lambda: collections.defaultdict(float))
-    for t in all_txns:
-        if t["type"] == "CR":
-            months[month_of(t["date"])][t["rail"]] += t["amount"]
+    rail_ids = [r["id"] for r in rules["income_rails"]]
+    bank_months = sorted({month_of(t["date"]) for t in all_txns
+                          if t["type"] == "CR" and t["rail"] in rail_ids})
 
-    summary = {
-        "generated_at": dt.datetime.now().isoformat(timespec="seconds"),
-        "statements": statements,
-        "rails": {r["id"]: r["label"] for r in rules["income_rails"]},
-        "bank_by_month": {
-            m: {k: round(v, 2) for k, v in sorted(months[m].items())}
-            for m in sorted(months)
-        },
-    }
-
+    paypal_months, pending = [], None
     if args.with_paypal:
         env = paypal_env()
         pp = paypal_by_month(env)
         if pp:
-            summary["paypal"] = pp.get("results", pp)
-        bal = paypal_balance(env)
-        if bal:
-            summary["paypal_pending"] = bal
-            print(f"  still in PayPal: USD {bal['total_any_currency']:,.2f}"
-                  f" (as of {bal['as_of']})")
+            paypal_months = pp.get("results", pp).get("months", [])
+        pending = paypal_balance(env)
+        if pending:
+            print(f"  still in PayPal: USD {pending['total_any_currency']:,.2f}"
+                  f" (as of {pending['as_of']})")
+
+        # The networks that pay the bank directly. Failing to reach one is not
+        # fatal — its money simply stays untraced and the UI says so.
+        try:
+            ps = sources.fetch_partnerstack()
+            if ps:
+                (NETWORKS).mkdir(parents=True, exist_ok=True)
+                (NETWORKS / "partnerstack.json").write_text(
+                    json.dumps(ps, indent=1, ensure_ascii=False))
+                print(f"  PartnerStack: {len(ps['payouts'])} payouts, "
+                      f"{len(ps['rewards'])} rewards")
+        except SystemExit as e:
+            print(f"  ! PartnerStack: {e}", file=sys.stderr)
+        im = sources.fetch_impact_by_month(bank_months)
+        if im:
+            (NETWORKS).mkdir(parents=True, exist_ok=True)
+            (NETWORKS / "impact.json").write_text(json.dumps(im, indent=1, ensure_ascii=False))
+            print(f"  impact.com: {len(im)} months")
+
+    ps_data = load_network("partnerstack.json")
+    im_data = load_network("impact.json")
+    absent = [s for s in SOURCE_CATALOGUE
+              if s["id"] == "paykickstart"]  # parked: affiliate accounts have no API
+
+    months, notes = attribute.attribute(
+        rail_ids, paypal_months, ps_data, im_data, [s["id"] for s in absent])
+
+    # Nothing below carries a counterparty, an account number or an address,
+    # which is what makes summary.json safe to commit to a public repo.
+    summary = {
+        "generated_at": dt.datetime.now().isoformat(timespec="seconds"),
+        "coverage": {"from": bank_months[0] if bank_months else None,
+                     "to": bank_months[-1] if bank_months else None},
+        "statements": statements,
+        "rails": {r["id"]: r["label"] for r in rules["income_rails"]},
+        "sources": source_states(ps_data, im_data, pending),
+        "months": months,
+    }
+    if pending:
+        summary["paypal_pending"] = pending
 
     out = HERE / "summary.json"
-    out.write_text(json.dumps(summary, indent=2))
-
-    income = sum(
-        v for m in months.values()
-        for k, v in m.items()
-        if k in summary["rails"]
-    )
+    out.write_text(json.dumps(summary, indent=2, ensure_ascii=False))
     print(f"\n  wrote {out.relative_to(HERE.parent.parent)}")
-    print(f"  real income across {len(months)} months: INR {income:,.2f}")
+
+    print_tally(months, notes, paypal_months)
 
 
 if __name__ == "__main__":
