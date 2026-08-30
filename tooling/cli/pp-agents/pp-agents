@@ -1020,13 +1020,13 @@ def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
     finally:
         signal.signal(signal.SIGWINCH, prev_winch)
         termios.tcsetattr(stdin_fd, termios.TCSADRAIN, saved)
-        if detached:
-            end_child(pid)
         # Whether it exited on its own or was detached, switch off the input modes
         # it may have left on. Mouse reporting is the one that bites: left on, the
         # terminal keeps emitting mouse packets and whatever reads stdin next
         # prints them as `65;59;21M` gibberish.
         clear_borrowed_modes()
+        if detached:
+            end_child(pid)
         try:
             os.close(master)
         except OSError:

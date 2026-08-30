@@ -1052,7 +1052,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    first, raw_after, calls = drive(tmp, [(b"\r", "ATTACHED"), b"\x1b[1;2D", b"q"], scrubbed=False)
+    first, raw_after, calls = drive(tmp, [(b"\r", "ATTACHED"), (b"\x1b[1;2D", "pp-agents"), b"q"], scrubbed=False)
     after = scrape(raw_after.encode('utf-8'))
     check("the cursor starts on a session, so enter works immediately",
           re.search(r"attach (aaa|bbb)", calls) is not None, repr(calls))
@@ -1341,7 +1341,7 @@ MOUSE_MODES = {"1000", "1002", "1003", "1006"}
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED"), b"\x1b[1;2D", b"q"], scrubbed=False)
+    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED"), (b"\x1b[1;2D", "pp-agents"), b"q"], scrubbed=False)
     on, off = mode_events(after)
     check("the session turned mouse reporting on (as claude attach does)",
           MOUSE_MODES & on == MOUSE_MODES, str(sorted(on)))
@@ -1356,7 +1356,7 @@ with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     # quitting normally must also leave the terminal clean, because a mode set by
     # an earlier session outlives that session
-    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED"), b"\x1b[1;2D", b"q"], scrubbed=False)
+    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED"), (b"\x1b[1;2D", "pp-agents"), b"q"], scrubbed=False)
     tail = after[after.rindex("ATTACHED"):] if "ATTACHED" in after else after
     _on, off = mode_events(tail)
     check("the modes are cleared before pp-agents exits",
