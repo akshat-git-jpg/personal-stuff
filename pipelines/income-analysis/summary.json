@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T20:04:35",
+  "generated_at": "2026-08-30T20:14:09",
   "coverage": {
     "from": "2026-01",
     "to": "2026-08"
@@ -41,7 +41,7 @@
       "label": "PartnerStack",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-30T20:04:26"
+      "as_of": "2026-08-30T20:14:09"
     },
     {
       "id": "paykickstart",
@@ -54,6 +54,8 @@
   "months": {
     "2026-01": {
       "bank_total": 24711.29,
+      "revenue_total": 24711.29,
+      "excluded_total": 0,
       "rails": {
         "paypal": 24711.29
       },
@@ -83,6 +85,8 @@
     },
     "2026-02": {
       "bank_total": 172405.98,
+      "revenue_total": 172405.98,
+      "excluded_total": 0,
       "rails": {
         "airwallex": 3818.16,
         "paypal": 168587.82
@@ -105,7 +109,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Nine Thirty Five",
+          "tool": "Fliki",
           "amount": 13964.96,
           "route": [
             "PayPal"
@@ -148,6 +152,8 @@
     },
     "2026-03": {
       "bank_total": 41061.57,
+      "revenue_total": 41061.57,
+      "excluded_total": 0,
       "rails": {
         "airwallex": 29651.76,
         "paypal": 11409.81
@@ -235,6 +241,8 @@
     },
     "2026-04": {
       "bank_total": 25389.44,
+      "revenue_total": 25389.44,
+      "excluded_total": 0,
       "rails": {
         "airwallex": 12616.8,
         "paypal": 12772.64
@@ -269,6 +277,8 @@
     },
     "2026-05": {
       "bank_total": 26956.15,
+      "revenue_total": 26956.15,
+      "excluded_total": 0,
       "rails": {
         "airwallex": 14895.03,
         "paypal": 12061.12
@@ -341,6 +351,8 @@
     },
     "2026-06": {
       "bank_total": 41353.69,
+      "revenue_total": 41353.69,
+      "excluded_total": 0,
       "rails": {
         "airwallex": 14759.13,
         "paypal": 26594.56
@@ -414,6 +426,8 @@
     },
     "2026-07": {
       "bank_total": 27999.71,
+      "revenue_total": 27999.71,
+      "excluded_total": 0,
       "rails": {
         "airwallex": 12605.66,
         "paypal": 15394.05
@@ -500,6 +514,8 @@
     },
     "2026-08": {
       "bank_total": 33001.07,
+      "revenue_total": 33001.07,
+      "excluded_total": 0,
       "rails": {
         "paypal": 33001.07
       },
@@ -521,7 +537,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Book Bolt",
+          "tool": "DigitalWorks",
           "amount": 9165.59,
           "route": [
             "PayPal"

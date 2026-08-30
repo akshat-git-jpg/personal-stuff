@@ -255,23 +255,32 @@ def print_tally(months, notes, paypal_months):
     print("  REVENUE TALLY — bank credits are the truth")
     print("=" * 66)
 
-    g_bank = g_traced = g_untraced = 0.0
+    g_bank = g_traced = g_untraced = g_excl = 0.0
     for m in sorted(months):
         d = months[m]
-        traced = sum(t["amount"] for t in d["tools"])
+        excl = d.get("excluded_total", 0.0)
+        traced = sum(t["amount"] for t in d["tools"] if not t.get("excluded"))
         un = d["untraced"]["amount"]
-        g_bank += d["bank_total"]; g_traced += traced; g_untraced += un
-        pct = (traced / d["bank_total"] * 100) if d["bank_total"] else 100.0
+        rev = d.get("revenue_total", d["bank_total"])
+        g_bank += rev; g_traced += traced; g_untraced += un; g_excl += excl
+        pct = (traced / rev * 100) if rev else 100.0
         mark = "ok " if un <= 1 else "!! "
-        print(f"  {mark}{m}  bank {d['bank_total']:>11,.2f}   "
+        print(f"  {mark}{m}  revenue {rev:>11,.2f}   "
               f"traced {traced:>11,.2f} ({pct:5.1f}%)   untraced {un:>10,.2f}")
+        for t in d["tools"]:
+            if t.get("excluded"):
+                print(f"        excluded  {t['tool']}  {t['amount']:>10,.2f}  "
+                      f"({t.get('excluded_label','not your revenue')})")
         for c in d["untraced"]["credits"]:
             print(f"        untraced credit  {c['date']}  {c['amount']:>10,.2f}  {c['rail']}")
 
     print("  " + "-" * 64)
     share = (g_untraced / g_bank * 100) if g_bank else 0.0
-    print(f"     TOTAL  bank {g_bank:>11,.2f}   traced {g_traced:>11,.2f}   "
+    print(f"     TOTAL  revenue {g_bank:>11,.2f}   traced {g_traced:>11,.2f}   "
           f"untraced {g_untraced:>10,.2f}")
+    if g_excl:
+        print(f"            excluded {g_excl:>10,.2f} — passed through the account "
+              f"but is not the owner's income")
     if g_untraced > 1:
         print(f"\n  !! {share:.1f}% of income cannot be traced to a tool.")
         for src, items in notes.items():
@@ -390,7 +399,8 @@ def main():
         rail_ids, paypal_months, ps_data, im_data, [s["id"] for s in absent],
         manual=rules.get("manual_attribution"),
         rail_labels={r["id"]: r["label"] for r in rules["income_rails"]},
-        aliases=rules.get("tool_aliases"))
+        aliases=rules.get("tool_aliases"),
+        excluded=rules.get("excluded_tools"))
 
     # Nothing below carries a counterparty, an account number or an address,
     # which is what makes summary.json safe to commit to a public repo.

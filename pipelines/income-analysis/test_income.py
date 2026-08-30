@@ -281,7 +281,7 @@ class ToolNames(unittest.TestCase):
     """Payer names become names the owner recognises, and duplicates merge."""
 
     ALIASES = {
-        "Дигитал Маркетинг Солутионс 2011 ООД": "Book Bolt",
+        "Nine Thirty Five LLC": "Fliki",
         "Book Bolt LLC": "Book Bolt",
         "Heygen Technology Inc.": "HeyGen",
     }
@@ -300,27 +300,48 @@ class ToolNames(unittest.TestCase):
         self.assertEqual(
             attribute.canonical_tool("Heygen Technology Inc.", self.ALIASES), "HeyGen")
 
-    def test_cyrillic_entity_resolves_to_the_brand(self):
+    def test_payer_note_beats_a_plausible_guess(self):
+        """'Nine Thirty Five LLC' looks anonymous; its PayPal note says Fliki."""
         self.assertEqual(
-            attribute.canonical_tool("Дигитал Маркетинг Солутионс 2011 ООД", self.ALIASES),
-            "Book Bolt")
+            attribute.canonical_tool("Nine Thirty Five LLC", self.ALIASES), "Fliki")
+
+    def test_unaliased_cyrillic_entity_is_not_silently_merged(self):
+        """Without an alias it keeps its own identity — never folded into a guess."""
+        out = attribute.canonical_tool("Дигитал Маркетинг Солутионс 2011 ООД", self.ALIASES)
+        self.assertNotEqual(out, "Book Bolt")
+        self.assertTrue(out.startswith("Дигитал"))
 
     def test_leaves_a_clean_name_alone(self):
         for name in ("EverBee", "Jungle Scout", "Base44", "Kittl"):
             self.assertEqual(attribute.canonical_tool(name, self.ALIASES), name)
 
-    def test_two_payer_profiles_merge_into_one_row(self):
-        """Book Bolt pays as a US LLC and a Bulgarian entity. One tool, one row."""
+    def test_two_profiles_of_the_SAME_tool_merge_into_one_row(self):
+        """An alias may deliberately merge two payer profiles onto one tool."""
+        aliases = {"Book Bolt LLC": "Book Bolt", "Book Bolt EU": "Book Bolt"}
+        credits = [credit("a", "10/06/2026", 15763.57, "paypal"),
+                   credit("b", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-06", [("Book Bolt LLC", 15763.57)]),
+              paypal_month("2026-08", [("Book Bolt EU", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, aliases=aliases)
+        names = {t["tool"] for m in months.values() for t in m["tools"]}
+        self.assertEqual(names, {"Book Bolt"})
+        total = sum(t["amount"] for m in months.values() for t in m["tools"])
+        self.assertAlmostEqual(total, 24929.16, places=2)
+
+    def test_distinct_payers_stay_distinct(self):
+        """Two unrelated payers must never collapse just because both are aliased."""
         credits = [credit("a", "10/06/2026", 15763.57, "paypal"),
                    credit("b", "03/08/2026", 9165.59, "paypal")]
         pp = [paypal_month("2026-06", [("Book Bolt LLC", 15763.57)]),
               paypal_month("2026-08", [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
         with with_credits(credits):
-            months, _ = attribute.attribute(["paypal"], pp, aliases=self.ALIASES)
+            months, _ = attribute.attribute(
+                ["paypal"], pp,
+                aliases={"Book Bolt LLC": "Book Bolt",
+                         "Дигитал Маркетинг Солутионс 2011 ООД": "DigitalWorks"})
         names = {t["tool"] for m in months.values() for t in m["tools"]}
-        self.assertEqual(names, {"Book Bolt"})
-        total = sum(t["amount"] for m in months.values() for t in m["tools"])
-        self.assertAlmostEqual(total, 24929.16, places=2)
+        self.assertEqual(names, {"Book Bolt", "DigitalWorks"})
 
 
 class Preflight(unittest.TestCase):

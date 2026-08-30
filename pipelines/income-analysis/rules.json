@@ -18,8 +18,9 @@
   ],
 
   "_alias_comment": "Payer names as the tool you actually recognise. Two jobs: turn a legal entity into a real name, and MERGE a tool that pays from more than one profile so its revenue is not split across two rows. Keys are matched case-insensitively against the payer name from PayPal or the network. Anything not listed falls back to automatic suffix stripping (Inc., LLC, Corp, GmbH, Limited, ООД), which already handles most names — only add an entry when that is not enough.",
+  "_alias_evidence": "IDENTIFY A PAYER FROM ITS OWN TRANSACTION, NOT FROM A GUESS. PayPal carries the payer email and a free-text note, and the note usually names the brand outright. Pull it with: paypal-txns-pp-cli reporting search-get --start-date <iso> --end-date <iso> --fields all --json, then read payer_info.email_address and transaction_info.transaction_note. On 2026-08-30 a guess (Todor Karlikov's LinkedIn says Book Bolt) merged two unrelated payers; the emails disproved it in one command.",
   "tool_aliases": {
-    "Дигитал Маркетинг Солутионс 2011 ООД": "Book Bolt",
+    "Nine Thirty Five LLC": "Fliki",
     "Book Bolt LLC": "Book Bolt",
     "Heygen Technology Inc.": "HeyGen",
     "Eleven Labs Inc.": "ElevenLabs",
@@ -27,9 +28,14 @@
     "Pictory, Corp": "Pictory",
     "TradingView, Inc.": "TradingView",
     "Synthesia Limited": "Synthesia",
-    "n8n GmbH": "n8n"
+    "n8n GmbH": "n8n",
+    "Дигитал Маркетинг Солутионс 2011 ООД": "DigitalWorks"
   },
-  "_alias_unknown": "Nine Thirty Five LLC — paid INR 13,964.96 in Feb 2026 via PayPal. Not identifiable from public company records; no matching tracking link. Ask the owner, then add it above.",
+  "_alias_notes": {
+    "Fliki": "Payer 'Nine Thirty Five LLC' (accounts@ninethirtyfive.llc). PayPal transaction note on 2026-02-02 reads 'Fliki affiliate' — the payer naming its own brand. 'fliki' is also one of the owner's tracking links.",
+    "DigitalWorks": "Payer is the Bulgarian entity Дигитал Маркетинг Солутионс 2011 ООД, paying from a.todorova@digitalworks.net. DigitalWorks is an affiliate-management agency that pays out on behalf of brands, so the underlying tool is NOT yet known. Book Bolt pays separately as 'Book Bolt LLC' from admin@bookbolt.io — do not merge these two. Ask the owner which brand DigitalWorks manages for him.",
+    "Submagic": "Not present in this PayPal account at all — zero payments Jan-Aug 2026. Owner says Submagic settles to a different bank account, which is consistent: its money never enters this pipeline, so there is nothing to exclude."
+  },
 
   "_manual_comment": "THE EXIT ROUTE FOR UNTRACED MONEY. When the owner works out where a credit came from - a bank asking about the reference, a payout spotted in a network dashboard - record it here once and it is named forever. This runs before every heuristic pass and outranks all of them (confidence 'confirmed'), so nothing can un-name it. Match is on date + amount, which is unique in a passbook. Copy the date and amount straight off the Untraced row in the dashboard. 'route' is the hops before the bank; 'note' is for your future self, and is not shown in the UI.",
   "_manual_example": {

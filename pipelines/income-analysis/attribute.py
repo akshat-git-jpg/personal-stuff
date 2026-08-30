@@ -465,8 +465,17 @@ def leads_for(credit, ps, ps_notes, impact, im_notes):
 # ── assembly ────────────────────────────────────────────────────────────────
 
 def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
-              manual=None, rail_labels=None, aliases=None):
-    """Run every pass and fold the result into per-month totals."""
+              manual=None, rail_labels=None, aliases=None, excluded=None):
+    """Run every pass and fold the result into per-month totals.
+
+    `excluded` names tools whose money is not the owner's revenue even though it
+    passed through this account. They stay in the bank reconciliation — the credit
+    really happened, and removing it would make the passbook disagree — but they
+    are held out of the revenue figure and labelled. So two invariants hold:
+
+        traced + excluded + untraced == bank_total     (the passbook)
+        revenue_total                == bank_total - excluded
+    """
     credits = load_bank_credits(set(rails))
     rail_labels = rail_labels or {}
 
@@ -520,13 +529,17 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
             "leads": leads_for(c, ps, ps_notes, impact, im_notes),
         })
 
+    excl = {e["tool"]: e for e in (excluded or [])}
+
     out = {}
     for m in sorted(months):
         d = months[m]
         tools = [
             {"tool": t, "amount": a, "route": list(r), "confidence": conf,
              **({"implied_fx": meta[(m, t, r, conf)]["implied_fx"]}
-                if meta.get((m, t, r, conf), {}).get("implied_fx") else {})}
+                if meta.get((m, t, r, conf), {}).get("implied_fx") else {}),
+             **({"excluded": True, "excluded_label": excl[t].get("label", "not your revenue")}
+                if t in excl else {})}
             for (t, r, conf), a in sorted(d["tools"].items(), key=lambda kv: -kv[1])
         ]
         untraced = d["untraced"]
@@ -537,8 +550,13 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
             reasons = sorted({c["rail_label"] for c in untraced["credits"]})
             if sources_absent:
                 reasons.append("source_not_connected")
+        excluded_total = round(sum(t["amount"] for t in tools if t.get("excluded")), 2)
         out[m] = {
             "bank_total": round(d["bank_total"], 2),
+            # What the owner actually earned: the bank total less money that only
+            # passed through on its way to someone else.
+            "revenue_total": round(d["bank_total"] - excluded_total, 2),
+            "excluded_total": excluded_total,
             "rails": {k: v for k, v in sorted(d["rails"].items())},
             "tools": tools,
             "untraced": {
