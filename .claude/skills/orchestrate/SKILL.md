@@ -302,9 +302,14 @@ decide — only do and verify**. Self-check every plan:
      during recon** — plan 175's own recipe was wrong (a 14-word title tripped an
      earlier `max_words 7` rule before the gate under test ever ran), and nobody
      noticed because nothing executed it.
-   - **`needs_prs`** — `[138]` when this plan builds on another plan's landed work.
-     `needs` is prose boss cannot act on; `needs_prs` makes boss refuse to dispatch
+   - **`needs_plans`** — `[261]` when this plan builds on another plan's landed
+     work. `needs` is prose boss cannot act on; this makes boss refuse to dispatch
      until the dependency lands. Use it for every chain.
+     **Write the PLAN number, in `needs_plans`.** When you author a plan its PR
+     does not exist yet, so the plan number is the only number you can know —
+     `needs_prs: [261]` meaning *plan* 261 named a PR that did not exist and froze
+     the whole 261-264 batch (2026-08-30). Boss now resolves a plan number in
+     either key, but `needs_plans` says what you mean.
    - **`touches`** — the files this plan edits. Boss warns when an in-flight PR
      shares one, instead of the collision surfacing as a merge conflict.
 8. **Cross-plan invariants get a test in the plan that INTRODUCES them.** If

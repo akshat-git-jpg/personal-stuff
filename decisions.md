@@ -1279,3 +1279,23 @@ frozen snapshot and the freelancer never rewrites the plan he was sent.
   **Left deliberately unfixed at the owner's call:** the shared `APP_PASSWORD` is still 4 digits and
   reused across 6 surfaces, with no lockout and no WAF rate-limit (Free plan). That is the largest
   remaining exposure and it is a known, accepted risk, not an oversight.
+
+## 2026-08-30 — plan dependencies are declared by PLAN number, not PR number
+
+`needs_prs: [261]` was written by every chained plan meaning *plan* 261, because a
+plan is authored before its PR exists — the plan number is the only number the
+author can know. Boss looked up PR#261, found nothing, and refused to dispatch
+forever; the only way through was `--force`, which disables the check entirely.
+The whole 261-264 batch froze on this, and earlier batches were sequenced by hand
+for the same reason.
+
+Fix: `needs_plans:` is now the key plans should use, and `boss_dep_resolve`
+(`tooling/boss/bin/boss-lib.sh`) resolves a number to the PR on `boss/<n>-*` when
+no PR of that number exists. `needs_prs` keeps working and gets the same fallback,
+logged as a NOTE. A number matching neither is still REFUSED, so the fallback
+cannot silence the gate (pinned by `test-boss.sh` T7).
+
+Rejected: making boss treat every number as a plan number — a real PR number would
+then be shadowed by a same-numbered plan. Rejected: having secretary rewrite the
+frontmatter at raise time — a dependency's PR may not exist yet when the plan is
+raised, so the rewrite would sometimes have nothing to write.

@@ -99,18 +99,37 @@ test_timeout="$(fm_get test_timeout "$plan_tmp")"; [ -n "$test_timeout" ] || tes
 # entirely by the owner telling boss when to dispatch. `needs_prs: [138, 139]` is
 # machine-readable: refuse to dispatch until each listed PR is closed (= landed).
 # --force overrides for a deliberate out-of-order run.
-needs_prs="$(fm_get needs_prs "$plan_tmp")"
-if [ -n "$needs_prs" ] && [ "$force" != "1" ]; then
-  for dep in $(echo "$needs_prs" | tr -d '[]",' ); do
+#
+# A number here may be a PR number OR a plan number: a plan is written before its
+# PR exists, so `needs_prs: [261]` naming plan 261 is the normal authoring mistake,
+# not an exception. boss_dep_resolve tries the PR first and falls back to the
+# boss/<n>-* branch, so both spellings work. `needs_plans:` is the explicit key.
+boss_dep_gate() {  # <list> <pr|plan>
+  local list="$1" mode="$2" dep resolved dep_pr dep_state
+  for dep in $(echo "$list" | tr -d '[]",' ); do
     case "$dep" in ''|*[!0-9]*) continue;; esac
-    dep_state=$(gh pr view "$dep" --json state -q .state 2>/dev/null || echo UNKNOWN)
+    if ! resolved=$(boss_dep_resolve "$dep" "$mode"); then
+      echo "PR $pr: REFUSING to dispatch — dependency '$dep' matches no PR and no boss/$dep-* branch." >&2
+      echo "  Check needs_prs/needs_plans in $planpath against the real numbers." >&2
+      return 1
+    fi
+    dep_pr=${resolved%% *}; dep_state=${resolved##* }
+    [ "$dep_pr" = "$dep" ] || \
+      echo "PR $pr: NOTE — dependency '$dep' is a PLAN number; resolved to PR#$dep_pr." >&2
     if [ "$dep_state" != "CLOSED" ] && [ "$dep_state" != "MERGED" ]; then
-      echo "PR $pr: REFUSING to dispatch — depends on PR#$dep which is $dep_state (not landed)." >&2
-      echo "  This plan builds on #$dep's work; dispatching now means the crew works against a tree that lacks it." >&2
-      echo "  Land #$dep first, or pass --force to override." >&2
-      exit 1
+      echo "PR $pr: REFUSING to dispatch — depends on PR#$dep_pr which is $dep_state (not landed)." >&2
+      echo "  This plan builds on #$dep_pr's work; dispatching now means the crew works against a tree that lacks it." >&2
+      echo "  Land #$dep_pr first, or pass --force to override." >&2
+      return 1
     fi
   done
+  return 0
+}
+needs_prs="$(fm_get needs_prs "$plan_tmp")"
+needs_plans="$(fm_get needs_plans "$plan_tmp")"
+if [ "$force" != "1" ]; then
+  boss_dep_gate "$needs_prs"   pr   || exit 1
+  boss_dep_gate "$needs_plans" plan || exit 1
 fi
 
 # Same-file collision warning. Three plans in the 2026-08-02 batch appended to
