@@ -389,7 +389,8 @@ def main():
     months, notes = attribute.attribute(
         rail_ids, paypal_months, ps_data, im_data, [s["id"] for s in absent],
         manual=rules.get("manual_attribution"),
-        rail_labels={r["id"]: r["label"] for r in rules["income_rails"]})
+        rail_labels={r["id"]: r["label"] for r in rules["income_rails"]},
+        aliases=rules.get("tool_aliases"))
 
     # Nothing below carries a counterparty, an account number or an address,
     # which is what makes summary.json safe to commit to a public repo.

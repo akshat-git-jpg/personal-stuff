@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T19:44:36",
+  "generated_at": "2026-08-30T20:04:35",
   "coverage": {
     "from": "2026-01",
     "to": "2026-08"
@@ -22,7 +22,7 @@
       "label": "PayPal",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-30T11:29:59Z"
+      "as_of": "2026-08-30T11:59:59Z"
     },
     {
       "id": "bank",
@@ -41,7 +41,7 @@
       "label": "PartnerStack",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-30T19:44:21"
+      "as_of": "2026-08-30T20:04:26"
     },
     {
       "id": "paykickstart",
@@ -59,7 +59,7 @@
       },
       "tools": [
         {
-          "tool": "Heygen Technology Inc.",
+          "tool": "HeyGen",
           "amount": 17692.87,
           "route": [
             "PayPal"
@@ -89,7 +89,7 @@
       },
       "tools": [
         {
-          "tool": "TradingView, Inc.",
+          "tool": "TradingView",
           "amount": 128325.39,
           "route": [
             "PayPal"
@@ -97,7 +97,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Pictory, Corp",
+          "tool": "Pictory",
           "amount": 14020.07,
           "route": [
             "PayPal"
@@ -105,7 +105,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Nine Thirty Five LLC",
+          "tool": "Nine Thirty Five",
           "amount": 13964.96,
           "route": [
             "PayPal"
@@ -154,7 +154,7 @@
       },
       "tools": [
         {
-          "tool": "Eleven Labs Inc.",
+          "tool": "ElevenLabs",
           "amount": 6102.63,
           "route": [
             "PartnerStack",
@@ -164,7 +164,7 @@
           "implied_fx": 88.73
         },
         {
-          "tool": "Heygen Technology Inc.",
+          "tool": "HeyGen",
           "amount": 5587.69,
           "route": [
             "PayPal"
@@ -172,7 +172,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Synthesia Limited",
+          "tool": "Synthesia",
           "amount": 4250.94,
           "route": [
             "PayPal"
@@ -180,7 +180,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Pictory, Corp",
+          "tool": "Pictory",
           "amount": 1571.18,
           "route": [
             "PayPal"
@@ -198,7 +198,7 @@
           "implied_fx": 88.73
         },
         {
-          "tool": "n8n GmbH",
+          "tool": "n8n",
           "amount": 582.16,
           "route": [
             "PartnerStack",
@@ -241,7 +241,7 @@
       },
       "tools": [
         {
-          "tool": "Pictory, Corp",
+          "tool": "Pictory",
           "amount": 12772.64,
           "route": [
             "PayPal"
@@ -275,7 +275,7 @@
       },
       "tools": [
         {
-          "tool": "Synthesia Limited",
+          "tool": "Synthesia",
           "amount": 6169.41,
           "route": [
             "PayPal"
@@ -283,7 +283,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Heygen Technology Inc.",
+          "tool": "HeyGen",
           "amount": 4299.57,
           "route": [
             "PayPal"
@@ -291,7 +291,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Pictory, Corp",
+          "tool": "Pictory",
           "amount": 1592.14,
           "route": [
             "PayPal"
@@ -347,7 +347,7 @@
       },
       "tools": [
         {
-          "tool": "Book Bolt LLC",
+          "tool": "Book Bolt",
           "amount": 15763.57,
           "route": [
             "PayPal"
@@ -363,7 +363,7 @@
           "confidence": "grouped"
         },
         {
-          "tool": "Creatify Lab Inc",
+          "tool": "Creatify",
           "amount": 2132.84,
           "route": [
             "PayPal"
@@ -371,7 +371,7 @@
           "confidence": "grouped"
         },
         {
-          "tool": "Heygen Technology Inc.",
+          "tool": "HeyGen",
           "amount": 1701.36,
           "route": [
             "PayPal"
@@ -379,7 +379,7 @@
           "confidence": "grouped"
         },
         {
-          "tool": "Pictory, Corp",
+          "tool": "Pictory",
           "amount": 1227.42,
           "route": [
             "PayPal"
@@ -420,7 +420,7 @@
       },
       "tools": [
         {
-          "tool": "Heygen Technology Inc.",
+          "tool": "HeyGen",
           "amount": 8960.36,
           "route": [
             "PayPal"
@@ -436,7 +436,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Creatify Lab Inc",
+          "tool": "Creatify",
           "amount": 2272.14,
           "route": [
             "PayPal"
@@ -444,7 +444,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Pictory, Corp",
+          "tool": "Pictory",
           "amount": 854.56,
           "route": [
             "PayPal"
@@ -505,7 +505,7 @@
       },
       "tools": [
         {
-          "tool": "Heygen Technology Inc.",
+          "tool": "HeyGen",
           "amount": 12272.28,
           "route": [
             "PayPal"
@@ -521,7 +521,7 @@
           "confidence": "exact"
         },
         {
-          "tool": "Дигитал Маркетинг Солутионс 2011 ООД",
+          "tool": "Book Bolt",
           "amount": 9165.59,
           "route": [
             "PayPal"
@@ -537,7 +537,7 @@
     }
   },
   "paypal_pending": {
-    "as_of": "2026-08-30T11:29:59Z",
+    "as_of": "2026-08-30T11:59:59Z",
     "holdings": [
       {
         "currency": "USD",

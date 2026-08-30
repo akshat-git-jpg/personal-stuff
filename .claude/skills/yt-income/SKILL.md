@@ -216,10 +216,35 @@ on it would have put a wrong tool name on real money. The window starts **Jan
 2026** by the owner's decision. Untraced money gets named from something he
 confirmed, never from a looser guess.
 
+### 4c. Tool names — keep them human, and merge duplicates
+
+Payers identify themselves by legal entity, which is neither readable nor
+reliably one-per-tool. `rules.json` → `tool_aliases` fixes both:
+
+- **Readability.** Legal suffixes (Inc., LLC, Corp, GmbH, Limited, ООД) strip
+  automatically, so most names need no entry. Add one only when stripping is not
+  enough — "Heygen Technology Inc." should read **HeyGen**, not "Heygen
+  Technology".
+- **Merging, which actually changes the numbers.** A tool can pay from more than
+  one profile. Book Bolt pays as **Book Bolt LLC** *and* as **Дигитал Маркетинг
+  Солутионс 2011 ООД**, its Bulgarian entity (same founder, Todor Karlikov —
+  confirmed 2026-08-30). Left alone that splits one tool across two rows and
+  understates it: ₹15,764 + ₹9,166 shown separately instead of ₹24,929, which
+  moved Book Bolt from 8th to 5th biggest earner.
+
+So when an unfamiliar payer appears, **identify it before accepting it as a new
+tool** — it may be one already on the list under another name. The owner's
+tracking links are the ground truth for what he actually promotes; query the
+`links` table of `clicks-db` for `SELECT DISTINCT tool` and cross-check.
+
+**Currently unidentified: "Nine Thirty Five LLC"** — paid ₹13,964.96 in Feb 2026
+via PayPal, no public company record, no matching tracking link. Ask the owner,
+then add it to `tool_aliases`.
+
 ### 5. Test, then publish
 
 ```bash
-python3 pipelines/income-analysis/test_income.py    # 24 tests, must be green
+python3 pipelines/income-analysis/test_income.py    # 29 tests, must be green
 cd apps/yt-income && npm run deploy                 # sync + typecheck + build + deploy
 ```
 

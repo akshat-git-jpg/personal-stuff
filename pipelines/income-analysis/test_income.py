@@ -118,8 +118,9 @@ class PartnerStack(unittest.TestCase):
         self.assert_tallies(months)
         mar = months["2026-03"]
         self.assertEqual(mar["untraced"]["amount"], 0.0)
+        # Legal suffixes are stripped even with no alias configured.
         self.assertEqual({t["tool"] for t in mar["tools"]},
-                         {"Eleven Labs Inc.", "n8n GmbH"})
+                         {"Eleven Labs", "n8n"})
         self.assertTrue(all(t["confidence"] == "matched" for t in mar["tools"]))
         self.assertAlmostEqual(mar["tools"][0]["implied_fx"], 88.72, places=1)
 
@@ -274,6 +275,52 @@ class UntracedDetail(unittest.TestCase):
         leads = months["2026-03"]["untraced"]["credits"][0]["leads"]
         self.assertTrue(leads, "a nearby unmatched impact month should surface as a lead")
         self.assertEqual(leads[0]["source"], "impact.com")
+
+
+class ToolNames(unittest.TestCase):
+    """Payer names become names the owner recognises, and duplicates merge."""
+
+    ALIASES = {
+        "Дигитал Маркетинг Солутионс 2011 ООД": "Book Bolt",
+        "Book Bolt LLC": "Book Bolt",
+        "Heygen Technology Inc.": "HeyGen",
+    }
+
+    def test_strips_legal_suffixes_without_an_alias(self):
+        for raw, want in [
+            ("Pictory, Corp", "Pictory"),
+            ("TradingView, Inc.", "TradingView"),
+            ("Synthesia Limited", "Synthesia"),
+            ("n8n GmbH", "n8n"),
+            ("Nine Thirty Five LLC", "Nine Thirty Five"),
+        ]:
+            self.assertEqual(attribute.canonical_tool(raw), want, raw)
+
+    def test_alias_beats_suffix_stripping(self):
+        self.assertEqual(
+            attribute.canonical_tool("Heygen Technology Inc.", self.ALIASES), "HeyGen")
+
+    def test_cyrillic_entity_resolves_to_the_brand(self):
+        self.assertEqual(
+            attribute.canonical_tool("Дигитал Маркетинг Солутионс 2011 ООД", self.ALIASES),
+            "Book Bolt")
+
+    def test_leaves_a_clean_name_alone(self):
+        for name in ("EverBee", "Jungle Scout", "Base44", "Kittl"):
+            self.assertEqual(attribute.canonical_tool(name, self.ALIASES), name)
+
+    def test_two_payer_profiles_merge_into_one_row(self):
+        """Book Bolt pays as a US LLC and a Bulgarian entity. One tool, one row."""
+        credits = [credit("a", "10/06/2026", 15763.57, "paypal"),
+                   credit("b", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-06", [("Book Bolt LLC", 15763.57)]),
+              paypal_month("2026-08", [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, aliases=self.ALIASES)
+        names = {t["tool"] for m in months.values() for t in m["tools"]}
+        self.assertEqual(names, {"Book Bolt"})
+        total = sum(t["amount"] for m in months.values() for t in m["tools"])
+        self.assertAlmostEqual(total, 24929.16, places=2)
 
 
 class Preflight(unittest.TestCase):

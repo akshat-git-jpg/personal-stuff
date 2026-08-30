@@ -103,6 +103,43 @@ def load_json(path, default=None):
     return json.loads(p.read_text()) if p.exists() else default
 
 
+# ── tool names ──────────────────────────────────────────────────────────────
+
+# Legal-entity noise, stripped from the end of a payer name. Ordered longest-first
+# so ", Inc." wins over " Inc" and nothing is left half-trimmed.
+LEGAL_SUFFIXES = [
+    ", Inc.", ", Inc", " Inc.", " Inc",
+    ", Corp.", ", Corp", " Corp.", " Corp",
+    ", LLC", " LLC", ", L.L.C.", " L.L.C.",
+    " GmbH", " Limited", " Ltd.", " Ltd",
+    " ООД", " OOD", " Pvt Ltd", " Pvt. Ltd.", " B.V.", " BV", " AB", " Oy",
+]
+
+
+def canonical_tool(name, aliases=None):
+    """The name the owner would recognise, from whatever the payer calls itself.
+
+    Two different problems, one function. "Pictory, Corp" is just legal noise and
+    strips automatically. "Дигитал Маркетинг Солутионс 2011 ООД" is Book Bolt's
+    Bulgarian entity — no amount of suffix-stripping gets there, and because Book
+    Bolt *also* pays as "Book Bolt LLC", leaving it alone splits one tool's
+    revenue across two rows and understates it. So explicit aliases win, and
+    stripping is the fallback.
+    """
+    if not name:
+        return name
+    raw = name.strip()
+    for k, v in (aliases or {}).items():
+        if k.strip().casefold() == raw.casefold():
+            return v
+    out = raw
+    for suf in LEGAL_SUFFIXES:
+        if out.casefold().endswith(suf.casefold()):
+            out = out[: -len(suf)]
+            break
+    return out.strip().rstrip(",").strip() or raw
+
+
 # ── pass 0: what the owner has confirmed by hand ───────────────────────────
 
 def pass_manual(credits, manual):
@@ -428,7 +465,7 @@ def leads_for(credit, ps, ps_notes, impact, im_notes):
 # ── assembly ────────────────────────────────────────────────────────────────
 
 def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
-              manual=None, rail_labels=None):
+              manual=None, rail_labels=None, aliases=None):
     """Run every pass and fold the result into per-month totals."""
     credits = load_bank_credits(set(rails))
     rail_labels = rail_labels or {}
@@ -448,10 +485,14 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
         m["bank_total"] = round(m["bank_total"] + c["amount"], 2)
         m["rails"][c["rail"]] = round(m["rails"][c["rail"]] + c["amount"], 2)
 
-    # Merge claims for the same tool+route+confidence inside a month.
+    # Merge claims for the same tool+route+confidence inside a month. Names are
+    # canonicalised FIRST, so a tool paying from two payer profiles (Book Bolt
+    # pays as both "Book Bolt LLC" and its Bulgarian entity) lands on one row
+    # instead of being split and understated.
     merged = defaultdict(float)
     meta = {}
     for cl in claims:
+        cl["tool"] = canonical_tool(cl["tool"], aliases)
         k = (cl["month"], cl["tool"], tuple(cl["route"]), cl["confidence"])
         merged[k] += cl["amount"]
         meta.setdefault(k, {}).update(

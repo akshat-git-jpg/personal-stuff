@@ -17,6 +17,20 @@
     { "id": "interest", "label": "Bank interest", "match": ["INT.PD"] }
   ],
 
+  "_alias_comment": "Payer names as the tool you actually recognise. Two jobs: turn a legal entity into a real name, and MERGE a tool that pays from more than one profile so its revenue is not split across two rows. Keys are matched case-insensitively against the payer name from PayPal or the network. Anything not listed falls back to automatic suffix stripping (Inc., LLC, Corp, GmbH, Limited, ООД), which already handles most names — only add an entry when that is not enough.",
+  "tool_aliases": {
+    "Дигитал Маркетинг Солутионс 2011 ООД": "Book Bolt",
+    "Book Bolt LLC": "Book Bolt",
+    "Heygen Technology Inc.": "HeyGen",
+    "Eleven Labs Inc.": "ElevenLabs",
+    "Creatify Lab Inc": "Creatify",
+    "Pictory, Corp": "Pictory",
+    "TradingView, Inc.": "TradingView",
+    "Synthesia Limited": "Synthesia",
+    "n8n GmbH": "n8n"
+  },
+  "_alias_unknown": "Nine Thirty Five LLC — paid INR 13,964.96 in Feb 2026 via PayPal. Not identifiable from public company records; no matching tracking link. Ask the owner, then add it above.",
+
   "_manual_comment": "THE EXIT ROUTE FOR UNTRACED MONEY. When the owner works out where a credit came from - a bank asking about the reference, a payout spotted in a network dashboard - record it here once and it is named forever. This runs before every heuristic pass and outranks all of them (confidence 'confirmed'), so nothing can un-name it. Match is on date + amount, which is unique in a passbook. Copy the date and amount straight off the Untraced row in the dashboard. 'route' is the hops before the bank; 'note' is for your future self, and is not shown in the UI.",
   "_manual_example": {
     "date": "19/03/2026",
