@@ -23,6 +23,7 @@ import { colOf, stageHasReviewerSlot, type StageDef } from "../src/shared/engine
 import { lifecycle } from "../src/shared/engine/lifecycle";
 import { decomposeRow, type Row } from "../src/shared/engine/card";
 import { colOf, stageHasReviewerSlot, type StageDef } from "../src/shared/engine/types";
+import registry from "../../../config/channels.json";
 
 const q = (v: unknown) => (v == null || v === "" ? "NULL" : `'${String(v).replace(/'/g, "''")}'`);
 
@@ -235,7 +236,8 @@ function main() {
     const id = `seed-${String(i + 1).padStart(3, "0")}`;
     const p = getPipeline(spec.pipeline);
     const { card, stages } = decomposeRow(p, specToRow(spec, id), true);
-    out.push(`INSERT INTO cards (id, pipeline_id, title, notes, description, category, subcategory, extra_json, created_at, updated_at, status_since) VALUES (${q(card.id)}, ${q(card.pipeline_id)}, ${q(card.title)}, ${q(card.notes)}, ${q(card.description)}, ${q(card.category)}, ${q(card.subcategory)}, ${q(card.extra_json)}, ${q(card.updated_at)}, ${q(card.updated_at)}, ${q(card.status_since)});`);
+    const channelId = i === 0 && registry.channels.length > 1 ? registry.channels[1].id : "agrollo";
+    out.push(`INSERT INTO cards (id, pipeline_id, channel_id, title, notes, description, category, subcategory, extra_json, created_at, updated_at, status_since) VALUES (${q(card.id)}, ${q(card.pipeline_id)}, ${q(channelId)}, ${q(card.title)}, ${q(card.notes)}, ${q(card.description)}, ${q(card.category)}, ${q(card.subcategory)}, ${q(card.extra_json)}, ${q(card.updated_at)}, ${q(card.updated_at)}, ${q(card.status_since)});`);
     cards++;
     for (const s of stages) {
       out.push(`INSERT INTO card_stages (card_id, stage_id, status, assignee, reviewer, work_link, instruction, eta, feedback, extra_json, status_since) VALUES (${q(s.card_id)}, ${q(s.stage_id)}, ${q(s.status)}, ${q(s.assignee)}, ${q(s.reviewer)}, ${q(s.work_link)}, ${q(s.instruction)}, ${q(s.eta)}, ${q(s.feedback)}, ${q(s.extra_json)}, ${q(s.status_since)});`);
