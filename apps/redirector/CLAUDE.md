@@ -77,3 +77,11 @@ add it to the ROBOTS list in that test.
 - D1 is read by `yt-analysis/sync_clicks.py` (via `common.cloudflare.D1Client`) and, read-only, by the `analytics-app` dashboard (binds the same `clicks-db`) for yt-analytics.agrolloo.com — that app lives in the **personal-stuff** repo at `apps/analytics-app/`, not in this repo
 - Schema is applied via `migrations/` — `analytics-app` does NOT own or migrate this schema; it only reads it
 - This Worker owns the schema; any reader (analytics-app) must treat new columns as additive
+
+## Channels and Multi-domain
+
+- `videos.channel_id` exists (added in `0004_videos_channel.sql`) and is backfilled to `agrollo`.
+- One Worker serves every channel's domain.
+- The handler is host-agnostic on purpose; it uses the path only.
+- The route gate is in `test/routes.test.ts`. It ensures every channel in `config/channels.json` has a corresponding route in `wrangler.toml`.
+- `go.agrolloo.com` is permanent because its slugs are published in YouTube descriptions.

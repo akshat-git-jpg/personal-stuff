@@ -55,8 +55,21 @@ export class UnauthorizedError extends Error {
   }
 }
 
-export async function fetchVideos(): Promise<VideosResponse> {
-  const res = await fetch("/api/videos", { credentials: "same-origin" });
+export interface ChannelsResponse {
+  channels: { id: string; name: string; handle: string }[];
+  default_channel_id: string;
+}
+
+export async function fetchChannels(): Promise<ChannelsResponse> {
+  const res = await fetch("/api/channels", { credentials: "same-origin" });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error(`Failed to load channels (${res.status})`);
+  return (await res.json()) as ChannelsResponse;
+}
+
+export async function fetchVideos(channelId?: string): Promise<VideosResponse> {
+  const q = channelId ? `?channel=${encodeURIComponent(channelId)}` : "";
+  const res = await fetch(`/api/videos${q}`, { credentials: "same-origin" });
   if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error(`Failed to load data (${res.status})`);
   return (await res.json()) as VideosResponse;
@@ -98,15 +111,17 @@ export interface RankingsResponse {
   quota: QuotaInfo;
 }
 
-export async function fetchRankings(): Promise<RankingsResponse> {
-  const res = await fetch("/api/rankings", { credentials: "same-origin" });
+export async function fetchRankings(channelId?: string): Promise<RankingsResponse> {
+  const q = channelId ? `?channel=${encodeURIComponent(channelId)}` : "";
+  const res = await fetch(`/api/rankings${q}`, { credentials: "same-origin" });
   if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error(`Failed to load rankings (${res.status})`);
   return (await res.json()) as RankingsResponse;
 }
 
-export async function addKeyword(ytVideoId: string, keyword: string): Promise<{ id: number }> {
-  const res = await fetch("/api/rankings/keywords", {
+export async function addKeyword(channelId: string, ytVideoId: string, keyword: string): Promise<{ id: number }> {
+  const q = channelId ? `?channel=${encodeURIComponent(channelId)}` : "";
+  const res = await fetch(`/api/rankings/keywords${q}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ yt_video_id: ytVideoId, keyword }),
@@ -139,6 +154,66 @@ export async function checkVideoRankings(ytVideoId: string): Promise<CheckResult
   if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error(`Check failed (${res.status})`);
   return (await res.json()) as CheckResult;
+}
+
+// ── Income ──────────────────────────────────────────────────────────────────
+
+/** One PayPal program (payer) inside a month. Amounts arrive as strings. */
+export interface IncomeProgram {
+  program: string;
+  received: string;
+  bank_amount: string;
+  count: number;
+}
+
+export interface IncomePayPalMonth {
+  month: string;
+  currency: string;
+  received: string;
+  bank_amount: string;
+  programs: IncomeProgram[];
+}
+
+export interface IncomeStatement {
+  file: string;
+  transactions: number;
+  period_start: string | null;
+  period_end: string | null;
+}
+
+/** Money still sitting in PayPal at ingest time, per currency. */
+export interface IncomeHolding {
+  currency: string;
+  total: string;
+  available: string;
+  withheld: string;
+}
+
+export interface IncomePending {
+  /** PayPal's own as-of timestamp for the balance. */
+  as_of: string | null;
+  holdings: IncomeHolding[];
+  total_any_currency: number;
+}
+
+export interface IncomeResponse {
+  /** ISO timestamp of the last ingest, or null if nothing has been ingested. */
+  generated_at: string | null;
+  statements: IncomeStatement[];
+  /** rail id → display label, e.g. { paypal: "PayPal" }. */
+  rails: Record<string, string>;
+  /** "2026-01" → { paypal: 24711.29, personal: 10950 }. Non-rail keys are not income. */
+  bank_by_month: Record<string, Record<string, number>>;
+  paypal?: { months: IncomePayPalMonth[] };
+  /** Absent when the last ingest ran without --with-paypal. */
+  paypal_pending?: IncomePending;
+}
+
+export async function fetchIncome(): Promise<IncomeResponse> {
+  const res = await fetch("/api/income", { credentials: "same-origin" });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error(`Failed to load income (${res.status})`);
+  return (await res.json()) as IncomeResponse;
 }
 
 export async function login(password: string): Promise<void> {

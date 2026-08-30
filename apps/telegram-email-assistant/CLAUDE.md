@@ -22,6 +22,19 @@ in your reply which account the action ran on.
 Switching accounts is allowed mid-conversation — just use the explicit one for
 that request, then go back to the default for the next one.
 
+### The two `@agrolloo.com` mailboxes are NOT Gmail
+
+`khushibakliwal@agrolloo.com` and `kushalbakliwal@agrolloo.com` are Hostinger
+mailboxes. `pp-gmail` cannot touch them — every command in the map above will
+fail against those addresses. They are reachable **read-only**, over IMAP, and
+only through `./fetch-imap.py <address>` (used by the daily digest).
+
+So: you can summarize them. You cannot send, reply, draft, or archive from
+them. If the user asks you to reply from an `@agrolloo.com` address, say the
+tooling is read-only and point them at Hostinger webmail, or at wiring Gmail's
+"Send mail as" through `smtp.hostinger.com:465`. Do not fake it with the
+personal Gmail account.
+
 ## Hard rules (never violate)
 
 1. **Confirm before sending.** Never call `pp-gmail send` or `pp-gmail reply`

@@ -21,3 +21,4 @@ tooling/press-clis/	cd tooling/press-clis/paypal-txns && go build ./... && go te
 .claude/settings.json	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh && bash .claude/hooks/test-no-edits-in-main.sh
 pipelines/video-registry/	cd pipelines/video-registry && node --test registry.test.mjs
 tooling/maintainer/	bash tooling/maintainer/test-maintainer.sh
+pipelines/income-analysis/	python3 pipelines/income-analysis/test_income.py

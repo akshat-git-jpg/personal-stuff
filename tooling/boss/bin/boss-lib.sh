@@ -714,3 +714,30 @@ boss_stall_check() {
   [ "$idle" -ge "$warn" ] && { echo "STALLED(${idle}m)"; return; }
   echo working
 }
+
+# Resolve a dependency reference to "<pr#> <state>", printing nothing and
+# returning 1 when it matches nothing at all.
+#
+# Why this exists: a plan is WRITTEN before its PR exists, so the author can only
+# know the PLAN number (261), never the PR number (221). Every batch that chained
+# plans therefore wrote `needs_prs: [261]`, naming a PR that does not exist — the
+# gate read UNKNOWN, refused forever, and the only way through was --force, which
+# disables the check entirely. The whole 261-264 batch hit this on 2026-08-30.
+#
+#   mode=pr   — try PR#<n> first, then fall back to the plan-number lookup.
+#               The fallback only fires when PR#<n> genuinely does not exist, so a
+#               real PR number can never be shadowed by a same-numbered plan.
+#   mode=plan — plan number only. This is what `needs_plans:` uses, and it is the
+#               key plan authors should reach for.
+boss_dep_resolve() {
+  local n="$1" mode="${2:-pr}" state="" row=""
+  if [ "$mode" = "pr" ]; then
+    state=$(gh pr view "$n" --json state -q .state 2>/dev/null || true)
+    if [ -n "$state" ]; then printf '%s %s\n' "$n" "$state"; return 0; fi
+  fi
+  row=$(gh pr list --state all --limit 300 --json number,headRefName,state \
+        -q "[.[] | select(.headRefName | startswith(\"boss/$n-\"))] | if length > 0 then \"\(.[0].number) \(.[0].state)\" else \"\" end" \
+        2>/dev/null) || true
+  [ -n "$row" ] || return 1
+  printf '%s\n' "$row"
+}

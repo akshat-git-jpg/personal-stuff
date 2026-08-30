@@ -111,3 +111,8 @@ CLAUDE.local.md
 # Local desk edit mode keeps the last good script-plan.md before every write.
 # Machine-local safety net, never part of the repo history.
 .desk-backups/
+
+# IMAP mailbox passwords never belong in this PUBLIC repo. The committed
+# apps/telegram-email-assistant/imap-accounts.json carries only `password_env`
+# pointers; this ignores any local override that inlines a real password.
+apps/telegram-email-assistant/imap-accounts.local.json

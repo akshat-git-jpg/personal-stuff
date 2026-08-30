@@ -20,11 +20,14 @@ export async function existingSlugs(db: D1Database, videoCode: string): Promise<
   return new Set((results ?? []).map((r) => r.slug));
 }
 
-export async function insertVideo(db: D1Database, videoCode: string, title: string): Promise<void> {
+/**
+ * @param channelId What lets the analytics dashboard split clicks per channel.
+ */
+export async function insertVideo(db: D1Database, videoCode: string, title: string, channelId: string): Promise<void> {
   const now = Math.floor(Date.now() / 1000);
   await db
-    .prepare("INSERT INTO videos (video_code, video_title, created_at) VALUES (?, ?, ?)")
-    .bind(videoCode, title, now)
+    .prepare("INSERT INTO videos (video_code, video_title, channel_id, created_at) VALUES (?, ?, ?, ?)")
+    .bind(videoCode, title, channelId, now)
     .run();
 }
 

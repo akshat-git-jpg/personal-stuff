@@ -2,8 +2,10 @@
 
 Replaces the 118-tool hostinger-api-mcp (which cost ~18k context tokens per
 session) with curated commands over the same REST API, plus a raw `api`
-escape hatch covering every endpoint. Auth: Bearer API_TOKEN sourced from
-mcp/hostinger/.env (same token the MCP used). Stdlib only — no deps.
+escape hatch covering every endpoint. Auth: Bearer token sourced from mcp/hostinger/.env.
+TWO accounts are supported — `--account vps` (default) and `--account web` — read
+from API_TOKEN_VPS / API_TOKEN_WEB, with plain API_TOKEN kept as the vps alias so
+every existing caller keeps working. Stdlib only — no deps.
 
 Subcommands:
   domains check NAME [--tlds com,net,...] [--alternatives]
@@ -43,16 +45,45 @@ BASE_URL = os.environ.get("API_BASE_URL", "https://developers.hostinger.com")
 ENV_FILE = Path(__file__).resolve().parent.parent.parent / "mcp" / "hostinger" / ".env"
 
 
-def _token() -> str:
-    tok = os.environ.get("API_TOKEN")
-    if tok:
-        return tok
-    if ENV_FILE.exists():
-        for line in ENV_FILE.read_text().splitlines():
-            line = line.strip()
-            if line.startswith("API_TOKEN="):
-                return line.split("=", 1)[1].strip().strip("'\"")
-    raise ValueError(f"API_TOKEN not set and not found in {ENV_FILE}")
+# There are TWO Hostinger accounts, each with its own login and its own API token:
+#   vps — holds the KVM VPS (and the token every existing caller already uses)
+#   web — the separate web-hosting account, which is where agrolloo.com lives
+# `vps` stays the default so nothing that called this CLI before changes behaviour.
+ACCOUNTS = ("vps", "web")
+_ACTIVE_ACCOUNT = "vps"
+
+
+def _env_keys(account: str) -> list[str]:
+    """Env/.env keys to try, most specific first. `API_TOKEN` is the vps alias."""
+    keys = [f"API_TOKEN_{account.upper()}"]
+    if account == "vps":
+        keys.append("API_TOKEN")
+    return keys
+
+
+def _from_env_file(key: str) -> str | None:
+    if not ENV_FILE.exists():
+        return None
+    for line in ENV_FILE.read_text().splitlines():
+        line = line.strip()
+        if line.startswith(f"{key}="):
+            return line.split("=", 1)[1].strip().strip("'\"") or None
+    return None
+
+
+def _token(account: str | None = None) -> str:
+    account = account or _ACTIVE_ACCOUNT
+    if account not in ACCOUNTS:
+        raise ValueError(f"unknown account {account!r}; expected one of {', '.join(ACCOUNTS)}")
+    for key in _env_keys(account):
+        tok = os.environ.get(key) or _from_env_file(key)
+        if tok:
+            return tok
+    tried = " or ".join(_env_keys(account))
+    raise ValueError(
+        f"No token for the {account!r} account: set {tried} in the environment "
+        f"or in {ENV_FILE}"
+    )
 
 
 def _request(method: str, path: str, body: dict | list | None = None) -> object:
@@ -195,6 +226,10 @@ def build_parser() -> argparse.ArgumentParser:
         prog="pp-hostinger",
         description="Agent-native Hostinger API CLI (Bearer token from mcp/hostinger/.env).",
     )
+    p.add_argument(
+        "--account", choices=ACCOUNTS, default="vps",
+        help="Which Hostinger account to talk to (default: vps).",
+    )
     sub = p.add_subparsers(dest="command", required=True)
 
     # domains
@@ -275,7 +310,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    global _ACTIVE_ACCOUNT
     args = build_parser().parse_args()
+    _ACTIVE_ACCOUNT = args.account
     try:
         print(args.func(args))
         return 0

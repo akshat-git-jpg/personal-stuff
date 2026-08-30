@@ -1525,5 +1525,46 @@ echo "--- (T6) three gates added after the 2026-08-25 batch ---"
 ) || exit 1
 echo "PASS: ui-path, dev.vars prelude and migration-deploy gates all fire and stay quiet correctly"
 
+# --- T7: the dependency gate resolves PLAN numbers, not just PR numbers --------
+# A plan is authored before its PR exists, so `needs_prs: [261]` naming plan 261
+# was the normal spelling and named a PR that did not exist: the gate read UNKNOWN
+# and refused forever. The whole 261-264 batch froze on this (2026-08-30).
+(
+  set -e
+  t7="$TMP/t7"; mkdir -p "$t7/bin"
+  # Stub gh: PR#221 exists on branch boss/261-*; PR#999 does not exist at all.
+  cat > "$t7/bin/gh" <<'GHEOF'
+#!/bin/bash
+if [ "$1" = pr ] && [ "$2" = view ]; then
+  [ "$3" = 221 ] && { echo MERGED; exit 0; }
+  exit 1
+fi
+if [ "$1" = pr ] && [ "$2" = list ]; then
+  echo '[{"number":221,"headRefName":"boss/261-channel-registry","state":"MERGED"}]' \
+    | jq -r "${@: -1}"
+  exit 0
+fi
+exit 1
+GHEOF
+  chmod +x "$t7/bin/gh"
+  PATH="$t7/bin:$PATH"
+  source "$BOSS_HOME/bin/boss-lib.sh" 2>/dev/null || true
+
+  # A real PR number still resolves to itself — the fallback must never shadow it.
+  [ "$(boss_dep_resolve 221 pr)" = "221 MERGED" ] \
+    || fail "(T7a) a real PR number did not resolve to itself"
+  # A plan number with no such PR falls back to the boss/<n>-* branch.
+  [ "$(boss_dep_resolve 261 pr)" = "221 MERGED" ] \
+    || fail "(T7b) plan number 261 did not resolve to PR#221"
+  # needs_plans never consults the PR table at all.
+  [ "$(boss_dep_resolve 261 plan)" = "221 MERGED" ] \
+    || fail "(T7c) needs_plans mode did not resolve plan 261"
+  # Something that is neither must still FAIL — the fallback cannot silence the gate.
+  boss_dep_resolve 999 pr >/dev/null 2>&1 \
+    && fail "(T7d) an unknown dependency resolved instead of failing"
+  true
+) || exit 1
+echo "PASS: dependency gate resolves plan numbers and still refuses unknown deps"
+
 echo ""
 echo "ALL TESTS PASSED"

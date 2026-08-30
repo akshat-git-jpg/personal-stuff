@@ -330,21 +330,48 @@ at that moment:
 
 That is not something a cleverer read of the file can fix; the file is simply
 behind. Claude Code's own agents view never had the symptom because it asks the
-daemon, which is also why `kbc` looked wrong by comparison. `claude agents
---json` asks the same source. It is a published subcommand, so this is still not
+daemon, which is also why `kbc` looked wrong by comparison. `claude agents --json --all` asks the same source. `--all` costs
+nothing extra (0.24s, 187 MB, same as the default) and returns finished
+sessions too, so a session that has just ended shows as ended instead of
+sitting on `Working` until the disk catches up. It is a published subcommand, so this is still not
 the private socket route that was rejected when this tool was built.
 
 **It costs no tokens.** It reads the local daemon: with `HTTPS_PROXY` pointed at
 a dead port and `ANTHROPIC_API_KEY=bogus` it still returns the full list, exit 0.
 
-**It is not free either** - 0.24s of CPU and 190 MB of peak RSS per call - so
-almost every tick is arranged to skip it:
+**It is not free either.** Measured: 0.27s of CPU and 187 MB of peak RSS per
+call, so twelve calls (one minute at the active interval) cost 3.2s of CPU. That
+is **5.4% of one core sustained while you are using it**, and 0.9% once it backs
+off. An earlier version of this section claimed "under 1% of one core" for both,
+which was the idle figure quoted as if it were the whole story. Three windows
+open means three times all of it, since each polls on its own clock.
+
+Almost every tick is therefore arranged to skip the call:
 
 - nothing on screen is `working` or `blocked`, so no state CAN change
-- the keyboard has been quiet for `LIVE_IDLE_STOP` (2 min), so nobody is reading
-- the last call was under `LIVE_POLL` (5s) ago
+- the last call was under the current interval ago: 5s while you are active,
+  30s once the keyboard has been quiet for 2 minutes
+- nothing at all has happened for 30 minutes, so the view was abandoned
 
-A view left open in a background tab therefore makes **no** calls at all. The
+The gate also polls whenever the view is being used, and always asks once at
+startup. Gating on `working`/`blocked` alone was wrong for a reason worth
+keeping: those states are read from DISK, and the disk being wrong about liveness
+is the premise of this whole path. Boot the view when every record happens to
+read `done` and the old gate decided nothing could change, never asked, and
+showed stale states for ever - the reported bug, produced by the check meant to
+prevent it.
+
+The idle rule **backs off, it does not stop**, and the first version got that
+wrong in a way worth recording. It stopped after 2 minutes of no keypress, which
+broke the one use that most wants live states: watching the list to see when
+something finishes involves pressing nothing at all. Worse, `shift+left` is
+swallowed by the proxy and never reaches the main loop, so an hour spent inside a
+session counted as an hour of idleness - you came back to a list that had already
+stopped asking. `restore_screen()` now marks the return as activity and clears
+the poll clock so the next tick asks immediately. An unattended view costs 0.24s
+of CPU every 30s, under 1% of one core.
+
+The
 call runs on a worker thread and nothing in it touches curses: a blocking call in
 the key handler is what froze this view once already, and the worst a slow or
 hung `claude` can now do is leave the states one tick stale. A failed call
@@ -501,5 +528,7 @@ Used only by the test suite; unset in normal use.
 | `PP_AGENTS_PINS` | the remembered-state file (pins and folds) |
 | `PP_AGENTS_LIVE` | `0` stops asking the daemon for states |
 | `PP_AGENTS_LIVE_POLL` | seconds between daemon calls (default 5) |
-| `PP_AGENTS_LIVE_IDLE_STOP` | stop polling after this long with no keypress (default 120) |
+| `PP_AGENTS_LIVE_IDLE_AFTER` | slow down after this long with no keypress (default 120) |
+| `PP_AGENTS_LIVE_IDLE_POLL` | the slower interval, in seconds (default 30) |
+| `PP_AGENTS_LIVE_IDLE_STOP` | stop entirely after this long (default 1800) |
 | `PP_AGENTS_CLAUDE` | the binary to drive, so a stub can record calls |

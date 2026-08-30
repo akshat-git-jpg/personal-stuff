@@ -14,6 +14,11 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
+  if (res.status === 401) {
+    // Session expired or was never set — let the app bounce to the PIN screen.
+    window.dispatchEvent(new Event("gym:unauthorized"));
+    throw new Error("Unauthorized");
+  }
   if (!res.ok) {
     let msg = res.statusText;
     try {
@@ -26,9 +31,23 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
   return res.json() as Promise<T>;
 }
 
+async function authReq<T>(path: string, body?: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (res.status === 401) throw new Error("Wrong password");
+  if (!res.ok) throw new Error(`Request failed (${res.status})`);
+  return res.json() as Promise<T>;
+}
+
 const E = encodeURIComponent;
 
 export const api = {
+  me: () => req<{ authenticated: boolean }>("GET", "/me"),
+  login: (password: string) => authReq<{ ok: true }>("/auth/login", { password }),
+  logout: () => authReq<{ ok: true }>("/auth/logout"),
   bootstrap: () => req<BootstrapData>("GET", "/bootstrap"),
   fullLog: () => req<LogEntry[]>("GET", "/log"),
   addExercise: (tab: string, input: ExerciseInput) =>

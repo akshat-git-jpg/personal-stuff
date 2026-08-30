@@ -32,7 +32,10 @@ CANDIDATES=(
   "$REPO/pipelines/credentials.json"
   "$REPO/tooling/mcp/google-shared/credentials.json"
   "$REPO/tooling/mcp/google-shared/tokens"
-  "$REPO/tooling/cli/hostinger/.env"
+  # Hostinger API tokens for BOTH accounts (vps + web). This path was
+  # `tooling/cli/hostinger/.env` until 2026-08-30 — a path that has never
+  # existed, so the tokens were silently skipped on every run.
+  "$REPO/tooling/mcp/hostinger/.env"
   "$REPO/infra/secrets"
   "$HOME/.config/paypal-txns-pp-cli"
 )

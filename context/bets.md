@@ -21,9 +21,9 @@ This document lists the active business, content, and career bets being pursued 
 ## 2. Pinterest Digital Products
 - **Thesis**: Publish and promote PDFs and digital products in lifestyle niches (such as Keto and Wedding Planner brands) using automated Pinterest pins and landing page funnels.
 - **Where it lives**:
-  - **ABANDONED 2026-08-25** — owner dropped Pinterest entirely. Pin data and generators archived at `pipelines/archive/pinterest/`; all four `pinterest-*` skills archived. The two landing-page Workers (`keto-kitchen.agrolloo.com`, `bridebestie.com`) are still deployed and untouched.
+  - **ABANDONED 2026-08-25** — owner dropped Pinterest entirely. Pin data and generators archived at `pipelines/archive/pinterest/`; all four `pinterest-*` skills archived. The `keto-kitchen` Worker and its source were deleted 2026-08-30 (it cost nothing beyond the already-paid `agrolloo.com` registration); `bridebestie.com` is still deployed and untouched.
   - Deployable landing pages: `apps/pinterest-landing-pages/`
-  - Main brand domains: `bridebestie.com`, `keto-kitchen.ag` (see [my-hosted-sites.md](file:///Users/kbtg/codebase/personal-stuff/my-hosted-sites.md))
+  - Main brand domain: `bridebestie.com` — **auto-renew already off; it lapses on its own 2027-06-02**; see the domain-renewals table in [INFRA.md](file:///Users/kbtg/codebase/personal-stuff/INFRA.md) (see [my-hosted-sites.md](file:///Users/kbtg/codebase/personal-stuff/my-hosted-sites.md))
 - **Status & Metrics**:
   - Income tracking: [pipelines/income-analysis/](file:///Users/kbtg/codebase/personal-stuff/pipelines/income-analysis/README.md) (refer to Gumroad/Skool CLIs and snapshot logs)
 - <!-- TODO(owner interview): Detail target lead generation metrics, product pricing, and traffic targets. -->

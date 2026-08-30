@@ -979,3 +979,262 @@ a.up-row-title:hover {
   font-weight: 600;
   color: var(--muted);
 }
+
+/* ── Income tab ────────────────────────────────────────── */
+.income {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.income-summary {
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 0;
+}
+.income-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin-right: 7px;
+  flex: none;
+  vertical-align: baseline;
+}
+.income-panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px 20px;
+}
+.income-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.income-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.income-note {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  max-width: 62ch;
+}
+.income-note code {
+  color: var(--faint);
+  font-size: 11.5px;
+}
+.income-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.income-legend span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.income-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 14px;
+  overflow: visible;
+  font-variant-numeric: tabular-nums;
+}
+.income-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.income-axis {
+  fill: var(--faint);
+  font-size: 11px;
+}
+.income-barlabel {
+  fill: var(--muted);
+  font-size: 11px;
+}
+.income-rowname {
+  fill: var(--text);
+  font-size: 12px;
+}
+/* The running total is a reference shape, not a second axis to read off. */
+.income-cum {
+  stroke: var(--line-strong);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.income-cum-dot {
+  fill: var(--faint);
+}
+.income-cum-label {
+  fill: var(--faint);
+}
+.income-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.income-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+.income-table caption {
+  text-align: left;
+  color: var(--muted);
+  font-size: 12.5px;
+  padding-bottom: 12px;
+}
+.income-table th,
+.income-table td {
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+}
+.income-table th:first-child,
+.income-table td:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.income-table th:last-child,
+.income-table td:last-child {
+  padding-right: 0;
+}
+.income-table thead th {
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.income-table tbody th {
+  font-weight: 500;
+}
+.income-table tfoot td {
+  font-weight: 700;
+  border-bottom: none;
+  padding-top: 12px;
+}
+.income-strong {
+  color: var(--accent-soft);
+  font-weight: 600;
+}
+.income-best th,
+.income-best td {
+  background: var(--bg-soft);
+}
+.income-excluded {
+  margin-top: 16px;
+}
+.income-foot {
+  margin: 0;
+  color: var(--faint);
+  font-size: 12px;
+}
+
+.income-tip {
+  position: fixed;
+  z-index: 30;
+  pointer-events: none;
+  min-width: 180px;
+  background: var(--card-hover);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.income-tip-h {
+  font-weight: 600;
+  margin-bottom: 7px;
+}
+.income-tip-r {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.income-tip-r .l {
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
+}
+.income-tip-r .v {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.income-tip-tot {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 760px) {
+  .income-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Income: "still in PayPal" strip ───────────────────── */
+.pending {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+}
+.pending-main {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pending-label {
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.pending-value {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.pending-tag {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.pending-when {
+  font-size: 12px;
+  color: var(--faint);
+}
+.pending-when code {
+  font-size: 11.5px;
+}
+/* Settled is the resting state, so it stays quiet. Money waiting is the thing
+   worth noticing, so only that case borrows the accent. */
+.pending-waiting {
+  border-color: rgba(251, 146, 60, 0.35);
+}
+.pending-waiting .pending-value {
+  color: var(--accent-soft);
+}
+.pending-unknown .pending-value {
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 500;
+}

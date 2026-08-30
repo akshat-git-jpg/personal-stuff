@@ -8,7 +8,6 @@ Each tool lives in its own folder with the executable and (mostly) a README.
 - `sheets/` — read and write Google Sheets. Shares Google auth with the others via `../mcp/google-shared`.
 - `youtube/` — YouTube data and transcripts (`pp-yt-transcript` fetches transcripts free; run it from a residential IP, datacenter IPs are blocked).
 - `hostinger/` — Hostinger VPS and hosting API.
-- `ntfy/` — send push notifications through the self-hosted ntfy server.
 - `rapidapi/` — RapidAPI calls.
 - `flights/` — `pp-flights`, flight search with live prices via Skyscanner's public web API. No key, no browser, no login.
 - `yt-claude/` — userscript + localhost relay that opens a Claude session per YouTube thumbnail.

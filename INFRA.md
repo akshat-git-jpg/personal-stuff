@@ -14,6 +14,39 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - `agrolloo.com` — main personal domain (apps + landing pages).
 - `bridebestie.com` — wedding-niche brand domain.
 
+### Domain renewals — check before each date
+
+| Domain | Registrar | Expires | Decision |
+|---|---|---|---|
+| `agrolloo.com` | Hostinger | **2026-11-10** | **RENEW.** Load-bearing: every live app and the `go.agrolloo.com` money path sit on it. Losing it takes down all of it and breaks every affiliate short link already published in YouTube descriptions. **Auto-renew state is UNKNOWN from here** — see the caveat below. |
+| `bridebestie.com` | Cloudflare | **2027-06-02** | **Let it lapse** (owner, 2026-08-30) — the wedding/Pinterest bet is abandoned and the year was paid up front. `auto_renew` is already **false** (verified 2026-08-30 via the Registrar API), so no action is needed; it expires on its own. |
+
+Every subdomain (`go.`, `kushal-tools.`, …) is free; only these two registrations cost money.
+Re-read live state rather than trusting this table, and update it when a renewal happens:
+
+```bash
+whois <domain> | grep -i "Registry Expiry"        # expiry, any registrar
+# Cloudflare Registrar auto-renew (needs the GLOBAL key; the scoped CF_API_TOKEN 403s here):
+curl -s "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/registrar/domains/<domain>"   -H "X-Auth-Email: $CF_API_EMAIL" -H "X-Auth-Key: $CF_GLOBAL_API_KEY"
+```
+
+**`agrolloo.com` is NOT visible to the Hostinger API token in `tooling/mcp/hostinger/.env`.**
+`GET /api/domains/v1/portfolio/agrolloo.com` returns *"Domain is not registered at Hostinger"*
+and the portfolio lists only an unused free-domain slot — yet `whois` says the registrar is
+HOSTINGER operations, UAB (IANA 1636). The domain therefore sits in a **different Hostinger
+login** from the one this token belongs to; that account holds only the VPS. Its auto-renew and
+its card can only be checked by signing in to the right account at `hpanel.hostinger.com`.
+
+**Retiring the second account was investigated and PARKED** (2026-08-30) — the full
+findings, per-account inventory, email options with prices, and the safe migration
+sequence live in [`plans/260-close-hostinger-web-account.md`](plans/260-close-hostinger-web-account.md).
+Read that before re-opening the topic. Two recurring deadlines if it is ever resumed:
+the hosting renews **10-27** and the domain **10-14**, every year.
+
+The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹16,788/year,
+`is_auto_renewed: true`, next billing **2027-01-31**; default Visa card on file, not expired
+(good to 2032-09-30).
+
 ### Workers (14 deployed, no Pages projects)
 - **redirector** — `go.agrolloo.com/*` — URL shortener + click tracking. Bindings: `CLICKS_KV`, `clicks-db` (D1).
 - **kushal-tools** — `kushal-tools.agrolloo.com` — KushalTools hub: card launcher linking every live agrolloo.com site. Shared-password gate (stateless signed cookie, no KV). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. No bindings.
@@ -26,7 +59,6 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - **timeblock** — `timeblock.agrolloo.com` — tap-to-block day planner. Shared-password gate (stateless signed cookie, no KV sessions). Bindings: `ASSETS`, `BLOCKS_KV` (KV, one JSON blob per day). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 - **closet-app** — `closet.agrolloo.com` — wear counter + tagged outfit gallery PWA (two tabs: Clothes = raw wears-since-wash per garment, Looks = tagged outfit photos). Shared-password gate (stateless signed cookie, no KV). Bindings: `ASSETS` (SPA in `dist/`), `DB` (D1 `closet-db`), `PHOTOS` (R2 `closet-photos`). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. Deployed 2026-08-17.
 - **yt-script-desk** — `https://script-desk.agrolloo.com` — access is a per-video secret link; there is no login. Binding: `DESK_DB` (D1 `script-desk-db`). Secret: `DESK_ADMIN_TOKEN`.
-- **keto-kitchen** — `keto-kitchen.agrolloo.com` — static landing page (assets-only).
 - **bridebestie** — `bridebestie.com` + `www` — static landing page (assets-only).
 - **vps-watchdog** — cron `*/2 * * * *`, no HTTP route — pings the dashboard; reboots VPS via Hostinger API if down. Binding: `WATCHDOG_KV`.
 
@@ -52,7 +84,7 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - `agrolloo.com` + `www` → `191.101.230.133` (Hostinger shared hosting, proxied) — NOT the VPS, NOT a Worker.
 - `my-dashboard.agrolloo.com` → `72.61.241.170` (VPS, proxied) — personal-dashboard container via Traefik.
 - `render2.agrolloo.com` → `72.61.241.170` (VPS, proxied) — Hyperframes → MP4 renderer behind Traefik (added after the 2026-06-13 audit).
-- `go` / `keto-kitchen` / `kushal-gym` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` / `founders` / `timeblock` / `vo` / `closet` → the 12 routed Workers above (custom domains show as proxied `AAAA 100::`).
+- `go` / `kushal-gym` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` / `founders` / `timeblock` / `vo` / `closet` → the 11 routed Workers above (custom domains show as proxied `AAAA 100::`).
 - `ftp.agrolloo.com` → `191.101.230.133` (Hostinger hosting).
 - MX + `autoconfig` / `autodiscover` / DKIM → Hostinger mail.
 - `send.notifications.agrolloo.com` + `resend._domainkey` → Amazon SES / Resend (transactional email sending).
@@ -71,20 +103,29 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - Disk ~19% used. **No swap.**
 - SSH: key-only (`ssh -i ~/.ssh/hostinger_vps root@72.61.241.170`). Firewall `kb-vps-default`: inbound 22/80/443 only.
 - Claude auth on box: `kushalbakliwal25@gmail.com` (Pro). Weekly Hostinger backups.
+- **Recovery posture (checked 2026-08-30).** Three layers, and they are not equivalent:
+  1. **Hostinger weekly backup** — the real disaster-recovery layer for the whole box.
+  2. **Hostinger snapshot** — one slot, overwritten on create, and it **expires after
+     24 hours**. Restore takes ~30 min. Treat it as a pre-change undo button, NOT as a
+     backup: take one immediately before risky work, do not rely on one being there.
+  3. **D1 dumps in R2** (`d1-backups`) — the only copy that survives losing the VPS.
+     Data only, no box config; rebuilding the VPS is a separate job.
 
-### Docker containers (6, all up — verified via `docker ps` 2026-07-12)
+### Docker containers (5, all up — verified via `docker ps` 2026-08-30)
 - **n8n-traefik-1** (traefik) — reverse proxy + Let's Encrypt TLS; the box's public edge. Ports `:80`, `:443`.
 - **n8n-n8n-1** (n8nio/n8n) — workflow automation. Internal `:5678`.
 - **personal-dashboard** (local build) — mobile dashboard PWA at `my-dashboard.agrolloo.com`. Internal `:8787`.
 - **hyperframes-render** (local build) — Hyperframes → MP4 renderer at `render2.agrolloo.com`, behind Traefik.
-- **minio** (minio) — S3-style asset storage. **Loopback only** `:9000/9001`.
-- **ntfy** (ntfy) — push-notification server. **Public `:8888`, no TLS.**
+- **minio** (minio) — S3-style asset storage. **Loopback only** `:9000/9001` (reach via SSH tunnel).
 
 ### Cron jobs (Pattern B; canonical `/srv/crons/crontab.txt`)
 - `06:00 IST` (`30 0 * * *` UTC) → `my-planner` — Calendar + workout digest → Telegram.
 - `06:00 IST` (`30 0 * * *` UTC) → `gmail-digest` — Gmail summary → Telegram.
 - Every 15 min (`*/15 * * * *`) → `repo-sync` — pull personal-stuff + relink Claude skills so interactive Claude (Remote Control / mobile) stays current.
-- `01:00 IST` (`30 19 * * *` UTC) → `d1-backup` — nightly export of all 5 D1 databases.
+- `01:00 IST` (`30 19 * * *` UTC) → `d1-backup` — nightly export of all 6 D1 databases,
+  written to MinIO on this box **and** copied offsite to the Cloudflare R2 bucket
+  `d1-backups` (added 2026-08-30 — MinIO lives on the VPS it backs up, so a box loss
+  used to take the dumps with it). 30-day retention on MinIO; R2 keeps everything.
 - Hourly (`15 * * * *`) → `site-probe` — curls every URL in `my-hosted-sites.md`; Telegram on DOWN.
 - `05:00 IST` (`30 23 * * *` UTC) → `cred-probe` — credential/auth health probe → Telegram.
 - Sunday `08:00 IST` (`30 2 * * 0` UTC) → `route-audit` — weekly read-only routing audit (autonomy pilot, report-only).
@@ -143,7 +184,7 @@ The three former bare pushers now all call the gate: `tooling/cli/greenlight/gre
 
 - [x] Removed stale nginx vhost `n8n-website` (sites-enabled + sites-available). Backup: `/root/cleanup-backup-20260613/`. nginx still disabled.
 - [x] Decommissioned Hermes entirely on 2026-06-14 — removed the `hermes` + `hermes-dashboard` containers, the `nousresearch/hermes-agent` image (~4.8GB), `/docker/hermes`, and `/root/.hermes`.
-- ntfy public on `:8888` HTTP is **by design** — `docker/ntfy/README.md` threat model is "topic name = the secret" (keeps payloads off public ntfy.sh). No action.
+- ntfy is **retired** (2026-08-30). It ran public on `:8888` with `auth-default-access: read-write`, so the old "topic name = the secret" threat model gave anyone who ever saw a topic name permanent read AND write. It also had 0 subscribers, so the fallback delivered nothing. Container removed, port closed; Telegram is the only notification channel. See decisions.md 2026-08-30.
 - [x] Purged nginx entirely (`nginx`, `nginx-common`, `python3-certbot-nginx`); `/etc/nginx` removed. Traefik still owns 80/443; dashboard + n8n verified 200.
 - `send.notifications.agrolloo.com` + `resend._domainkey` DNS — **kept** (no app in this repo, but may be used externally). Revisit if confirmed unused.
 - Swap — **left off** by choice. Watch if n8n + MinIO spike together.

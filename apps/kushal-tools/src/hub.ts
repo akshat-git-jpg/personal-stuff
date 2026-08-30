@@ -24,9 +24,7 @@ const APPS: App[] = [
   { name: "YT Analytics", host: "yt-analytics.agrolloo.com", url: "https://yt-analytics.agrolloo.com", kind: "app" },
   { name: "Founders Tracker", host: "founders.agrolloo.com", url: "https://founders.agrolloo.com", kind: "app" },
   { name: "Timeblock", host: "timeblock.agrolloo.com", url: "https://timeblock.agrolloo.com", kind: "app" },
-  { name: "URL Shortener", host: "go.agrolloo.com", url: "https://go.agrolloo.com", kind: "infra" },
   { name: "Hyperframes Renderer", host: "render2.agrolloo.com", url: "https://render2.agrolloo.com", kind: "infra" },
-  { name: "Keto Kitchen", host: "keto-kitchen.agrolloo.com", url: "https://keto-kitchen.agrolloo.com", kind: "page" },
   { name: "Lists", host: "lists.agrolloo.com", url: "https://lists.agrolloo.com", kind: "app" },
   { name: "Closet", host: "closet.agrolloo.com", url: "https://closet.agrolloo.com", kind: "app" },
 ];

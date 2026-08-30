@@ -1,0 +1,472 @@
+{
+  "generated_at": "2026-08-30T19:07:04",
+  "coverage": {
+    "from": "2026-01",
+    "to": "2026-08"
+  },
+  "statements": [
+    {
+      "file": "PNBONE_STMT_XX****_30082026.pdf",
+      "transactions": 203,
+      "period_start": "01-01-2026",
+      "period_end": "30-08-2026"
+    }
+  ],
+  "rails": {
+    "paypal": "PayPal",
+    "airwallex": "Airwallex"
+  },
+  "sources": [
+    {
+      "id": "paypal",
+      "label": "PayPal",
+      "kind": "api",
+      "state": "connected",
+      "as_of": "2026-08-30T10:59:59Z"
+    },
+    {
+      "id": "bank",
+      "label": "Bank passbook",
+      "kind": "manual",
+      "state": "manual"
+    },
+    {
+      "id": "impact",
+      "label": "impact.com",
+      "kind": "api",
+      "state": "connected"
+    },
+    {
+      "id": "partnerstack",
+      "label": "PartnerStack",
+      "kind": "api",
+      "state": "connected",
+      "as_of": "2026-08-30T19:06:57"
+    },
+    {
+      "id": "paykickstart",
+      "label": "PayKickstart",
+      "kind": "api",
+      "note": "No credentials. Affiliate accounts have no API access, so any PayKickstart commission shows up as untraced.",
+      "state": "absent"
+    }
+  ],
+  "months": {
+    "2026-01": {
+      "bank_total": 24711.29,
+      "rails": {
+        "paypal": 24711.29
+      },
+      "tools": [
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 17692.87,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 7018.42,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
+      }
+    },
+    "2026-02": {
+      "bank_total": 172405.98,
+      "rails": {
+        "airwallex": 3818.16,
+        "paypal": 168587.82
+      },
+      "tools": [
+        {
+          "tool": "TradingView, Inc.",
+          "amount": 128325.39,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Pictory, Corp",
+          "amount": 14020.07,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Nine Thirty Five LLC",
+          "amount": 13964.96,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 12277.4,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 3818.16,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "25/02/2026",
+            "amount": 3818.16,
+            "rail": "airwallex"
+          }
+        ]
+      }
+    },
+    "2026-03": {
+      "bank_total": 41061.57,
+      "rails": {
+        "airwallex": 29651.76,
+        "paypal": 11409.81
+      },
+      "tools": [
+        {
+          "tool": "Eleven Labs Inc.",
+          "amount": 6102.63,
+          "route": [
+            "PartnerStack",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 88.73
+        },
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 5587.69,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Synthesia Limited",
+          "amount": 4250.94,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Pictory, Corp",
+          "amount": 1571.18,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Jungle Scout",
+          "amount": 882.61,
+          "route": [
+            "PartnerStack",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 88.73
+        },
+        {
+          "tool": "n8n GmbH",
+          "amount": 582.16,
+          "route": [
+            "PartnerStack",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 88.73
+        }
+      ],
+      "untraced": {
+        "amount": 22084.36,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "19/03/2026",
+            "amount": 22084.36,
+            "rail": "airwallex"
+          }
+        ]
+      }
+    },
+    "2026-04": {
+      "bank_total": 25389.44,
+      "rails": {
+        "airwallex": 12616.8,
+        "paypal": 12772.64
+      },
+      "tools": [
+        {
+          "tool": "Pictory, Corp",
+          "amount": 12772.64,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 12616.8,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "17/04/2026",
+            "amount": 12616.8,
+            "rail": "airwallex"
+          }
+        ]
+      }
+    },
+    "2026-05": {
+      "bank_total": 26956.15,
+      "rails": {
+        "airwallex": 14895.03,
+        "paypal": 12061.12
+      },
+      "tools": [
+        {
+          "tool": "Synthesia Limited",
+          "amount": 6169.41,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 4299.57,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Pictory, Corp",
+          "amount": 1592.14,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 14895.03,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "07/05/2026",
+            "amount": 7988.68,
+            "rail": "airwallex"
+          },
+          {
+            "date": "22/05/2026",
+            "amount": 6906.35,
+            "rail": "airwallex"
+          }
+        ]
+      }
+    },
+    "2026-06": {
+      "bank_total": 41353.69,
+      "rails": {
+        "airwallex": 14759.13,
+        "paypal": 26594.56
+      },
+      "tools": [
+        {
+          "tool": "Book Bolt LLC",
+          "amount": 15763.57,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "grouped"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 5769.37,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "grouped"
+        },
+        {
+          "tool": "Creatify Lab Inc",
+          "amount": 2132.84,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "grouped"
+        },
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 1701.36,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "grouped"
+        },
+        {
+          "tool": "Pictory, Corp",
+          "amount": 1227.42,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 14759.13,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "30/06/2026",
+            "amount": 14759.13,
+            "rail": "airwallex"
+          }
+        ]
+      }
+    },
+    "2026-07": {
+      "bank_total": 27999.71,
+      "rails": {
+        "airwallex": 12605.66,
+        "paypal": 15394.05
+      },
+      "tools": [
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 8960.36,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 3306.99,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Creatify Lab Inc",
+          "amount": 2272.14,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Pictory, Corp",
+          "amount": 854.56,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 12605.66,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "07/07/2026",
+            "amount": 3363.6,
+            "rail": "airwallex"
+          },
+          {
+            "date": "23/07/2026",
+            "amount": 9242.06,
+            "rail": "airwallex"
+          }
+        ]
+      }
+    },
+    "2026-08": {
+      "bank_total": 33001.07,
+      "rails": {
+        "paypal": 33001.07
+      },
+      "tools": [
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 12272.28,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 11563.2,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Дигитал Маркетинг Солутионс 2011 ООД",
+          "amount": 9165.59,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
+      }
+    }
+  },
+  "paypal_pending": {
+    "as_of": "2026-08-30T10:59:59Z",
+    "holdings": [
+      {
+        "currency": "USD",
+        "total": "0.00",
+        "available": "0.00",
+        "withheld": "0.00"
+      }
+    ],
+    "total_any_currency": 0.0
+  }
+}

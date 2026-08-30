@@ -11,7 +11,19 @@ All Hostinger work goes through the `pp-hostinger` CLI — do NOT look for a hos
 CLI: "/Users/kbtg/codebase/personal-stuff/tooling/cli/hostinger/pp-hostinger"
 ```
 
-Auth is automatic (Bearer `API_TOKEN` from `mcp/hostinger/.env`). The main VPS is `1377177` (srv1377177.hstgr.cloud / hostinger-vps).
+Auth is automatic (Bearer token from `mcp/hostinger/.env`). The main VPS is `1377177` (srv1377177.hstgr.cloud / hostinger-vps).
+
+**There are TWO Hostinger accounts, and a token only sees its own.** Pass `--account`:
+
+| `--account` | What lives there |
+|---|---|
+| `vps` (default) | the KVM 2 VPS and its billing |
+| `web` | the web-hosting account — where `agrolloo.com` is expected |
+
+Omitting the flag means `vps`, which is what every older command assumed. **If a domain
+you know exists comes back "Domain is not registered at Hostinger", you are asking the
+wrong account** — retry with `--account web` before concluding anything. Setup and token
+generation: `tooling/cli/hostinger/README.md`.
 
 ## Commands
 

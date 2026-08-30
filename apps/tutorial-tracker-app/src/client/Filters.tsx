@@ -9,7 +9,7 @@
  */
 import { useState, useEffect } from "react";
 import type { Row } from "../shared/engine/rbac";
-import { personLabel } from "./api";
+import { personLabel, getCachedChannels } from "./api";
 import { stagesOf, assigneeColOf, type PipelineDef } from "./stages";
 import { BUCKETS, EMPTY_FILTERS, rowMatchesFilters, type AdminFilters, type Bucket } from "./filterModel";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ export function Filters({ rows, pipeline, names, memberRoles = {}, filters, onCh
   }
   const assignees = [...assigneeSet.entries()].sort((a, b) => a[1].localeCompare(b[1]));
 
-  const hasPrecise = filters.assignee !== "" || filters.stage !== "";
+  const hasPrecise = filters.assignee !== "" || filters.stage !== "" || filters.channel !== "";
   const hasFilters = filters.q !== "" || filters.bucket !== "" || hasPrecise;
   const filteredCount = pRows.filter((r) => rowMatchesFilters(r, filters, viewerEmail)).length;
 
@@ -137,6 +137,16 @@ export function Filters({ rows, pipeline, names, memberRoles = {}, filters, onCh
               <option value="done">Done</option>
             </select>
           </div>
+          {getCachedChannels()?.channels && getCachedChannels()!.channels.length > 1 && (
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-medium text-muted-foreground" htmlFor="f-channel">Channel</label>
+              <select id="f-channel" className={selectCls} value={filters.channel}
+                onChange={(e) => onChange({ ...filters, channel: e.target.value })}>
+                <option value="">All channels</option>
+                {getCachedChannels()!.channels.map((ch) => <option key={ch.id} value={ch.id}>{ch.name}</option>)}
+              </select>
+            </div>
+          )}
         </div>
       )}
     </div>

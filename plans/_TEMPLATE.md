@@ -13,8 +13,12 @@ ui:                      # true if this plan touches user-facing UI. ENFORCED (2
                          # REJECTS the branch unless it commits an image. PR#141 shipped without one.
 deploy:                  # blank = no deploy; else the deploy command boss runs after merge
 needs: []                # free prose for humans — boss CANNOT act on this
-needs_prs: []            # STRUCTURED: e.g. [138] — boss refuses to dispatch until each PR is closed.
-                         # The 180->181->182 chain was sequenced by hand because `needs` is only prose.
+needs_plans: []          # STRUCTURED, and the one to USE: e.g. [261] — the PLAN number of a plan this
+                         # one builds on. Boss resolves it to that plan's PR and refuses to dispatch
+                         # until it lands. Prefer this: when you write a plan its PR does not exist yet,
+                         # so the plan number is the only number you can actually know.
+needs_prs: []            # STRUCTURED: e.g. [138] — same gate, keyed by PR number. Boss also accepts a
+                         # PLAN number here and resolves it (the whole 261-264 batch wrote plan numbers).
 touches: []              # files this plan edits, e.g. [lib/lint-cues.mjs] — boss warns when an
                          # in-flight PR shares one (three plans collided on lint-cues.mjs in one batch)
 

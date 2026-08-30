@@ -88,7 +88,8 @@ plan body.
 | `test_cmd`, `test_timeout` | the verify (wrapped in `gtimeout`, default 600s) |
 | `deploy` | the one hard per-item owner gate |
 | `needs` | free prose, human-readable only — boss cannot act on it |
-| `needs_prs: [138]` | **structured**: dispatch REFUSES until each PR is closed |
+| `needs_plans: [261]` | **structured, and the key plans should use**: dispatch REFUSES until the plan's PR is closed. A plan is written before its PR exists, so the plan number is the only one an author can know |
+| `needs_prs: [138]` | same gate by PR number. A PLAN number here is resolved too (via `boss/<n>-*`) and logged as a NOTE — the 261-264 batch wrote plan numbers and froze until 2026-08-30 |
 | `touches: [lib/x.mjs]` | warns at dispatch when an in-flight PR shares a file |
 | `ui: true` | merge REJECTS the branch unless it commits an image — **an image, not evidence: see below** |
 | `mutation_apply` / `mutation_command` / `mutation_expect` | arms the mutation gate |

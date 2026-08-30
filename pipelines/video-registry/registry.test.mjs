@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import {
   resolveKey, mint, addAlias, list, save, load, isValidKey, namesFor,
-  ensure, whereIs, unregisteredDirs, PIPELINE_VIDEO_ROOTS,
+  ensure, whereIs, unregisteredDirs, PIPELINE_VIDEO_ROOTS, channelOf,
 } from './lib/registry.mjs';
+import { defaultChannel } from '../../config/channels.mjs';
 import { planSync } from './lib/tracker.mjs';
 import {
   planClicksDb, planDesk, diffInvariants, findCollisions, partitionCollisions,
@@ -151,6 +153,42 @@ test('the committed registry parses and every entry is well-formed', () => {
     assert.match(v.minted, /^\d{4}-\d{2}-\d{2}$/, `${v.key} has a bad minted date`);
     for (const a of v.aliases) assert.ok(isValidKey(a), `${v.key} has a bad alias: ${a}`);
   }
+});
+
+// --- plan 264: every video belongs to a channel ---
+
+test('every entry in the committed registry has a channel', () => {
+  for (const v of list(load())) {
+    assert.ok(v.channel, `${v.key} resolved with no channel`);
+  }
+});
+
+test('channelOf: an entry with no channel field resolves to the default', () => {
+  const reg = { version: 1, videos: { 'no-channel-video': { title: 'x', minted: '2026-08-09', aliases: [] } } };
+  assert.equal(channelOf('no-channel-video', reg), defaultChannel().id);
+});
+
+test('channelOf: an unregistered key resolves to the default and does not throw', () => {
+  const reg = { version: 1, videos: {} };
+  assert.equal(channelOf('never-heard-of-it', reg), defaultChannel().id);
+});
+
+test('mint writes the given channel; ensure defaults to the registry default', () => {
+  let reg = mint('one', { minted: '2026-08-09', channel: 'agrollo' }, { version: 1, videos: {} });
+  assert.equal(reg.videos.one.channel, 'agrollo');
+  const { reg: reg2 } = ensure('two', {}, reg);
+  assert.equal(reg2.videos.two.channel, defaultChannel().id);
+});
+
+test('vreg ensure --channel with an unknown id is rejected, not minted', () => {
+  const bin = path.resolve(import.meta.dirname, 'bin', 'vreg.mjs');
+  const result = spawnSync('node', [bin, 'ensure', 'a-brand-new-video', '--channel', 'not-a-real-channel'], {
+    encoding: 'utf8',
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /CHANNEL_UNKNOWN/);
+  // must not have minted a dangling entry
+  assert.equal(resolveKey('a-brand-new-video', load()), null);
 });
 
 const REG = {

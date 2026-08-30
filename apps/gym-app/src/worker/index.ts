@@ -16,8 +16,21 @@ import {
 } from "./repo";
 import type { LogPatch } from "../shared";
 import type { ExerciseInput, LogInput } from "../shared";
+import { login, logout, me, requireAuth } from "./auth";
 
 const app = new Hono<{ Bindings: Env }>();
+
+// ---- Auth ------------------------------------------------------------------
+// Password gate. /auth/* and /api/me stay open so the login screen can boot;
+// EVERY other /api/* route below is behind requireAuth.
+app.post("/auth/login", login);
+app.post("/auth/logout", logout);
+app.get("/api/me", me);
+
+app.use("/api/*", async (c, next) => {
+  if (c.req.path === "/api/me") return next();
+  return requireAuth(c, next);
+});
 
 // Everything in one batched read: groups + all exercises + full log.
 app.get("/api/bootstrap", async (c) => c.json(await bootstrap(c.env)));

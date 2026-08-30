@@ -61,7 +61,7 @@ commit to main afterwards must `fetch` + `merge --ff-only` first** rather than
 assuming their checkout is current (`boss-merge` does this before writing its
 plan-registry row).
 
-Notifications go through tooling/cli/notify (Telegram-first, ntfy fallback).
+Notifications go through tooling/cli/notify (Telegram).
 
 ## Evidence Location
 

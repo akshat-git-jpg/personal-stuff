@@ -4,6 +4,7 @@ import type { Transition } from "../shared/engine/rbac";
 import { pipeOf, stageByStatusColIn } from "./stages";
 import {
   applyTransition, getReviewQueue, deleteVideo, applyDefaults, updateCell,
+  getChannels,
   type BoardRow, type ReviewItem,
 } from "./api";
 import { CardDetail } from "./CardDetail";
@@ -54,6 +55,8 @@ function Toast({ message }: { message: string }) {
 }
 
 export function Board({ roles, stages, pipelines, columns, rows, names, memberRoles = {}, memberships = {}, readOnly, viewerEmail, reload }: BoardProps) {
+  useEffect(() => { getChannels().catch(console.warn); }, []);
+
   const isAdmin = roles.includes("Admin");
   // Reviewing is an explicit role, not an Admin default.
   const canReview = roles.includes("Reviewer");

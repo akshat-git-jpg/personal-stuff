@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default_channel_id": "agrollo",
+  "channels": [
+    {
+      "id": "agrollo",
+      "name": "Agrollo Reviews",
+      "handle": "@AgrolloReviews",
+      "youtube_channel_id": "UCXuXNNuyhtdsiw9bZr0pUxw",
+      "owner_account": "adelpaul2526@gmail.com",
+      "link_domain": "go.agrolloo.com",
+      "zone_name": "agrolloo.com",
+      "archived": false,
+      "profile": {
+        "voice_slug": "jamila-30s",
+        "avatar_slug": "girl-1",
+        "brand": "default",
+        "taste_file": "pipelines/youtube/yt-script/TASTE.md",
+        "style_dna": null
+      }
+    }
+  ]
+}
