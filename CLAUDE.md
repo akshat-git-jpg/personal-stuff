@@ -15,6 +15,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | If the ask is about… | Go to |
 |---|---|
 | A past decision / why something is done a certain way | [`decisions.md`](decisions.md) |
+| Which YouTube channels exist, their domains and owning accounts | `config/README.md` (`config/channels.json`) |
 | Commit rules in this repo (branch naming, `commit-now` overrides, plan-vs-inline) | `.claude/skills/personal-stuff-change-control/SKILL.md` |
 | What runs where — Cloudflare + VPS + DNS inventory | [`INFRA.md`](INFRA.md) |
 | Cron architecture (Pattern B) | [`VPS-CRONS.md`](VPS-CRONS.md) |
