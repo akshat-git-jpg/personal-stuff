@@ -126,3 +126,9 @@ No app-watching required — the email tells you when it's your turn.
 ---
 
 *Technical/architecture details for developers live in [`CLAUDE.md`](CLAUDE.md).*
+
+## Implementation: Channel-aware
+The application supports multiple channels configured in `config/channels.json`. 
+When multiple channels exist, a Channel picker appears in the new video dialog.
+Each card tracks its `channel_id`, allowing links to be generated using the correct domain for that channel.
+The UI components (Card, CardDetail, Filters) fetch channel data via the `/api/channels` endpoint to display channel chips and allow filtering videos by channel.
