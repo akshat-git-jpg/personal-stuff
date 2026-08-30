@@ -11,6 +11,10 @@ binding = "DB"
 database_name = "clicks-db"
 database_id = "3415a408-ccc9-49e2-8fe1-60009dfd83ce"
 
+# ONE route per non-archived channel in config/channels.json. `test/routes.test.ts`
+# FAILS when a channel's link_domain has no route here, so adding a channel to the
+# registry without its route cannot ship. go.agrolloo.com is permanent: its slugs are
+# published inside YouTube descriptions and can never be retired.
 [[routes]]
 pattern = "go.agrolloo.com/*"
 zone_name = "agrolloo.com"
