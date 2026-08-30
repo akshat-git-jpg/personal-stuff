@@ -21,6 +21,8 @@ import {
 import { getVideoStats } from "./analytics";
 import { addKeyword, checkVideo, deleteKeyword, getQuota, getRankings } from "./rankings";
 
+import { DEFAULT_CHANNEL_ID, listChannels } from "./channels";
+
 const app = new Hono<{ Bindings: Env }>();
 
 app.post("/api/login", async (c) => {
@@ -42,18 +44,39 @@ app.post("/api/logout", (c) => {
   return c.json({ ok: true });
 });
 
+app.get("/api/channels", requireAuth, (c) => {
+  const channels = listChannels().map((ch) => ({
+    id: ch.id,
+    name: ch.name,
+    handle: ch.handle,
+  }));
+  return c.json({ channels, default_channel_id: DEFAULT_CHANNEL_ID });
+});
+
 app.get("/api/videos", requireAuth, async (c) => {
-  const result = await getVideoStats(c.env);
+  const channelId = c.req.query("channel") || DEFAULT_CHANNEL_ID;
+  const channelExists = listChannels().some((ch) => ch.id === channelId);
+  if (!channelExists) return c.json({ error: "unknown_channel" }, 400);
+
+  const result = await getVideoStats(c.env, channelId);
   return c.json({ ...result, generated_at: Math.floor(Date.now() / 1000) });
 });
 
 // ── Keyword rank tracking (this app's own RANKINGS_DB) ──────────────────────
 app.get("/api/rankings", requireAuth, async (c) => {
-  const [byVideo, quota] = await Promise.all([getRankings(c.env), getQuota(c.env)]);
+  const channelId = c.req.query("channel") || DEFAULT_CHANNEL_ID;
+  const channelExists = listChannels().some((ch) => ch.id === channelId);
+  if (!channelExists) return c.json({ error: "unknown_channel" }, 400);
+
+  const [byVideo, quota] = await Promise.all([getRankings(c.env, channelId), getQuota(c.env)]);
   return c.json({ byVideo, quota });
 });
 
 app.post("/api/rankings/keywords", requireAuth, async (c) => {
+  const channelId = c.req.query("channel") || DEFAULT_CHANNEL_ID;
+  const channelExists = listChannels().some((ch) => ch.id === channelId);
+  if (!channelExists) return c.json({ error: "unknown_channel" }, 400);
+
   let body: { yt_video_id?: unknown; keyword?: unknown };
   try {
     body = await c.req.json();
@@ -63,7 +86,7 @@ app.post("/api/rankings/keywords", requireAuth, async (c) => {
   if (typeof body.yt_video_id !== "string" || typeof body.keyword !== "string") {
     return c.json({ error: "yt_video_id and keyword are required" }, 400);
   }
-  const res = await addKeyword(c.env, body.yt_video_id, body.keyword);
+  const res = await addKeyword(c.env, channelId, body.yt_video_id, body.keyword);
   if ("error" in res) return c.json(res, 400);
   return c.json(res);
 });

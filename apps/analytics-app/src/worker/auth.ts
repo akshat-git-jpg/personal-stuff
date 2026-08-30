@@ -20,13 +20,12 @@ export type Env = {
   DB: D1Database;
   /** This app's own DB for keyword rank tracking (read + write). */
   RANKINGS_DB: D1Database;
+  /** Superseded by the registry in config/channels.json, kept for compatibility if anything still reads it. */
   LINK_DOMAIN: string;
   APP_PASSWORD: string;
   SESSION_SECRET: string;
   /** YouTube Data API key — used to list the channel's uploads + fetch views. Required for the video list. */
   YT_API_KEY?: string;
-  /** YouTube channel id (UC…) whose public uploads are the source of truth for the video list. */
-  CHANNEL_ID?: string;
 };
 
 const COOKIE = "yta_auth";
