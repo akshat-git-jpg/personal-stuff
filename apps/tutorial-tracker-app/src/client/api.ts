@@ -40,6 +40,7 @@ export interface CardActionGroup {
 export type BoardRow = Row & {
   row_id: string;
   pipeline: string;
+  channel_id: string;
   _stages?: string[];                 // status cols this card belongs to (in user's lanes)
   _upcoming?: string[];               // stages assigned but gate closed
   _actions?: CardActionGroup[];       // allowed status transitions, per stage
@@ -142,6 +143,29 @@ export async function getTeam(): Promise<TeamMember[]> {
   const res = await fetch("/api/team", { credentials: "same-origin" });
   if (!res.ok) return [];
   return res.json() as Promise<TeamMember[]>;
+}
+
+export interface ChannelInfo {
+  id: string;
+  name: string;
+  handle: string;
+  link_domain: string;
+}
+export interface ChannelsData {
+  channels: ChannelInfo[];
+  default_channel_id: string;
+}
+
+let __mock_channels: ChannelsData | null = null;
+export function testable_setChannels(mock: ChannelsData | null) {
+  __mock_channels = mock;
+}
+
+export async function getChannels(): Promise<ChannelsData> {
+  if (__mock_channels) return __mock_channels;
+  const res = await fetch("/api/channels", { credentials: "same-origin" });
+  if (!res.ok) throw new Error("Failed to load channels");
+  return res.json() as Promise<ChannelsData>;
 }
 
 /** Valid roles for one system (its doer roles + Reviewer); omit `system` for the full roster. */
