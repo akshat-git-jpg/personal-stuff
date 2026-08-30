@@ -20,7 +20,8 @@ from unittest import mock
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-import attribute  # noqa: E402
+import attribute
+import mailbox  # noqa: E402
 import sources    # noqa: E402
 
 
@@ -417,6 +418,153 @@ class NonToolPayers(unittest.TestCase):
         # " ООД" is stripped before the check; if the lookup used the raw name it
         # would silently miss and the agency would show up as a tool.
         self.assertEqual(months["2026-08"]["tools"], [])
+
+
+class MailboxParsing(unittest.TestCase):
+    """The mail parsers must be strict. A parser that guesses feeds a wrong tool
+    name into the one number the owner treats as truth."""
+
+    def test_impact_payout_is_read_in_rupees(self):
+        """impact.com pays INR straight to the bank -- the only source whose mail
+        states the exact figure the bank will show."""
+        body = ("Commission Payment Processed Hi Khushi, The funds for Agrollo's "
+                "most recent payment of Rs.20,185.19 have been transferred")
+        got = mailbox._p_impact("notifications@app.impact.com",
+                                "Commission Payment Processed", body)
+        self.assertEqual(got, ("payout", None, 20185.19, "INR"))
+
+    def test_impact_marketing_mail_is_ignored(self):
+        """Same domain, no payment. Must stay silent rather than invent a payout."""
+        self.assertIsNone(mailbox._p_impact(
+            "notifications@outreach.impact.com",
+            "We're Increasing Your Affiliate Commission",
+            "Earn up to $150 per sale and Rs.5,000 in bonuses"))
+
+    def test_partnerstack_payout_amount_comes_from_the_subject(self):
+        got = mailbox._p_partnerstack("hello@partnerstackmail.com",
+                                      "Your PartnerStack Payout of $32.66 USD is ready", "")
+        self.assertEqual(got, ("payout", None, 32.66, "USD"))
+
+    def test_bookbolt_accrual_names_its_tool(self):
+        got = mailbox._p_bookbolt("affiliates@bookbolt.io",
+                                  "New Commission Notification",
+                                  "Commission Amount: $4.80 USDSincerely,")
+        self.assertEqual(got, ("accrual", "Book Bolt", 4.80, "USD"))
+
+    def test_rewardful_payout_keeps_the_program_not_the_wrapper(self):
+        """The program is the tool. "Friends of EverBee" is EverBee."""
+        self.assertEqual(
+            mailbox._p_rewardful_payout(
+                "hello@getrewardful.com",
+                "Your Friends of EverBee payout is ready to withdraw", ""),
+            ("payout_undisclosed", "EverBee", None, None))
+        self.assertEqual(
+            mailbox._p_rewardful_payout(
+                "hello@getrewardful.com",
+                "Your Lovable Affiliates payout is ready to withdraw", "")[1],
+            "Lovable")
+
+    def test_rewardful_payout_carries_no_amount(self):
+        """Rewardful never states a figure. Claiming one would be a fabrication."""
+        kind, _, amount, currency = mailbox._p_rewardful_payout(
+            "hello@getrewardful.com", "Your Lovable Affiliates payout is ready", "")
+        self.assertEqual(kind, "payout_undisclosed")
+        self.assertIsNone(amount)
+        self.assertIsNone(currency)
+
+    def test_load_secrets_handles_the_export_prefix(self):
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".env", delete=False) as fh:
+            fh.write("# comment\nexport IMAP_PASS_A=secret1\nIMAP_PASS_B='secret2'\n")
+            path = fh.name
+        got = mailbox.load_secrets(path)
+        self.assertEqual(got, {"IMAP_PASS_A": "secret1", "IMAP_PASS_B": "secret2"})
+
+    def test_missing_secrets_is_a_note_not_a_crash(self):
+        """No passwords must degrade the tally, never break it."""
+        events, notes = mailbox.fetch_events(secrets_path="/nonexistent/x.env")
+        self.assertEqual(events, [])
+        self.assertTrue(notes)
+
+
+    def test_no_committed_file_carries_an_email_address(self):
+        """summary.json and rules.json are committed to a public repo. A payer's
+        identity is a useful fact; a named person's address at that payer is not,
+        and it was leaking through a rules.json note until 2026-08-30."""
+        import re
+        pat = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+        here = pathlib.Path(__file__).resolve().parent
+        for name in ("summary.json", "rules.json"):
+            p = here / name
+            if not p.exists():
+                continue
+            hit = pat.search(p.read_text())
+            self.assertIsNone(hit, "%s leaks %s" % (name, hit.group(0) if hit else ""))
+
+
+class MailboxLeads(unittest.TestCase):
+    """Mail becomes a lead on an untraced row, never an attribution."""
+
+    def ev(self, date, kind, tool=None, amount=None, currency=None, source="x.com"):
+        return mailbox.Event(date, kind, tool, amount, currency, source, "subj")
+
+    def test_an_exact_rupee_payout_outranks_a_nearer_vague_one(self):
+        """Strength beats recency. A payout matching to the paisa is an answer;
+        a payout with no amount is only a place to look."""
+        events = [
+            self.ev("2026-03-18", "payout_undisclosed", tool="Lovable",
+                    source="getrewardful.com"),
+            self.ev("2026-03-01", "payout", amount=22084.36, currency="INR",
+                    source="app.impact.com"),
+        ]
+        leads = mailbox.leads_for_credit("19/03/2026", 22084.36, events)
+        self.assertEqual(leads[0]["source"], "impact.com")
+        self.assertIn("exactly this credit", leads[0]["what"])
+
+    def test_a_non_matching_rupee_payout_does_not_claim_the_credit(self):
+        events = [self.ev("2026-03-16", "payout", amount=623.00, currency="INR",
+                          source="app.impact.com")]
+        leads = mailbox.leads_for_credit("19/03/2026", 22084.36, events)
+        self.assertNotIn("exactly this credit", leads[0]["what"])
+
+    def test_accruals_never_become_leads(self):
+        """Earned is not received. Rewardful commissions accrued all year behind a
+        blocked Tipalti verification and never reached a bank."""
+        events = [self.ev("2026-03-15", "accrual", tool="Book Bolt",
+                          amount=4.80, currency="USD", source="bookbolt.io")]
+        self.assertEqual(mailbox.leads_for_credit("19/03/2026", 22084.36, events), [])
+
+    def test_mail_after_the_credit_is_not_a_lead(self):
+        """Money cannot be explained by a payout announced after it landed."""
+        events = [self.ev("2026-03-25", "payout", amount=100.0, currency="USD")]
+        self.assertEqual(mailbox.leads_for_credit("19/03/2026", 22084.36, events), [])
+
+    def test_source_labels_are_human(self):
+        """A raw sender domain in the Source column reads as plumbing."""
+        self.assertEqual(mailbox.label("app.impact.com"), "impact.com")
+        self.assertEqual(mailbox.label("partnerstackmail.com"), "PartnerStack")
+        self.assertEqual(mailbox.label("unknown-sender.io"), "unknown-sender.io")
+
+
+class MailboxPrivacy(unittest.TestCase):
+    """summary.json is committed to a public repo."""
+
+    def test_events_carry_a_domain_never_an_address(self):
+        import email as _email
+        raw = (b"From: Someone <a.person@bookbolt.io>\r\n"
+               b"Subject: New Commission Notification\r\n"
+               b"Date: Tue, 17 Mar 2026 10:00:00 +0000\r\n"
+               b"Content-Type: text/plain\r\n\r\n"
+               b"Commission Amount: $4.80 USD")
+        ev = mailbox._parse(_email.message_from_bytes(raw))
+        self.assertEqual(ev.source, "bookbolt.io")
+        self.assertNotIn("@", ev.source)
+
+    def test_no_lead_text_carries_an_address(self):
+        events = [mailbox.Event("2026-03-01", "payout", None, 22084.36, "INR",
+                                "app.impact.com", "Commission Payment Processed")]
+        for lead in mailbox.leads_for_credit("19/03/2026", 22084.36, events):
+            self.assertNotIn("@", lead["what"] + lead["source"])
 
 
 class Preflight(unittest.TestCase):

@@ -31,6 +31,7 @@ NETWORKS = DATA / "networks"
 
 sys.path.insert(0, str(HERE))
 import attribute  # noqa: E402
+import mailbox   # noqa: E402
 import sources    # noqa: E402
 
 # Every source the dashboard knows about, including ones with no credentials.
@@ -40,6 +41,9 @@ SOURCE_CATALOGUE = [
     {"id": "bank", "label": "Bank passbook", "kind": "manual"},
     {"id": "impact", "label": "impact.com", "kind": "api"},
     {"id": "partnerstack", "label": "PartnerStack", "kind": "api"},
+    {"id": "mailbox", "label": "Affiliate mailboxes", "kind": "imap",
+     "note": "Both agrolloo.com inboxes. The only source that sees programs with "
+             "no API at all, so it supplies leads on untraced money."},
     {"id": "paykickstart", "label": "PayKickstart", "kind": "api",
      "note": "No credentials. Affiliate accounts have no API access, so any "
              "PayKickstart commission shows up as untraced."},
@@ -51,7 +55,7 @@ def load_network(name):
     return json.loads(p.read_text()) if p.exists() else None
 
 
-def source_states(ps, im, pending, checks=None):
+def source_states(ps, im, pending, checks=None, mail_events=None):
     """Report each source's state so the UI never has to infer it from silence.
 
     `checks` is the preflight result. When a source is configured but this run
@@ -65,7 +69,7 @@ def source_states(ps, im, pending, checks=None):
     for s in SOURCE_CATALOGUE:
         e = dict(s)
         got = {"paypal": bool(pending), "partnerstack": bool(ps),
-               "impact": bool(im)}.get(s["id"])
+               "impact": bool(im), "mailbox": bool(mail_events)}.get(s["id"])
         if s["id"] == "bank":
             e["state"] = "manual"
         elif s["id"] == "paykickstart":
@@ -83,6 +87,8 @@ def source_states(ps, im, pending, checks=None):
             e["as_of"] = (pending or {}).get("as_of")
         elif s["id"] == "partnerstack":
             e["as_of"] = (ps or {}).get("fetched_at")
+        elif s["id"] == "mailbox" and mail_events:
+            e["as_of"] = max(x.date for x in mail_events)
         out.append(e)
     return out
 
@@ -384,15 +390,31 @@ def main():
             (NETWORKS / "impact.json").write_text(json.dumps(im, indent=1, ensure_ascii=False))
             print(f"  impact.com: {len(im)} months")
 
+        # The mailboxes. Every other source knows only its own programs; the mail
+        # sees all of them, including the ones with no API at all. Cached as plain
+        # dicts so --offline keeps the leads.
+        mail_events, mail_notes = mailbox.fetch_events(
+            since_month=bank_months[0] if bank_months else "2026-01")
+        for n in mail_notes:
+            print(f"  ! mailbox: {n}", file=sys.stderr)
+        if mail_events:
+            NETWORKS.mkdir(parents=True, exist_ok=True)
+            (NETWORKS / "mailbox.json").write_text(json.dumps(
+                [e._asdict() for e in mail_events], indent=1, ensure_ascii=False))
+            payouts = sum(1 for e in mail_events if e.kind.startswith("payout"))
+            print(f"  mailbox: {len(mail_events)} events "
+                  f"({payouts} payouts, {len(mail_events) - payouts} accruals)")
+
     if not fetch:
         cached = load_network("paypal.json") or {}
         paypal_months = cached.get("months", [])
         pending = cached.get("pending")
-        print("  --offline: reusing the last fetched PayPal, PartnerStack and "
-              "impact.com data")
+        print("  --offline: reusing the last fetched PayPal, PartnerStack, "
+              "impact.com and mailbox data")
 
     ps_data = load_network("partnerstack.json")
     im_data = load_network("impact.json")
+    mail_events = [mailbox.Event(**e) for e in (load_network("mailbox.json") or [])]
     absent = [s for s in SOURCE_CATALOGUE
               if s["id"] == "paykickstart"]  # parked: affiliate accounts have no API
 
@@ -401,7 +423,8 @@ def main():
         manual=rules.get("manual_attribution"),
         rail_labels={r["id"]: r["label"] for r in rules["income_rails"]},
         aliases=rules.get("tool_aliases"),
-        unidentified=rules.get("unidentified_payers"))
+        unidentified=rules.get("unidentified_payers"),
+        mail_events=mail_events)
 
     # Nothing below carries a counterparty, an account number or an address,
     # which is what makes summary.json safe to commit to a public repo.
@@ -411,7 +434,7 @@ def main():
                      "to": bank_months[-1] if bank_months else None},
         "statements": statements,
         "rails": {r["id"]: r["label"] for r in rules["income_rails"]},
-        "sources": source_states(ps_data, im_data, pending, checks),
+        "sources": source_states(ps_data, im_data, pending, checks, mail_events),
         "months": months,
     }
     if pending:

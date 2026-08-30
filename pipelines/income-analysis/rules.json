@@ -31,7 +31,7 @@
     "n8n GmbH": "n8n"
   },
   "_alias_notes": {
-    "Fliki": "Payer 'Nine Thirty Five LLC' (accounts@ninethirtyfive.llc). PayPal transaction note on 2026-02-02 reads 'Fliki affiliate' — the payer naming its own brand. 'fliki' is also one of the owner's tracking links.",
+    "Fliki": "Payer 'Nine Thirty Five LLC' (the ninethirtyfive.llc domain). PayPal transaction note on 2026-02-02 reads 'Fliki affiliate' — the payer naming its own brand. 'fliki' is also one of the owner's tracking links.",
     "Submagic": "Not present in this PayPal account at all — zero payments Jan-Aug 2026. Owner says Submagic settles to a different bank account, which is consistent: its money never enters this pipeline, so there is nothing to exclude."
   },
 
@@ -39,7 +39,7 @@
   "unidentified_payers": {
     "Дигитал Маркетинг Солутионс 2011 ООД": {
       "via": "DigitalWorks",
-      "note": "Bulgarian entity paying from a.todorova@digitalworks.net. DigitalWorks is an affiliate-management agency that pays out for other brands, so the tool is unknown. Do NOT merge with Book Bolt: Book Bolt pays separately as 'Book Bolt LLC' from admin@bookbolt.io — that merge was tried on 2026-08-30 on the strength of a LinkedIn page and the payer emails disproved it."
+      "note": "Bulgarian entity paying from the digitalworks.net domain. DigitalWorks is an affiliate-management agency that pays out for other brands, so the tool is unknown. Do NOT merge with Book Bolt: Book Bolt pays separately as 'Book Bolt LLC' from the bookbolt.io domain — that merge was tried on 2026-08-30 on the strength of a LinkedIn page and the payer emails disproved it."
     }
   },
 

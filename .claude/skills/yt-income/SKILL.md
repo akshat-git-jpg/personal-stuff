@@ -265,7 +265,7 @@ ordered by how short a walk that is to an answer:
 | `credit` | date, rail, bank reference, nearby payouts | quote the ref to the bank |
 
 **Currently untraced with a name on it: DigitalWorks** (Дигитал Маркетинг
-Солутионс 2011 ООД, `a.todorova@digitalworks.net`) — ₹9,165.59 in Aug 2026. An
+Солутионс 2011 ООД, `the digitalworks.net domain`) — ₹9,165.59 in Aug 2026. An
 affiliate-management agency, so the brand behind it is unknown. Ask the owner;
 when he knows, move it from `unidentified_payers` to `tool_aliases` and it
 becomes a normal tool row.
@@ -277,7 +277,7 @@ pays one out. Those mails name the tool, the amount and the date, which is exact
 what the bank statement does not. **Read them before guessing at anything.**
 
 **Access — already wired, no new credential needed.** The two Hostinger mailboxes
-(`khushibakliwal@agrolloo.com`, `kushalbakliwal@agrolloo.com`) are IMAP, not Gmail,
+(`the agrolloo.com domain`, `the agrolloo.com domain`) are IMAP, not Gmail,
 so `pp-gmail` cannot see them. The daily Telegram digest already reads them:
 
 - Config: `apps/telegram-email-assistant/imap-accounts.json` (committed, no secrets)
@@ -298,6 +298,41 @@ Two IMAP gotchas that cost time on 2026-08-30. Hostinger's `LIST` reply quotes t
 last quote and take what follows — a parser that grabs the quoted field selects `.`
 and silently returns zero mail. And the folders are `INBOX`, `INBOX.Sent`,
 `INBOX.Junk`, `INBOX.Drafts`, `INBOX.Trash`; real payout notices do land in Junk.
+
+**It is wired in — you do not run it by hand.** `ingest.py` calls
+`mailbox.fetch_events()` on every online run, caches to
+`data/networks/mailbox.json` so `--offline` keeps the leads, and hands the events
+to `attribute.attribute(mail_events=...)`. Passwords are escrowed locally at
+`infra/secrets/hostinger-mail.env` (gitignored, chmod 600) so the run works on
+either operator's machine — stdlib `imaplib`, no SSH, no extra install. Rotate in
+Hostinger webmail and update **both** that file and the VPS `.env`.
+
+**What the mail is allowed to do.** Only ever supply *leads* on an untraced row —
+never an attribution. One exception, and it has to earn it: a payout mail stating
+an exact rupee figure that equals the bank credit to the paisa is marked
+*"exactly this credit"*. Everything else is a place to look. impact.com is the
+only source that states rupees, which is why it is the only one that can ever
+settle a row from mail alone.
+
+Three kinds come out of `mailbox.py`, and the difference is load-bearing:
+
+| kind | example | what it may become |
+|---|---|---|
+| `payout` | *"payment of Rs.20,185.19 have been transferred"* | a lead; an answer if the rupees match exactly |
+| `payout_undisclosed` | *"Your Lovable Affiliates payout is ready"* | a lead only — Rewardful never states a figure |
+| `accrual` | *"Commission Amount: $4.80 USD"* | **never** a lead. Earned is not received |
+
+That last row is the one to hold on to. Rewardful's Lovable and EverBee
+commissions have been accruing since Feb 2026 behind a blocked Tipalti
+verification. Treating an accrual as income would invent money that never
+arrived.
+
+**Adding a program.** Write a parser in `mailbox.py` that returns
+`(kind, tool, amount, currency)` or `None`, and add it to `PARSERS`. Keep it
+strict: match the sender **and** a distinctive phrase. A parser that fires on
+marketing mail is worse than no parser, because everything downstream trusts it —
+`outreach.impact.com` sends "earn up to $150" mail from the same domain as the
+real payment notice, which is why `_p_impact` also requires the exact subject.
 
 **What the 2026-08-30 sweep established** (891 mails since Jan 2026 in the main box):
 
@@ -326,7 +361,7 @@ than an honest gap; see 4b.
 ### 5. Test, then publish
 
 ```bash
-python3 pipelines/income-analysis/test_income.py    # 36 tests, must be green
+python3 pipelines/income-analysis/test_income.py    # 52 tests, must be green
 cd apps/yt-income && npm run deploy                 # sync + typecheck + build + deploy
 ```
 

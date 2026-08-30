@@ -27,6 +27,8 @@ import pathlib
 import re
 from collections import defaultdict
 
+import mailbox
+
 HERE = pathlib.Path(__file__).resolve().parent
 DATA = HERE / "data"
 
@@ -421,7 +423,7 @@ def pass_impact(credits, impact):
 LEAD_WINDOW_DAYS = 45
 
 
-def leads_for(credit, ps, ps_notes, impact, im_notes):
+def leads_for(credit, ps, ps_notes, impact, im_notes, mail_events=None):
     """Network activity near an untraced credit, as investigation leads.
 
     Not a claim — a starting point. If PartnerStack sent a payout a week before a
@@ -445,6 +447,18 @@ def leads_for(credit, ps, ps_notes, impact, im_notes):
                 "implied_fx": round(credit["amount"] / p["amount"], 1) if p["amount"] else None,
             })
 
+    # Mail is the only source that ever names a tool outright, so its leads sort
+    # above the network guesses -- leads_for_credit has already ranked them by how
+    # much they actually settle.
+    for lead in mailbox.leads_for_credit(
+            credit["date"].strftime("%d/%m/%Y"), credit["amount"], mail_events or []):
+        out.append({
+            "source": lead["source"],
+            "what": lead["what"],
+            "gap_days": lead["gap_days"],
+            "implied_fx": None,
+        })
+
     unmatched_months = {n["month"] for n in (im_notes or []) if "month" in n}
     for m in sorted(unmatched_months):
         total = sum(x["amount"] for x in (impact or {}).get(m, []))
@@ -459,13 +473,23 @@ def leads_for(credit, ps, ps_notes, impact, im_notes):
                 "implied_fx": None,
             })
 
-    return sorted(out, key=lambda x: x["gap_days"])[:3]
+    seen, uniq = set(), []
+    for lead in sorted(out, key=lambda x: x["gap_days"]):
+        # An API payout and its notification mail are one event. Key on the
+        # source and the amount, not the wording, which differs between them.
+        key = (lead["source"], re.sub(r"[^0-9.]", "", lead["what"]))
+        if key in seen:
+            continue
+        seen.add(key)
+        uniq.append(lead)
+    return uniq[:4]
 
 
 # ── assembly ────────────────────────────────────────────────────────────────
 
 def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
-              manual=None, rail_labels=None, aliases=None, unidentified=None):
+              manual=None, rail_labels=None, aliases=None, unidentified=None,
+              mail_events=None):
     """Run every pass and fold the result into per-month totals.
 
     Two buckets only, because there are only two answers to "which tool earned
@@ -532,7 +556,7 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
             "rail": c["rail"],
             "rail_label": rail_labels.get(c["rail"], c["rail"]),
             "ref": c.get("ref"),
-            "leads": leads_for(c, ps, ps_notes, impact, im_notes),
+            "leads": leads_for(c, ps, ps_notes, impact, im_notes, mail_events),
         })
 
     # Key on the *canonical* name, because that is what the rows carry by the time
