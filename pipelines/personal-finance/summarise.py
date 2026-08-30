@@ -55,9 +55,15 @@ def categorise(rows, rules):
         hay = row["remarks"].casefold()
         row["category"] = None
         for key, spec in cats.items():
-            if any(m.casefold() in hay for m in spec["match"]):
-                row["category"] = key
-                break
+            if not any(m.casefold() in hay for m in spec["match"]):
+                continue
+            # An optional exact amount narrows a payee who gets both a standing
+            # payment and ad-hoc ones.
+            want = spec.get("amount")
+            if want is not None and abs((row["debit"] or row["credit"]) - want) > 0.01:
+                continue
+            row["category"] = key
+            break
     return rows
 
 

@@ -9,7 +9,8 @@
     "RULE: never invent a category for a counterparty you cannot identify. An",
     "unmatched payee lands in 'unknown' with its remark intact, exactly like",
     "untraced money in the income tally. A wrong label on a spending summary is",
-    "worse than an honest gap, because the owner acts on these numbers."
+    "worse than an honest gap, because the owner acts on these numbers.",
+    "A rule may add \"amount\": <exact rupees> to require that too. Use it when a payee receives both a standing payment and ad-hoc ones -- the amount is stable where a hand-typed UPI note is not."
   ],
   "categories": {
     "salary": {
@@ -29,14 +30,33 @@
       ],
       "note": "SBI savings interest, paid quarterly."
     },
+    "to_mummy": {
+      "label": "To mummy",
+      "kind": "expense",
+      "match": [
+        "seemabakli",
+        "shreemaya1"
+      ],
+      "note": "The owner's mother, across BOTH her accounts: Seema Bakliwal at Punjab National Bank and Shri Maya at Federal Bank (shreemaya1). Owner-confirmed 2026-08-30 — do not split them, and do not read a debit to Shri Maya in HER passbook as a third party; that is her moving money between her own accounts."
+    },
+    "credit_card": {
+      "label": "Credit card",
+      "kind": "expense",
+      "match": [
+        "cred.club@",
+        "credpay.ea",
+        "credccbp.a"
+      ],
+      "note": "CRED. A card bill is a payment for spending that already happened, so it double-counts against the categories below if both are summed as 'spending'."
+    },
     "rent": {
       "label": "Rent",
       "kind": "expense",
       "match": [
-        "08satyam-1",
-        "/SATYAM /SBIN/"
+        "/SATYAM /"
       ],
-      "note": "Paid to Satyam. Some months carry the literal word 'Rent' in the remark."
+      "note": "Standing rent: exactly 12,925 to Satyam, monthly. Satyam is also paid ad-hoc from the same VPA — a 60,000 one-off and a 2,299 'splt' — and those are NOT rent (owner-confirmed 2026-08-30). The remark note says 'rent' on the real ones, but it is free text the owner types; the amount is the reliable discriminator, so match on that.",
+      "amount": 12925.0
     },
     "education_loan": {
       "label": "Education loan",
@@ -55,23 +75,80 @@
       ],
       "note": "Paid to Shirish, remark says 'Bits'. The owner studies at BITS Pilani Goa."
     },
-    "to_mummy": {
-      "label": "To mummy",
-      "kind": "transfer",
-      "match": [
-        "seemabakli"
-      ],
-      "note": "Seema Bakliwal, the owner's mother, at Punjab National Bank (PUNB). This is the same account the yt-income tally reads, so money leaving here arrives there — see pipelines/income-analysis."
-    },
-    "credit_card": {
-      "label": "Credit card",
+    "food": {
+      "label": "Food",
       "kind": "expense",
       "match": [
-        "cred.club@",
-        "credpay.ea",
-        "credccbp.a"
+        "ZOMATO",
+        "SWIGGY",
+        "MILANO I",
+        "VEDA PAAV",
+        "dominos",
+        "kfc"
       ],
-      "note": "CRED. A card bill is a payment for spending that already happened, so it double-counts against the categories below if both are summed as 'spending'."
+      "note": "Merchants that identify themselves in the UPI remark."
+    },
+    "groceries": {
+      "label": "Groceries",
+      "kind": "expense",
+      "match": [
+        "zeptonow",
+        "blinkit",
+        "instamart",
+        "bigbasket"
+      ],
+      "note": "Merchants that identify themselves in the UPI remark."
+    },
+    "travel": {
+      "label": "Travel",
+      "kind": "expense",
+      "match": [
+        "REDBUS",
+        "redbus",
+        "irctc",
+        "uber",
+        "olacabs",
+        "rapido",
+        "NAMMA MA",
+        "makemytrip",
+        "indigo"
+      ],
+      "note": "Merchants that identify themselves in the UPI remark."
+    },
+    "shopping": {
+      "label": "Shopping",
+      "kind": "expense",
+      "match": [
+        "FLIPKART",
+        "amazon",
+        "myntra",
+        "ajio",
+        "nykaa"
+      ],
+      "note": "Merchants that identify themselves in the UPI remark."
+    },
+    "recharge": {
+      "label": "Recharge",
+      "kind": "expense",
+      "match": [
+        "JIO",
+        "airtel",
+        "vodafone",
+        "/JIO/"
+      ],
+      "note": "Merchants that identify themselves in the UPI remark."
+    },
+    "health": {
+      "label": "Health",
+      "kind": "expense",
+      "match": [
+        "Aster Di",
+        "ASTER DM",
+        "apollo",
+        "pharmeasy",
+        "1mg"
+      ],
+      "note": "Merchants that identify themselves in the UPI remark."
     }
   }
 }
