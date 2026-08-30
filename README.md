@@ -19,7 +19,7 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 - `analytics-app/` — YT Analytics dashboard at `yt-analytics.agrolloo.com`. Per-video, per-link click counts for the `go.agrolloo.com` shortener. Vite + React + Hono on a Cloudflare Worker, reading the shortener's `clicks-db` D1 read-only, password-gated. The shortener itself lives in `apps/redirector/`.
 - `tutorial-tracker-app/` — YT tutorials Kanban at `tutorials-tracker.agrolloo.com`. Role-aware 5-stage pipeline over the YT tracker sheet; also mints `go.agrolloo.com` short links (writes the shortener's `CLICKS_KV` + `clicks-db` D1). Vite + React + Hono on a Cloudflare Worker, Google OAuth, sessions in KV. The redirector that serves the links lives in `apps/redirector/`, while `sync_clicks.py` lives in `pipelines/youtube/yt-analysis/`.
 - `redirector/` — URL redirector and shortener for `go.agrolloo.com`. Cloudflare Worker, click tracking via KV + D1 (`clicks-db`).
-- `pinterest-landing-pages/` — Static landing page funnels (keto kitchen, bridebestie) for Pinterest marketing. Cloudflare Workers.
+- `pinterest-landing-pages/` — Static landing page funnels (bridebestie) for Pinterest marketing. Cloudflare Workers.
 - `personal-dashboard/` — Mobile dashboard PWA at `my-dashboard.agrolloo.com`, running as a Docker container on the VPS.
 - `telegram-my-planner/` — Daily routine, to-do list, and exercise routine. Feeds the morning Telegram digest cron on the VPS.
 - `telegram-email-assistant/` — Per-account Gmail digest preferences and `digest.sh` (runs on a VPS cron, sends to Telegram).

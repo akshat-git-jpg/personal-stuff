@@ -41,7 +41,7 @@ Every new folder gets `README.md` + `CLAUDE.md` from day one (**personal-stuff-d
 
 **New pipeline** (`pipelines/`): shared venv + root `.env` ONLY (no per-folder env/venv/requirements — ever); Python subprojects copy the 2-levels-up `sys.path` prelude; add the folder-map row.
 
-**New landing page**: assets-only Worker under `apps/pinterest-landing-pages/<niche>/` — copy keto-kitchen's `wrangler.jsonc`; `npx wrangler deploy` auto-creates DNS+SSL.
+**New landing page**: assets-only Worker under `apps/pinterest-landing-pages/<niche>/` — copy bridebestie's `wrangler.jsonc`; `npx wrangler deploy` auto-creates DNS+SSL.
 
 **New skill**: author in `.claude/skills/<name>/` — or `pipelines/.claude/skills/<name>/` if it is pipelines-only — per `superpowers:writing-skills`, description within budget (rule + rationale: **personal-stuff-change-control**; `.claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh` warns over 500 chars, fails over 700). Then restart the session; that is the whole flow. There is no manifest to update and no relink needed — skills are repo-scoped, so the folder IS the registration. Two exceptions: add the name to `.claude/codex-skills.txt` only if Codex should carry it globally, and run `./scripts/sync-shared-skills.sh` only if it is one of the five person-level skills duplicated into the private `work-skills` plugin.
 
