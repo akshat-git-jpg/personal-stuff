@@ -152,3 +152,75 @@ should start by **early September** to keep six weeks of margin.
 3. Whether transferring the domain out *early* also ends the Hostinger free email. Their
    stated rule is hosting-based, so it should not — which is why the sequence above moves
    email first regardless.
+
+---
+
+## Second-opinion review, 2026-08-30 — three corrections to the above
+
+An independent review challenged this plan. It was right on three counts; they are recorded
+here because each **invalidates a claim made above**, and the park decision now rests on
+different reasoning than it originally did.
+
+### Correction 1 — "vendor count stays at three either way" was WRONG
+
+**Hostinger moves a domain between two Hostinger accounts for free.** Verified against their
+support doc: no EPP code, **no downtime**, no 60-day transfer lock. Requirements — registered
+>96 hours, not moved in the last 10 days, **not expiring within 10 days** (so for
+`agrolloo.com`, before ~2026-10-31), and `.com` is on the supported list.
+
+That collapses Blocker 2 for Rs 0 and unlocks a path the table above dismissed with the
+annotation *"still keeps the second account"* — which stops being true once the domain moves:
+
+| | Now | Domain moved to account 1, standalone email |
+|---|---|---|
+| VPS (account 1) | 16,788 | 16,788 |
+| Domain | 1,516 (acct 2) | 1,516 (**acct 1**) |
+| Web hosting | 5,388 | — |
+| Hostinger Business Email x2 | — | ~3,300 |
+| **Total** | **23,692** | **~21,604** |
+
+Smaller saving (~Rs 2,088) but **one login, no mailbox export, no MX cutover, and the DKIM
+fix above still applies.** The free half (moving the domain) can be done now, in isolation,
+with no deadline; the mail half can be decided later.
+
+### Correction 2 — the analysis optimised the 23% line item and ignored the 71%
+
+The VPS is **Rs 16,788/yr (~Rs 1,399/mo, ~$16/mo)** for 2 vCPU / 8 GB / 100 GB at **19% disk
+use** — plausibly around 2x market for that spec. Hetzner Cloud was raised as the comparison
+and **has a Singapore region** (relevant: the owner is in India, so an EU-only host would
+have been a latency problem). **Exact Hetzner prices were NOT verified** — their pricing page
+did not render figures — so re-price before acting. The workload (n8n, a PWA, an ffmpeg
+renderer, MinIO, crons, all behind Cloudflare) is latency-tolerant and Docker-composed.
+
+The point stands regardless of the exact number: **this is the largest line item, it renews
+2027-01-31 with no deadline pressure, and nobody had questioned it.** A cheaper Hostinger
+promo term at renewal is also a lever with zero migration.
+
+### Correction 3 — the real risk is correlated failure, not cost
+
+`agrolloo.com` simultaneously carries: the `go.agrolloo.com` money path baked into 65+
+published YouTube descriptions, all 13 Workers, **and the mailboxes that are the
+password-reset path for the affiliate accounts**. If it lapses, the links, the apps and the
+means of recovering the affiliate accounts all die *at the same time*.
+
+The renewal runs on a **UPI autopay mandate**, not the Visa card — and UPI mandates fail
+silently more often than cards (bank re-auth, mandate expiry, balance). The failure notice
+would be sent to a mailbox on the domain that is expiring. This plan recorded "auto-renew ON"
+as though that settled it. **It does not.**
+
+Three Rs 0 mitigations, all higher expected value than any saving in this plan:
+
+1. **Move affiliate-account recovery email off `@agrolloo.com`** to a Gmail. This breaks the
+   correlation and is the single highest-value action in this document.
+2. **Verify the UPI debit actually cleared** on 10-14. Do not trust the flag.
+3. **Prepay the domain for several years**, removing the annual failure roll entirely.
+
+### Revised ranking (supersedes the sequence above)
+
+| Rank | Action | Value | Risk / deadline |
+|---|---|---|---|
+| 1 | Recovery email off `agrolloo.com`; verify the UPI debit; prepay the domain | Rs 0 — removes an income-extinction path | none |
+| 2 | Fix the Rs 0-earning affiliate links, `filmora` first (approved on Impact) | plausibly > the entire migration saving, and it is upside not cost-cutting | none |
+| 3 | Re-price the VPS before 2027-01-31 | largest line item | no deadline |
+| 4 | Free domain move to account 1, then standalone email | ~Rs 2,000-3,700/yr, one login | low, before ~10-31 |
+| 5 | Migadu migration as originally scoped | ~Rs 4,300/yr | real risk + deadline — **stays parked** |
