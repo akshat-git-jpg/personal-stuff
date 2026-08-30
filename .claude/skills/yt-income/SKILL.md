@@ -270,6 +270,59 @@ affiliate-management agency, so the brand behind it is unknown. Ask the owner;
 when he knows, move it from `unidentified_payers` to `tool_aliases` and it
 becomes a normal tool row.
 
+### 4d. The mailboxes — the best untapped evidence there is
+
+Every affiliate program emails the owner when it accrues a commission and when it
+pays one out. Those mails name the tool, the amount and the date, which is exactly
+what the bank statement does not. **Read them before guessing at anything.**
+
+**Access — already wired, no new credential needed.** The two Hostinger mailboxes
+(`khushibakliwal@agrolloo.com`, `kushalbakliwal@agrolloo.com`) are IMAP, not Gmail,
+so `pp-gmail` cannot see them. The daily Telegram digest already reads them:
+
+- Config: `apps/telegram-email-assistant/imap-accounts.json` (committed, no secrets)
+- Passwords: `IMAP_PASS_KHUSHIBAKLIWAL` / `IMAP_PASS_KUSHALBAKLIWAL` in
+  `/srv/crons/gmail-digest/.env` **on the VPS**
+- Reader: `apps/telegram-email-assistant/fetch-imap.py` (stdlib `imaplib`)
+
+Run the scan **on the VPS** so the passwords never leave that box:
+
+```bash
+scp -i ~/.ssh/hostinger_vps scan.py root@72.61.241.170:/tmp/
+ssh -i ~/.ssh/hostinger_vps root@72.61.241.170 \
+  'set -a; . /srv/crons/gmail-digest/.env; set +a; python3 /tmp/scan.py'
+```
+
+Two IMAP gotchas that cost time on 2026-08-30. Hostinger's `LIST` reply quotes the
+*delimiter*, not the mailbox name (`(\HasChildren) "." INBOX.Sent`), so split on the
+last quote and take what follows — a parser that grabs the quoted field selects `.`
+and silently returns zero mail. And the folders are `INBOX`, `INBOX.Sent`,
+`INBOX.Junk`, `INBOX.Drafts`, `INBOX.Trash`; real payout notices do land in Junk.
+
+**What the 2026-08-30 sweep established** (891 mails since Jan 2026 in the main box):
+
+| Finding | Why it matters |
+|---|---|
+| **PartnerStack pays over Airwallex.** Its payout mails itemise the fee: *"Airwallex processing fee -$4.14"*. | Confirms the `PartnerStack → Airwallex → Bank` route the engine already assumes. |
+| **impact.com pays in rupees, straight to the bank** — *"most recent payment of Rs.20,185.19 have been transferred… added to Agrollo's bank account"*. | The engine infers impact credits by converting USD earnings at an FX band. impact is not sending USD. Treat the mailed `Rs.` figure as ground truth over any inference. |
+| **Only two impact payments went out all year**: Rs.20,185.19 (26 Feb) and Rs.623.00 (16 Mar) — and **neither appears in this passbook**. | Either impact pays a different account, or it stopped paying. Worth asking the owner before trusting any impact attribution. |
+| **Rewardful (Lovable, EverBee) pays through Tipalti, and that payout has been blocked since Feb 2026** on identity verification — the thread was still open on 28 Aug. | Those commissions were *earned*, not *received*. They must never be attributed to a bank credit. |
+| **Both mailboxes are the same impact account** (`4809503`) and get identical mail. | Settles the old "why do khushi and kushal show the same number" question. It is one account, not two. |
+| **Unwired programs seen in the mail:** Rewardful, Tipalti, Tolt (OpenArt, Glitching), FirstPromoter (JoggAI), UpPromote, Partnerize, Book Bolt's own notifier. | Each is a source the tally cannot currently see. |
+
+**The standing lead on the untraced money.** All untraced *bank* money is one rail
+and one sender: nine Airwallex IMPS credits, every one from account `7259033210`.
+One of the nine (₹7,567.40 on 6 Mar) is matched to a PartnerStack payout. The other
+eight are not, and PartnerStack's own payouts are far too small to account for them
+— so **a second payer also settles over Airwallex**, and naming it closes most of
+the gap. No payout mail lands near the biggest of them (₹22,084.36 on 19 Mar), so
+that payer probably does not send notifications at all.
+
+**Do not close the gap by loosening a match.** Every FX rate implied by the
+near-miss candidates lands at 91–94 INR/USD against a real rate near 87, which is
+the arithmetic telling you the credit is not that payout. A wrong name is worse
+than an honest gap; see 4b.
+
 ### 5. Test, then publish
 
 ```bash

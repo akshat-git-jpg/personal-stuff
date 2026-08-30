@@ -1337,3 +1337,20 @@ field is `Action_Cost`, not `Earnings`, and reading the wrong one shows income a
 PayKickstart is parked because its API is vendor-plan only.
 
 Spec: `docs/superpowers/specs/2026-08-30-yt-income-revenue-design.md`
+
+## 2026-08-30 — the two Hostinger mailboxes are an income source, not just a digest feed
+
+`khushibakliwal@agrolloo.com` and `kushalbakliwal@agrolloo.com` receive every affiliate
+commission and payout notification. They are IMAP (Hostinger), invisible to `pp-gmail`,
+but the gmail-digest cron already holds working passwords on the VPS. Reading them is a
+one-command SSH away and needs no new credential.
+
+**Why this matters:** the bank statement says *how much* arrived; only the mailbox says
+*who sent it and for what*. The first sweep immediately settled three things the API
+sources could not — PartnerStack settles over Airwallex, impact.com pays in rupees rather
+than converted USD, and the Rewardful/Tipalti payouts for Lovable and EverBee have been
+blocked on verification since Feb 2026, so that money was earned but never received.
+
+**Rule:** run the mailbox sweep before attributing anything by inference, and never loosen
+an FX band or a date window to make untraced money disappear. Details and the IMAP gotchas
+are in `.claude/skills/yt-income/SKILL.md` section 4d.
