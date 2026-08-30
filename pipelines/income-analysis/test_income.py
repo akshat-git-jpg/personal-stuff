@@ -344,8 +344,13 @@ class ToolNames(unittest.TestCase):
         self.assertEqual(names, {"Book Bolt", "DigitalWorks"})
 
 
-class UnidentifiedPayers(unittest.TestCase):
-    """An agency is not a tool, and must never be written as one."""
+class NonToolPayers(unittest.TestCase):
+    """An agency is not a tool, and must never be written as one.
+
+    It is not a third bucket either. There are two answers to "which tool earned
+    this?" — we know, or we do not — so an agency payment lands in untraced with
+    its payer attached as evidence.
+    """
 
     UNKNOWN = {"Дигитал Маркетинг Солутионс 2011 ООД":
                {"via": "DigitalWorks", "note": "affiliate agency"}}
@@ -358,12 +363,33 @@ class UnidentifiedPayers(unittest.TestCase):
             months, _ = attribute.attribute(["paypal"], pp, unidentified=self.UNKNOWN)
         aug = months["2026-08"]
         self.assertEqual(aug["tools"], [], "an agency must not appear as a tool")
-        self.assertAlmostEqual(aug["unidentified"]["amount"], 9165.59, places=2)
-        payer = aug["unidentified"]["payers"][0]
-        self.assertEqual(payer["via"], "DigitalWorks")
-        self.assertIn("Дигитал", payer["payer"])
+        self.assertAlmostEqual(aug["untraced"]["amount"], 9165.59, places=2)
 
-    def test_invariant_holds_with_three_buckets(self):
+    def test_there_is_no_third_bucket(self):
+        """One word for "we do not know", not two. A second bucket reads as a
+        second kind of money and invites a misread of the tally."""
+        credits = [credit("a", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-08",
+                           [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, unidentified=self.UNKNOWN)
+        self.assertNotIn("unidentified", months["2026-08"])
+
+    def test_untraced_agency_row_keeps_its_evidence(self):
+        """Untraced is never a bare "unknown" — whatever we know rides along."""
+        credits = [credit("a", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-08",
+                           [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, unidentified=self.UNKNOWN)
+        row = months["2026-08"]["untraced"]["credits"][0]
+        self.assertEqual(row["kind"], "payer")
+        self.assertEqual(row["via"], "DigitalWorks")
+        self.assertIn("Дигитал", row["payer"])
+        self.assertEqual(row["route"], ["PayPal"])
+        self.assertIn("paid via DigitalWorks", months["2026-08"]["untraced"]["reasons"])
+
+    def test_invariant_holds_with_two_buckets(self):
         credits = [credit("a", "03/08/2026", 9165.59, "paypal"),
                    credit("b", "06/08/2026", 7014.74, "paypal"),
                    credit("c", "21/08/2026", 5000.00, "airwallex")]
@@ -374,9 +400,12 @@ class UnidentifiedPayers(unittest.TestCase):
             months, _ = attribute.attribute(
                 ["paypal", "airwallex"], pp, unidentified=self.UNKNOWN)
         aug = months["2026-08"]
-        total = (sum(t["amount"] for t in aug["tools"])
-                 + aug["unidentified"]["amount"] + aug["untraced"]["amount"])
+        total = sum(t["amount"] for t in aug["tools"]) + aug["untraced"]["amount"]
         self.assertAlmostEqual(total, aug["bank_total"], delta=1.0)
+        # The agency money and the unclaimed Airwallex credit share one bucket,
+        # each carrying its own evidence.
+        kinds = [c["kind"] for c in aug["untraced"]["credits"]]
+        self.assertEqual(sorted(kinds), ["credit", "payer"])
 
     def test_matching_survives_suffix_stripping(self):
         """The lookup keys on the canonical name, not the raw payer string."""

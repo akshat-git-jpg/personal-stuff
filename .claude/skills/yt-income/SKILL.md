@@ -240,21 +240,40 @@ tracking links are the ground truth for what he actually promotes; query the
 **Some payers are not tools at all** — affiliate agencies and processors that pay
 out on behalf of brands. Those go in `unidentified_payers`, never `tool_aliases`.
 Writing an agency's name in the Tool column claims the owner promotes it, which
-is false; he rejected exactly that on 2026-08-30. They render as **Unidentified**,
-keeping the payer as evidence the way untraced money keeps its bank reference,
-and the invariant becomes:
+is false; he rejected exactly that on 2026-08-30.
 
-    tools + unidentified + untraced == bank_total
+**They land in untraced, not in a bucket of their own.** There are exactly two
+answers to "which tool earned this?" — we know, or we do not — so there are
+exactly two buckets:
 
-**Currently unidentified: DigitalWorks** (Дигитал Маркетинг Солутионс 2011 ООД,
-`a.todorova@digitalworks.net`) — ₹9,165.59 in Aug 2026. An affiliate-management
-agency, so the brand behind it is unknown. Ask the owner; when he knows, move it
-from `unidentified_payers` to `tool_aliases` and it becomes a normal tool row.
+    tools + untraced == bank_total
+
+An earlier build gave agencies a third bucket called *Unidentified*. The owner
+killed it the same day: *"Is this not similarly like untraced? Basically we are
+not able to trace back to the tool."* He was right, and the words were the tell:
+"unidentified" and "untraced" are synonyms in plain English, so putting both on a
+source-of-truth dashboard invites a misread of the one tally he trusts. **Do not
+reintroduce a third bucket** under any name.
+
+What the merge must never cost is the evidence. Untraced is never a bare
+"unknown" — every row carries the most useful thing we know about it, and rows are
+ordered by how short a walk that is to an answer:
+
+| `kind` | What we already know | The next step |
+|---|---|---|
+| `payer` | who paid (an agency), the amount, the route | ask them which brand it is for |
+| `credit` | date, rail, bank reference, nearby payouts | quote the ref to the bank |
+
+**Currently untraced with a name on it: DigitalWorks** (Дигитал Маркетинг
+Солутионс 2011 ООД, `a.todorova@digitalworks.net`) — ₹9,165.59 in Aug 2026. An
+affiliate-management agency, so the brand behind it is unknown. Ask the owner;
+when he knows, move it from `unidentified_payers` to `tool_aliases` and it
+becomes a normal tool row.
 
 ### 5. Test, then publish
 
 ```bash
-python3 pipelines/income-analysis/test_income.py    # 34 tests, must be green
+python3 pipelines/income-analysis/test_income.py    # 36 tests, must be green
 cd apps/yt-income && npm run deploy                 # sync + typecheck + build + deploy
 ```
 

@@ -255,29 +255,33 @@ def print_tally(months, notes, paypal_months):
     print("  REVENUE TALLY — bank credits are the truth")
     print("=" * 66)
 
-    g_bank = g_traced = g_untraced = g_excl = 0.0
+    g_bank = g_traced = g_untraced = 0.0
     for m in sorted(months):
         d = months[m]
         traced = sum(x["amount"] for x in d["tools"])
         un = d["untraced"]["amount"]
-        unk = d.get("unidentified", {}).get("amount", 0.0)
         bank = d["bank_total"]
-        g_bank += bank; g_traced += traced; g_untraced += un; g_excl += unk
+        g_bank += bank; g_traced += traced; g_untraced += un
         pct = (traced / bank * 100) if bank else 100.0
-        mark = "ok " if (un + unk) <= 1 else "!! "
+        mark = "ok " if un <= 1 else "!! "
         print(f"  {mark}{m}  bank {bank:>11,.2f}   "
               f"traced {traced:>11,.2f} ({pct:5.1f}%)   "
-              f"unidentified {unk:>9,.2f}   untraced {un:>10,.2f}")
-        for x in d.get("unidentified", {}).get("payers", []):
-            print(f"        unidentified  {x['amount']:>10,.2f}  paid via "
-                  f"{x.get('via', x.get('payer'))} — payer is not a tool")
+              f"untraced {un:>10,.2f}")
+        # Every untraced line says what we DO know, so the terminal is as useful
+        # for chasing money as the dashboard is.
         for c in d["untraced"]["credits"]:
-            print(f"        untraced credit  {c['date']}  {c['amount']:>10,.2f}  {c['rail']}")
+            if c.get("kind") == "payer":
+                print(f"        untraced  {c['amount']:>10,.2f}  paid by "
+                      f"{c.get('via') or c.get('payer')} — payer is not a tool")
+            else:
+                ref = f"  ref {c['ref']}" if c.get("ref") else ""
+                print(f"        untraced  {c['amount']:>10,.2f}  {c['date']}  "
+                      f"via {c['rail']}{ref}")
 
     print("  " + "-" * 64)
     share = (g_untraced / g_bank * 100) if g_bank else 0.0
     print(f"     TOTAL  bank {g_bank:>11,.2f}   traced {g_traced:>11,.2f}   "
-          f"unidentified {g_excl:>9,.2f}   untraced {g_untraced:>10,.2f}")
+          f"untraced {g_untraced:>10,.2f}")
     if g_untraced > 1:
         print(f"\n  !! {share:.1f}% of income cannot be traced to a tool.")
         for src, items in notes.items():

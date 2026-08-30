@@ -285,8 +285,3 @@ tfoot td { font-weight: 700; border-bottom: none; padding-top: 14px; font-size: 
 
 /* Traced to a payer, not to a tool. Muted amber: a different problem from
    untraced red, and quieter so it does not compete with it. */
-.sw-unknown { background: #8a6d3b; }
-.row-unknown td { background: rgba(138, 109, 59, 0.10); }
-.row-unknown td:first-child { color: #d7b26a; font-weight: 600; }
-.unknown-why { background: rgba(138,109,59,0.08); border-color: rgba(138,109,59,0.3); }
-.unknown-why strong { color: #d7b26a; }

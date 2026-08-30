@@ -35,7 +35,7 @@
     "Submagic": "Not present in this PayPal account at all — zero payments Jan-Aug 2026. Owner says Submagic settles to a different bank account, which is consistent: its money never enters this pipeline, so there is nothing to exclude."
   },
 
-  "_unidentified_comment": "Payers that are NOT tools — agencies, networks and processors that pay out on behalf of brands. Their money is real and traced to a payer, but the tool behind it is unknown, so it must never be written in the Tool column: an agency name there reads as a product the owner promotes, which is simply false. These show as 'Unidentified' with the payer kept as evidence, exactly like untraced money keeps its bank reference. Move one into tool_aliases the moment the real brand is confirmed.",
+  "_unidentified_comment": "Payers that are NOT tools — agencies, networks and processors that pay out on behalf of brands. Their money is real and we know exactly who sent it, but the tool behind it is unknown, so it must never be written in the Tool column: an agency name there reads as a product the owner promotes, which is simply false. These land in UNTRACED, not a bucket of their own — untraced means 'no tool name yet', which is exactly what this is, and a second word for it only invites a misread of the tally. The payer rides along on the row as evidence, the way an unclaimed bank credit keeps its reference. Move one into tool_aliases the moment the real brand is confirmed.",
   "unidentified_payers": {
     "Дигитал Маркетинг Солутионс 2011 ООД": {
       "via": "DigitalWorks",

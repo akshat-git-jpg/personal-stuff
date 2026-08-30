@@ -468,12 +468,19 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
               manual=None, rail_labels=None, aliases=None, unidentified=None):
     """Run every pass and fold the result into per-month totals.
 
-    `unidentified` names payers that are not tools — agencies and processors that
-    pay out for other brands. Their money is real and traced to a payer, but the
-    tool behind it is unknown, so it gets its own bucket rather than a fake name
-    in the Tool column. The invariant becomes:
+    Two buckets only, because there are only two answers to "which tool earned
+    this?" — we know, or we do not:
 
-        tools + unidentified + untraced == bank_total
+        tools + untraced == bank_total
+
+    `unidentified` names payers that are not tools: agencies and processors that
+    pay out for other brands. Their money is real and we know exactly who sent
+    it, but the tool behind it is still unknown, so it belongs in untraced like
+    any other unnamed money. It does NOT get a bucket of its own — a second word
+    for "we do not know" reads as a second kind of money and invites a misread of
+    the one number the owner treats as truth. What it does keep is its evidence:
+    the payer travels on the row, the way an unclaimed bank credit keeps its
+    reference. Untraced is never a bare "unknown"; it always says what we know.
     """
     credits = load_bank_credits(set(rails))
     rail_labels = rail_labels or {}
@@ -531,8 +538,8 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
     # Key on the *canonical* name, because that is what the rows carry by the time
     # we get here — suffix stripping has already turned "…2011 ООД" into "…2011",
     # so keying on the raw payer name would silently never match.
-    unknown = {canonical_tool(k, aliases).strip().casefold(): {**v, "payer": k}
-               for k, v in (unidentified or {}).items()}
+    non_tools = {canonical_tool(k, aliases).strip().casefold(): {**v, "payer": k}
+                 for k, v in (unidentified or {}).items()}
 
     out = {}
     for m in sorted(months):
@@ -544,45 +551,56 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
             for (t, r, conf), a in sorted(d["tools"].items(), key=lambda kv: -kv[1])
         ]
         # An agency or processor is not a tool. Writing its name in the Tool
-        # column would claim the owner promotes it, which is false — so it moves
-        # to its own bucket, keeping the payer as evidence the way untraced money
-        # keeps its bank reference.
-        tools, unknown_rows = [], []
+        # column would claim the owner promotes it, which is false — so the row
+        # moves to untraced. It arrives there better off than an unclaimed bank
+        # credit, not worse: it carries a named payer, an exact amount and a
+        # route, which is a shorter path to the answer than a bank reference.
+        tools, named_rows = [], []
         for row in rows:
-            info = unknown.get(row["tool"].strip().casefold())
+            info = non_tools.get(row["tool"].strip().casefold())
             if info:
-                unknown_rows.append({**row, "payer": info.get("payer", row["tool"]),
-                                     "via": info.get("via", row["tool"])})
+                named_rows.append({
+                    "kind": "payer",
+                    "amount": row["amount"],
+                    "route": row["route"],
+                    "confidence": row["confidence"],
+                    "payer": info.get("payer", row["tool"]),
+                    "via": info.get("via", row["tool"]),
+                    "note": info.get("note"),
+                    "rail_label": rail_labels.get(row["route"][0].lower(),
+                                                  row["route"][0]),
+                })
             else:
                 tools.append(row)
+
         untraced = d["untraced"]
+        # Named payers first: they are the cheapest to chase, so they lead.
+        credits = named_rows + [{"kind": "credit", **c} for c in untraced["credits"]]
+        amount = round(untraced["amount"] + sum(r["amount"] for r in named_rows), 2)
+
         reasons = []
-        if untraced["amount"] > PAISE:
-            # The rail is the single most useful thing we know about untraced
-            # money, so it leads. "Arrived over Airwallex" beats "unknown".
-            reasons = sorted({c["rail_label"] for c in untraced["credits"]})
+        if amount > PAISE:
+            # The most useful thing we know leads. A named payer beats a rail,
+            # and a rail beats "unknown".
+            reasons = sorted({f"paid via {r['via']}" for r in named_rows})
+            reasons += sorted({c["rail_label"] for c in untraced["credits"]})
             if sources_absent:
                 reasons.append("source_not_connected")
         out[m] = {
             "bank_total": round(d["bank_total"], 2),
             "rails": {k: v for k, v in sorted(d["rails"].items())},
             "tools": tools,
-            "unidentified": {
-                "amount": round(sum(r["amount"] for r in unknown_rows), 2),
-                "payers": unknown_rows,
-            },
             "untraced": {
-                "amount": round(untraced["amount"], 2),
+                "amount": amount,
                 "reasons": reasons,
-                "credits": untraced["credits"],
+                "credits": credits,
             },
         }
-        # The invariant this whole module exists to hold. Three buckets now, and
-        # only the first is money we can put a tool name against.
+        # The invariant this whole module exists to hold. Two buckets: money we
+        # can put a tool name against, and money we cannot.
         traced = sum(t["amount"] for t in tools)
-        unk = out[m]["unidentified"]["amount"]
-        drift = abs(traced + unk + untraced["amount"] - d["bank_total"])
+        drift = abs(traced + amount - d["bank_total"])
         assert drift <= 1.0, (
-            f"{m}: tools+unidentified+untraced off bank total by {drift:.2f}")
+            f"{m}: tools+untraced off bank total by {drift:.2f}")
 
     return out, {"partnerstack": ps_notes, "impact": im_notes}

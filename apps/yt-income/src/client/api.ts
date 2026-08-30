@@ -32,40 +32,46 @@ export interface Lead {
   implied_fx: number | null;
 }
 
-export interface UntracedCredit {
-  date: string;
-  amount: number;
-  rail: string;
-  /** Display name of the rail, e.g. "Airwallex". Always known. */
-  rail_label: string;
-  /** Bank reference — quote it to the bank to ask who sent the money. */
-  ref: string | null;
-  leads: Lead[];
-}
-
 /**
- * Money traced to a payer that is not a tool — an agency or processor paying out
- * on behalf of some brand. Kept out of the tool list on purpose: an agency name
- * in the Tool column would claim it is something the owner promotes.
+ * One line of untraced money. Untraced means "no tool name against it" — never
+ * "we know nothing". Two kinds, and the kind says how much we already know:
+ *
+ *  - `credit` — an unclaimed bank credit. We know the date, the rail and the
+ *    bank reference, and sometimes which network payouts were nearby.
+ *  - `payer`  — an agency or processor paid us and we know exactly who, but an
+ *    agency pays out for many brands, so the tool is still unknown. Naming the
+ *    agency in the Tool column would claim the owner promotes it, which is
+ *    false; the payer rides along as evidence instead.
  */
-export interface UnidentifiedPayer {
-  /** The payer as it appears on the transaction. */
-  payer: string;
-  /** Short readable name for that payer, e.g. "DigitalWorks". */
-  via: string;
-  amount: number;
-  route: string[];
-  confidence: Confidence;
-}
+export type UntracedCredit =
+  | {
+      kind?: "credit";
+      date: string;
+      amount: number;
+      rail: string;
+      /** Display name of the rail, e.g. "Airwallex". Always known. */
+      rail_label: string;
+      /** Bank reference — quote it to the bank to ask who sent the money. */
+      ref: string | null;
+      leads: Lead[];
+    }
+  | {
+      kind: "payer";
+      amount: number;
+      /** The payer as it appears on the transaction. */
+      payer: string;
+      /** Short readable name for that payer, e.g. "DigitalWorks". */
+      via: string;
+      note?: string | null;
+      route: string[];
+      confidence: Confidence;
+      rail_label: string;
+    };
 
 export interface MonthRevenue {
   bank_total: number;
   rails: Record<string, number>;
   tools: ToolRow[];
-  unidentified: {
-    amount: number;
-    payers: UnidentifiedPayer[];
-  };
   untraced: {
     amount: number;
     reasons: string[];

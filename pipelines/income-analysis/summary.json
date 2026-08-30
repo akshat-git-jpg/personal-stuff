@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T20:49:27",
+  "generated_at": "2026-08-30T21:02:38",
   "coverage": {
     "from": "2026-01",
     "to": "2026-08"
@@ -75,10 +75,6 @@
           "confidence": "exact"
         }
       ],
-      "unidentified": {
-        "amount": 0,
-        "payers": []
-      },
       "untraced": {
         "amount": 0.0,
         "reasons": [],
@@ -125,10 +121,6 @@
           "confidence": "exact"
         }
       ],
-      "unidentified": {
-        "amount": 0,
-        "payers": []
-      },
       "untraced": {
         "amount": 3818.16,
         "reasons": [
@@ -137,6 +129,7 @@
         ],
         "credits": [
           {
+            "kind": "credit",
             "date": "25/02/2026",
             "amount": 3818.16,
             "rail": "airwallex",
@@ -216,10 +209,6 @@
           "implied_fx": 88.73
         }
       ],
-      "unidentified": {
-        "amount": 0,
-        "payers": []
-      },
       "untraced": {
         "amount": 22084.36,
         "reasons": [
@@ -228,6 +217,7 @@
         ],
         "credits": [
           {
+            "kind": "credit",
             "date": "19/03/2026",
             "amount": 22084.36,
             "rail": "airwallex",
@@ -261,10 +251,6 @@
           "confidence": "exact"
         }
       ],
-      "unidentified": {
-        "amount": 0,
-        "payers": []
-      },
       "untraced": {
         "amount": 12616.8,
         "reasons": [
@@ -273,6 +259,7 @@
         ],
         "credits": [
           {
+            "kind": "credit",
             "date": "17/04/2026",
             "amount": 12616.8,
             "rail": "airwallex",
@@ -315,10 +302,6 @@
           "confidence": "exact"
         }
       ],
-      "unidentified": {
-        "amount": 0,
-        "payers": []
-      },
       "untraced": {
         "amount": 14895.03,
         "reasons": [
@@ -327,6 +310,7 @@
         ],
         "credits": [
           {
+            "kind": "credit",
             "date": "07/05/2026",
             "amount": 7988.68,
             "rail": "airwallex",
@@ -342,6 +326,7 @@
             ]
           },
           {
+            "kind": "credit",
             "date": "22/05/2026",
             "amount": 6906.35,
             "rail": "airwallex",
@@ -407,10 +392,6 @@
           "confidence": "exact"
         }
       ],
-      "unidentified": {
-        "amount": 0,
-        "payers": []
-      },
       "untraced": {
         "amount": 14759.13,
         "reasons": [
@@ -419,6 +400,7 @@
         ],
         "credits": [
           {
+            "kind": "credit",
             "date": "30/06/2026",
             "amount": 14759.13,
             "rail": "airwallex",
@@ -476,10 +458,6 @@
           "confidence": "exact"
         }
       ],
-      "unidentified": {
-        "amount": 0,
-        "payers": []
-      },
       "untraced": {
         "amount": 12605.66,
         "reasons": [
@@ -488,6 +466,7 @@
         ],
         "credits": [
           {
+            "kind": "credit",
             "date": "07/07/2026",
             "amount": 3363.6,
             "rail": "airwallex",
@@ -509,6 +488,7 @@
             ]
           },
           {
+            "kind": "credit",
             "date": "23/07/2026",
             "amount": 9242.06,
             "rail": "airwallex",
@@ -549,25 +529,26 @@
           "confidence": "exact"
         }
       ],
-      "unidentified": {
+      "untraced": {
         "amount": 9165.59,
-        "payers": [
+        "reasons": [
+          "paid via DigitalWorks",
+          "source_not_connected"
+        ],
+        "credits": [
           {
-            "tool": "Дигитал Маркетинг Солутионс 2011",
+            "kind": "payer",
             "amount": 9165.59,
             "route": [
               "PayPal"
             ],
             "confidence": "exact",
             "payer": "Дигитал Маркетинг Солутионс 2011 ООД",
-            "via": "DigitalWorks"
+            "via": "DigitalWorks",
+            "note": "Bulgarian entity paying from a.todorova@digitalworks.net. DigitalWorks is an affiliate-management agency that pays out for other brands, so the tool is unknown. Do NOT merge with Book Bolt: Book Bolt pays separately as 'Book Bolt LLC' from admin@bookbolt.io — that merge was tried on 2026-08-30 on the strength of a LinkedIn page and the payer emails disproved it.",
+            "rail_label": "PayPal"
           }
         ]
-      },
-      "untraced": {
-        "amount": 0.0,
-        "reasons": [],
-        "credits": []
       }
     }
   },

@@ -9,9 +9,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   fetchRevenue, UnauthorizedError,
-  type MonthRevenue, type RevenueResponse, type ToolRow,
+  type Lead, type MonthRevenue, type RevenueResponse, type ToolRow,
+  type UntracedCredit,
 } from "./api";
-import { CONFIDENCE_LABEL, HOP_HUE, OTHER_HUE, TOOL_HUES, UNKNOWN_HUE, UNTRACED_HUE } from "./palette";
+import { CONFIDENCE_LABEL, HOP_HUE, OTHER_HUE, TOOL_HUES, UNTRACED_HUE } from "./palette";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -225,12 +226,8 @@ function Sources({ sources }: { sources: RevenueResponse["sources"] }) {
 function Tally({ month, name }: { month: MonthRevenue; name: string }) {
   const traced = month.tools.reduce((s, t) => s + t.amount, 0);
   const un = month.untraced.amount;
-  const unknown = month.unidentified?.amount ?? 0;
-  // Unidentified is not traced to a tool either, so it counts against the verdict.
-  const unnamed = un + unknown;
-  const clean = unnamed < 1;
+  const clean = un < 1;
   const pct = month.bank_total ? Math.round((traced / month.bank_total) * 100) : 100;
-  const unknownPct = month.bank_total ? Math.round((unknown / month.bank_total) * 100) : 0;
   return (
     <div className="tally">
       <div className="tally-top">
@@ -244,31 +241,22 @@ function Tally({ month, name }: { month: MonthRevenue; name: string }) {
         <div className={`verdict ${clean ? "verdict-ok" : "verdict-warn"}`}>
           {clean
             ? "✓ Every rupee traced to a tool"
-            : `⚠ ${money(unnamed)} could not be traced to a tool`}
+            : `⚠ ${money(un)} could not be traced to a tool`}
         </div>
       </div>
       <div className="split">
         <span style={{ width: `${pct}%`, background: TOOL_HUES[0] }} />
-        {unknown > 1 && <span style={{ width: `${unknownPct}%`, background: UNKNOWN_HUE }} />}
-        {un > 1 && (
-          <span style={{ width: `${100 - pct - unknownPct}%`, background: UNTRACED_HUE }} />
-        )}
+        {un > 1 && <span style={{ width: `${100 - pct}%`, background: UNTRACED_HUE }} />}
       </div>
       <div className="split-key">
         <div>
           <span className="sw" style={{ background: TOOL_HUES[0] }} />
           Traced to tools <b>{money(traced)}</b> · {pct}%
         </div>
-        {unknown > 1 && (
-          <div>
-            <span className="sw sw-unknown" />
-            Unidentified payer <b>{money(unknown)}</b> · {unknownPct}%
-          </div>
-        )}
         {un > 1 && (
           <div>
             <span className="sw sw-hatch" />
-            Untraced <b>{money(un)}</b> · {100 - pct - unknownPct}%
+            Untraced <b>{money(un)}</b> · {100 - pct}%
           </div>
         )}
       </div>
@@ -308,7 +296,11 @@ function ToolTable({
   sources: RevenueResponse["sources"];
 }) {
   const un = month.untraced;
-  const unknown = month.unidentified?.payers ?? [];
+  // Untraced money splits by how much we already know about it. A named payer is
+  // a short walk to the answer; a bare bank credit is a long one. Same bucket,
+  // because both mean "no tool name yet" — different evidence on the row.
+  const named = un.credits.filter((c) => c.kind === "payer");
+  const anon = un.credits.filter((c) => c.kind !== "payer");
   const clean = un.amount < 1;
   const absent = sources.filter((s) => s.state === "absent");
   const rows: ToolRow[] = [...month.tools].sort((a, b) => b.amount - a.amount);
@@ -342,29 +334,43 @@ function ToolTable({
                 <td>{((t.amount / month.bank_total) * 100).toFixed(1)}%</td>
               </tr>
             ))}
-            {/* Traced to a payer, but the payer is an agency, not a tool. Shown
-                as Unidentified rather than under the agency's name — writing
-                "DigitalWorks" in the Tool column would claim it is a product the
-                owner promotes, which is false. */}
-            {month.unidentified?.payers?.map((p, i) => (
-              <tr className="row-unknown" key={`u${i}`}>
+            {/* Untraced, but with a name on it. An agency paid us and we know
+                which one; an agency pays out for many brands, so the tool is
+                still unknown. The payer sits in the Route column as evidence —
+                putting "DigitalWorks" in the Tool column would claim it is a
+                product the owner promotes, which is false. */}
+            {named.map((c, i) => (
+              <tr className="row-untraced" key={`p${i}`}>
+                <td><span className="sw sw-hatch" />Untraced</td>
                 <td>
-                  <span className="sw sw-unknown" />
-                  Unidentified
-                  <span className="conf" title={`Paid by ${p.payer}, which pays out on behalf of other brands`}>
-                    via {p.via}
+                  <span className="chain">
+                    <span className="hop hop-unknown"
+                          title={`Paid by ${c.payer}. An agency pays out for many brands, so which tool this is for is not yet known.`}>
+                      ? via {c.via}
+                    </span>
+                    {c.route.map((h) => (
+                      <span key={h}>
+                        <span className="hop-arrow">→</span>
+                        <span className="hop"
+                              style={HOP_HUE[h]
+                                ? { background: `${HOP_HUE[h]}22`, color: HOP_HUE[h],
+                                    borderColor: `${HOP_HUE[h]}55` }
+                                : undefined}>{h}</span>
+                      </span>
+                    ))}
+                    <span className="hop-arrow">→</span>
+                    <span className="hop hop-bank">Bank</span>
                   </span>
                 </td>
-                <td><Route hops={p.route} /></td>
-                <td>{money(p.amount)}</td>
-                <td>{((p.amount / month.bank_total) * 100).toFixed(1)}%</td>
+                <td>{money(c.amount)}</td>
+                <td>{((c.amount / month.bank_total) * 100).toFixed(1)}%</td>
               </tr>
             ))}
 
             {/* One row per rail, not one lump. We always know how the money
                 arrived even when we do not know who sent it, and naming the rail
                 is the difference between a dead end and a lead. */}
-            {!clean && untracedByRail(un.credits).map(([railLabel, credits]) => {
+            {anon.length > 0 && untracedByRail(anon).map(([railLabel, credits]) => {
               const amt = credits.reduce((s, c) => s + c.amount, 0);
               return (
                 <tr className="row-untraced" key={railLabel}>
@@ -402,39 +408,12 @@ function ToolTable({
         </table>
       </div>
 
-      {unknown.length > 0 && (
-        <div className="untraced-why unknown-why">
-          <strong>
-            {money(month.unidentified.amount)} came from a payer that is not a tool.
-          </strong>{" "}
-          We know exactly who sent it — it is just not something you promote, so there
-          is no tool name to put against it.
-          {unknown.map((p, i) => (
-            <div className="ucredit-card" key={i}>
-              <div className="ucredit-head">
-                <span className="ucredit-amt">{money(p.amount)}</span>
-                <span className="ucredit-meta">paid by <strong>{p.via}</strong></span>
-                <span className="ucredit-ref">{p.payer}</span>
-              </div>
-              <div className="ucredit-leads">
-                <span className="ucredit-leads-h">
-                  An affiliate agency pays out on behalf of brands, so the tool behind
-                  this could be any of them. Once you know which, add it to{" "}
-                  <code>tool_aliases</code> in <code>rules.json</code> and it becomes a
-                  normal tool row.
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       {!clean && (
         <div className="untraced-why">
           <strong>Chasing {money(un.amount)}.</strong>{" "}
-          It genuinely arrived in the bank — this is not missing money. Everything we
-          do know about each credit is below. Quote the reference to the bank to ask
-          who sent it.
+          It genuinely arrived in the bank — this is not missing money, only money
+          with no tool name on it yet. Everything we already know about each line is
+          below, so start with whichever is the shortest walk to an answer.
           {absent.length > 0 && (
             <p className="untraced-absent">
               {absent.map((s) => s.label).join(", ")} {absent.length === 1 ? "is" : "are"} not
@@ -443,7 +422,30 @@ function ToolTable({
             </p>
           )}
 
-          {un.credits.map((c, i) => (
+          {/* A named payer is the cheapest lead we ever get, so it leads the list
+              and says plainly what the next step is: ask them which brand. */}
+          {named.map((c, i) => (
+            <div className="ucredit-card" key={`p${i}`}>
+              <div className="ucredit-head">
+                <span className="ucredit-amt">{money(c.amount)}</span>
+                <span className="ucredit-meta">paid by <strong>{c.via}</strong></span>
+                <span className="ucredit-ref" title="The payer exactly as it appears on the transaction">
+                  {c.payer}
+                </span>
+              </div>
+              <div className="ucredit-leads">
+                <span className="ucredit-leads-h">
+                  {c.note ??
+                    "An affiliate agency pays out on behalf of brands, so the tool behind this could be any of them."}{" "}
+                  Ask them which brand this commission is for. Once you know, add it
+                  to <code>tool_aliases</code> in <code>rules.json</code> and it becomes
+                  a normal tool row.
+                </span>
+              </div>
+            </div>
+          ))}
+
+          {anon.map((c, i) => (
             <div className="ucredit-card" key={i}>
               <div className="ucredit-head">
                 <span className="ucredit-amt">{money(c.amount)}</span>
@@ -491,8 +493,8 @@ function ToolTable({
   );
 }
 
-/** Group untraced credits by the rail they arrived on, biggest first. */
-function untracedByRail(credits: MonthRevenue["untraced"]["credits"]) {
+/** Group unclaimed bank credits by the rail they arrived on, biggest first. */
+function untracedByRail(credits: Extract<UntracedCredit, { leads: Lead[] }>[]) {
   const by = new Map<string, typeof credits>();
   for (const c of credits) {
     const k = c.rail_label || c.rail;
@@ -549,9 +551,6 @@ function Trend({
         amt: folded.reduce((s, f) => s + f.value, 0), members: folded,
       });
     }
-    if ((d.unidentified?.amount ?? 0) > 1) {
-      segs.push({ label: "Unidentified payer", amt: d.unidentified.amount, fill: UNKNOWN_HUE });
-    }
     if (d.untraced.amount > 1) {
       segs.push({ label: "Untraced", amt: d.untraced.amount, fill: "url(#hatch)", hatch: true });
     }
@@ -570,7 +569,6 @@ function Trend({
   const band = pw / ks.length, bw = Math.min(44, band * 0.54);
 
   const untracedTotal = ks.reduce((s, k) => s + months[k].untraced.amount, 0);
-  const unknownTotal = ks.reduce((s, k) => s + (months[k].unidentified?.amount ?? 0), 0);
 
   return (
     <div className="panel">
@@ -656,12 +654,6 @@ function Trend({
           <div>
             <span className="sw" style={{ background: OTHER_HUE }} />
             Other tools <b>{money(palette.folded.reduce((s, t) => s + palette.totals[t], 0))}</b>
-          </div>
-        )}
-        {unknownTotal > 1 && (
-          <div>
-            <span className="sw sw-unknown" />
-            Unidentified payer <b>{money(unknownTotal)}</b>
           </div>
         )}
         {untracedTotal > 1 && (
