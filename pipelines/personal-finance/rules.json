@@ -31,13 +31,14 @@
       "note": "SBI savings interest, paid quarterly."
     },
     "to_mummy": {
-      "label": "To mummy",
+      "label": "Family",
       "kind": "expense",
       "match": [
         "seemabakli",
-        "shreemaya1"
+        "shreemaya1",
+        "khushibakl"
       ],
-      "note": "The owner's mother, across BOTH her accounts: Seema Bakliwal at Punjab National Bank and Shri Maya at Federal Bank (shreemaya1). Owner-confirmed 2026-08-30 — do not split them, and do not read a debit to Shri Maya in HER passbook as a third party; that is her moving money between her own accounts."
+      "note": "Money to family. Mother across BOTH her accounts — Seema Bakliwal at PNB and Shri Maya at Federal Bank — plus sister Khushi (khushibakl). Owner-confirmed 2026-08-30. A debit to Shri Maya in the MOTHER's passbook is her moving money between her own accounts, not a third party."
     },
     "credit_card": {
       "label": "Credit card",
@@ -45,7 +46,8 @@
       "match": [
         "cred.club@",
         "credpay.ea",
-        "credccbp.a"
+        "credccbp.a",
+        "cred.walle"
       ],
       "note": "CRED. A card bill is a payment for spending that already happened, so it double-counts against the categories below if both are summed as 'spending'."
     },
@@ -83,6 +85,23 @@
       ],
       "note": "Household cook, owner-confirmed 2026-08-30. Note that Abubakk was paid the same 7,000 on the same day from a different bank — a different person, and still unnamed. Matching on the amount or the date would wrongly catch both."
     },
+    "travel": {
+      "label": "Transport",
+      "kind": "expense",
+      "match": [
+        "REDBUS",
+        "irctc",
+        "uber",
+        "olacabs",
+        "rapido",
+        "bangalorem",
+        "NAMMA MA",
+        "makemytrip",
+        "indigo",
+        "chalo"
+      ],
+      "note": "Getting around: cabs, metro, bus, train, flights. bangalorem is Bangalore Metro. NOTE a second payee also renders as 'Bangalor' with the VPA englishbmr — that one is NOT matched here because it has not been identified; do not add it on the strength of the truncated name alone."
+    },
     "food": {
       "label": "Food",
       "kind": "expense",
@@ -92,34 +111,23 @@
         "MILANO I",
         "VEDA PAAV",
         "dominos",
-        "kfc"
-      ],
-      "note": "Merchants that identify themselves in the UPI remark."
-    },
-    "groceries": {
-      "label": "Groceries",
-      "kind": "expense",
-      "match": [
+        "kfc",
         "zeptonow",
         "blinkit",
         "instamart",
         "bigbasket"
       ],
-      "note": "Merchants that identify themselves in the UPI remark."
+      "note": "Eating out and groceries. Both are the food budget."
     },
-    "travel": {
-      "label": "Travel",
+    "health": {
+      "label": "Health",
       "kind": "expense",
       "match": [
-        "REDBUS",
-        "redbus",
-        "irctc",
-        "uber",
-        "olacabs",
-        "rapido",
-        "NAMMA MA",
-        "makemytrip",
-        "indigo"
+        "Aster Di",
+        "ASTER DM",
+        "apollo",
+        "pharmeasy",
+        "1mg"
       ],
       "note": "Merchants that identify themselves in the UPI remark."
     },
@@ -136,25 +144,15 @@
       "note": "Merchants that identify themselves in the UPI remark."
     },
     "recharge": {
-      "label": "Recharge",
+      "label": "Bills & recharge",
       "kind": "expense",
       "match": [
-        "JIO",
+        "/JIO/",
+        "jio.",
         "airtel",
         "vodafone",
-        "/JIO/"
-      ],
-      "note": "Merchants that identify themselves in the UPI remark."
-    },
-    "health": {
-      "label": "Health",
-      "kind": "expense",
-      "match": [
-        "Aster Di",
-        "ASTER DM",
-        "apollo",
-        "pharmeasy",
-        "1mg"
+        "bescom",
+        "actcorp"
       ],
       "note": "Merchants that identify themselves in the UPI remark."
     }
