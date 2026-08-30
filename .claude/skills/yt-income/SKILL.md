@@ -1,215 +1,175 @@
 ---
 name: yt-income
-description: "Refresh the Income tab on yt-analytics.agrolloo.com from a bank passbook plus the PayPal CLI. Ingests a password-protected PNB statement, sorts every credit into income rails vs personal money, reconciles PayPal against the bank, then rebuilds and redeploys. Trigger phrases: `yt-income`, `update my income`, `here's the passbook`, `new passbook`, `refresh the income dashboard`, `how much did I earn`, `ingest passbook`."
+description: "Refresh yt-income.agrolloo.com — the Revenue dashboard. Ingests a password-protected PNB passbook, pulls PayPal, impact.com and PartnerStack, ties every bank credit back to the tool that earned it, reports what it cannot trace, and redeploys. Trigger phrases: `yt-income`, `update my revenue`, `here's the passbook`, `new passbook`, `refresh the revenue dashboard`, `how much did I earn`, `revenue by tool`, `ingest passbook`."
 author: "akshat-git-jpg"
 license: "Apache-2.0"
 argument-hint: "[path to passbook PDF] | status | reconcile"
 allowed-tools: "Read Bash Edit Write Glob Grep"
 ---
 
-# yt-income — refresh the income dashboard
+# yt-income — refresh the Revenue dashboard
 
-Turns a bank passbook plus PayPal into the numbers behind the **Income** tab of
-`yt-analytics.agrolloo.com`.
+Turns a bank passbook plus three affiliate networks into the numbers behind
+**yt-income.agrolloo.com**.
 
-The owner has two income paths and only one of them can be automated:
+## The one idea everything follows
 
-| Path | How money arrives | Automatable? |
-|---|---|---|
-| PayPal | Affiliate pays PayPal → PayPal settles INR to the bank by NEFT | Yes — `paypal-txns-pp-cli` |
-| Direct to bank | Affiliate (via Airwallex, etc.) pays the bank directly | **No** — only visible in a passbook |
+**The bank is the truth.** Network reports exist to *explain* bank credits, never
+to add to them. So the output always satisfies:
 
-So this skill is **manually triggered**. It runs when the owner exports a fresh
-passbook, not on a schedule.
+    sum(tool amounts) + untraced == bank total, for every month
 
-## Where everything lives
+**Untraced money is normal, not a bug.** Roughly a fifth of income cannot
+currently be tied to a tool. That gets reported loudly — in the terminal and on
+the dashboard — and never hidden, rounded away, or guessed at. A wrong
+attribution silently corrupts a source of truth; an honest gap does not.
+
+## How money reaches the bank
+
+```
+Tool ──► PayPal ─────────────► Bank      HeyGen, Pictory, EverBee, TradingView…
+Tool ──► PartnerStack ──► Airwallex ──► Bank   ElevenLabs, n8n, Jungle Scout
+Tool ──► impact.com  ──► Airwallex ──► Bank   Base44, InVideo, Kittl
+Tool ──► PayKickstart ──► ???              NOT CONNECTED — shows as untraced
+```
+
+Bank is always the last hop. That is why bank credits anchor everything.
+
+## Where things live
 
 | Thing | Path |
 |---|---|
-| Ingest script | `pipelines/income-analysis/ingest.py` |
+| Passbook parser + orchestrator | `pipelines/income-analysis/ingest.py` |
+| Network fetchers | `pipelines/income-analysis/sources.py` |
+| Attribution engine | `pipelines/income-analysis/attribute.py` |
+| Tests | `pipelines/income-analysis/test_income.py` |
 | Classification rules | `pipelines/income-analysis/rules.json` |
-| Raw passbooks (**gitignored**) | `pipelines/income-analysis/data/raw/` |
-| Per-statement transactions (**gitignored**) | `pipelines/income-analysis/data/parsed/` |
+| Raw everything (**gitignored**) | `pipelines/income-analysis/data/` |
 | Committed aggregates | `pipelines/income-analysis/summary.json` |
-| Dashboard tab | `apps/analytics-app/src/client/IncomeView.tsx` |
-| Build-time copy into the Worker | `apps/analytics-app/scripts/sync-income.mjs` |
+| Dashboard | `apps/yt-income/` → `yt-income.agrolloo.com` |
 
 <EXTREMELY-IMPORTANT>
 **This repo is PUBLIC** (`github.com/akshat-git-jpg/personal-stuff`).
 
-A passbook carries the mother's account number, her address, family names and UPI
-handles. `data/` is gitignored and must stay that way. Never `git add -f` anything
-under `data/`. Never paste a raw transaction line into a commit message, a PR body,
-a decisions.md entry, or any committed file.
+The passbook carries the mother's account number, address, family names and UPI
+handles. The PartnerStack payouts API additionally returns her **full street
+address and account last-4** — `sources.strip_pii()` removes it before anything
+is written, and `test_income.py` asserts that.
 
-Only `summary.json` is committed, and only because it holds month totals per rail
-plus PayPal program names — no counterparties, no account numbers. If you ever add
-a field to `summary.json`, check it against that bar first.
+- `data/` is gitignored in full. Never `git add -f` anything under it.
+- Never paste a transaction line into a commit message, PR body, or any
+  committed file.
+- Only `summary.json` is committed: month totals, tool names, routes. If you add
+  a field to it, check it against that bar first. `apps/yt-income/scripts/sync-summary.mjs`
+  refuses to bundle a summary matching any forbidden pattern.
 </EXTREMELY-IMPORTANT>
 
 ## Before you start
-
-Claim a workspace — the main checkout refuses to record git history:
 
 ```bash
 cd "$(pp-work claim --kind code --slug yt-income)"
 ```
 
+The main checkout refuses to record git history.
+
 ## The run
 
 ### 1. Get the passbook
 
-If the owner named a file, use it. Otherwise look in `~/Downloads` for a recent
-PNB statement:
+If the owner named a file, use it. Otherwise:
 
 ```bash
 ls -lat ~/Downloads/*.pdf | head -20
 ls ~/Downloads | grep -iE "pnb|stmt|8619|passbook"
 ```
 
-PNB exports are named like `PNBONE_STMT_XX8619_30082026.pdf`. Ask before ingesting
-anything you are not sure about — an SBI *password-reset form* has been mistaken
+PNB exports look like `PNBONE_STMT_XX8619_30082026.pdf`. **Ask before ingesting
+anything you are unsure about** — an SBI *password-reset form* has been mistaken
 for a passbook before.
-
-Copy it in (do not move it — leave the owner's download alone):
 
 ```bash
 cp "<pdf>" pipelines/income-analysis/data/raw/
 ```
 
-**The PDF password is the account number**, stored in the gitignored
-`data/config.json`. If that file is missing, recreate it:
+The PDF password is the account number, kept in the gitignored
+`data/config.json`. If missing, ask the owner — never guess, never commit it.
 
-```bash
-printf '{\n  "pdf_password": "<account number>"\n}\n' > pipelines/income-analysis/data/config.json
-```
-
-The owner has the number. Do not guess it, and never commit it.
-
-### 2. Ingest
+### 2. Ingest, attribute and tally — one command
 
 ```bash
 cd pipelines/income-analysis && python3 ingest.py --with-paypal
 ```
 
-This re-reads **every** PDF in `data/raw/`, so overlapping statements are fine —
-later ones simply restate the same months. It prints the transaction count per
-file and the income total.
+That single run: parses every PDF in `data/raw/`, pulls PayPal (income +
+balance), PartnerStack and impact.com, runs the four attribution passes, writes
+`summary.json`, and prints the tally.
 
-`--with-paypal` also pulls `paypal-txns-pp-cli income` for the earned-side and
-per-program numbers, **and the live PayPal balance** — money received but not yet
-withdrawn to the bank. That balance becomes the "Still in PayPal" strip at the top
-of the Income tab.
+Drop `--with-paypal` to parse the passbook only — useful when an API is down.
+The previously fetched network data is then reused.
 
-The dashboard never calls PayPal itself: the Worker holds no PayPal credentials,
-so the strip is a snapshot taken here and labelled with its as-of time. A stale
-zero and a real zero look identical without that timestamp, which is why the strip
-always prints it. Drop the flag to skip PayPal entirely (useful when the API is
-down; the bundled PayPal block is then left as-is, and the strip keeps its old
-as-of date).
+### 3. Read the tally — this is the point
 
-### 3. Reconcile — this is the check that matters
+The run prints, per month, bank total vs traced vs untraced, and lists **every
+untraced credit with its date** so the owner can check the passbook by hand.
 
-PayPal reports what it sent to the bank. The passbook shows what arrived. They
-must agree:
+It exits non-zero **only** when PayPal and the bank disagree. That is a real bug
+signal — PayPal claims it sent money the bank never received, or vice versa.
+Untraced money never blocks: it is the normal state, and a gate that fails on
+the normal case gets switched off within a week.
 
-```bash
-cd pipelines/income-analysis && python3 - <<'EOF'
-import json
-d = json.load(open("summary.json"))
-bank = sum(m.get("paypal", 0) for m in d["bank_by_month"].values())
-pp = sum(float(m["bank_amount"] or 0) for m in d.get("paypal", {}).get("months", []))
-print(f"bank NEFT from PayPal : INR {bank:,.2f}")
-print(f"PayPal says settled   : INR {pp:,.2f}")
-print(f"difference            : INR {bank - pp:,.2f}")
-EOF
-```
+Baseline as of 30 Aug 2026 — if a run comes back much worse, something regressed:
 
-A difference of **0.00** means the parse is trustworthy. Report the number either
-way — never claim reconciliation without printing it.
+| | |
+|---|---|
+| Bank received, Jan–Aug 2026 | ₹392,878.90 |
+| Traced to a tool | ₹312,099.76 (79.4%) |
+| Untraced | ₹80,779.14 |
+| PayPal reconciliation | ₹0.00 difference |
 
-If it is not zero, the usual causes, in order:
-- The statement window and the PayPal window differ (PayPal defaults to
-  1 Jan 2026 → today). A payout near an edge lands in one and not the other.
-- A payout is still in transit — sent by PayPal, not yet credited.
-- The remarks wrapped in a way the parser mis-joined. Check
-  `data/parsed/<name>.json` for a transaction whose `remarks` looks glued to its
-  neighbour.
+Every rupee on the PayPal rail is traced. The untraced remainder is all
+Airwallex.
 
-### 4. Sanity-check the classification
+### 4. If something looks wrong
 
-Anything the rules do not recognise falls into `personal` and is **excluded from
-income**. That is the safe default, but it silently hides a new payout rail. Look
-at what got excluded:
+- **PayPal reconciliation non-zero** — the windows differ (PayPal defaults to
+  1 Jan 2026 → today), or a payout is genuinely in transit. Check before
+  assuming a parser bug.
+- **A whole month drops to near-zero traced** — the PayPal batch matcher failed.
+  Look at `attribute.py`'s `_paypal_grouped`; a batch of more than six programs
+  exceeds its search bound.
+- **A new payer appears in the untraced credits** — add a rail to `rules.json`
+  and re-run. Match on a stable payer-name fragment, never a transaction id.
+- **PartnerStack returns 403** — most likely the User-Agent, not the key. Their
+  WAF rejects the default `Python-urllib/3.x`; `sources.py` sets a real one.
+- **`CERTIFICATE_VERIFY_FAILED`** — a python.org install without its CA bundle.
+  `sources.ssl_context()` falls back to certifi; verification is never disabled.
+
+### 5. Test, then publish
 
 ```bash
-cd pipelines/income-analysis && python3 - <<'EOF'
-import json, glob
-rows = [t for f in glob.glob("data/parsed/*.json") for t in json.load(open(f))
-        if t["type"] == "CR" and t["rail"] == "personal" and t["amount"] >= 3000]
-for t in sorted(rows, key=lambda t: -t["amount"]):
-    print(f"{t['date']}  {t['amount']:>12,.2f}  {t['remarks'][:80]}")
-print(f"\n{len(rows)} unclassified credits >= INR 3,000, "
-      f"totalling INR {sum(t['amount'] for t in rows):,.2f}")
-EOF
+python3 pipelines/income-analysis/test_income.py    # 15 tests, must be green
+cd apps/yt-income && npm run deploy                 # sync + typecheck + build + deploy
 ```
 
-Scan for anything that looks like a company rather than a person. If you find a
-new network, add a rail to `rules.json` and re-run step 2:
+`npm run build` copies `summary.json` into the Worker bundle, so a deploy cannot
+ship stale figures. The page never calls PayPal, impact.com or PartnerStack —
+the Worker holds no such credential, by design.
 
-```json
-{ "id": "partnerstack", "label": "PartnerStack", "match": ["PARTNERSTAC"] }
-```
-
-Match on a substring that is stable across statements — the payer name fragment,
-not a transaction id.
-
-**Known open question:** the `airwallex` rail is a real payout rail, but *which*
-network pays through it is unconfirmed. impact.com earnings for Jan–Aug 2026 were
-only ~INR 29,017 against ~INR 88,347 of Airwallex credits, so it is not (only)
-impact.com. Ask the owner if it comes up; do not guess a label.
-
-### 5. Publish
+To look before deploying:
 
 ```bash
-cd apps/analytics-app && npm run build   # runs sync:income, tsc, vite
-npm run deploy
+cd apps/yt-income
+npx wrangler dev --port 8793 --local          # needs .dev.vars
+node scripts/shoot.mjs http://127.0.0.1:8793 .shots/rev.png --month=2026-03
 ```
 
-`npm run build` copies `summary.json` into `src/worker/income-summary.json`, so a
-deploy can never ship stale figures. The tab is at
-`yt-analytics.agrolloo.com` → **Income**, behind the same password as the rest of
-the app.
-
-To eyeball it before deploying:
-
-```bash
-cd apps/analytics-app
-npx wrangler dev --port 8792 --local     # needs .dev.vars
-node scripts/shoot.mjs http://127.0.0.1:8792 .shots/income.png --tab=Income
-```
-
-`shoot.mjs` prints what actually rendered (headline, bar count, table rows) and
-exits non-zero on a page error, so a blank chart cannot pass as a pass.
-
-First local run only: the local D1 is empty and `/api/videos` 500s, which bounces
-you back to the login screen. Seed it once:
-
-```bash
-for f in ../redirector/migrations/*.sql; do npx wrangler d1 execute clicks-db --local --file="$f"; done
-npx wrangler d1 migrations apply yt-rankings --local
-```
+`shoot.mjs` prints what actually rendered and exits non-zero on a page error, so
+a blank chart cannot pass as a pass.
 
 ### 6. Commit
 
-Only these may be staged:
-
-- `pipelines/income-analysis/summary.json`
-- `apps/analytics-app/src/worker/income-summary.json`
-- any `rules.json` change
-
-Then run the repo's commit gate — `commit-now`. One-line conventional subject, no
-body, no AI attribution.
+Stageable: `summary.json`, `apps/yt-income/src/worker/summary.json`, any
+`rules.json` change, and code. Then run `commit-now`.
 
 ```bash
 git status --short   # confirm NOTHING under data/ is staged
@@ -217,30 +177,30 @@ git status --short   # confirm NOTHING under data/ is staged
 
 ## Reporting back
 
-Give the owner, in this order:
+In this order, kept short — the owner reads this tired:
 
-1. **Total real income** for the window, and the month-by-month split by rail.
-2. **The reconciliation number** — say "difference INR 0.00", not "it reconciles".
-3. **Anything still in PayPal** — the balance and its as-of time. Zero is the good
-   answer; say it explicitly rather than staying silent.
-4. **What was excluded** as personal, with the total, so a missing rail is visible.
-5. **Anything new** — a payer that did not match a rule, a month with no income.
+1. **Total revenue** for the window, month by month.
+2. **The reconciliation number** — say "difference INR 0.00", never "it reconciles".
+3. **What could not be traced**, with the share and the credit dates.
+4. **Anything still in PayPal**, with its as-of time. Zero is good news; say it.
+5. **Anything new** — an unmatched payer, a month with no income.
 
-Keep it short. The owner reads this tired.
+## Known open questions
 
-## Two views of the same money — do not conflate them
-
-- **Landed** — bank credit dates. Complete: includes rails that never touch PayPal.
-- **Earned** — PayPal's own month attribution.
-
-The PayPal totals match; the per-month split does not. The dashboard toggles
-between them and labels which is on screen. When quoting a single monthly figure,
-use **landed** unless asked otherwise — it is the one the passbook can prove.
+- **~₹80k of Airwallex credits are unattributed.** PartnerStack explains one
+  payout; impact.com's payout dates are unavailable (its invoices endpoint 403s
+  for this key). Widening that key's permissions would upgrade pass 3 from
+  `inferred` to `matched`.
+- **PayKickstart is parked.** Its API is gated to vendor plans and the owner is
+  an affiliate. The dashboard names it as not connected rather than letting its
+  absence read as zero.
 
 ## Related
 
 - `pp-paypal-txns` — the PayPal CLI this skill drives.
+- `docs/superpowers/specs/2026-08-30-yt-income-revenue-design.md` — why it is
+  built this way.
 - `pipelines/income-analysis/README.md` — the wider income-source inventory.
-- A future `personal-dashboard` will reuse `data/parsed/`, including debits and
-  the `self_transfer` rail (owner topping up his mother's account). Keep the
-  parsed output transaction-complete; do not filter it down to income only.
+- Cost and Profit tabs are planned for `apps/yt-income`. A future
+  `personal-dashboard` will reuse `data/parsed/`, including debits and the
+  `self_transfer` rail — keep the parsed output transaction-complete.
