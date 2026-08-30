@@ -26,7 +26,6 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - **timeblock** — `timeblock.agrolloo.com` — tap-to-block day planner. Shared-password gate (stateless signed cookie, no KV sessions). Bindings: `ASSETS`, `BLOCKS_KV` (KV, one JSON blob per day). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 - **closet-app** — `closet.agrolloo.com` — wear counter + tagged outfit gallery PWA (two tabs: Clothes = raw wears-since-wash per garment, Looks = tagged outfit photos). Shared-password gate (stateless signed cookie, no KV). Bindings: `ASSETS` (SPA in `dist/`), `DB` (D1 `closet-db`), `PHOTOS` (R2 `closet-photos`). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. Deployed 2026-08-17.
 - **yt-script-desk** — `https://script-desk.agrolloo.com` — access is a per-video secret link; there is no login. Binding: `DESK_DB` (D1 `script-desk-db`). Secret: `DESK_ADMIN_TOKEN`.
-- **keto-kitchen** — `keto-kitchen.agrolloo.com` — static landing page (assets-only).
 - **bridebestie** — `bridebestie.com` + `www` — static landing page (assets-only).
 - **vps-watchdog** — cron `*/2 * * * *`, no HTTP route — pings the dashboard; reboots VPS via Hostinger API if down. Binding: `WATCHDOG_KV`.
 
@@ -52,7 +51,7 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - `agrolloo.com` + `www` → `191.101.230.133` (Hostinger shared hosting, proxied) — NOT the VPS, NOT a Worker.
 - `my-dashboard.agrolloo.com` → `72.61.241.170` (VPS, proxied) — personal-dashboard container via Traefik.
 - `render2.agrolloo.com` → `72.61.241.170` (VPS, proxied) — Hyperframes → MP4 renderer behind Traefik (added after the 2026-06-13 audit).
-- `go` / `keto-kitchen` / `kushal-gym` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` / `founders` / `timeblock` / `vo` / `closet` → the 12 routed Workers above (custom domains show as proxied `AAAA 100::`).
+- `go` / `kushal-gym` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` / `founders` / `timeblock` / `vo` / `closet` → the 11 routed Workers above (custom domains show as proxied `AAAA 100::`).
 - `ftp.agrolloo.com` → `191.101.230.133` (Hostinger hosting).
 - MX + `autoconfig` / `autodiscover` / DKIM → Hostinger mail.
 - `send.notifications.agrolloo.com` + `resend._domainkey` → Amazon SES / Resend (transactional email sending).

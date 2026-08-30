@@ -20,7 +20,7 @@ Everything public runs in one of three places: **Cloudflare Workers** (public ed
 |---|---|---|
 | SPA Worker | Vite + React + Hono, `ASSETS` binding with `not_found_handling: "single-page-application"`, `nodejs_compat` flag, `npm run deploy` = build + `wrangler deploy` | analytics-app, founders-tracker, gym-app, kushal-docs, lists-app, tutorial-tracker-app |
 | Plain Worker | Hono or raw fetch handler, no build step | kushal-tools (renders its own HTML so the PIN gate precedes any content), redirector, timeblock (static frontend via `ASSETS`, no build), infra/vps-watchdog |
-| Assets-only Worker | No main script, `assets.directory` only | pinterest-landing-pages/{keto-kitchen, bridebestie} |
+| Assets-only Worker | No main script, `assets.directory` only | pinterest-landing-pages/bridebestie |
 
 ## Custom domains and routes
 

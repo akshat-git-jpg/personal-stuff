@@ -22,7 +22,6 @@ description: Use when answering anything about personal-stuff's live URLs — wh
 | founders.agrolloo.com | `apps/founders-tracker/` | Worker (SPA) + D1 + cron `35 18 * * *` | PIN, HMAC token — non-expiring, no revocation: open security finding **SEC-05** in `plans/README.md` (deferred, NOT settled design) |
 | lists.agrolloo.com | `apps/lists-app/` | Worker (SPA) + D1 | password, HMAC cookie |
 | go.agrolloo.com | `apps/redirector/` | Worker (zone route `/*`) + KV + D1 | public by design |
-| keto-kitchen.agrolloo.com | `apps/pinterest-landing-pages/keto-kitchen/` | assets-only Worker | public |
 | bridebestie.com (+www) | `apps/pinterest-landing-pages/bridebestie/` | assets-only Worker, own zone | public |
 | my-dashboard.agrolloo.com | `apps/personal-dashboard/` | **VPS Docker** behind Traefik | password (hash self-heals into DB) |
 | render2.agrolloo.com | `apps/hyperframes-render/` | **VPS Docker** behind Traefik | password |
