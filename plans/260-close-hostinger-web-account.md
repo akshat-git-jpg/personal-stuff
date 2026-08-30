@@ -13,7 +13,7 @@
 
 | # | Blocker | Evidence (2026-08-30) |
 |---|---|---|
-| 1 | **Mailboxes** for `@agrolloo.com` are bundled with the hosting plan | `dig MX agrolloo.com` → `mx1/mx2.hostinger.com`; SPF is `include:_spf.mail.hostinger.com`. Only two subscriptions exist, so email has no separate plan — killing the hosting kills the mail. |
+| 1 | **Mailboxes** for `@agrolloo.com` — provenance unconfirmed | The panel calls it **Free Business Email**, so it is not what the ₹5,388 buys. Its expiry reads **2026-11-10** — the *domain* date, not the hosting date (10-27) — and the sibling `@agrollo.com` plan is dead *while hosting is active* because that domain lapsed. Both point at email following **domain ownership**, but Hostinger's own marketing says free email ships "with website hosting plans". **Confirm with support before Step 4.** |
 | 2 | **5 live short links** hop through the WordPress on that hosting | `links` rows `5MyF/filmora`, `L2Is/lumen5`, `SB2g/hostinger`, `f5g4/d-id`, `zhaY/mailchimp` all target `https://agrolloo.com/<tool>`; each returns 302→WordPress→vendor today. |
 | 3 | **`agrolloo.com` is registered in this account** | `--account web api GET /api/domains/v1/portfolio` returns it; the VPS account's token reports it as "not registered at Hostinger". Every app and the money path sit on this domain. |
 
@@ -45,11 +45,30 @@ better and moving it would be a downgrade:
 
 Saves ₹5,388/yr. Nothing here touches the domain.
 
-### Step 1 — inventory the mailboxes  *(owner, 5 min)*
-The API exposes no email endpoints, so this must be read in the panel.
-hPanel (web account) → **Emails** → list every mailbox on `agrolloo.com`.
-Record for each: address, whether it is the login/recovery address on any affiliate
-account, and rough mail volume. **Nothing else in Phase 1 starts until this list exists.**
+### Step 1 — inventory the mailboxes  *(owner)* — **DONE 2026-08-30**
+The Hostinger API has **no email endpoints at all** (nine paths probed, all 404): it covers
+domains, VPS, hosting, DNS and billing only. Mailboxes exist solely in the panel, so this
+step cannot be automated.
+
+`@agrolloo.com`, Free Business Email, 3/100 mailboxes, auto-renew ON, expires 2026-11-10:
+`khushibakliwal251@`, `khushibakliwal@`, `kushalbakliwal@` (~240 MB total).
+
+A second plan, `@agrollo.com` (one fewer `o`), held `akshat.p@`, `jessica.p@` and
+`seankerman@` — **on a domain that does not exist** (`whois` → No match), so none of them
+could receive anything. Deleted by the owner 2026-08-30.
+
+### Step 1b — fix DKIM  *(claude)* — **DONE 2026-08-30**
+Hostinger's "some domain records are missing" warning was real, but not the missing-record
+problem it looked like. Both DKIM CNAMEs (`hostingermail-a/b._domainkey`) **already existed
+in Cloudflare and were set to `proxied: true`** — so they resolved to Cloudflare's proxy IPs
+(104.21.68.2) instead of the signing key, and DKIM failed for every message sent. Flipped
+both to DNS-only; both now return `v=DKIM1;k=rsa;p=…`. **Cost ₹0 and no provider change —
+this, not the mail host, was the deliverability problem.** DMARC is still `p=none`; leave it
+until DKIM has passed in the wild for ~2 weeks, then tighten.
+
+> Hostinger's *intended* zone (including the DKIM records) is readable even though DNS lives
+> at Cloudflare: `pp-hostinger --account web dns list agrolloo.com`. Handy whenever a mail
+> provider says records are missing but will not say which.
 
 ### Step 2 — stand up replacement email  *(claude + owner)*
 Chosen: a **managed provider**, not the VPS.
@@ -71,13 +90,17 @@ Then: create matching addresses, repoint MX + SPF (+ DKIM) on the Cloudflare zon
 send a test both ways, and **leave the Hostinger mailboxes running in parallel for
 7 days** before Step 4.
 
-### Step 3 — take the 5 links off the WordPress  *(claude, ~20 min)*
-For each of the five slugs: find the real affiliate URL (owner's affiliate dashboards —
-these five carry no affiliate code today, so they currently earn **₹0**), then update
-`CLICKS_KV` **and** the `links` row to point straight at the vendor. Verify each with
-a browser User-Agent and confirm the redirect no longer mentions `agrolloo.com`.
-**No YouTube edit is needed** — descriptions already point at `go.agrolloo.com`, which is
-exactly what that indirection is for.
+### Step 3 — take the 5 links off the WordPress  *(claude)* — **DONE 2026-08-30**
+`CLICKS_KV` and the `links` rows were repointed straight at each vendor:
+`5MyF/filmora`→filmora.wondershare.net, `L2Is/lumen5`→lumen5.com,
+`SB2g/hostinger`→hostinger.com, `f5g4/d-id`→d-id.com, `zhaY/mailchimp`→mailchimp.com.
+All five verified live (302 straight to the vendor). **`links` rows depending on
+`agrolloo.com`: 5 → 0.** No YouTube edit was needed — descriptions already point at
+`go.agrolloo.com`, which is exactly what that indirection is for.
+
+Mailchimp's stored URL carried a **stranger's Google Ads `gclid`**, so that click was
+crediting whoever ran the ad; it now goes to the plain homepage. All five still carry no
+affiliate code and earn **₹0** — `filmora` is the one worth fixing (approved on Impact).
 
 ### Step 4 — cancel the hosting subscription  *(owner)*
 hPanel → Billing → Subscriptions → **Premium Web Hosting** (`m_68705591`) → cancel /
