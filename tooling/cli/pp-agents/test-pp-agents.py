@@ -360,6 +360,110 @@ with tempfile.TemporaryDirectory() as tmp:
 
 # ----------------------------------------------------------------- commands
 
+section("the cursor follows the session, not the row number")
+with tempfile.TemporaryDirectory() as tmp:
+    # THE BUG THIS EXISTS FOR: rows are ranked by state and the daemon poll
+    # re-ranks them every few seconds with NO keypress, so a row index quietly
+    # comes to mean a different session. The delete prompt names the row under
+    # the cursor, so a re-sort between reading the name and pressing `y` deletes
+    # something else.
+    work = os.path.join(tmp, "work")
+    for short, state in (("aaa1", "done"), ("aaa2", "done"), ("aaa3", "done")):
+        make_job(work, short, state=state, name=short, tag="pp")
+    accounts = [("work", work)]
+    app = mod.App.__new__(mod.App)
+    app.mode, app.folded, app.query = "tag", set(), ""
+    app.pins, app.cursor, app.placed = set(), 0, False
+    app.jobs = mod.load_jobs(accounts)
+    app.rebuild()
+    while app.focused()[0] != "job":
+        app.cursor += 1
+    watched = app.focused_short()
+    # move to the LAST session, the one a re-sort will displace
+    app.cursor = max(i for i, (k, _) in enumerate(app.rows) if k == "job")
+    watched = app.focused_short()
+    before_index = app.cursor
+    # the daemon says a DIFFERENT session needs input, which sorts it to the top
+    other = next(j["short"] for j in app.jobs if j["short"] != watched)
+    mod.merge_live(app.jobs, {other: "blocked"})
+    app.rebuild()
+    check("a re-sort moves the row the cursor was on",
+          app.cursor != before_index or app.rows[before_index][1]["short"] == watched,
+          f"index {before_index} -> {app.cursor}")
+    check("and the cursor goes with the session, not with the index",
+          app.focused_short() == watched,
+          f"watched {watched}, focused {app.focused_short()}")
+
+section("a new session opens even when its group is folded")
+with tempfile.TemporaryDirectory() as tmp:
+    # A new session is untagged, so it lands in `Ungrouped`. A folded group
+    # contributes only its header, so `select_short` could not find it and the
+    # auto-open was silently skipped - and folds persist now, so folding
+    # `Ungrouped` once broke `n` permanently.
+    work = os.path.join(tmp, "work")
+    make_job(work, "aaa1", state="done", name="tagged", tag="pp")
+    make_job(work, "new1", state="blocked", name="brand new")
+    accounts = [("work", work)]
+    mod.PIN_STORE = os.path.join(tmp, "pins.json")
+    app = mod.App.__new__(mod.App)
+    app.mode, app.query = "tag", ""
+    app.pins, app.cursor, app.placed = set(), 0, False
+    app.folded = {mod.UNTAGGED}
+    app.jobs = mod.load_jobs(accounts)
+    app.rebuild()
+    check("a folded group really does hide it",
+          app.select_short("new1") is False)
+    check("but unfold=True finds it anyway", app.select_short("new1", unfold=True) is True)
+    check("and it is the row now under the cursor", app.focused_short() == "new1")
+    check("the group stays open afterwards, and is remembered that way",
+          mod.UNTAGGED not in app.folded and mod.UNTAGGED not in mod.load_folds("tag"),
+          str(mod.load_folds("tag")))
+
+section("a stale daemon answer expires instead of standing for ever")
+_app = mod.App.__new__(mod.App)
+_app.live, _app.live_at = {"aaa1": "working"}, time.time()
+check("a fresh answer is used", _app.fresh_live() == {"aaa1": "working"})
+_app.live_at = time.time() - mod.LIVE_TTL - 1
+# Polling stops after LIVE_IDLE_STOP but the mtime-driven reload keeps running,
+# so without an expiry the last answer kept overriding records that had moved on.
+check("an answer older than LIVE_TTL is dropped, so the record wins again",
+      _app.fresh_live() == {})
+_app.live, _app.live_at = {}, time.time()
+check("no answer at all is not treated as fresh", _app.fresh_live() == {})
+
+section("the store survives two windows and a crash")
+with tempfile.TemporaryDirectory() as tmp:
+    mod.PIN_STORE = os.path.join(tmp, "pins.json")
+    mod.save_pins({"aaa1"})
+    mod.save_folds("tag", {"pp"})
+    check("a write leaves no temp file behind",
+          [f for f in os.listdir(tmp) if f.endswith(".tmp")] == [],
+          str(sorted(os.listdir(tmp))))
+    # A fixed `.tmp` name is shared by every window, so two concurrent writes
+    # interleave into one file and os.replace publishes the mixture. A garbled
+    # store reads as no pins AND nothing folded, losing both at once.
+    check("the temp name is not a fixed sibling two windows would share",
+          "tempfile" in open(SCRIPT).read().split("def save_view", 1)[1].split("def ", 1)[0],
+          "save_view still uses a fixed .tmp name")
+
+section("keys that must not quit the view")
+_src_all = open(SCRIPT).read()
+_handle = _src_all.split("def handle(self, ch):", 1)[1].split("\n    def ", 1)[0]
+# Curses hands over any escape sequence it cannot map as a lone 27 - a focus-in
+# report, or a stray mouse packet from a program that left reporting on - and
+# that used to exit the view with no confirmation.
+check("a bare ESC no longer quits", "ch in (ord(\"q\"), 27)" not in _handle, _handle[:300])
+check("q still does", 'ch == ord("q")' in _handle, _handle[:300])
+
+section("a missing binary cannot fork a second copy of the view")
+_proxy = _src_all.split("def run_proxied", 1)[1].split("\n    def ", 1)[0]
+# `execvpe` RAISES in the forked child; unguarded it unwinds into the PARENT's
+# code path and the child becomes a second curses program on the same terminal.
+# Claude Code self-updates, so the binary really is briefly absent.
+check("execvpe is guarded", "except BaseException" in _proxy, _proxy[:600])
+check("and the child leaves by _exit, which cannot unwind",
+      _proxy.count("os._exit(127)") >= 1, _proxy[:600])
+
 section("the daemon is asked for the state, not the file")
 with tempfile.TemporaryDirectory() as tmp:
     # WHY THIS EXISTS: `state.json` is a snapshot the daemon flushes LATER, so a
@@ -383,8 +487,13 @@ with tempfile.TemporaryDirectory() as tmp:
           mod.live_states().get("aaa1") == "working")
     check("a row with no state is skipped rather than stored as None",
           "bad" not in mod.live_states() and "aaa3" not in mod.live_states())
-    check("the command asked is claude agents --json",
-          mod.agents_cmd()[1:] == ["agents", "--json"], str(mod.agents_cmd()))
+    check("the command asked is claude agents --json --all",
+          mod.agents_cmd()[1:] == ["agents", "--json", "--all"], str(mod.agents_cmd()))
+    # Without --all the daemon lists only live sessions, so "not mentioned" is
+    # ambiguous between finished and forgotten and a session that just finished
+    # stays on Working until the disk catches up.
+    check("--all is what makes finishing as visible as starting",
+          "--all" in mod.agents_cmd())
 
     junk = os.path.join(tmp, "claude-junk")
     with open(junk, "w") as fh:
@@ -441,10 +550,22 @@ _now = time.time()
 _live_job = [{"state": "working"}]
 check("a live session and a recent keypress is worth a call",
       mod.should_poll(_live_job, _now, _now) is True)
-check("nothing live means no state CAN change, so no call",
-      mod.should_poll([{"state": "done"}], _now, _now) is False)
+# THE BUG: this gate reads the state on DISK, and the premise of the whole path
+# is that the disk is wrong about liveness. Booting with every record reading
+# `done` used to mean the daemon was never asked at all - stale states for ever,
+# produced by the check meant to prevent them.
+check("a first poll always happens, whatever the records claim",
+      mod.should_poll([{"state": "done"}], _now, _now, asked=False) is True)
+check("and an actively used view keeps polling even with nothing live",
+      mod.should_poll([{"state": "done"}], _now, _now) is True)
+check("nothing live AND nobody typing means no call",
+      mod.should_poll([{"state": "done"}], _now - mod.LIVE_IDLE_AFTER - 1, _now)
+      is False)
 check("an abandoned view eventually costs nothing",
       mod.should_poll(_live_job, _now - mod.LIVE_IDLE_STOP - 1, _now) is False)
+check("even one that has never asked",
+      mod.should_poll(_live_job, _now - mod.LIVE_IDLE_STOP - 1, _now, asked=False)
+      is False)
 check("and a second call inside the interval is refused",
       mod.should_poll(_live_job, _now, _now, last_poll_at=_now) is False)
 check("blocked counts as live too, since it is the state that goes stale",
@@ -862,7 +983,15 @@ def drive(tmp, keys, rows=40, cols=170, tail=None, scrubbed=True, linger=2,
             read_once(0.1)
         return pred()
 
-    def until_quiet(quiet=1.5, cap=12.0):
+    def until_quiet(quiet=0.4, cap=12.0):
+        """Read until the screen has been silent for `quiet` seconds.
+
+        0.4s, not 1.5s. This is the last clock left in the harness: every other
+        wait is on evidence, and this one was charged after the first frame AND
+        after every key, which alone was half the suite's runtime (261s -> 125s,
+        both runs green, one of them under a concurrent land). 0.4s is still four
+        times the interval `read_once` needs to observe a curses repaint.
+        """
         deadline = time.time() + cap
         while time.time() < deadline and not dead:
             if not read_once(quiet):
@@ -923,7 +1052,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    first, raw_after, calls = drive(tmp, [(b"\r", "ATTACHED"), b"\x1b[1;2D", b"q"], scrubbed=False)
+    first, raw_after, calls = drive(tmp, [(b"\r", "ATTACHED"), (b"\x1b[1;2D", "pp-agents"), b"q"], scrubbed=False)
     after = scrape(raw_after.encode('utf-8'))
     check("the cursor starts on a session, so enter works immediately",
           re.search(r"attach (aaa|bbb)", calls) is not None, repr(calls))
@@ -1212,7 +1341,7 @@ MOUSE_MODES = {"1000", "1002", "1003", "1006"}
 
 with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
-    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED"), b"\x1b[1;2D", b"q"], scrubbed=False)
+    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED"), (b"\x1b[1;2D", "pp-agents"), b"q"], scrubbed=False)
     on, off = mode_events(after)
     check("the session turned mouse reporting on (as claude attach does)",
           MOUSE_MODES & on == MOUSE_MODES, str(sorted(on)))
@@ -1227,7 +1356,7 @@ with tempfile.TemporaryDirectory() as tmp:
     fixture(tmp)
     # quitting normally must also leave the terminal clean, because a mode set by
     # an earlier session outlives that session
-    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED"), b"\x1b[1;2D", b"q"], scrubbed=False)
+    _f, after, _ = drive(tmp, [(b"\r", "ATTACHED"), (b"\x1b[1;2D", "pp-agents"), b"q"], scrubbed=False)
     tail = after[after.rindex("ATTACHED"):] if "ATTACHED" in after else after
     _on, off = mode_events(tail)
     check("the modes are cleared before pp-agents exits",

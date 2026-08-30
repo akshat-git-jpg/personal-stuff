@@ -244,10 +244,21 @@ def save_view(**changes):
     data = load_view()
     data.update(changes)
     os.makedirs(os.path.dirname(PIN_STORE), exist_ok=True)
-    tmp = PIN_STORE + ".tmp"
-    with open(tmp, "w") as fh:
-        json.dump(data, fh)
-    os.replace(tmp, PIN_STORE)
+    # A per-process temp name, not a fixed `.tmp`: two windows sharing one store
+    # interleave their writes into the same file, and `os.replace` then publishes
+    # whatever happens to be in it. A garbled store reads as no pins and nothing
+    # folded, so the failure mode is losing all of both at once.
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(PIN_STORE), suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as fh:
+            json.dump(data, fh)
+        os.replace(tmp, PIN_STORE)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def load_pins():
@@ -326,7 +337,17 @@ LIVE_ENABLED = os.environ.get("PP_AGENTS_LIVE", "1") != "0"
 
 
 def agents_cmd():
-    return [claude_bin(), "agents", "--json"]
+    """Every session the daemon knows, including finished ones.
+
+    `--all` measures identically to the default - 0.24s, 187 MB - and returns 22
+    rows where the default returns 7. Without it, "the daemon did not mention it"
+    is ambiguous between FINISHED and forgotten, so `merge_live` has to leave the
+    row alone and a session that just finished stays on `Working` until the disk
+    catches up. Watching the list to see when something is done is the use this
+    whole path exists for, so paying nothing to make finishing as visible as
+    starting is the obvious trade.
+    """
+    return [claude_bin(), "agents", "--json", "--all"]
 
 
 def live_states(timeout=8.0):
@@ -336,10 +357,19 @@ def live_states(timeout=8.0):
     running" and "I could not ask" must not look the same, or one failed call
     would blank every state on screen.
     """
+    # Through a temp FILE, not a pipe. Every other `claude` call in this program
+    # was moved off pipes because a pipe reaches EOF only once every holder
+    # closes it, and `claude` can leave a daemon child holding the one it
+    # inherited - which froze the view for a day. This call was written after
+    # that fix and quietly reintroduced the hazard; it does not bite today
+    # (`agents --json` spawns no daemon, measured), but the symptom when it does
+    # is silent, since a timeout returns None and the states just stop moving.
     try:
-        out = subprocess.run(agents_cmd(), stdin=subprocess.DEVNULL,
-                             capture_output=True, text=True,
-                             timeout=timeout).stdout
+        with tempfile.TemporaryFile("w+") as fh:
+            subprocess.run(agents_cmd(), stdin=subprocess.DEVNULL, stdout=fh,
+                           stderr=subprocess.DEVNULL, timeout=timeout)
+            fh.seek(0)
+            out = fh.read()
     except (OSError, subprocess.SubprocessError):
         return None
     try:
@@ -371,23 +401,48 @@ def poll_interval(last_key_at, now):
     return LIVE_IDLE_POLL if quiet > LIVE_IDLE_AFTER else LIVE_POLL
 
 
-def should_poll(jobs, last_key_at, now, last_poll_at=0.0):
+def should_poll(jobs, last_key_at, now, last_poll_at=0.0, asked=True):
     """Whether this tick should spend a `claude agents --json` call.
 
-    Three ways to answer no, and between them they cover almost every tick:
+    Answers no when nothing has happened for `LIVE_IDLE_STOP` (the view was
+    abandoned), or when the last call is more recent than the current interval
+    allows. Otherwise it polls if ANY of these holds:
 
-    - nothing on screen is `working` or `blocked`, so no state CAN change
-    - nothing has happened for `LIVE_IDLE_STOP`, so the view was abandoned
-    - the last call was more recent than the current interval allows
+    - the view is being used, i.e. a key inside `LIVE_IDLE_AFTER`
+    - something on screen is `working` or `blocked`
+    - the daemon has not been asked yet at all
+
+    The first and third are the fix for a gate that could never open. It used to
+    ask only the second question, which reads the state on DISK at startup - and
+    the entire premise of this path is that the disk is wrong about liveness. Boot
+    the view when every record happens to read `done` and it would decide nothing
+    could change, never ask, and show stale states for ever. That is the reported
+    bug, produced by the check meant to prevent it.
     """
     if not LIVE_ENABLED:
+        return False
+    # Nothing listed means nothing to correct: `merge_live` only ever overrides
+    # rows that already exist, so a call against an empty list buys nothing at
+    # any level of activity.
+    if not jobs:
         return False
     every = poll_interval(last_key_at, now)
     if every is None:
         return False
     if now - last_poll_at < every:
         return False
+    if not asked:
+        return True
+    if now - last_key_at <= LIVE_IDLE_AFTER:
+        return True
     return any(j.get("state") in LIVE_STATES for j in jobs)
+
+
+# How long a daemon answer is allowed to stand. Past this the disk record, stale
+# as it is, is the fresher of the two: polling stops after `LIVE_IDLE_STOP`, and
+# without an expiry the last answer kept overriding records that had since moved
+# on - a session that finished forty minutes ago sat on `Working` for ever.
+LIVE_TTL = float(os.environ.get("PP_AGENTS_LIVE_TTL", "90"))
 
 
 def merge_live(jobs, live):
@@ -434,7 +489,12 @@ def delete_record(job):
 SHORT_ID = re.compile(r"\b([0-9a-f]{8})\b")
 
 
-def run_claude(cmd, cwd=None, env=None, timeout=45.0):
+# 12s, not 45s. These calls run ON the key handler, so the whole view is frozen
+# for the duration and a frozen curses program is indistinguishable from a busy
+# one. A delete makes two of them, so the old ceiling was a 90-second dead
+# screen; measured latency for every `claude` subcommand here is 0.25s to 0.6s,
+# so 12s is already twenty times the worst real case.
+def run_claude(cmd, cwd=None, env=None, timeout=12.0):
     """Run a `claude` subcommand and return its combined output.
 
     Output goes to a temp FILE, never a pipe. `claude --bg` spawns a
@@ -900,8 +960,18 @@ def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
                 os.chdir(cwd)
         except OSError:
             pass
-        os.execvpe(cmd[0], cmd, env)
-        os._exit(127)                                    # unreachable on success
+        try:
+            os.execvpe(cmd[0], cmd, env)
+        except BaseException:
+            # `execvpe` RAISES in the forked child when the binary is missing,
+            # and an unguarded raise unwinds into the parent's code: through
+            # run_attached's `except OSError`, back into act_open, and on into
+            # App.loop - so the child becomes a second copy of the whole view,
+            # and two curses programs fight over one terminal. Claude Code
+            # self-updates, so the binary really is briefly absent. `os._exit`
+            # rather than `sys.exit` because SystemExit would unwind too.
+            pass
+        os._exit(127)
 
     def sync_size(*_):
         try:
@@ -950,13 +1020,13 @@ def run_proxied(cmd, env, cwd=None, back=BACK_KEY):
     finally:
         signal.signal(signal.SIGWINCH, prev_winch)
         termios.tcsetattr(stdin_fd, termios.TCSADRAIN, saved)
-        if detached:
-            end_child(pid)
         # Whether it exited on its own or was detached, switch off the input modes
         # it may have left on. Mouse reporting is the one that bites: left on, the
         # terminal keeps emitting mouse packets and whatever reads stdin next
         # prints them as `65;59;21M` gibberish.
         clear_borrowed_modes()
+        if detached:
+            end_child(pid)
         try:
             os.close(master)
         except OSError:
@@ -1341,6 +1411,7 @@ class App:
         # What the daemon last said, `{short: state}`. Empty until the first poll
         # answers, so the view opens on the recorded states rather than blank.
         self.live = {}
+        self.live_at = 0.0       # when `self.live` was answered
         self.live_thread = None
         self.last_poll_at = 0.0
         self.last_key_at = time.time()
@@ -1353,8 +1424,14 @@ class App:
         self.reload()
 
     def reload(self):
-        self.jobs = merge_live(load_jobs(), self.live)
+        self.jobs = merge_live(load_jobs(), self.fresh_live())
         self.rebuild()
+
+    def fresh_live(self):
+        """The daemon's answer, or nothing once it is older than `LIVE_TTL`."""
+        if not self.live or time.time() - self.live_at > LIVE_TTL:
+            return {}
+        return self.live
 
     def poll_live(self):
         """Ask the daemon on a worker thread and keep the answer for the next draw.
@@ -1372,19 +1449,33 @@ class App:
         def work():
             found = live_states()
             if found is not None:
-                self.live = found
+                self.live, self.live_at = found, time.time()
+            # A failed call leaves the previous answer in place, but does NOT
+            # refresh its timestamp: a daemon that stops answering ages out
+            # instead of freezing the states it last reported.
 
         self.live_thread = threading.Thread(target=work, daemon=True)
         self.live_thread.start()
 
     def rebuild(self, keep_cursor=True):
-        """Recompute the visible rows, keeping the cursor sensible.
+        """Recompute the visible rows, keeping the cursor on the same SESSION.
 
         On the first build the cursor lands on the first *session*, not on the
         header above it: every action except folding needs a session, and having
         to press down once before anything works is the kind of friction that
         stops a replacement being used.
+
+        After that it is held by short id, not by row number. Rows are ranked by
+        state, and since the daemon poll landed they re-rank on their own every
+        few seconds with no keypress - so a row index quietly comes to mean a
+        different session. That is not cosmetic: the delete prompt names the row
+        under the cursor, so a re-sort between reading the name and pressing `y`
+        deletes something else. Live states made this reachable, so the fix ships
+        with them.
         """
+        # `getattr`: the very first rebuild runs before `rows` exists, and the
+        # tests construct an App field by field, so this must not assume it.
+        was = self.focused_short() if getattr(self, "rows", None) else None
         self.groups = group_jobs(self.jobs, self.mode, self.pins, self.query, self.folded)
         self.rows = flatten(self.groups)
         if not self.rows:
@@ -1393,7 +1484,14 @@ class App:
         if not self.placed or not keep_cursor:
             self.cursor = next((i for i, (k, _) in enumerate(self.rows) if k == "job"), 0)
             self.placed = True
+        elif was and self.select_short(was):
+            return          # same session, wherever it moved to
         self.cursor = max(0, min(self.cursor, len(self.rows) - 1))
+
+    def focused_short(self):
+        """The short id under the cursor, or None if it is a header."""
+        kind, payload = self.focused()
+        return payload["short"] if kind == "job" else None
 
     def focused(self):
         if not self.rows:
@@ -1589,6 +1687,9 @@ class App:
                        else f"{job['name']} exited {code}")
 
     def act_logs(self):
+        # Wrapped for the same reason `run_attached` is: a missing binary raises
+        # out of `App.loop` and the session list is gone. `act_open` handled this
+        # and `act_logs` did not, which is the whole of the difference.
         job = self.focused_job()
         if not job:
             return
@@ -1662,7 +1763,7 @@ class App:
         if new is None:
             self.status = "unchanged"
             return
-        write_tag(job, new if new.strip() else cur if new == "" else new)
+        write_tag(job, cur if new == "" else new)
         self.rebuild()
         self.status = f"tag = {job['tag'] or '(none)'}"
 
@@ -1727,7 +1828,7 @@ class App:
             time.sleep(0.25)
 
         if short:
-            landed = self.select_short(short)
+            landed = self.select_short(short, unfold=True)
             self.status = f"started {short}"
             try:
                 os.unlink(log)
@@ -1747,12 +1848,29 @@ class App:
             self.status = (f"no session appeared in {DISPATCH_WAIT:.0f}s "
                            f"under {account} - see {log}")
 
-    def select_short(self, short):
-        """Move the cursor onto a session by short id. False if it is not listed."""
+    def select_short(self, short, unfold=False):
+        """Move the cursor onto a session by short id. False if it is not listed.
+
+        `unfold` opens the group hiding it and tries again. A folded group
+        contributes only its header, so without this a new session created while
+        `Ungrouped` was folded could not be selected and therefore was not
+        opened - and folds persist now, so folding it once broke `n` for good.
+        """
         for idx, (kind, payload) in enumerate(self.rows):
             if kind == "job" and payload["short"] == short:
                 self.cursor = idx
                 return True
+        if not unfold:
+            return False
+        for job in self.jobs:
+            if job["short"] == short:
+                head = header_of(job, self.mode)
+                if head in self.folded:
+                    self.folded.discard(head)
+                    save_folds(self.mode, self.folded)
+                    self.rebuild()
+                    return self.select_short(short)
+                break
         return False
 
     def toggle_fold(self):
@@ -1790,7 +1908,11 @@ class App:
         if self.show_help:
             self.show_help = False
             return True
-        if ch in (ord("q"), 27) and not self.query:
+        # `q` quits; a bare ESC only clears a filter. Curses hands over an
+        # unrecognised escape sequence as a lone 27, and a focus-in report or a
+        # stray mouse packet from a program that left reporting on is exactly
+        # that - which used to exit the view with no confirmation.
+        if ch == ord("q"):
             return False
         if ch == 27:
             self.query = ""
@@ -1858,14 +1980,16 @@ class App:
                     except OSError:
                         pass
                 now = time.time()
-                if should_poll(self.jobs, self.last_key_at, now, self.last_poll_at):
+                if should_poll(self.jobs, self.last_key_at, now, self.last_poll_at,
+                               asked=bool(self.live_at)):
                     self.poll_live()
                 # Redraw when the file moved OR when the daemon's answer changed
                 # under us: the whole point is that those two disagree, so waiting
                 # for the file would put the fix back where the bug was.
-                if newest > last or self.live != shown:
+                current = self.fresh_live()
+                if newest > last or current != shown:
                     last = newest
-                    shown = dict(self.live)
+                    shown = dict(current)
                     self.reload()
                 continue
             self.last_key_at = time.time()
