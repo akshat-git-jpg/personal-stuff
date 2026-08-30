@@ -1354,3 +1354,26 @@ blocked on verification since Feb 2026, so that money was earned but never recei
 **Rule:** run the mailbox sweep before attributing anything by inference, and never loosen
 an FX band or a date window to make untraced money disappear. Details and the IMAP gotchas
 are in `.claude/skills/yt-income/SKILL.md` section 4d.
+
+## 2026-08-30 — impact.com settles to a different bank account
+
+Owner-confirmed. impact mailed two payments in 2026 (Rs.20,185.19 on 26 Feb,
+Rs.623.00 on 16 Mar) and neither reached the passbook the yt-income tally reads.
+
+**Why it matters:** the tally presents one passbook as the whole picture, and for
+impact that is false. `pass_impact` still infers impact attributions against this
+account, so its output is the weakest link in the engine. Closing it needs the second
+passbook — ask for it rather than inferring around the gap.
+
+## 2026-08-30 — the untraced money is unanswerable from the data we hold
+
+All ₹80,779 of untraced bank income is nine Airwallex IMPS credits from one sending
+account (`7259033210`). Airwallex is a payment middleman: the remitter's name is not
+in the bank remark, and no email anywhere in either mailbox names those amounts.
+
+**The rule this sets:** when the answer is genuinely absent, say so and record what was
+ruled out — do not loosen an FX band or a date window until something fits. Every
+near-miss candidate implies 91–94 INR/USD against a real rate near 87, and that gap is
+evidence *against* the match, not noise to tolerate. The way forward is the bank's own
+remitter lookup against an IMPS reference. Full workings in the yt-income skill,
+"Known open questions".

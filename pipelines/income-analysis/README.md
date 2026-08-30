@@ -24,6 +24,30 @@ The plan: every income source gets its own CLI or MCP that reads its data, and t
 - How to query: in Claude, just ask ("my impact.com income by program last month") and the pp-impact skill handles it. By hand: source the creds and run the CLI.
 - Notes: local-only. The account id is baked into the URL so it can't be published. The token sits in `personal-stuff/infra/secrets/impact.env` (gitignored) and I can revoke it from impact.com settings anytime. Read-only reporting.
 
+### Affiliate mailboxes (the source that names the tool)
+
+- Mailboxes: `khushibakliwal` and `kushalbakliwal` at `agrolloo.com`. Hostinger mail,
+  not Gmail, so `pp-gmail` cannot see them — the reader is plain `imaplib`.
+- Tool: `mailbox.py` in this folder. `ingest.py` calls it on every online run and
+  caches to `data/networks/mailbox.json`, so `--offline` keeps the leads.
+- Why it earns its place: the bank says *how much* arrived, every API knows only its
+  own programs, and the mail is the only thing that sees **all** of them — including
+  programs with no API at all (Rewardful, Tolt, FirstPromoter, Book Bolt's notifier).
+- Credentials: `infra/secrets/hostinger-mail.env` (gitignored, chmod 600), an escrow
+  copy of the VPS gmail-digest `.env`. Rotate in Hostinger webmail and update both.
+- **What it is allowed to do:** supply *leads* on untraced rows, never an
+  attribution. The one exception is a payout mail stating an exact rupee figure that
+  equals the bank credit to the paisa. impact.com is the only sender that states
+  rupees, so it is the only one that can settle a row from mail alone.
+- **Accruals are not income.** "You earned $4.80" is money promised, not money
+  received — Lovable and EverBee have been accruing since Feb 2026 behind a blocked
+  Tipalti verification. `mailbox.py` marks these `accrual` and they never become
+  leads.
+- Adding a program: write a strict parser in `mailbox.py` (match the sender **and** a
+  distinctive phrase) and add it to `PARSERS`. A parser that fires on marketing mail
+  is worse than none — `outreach.impact.com` sends "earn up to $150" from the same
+  domain as the real payment notice.
+
 ### Bank passbook (the half that cannot be automated)
 
 - Account: the owner's mother's PNB account. PayPal settles here by NEFT, and some
@@ -94,6 +118,8 @@ Same PayPal total, different months.
 Dated pulls live in `snapshots/`. Most recent: [2026-06-20](snapshots/2026-06-20.md).
 
 ## To add
+
+**The second passbook.** impact.com settles into a different bank account (owner-confirmed 2026-08-30), so its income sits outside this tally entirely. Getting that statement is the single biggest gap here.
 
 More sources over time: other affiliate networks, payment platforms, marketplaces. Each one as a CLI or MCP so the whole picture is one quick query instead of a dashboard crawl. Gumroad and Skool already have CLIs (`gumroad-pp-cli`, `skool-pp-cli`); wire them in here when they're worth tracking.
 

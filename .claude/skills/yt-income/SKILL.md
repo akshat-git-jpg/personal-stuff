@@ -401,13 +401,87 @@ In this order, kept short — the owner reads this tired:
 
 ## Known open questions
 
-- **~₹80k of Airwallex credits are unattributed.** PartnerStack explains one
-  payout; impact.com's payout dates are unavailable (its invoices endpoint 403s
-  for this key). Widening that key's permissions would upgrade pass 3 from
-  `inferred` to `matched`.
-- **PayKickstart is parked.** Its API is gated to vendor plans and the owner is
-  an affiliate. The dashboard names it as not connected rather than letting its
-  absence read as zero.
+Ordered by how much money each one moves. Start at the top.
+
+### 1. ₹80,779 of Airwallex credits have no tool — and the answer is not in any
+source we hold
+
+This is the whole untraced figure bar the DigitalWorks row. **Nine** Airwallex
+IMPS credits, every one from the same sending account `7259033210`:
+
+| Date | Amount | Bank ref |
+|---|---|---|
+| 25/02/2026 | ₹3,818.16 | 605665005631 |
+| 06/03/2026 | ₹7,567.40 | 606571461858 | **← the only one matched** (PartnerStack $83.07) |
+| 19/03/2026 | ₹22,084.36 | 607882704572 |
+| 17/04/2026 | ₹12,616.80 | 610740546200 |
+| 07/05/2026 | ₹7,988.68 | 612758926953 |
+| 22/05/2026 | ₹6,906.35 | 614272483955 |
+| 30/06/2026 | ₹14,759.13 | 618142819866 |
+| 07/07/2026 | ₹3,363.60 | 618850220704 |
+| 23/07/2026 | ₹9,242.06 | 620464855840 |
+
+**Airwallex is a middleman, not a payer.** Many platforms settle through it, and
+the bank remark carries no remitter name. So the tool is *absent from the data*,
+not merely hard to find. That distinction matters: no amount of re-reading the
+bank or the mailbox will produce it.
+
+**What was already ruled out on 2026-08-30, so nobody repeats it:**
+
+- Every one of the 891 mails since Jan 2026 was searched for these exact amounts.
+  **Zero hits.** Whoever sends this does not email a payout notice.
+- The5ers, FundingPips and Helium 10 send heavy affiliate mail but **no payout
+  receipts** — marketing only.
+- The Sent-folder "stuck commission" threads are **Submagic**, chased through
+  FirstPromoter since Jan 2026 ("promoter payout method is showing as disabled").
+  Not the Airwallex payer.
+- PartnerStack's other payouts imply **91–94 INR/USD** against a real rate near
+  87. That is the arithmetic saying *not this payout*. **Do not relax the band to
+  make them fit.**
+
+**The two ways left**, both outside anything automated:
+
+1. Quote a bank reference to PNB and ask for the remitter's name. Start with
+   `607882704572` (₹22,084.36) — the biggest, and one answer probably names the
+   payer for all eight.
+2. Open the one dashboard that pays via Airwallex and look for a payout of
+   ₹22,084.36 around 19 Mar. The owner wants to avoid dashboards, so this is the
+   fallback.
+
+### 2. impact.com pays into a different bank account (owner-confirmed 2026-08-30)
+
+impact mailed exactly two payments all year — Rs.20,185.19 (26 Feb) and Rs.623.00
+(16 Mar) — and **neither appears in this passbook**. The owner confirmed the money
+goes to another account.
+
+Consequences, all of them live:
+
+- **impact income is outside this tally today.** The dashboard covers one
+  passbook; impact settles elsewhere. Do not attribute an Airwallex credit to
+  impact to close the gap.
+- `pass_impact` still infers impact attributions from USD earnings and an FX
+  band. Given the above it is **inferring against the wrong account** and should
+  be revisited — its output is the least trustworthy thing in the engine.
+- Closing this properly needs that second passbook. Ask the owner for it; until
+  then say "impact settles to another account" rather than implying zero.
+
+### 3. Lovable and EverBee were earned but never received
+
+Rewardful pays them through Tipalti, and Tipalti has blocked the payout on
+identity verification **since Feb 2026** — the thread was still open on 28 Aug.
+`mailbox.py` classes these as `accrual` and they can never become leads. Keep it
+that way: crediting them would invent money that never arrived.
+
+### 4. PayKickstart is parked
+
+Its API is gated to vendor plans and the owner is an affiliate. The dashboard
+names it as not connected rather than letting its absence read as zero.
+
+### 5. impact's invoices endpoint 403s
+
+Payout dates are unavailable for this key, which keeps pass 3 at `inferred`
+rather than `matched`. Widening the key's permissions would upgrade it — though
+see (2) first, since the account question outranks the precision question.
 
 ## Related
 

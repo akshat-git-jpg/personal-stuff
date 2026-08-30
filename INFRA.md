@@ -98,6 +98,24 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 
 ---
 
+## Affiliate mailboxes (agrolloo.com)
+
+`agrolloo.com` mail is Hostinger's own (`mx1/mx2.hostinger.com`), **not** Gmail, so
+`pp-gmail` cannot read it. Two mailboxes carry every affiliate commission and payout
+notice: `khushibakliwal@agrolloo.com` and `kushalbakliwal@agrolloo.com`, 1 GB each.
+
+Two consumers, one credential, two copies:
+
+| Consumer | Where the password lives |
+|---|---|
+| gmail-digest cron (Telegram digest) | `/srv/crons/gmail-digest/.env` on the VPS |
+| `pipelines/income-analysis/mailbox.py` (yt-income tally) | `infra/secrets/hostinger-mail.env` (gitignored, chmod 600) |
+
+⚠️ These are **mailbox passwords, not scoped tokens** — they can send as well as read.
+Rotate in Hostinger webmail, then update **both** locations or one consumer breaks
+silently. Account config (hosts, ports, env-var names, no secrets) is committed at
+`apps/telegram-email-assistant/imap-accounts.json`.
+
 ## Hostinger VPS
 
 - Host: `srv1377177.hstgr.cloud` / `72.61.241.170` (IPv6 `2a02:4780:12:4d02::1`).
