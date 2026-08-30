@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Non-Gmail mailboxes the digest can read, via fetch-imap.py.",
+    "THIS REPO IS PUBLIC: never inline a password here. Always use",
+    "'password_env' and set the real value in the cron .env",
+    "(/srv/crons/gmail-digest/.env on the VPS, which is outside the repo).",
+    "An address present here routes digest.sh down the IMAP path; anything",
+    "else goes to pp-gmail. Keys starting with '_' are ignored as accounts",
+    "only because no mail address starts with an underscore."
+  ],
+  "khushibakliwal@agrolloo.com": {
+    "host": "imap.hostinger.com",
+    "port": 993,
+    "password_env": "IMAP_PASS_KHUSHIBAKLIWAL"
+  },
+  "kushalbakliwal@agrolloo.com": {
+    "host": "imap.hostinger.com",
+    "port": 993,
+    "password_env": "IMAP_PASS_KUSHALBAKLIWAL"
+  }
+}

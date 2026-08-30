@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
-# Gmail digest — generate a two-part daily summary for one Gmail account.
+# Email digest — generate a two-part daily summary for one mailbox.
 #
 # How it works (CLI-first; MCP is no longer used here):
-#   1. Bash uses `cli/gmail/pp-gmail` to deterministically fetch the email
-#      list + bodies for the time window. No Claude in this phase.
+#   1. Bash deterministically fetches the email list + bodies for the time
+#      window. No Claude in this phase. Two readers, picked by address:
+#        - Gmail accounts -> `cli/gmail/pp-gmail` (Gmail API + OAuth)
+#        - anything listed in `imap-accounts.json` -> `fetch-imap.py` (plain
+#          IMAP; this is how the Hostinger mailbox is read)
+#      Both print the same `=== sender — subject (date) ===` block shape, so
+#      everything downstream is identical.
 #   2. Bash reads the preferences file.
 #   3. ONE `claude -p` call summarizes the pre-fetched text. No MCP tools
 #      attached — Claude only produces the digest.
@@ -15,11 +20,16 @@
 # Usage:
 #   ./digest.sh <email>
 #   ./digest.sh kushalbakliwal25@gmail.com
+#   ./digest.sh khushibakliwal@agrolloo.com
 #
 # Optional env vars:
-#   WINDOW       Gmail query for the time window (default: newer_than:2d)
-#                Examples: newer_than:1d, newer_than:12h, after:2026/05/25
-#   MAX_EMAILS   Cap on threads fetched (default: 50)
+#   WINDOW         Gmail query for the time window (default: newer_than:2d)
+#                  Examples: newer_than:1d, newer_than:12h, after:2026/05/25
+#                  IMAP accounts honour only the `newer_than:Nd` form (IMAP
+#                  SINCE is date-granular); anything else falls back to 2 days.
+#   MAX_EMAILS     Cap on threads fetched (default: 50)
+#   IMAP_ACCOUNTS  Path to the IMAP credentials JSON
+#                  (default: <this dir>/imap-accounts.json, gitignored)
 #
 # Output: the formatted digest text to stdout.
 # Errors: a single line starting with "ERROR: " to stdout/stderr, exit 1.
@@ -49,27 +59,65 @@ if [[ ! -f "$PROMPT_FILE" ]]; then
   exit 1
 fi
 
-PP_GMAIL="$REPO_ROOT/tooling/cli/gmail/pp-gmail"
-if [[ ! -x "$PP_GMAIL" ]]; then
-  echo "ERROR: pp-gmail not executable at $PP_GMAIL" >&2
-  exit 1
-fi
-
 WINDOW="${WINDOW:-newer_than:2d}"
 MAX_EMAILS="${MAX_EMAILS:-50}"
 
-# Phase 1 — fetch thread IDs for the window (deterministic, no Claude).
-THREAD_IDS=$("$PP_GMAIL" --account "$EMAIL" search "$WINDOW" --max "$MAX_EMAILS" --format ids)
-THREAD_COUNT=$(printf '%s\n' "$THREAD_IDS" | grep -c . || true)
+IMAP_ACCOUNTS="${IMAP_ACCOUNTS:-$ASSISTANT_DIR/imap-accounts.json}"
+FETCH_IMAP="$ASSISTANT_DIR/fetch-imap.py"
+
+# Route by address: an entry in imap-accounts.json wins, otherwise Gmail.
+# `--has-account` reads the file and exits 0/1; it connects to nothing.
+USE_IMAP=0
+if [[ -x "$FETCH_IMAP" ]] \
+   && "$FETCH_IMAP" "$EMAIL" --accounts "$IMAP_ACCOUNTS" --has-account 2>/dev/null; then
+  USE_IMAP=1
+fi
+
+if [[ "$USE_IMAP" -eq 1 ]]; then
+  # ---- IMAP path (Hostinger, and any other non-Gmail mailbox) ----
+  DAYS=2
+  if [[ "$WINDOW" =~ ^newer_than:([0-9]+)d$ ]]; then
+    DAYS="${BASH_REMATCH[1]}"
+  fi
+
+  # fetch-imap.py prints one "ERROR: ..." line on no-mail / auth / network
+  # failure, which is exactly what run.sh forwards to Telegram.
+  if ! EMAIL_BODIES=$("$FETCH_IMAP" "$EMAIL" --days "$DAYS" --max "$MAX_EMAILS" \
+                        --accounts "$IMAP_ACCOUNTS" 2>&1); then
+    printf '%s\n' "$EMAIL_BODIES" | grep '^ERROR:' \
+      || echo "ERROR: IMAP fetch failed for $EMAIL"
+    exit 1
+  fi
+
+  THREAD_COUNT=$(printf '%s\n' "$EMAIL_BODIES" | grep -c '^=== ' || true)
+  WINDOW_LABEL="last ${DAYS}d (IMAP)"
+else
+  # ---- Gmail path ----
+  PP_GMAIL="$REPO_ROOT/tooling/cli/gmail/pp-gmail"
+  if [[ ! -x "$PP_GMAIL" ]]; then
+    echo "ERROR: pp-gmail not executable at $PP_GMAIL" >&2
+    exit 1
+  fi
+
+  # Phase 1 — fetch thread IDs for the window (deterministic, no Claude).
+  THREAD_IDS=$("$PP_GMAIL" --account "$EMAIL" search "$WINDOW" --max "$MAX_EMAILS" --format ids)
+  THREAD_COUNT=$(printf '%s\n' "$THREAD_IDS" | grep -c . || true)
+
+  if [[ "$THREAD_COUNT" -eq 0 ]]; then
+    echo "ERROR: no emails matched window '$WINDOW' for $EMAIL"
+    exit 1
+  fi
+
+  # Phase 2 — fetch the full plain-text bodies for those threads.
+  # shellcheck disable=SC2086
+  EMAIL_BODIES=$("$PP_GMAIL" --account "$EMAIL" get $THREAD_IDS --format plain)
+  WINDOW_LABEL="$WINDOW"
+fi
 
 if [[ "$THREAD_COUNT" -eq 0 ]]; then
   echo "ERROR: no emails matched window '$WINDOW' for $EMAIL"
   exit 1
 fi
-
-# Phase 2 — fetch the full plain-text bodies for those threads.
-# shellcheck disable=SC2086
-EMAIL_BODIES=$("$PP_GMAIL" --account "$EMAIL" get $THREAD_IDS --format plain)
 
 # Phase 3 — read preferences inline.
 PREFS_CONTENT=$(cat "$PREFS_FILE")
@@ -85,7 +133,7 @@ $(cat "$PROMPT_FILE")
 ## Run context (CLI-fetched — DO NOT call any tools)
 
 - **Email account**: \`${EMAIL}\`
-- **Time window covered**: \`${WINDOW}\` (${THREAD_COUNT} threads fetched)
+- **Time window covered**: \`${WINDOW_LABEL}\` (${THREAD_COUNT} threads fetched)
 - All emails and preferences are inlined below. The "Fetch emails" step in
   the task spec above is **already done** — do not attempt any tool calls;
   none are available in this run. Just read the data below and produce the

@@ -442,13 +442,14 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 
 ### gmail-digest
 
-- **What:** Two-part Gmail digest via Claude Code + Gmail MCP → Telegram text
+- **What:** Two-part email digest via Claude Code → Telegram text. Reads Gmail **and** the two Hostinger mailboxes.
 - **When:** 06:00 IST daily (`30 0 * * *` UTC)
 - **Wrapper:** `/srv/crons/gmail-digest/run.sh`
 - **Project code:** `/srv/projects/personal-stuff/apps/telegram-email-assistant/digest.sh` (+ `digest-prompt.md`)
 - **MCP:** Gmail MCP at `/srv/projects/personal-stuff/tooling/mcp/gmail-mcp-server/server.py` running under shared venv at `/srv/projects/personal-stuff/tooling/mcp/.venv/`
 - **OAuth:** `/srv/projects/personal-stuff/tooling/mcp/google-shared/credentials.json` + `tokens/<email>.json` per account (gitignored, scp'd from Mac)
-- **Accounts:** all four — `kushalbakliwal25`, `seankerman25`, `jessicap123k`, `akshatpatidar17` (@gmail.com) — set via space-separated `DIGEST_EMAILS` in `.env`; one Telegram message per account, per-account soft-fail, "no emails in window" sends a 📭 note instead of an error
+- **Accounts:** six — the four Gmail (`kushalbakliwal25`, `seankerman25`, `jessicap123k`, `akshatpatidar17` @gmail.com) plus the two Hostinger mailboxes (`khushibakliwal@agrolloo.com`, `kushalbakliwal@agrolloo.com`) — set via space-separated `DIGEST_EMAILS` in `.env`; one Telegram message per account, per-account soft-fail, "no emails in window" sends a 📭 note instead of an error
+- **IMAP (Hostinger) accounts:** `digest.sh` routes any address listed in `apps/telegram-email-assistant/imap-accounts.json` through `fetch-imap.py` (stdlib `imaplib`, `imap.hostinger.com:993`) instead of `pp-gmail`. That JSON is committed and holds **no secrets** — only `password_env` names. The real mailbox passwords live in `/srv/crons/gmail-digest/.env` as `IMAP_PASS_KHUSHIBAKLIWAL` and `IMAP_PASS_KUSHALBAKLIWAL`; `run.sh` already sources that file under `set -a`, so anything added there is exported to `digest.sh` with no wrapper change. ⚠️ Unlike the Gmail accounts, these are **passwords, not scoped OAuth tokens** — anyone with VPS root can also *send* as those addresses. Each mailbox is capped at 1 GB.
 - **Telegram dest:** `@hermes_kb_pa_bot`, chat_id `1912944391` (same as my-planner)
 - **Output format:** Part 1 (Claude's judgment of what matters) + Part 2 (matches against "Digest focus areas" in the per-account preferences file)
 
