@@ -1299,3 +1299,4 @@ Rejected: making boss treat every number as a plan number — a real PR number w
 then be shadowed by a same-numbered plan. Rejected: having secretary rewrite the
 frontmatter at raise time — a dependency's PR may not exist yet when the plan is
 raised, so the rewrite would sometimes have nothing to write.
+- 2026-08-30 — **The channel registry is a committed file, not a table.** A file beat D1 because the Python pipelines cannot read D1, so a table would fragment the source of truth or require a separate HTTP API. Workers can bundle this file via relative imports. The redirector stays host-agnostic and one Worker serves every domain (adding a channel just adds a route). Video codes need no per-channel prefix because `generateVideoCode` already checks the whole table for uniqueness. `go.agrolloo.com` is permanent because its slugs are published in YouTube descriptions.
