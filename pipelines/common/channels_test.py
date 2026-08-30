@@ -30,6 +30,16 @@ class ChannelsTest(unittest.TestCase):
         self.assertEqual(ids, sorted(set(ids)))
         self.assertTrue(len(ids) >= 1)
 
+    def test_profile_for_returns_the_block(self):
+        p = channels.profile_for("agrollo")
+        self.assertEqual(p["brand"], "default")
+        self.assertTrue(p["voice_slug"])
+        self.assertTrue(p["avatar_slug"])
+
+    def test_profile_for_unknown_channel_raises(self):
+        with self.assertRaises(KeyError):
+            channels.profile_for("missing")
+
 
 if __name__ == "__main__":
     unittest.main()

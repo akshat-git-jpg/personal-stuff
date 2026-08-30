@@ -39,3 +39,15 @@ def get_channel(channel_id, reg=None):
 def default_channel(reg=None):
     reg = reg if reg is not None else load_registry()
     return get_channel(reg["default_channel_id"], reg)
+
+
+def profile_for(channel_id, reg=None):
+    """The creative profile for a channel: voice, avatar, brand, taste file.
+
+    Validation of these pointers lives in config/profiles.mjs (node); Python is a
+    consumer only. Raises KeyError for an unknown channel, matching get_channel.
+    """
+    profile = get_channel(channel_id, reg).get("profile")
+    if not profile:
+        raise KeyError("PROFILE_MISSING: channel %r has no profile block" % (channel_id,))
+    return profile
