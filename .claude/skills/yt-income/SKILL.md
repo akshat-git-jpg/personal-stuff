@@ -207,6 +207,15 @@ If the same sender turns up repeatedly, promote it: add a rail to `income_rails`
 so future statements classify it automatically, instead of one manual entry per
 credit.
 
+**Do not widen the search to make untraced money go away.** It is the obvious
+idea and it is wrong. Tried on 2026-08-30: pulling five extra months of
+impact.com history produced *twenty-four* subset sums landing within 2% of an
+untraced credit, several hitting the same credit different ways. That is not
+evidence, it is what a subset search does when given enough numbers — and acting
+on it would have put a wrong tool name on real money. The window starts **Jan
+2026** by the owner's decision. Untraced money gets named from something he
+confirmed, never from a looser guess.
+
 ### 5. Test, then publish
 
 ```bash

@@ -225,7 +225,23 @@ def fetch_impact(start, end):
 
 
 def fetch_impact_by_month(months):
-    """One call per month — the report has no month dimension on this endpoint."""
+    """One call per month — the report has no month dimension on this endpoint.
+
+    **Fetches only the statement's own months. Do not widen this backwards.**
+
+    Networks pay on a lag, so pulling earlier months looks like it should help an
+    unmatched credit find its earnings. It does the opposite. Tried 2026-08-30
+    with five months of lookback: the extra months produced *twenty-four* distinct
+    subset sums landing within 2% of an untraced credit, several hitting the same
+    credit with different combinations. None of that is evidence — it is what
+    happens when you let a subset search roam over enough numbers. Acting on any
+    of it would have put a wrong tool name on real money, which is the one failure
+    this pipeline exists to prevent.
+
+    Owner's call on the same date: start from Jan 2026. Untraced money gets named
+    by `manual_attribution` in rules.json, from something he actually confirmed —
+    not by a wider guess.
+    """
     out = {}
     for m in months:
         y, mo = int(m[:4]), int(m[5:7])
