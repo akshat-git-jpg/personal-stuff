@@ -7,7 +7,7 @@
     "dev": ". ../../scripts/node22-path.sh && vite",
     "build": ". ../../scripts/node22-path.sh && npm run sync:income && tsc -b && vite build",
     "lint": "eslint .",
-    "typecheck": ". ../../scripts/node22-path.sh && tsc -b",
+    "typecheck": ". ../../scripts/node22-path.sh && npm install && tsc -b",
     "preview": ". ../../scripts/node22-path.sh && vite preview",
     "test": ". ../../scripts/node22-path.sh && npm install && vitest run",
     "deploy": ". ../../scripts/node22-path.sh && npm run build && wrangler deploy",
