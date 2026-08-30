@@ -19,7 +19,7 @@
  */
 
 import type { Env } from "./auth";
-import { DEFAULT_CHANNEL_ID, linkDomainFor, uploadsPlaylistFor } from "./channels";
+import { DEFAULT_CHANNEL_ID, linkDomainFor, uploadsPlaylistFor, listChannels } from "./channels";
 
 /** Videos at or under this duration are treated as Shorts and excluded. */
 const SHORTS_MAX_SECONDS = 60;
@@ -180,21 +180,24 @@ function dateMs(iso: string | null): number {
  *               hid 54 of 69 recorded clicks. They are now returned so the UI can
  *               say so out loud.
  */
+export function buildChannelWhereClause(channelId: string): { clause: string; params: string[] } {
+  const channelExists = listChannels().some((ch) => ch.id === channelId);
+  // Default channel is known to exist by definition.
+  if (!channelExists) throw new Error("unknown_channel");
+
+  if (channelId === DEFAULT_CHANNEL_ID) {
+    return { clause: "WHERE v.channel_id = ? OR v.channel_id IS NULL", params: [channelId] };
+  }
+  return { clause: "WHERE v.channel_id = ?", params: [channelId] };
+}
+
 async function loadLinksByYouTubeId(env: Env, channelId: string): Promise<{
   byYt: Map<string, { video_code: string; links: LinkStat[] }>;
   unmatched: UnmatchedVideo[];
 }> {
   const cutoffHour = Math.floor((Math.floor(Date.now() / 1000) - 30 * 86400) / 3600);
 
-  let whereClause: string;
-  let params: string[];
-  if (channelId === DEFAULT_CHANNEL_ID) {
-    whereClause = "WHERE v.channel_id = ? OR v.channel_id IS NULL";
-    params = [channelId];
-  } else {
-    whereClause = "WHERE v.channel_id = ?";
-    params = [channelId];
-  }
+  const { clause: whereClause, params } = buildChannelWhereClause(channelId);
 
   // Every shortener video, mapped or not. The `WHERE v.yt_video_id IS NOT NULL`
   // filter used to live here and was the whole bug: an unmapped video's links

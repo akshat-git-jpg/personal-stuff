@@ -19,10 +19,14 @@ import {
 const SEARCH_DEPTH = 50; // mirrors the worker; ">50" / off-chart bottom
 
 export function RankingsView({
+  channelId,
   videos,
+  youtubeOk,
   onAuthLost,
 }: {
+  channelId: string;
   videos: VideoStat[];
+  youtubeOk: boolean;
   onAuthLost: () => void;
 }) {
   const [byVideo, setByVideo] = useState<KeywordsByVideo>({});
@@ -32,10 +36,11 @@ export function RankingsView({
   const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
+    if (!channelId) return;
     setLoading(true);
     setError(null);
     try {
-      const r = await fetchRankings();
+      const r = await fetchRankings(channelId);
       setByVideo(r.byVideo);
       setQuota(r.quota);
     } catch (e) {
@@ -44,7 +49,7 @@ export function RankingsView({
     } finally {
       setLoading(false);
     }
-  }, [onAuthLost]);
+  }, [channelId, onAuthLost]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -82,14 +87,14 @@ export function RankingsView({
         />
         <span
           className="rk-sub"
-          title="Counts rank checks run here since midnight Pacific (when YouTube resets the daily quota). Other YouTube API usage on the same key isn't included, so the real figure may be slightly lower."
+          title="Rank checks cost 100 API units each and all channels share one 10,000/day budget (~100 checks a day in total)."
         >
           {quota ? (
             <>
               <strong className="rk-quota-left">{quota.remaining.toLocaleString()}</strong> of{" "}
-              {quota.daily_limit.toLocaleString()} daily quota units left —{" "}
+              {quota.daily_limit.toLocaleString()} shared daily quota units left —{" "}
               <strong>{quota.checks_remaining.toLocaleString()}</strong> more keyword check
-              {quota.checks_remaining === 1 ? "" : "s"} today (resets midnight PT)
+              {quota.checks_remaining === 1 ? "" : "s"} today across all channels (resets midnight PT)
             </>
           ) : (
             "Loading quota…"
@@ -106,8 +111,10 @@ export function RankingsView({
           {filtered.map((v) => (
             <RankingVideoCard
               key={v.yt_video_id}
+              channelId={channelId}
               video={v}
               keywords={byVideo[v.yt_video_id] ?? []}
+              youtubeOk={youtubeOk}
               onChanged={load}
               onAuthLost={onAuthLost}
             />
@@ -120,13 +127,17 @@ export function RankingsView({
 }
 
 function RankingVideoCard({
+  channelId,
   video,
   keywords,
+  youtubeOk,
   onChanged,
   onAuthLost,
 }: {
+  channelId: string;
   video: VideoStat;
   keywords: KeywordStat[];
+  youtubeOk: boolean;
   onChanged: () => Promise<void>;
   onAuthLost: () => void;
 }) {
@@ -153,7 +164,7 @@ function RankingVideoCard({
     guard(async () => {
       const kw = draft.trim();
       if (!kw) return;
-      await addKeyword(video.yt_video_id, kw);
+      await addKeyword(channelId, video.yt_video_id, kw);
       setDraft("");
       await onChanged();
     });
@@ -180,7 +191,12 @@ function RankingVideoCard({
         </a>
         <div className="rk-card-actions">
           {keywords.length > 0 && (
-            <button className="btn-ghost" onClick={check} disabled={busy}>
+            <button
+              className="btn-ghost"
+              onClick={check}
+              disabled={busy || !youtubeOk}
+              title={!youtubeOk ? "YouTube is unavailable, check disabled." : ""}
+            >
               {busy ? "Checking…" : `Check ${keywords.length} · ${keywords.length * 100} units`}
             </button>
           )}

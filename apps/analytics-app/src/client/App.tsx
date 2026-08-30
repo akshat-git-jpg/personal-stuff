@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   fetchVideos,
+  fetchChannels,
   type UnmatchedVideo,
   logout,
   UnauthorizedError,
@@ -28,8 +29,6 @@ function dateMs(iso: string | null): number {
 
 export function App() {
   const [videos, setVideos] = useState<VideoStat[] | null>(null);
-  // Videos whose links exist but have no YouTube mapping. Their clicks are real
-  // and were invisible until 2026-08-28; they are listed separately, never dropped.
   const [unmatched, setUnmatched] = useState<UnmatchedVideo[]>([]);
   const [generatedAt, setGeneratedAt] = useState<number | null>(null);
   const [ytError, setYtError] = useState<string | null>(null);
@@ -40,18 +39,44 @@ export function App() {
   const [tab, setTab] = useState<Tab>("clicks");
   const [sort, setSort] = useState<SortKey>("clicks");
 
-  // Unmapped videos split two ways: ones already losing clicks get a card, the
-  // rest (drafts, test cards) get a single count line so the section stays
-  // readable. 19 of the 27 unmapped rows on 2026-08-28 were test videos.
+  const [channels, setChannels] = useState<{ id: string; name: string; handle: string }[]>([]);
+  const [channelId, setChannelId] = useState<string | null>(null);
+  const [channelError, setChannelError] = useState(false);
+
   const unmatchedWithClicks = unmatched.filter((u) => u.total_all > 0);
   const unmatchedNoClicks = unmatched.length - unmatchedWithClicks.length;
   const unmatchedClicks = unmatched.reduce((n, u) => n + u.total_all, 0);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (forcedChannelId?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchVideos();
+      let chanList = channels;
+      let defaultId = "";
+      if (chanList.length === 0) {
+        try {
+          const cData = await fetchChannels();
+          chanList = cData.channels;
+          defaultId = cData.default_channel_id;
+          setChannels(chanList);
+        } catch (e) {
+          if (e instanceof UnauthorizedError) throw e;
+          setChannelError(true);
+          chanList = [];
+        }
+      }
+
+      let active = forcedChannelId ?? channelId;
+      if (!active && chanList.length > 0) {
+        try {
+          const stored = localStorage.getItem("yta.channel");
+          if (stored && chanList.some((c) => c.id === stored)) active = stored;
+        } catch { /* ignore */ }
+        if (!active) active = defaultId || chanList[0]?.id;
+      }
+      if (active !== channelId) setChannelId(active);
+
+      const data = await fetchVideos(active || undefined);
       setVideos(data.videos);
       setUnmatched(data.unmatched ?? []);
       setGeneratedAt(data.generated_at);
@@ -68,7 +93,15 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [channels, channelId]);
+
+  const switchChannel = (id: string) => {
+    try {
+      localStorage.setItem("yta.channel", id);
+    } catch { /* ignore */ }
+    setChannelId(id);
+    void load(id);
+  };
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -129,6 +162,27 @@ export function App() {
           <span className="brand-mark" />
           YT Analytics
         </div>
+        
+        {!channelError && channels.length > 0 && (
+          <div className="channel-switcher">
+            {channels.length === 1 ? (
+              <span className="channel-single">{channels[0].name}</span>
+            ) : (
+              <select
+                value={channelId ?? ""}
+                onChange={(e) => switchChannel(e.target.value)}
+                disabled={loading}
+              >
+                {channels.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
+
         <div className="topbar-actions">
           <span className="refreshed">
             {generatedAt
@@ -149,6 +203,12 @@ export function App() {
           </button>
         </div>
       </header>
+
+      {channelError && (
+        <div className="banner-error">
+          Couldn&apos;t load the channel list — showing {channelId || "default"}.
+        </div>
+      )}
 
       <nav className="tabs">
         <button
@@ -174,8 +234,7 @@ export function App() {
       {error && <div className="banner-error">{error}</div>}
       {!error && ytError && (
         <div className="banner-error">
-          Couldn&apos;t load videos from YouTube — {ytError} The video list comes from your
-          channel&apos;s uploads, so nothing is shown until YouTube responds.
+          Couldn&apos;t load {channels.find(c => c.id === channelId)?.name || "the channel"}&apos;s videos from YouTube — {ytError} The video list comes from your channel&apos;s public uploads, so nothing is shown until YouTube responds.
         </div>
       )}
 
@@ -221,7 +280,7 @@ export function App() {
                     <p>
                       {ytError
                         ? "The video list couldn't be loaded from YouTube — see the message above."
-                        : "No public long-form uploads were found on the channel."}
+                        : `No public long-form uploads were found on ${channels.find(c => c.id === channelId)?.name || "the channel"}.`}
                     </p>
                   </>
                 ) : (
@@ -304,7 +363,7 @@ export function App() {
           {loading && !videos ? (
             <div className="empty">Loading…</div>
           ) : (
-            <RankingsView videos={videos ?? []} onAuthLost={() => setNeedsAuth(true)} />
+            <RankingsView channelId={channelId || ""} videos={videos ?? []} youtubeOk={!ytError} onAuthLost={() => setNeedsAuth(true)} />
           )}
         </main>
       )}

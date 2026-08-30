@@ -216,7 +216,7 @@ export async function checkVideo(env: Env, ytVideoId: string): Promise<CheckResu
     } catch (e) {
       if (e instanceof QuotaError) {
         out.quota_exhausted = true;
-        out.error = "YouTube daily quota exhausted — partial results saved. Try again tomorrow.";
+        out.error = "The shared YouTube daily quota is exhausted — partial results saved. Try again tomorrow.";
         break;
       }
       out.error = e instanceof Error ? e.message : "rank check failed";

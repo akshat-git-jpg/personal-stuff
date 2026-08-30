@@ -55,8 +55,21 @@ export class UnauthorizedError extends Error {
   }
 }
 
-export async function fetchVideos(): Promise<VideosResponse> {
-  const res = await fetch("/api/videos", { credentials: "same-origin" });
+export interface ChannelsResponse {
+  channels: { id: string; name: string; handle: string }[];
+  default_channel_id: string;
+}
+
+export async function fetchChannels(): Promise<ChannelsResponse> {
+  const res = await fetch("/api/channels", { credentials: "same-origin" });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error(`Failed to load channels (${res.status})`);
+  return (await res.json()) as ChannelsResponse;
+}
+
+export async function fetchVideos(channelId?: string): Promise<VideosResponse> {
+  const q = channelId ? `?channel=${encodeURIComponent(channelId)}` : "";
+  const res = await fetch(`/api/videos${q}`, { credentials: "same-origin" });
   if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error(`Failed to load data (${res.status})`);
   return (await res.json()) as VideosResponse;
@@ -98,15 +111,17 @@ export interface RankingsResponse {
   quota: QuotaInfo;
 }
 
-export async function fetchRankings(): Promise<RankingsResponse> {
-  const res = await fetch("/api/rankings", { credentials: "same-origin" });
+export async function fetchRankings(channelId?: string): Promise<RankingsResponse> {
+  const q = channelId ? `?channel=${encodeURIComponent(channelId)}` : "";
+  const res = await fetch(`/api/rankings${q}`, { credentials: "same-origin" });
   if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error(`Failed to load rankings (${res.status})`);
   return (await res.json()) as RankingsResponse;
 }
 
-export async function addKeyword(ytVideoId: string, keyword: string): Promise<{ id: number }> {
-  const res = await fetch("/api/rankings/keywords", {
+export async function addKeyword(channelId: string, ytVideoId: string, keyword: string): Promise<{ id: number }> {
+  const q = channelId ? `?channel=${encodeURIComponent(channelId)}` : "";
+  const res = await fetch(`/api/rankings/keywords${q}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ yt_video_id: ytVideoId, keyword }),
