@@ -22,6 +22,8 @@
   const byTitle = new Map();
   /** opening/contract id -> same record */
   const byId = new Map();
+  /** element -> how many times we failed to match it, so we can retry then stop */
+  const attempts = new WeakMap();
 
   const norm = (s) =>
     String(s)
@@ -160,13 +162,33 @@
     (document.head || document.documentElement).appendChild(s);
   }
 
+  const HEADING_SEL = [
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    '[role="heading"]',
+    '[aria-level]',
+    '[data-test*="title" i]',
+    '[data-qa*="title" i]',
+    '[class*="title" i]',
+    '[class*="Title"]',
+  ].join(',');
+
   function headingFor(el) {
     let node = el;
-    for (let i = 0; i < 14 && node; i++) {
-      const h = node.querySelector && node.querySelector('h1,h2,h3,h4,[role="heading"]');
-      if (h) {
-        const txt = h.textContent.trim();
-        if (txt && !PRIVATE_RE.test(txt)) return txt;
+    for (let i = 0; i < 16 && node; i++) {
+      if (node.querySelectorAll) {
+        for (const h of node.querySelectorAll(HEADING_SEL)) {
+          const txt = h.textContent.trim();
+          if (txt && txt.length > 6 && !PRIVATE_RE.test(txt) && byTitle.has(norm(txt))) return txt;
+        }
+        // second pass: no exact hit, take the first plausible heading text
+        for (const h of node.querySelectorAll(HEADING_SEL)) {
+          const txt = h.textContent.trim();
+          if (txt && txt.length > 6 && !PRIVATE_RE.test(txt)) return txt;
+        }
       }
       node = node.parentElement;
     }
@@ -216,9 +238,17 @@
     for (const node of targets) {
       const el = node.parentElement;
       if (!el) continue;
-      el.dataset.uhelpDone = '1';
       const rec = lookup(el);
-      if (!rec) continue;
+      if (!rec) {
+        // The modal often renders its body before its title, and the capture
+        // may not have landed yet. Retry on later mutations instead of burning
+        // the element on the first miss.
+        const tries = (attempts.get(el) || 0) + 1;
+        attempts.set(el, tries);
+        if (tries > 40) el.dataset.uhelpDone = 'gave-up';
+        continue;
+      }
+      el.dataset.uhelpDone = '1';
       const frag = document.createDocumentFragment();
       const tag = document.createElement('span');
       tag.className = 'uhelp-tag';
@@ -318,6 +348,24 @@
       subtree: true,
     });
   }
+
+  // Debug handle. MAIN world, so this is reachable from the page console:
+  //   __uhelp.count()  __uhelp.titles()  __uhelp.find('faceless')  __uhelp.retry()
+  window.__uhelp = {
+    byTitle,
+    byId,
+    count: () => byTitle.size,
+    titles: () => [...byTitle.values()].map((r) => r.title),
+    find: (q) =>
+      [...byTitle.values()].filter(
+        (r) => norm(r.title).includes(norm(q)) || norm(r.description).includes(norm(q))
+      ),
+    retry: () => {
+      for (const el of document.querySelectorAll('[data-uhelp-done]')) delete el.dataset.uhelpDone;
+      reveal();
+      return byTitle.size;
+    },
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', start, { once: true });
