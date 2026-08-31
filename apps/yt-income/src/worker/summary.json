@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T12:57:34",
+  "generated_at": "2026-08-31T13:48:37",
   "coverage": {
     "from": "2026-01",
     "to": "2026-08"
@@ -22,7 +22,7 @@
       "label": "PayPal",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-30T13:29:59Z"
+      "as_of": "2026-08-31T06:29:59Z"
     },
     {
       "id": "bank",
@@ -41,7 +41,15 @@
       "label": "PartnerStack",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-30T21:35:53"
+      "as_of": "2026-08-31T13:47:28"
+    },
+    {
+      "id": "tolt",
+      "label": "Tolt (OpenArt)",
+      "kind": "cli",
+      "note": "Read straight from the partner dashboard by tolt-pp-cli. Uses a browser session that lapses every couple of weeks; when it does, this reads as not connected rather than as zero.",
+      "state": "connected",
+      "as_of": "2026-08-31T13:47:29"
     },
     {
       "id": "mailbox",
@@ -135,7 +143,8 @@
             "Tolt",
             "Airwallex"
           ],
-          "confidence": "confirmed"
+          "confidence": "matched",
+          "implied_fx": 90.37
         }
       ],
       "untraced": {
@@ -158,7 +167,8 @@
             "Tolt",
             "Airwallex"
           ],
-          "confidence": "confirmed"
+          "confidence": "matched",
+          "implied_fx": 92.61
         },
         {
           "tool": "ElevenLabs",
@@ -243,7 +253,8 @@
             "Tolt",
             "Airwallex"
           ],
-          "confidence": "confirmed"
+          "confidence": "matched",
+          "implied_fx": 92.18
         }
       ],
       "untraced": {
@@ -266,7 +277,8 @@
             "Tolt",
             "Airwallex"
           ],
-          "confidence": "confirmed"
+          "confidence": "matched",
+          "implied_fx": 95.6
         },
         {
           "tool": "ElevenLabs",
@@ -341,7 +353,8 @@
             "Tolt",
             "Airwallex"
           ],
-          "confidence": "confirmed"
+          "confidence": "matched",
+          "implied_fx": 94.07
         },
         {
           "tool": "EverBee",
@@ -396,7 +409,8 @@
             "Tolt",
             "Airwallex"
           ],
-          "confidence": "confirmed"
+          "confidence": "matched",
+          "implied_fx": 95.97
         },
         {
           "tool": "HeyGen",
@@ -504,7 +518,7 @@
     }
   },
   "paypal_pending": {
-    "as_of": "2026-08-30T13:29:59Z",
+    "as_of": "2026-08-31T06:29:59Z",
     "holdings": [
       {
         "currency": "USD",

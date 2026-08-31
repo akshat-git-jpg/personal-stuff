@@ -59,7 +59,7 @@
       "note": "Bulgarian entity paying from the digitalworks.net domain. DigitalWorks is an affiliate-management agency that pays out for other brands, so the tool is unknown. Do NOT merge with Book Bolt: Book Bolt pays separately as 'Book Bolt LLC' from the bookbolt.io domain — that merge was tried on 2026-08-30 on the strength of a LinkedIn page and the payer emails disproved it."
     }
   },
-  "_manual_comment": "THE EXIT ROUTE FOR UNTRACED MONEY. When the owner works out where a credit came from - a bank asking about the reference, a payout spotted in a network dashboard - record it here once and it is named forever. This runs before every heuristic pass and outranks all of them (confidence 'confirmed'), so nothing can un-name it. Match is on date + amount, which is unique in a passbook. Copy the date and amount straight off the Untraced row in the dashboard. 'route' is the hops before the bank; 'note' is for your future self, and is not shown in the UI. NOTE ON EXCHANGE RATES: money arriving over Airwallex converts at roughly 90-96 INR/USD in 2026, NOT the ~87 an older note in this repo assumed. PayPal settles the same dollars nearer 89 because it keeps a fat FX margin, so PayPal is the wrong yardstick for judging an Airwallex credit. A rate in the low 90s is normal here and is not evidence against a match.",
+  "_manual_comment": "THE EXIT ROUTE FOR UNTRACED MONEY. When the owner works out where a credit came from - a bank asking about the reference, a payout spotted in a network dashboard - record it here once and it is named forever. This runs before every heuristic pass and outranks all of them (confidence 'confirmed'), so nothing can un-name it. Match is on date + amount, which is unique in a passbook. Copy the date and amount straight off the Untraced row in the dashboard. 'route' is the hops before the bank; 'note' is for your future self, and is not shown in the UI. NOTE ON EXCHANGE RATES: money arriving over Airwallex converts at roughly 90-96 INR/USD in 2026, NOT the ~87 an older note in this repo assumed. PayPal settles the same dollars nearer 89 because it keeps a fat FX margin, so PayPal is the wrong yardstick for judging an Airwallex credit. A rate in the low 90s is normal here and is not evidence against a match. NOTE: the six OpenArt rows that lived here were removed on 2026-08-31 when tolt-pp-cli started reading the dashboard directly. Manual attribution is for money no source can see; once a source CAN see it, leaving a manual row here means two claims on one credit, and this pass wins -- which would make the new source look broken.",
   "_manual_example": {
     "date": "19/03/2026",
     "amount": 22084.36,
@@ -70,66 +70,5 @@
     ],
     "note": "confirmed against the impact.com payout report"
   },
-  "manual_attribution": [
-    {
-      "date": "25/02/2026",
-      "amount": 3818.16,
-      "tool": "OpenArt",
-      "route": [
-        "Tolt",
-        "Airwallex"
-      ],
-      "note": "Tolt payout of USD 42.25 generated 11 Feb 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 90.4 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
-    },
-    {
-      "date": "19/03/2026",
-      "amount": 22084.36,
-      "tool": "OpenArt",
-      "route": [
-        "Tolt",
-        "Airwallex"
-      ],
-      "note": "Tolt payout of USD 238.46 generated 11 Mar 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 92.6 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
-    },
-    {
-      "date": "17/04/2026",
-      "amount": 12616.8,
-      "tool": "OpenArt",
-      "route": [
-        "Tolt",
-        "Airwallex"
-      ],
-      "note": "Tolt payout of USD 136.87 generated 11 Apr 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 92.2 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
-    },
-    {
-      "date": "22/05/2026",
-      "amount": 6906.35,
-      "tool": "OpenArt",
-      "route": [
-        "Tolt",
-        "Airwallex"
-      ],
-      "note": "Tolt payout of USD 72.24 generated 12 May 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 95.6 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
-    },
-    {
-      "date": "30/06/2026",
-      "amount": 14759.13,
-      "tool": "OpenArt",
-      "route": [
-        "Tolt",
-        "Airwallex"
-      ],
-      "note": "Tolt payout of USD 156.89 generated 16 Jun 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 94.1 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
-    },
-    {
-      "date": "23/07/2026",
-      "amount": 9242.06,
-      "tool": "OpenArt",
-      "route": [
-        "Tolt",
-        "Airwallex"
-      ],
-      "note": "Tolt payout of USD 96.30 generated 8 Jul 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 96.0 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
-    }
-  ]
+  "manual_attribution": []
 }

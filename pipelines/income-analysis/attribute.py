@@ -340,6 +340,69 @@ def partnerstack_dates(ps, mail_events):
     return out
 
 
+# How long a network's money may take to reach the bank, per network.
+# Measured, not guessed -- see the module docstring for each one's evidence.
+SETTLEMENT_WINDOW_DAYS = {
+    "Tolt": 20,          # observed 7-15 days; the payout row is stamped at
+                         # generation, the money moves at invoice.
+}
+
+
+def pass_network_payouts(credits, payouts, source, route, rail="airwallex",
+                         window_days=None):
+    """Match a network's dated payouts to bank credits on that network's rail.
+
+    The shared engine behind every per-tool CLI source. A source supplies rows of
+    ``{key, date, amount, currency, tool}`` and inherits everything that makes a
+    match trustworthy:
+
+    * the payout must predate the credit, by no more than PAYOUT_WINDOW_DAYS;
+    * the implied rate must sit inside the FX band;
+    * **exactly one** candidate credit must qualify. Two plausible credits is a
+      coin flip, and a coin flip in this file becomes a confident wrong number on
+      a dashboard the owner treats as truth. Ambiguity is reported, never
+      resolved.
+
+    Claims come back at confidence ``matched``: a dated payout from the source's
+    own dashboard lining up with a bank credit is real evidence, but the split of
+    a credit across tools is still the source's word rather than the bank's.
+    """
+    claims, notes = [], []
+    window = window_days or SETTLEMENT_WINDOW_DAYS.get(source, PAYOUT_WINDOW_DAYS)
+    for payout in sorted(payouts or [], key=lambda p: p.get("date") or ""):
+        pd = parse_day(payout.get("date"))
+        amount = payout.get("amount") or 0
+        if not pd or payout.get("currency") != "USD" or amount <= 0:
+            continue
+        cands = [
+            c for c in credits
+            if c["rail"] == rail and not c.get("claimed")
+            and 0 <= (c["date"] - pd).days <= window
+            and FX_MIN <= c["amount"] / amount <= FX_MAX
+        ]
+        if not cands:
+            notes.append({"payout": payout.get("key"), "source": source,
+                          "reason": "no_candidate"})
+            continue
+        if len(cands) > 1:
+            notes.append({"payout": payout.get("key"), "source": source,
+                          "reason": "ambiguous", "candidates": len(cands)})
+            continue
+
+        credit = cands[0]
+        credit["claimed"] = True
+        claims.append({
+            "tool": payout.get("tool") or source,
+            "amount": credit["amount"],
+            "month": month_of(credit["date"]),
+            "route": list(route),
+            "confidence": "matched",
+            "implied_fx": round(credit["amount"] / amount, 2),
+            "credit_ids": [credit["id"]],
+        })
+    return claims, notes
+
+
 def pass_partnerstack(credits, ps, mail_events=None):
     """Match dated PartnerStack payouts to Airwallex credits."""
     if not ps:
@@ -516,7 +579,7 @@ def leads_for(credit, ps, ps_notes, impact, im_notes, mail_events=None):
 
 def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
               manual=None, rail_labels=None, aliases=None, unidentified=None,
-              mail_events=None):
+              mail_events=None, tolt=None):
     """Run every pass and fold the result into per-month totals.
 
     Two buckets only, because there are only two answers to "which tool earned
@@ -539,8 +602,13 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
     claims = pass_manual(credits, manual)
     claims += pass_paypal(credits, paypal_months or [])
     ps_claims, ps_notes = pass_partnerstack(credits, ps, mail_events)
+    # Per-tool CLI sources. Each one is a dashboard read directly, so it
+    # outranks inference -- but it runs AFTER PartnerStack because
+    # PartnerStack's mail-corrected dates are the tighter signal.
+    tolt_claims, tolt_notes = pass_network_payouts(
+        credits, (tolt or {}).get("payouts"), "Tolt", ["Tolt", "Airwallex"])
     im_claims, im_notes = pass_impact(credits, impact)
-    claims += ps_claims + im_claims
+    claims += ps_claims + tolt_claims + im_claims
 
     months = defaultdict(lambda: {"bank_total": 0.0, "rails": defaultdict(float),
                                   "tools": defaultdict(lambda: None),
@@ -654,4 +722,5 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
         assert drift <= 1.0, (
             f"{m}: tools+untraced off bank total by {drift:.2f}")
 
-    return out, {"partnerstack": ps_notes, "impact": im_notes}
+    return out, {"partnerstack": ps_notes, "tolt": tolt_notes,
+                 "impact": im_notes}

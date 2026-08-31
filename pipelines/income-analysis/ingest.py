@@ -41,6 +41,10 @@ SOURCE_CATALOGUE = [
     {"id": "bank", "label": "Bank passbook", "kind": "manual"},
     {"id": "impact", "label": "impact.com", "kind": "api"},
     {"id": "partnerstack", "label": "PartnerStack", "kind": "api"},
+    {"id": "tolt", "label": "Tolt (OpenArt)", "kind": "cli",
+     "note": "Read straight from the partner dashboard by tolt-pp-cli. Uses a "
+             "browser session that lapses every couple of weeks; when it does, "
+             "this reads as not connected rather than as zero."},
     {"id": "mailbox", "label": "Affiliate mailboxes", "kind": "imap",
      "note": "Both agrolloo.com inboxes. The only source that sees programs with "
              "no API at all, so it supplies leads on untraced money."},
@@ -55,7 +59,7 @@ def load_network(name):
     return json.loads(p.read_text()) if p.exists() else None
 
 
-def source_states(ps, im, pending, checks=None, mail_events=None):
+def source_states(ps, im, pending, checks=None, mail_events=None, tolt=None):
     """Report each source's state so the UI never has to infer it from silence.
 
     `checks` is the preflight result. When a source is configured but this run
@@ -69,7 +73,8 @@ def source_states(ps, im, pending, checks=None, mail_events=None):
     for s in SOURCE_CATALOGUE:
         e = dict(s)
         got = {"paypal": bool(pending), "partnerstack": bool(ps),
-               "impact": bool(im), "mailbox": bool(mail_events)}.get(s["id"])
+               "impact": bool(im), "mailbox": bool(mail_events),
+               "tolt": bool(tolt)}.get(s["id"])
         if s["id"] == "bank":
             e["state"] = "manual"
         elif s["id"] == "paykickstart":
@@ -87,6 +92,8 @@ def source_states(ps, im, pending, checks=None, mail_events=None):
             e["as_of"] = (pending or {}).get("as_of")
         elif s["id"] == "partnerstack":
             e["as_of"] = (ps or {}).get("fetched_at")
+        elif s["id"] == "tolt" and tolt:
+            e["as_of"] = tolt.get("fetched_at")
         elif s["id"] == "mailbox" and mail_events:
             e["as_of"] = max(x.date for x in mail_events)
         out.append(e)
@@ -384,6 +391,20 @@ def main():
                       f"{len(ps['rewards'])} rewards")
         except SystemExit as e:
             print(f"  ! PartnerStack: {e}", file=sys.stderr)
+        # Per-tool CLI sources. Each reads its own dashboard, so it knows
+        # things the bank cannot: which tool, and which month it was earned in.
+        try:
+            tolt = sources.fetch_tolt()
+            if tolt:
+                NETWORKS.mkdir(parents=True, exist_ok=True)
+                (NETWORKS / "tolt.json").write_text(
+                    json.dumps(tolt, indent=1, ensure_ascii=False))
+                paid = [p for p in tolt["payouts"] if p["status"] == "paid"]
+                print(f"  Tolt (OpenArt): {len(tolt['payouts'])} payouts, "
+                      f"{len(paid)} paid, ${tolt['stats'].get('total_paid', 0):,.2f} total")
+        except Exception as e:
+            print(f"  ! Tolt: {e}", file=sys.stderr)
+
         im = sources.fetch_impact_by_month(bank_months)
         if im:
             (NETWORKS).mkdir(parents=True, exist_ok=True)
@@ -413,6 +434,7 @@ def main():
               "impact.com and mailbox data")
 
     ps_data = load_network("partnerstack.json")
+    tolt_data = load_network("tolt.json")
     im_data = load_network("impact.json")
     mail_events = [mailbox.Event(**e) for e in (load_network("mailbox.json") or [])]
     absent = [s for s in SOURCE_CATALOGUE
@@ -424,7 +446,7 @@ def main():
         rail_labels={r["id"]: r["label"] for r in rules["income_rails"]},
         aliases=rules.get("tool_aliases"),
         unidentified=rules.get("unidentified_payers"),
-        mail_events=mail_events)
+        mail_events=mail_events, tolt=tolt_data)
 
     # Nothing below carries a counterparty, an account number or an address,
     # which is what makes summary.json safe to commit to a public repo.
@@ -434,7 +456,8 @@ def main():
                      "to": bank_months[-1] if bank_months else None},
         "statements": statements,
         "rails": {r["id"]: r["label"] for r in rules["income_rails"]},
-        "sources": source_states(ps_data, im_data, pending, checks, mail_events),
+        "sources": source_states(ps_data, im_data, pending, checks, mail_events,
+                                 tolt_data),
         "months": months,
     }
     if pending:

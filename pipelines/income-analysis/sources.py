@@ -150,7 +150,7 @@ def fetch_partnerstack():
             {
                 "key": p.get("key"),
                 "date": iso_day(p.get("created_at")),
-                "amount": (p.get("amount") or 0) / 100,
+                "amount": _cents(p.get("amount")),
                 "currency": p.get("currency"),
                 "status": p.get("status"),
             }
@@ -160,7 +160,7 @@ def fetch_partnerstack():
             {
                 "key": r.get("key"),
                 "date": iso_day(r.get("created_at")),
-                "amount": (r.get("amount") or 0) / 100,
+                "amount": _cents(r.get("amount")),
                 "currency": r.get("currency"),
                 "tool": (r.get("company") or {}).get("name"),
                 "status": r.get("status"),
@@ -254,6 +254,101 @@ def fetch_impact_by_month(months):
 
 # ── preflight ───────────────────────────────────────────────────────────────
 
+# ── Tolt (per-tool CLI source) ──────────────────────────────────────────────
+#
+# The template for every future per-tool CLI. Three rules the next one should
+# copy:
+#
+#   1. Shell out to the CLI; never re-implement its auth here. The CLI owns the
+#      credential and the redaction, and this file should never be able to leak
+#      something the CLI was careful about.
+#   2. Normalise minor units to major ONCE, at the boundary. Tolt speaks cents;
+#      an amount that reaches attribute.py in cents is a 100x error that looks
+#      entirely plausible on a chart.
+#   3. Return None -- not {} and not a raise -- when unconfigured. `preflight()`
+#      is what tells the owner a source is down; a source that raises takes the
+#      whole tally with it.
+
+TOLT_SESSION = pathlib.Path.home() / ".config/tolt-pp-cli/session.env"
+
+
+def _cents(value):
+    """Tolt sends money as a STRING of cents ("17536"), not a number.
+
+    Coerce here rather than trusting the wire type: a spec that says integer and
+    a payload that says string is exactly the mismatch that survives a code
+    review and dies in production. Returns dollars.
+    """
+    try:
+        return float(value or 0) / 100
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def fetch_tolt():
+    """OpenArt payouts from the Tolt partner portal. None when not configured.
+
+    Tolt is a payout platform, not a brand: the program behind this portal is
+    OpenArt, so every payout is attributed to that tool. When a second Tolt
+    program is added, `tool` becomes per-program rather than constant.
+    """
+    if not shutil.which("tolt-pp-cli") or not TOLT_SESSION.exists():
+        return None
+    env = load_env(TOLT_SESSION)
+    token = env.get("TOLT_SESSION_TOKEN")
+    if not token:
+        return None
+
+    runenv = dict(os.environ, TOLT_SESSION_COOKIE=token)
+    try:
+        raw = subprocess.run(
+            ["tolt-pp-cli", "data", "list-payouts", "--json", "--no-cache"],
+            capture_output=True, text=True, timeout=120, env=runenv, check=True)
+        stats_raw = subprocess.run(
+            ["tolt-pp-cli", "data", "get-payout-stats", "--json", "--no-cache"],
+            capture_output=True, text=True, timeout=120, env=runenv, check=True)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+        # A 401 here means the browser session lapsed. Say so plainly rather
+        # than letting OpenArt money silently fall back into Untraced.
+        print("  ! Tolt: %s — session may have expired, re-copy the cookie "
+              "into %s" % (exc, TOLT_SESSION), file=sys.stderr)
+        return None
+
+    try:
+        payouts = json.loads(raw.stdout)["results"]["data"]["payouts"]
+        stats = json.loads(stats_raw.stdout)["results"]["data"]
+    except (ValueError, KeyError) as exc:
+        print("  ! Tolt: unexpected response shape (%s)" % exc, file=sys.stderr)
+        return None
+
+    return {
+        "fetched_at": dt.datetime.now().isoformat(timespec="seconds"),
+        "program": "OpenArt",
+        # Cents -> dollars, once, here.
+        "payouts": [
+            {
+                "key": p.get("id"),
+                # Tolt sends an ISO-8601 string, not the epoch millis that
+                # iso_day() takes for the other networks. Slice the day off.
+                "date": (p.get("created_at") or "")[:10] or None,
+                "amount": _cents(p.get("amount")),
+                "currency": "USD",
+                "tool": "OpenArt",
+                "status": p.get("status"),
+                # The commission period the payout settles. The bank cannot know
+                # this, and it is what lets a payout be reported in the month it
+                # was EARNED rather than the month it landed.
+                "period": p.get("period"),
+                "invoice_id": p.get("invoice_id"),
+            }
+            for p in payouts
+        ],
+        "stats": {k: (_cents(v) if k.endswith(
+            ("paid", "earned", "amount", "payout")) else v)
+            for k, v in stats.items()},
+    }
+
+
 def preflight():
     """Check every income source before a run, and say what is missing.
 
@@ -275,6 +370,17 @@ def preflight():
         "detail": "ready" if pp_cli and pp_creds.exists()
         else "CLI missing (npx -y @mvanhorn/printing-press-library install paypal-txns --cli-only)"
         if not pp_cli else f"no creds at {pp_creds}",
+    })
+
+    # Tolt — per-tool CLI plus a browser session that expires every ~2 weeks.
+    tolt_cli = shutil.which("tolt-pp-cli")
+    tolt_ok = bool(tolt_cli) and TOLT_SESSION.exists()
+    out.append({
+        "id": "tolt", "label": "Tolt (OpenArt)",
+        "ok": tolt_ok,
+        "detail": "ready" if tolt_ok
+        else "CLI missing (build from ~/printing-press/library/tolt)" if not tolt_cli
+        else f"no session at {TOLT_SESSION} — copy the cookie from a logged-in browser",
     })
 
     # impact.com — CLI on PATH plus both env vars from infra/secrets.

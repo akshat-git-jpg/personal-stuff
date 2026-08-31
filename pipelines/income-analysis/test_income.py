@@ -403,6 +403,105 @@ class PartnerStackDates(unittest.TestCase):
         self.assertAlmostEqual(claims[0]["amount"], 7988.68, places=2)
 
 
+class NetworkPayoutPass(unittest.TestCase):
+    """The shared matcher every per-tool CLI source plugs into.
+
+    The owner is building one CLI per affiliate network, so this pass will carry
+    all of them. Its job is not to match as much as possible -- it is to match
+    only what is unambiguous, and to say so loudly when it cannot.
+    """
+
+    def payout(self, key, date, amount, tool="OpenArt"):
+        return {"key": key, "date": date, "amount": amount,
+                "currency": "USD", "tool": tool}
+
+    def test_a_single_candidate_is_claimed(self):
+        credits = [credit("a", "23/07/2026", 9242.06, "airwallex")]
+        with with_credits(credits):
+            claims, notes = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(len(claims), 1, notes)
+        self.assertEqual(claims[0]["tool"], "OpenArt")
+        self.assertAlmostEqual(claims[0]["amount"], 9242.06, places=2)
+        self.assertEqual(claims[0]["route"], ["Tolt", "Airwallex"])
+        self.assertEqual(claims[0]["confidence"], "matched")
+
+    def test_two_candidates_refuse_rather_than_guess(self):
+        """The rule the whole file exists for. A coin flip here becomes a
+        confident wrong number on the dashboard."""
+        credits = [credit("a", "20/07/2026", 9242.06, "airwallex"),
+                   credit("b", "23/07/2026", 9242.06, "airwallex")]
+        with with_credits(credits):
+            claims, notes = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(claims, [])
+        self.assertEqual(notes[0]["reason"], "ambiguous")
+        self.assertEqual(notes[0]["candidates"], 2)
+
+    def test_a_credit_before_the_payout_is_never_claimed(self):
+        """Money cannot arrive before it was sent."""
+        credits = [credit("a", "01/07/2026", 9242.06, "airwallex")]
+        with with_credits(credits):
+            claims, _ = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(claims, [])
+
+    def test_tolt_gets_a_wider_window_than_partnerstack(self):
+        """Tolt stamps the payout at generation and moves money at invoice, up
+        to a fortnight later -- proven by the 8 Jul payout whose receipt is dated
+        23 Jul, the day of the credit. PartnerStack keeps the tight window."""
+        self.assertGreater(attribute.SETTLEMENT_WINDOW_DAYS["Tolt"],
+                           attribute.PAYOUT_WINDOW_DAYS)
+        credits = [credit("a", "23/07/2026", 9242.06, "airwallex")]
+        with with_credits(credits):
+            claims, _ = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(len(claims), 1, "15-day lag must be inside Tolt's window")
+        # The same lag under the default window must NOT match.
+        credits = [credit("a", "23/07/2026", 9242.06, "airwallex")]
+        with with_credits(credits):
+            claims, _ = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "SomeOtherNetwork", ["X", "Airwallex"])
+        self.assertEqual(claims, [], "the wide window must be Tolt-only")
+
+    def test_a_rate_outside_the_band_is_refused(self):
+        """A credit that would imply an impossible exchange rate is not that
+        payout, however close the dates are."""
+        credits = [credit("a", "23/07/2026", 500000.00, "airwallex")]
+        with with_credits(credits):
+            claims, notes = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(claims, [])
+        self.assertEqual(notes[0]["reason"], "no_candidate")
+
+    def test_non_usd_and_zero_payouts_are_skipped(self):
+        credits = [credit("a", "23/07/2026", 9242.06, "airwallex")]
+        rows = [{"key": "p1", "date": "2026-07-08", "amount": 96.30,
+                 "currency": "INR", "tool": "OpenArt"},
+                self.payout("p2", "2026-07-08", 0)]
+        with with_credits(credits):
+            claims, _ = attribute.pass_network_payouts(
+                credits, rows, "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(claims, [])
+
+    def test_one_credit_is_claimed_once(self):
+        """Two payouts must not both take the same credit."""
+        credits = [credit("a", "23/07/2026", 9242.06, "airwallex")]
+        rows = [self.payout("p1", "2026-07-08", 96.30),
+                self.payout("p2", "2026-07-09", 96.30)]
+        with with_credits(credits):
+            claims, notes = attribute.pass_network_payouts(
+                credits, rows, "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(len(claims), 1)
+        self.assertEqual([n["reason"] for n in notes], ["no_candidate"])
+
+
 class NonToolPayers(unittest.TestCase):
     """An agency is not a tool, and must never be written as one.
 
@@ -630,7 +729,10 @@ class Preflight(unittest.TestCase):
 
     def test_reports_every_source(self):
         ids = {c["id"] for c in sources.preflight()}
-        self.assertEqual(ids, {"paypal", "impact", "partnerstack", "paykickstart"})
+        # Every source must be named here. A new one that forgets to register
+        # is a source whose outage would look like zero income.
+        self.assertEqual(ids, {"paypal", "impact", "partnerstack", "paykickstart",
+                               "tolt"})
 
     def test_missing_cli_is_reported_not_swallowed(self):
         with mock.patch.object(sources.shutil, "which",
