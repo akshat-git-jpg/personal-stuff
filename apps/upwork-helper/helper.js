@@ -24,6 +24,8 @@
   const byId = new Map();
   /** element -> how many times we failed to match it, so we can retry then stop */
   const attempts = new WeakMap();
+  /** diagnostics: did our hook actually see traffic, and did bodies parse? */
+  const stats = { fetch: 0, xhr: 0, json: 0, skipped: 0 };
 
   const norm = (s) =>
     String(s)
@@ -78,18 +80,29 @@
   }
 
   function ingest(text) {
-    if (!text || text.length > MAX_BODY) return;
+    if (!text || text.length > MAX_BODY) {
+      stats.skipped++;
+      return;
+    }
     const t = text.trimStart();
-    if (t[0] !== '{' && t[0] !== '[') return;
+    if (t[0] !== '{' && t[0] !== '[') {
+      stats.skipped++;
+      return;
+    }
     let data;
     try {
       data = JSON.parse(t);
     } catch {
+      stats.skipped++;
       return;
     }
+    stats.json++;
     const before = byTitle.size;
     walk(data, 0);
-    if (byTitle.size !== before) schedule();
+    if (byTitle.size !== before) {
+      console.info('[upwork-helper] captured', byTitle.size, 'job descriptions');
+      schedule();
+    }
     updateBadge();
   }
 
@@ -98,6 +111,7 @@
   const nativeFetch = window.fetch;
   if (typeof nativeFetch === 'function') {
     window.fetch = function (...args) {
+      stats.fetch++;
       const p = nativeFetch.apply(this, args);
       p.then((res) => {
         try {
@@ -112,6 +126,7 @@
 
   const nativeSend = XMLHttpRequest.prototype.send;
   XMLHttpRequest.prototype.send = function (...args) {
+    stats.xhr++;
     this.addEventListener('load', () => {
       try {
         const rt = this.responseType;
@@ -340,6 +355,7 @@
   }
 
   function start() {
+    console.info('[upwork-helper] armed — hooks on fetch + XHR. Run __uhelp.hits() to check.');
     buildPanel();
     updateBadge();
     schedule();
@@ -354,6 +370,10 @@
   window.__uhelp = {
     byTitle,
     byId,
+    stats,
+    // fetch/xhr both 0 => the hook is not in the page's world (loader problem).
+    // hits > 0 but json 0 => bodies are not JSON. json > 0 but count 0 => shape changed.
+    hits: () => ({ ...stats, captured: byTitle.size }),
     count: () => byTitle.size,
     titles: () => [...byTitle.values()].map((r) => r.title),
     find: (q) =>
