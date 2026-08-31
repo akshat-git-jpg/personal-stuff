@@ -46,19 +46,16 @@
     "Pictory, Corp": "Pictory",
     "TradingView, Inc.": "TradingView",
     "Synthesia Limited": "Synthesia",
-    "n8n GmbH": "n8n"
+    "n8n GmbH": "n8n",
+    "Дигитал Маркетинг Солутионс 2011 ООД": "Book Bolt"
   },
   "_alias_notes": {
     "Fliki": "Payer 'Nine Thirty Five LLC' (the ninethirtyfive.llc domain). PayPal transaction note on 2026-02-02 reads 'Fliki affiliate' — the payer naming its own brand. 'fliki' is also one of the owner's tracking links.",
-    "Submagic": "Not present in this PayPal account at all — zero payments Jan-Aug 2026. Owner says Submagic settles to a different bank account, which is consistent: its money never enters this pipeline, so there is nothing to exclude."
+    "Submagic": "Not present in this PayPal account at all — zero payments Jan-Aug 2026. Owner says Submagic settles to a different bank account, which is consistent: its money never enters this pipeline, so there is nothing to exclude.",
+    "Book Bolt": "2026-08-31: 'Дигитал Маркетинг Солутионс 2011 ООД' (payer email on the digitalworks.net domain) resolved to Book Bolt and moved here from unidentified_payers. Evidence is the merchant's own ledger, read by bookbolt-pp-cli: Book Bolt's affiliate portal lists exactly two payouts ever, $182.34 on 06/01/2026 and $105.60 on 08/01/2026, and its payout rail is PayPal. The PayPal transaction for $105.60 was received 2026-08-01T17:30:40Z -- the same day, to the cent. The 2026-08-30 rejection of this merge was right that the two are not the same COMPANY (different email domain) but that never settled which TOOL earned the money; a payer of record differs from a brand routinely. Do not re-split them without new evidence from the Book Bolt ledger itself."
   },
-  "_unidentified_comment": "Payers that are NOT tools — agencies, networks and processors that pay out on behalf of brands. Their money is real and we know exactly who sent it, but the tool behind it is unknown, so it must never be written in the Tool column: an agency name there reads as a product the owner promotes, which is simply false. These land in UNTRACED, not a bucket of their own — untraced means 'no tool name yet', which is exactly what this is, and a second word for it only invites a misread of the tally. The payer rides along on the row as evidence, the way an unclaimed bank credit keeps its reference. Move one into tool_aliases the moment the real brand is confirmed.",
-  "unidentified_payers": {
-    "Дигитал Маркетинг Солутионс 2011 ООД": {
-      "via": "DigitalWorks",
-      "note": "Bulgarian entity paying from the digitalworks.net domain. DigitalWorks is an affiliate-management agency that pays out for other brands, so the tool is unknown. Do NOT merge with Book Bolt: Book Bolt pays separately as 'Book Bolt LLC' from the bookbolt.io domain — that merge was tried on 2026-08-30 on the strength of a LinkedIn page and the payer emails disproved it."
-    }
-  },
+  "_unidentified_comment": "Payers that are NOT tools -- agencies and processors that pay out on behalf of brands. A row matched here moves to Untraced carrying its payer name, amount and route, which is a shorter path to the answer than a bare bank reference. Empty since 2026-08-31, when the one entry resolved to Book Bolt via its own merchant ledger. An empty map here is the goal state, not a bug.",
+  "unidentified_payers": {},
   "_manual_comment": "THE EXIT ROUTE FOR UNTRACED MONEY. When the owner works out where a credit came from - a bank asking about the reference, a payout spotted in a network dashboard - record it here once and it is named forever. This runs before every heuristic pass and outranks all of them (confidence 'confirmed'), so nothing can un-name it. Match is on date + amount, which is unique in a passbook. Copy the date and amount straight off the Untraced row in the dashboard. 'route' is the hops before the bank; 'note' is for your future self, and is not shown in the UI. NOTE ON EXCHANGE RATES: money arriving over Airwallex converts at roughly 90-96 INR/USD in 2026, NOT the ~87 an older note in this repo assumed. PayPal settles the same dollars nearer 89 because it keeps a fat FX margin, so PayPal is the wrong yardstick for judging an Airwallex credit. A rate in the low 90s is normal here and is not evidence against a match. NOTE: the six OpenArt rows that lived here were removed on 2026-08-31 when tolt-pp-cli started reading the dashboard directly. Manual attribution is for money no source can see; once a source CAN see it, leaving a manual row here means two claims on one credit, and this pass wins -- which would make the new source look broken.",
   "_manual_example": {
     "date": "19/03/2026",

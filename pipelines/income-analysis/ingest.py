@@ -41,6 +41,13 @@ SOURCE_CATALOGUE = [
     {"id": "bank", "label": "Bank passbook", "kind": "manual"},
     {"id": "impact", "label": "impact.com", "kind": "api"},
     {"id": "partnerstack", "label": "PartnerStack", "kind": "api"},
+    {"id": "bookbolt", "label": "Book Bolt", "kind": "cli",
+     "note": "Read straight from the Book Bolt affiliate portal by "
+             "bookbolt-pp-cli. Book Bolt settles over PayPal, so this is a "
+             "CHECK on the PayPal ledger rather than a source of new money: it "
+             "is the only independent statement of what Book Bolt believes it "
+             "paid. Its portal session lasts two hours, so the CLI logs itself "
+             "in; a rejected password is reported, never retried."},
     {"id": "tolt", "label": "Tolt (OpenArt)", "kind": "cli",
      "note": "Read straight from the partner dashboard by tolt-pp-cli. Uses a "
              "browser session that lapses every couple of weeks; when it does, "
@@ -59,7 +66,8 @@ def load_network(name):
     return json.loads(p.read_text()) if p.exists() else None
 
 
-def source_states(ps, im, pending, checks=None, mail_events=None, tolt=None):
+def source_states(ps, im, pending, checks=None, mail_events=None, tolt=None,
+                  bookbolt=None):
     """Report each source's state so the UI never has to infer it from silence.
 
     `checks` is the preflight result. When a source is configured but this run
@@ -74,7 +82,8 @@ def source_states(ps, im, pending, checks=None, mail_events=None, tolt=None):
         e = dict(s)
         got = {"paypal": bool(pending), "partnerstack": bool(ps),
                "impact": bool(im), "mailbox": bool(mail_events),
-               "tolt": bool(tolt)}.get(s["id"])
+               "tolt": bool(tolt),
+               "bookbolt": bool(bookbolt)}.get(s["id"])
         if s["id"] == "bank":
             e["state"] = "manual"
         elif s["id"] == "paykickstart":
@@ -92,6 +101,8 @@ def source_states(ps, im, pending, checks=None, mail_events=None, tolt=None):
             e["as_of"] = (pending or {}).get("as_of")
         elif s["id"] == "partnerstack":
             e["as_of"] = (ps or {}).get("fetched_at")
+        elif s["id"] == "bookbolt" and bookbolt:
+            e["as_of"] = bookbolt.get("fetched_at")
         elif s["id"] == "tolt" and tolt:
             e["as_of"] = tolt.get("fetched_at")
         elif s["id"] == "mailbox" and mail_events:
@@ -256,7 +267,7 @@ def paypal_env():
     return env
 
 
-def print_tally(months, notes, paypal_months):
+def print_tally(months, notes, paypal_months, bookbolt=None):
     """Print the same tally the dashboard publishes.
 
     The owner's rule: a discrepancy is reported in both places or in neither.
@@ -314,6 +325,32 @@ def print_tally(months, notes, paypal_months):
             print("\n  FAIL: PayPal and the bank disagree. Numbers not trustworthy.")
             sys.exit(1)
         print("     tallies")
+
+    # Merchant-ledger cross-check. See the module note: a warning, never a gate.
+    if bookbolt:
+        claimed = float(bookbolt["stats"].get("total_paid") or 0)
+        # What the attribution engine actually credited to Book Bolt, in USD.
+        # The tally works in rupees, so compare in dollars via the payouts the
+        # merchant itself listed rather than trying to invert an exchange rate.
+        attributed = sum(
+            x["amount"] for d in months.values() for x in d["tools"]
+            if x["tool"] == "Book Bolt")
+        print(f"\n  Book Bolt ledger check")
+        print(f"     Book Bolt says paid    ${claimed:>10,.2f}")
+        print(f"     attributed (INR)       {attributed:>11,.2f}")
+        pending = float(bookbolt["stats"].get("current_unpaid") or 0)
+        thresh = float(bookbolt["stats"].get("payout_threshold") or 0)
+        if pending and thresh:
+            print(f"     pending                ${pending:>10,.2f} "
+                  f"of ${thresh:,.2f} threshold")
+        # Every payout the merchant lists should be reflected somewhere. The
+        # cheap, currency-free version of that test is a count.
+        listed = len(bookbolt.get("payouts") or [])
+        if listed and attributed <= 0:
+            print("     WARNING: Book Bolt lists %d payout(s) but the tally "
+                  "credits it nothing." % listed)
+        else:
+            print("     %d payout(s) on the merchant ledger" % listed)
     print("=" * 66)
 
 
@@ -405,6 +442,19 @@ def main():
         except Exception as e:
             print(f"  ! Tolt: {e}", file=sys.stderr)
 
+        try:
+            bb = sources.fetch_bookbolt()
+            if bb:
+                NETWORKS.mkdir(parents=True, exist_ok=True)
+                (NETWORKS / "bookbolt.json").write_text(
+                    json.dumps(bb, indent=1, ensure_ascii=False))
+                st = bb["stats"]
+                print(f"  Book Bolt: {len(bb['payouts'])} payouts, "
+                      f"${st.get('total_paid', 0):,.2f} paid, "
+                      f"${st.get('current_unpaid', 0):,.2f} pending")
+        except Exception as e:
+            print(f"  ! Book Bolt: {e}", file=sys.stderr)
+
         im = sources.fetch_impact_by_month(bank_months)
         if im:
             (NETWORKS).mkdir(parents=True, exist_ok=True)
@@ -435,6 +485,7 @@ def main():
 
     ps_data = load_network("partnerstack.json")
     tolt_data = load_network("tolt.json")
+    bb_data = load_network("bookbolt.json")
     im_data = load_network("impact.json")
     mail_events = [mailbox.Event(**e) for e in (load_network("mailbox.json") or [])]
     absent = [s for s in SOURCE_CATALOGUE
@@ -457,7 +508,7 @@ def main():
         "statements": statements,
         "rails": {r["id"]: r["label"] for r in rules["income_rails"]},
         "sources": source_states(ps_data, im_data, pending, checks, mail_events,
-                                 tolt_data),
+                                 tolt_data, bb_data),
         "months": months,
     }
     if pending:
@@ -467,7 +518,7 @@ def main():
     out.write_text(json.dumps(summary, indent=2, ensure_ascii=False))
     print(f"\n  wrote {out.relative_to(HERE.parent.parent)}")
 
-    print_tally(months, notes, paypal_months)
+    print_tally(months, notes, paypal_months, bb_data)
 
 
 if __name__ == "__main__":

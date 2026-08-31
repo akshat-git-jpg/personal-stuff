@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T13:48:37",
+  "generated_at": "2026-08-31T18:44:36",
   "coverage": {
     "from": "2026-01",
     "to": "2026-08"
@@ -22,7 +22,7 @@
       "label": "PayPal",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-31T06:29:59Z"
+      "as_of": "2026-08-31T10:59:59Z"
     },
     {
       "id": "bank",
@@ -41,7 +41,15 @@
       "label": "PartnerStack",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-31T13:47:28"
+      "as_of": "2026-08-31T18:42:02"
+    },
+    {
+      "id": "bookbolt",
+      "label": "Book Bolt",
+      "kind": "cli",
+      "note": "Read straight from the Book Bolt affiliate portal by bookbolt-pp-cli. Book Bolt settles over PayPal, so this is a CHECK on the PayPal ledger rather than a source of new money: it is the only independent statement of what Book Bolt believes it paid. Its portal session lasts two hours, so the CLI logs itself in; a rejected password is reported, never retried.",
+      "state": "connected",
+      "as_of": "2026-08-31T18:43:24"
     },
     {
       "id": "tolt",
@@ -49,7 +57,7 @@
       "kind": "cli",
       "note": "Read straight from the partner dashboard by tolt-pp-cli. Uses a browser session that lapses every couple of weeks; when it does, this reads as not connected rather than as zero.",
       "state": "connected",
-      "as_of": "2026-08-31T13:47:29"
+      "as_of": "2026-08-31T18:42:03"
     },
     {
       "id": "mailbox",
@@ -492,33 +500,25 @@
             "PayPal"
           ],
           "confidence": "exact"
+        },
+        {
+          "tool": "Book Bolt",
+          "amount": 9165.59,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
         }
       ],
       "untraced": {
-        "amount": 9165.59,
-        "reasons": [
-          "paid via DigitalWorks",
-          "source_not_connected"
-        ],
-        "credits": [
-          {
-            "kind": "payer",
-            "amount": 9165.59,
-            "route": [
-              "PayPal"
-            ],
-            "confidence": "exact",
-            "payer": "Дигитал Маркетинг Солутионс 2011 ООД",
-            "via": "DigitalWorks",
-            "note": "Bulgarian entity paying from the digitalworks.net domain. DigitalWorks is an affiliate-management agency that pays out for other brands, so the tool is unknown. Do NOT merge with Book Bolt: Book Bolt pays separately as 'Book Bolt LLC' from the bookbolt.io domain — that merge was tried on 2026-08-30 on the strength of a LinkedIn page and the payer emails disproved it.",
-            "rail_label": "PayPal"
-          }
-        ]
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
       }
     }
   },
   "paypal_pending": {
-    "as_of": "2026-08-31T06:29:59Z",
+    "as_of": "2026-08-31T10:59:59Z",
     "holdings": [
       {
         "currency": "USD",

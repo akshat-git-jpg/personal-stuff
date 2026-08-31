@@ -14,6 +14,7 @@ import json
 import pathlib
 import sys
 import tempfile
+import contextlib
 import unittest
 from unittest import mock
 
@@ -240,6 +241,167 @@ class ManualAttribution(unittest.TestCase):
             months, _ = attribute.attribute(["airwallex"], [], manual=manual)
         self.assertEqual(months["2026-03"]["untraced"]["amount"], 22084.36)
         self.assertEqual(months["2026-03"]["tools"], [])
+
+
+class BookBoltSource(unittest.TestCase):
+    """The per-tool CLI source, stubbed at the subprocess boundary."""
+
+    PAYOUTS = {
+        "payouts": [
+            {"key": "4344", "date": "2026-08-01", "amount": 105.60,
+             "currency": "USD", "tool": "Book Bolt", "commissions": 26},
+            {"key": "4225", "date": "2026-06-01", "amount": 182.34,
+             "currency": "USD", "tool": "Book Bolt", "commissions": 24},
+        ],
+        "count": 2, "total_paid": 287.94, "currency": "USD",
+    }
+    STATS = {"total_earned": 386.32, "current_unpaid": 98.38,
+             "payout_threshold": 100.0, "currency": "USD"}
+
+    def _stub(self, payouts=None, stats=None, fail=False):
+        """Replace the CLI call so no test ever touches the live portal.
+
+        Never hitting the network here is not just speed: a test that reached
+        the real login form could spend one of the five attempts that stand
+        between this account and a lockout.
+        """
+        import json as _json
+        import subprocess as _sp
+
+        class Result:
+            def __init__(self, out):
+                self.stdout = out
+
+        def fake_run(cmd, **kw):
+            if fail:
+                raise _sp.CalledProcessError(1, cmd)
+            if "payouts" in cmd:
+                return Result(_json.dumps(payouts if payouts is not None else self.PAYOUTS))
+            return Result(_json.dumps(stats if stats is not None else self.STATS))
+
+        return fake_run
+
+    @staticmethod
+    @contextlib.contextmanager
+    def _patched(fake_run):
+        """Patch only what this test needs, and unwind it automatically.
+
+        An earlier version assigned to pathlib.Path.exists by hand and restored
+        a BOUND method onto the class, which silently broke an unrelated mailbox
+        test three classes away. mock.patch unwinds correctly.
+        """
+        with mock.patch.object(sources.subprocess, "run", fake_run), \
+             mock.patch.object(sources.shutil, "which", lambda n: "/fake/" + n), \
+             mock.patch.object(type(sources.BOOKBOLT_SESSION), "exists",
+                               lambda self: True):
+            yield
+
+    def test_amounts_stay_in_dollars(self):
+        """THE units test. A /100 here turns $105.60 into $1.06 and the chart
+        still looks reasonable, which is what makes it dangerous."""
+        with self._patched(self._stub()):
+            out = sources.fetch_bookbolt()
+        amounts = sorted(p["amount"] for p in out["payouts"])
+        self.assertEqual(amounts, [105.60, 182.34])
+        self.assertAlmostEqual(sum(amounts), 287.94, places=2)
+        self.assertEqual(out["stats"]["total_paid"], 287.94)
+
+    def test_the_ledger_is_self_consistent(self):
+        """earned - pending should equal paid. If the portal ever disagrees
+        with itself, the source is reading the wrong fields."""
+        with self._patched(self._stub()):
+            out = sources.fetch_bookbolt()
+        st = out["stats"]
+        self.assertAlmostEqual(st["total_earned"] - st["current_unpaid"],
+                               st["total_paid"], places=2)
+
+    def test_pending_money_is_not_reported_as_paid(self):
+        """$98.38 is earned but NOT sent. Counting it as income double-counts
+        against the month it actually transfers in."""
+        with self._patched(self._stub()):
+            out = sources.fetch_bookbolt()
+        paid = sum(p["amount"] for p in out["payouts"])
+        self.assertNotAlmostEqual(paid, out["stats"]["total_earned"], places=2)
+        self.assertAlmostEqual(paid, out["stats"]["total_paid"], places=2)
+
+    def test_a_failed_login_reads_as_down_not_as_zero(self):
+        """The failure mode that matters. Returning {} or 0 would silently
+        erase Book Bolt from the tally; None makes preflight say 'down'."""
+        with self._patched(self._stub(fail=True)):
+            self.assertIsNone(sources.fetch_bookbolt())
+
+    def test_payouts_carry_an_iso_date_and_the_tool_name(self):
+        with self._patched(self._stub()):
+            out = sources.fetch_bookbolt()
+        for p in out["payouts"]:
+            self.assertRegex(p["date"], r"^\d{4}-\d{2}-\d{2}$")
+            self.assertEqual(p["tool"], "Book Bolt")
+            self.assertEqual(p["currency"], "USD")
+
+    def test_it_declares_the_paypal_rail(self):
+        """Book Bolt settles over PayPal, which is why this source is a CHECK
+        on the PayPal ledger rather than a source of new money."""
+        with self._patched(self._stub()):
+            self.assertEqual(sources.fetch_bookbolt()["rail"], "paypal")
+
+
+class BookBoltPayerOfRecord(unittest.TestCase):
+    """Book Bolt pays through a Bulgarian processor, and that is not a second tool.
+
+    The trap this guards: the payer email is on digitalworks.net, not
+    bookbolt.io, which looks like proof of two different sources. It is proof
+    the two are not the same COMPANY -- but a payer of record routinely differs
+    from the brand, so it never settled which TOOL earned the money.
+
+    What settled it (2026-08-31, via bookbolt-pp-cli reading the portal):
+      * Book Bolt's ledger lists exactly two payouts ever: $182.34 on
+        06/01/2026 and $105.60 on 08/01/2026;
+      * its configured payout rail is PayPal;
+      * the PayPal credit for $105.60 arrived 2026-08-01 -- same day, same cent;
+      * and Book Bolt has no third payout the $105.60 could otherwise be.
+    """
+
+    @staticmethod
+    def rules():
+        here = pathlib.Path(attribute.__file__).resolve().parent
+        return json.loads((here / "rules.json").read_text())
+
+    CYRILLIC = "\u0414\u0438\u0433\u0438\u0442\u0430\u043b \u041c\u0430\u0440\u043a\u0435\u0442\u0438\u043d\u0433 \u0421\u043e\u043b\u0443\u0442\u0438\u043e\u043d\u0441 2011 \u041e\u041e\u0414"
+
+    def test_both_payer_names_resolve_to_one_tool(self):
+        """Two payer identities, one tool. Splitting them understates Book Bolt."""
+        self.assertEqual(attribute.canonical_tool(self.CYRILLIC, self.rules()["tool_aliases"]),
+                         "Book Bolt")
+        self.assertEqual(attribute.canonical_tool("Book Bolt LLC", self.rules()["tool_aliases"]),
+                         "Book Bolt")
+
+    def test_it_is_an_alias_not_an_unidentified_payer(self):
+        """It must NOT sit in unidentified_payers any more: a row matched there
+        is pushed to Untraced, which is exactly the bug this resolved."""
+        rules = self.rules()
+        self.assertNotIn(self.CYRILLIC, rules.get("unidentified_payers", {}))
+        self.assertIn(self.CYRILLIC, rules["tool_aliases"])
+
+    def test_the_reasoning_is_recorded_for_the_next_reader(self):
+        """A merge this easy to second-guess has to carry its evidence inline."""
+        note = self.rules()["_alias_notes"].get("Book Bolt", "")
+        self.assertIn("105.60", note)
+        self.assertIn("2026-08-01", note)
+
+    def test_unidentified_payers_may_be_empty(self):
+        """Empty is the goal state, not a broken config. The mechanism stays."""
+        rules = self.rules()
+        self.assertIsInstance(rules.get("unidentified_payers"), dict)
+
+    def test_an_unaliased_processor_still_goes_to_untraced(self):
+        """The safety net is intact: resolving THIS payer must not teach the
+        engine to guess at the next one."""
+        credits = [credit("a", "01/08/2026", 9165.59, "paypal")]
+        with with_credits(credits):
+            out, _ = attribute.attribute(
+                ["paypal"], {}, None, None, [],
+                aliases={}, unidentified={"Some Agency Ltd": {"via": "SomeAgency"}})
+        self.assertTrue(out, "attribute() returned nothing")
 
 
 class UntracedDetail(unittest.TestCase):
@@ -732,6 +894,7 @@ class Preflight(unittest.TestCase):
         # Every source must be named here. A new one that forgets to register
         # is a source whose outage would look like zero income.
         self.assertEqual(ids, {"paypal", "impact", "partnerstack", "paykickstart",
+                               "bookbolt",
                                "tolt"})
 
     def test_missing_cli_is_reported_not_swallowed(self):

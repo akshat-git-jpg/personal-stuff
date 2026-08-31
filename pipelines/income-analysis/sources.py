@@ -349,6 +349,81 @@ def fetch_tolt():
     }
 
 
+# ── Book Bolt (per-tool CLI source) ─────────────────────────────────────────
+#
+# The second CLI built to the pp-tolt template. Where Tolt reads a payout
+# platform, this reads a single merchant's own affiliate portal.
+#
+# Book Bolt settles over PayPal, and PayPal already names its payers, so this
+# source is not needed to *find* the money. It is needed to *check* it: the
+# merchant ledger is the only independent statement of what Book Bolt believes
+# it paid, and it is what resolved the payer-of-record question on 2026-08-31
+# (payouts arrive from a Bulgarian entity on the digitalworks.net domain, which
+# looked for a while like a separate advertiser).
+
+BOOKBOLT_SESSION = pathlib.Path.home() / ".config/bookbolt-pp-cli/session.env"
+
+
+def fetch_bookbolt():
+    """Book Bolt payouts and balance. None when not configured.
+
+    Amounts arrive from the CLI already in DOLLARS -- Book Bolt sends decimal
+    strings in major units, and bookbolt-pp-cli normalises at its own boundary.
+    Do not divide by 100 here; that is the Tolt shape, not this one.
+    """
+    if not shutil.which("bookbolt-pp-cli") or not BOOKBOLT_SESSION.exists():
+        return None
+
+    def run(*args):
+        return subprocess.run(
+            ["bookbolt-pp-cli", *args, "--json"],
+            capture_output=True, text=True, timeout=180, check=True)
+
+    try:
+        payouts_raw = run("payouts")
+        stats_raw = run("stats")
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+        # A rejected password is terminal by design in the CLI -- it will not
+        # retry, because five failures lock the account. Surface that loudly
+        # rather than letting Book Bolt quietly read as zero income.
+        print("  ! Book Bolt: %s — check %s (the CLI will NOT retry a bad "
+              "password; five failures lock the account)" % (exc, BOOKBOLT_SESSION),
+              file=sys.stderr)
+        return None
+
+    try:
+        payouts = json.loads(payouts_raw.stdout)
+        stats = json.loads(stats_raw.stdout)
+    except ValueError as exc:
+        print("  ! Book Bolt: unexpected response shape (%s)" % exc, file=sys.stderr)
+        return None
+
+    return {
+        "fetched_at": dt.datetime.now().isoformat(timespec="seconds"),
+        "program": "Book Bolt",
+        "rail": "paypal",
+        "payouts": [
+            {
+                "key": p.get("key"),
+                "date": p.get("date"),
+                "amount": p.get("amount"),      # already dollars
+                "currency": "USD",
+                "tool": "Book Bolt",
+                "commissions": p.get("commissions"),
+            }
+            for p in (payouts.get("payouts") or [])
+        ],
+        "stats": {
+            "total_paid": payouts.get("total_paid"),
+            "total_earned": stats.get("total_earned"),
+            # Earned but NOT yet sent. This is not income: counting it would
+            # double against the month it actually transfers in.
+            "current_unpaid": stats.get("current_unpaid"),
+            "payout_threshold": stats.get("payout_threshold"),
+        },
+    }
+
+
 def preflight():
     """Check every income source before a run, and say what is missing.
 
@@ -381,6 +456,18 @@ def preflight():
         "detail": "ready" if tolt_ok
         else "CLI missing (build from ~/printing-press/library/tolt)" if not tolt_cli
         else f"no session at {TOLT_SESSION} — copy the cookie from a logged-in browser",
+    })
+
+    # Book Bolt — per-tool CLI plus a stored password. The portal's session is
+    # only two hours, so the CLI logs itself in rather than holding a cookie.
+    bb_cli = shutil.which("bookbolt-pp-cli")
+    bb_ok = bool(bb_cli) and BOOKBOLT_SESSION.exists()
+    out.append({
+        "id": "bookbolt", "label": "Book Bolt",
+        "ok": bb_ok,
+        "detail": "ready" if bb_ok
+        else "CLI missing (build from ~/printing-press/library/bookbolt)" if not bb_cli
+        else f"no credentials at {BOOKBOLT_SESSION}",
     })
 
     # impact.com — CLI on PATH plus both env vars from infra/secrets.
