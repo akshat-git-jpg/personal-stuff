@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T21:39:07",
+  "generated_at": "2026-08-31T12:57:34",
   "coverage": {
     "from": "2026-01",
     "to": "2026-08"
@@ -127,44 +127,21 @@
             "PayPal"
           ],
           "confidence": "exact"
+        },
+        {
+          "tool": "OpenArt",
+          "amount": 3818.16,
+          "route": [
+            "Tolt",
+            "Airwallex"
+          ],
+          "confidence": "confirmed"
         }
       ],
       "untraced": {
-        "amount": 3818.16,
-        "reasons": [
-          "Airwallex",
-          "source_not_connected"
-        ],
-        "credits": [
-          {
-            "kind": "credit",
-            "date": "25/02/2026",
-            "amount": 3818.16,
-            "rail": "airwallex",
-            "rail_label": "Airwallex",
-            "ref": "605665005631",
-            "leads": [
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 14.96",
-                "gap_days": 23,
-                "implied_fx": null
-              },
-              {
-                "source": "impact.com",
-                "what": "INR 1,383.00 earned in 2026-01, payout date unknown",
-                "gap_days": 25,
-                "implied_fx": null
-              },
-              {
-                "source": "Rewardful",
-                "what": "released a Lovable payout (the mail does not state the amount)",
-                "gap_days": 34,
-                "implied_fx": null
-              }
-            ]
-          }
-        ]
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
       }
     },
     "2026-03": {
@@ -175,6 +152,15 @@
       },
       "tools": [
         {
+          "tool": "OpenArt",
+          "amount": 22084.36,
+          "route": [
+            "Tolt",
+            "Airwallex"
+          ],
+          "confidence": "confirmed"
+        },
+        {
           "tool": "ElevenLabs",
           "amount": 6102.63,
           "route": [
@@ -182,7 +168,7 @@
             "Airwallex"
           ],
           "confidence": "matched",
-          "implied_fx": 88.73
+          "implied_fx": 91.1
         },
         {
           "tool": "HeyGen",
@@ -216,7 +202,7 @@
             "Airwallex"
           ],
           "confidence": "matched",
-          "implied_fx": 88.73
+          "implied_fx": 91.1
         },
         {
           "tool": "n8n",
@@ -226,51 +212,13 @@
             "Airwallex"
           ],
           "confidence": "matched",
-          "implied_fx": 88.73
+          "implied_fx": 91.1
         }
       ],
       "untraced": {
-        "amount": 22084.36,
-        "reasons": [
-          "Airwallex",
-          "source_not_connected"
-        ],
-        "credits": [
-          {
-            "kind": "credit",
-            "date": "19/03/2026",
-            "amount": 22084.36,
-            "rail": "airwallex",
-            "rail_label": "Airwallex",
-            "ref": "607882704572",
-            "leads": [
-              {
-                "source": "impact.com",
-                "what": "emailed a payout of Rs.623.00",
-                "gap_days": 3,
-                "implied_fx": null
-              },
-              {
-                "source": "Rewardful",
-                "what": "released a Lovable payout (the mail does not state the amount)",
-                "gap_days": 13,
-                "implied_fx": null
-              },
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 83.07",
-                "gap_days": 17,
-                "implied_fx": null
-              },
-              {
-                "source": "impact.com",
-                "what": "INR 8,911.96 earned in 2026-02, payout date unknown",
-                "gap_days": 19,
-                "implied_fx": null
-              }
-            ]
-          }
-        ]
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
       }
     },
     "2026-04": {
@@ -287,44 +235,21 @@
             "PayPal"
           ],
           "confidence": "exact"
+        },
+        {
+          "tool": "OpenArt",
+          "amount": 12616.8,
+          "route": [
+            "Tolt",
+            "Airwallex"
+          ],
+          "confidence": "confirmed"
         }
       ],
       "untraced": {
-        "amount": 12616.8,
-        "reasons": [
-          "Airwallex",
-          "source_not_connected"
-        ],
-        "credits": [
-          {
-            "kind": "credit",
-            "date": "17/04/2026",
-            "amount": 12616.8,
-            "rail": "airwallex",
-            "rail_label": "Airwallex",
-            "ref": "610740546200",
-            "leads": [
-              {
-                "source": "Rewardful",
-                "what": "released a EverBee payout (the mail does not state the amount)",
-                "gap_days": 1,
-                "implied_fx": null
-              },
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 14.78",
-                "gap_days": 16,
-                "implied_fx": null
-              },
-              {
-                "source": "impact.com",
-                "what": "emailed a payout of Rs.623.00",
-                "gap_days": 32,
-                "implied_fx": null
-              }
-            ]
-          }
-        ]
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
       }
     },
     "2026-05": {
@@ -334,6 +259,25 @@
         "paypal": 12061.12
       },
       "tools": [
+        {
+          "tool": "OpenArt",
+          "amount": 6906.35,
+          "route": [
+            "Tolt",
+            "Airwallex"
+          ],
+          "confidence": "confirmed"
+        },
+        {
+          "tool": "ElevenLabs",
+          "amount": 6498.83,
+          "route": [
+            "PartnerStack",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 93.66
+        },
         {
           "tool": "Synthesia",
           "amount": 6169.41,
@@ -357,78 +301,22 @@
             "PayPal"
           ],
           "confidence": "exact"
+        },
+        {
+          "tool": "n8n",
+          "amount": 1489.85,
+          "route": [
+            "PartnerStack",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 93.66
         }
       ],
       "untraced": {
-        "amount": 14895.03,
-        "reasons": [
-          "Airwallex",
-          "source_not_connected"
-        ],
-        "credits": [
-          {
-            "kind": "credit",
-            "date": "07/05/2026",
-            "amount": 7988.68,
-            "rail": "airwallex",
-            "rail_label": "Airwallex",
-            "ref": "612758926953",
-            "leads": [
-              {
-                "source": "PartnerStack",
-                "what": "payout USD 35.64 on 2026-05-04",
-                "gap_days": 3,
-                "implied_fx": 224.1
-              },
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 85.29",
-                "gap_days": 6,
-                "implied_fx": null
-              },
-              {
-                "source": "Rewardful",
-                "what": "released a EverBee payout (the mail does not state the amount)",
-                "gap_days": 21,
-                "implied_fx": null
-              },
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 14.78",
-                "gap_days": 36,
-                "implied_fx": null
-              }
-            ]
-          },
-          {
-            "kind": "credit",
-            "date": "22/05/2026",
-            "amount": 6906.35,
-            "rail": "airwallex",
-            "rail_label": "Airwallex",
-            "ref": "614272483955",
-            "leads": [
-              {
-                "source": "Rewardful",
-                "what": "released a EverBee payout (the mail does not state the amount)",
-                "gap_days": 8,
-                "implied_fx": null
-              },
-              {
-                "source": "PartnerStack",
-                "what": "payout USD 35.64 on 2026-05-04",
-                "gap_days": 18,
-                "implied_fx": 193.8
-              },
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 85.29",
-                "gap_days": 21,
-                "implied_fx": null
-              }
-            ]
-          }
-        ]
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
       }
     },
     "2026-06": {
@@ -445,6 +333,15 @@
             "PayPal"
           ],
           "confidence": "grouped"
+        },
+        {
+          "tool": "OpenArt",
+          "amount": 14759.13,
+          "route": [
+            "Tolt",
+            "Airwallex"
+          ],
+          "confidence": "confirmed"
         },
         {
           "tool": "EverBee",
@@ -480,35 +377,9 @@
         }
       ],
       "untraced": {
-        "amount": 14759.13,
-        "reasons": [
-          "Airwallex",
-          "source_not_connected"
-        ],
-        "credits": [
-          {
-            "kind": "credit",
-            "date": "30/06/2026",
-            "amount": 14759.13,
-            "rail": "airwallex",
-            "rail_label": "Airwallex",
-            "ref": "618142819866",
-            "leads": [
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 15.96",
-                "gap_days": 29,
-                "implied_fx": null
-              },
-              {
-                "source": "impact.com",
-                "what": "INR 18,721.74 earned in 2026-05, payout date unknown",
-                "gap_days": 30,
-                "implied_fx": null
-              }
-            ]
-          }
-        ]
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
       }
     },
     "2026-07": {
@@ -518,6 +389,15 @@
         "paypal": 15394.05
       },
       "tools": [
+        {
+          "tool": "OpenArt",
+          "amount": 9242.06,
+          "route": [
+            "Tolt",
+            "Airwallex"
+          ],
+          "confidence": "confirmed"
+        },
         {
           "tool": "HeyGen",
           "amount": 8960.36,
@@ -543,6 +423,26 @@
           "confidence": "exact"
         },
         {
+          "tool": "ElevenLabs",
+          "amount": 1803.54,
+          "route": [
+            "PartnerStack",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 94.38
+        },
+        {
+          "tool": "n8n",
+          "amount": 1560.06,
+          "route": [
+            "PartnerStack",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 94.38
+        },
+        {
           "tool": "Pictory",
           "amount": 854.56,
           "route": [
@@ -552,75 +452,9 @@
         }
       ],
       "untraced": {
-        "amount": 12605.66,
-        "reasons": [
-          "Airwallex",
-          "source_not_connected"
-        ],
-        "credits": [
-          {
-            "kind": "credit",
-            "date": "07/07/2026",
-            "amount": 3363.6,
-            "rail": "airwallex",
-            "rail_label": "Airwallex",
-            "ref": "618850220704",
-            "leads": [
-              {
-                "source": "PartnerStack",
-                "what": "payout USD 72.04 on 2026-07-01",
-                "gap_days": 6,
-                "implied_fx": 46.7
-              },
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 35.64",
-                "gap_days": 6,
-                "implied_fx": null
-              },
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 15.96",
-                "gap_days": 36,
-                "implied_fx": null
-              },
-              {
-                "source": "impact.com",
-                "what": "INR 18,721.74 earned in 2026-05, payout date unknown",
-                "gap_days": 37,
-                "implied_fx": null
-              }
-            ]
-          },
-          {
-            "kind": "credit",
-            "date": "23/07/2026",
-            "amount": 9242.06,
-            "rail": "airwallex",
-            "rail_label": "Airwallex",
-            "ref": "620464855840",
-            "leads": [
-              {
-                "source": "Rewardful",
-                "what": "released a Lovable payout (the mail does not state the amount)",
-                "gap_days": 13,
-                "implied_fx": null
-              },
-              {
-                "source": "PartnerStack",
-                "what": "payout USD 72.04 on 2026-07-01",
-                "gap_days": 22,
-                "implied_fx": 128.3
-              },
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 35.64",
-                "gap_days": 22,
-                "implied_fx": null
-              }
-            ]
-          }
-        ]
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
       }
     },
     "2026-08": {

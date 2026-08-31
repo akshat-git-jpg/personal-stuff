@@ -1,22 +1,40 @@
 {
   "_comment": "How a bank credit is classified. Patterns are case-insensitive substrings of the transaction remarks; first match wins, income_rails before non_income. A credit matching nothing falls through to 'personal' and is EXCLUDED from income. Add a new rail here when a new affiliate network starts paying the bank directly.",
-
   "income_rails": [
-    { "id": "paypal", "label": "PayPal", "match": ["PAYPAL"] },
-    { "id": "airwallex", "label": "Airwallex", "match": ["AIRWALLE"] }
+    {
+      "id": "paypal",
+      "label": "PayPal",
+      "match": [
+        "PAYPAL"
+      ]
+    },
+    {
+      "id": "airwallex",
+      "label": "Airwallex",
+      "match": [
+        "AIRWALLE"
+      ]
+    }
   ],
-
   "_non_income_comment": "Real money, but not earnings. Kept separate from 'personal' so the future personal-dashboard can chart owner->mother transfers without re-deriving them, and so they can never be mistaken for income.",
   "non_income": [
     {
       "id": "self_transfer",
       "label": "From Kushal",
-      "match": ["/KUSHAL/SBIN/9111681541", "/KUSHAL/SBIN/KUSHALBAKLIW"],
+      "match": [
+        "/KUSHAL/SBIN/9111681541",
+        "/KUSHAL/SBIN/KUSHALBAKLIW"
+      ],
       "note": "Owner topping up his mother's account. Both UPI handles seen in the Jan-Aug 2026 statement; the second wraps as 'kushalbakliw al2' in the PDF, so match the un-wrapped prefix only. Add the owner's account number here when he supplies it."
     },
-    { "id": "interest", "label": "Bank interest", "match": ["INT.PD"] }
+    {
+      "id": "interest",
+      "label": "Bank interest",
+      "match": [
+        "INT.PD"
+      ]
+    }
   ],
-
   "_alias_comment": "Payer names as the tool you actually recognise. Two jobs: turn a legal entity into a real name, and MERGE a tool that pays from more than one profile so its revenue is not split across two rows. Keys are matched case-insensitively against the payer name from PayPal or the network. Anything not listed falls back to automatic suffix stripping (Inc., LLC, Corp, GmbH, Limited, ООД), which already handles most names — only add an entry when that is not enough.",
   "_alias_evidence": "IDENTIFY A PAYER FROM ITS OWN TRANSACTION, NOT FROM A GUESS. PayPal carries the payer email and a free-text note, and the note usually names the brand outright. Pull it with: paypal-txns-pp-cli reporting search-get --start-date <iso> --end-date <iso> --fields all --json, then read payer_info.email_address and transaction_info.transaction_note. On 2026-08-30 a guess (Todor Karlikov's LinkedIn says Book Bolt) merged two unrelated payers; the emails disproved it in one command.",
   "tool_aliases": {
@@ -34,7 +52,6 @@
     "Fliki": "Payer 'Nine Thirty Five LLC' (the ninethirtyfive.llc domain). PayPal transaction note on 2026-02-02 reads 'Fliki affiliate' — the payer naming its own brand. 'fliki' is also one of the owner's tracking links.",
     "Submagic": "Not present in this PayPal account at all — zero payments Jan-Aug 2026. Owner says Submagic settles to a different bank account, which is consistent: its money never enters this pipeline, so there is nothing to exclude."
   },
-
   "_unidentified_comment": "Payers that are NOT tools — agencies, networks and processors that pay out on behalf of brands. Their money is real and we know exactly who sent it, but the tool behind it is unknown, so it must never be written in the Tool column: an agency name there reads as a product the owner promotes, which is simply false. These land in UNTRACED, not a bucket of their own — untraced means 'no tool name yet', which is exactly what this is, and a second word for it only invites a misread of the tally. The payer rides along on the row as evidence, the way an unclaimed bank credit keeps its reference. Move one into tool_aliases the moment the real brand is confirmed.",
   "unidentified_payers": {
     "Дигитал Маркетинг Солутионс 2011 ООД": {
@@ -42,14 +59,77 @@
       "note": "Bulgarian entity paying from the digitalworks.net domain. DigitalWorks is an affiliate-management agency that pays out for other brands, so the tool is unknown. Do NOT merge with Book Bolt: Book Bolt pays separately as 'Book Bolt LLC' from the bookbolt.io domain — that merge was tried on 2026-08-30 on the strength of a LinkedIn page and the payer emails disproved it."
     }
   },
-
-  "_manual_comment": "THE EXIT ROUTE FOR UNTRACED MONEY. When the owner works out where a credit came from - a bank asking about the reference, a payout spotted in a network dashboard - record it here once and it is named forever. This runs before every heuristic pass and outranks all of them (confidence 'confirmed'), so nothing can un-name it. Match is on date + amount, which is unique in a passbook. Copy the date and amount straight off the Untraced row in the dashboard. 'route' is the hops before the bank; 'note' is for your future self, and is not shown in the UI.",
+  "_manual_comment": "THE EXIT ROUTE FOR UNTRACED MONEY. When the owner works out where a credit came from - a bank asking about the reference, a payout spotted in a network dashboard - record it here once and it is named forever. This runs before every heuristic pass and outranks all of them (confidence 'confirmed'), so nothing can un-name it. Match is on date + amount, which is unique in a passbook. Copy the date and amount straight off the Untraced row in the dashboard. 'route' is the hops before the bank; 'note' is for your future self, and is not shown in the UI. NOTE ON EXCHANGE RATES: money arriving over Airwallex converts at roughly 90-96 INR/USD in 2026, NOT the ~87 an older note in this repo assumed. PayPal settles the same dollars nearer 89 because it keeps a fat FX margin, so PayPal is the wrong yardstick for judging an Airwallex credit. A rate in the low 90s is normal here and is not evidence against a match.",
   "_manual_example": {
     "date": "19/03/2026",
     "amount": 22084.36,
     "tool": "Base44",
-    "route": ["impact.com", "Airwallex"],
+    "route": [
+      "impact.com",
+      "Airwallex"
+    ],
     "note": "confirmed against the impact.com payout report"
   },
-  "manual_attribution": []
+  "manual_attribution": [
+    {
+      "date": "25/02/2026",
+      "amount": 3818.16,
+      "tool": "OpenArt",
+      "route": [
+        "Tolt",
+        "Airwallex"
+      ],
+      "note": "Tolt payout of USD 42.25 generated 11 Feb 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 90.4 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
+    },
+    {
+      "date": "19/03/2026",
+      "amount": 22084.36,
+      "tool": "OpenArt",
+      "route": [
+        "Tolt",
+        "Airwallex"
+      ],
+      "note": "Tolt payout of USD 238.46 generated 11 Mar 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 92.6 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
+    },
+    {
+      "date": "17/04/2026",
+      "amount": 12616.8,
+      "tool": "OpenArt",
+      "route": [
+        "Tolt",
+        "Airwallex"
+      ],
+      "note": "Tolt payout of USD 136.87 generated 11 Apr 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 92.2 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
+    },
+    {
+      "date": "22/05/2026",
+      "amount": 6906.35,
+      "tool": "OpenArt",
+      "route": [
+        "Tolt",
+        "Airwallex"
+      ],
+      "note": "Tolt payout of USD 72.24 generated 12 May 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 95.6 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
+    },
+    {
+      "date": "30/06/2026",
+      "amount": 14759.13,
+      "tool": "OpenArt",
+      "route": [
+        "Tolt",
+        "Airwallex"
+      ],
+      "note": "Tolt payout of USD 156.89 generated 16 Jun 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 94.1 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
+    },
+    {
+      "date": "23/07/2026",
+      "amount": 9242.06,
+      "tool": "OpenArt",
+      "route": [
+        "Tolt",
+        "Airwallex"
+      ],
+      "note": "Tolt payout of USD 96.30 generated 8 Jul 2026, from the OpenArt Creators dashboard the owner opened on 2026-08-31. Implied 96.0 INR/USD. The 23/07 pair is proved outright by the Tolt receipt PDF (OpenArt Creators, USD 96.30, bank transfer, invoice date 2026-07-23) landing on the same day."
+    }
+  ]
 }

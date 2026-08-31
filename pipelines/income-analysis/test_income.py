@@ -345,6 +345,64 @@ class ToolNames(unittest.TestCase):
         self.assertEqual(names, {"Book Bolt", "DigitalWorks"})
 
 
+class PartnerStackDates(unittest.TestCase):
+    """PartnerStack's API date is a created-at, not a paid-at.
+
+    Its five payouts read 2024-04-03 … 2026-07-01 while its own "payout is ready"
+    mails put the SAME amounts months later. Matching on the API date made the
+    engine spend a May payout on a March credit and strand two real credits as
+    untraced, so the mail's date wins wherever the amounts agree.
+    """
+
+    def ev(self, date, amount):
+        return mailbox.Event(date, "payout", None, amount, "USD",
+                             "partnerstackmail.com", "Your PartnerStack Payout")
+
+    def test_mail_date_overrides_the_api_date(self):
+        ps = {"payouts": [{"key": "p1", "date": "2026-03-03",
+                           "amount": 85.29, "currency": "USD"}]}
+        got = attribute.partnerstack_dates(ps, [self.ev("2026-05-01", 85.29)])
+        self.assertEqual(got[85.29], "2026-05-01")
+
+    def test_an_api_payout_with_no_mail_keeps_its_own_date(self):
+        """Silence must not blank a date — that would drop the payout entirely."""
+        self.assertEqual(attribute.partnerstack_dates({"payouts": []}, []), {})
+
+    def test_only_partnerstack_payout_mail_counts(self):
+        """A Rewardful or impact payout mail must not redate a PartnerStack row."""
+        evs = [mailbox.Event("2026-05-01", "payout", None, 85.29, "USD",
+                             "app.impact.com", "x"),
+               mailbox.Event("2026-05-01", "accrual", None, 85.29, "USD",
+                             "partnerstackmail.com", "x")]
+        self.assertEqual(attribute.partnerstack_dates({"payouts": []}, evs), {})
+
+    def test_the_earliest_mail_wins_when_an_amount_repeats(self):
+        """A credit can only follow the first release of that amount."""
+        got = attribute.partnerstack_dates(
+            {"payouts": []}, [self.ev("2026-07-01", 35.64), self.ev("2026-05-04", 35.64)])
+        self.assertEqual(got[35.64], "2026-05-04")
+
+
+    def test_the_override_is_actually_wired_into_the_match(self):
+        """The map alone proves nothing — pass_partnerstack has to USE it.
+
+        API date 2026-03-03 is 65 days before the credit, far outside the 10-day
+        window, so without the override this payout finds no candidate at all.
+        """
+        credits = [credit("a", "07/05/2026", 7988.68, "airwallex")]
+        ps = {"payouts": [{"key": "p1", "date": "2026-03-03", "amount": 85.29,
+                           "currency": "USD"}],
+              "rewards": [{"key": "r1", "date": "2026-04-20", "amount": 85.29,
+                           "tool": "Eleven Labs Inc."}]}
+        with with_credits(credits):
+            claims, notes = attribute.pass_partnerstack(
+                credits, ps, [self.ev("2026-05-01", 85.29)])
+        self.assertTrue(claims, "mail date should bring the credit into range: %s" % notes)
+        # Raw payer name here: canonical_tool runs later, in attribute().
+        self.assertEqual(claims[0]["tool"], "Eleven Labs Inc.")
+        self.assertAlmostEqual(claims[0]["amount"], 7988.68, places=2)
+
+
 class NonToolPayers(unittest.TestCase):
     """An agency is not a tool, and must never be written as one.
 

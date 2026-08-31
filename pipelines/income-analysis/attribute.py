@@ -318,15 +318,42 @@ def split_by_reward(payout_usd, payout_date, rewards, used):
     return {t: v / total for t, v in by_tool.items()} if total else None
 
 
-def pass_partnerstack(credits, ps):
+def partnerstack_dates(ps, mail_events):
+    """amount -> the date PartnerStack's own mail says the payout was released.
+
+    Their API's `date` looks like a created-at, not a paid-at: the same amounts
+    appear in the mail months later. A bank credit follows the release, so the
+    mail is the clock to match against. Amount is the join key because it is what
+    both sources agree on.
+    """
+    out = {}
+    for e in mail_events or []:
+        if e.kind != "payout" or e.currency != "USD":
+            continue
+        if "partnerstack" not in (e.source or ""):
+            continue
+        # Earliest mail wins if an amount ever repeats — the first release is the
+        # one a credit can follow.
+        key = round(e.amount, 2)
+        if key not in out or e.date < out[key]:
+            out[key] = e.date
+    return out
+
+
+def pass_partnerstack(credits, ps, mail_events=None):
     """Match dated PartnerStack payouts to Airwallex credits."""
     if not ps:
         return [], []
     claims, notes = [], []
     used_rewards = set()
+    by_amount = partnerstack_dates(ps, mail_events)
 
-    for payout in sorted(ps.get("payouts", []), key=lambda p: p["date"] or ""):
-        pd = parse_day(payout.get("date"))
+    def released(p):
+        """The mail's date if we have one, else whatever the API claims."""
+        return by_amount.get(round(p.get("amount") or 0, 2)) or p.get("date")
+
+    for payout in sorted(ps.get("payouts", []), key=lambda p: released(p) or ""):
+        pd = parse_day(released(payout))
         if not pd or payout.get("currency") != "USD":
             continue
         cands = [
@@ -511,7 +538,7 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
 
     claims = pass_manual(credits, manual)
     claims += pass_paypal(credits, paypal_months or [])
-    ps_claims, ps_notes = pass_partnerstack(credits, ps)
+    ps_claims, ps_notes = pass_partnerstack(credits, ps, mail_events)
     im_claims, im_notes = pass_impact(credits, impact)
     claims += ps_claims + im_claims
 
