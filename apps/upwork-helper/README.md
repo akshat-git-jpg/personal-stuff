@@ -38,24 +38,44 @@ panel says 0, reload the page with the tab in the foreground.
 page `<script>`. Whichever lands first wins; the other is a no-op. Both are kept
 because `world: "MAIN"` was observed silently not taking effect in Arc.
 
+The load-bearing hook is on **`JSON.parse`**, not on `fetch`. Whatever route the
+data takes — fetch, XHR, a streamed payload, an inline blob in the HTML — the app
+has to parse it, and `JSON.parse` is resolved fresh at every call site. The
+`fetch`/`XHR` hooks are kept mainly as proof that the script reached the page.
+
 From there:
 
-1. Every JSON response is walked for objects that have both `title` and
+1. Every parsed payload is walked for objects that have both `title` and
    `description`. Those get indexed by normalised title and by
    `openingUid` / `id` / `ciphertext`.
 2. A `MutationObserver` (debounced 250 ms) looks for text nodes matching
    `/this job is private/i`.
-3. For each hit it resolves the owning job — first by an id found on a nearby
-   attribute or link, then by the nearest heading text — and replaces just that
-   text node with the stored description.
+3. For each hit it resolves the owning job — first by an id on a nearby attribute
+   or link, then by matching **every** heading text up the tree against the store
+   — and replaces just that text node with the stored description.
+
+If it cannot identify the job, it leaves the notice alone and retries on later
+page changes. It never guesses a description.
 
 The only permission is `host_permissions` for `upwork.com`. There is no background
 service worker. Data lives in memory for the life of the tab and is never sent
 anywhere.
 
+## Tests
+
+```
+cd apps/upwork-helper
+npm install --no-save jsdom@24
+node test-helper.mjs
+```
+
+18 checks across three modal DOM shapes, plus late-arriving titles, late-arriving
+payloads, and the "must not invent a description" case.
+
 ## Debugging
 
-In the page console:
+The **Jobs** panel header shows the version and the live counters, so a
+screenshot answers most questions. For more, in the page console:
 
 ```js
 __uhelp.hits()          // {fetch, xhr, json, skipped, captured}

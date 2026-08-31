@@ -25,7 +25,8 @@
   /** element -> how many times we failed to match it, so we can retry then stop */
   const attempts = new WeakMap();
   /** diagnostics: did our hook actually see traffic, and did bodies parse? */
-  const stats = { fetch: 0, xhr: 0, json: 0, skipped: 0 };
+  const stats = { fetch: 0, xhr: 0, parse: 0, inline: 0, json: 0, skipped: 0 };
+  const VERSION = '1.2.0';
 
   const norm = (s) =>
     String(s)
@@ -143,6 +144,74 @@
     return nativeSend.apply(this, args);
   };
 
+  /*
+   * The catch-all. Hooking fetch/XHR only works if we land before the app
+   * bundle captures them into a local (`const f = window.fetch`), which we
+   * cannot guarantee — the injected page script arrives asynchronously.
+   *
+   * `JSON.parse` has no such problem: it is called as a property lookup on the
+   * JSON namespace every single time, by every route the data can take (fetch,
+   * XHR, a streamed RSC payload, an inline SSR blob). Whatever reaches the app
+   * as an object passed through here first.
+   */
+  const nativeParse = JSON.parse;
+  JSON.parse = function (text, reviver) {
+    const out = nativeParse.call(this, text, reviver);
+    try {
+      if (
+        typeof text === 'string' &&
+        text.length < MAX_BODY &&
+        text.includes('"description"') &&
+        text.includes('"title"')
+      ) {
+        stats.parse++;
+        const before = byTitle.size;
+        walk(out, 0);
+        if (byTitle.size !== before) {
+          console.info('[upwork-helper] captured', byTitle.size, 'job descriptions');
+          schedule();
+        }
+        updateBadge();
+      }
+    } catch {
+      /* never let our bookkeeping break the page's own parse */
+    }
+    return out;
+  };
+
+  // Adjacent "title" / "description" string fields, in either order. Upwork's
+  // assignment nodes put them side by side, which is enough to pair them up
+  // without parsing a partial RSC stream as JSON.
+  const STR = '((?:[^"\\\\]|\\\\.)*)';
+  const PAIR_RE = new RegExp(`"title":"${STR}"\\s*,\\s*"description":"${STR}"`, 'g');
+  const PAIR_RE_REVERSED = new RegExp(`"description":"${STR}"\\s*,\\s*"title":"${STR}"`, 'g');
+
+  // Inline SSR / streamed payloads that were already in the HTML before we ran.
+  const swept = new WeakSet();
+  function sweepInlineScripts() {
+    for (const s of document.querySelectorAll('script')) {
+      if (swept.has(s)) continue;
+      swept.add(s);
+      const t = s.textContent;
+      if (!t || t.length > MAX_BODY) continue;
+      if (!t.includes('"description"') || !t.includes('"title"')) continue;
+      stats.inline++;
+      for (const re of [PAIR_RE, PAIR_RE_REVERSED]) {
+        re.lastIndex = 0;
+        let m;
+        while ((m = re.exec(t))) {
+          const [a, b] = re === PAIR_RE ? [m[1], m[2]] : [m[2], m[1]];
+          try {
+            remember({ title: nativeParse(`"${a}"`), description: nativeParse(`"${b}"`) });
+          } catch {
+            /* not a clean JSON string literal */
+          }
+        }
+      }
+    }
+    updateBadge();
+  }
+
   // ------------------------------------------------------------------- DOM
 
   const CSS = `
@@ -158,6 +227,8 @@
     border:1px solid #d5d5d5;border-radius:12px;padding:12px;
     box-shadow:0 12px 40px rgba(0,0,0,.28);font:13px/1.5 system-ui,sans-serif}
   .uhelp-panel[hidden]{display:none}
+  .uhelp-diag{font:11px/1.5 ui-monospace,monospace;opacity:.65;margin-bottom:8px;
+    word-break:break-word}
   .uhelp-panel input{width:100%;box-sizing:border-box;padding:6px 8px;margin-bottom:10px;
     border:1px solid #ccc;border-radius:8px;font:13px system-ui,sans-serif}
   .uhelp-item{border-top:1px solid #eee;padding:8px 0}
@@ -191,23 +262,31 @@
     '[class*="Title"]',
   ].join(',');
 
-  function headingFor(el) {
+  /*
+   * Every heading text between the private notice and the top of the document,
+   * nearest first. This must NOT stop at the first heading it finds: the modal
+   * puts a "Job description" label directly above the notice, so the first hit
+   * is almost always a section label rather than the job title. The caller
+   * matches the whole list against the store instead.
+   */
+  function headingCandidates(el) {
+    const out = [];
+    const seen = new Set();
+    const add = (txt) => {
+      if (!txt) return;
+      const t = txt.trim();
+      if (t.length < 7 || t.length > 400) return;
+      if (PRIVATE_RE.test(t) || seen.has(t)) return;
+      seen.add(t);
+      out.push(t);
+    };
     let node = el;
     for (let i = 0; i < 16 && node; i++) {
-      if (node.querySelectorAll) {
-        for (const h of node.querySelectorAll(HEADING_SEL)) {
-          const txt = h.textContent.trim();
-          if (txt && txt.length > 6 && !PRIVATE_RE.test(txt) && byTitle.has(norm(txt))) return txt;
-        }
-        // second pass: no exact hit, take the first plausible heading text
-        for (const h of node.querySelectorAll(HEADING_SEL)) {
-          const txt = h.textContent.trim();
-          if (txt && txt.length > 6 && !PRIVATE_RE.test(txt)) return txt;
-        }
-      }
+      if (node.matches && node.matches(HEADING_SEL)) add(node.textContent);
+      if (node.querySelectorAll) for (const h of node.querySelectorAll(HEADING_SEL)) add(h.textContent);
       node = node.parentElement;
     }
-    return null;
+    return out;
   }
 
   function lookup(el) {
@@ -227,13 +306,20 @@
       }
       node = node.parentElement;
     }
-    // 2. by heading text
-    const title = headingFor(el);
-    if (!title) return null;
-    const key = norm(title);
-    if (byTitle.has(key)) return byTitle.get(key);
-    for (const [k, rec] of byTitle) {
-      if (k.includes(key) || key.includes(k)) return rec;
+    // 2. by heading text — exact match over every candidate first
+    const candidates = headingCandidates(el);
+    for (const txt of candidates) {
+      const rec = byTitle.get(norm(txt));
+      if (rec) return rec;
+    }
+    // 3. fuzzy, longest candidate first (a job title is long; "Job description"
+    //    and other section labels are short and match nothing anyway)
+    for (const txt of [...candidates].sort((a, b) => b.length - a.length)) {
+      const key = norm(txt);
+      if (key.length < 12) continue;
+      for (const [k, rec] of byTitle) {
+        if (k.length >= 12 && (k.includes(key) || key.includes(k))) return rec;
+      }
     }
     return null;
   }
@@ -279,7 +365,7 @@
 
   // ------------------------------------------------------------- side panel
 
-  let fab, panel, list, search;
+  let fab, panel, list, search, diag;
 
   function buildPanel() {
     if (fab || !document.body) return;
@@ -295,10 +381,13 @@
     panel = document.createElement('div');
     panel.className = 'uhelp-panel';
     panel.hidden = true;
+    diag = document.createElement('div');
+    diag.className = 'uhelp-diag';
     search = document.createElement('input');
     search.placeholder = 'Filter captured jobs…';
     search.addEventListener('input', renderList);
     list = document.createElement('div');
+    panel.appendChild(diag);
     panel.appendChild(search);
     panel.appendChild(list);
 
@@ -334,6 +423,11 @@
 
   function updateBadge() {
     if (fab) fab.textContent = `Jobs ${byTitle.size}`;
+    if (diag) {
+      diag.textContent =
+        `v${VERSION}  ·  fetch ${stats.fetch}  ·  xhr ${stats.xhr}  ·  ` +
+        `parse ${stats.parse}  ·  inline ${stats.inline}  ·  captured ${byTitle.size}`;
+    }
   }
 
   // ----------------------------------------------------------------- runner
@@ -345,6 +439,11 @@
       timer = null;
       if (!document.body) return;
       buildPanel();
+      try {
+        sweepInlineScripts();
+      } catch {
+        /* keep going; the network hooks are the primary path */
+      }
       updateBadge();
       try {
         reveal();
@@ -355,8 +454,15 @@
   }
 
   function start() {
-    console.info('[upwork-helper] armed — hooks on fetch + XHR. Run __uhelp.hits() to check.');
+    console.info(
+      `[upwork-helper] v${VERSION} armed — fetch + XHR + JSON.parse. Run __uhelp.hits() to check.`
+    );
     buildPanel();
+    try {
+      sweepInlineScripts();
+    } catch (e) {
+      console.warn('[upwork-helper] inline sweep failed', e);
+    }
     updateBadge();
     schedule();
     new MutationObserver(schedule).observe(document.documentElement, {
