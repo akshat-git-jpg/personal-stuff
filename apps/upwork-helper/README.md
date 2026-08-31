@@ -32,8 +32,13 @@ panel says 0, reload the page with the tab in the foreground.
 
 ## How it works
 
-`helper.js` runs at `document_start` in the **MAIN world**, so it can patch the
-page's own `fetch` and `XMLHttpRequest`:
+`helper.js` has to run in the page's own JavaScript world to patch the page's
+`fetch` and `XMLHttpRequest`. Two paths get it there — the manifest's
+`world: "MAIN"` content script, and `loader.js`, which injects `helper.js` as a
+page `<script>`. Whichever lands first wins; the other is a no-op. Both are kept
+because `world: "MAIN"` was observed silently not taking effect in Arc.
+
+From there:
 
 1. Every JSON response is walked for objects that have both `title` and
    `description`. Those get indexed by normalised title and by
@@ -44,8 +49,24 @@ page's own `fetch` and `XMLHttpRequest`:
    attribute or link, then by the nearest heading text — and replaces just that
    text node with the stored description.
 
-No `permissions` are declared and there is no background service worker. Data
-lives in memory for the life of the tab and is never sent anywhere.
+The only permission is `host_permissions` for `upwork.com`. There is no background
+service worker. Data lives in memory for the life of the tab and is never sent
+anywhere.
+
+## Debugging
+
+In the page console:
+
+```js
+__uhelp.hits()          // {fetch, xhr, json, skipped, captured}
+__uhelp.titles()        // every job title captured
+__uhelp.find('faceless')
+__uhelp.retry()         // clear the "already handled" marks and re-scan the DOM
+```
+
+`hits()` is the one that matters. `fetch: 0, xhr: 0` means the hook never got
+into the page — everything else means it did. `apps/upwork-helper/CLAUDE.md` has
+the full reading-to-fix table.
 
 ## Limits
 
