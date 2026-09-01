@@ -425,9 +425,17 @@ function cmdApply(key, { dryRun = false } = {}) {
     const merged = owner.blocks.filter((b) => MERGED.has(b.kind))
     return merged.length === 1 ? merged[0] : undefined
   }
+  // A leaf section IS its instruction block - buildBeats synthesizes the card from
+  // it - so emptying that block would take the whole section off the desk. A `####`
+  // subsection keeps its heading and just loses its notes, which is what an empty
+  // box should mean. Track which is which.
+  const headedCards = new Set()
   for (const card of bodyCards) {
-    const range = rangeIn(ownerForCard.get(card.num))
-    if (range) notesRangeFor.set(card.num, range)
+    const owner = ownerForCard.get(card.num)
+    const range = rangeIn(owner)
+    if (!range) continue
+    notesRangeFor.set(card.num, range)
+    if (owner && model.beats.includes(owner)) headedCards.add(card.num)
   }
 
   // An INTRO or CONCLUSION beat has no `NOTES` lane — the desk's Notes block is
@@ -444,7 +452,9 @@ function cmdApply(key, { dryRun = false } = {}) {
   for (const beat of model.beats) {
     if (notesRangeFor.has(beat.num)) continue
     const range = rangeIn(beat)
-    if (range) notesRangeFor.set(beat.num, range)
+    if (!range) continue
+    notesRangeFor.set(beat.num, range)
+    headedCards.add(beat.num)
   }
 
   const sayRangeFor = new Map()
@@ -475,12 +485,17 @@ function cmdApply(key, { dryRun = false } = {}) {
       it.kind === 'NOTES'
         ? it.lines.filter((l) => l.trim())
         : it.lines.map((l) => (l ? '> ' + l : '>'))
-    splices.push({ range, text: [header, ...body].join('\n'), it, body })
+    // AN EMPTY BOX IS A DELETED BLOCK, not a header with nothing under it. Left as
+    // a bare `**VIDEO**` the lane is still in the file, the next read finds it again,
+    // and the round-trip guard below then rejects the whole write - which is exactly
+    // what four staged deletions hit on 2026-09-01.
+    const drop = it.kind === 'NOTES' && body.length === 0 && headedCards.has(it.num)
+    splices.push({ range, text: drop ? null : [header, ...body].join('\n'), it, body })
   }
 
   const lines = md.split(/\r?\n/)
   for (const sp of splices.sort((a, b) => b.range.line - a.range.line)) {
-    lines.splice(sp.range.line, sp.range.endLine - sp.range.line, ...sp.text.split('\n'))
+    lines.splice(sp.range.line, sp.range.endLine - sp.range.line, ...(sp.text === null ? [] : sp.text.split('\n')))
   }
   const next = lines.join('\n')
 
