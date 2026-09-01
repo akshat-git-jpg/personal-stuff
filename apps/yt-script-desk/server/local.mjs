@@ -88,6 +88,24 @@ function sameLines(a, b) {
   return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((l, i) => l === b[i])
 }
 
+// The desk shows ONE instruction block per beat, and it is a MERGE of five lanes —
+// see `laneLines` in src/components/WriteView.tsx. So "what the plan says" for that
+// block is the merge, not the NOTES lane on its own. Reading only `notes` here made
+// every edit on a plan that writes `**VIDEO**` blocks duplicate itself: the box saved
+// all five lanes into `notes`, the other four stayed put, and the next render merged
+// them back on top. Seen 2026-09-01 on ai-avatar-generators, where one section reached
+// three copies of its own text and a deleted line came straight back.
+function plannedNotes(beat) {
+  if (!beat) return []
+  return [
+    ...(beat.notes ?? []),
+    ...(beat.angle ?? []),
+    ...(beat.video ?? []),
+    ...(beat.rules ?? []),
+    ...(beat.facts ?? []),
+  ]
+}
+
 function buildVideoDoc(key) {
   const outPath = outlinePath(key)
   if (!existsSync(outPath)) return null
@@ -99,7 +117,12 @@ function buildVideoDoc(key) {
   const beatsWithEdits = beats.map((b) => {
     let out = b
     if (doc.says[b.num]) out = { ...out, say: doc.says[b.num] }
-    if (doc.notes[b.num]) out = { ...out, notes: doc.notes[b.num] }
+    // A staged note replaces the WHOLE merged block the desk renders, so the lanes it
+    // was merged from must be emptied here. Leaving them is what made the block grow on
+    // every save.
+    if (doc.notes[b.num]) {
+      out = { ...out, notes: doc.notes[b.num], angle: null, video: [], rules: [], facts: [] }
+    }
     return out
   })
   return {
@@ -253,14 +276,14 @@ const server = createServer(async (req, res) => {
       const planned = buildBeats(readFileSync(outlinePath(key), 'utf8')).beats.find(
         (b) => b.num === num,
       )
-      if (sameLines(lines, planned?.notes ?? [])) {
+      if (sameLines(lines, plannedNotes(planned))) {
         delete doc.notes[num]
         delete doc.noteEdits[num]
         writeDraft(key, doc)
         return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString(), staged: false })
       }
       if (!doc.noteEdits[num]) {
-        doc.noteEdits[num] = { original: planned?.notes ?? [], at: new Date().toISOString() }
+        doc.noteEdits[num] = { original: plannedNotes(planned), at: new Date().toISOString() }
       }
       doc.notes[num] = lines
       writeDraft(key, doc)
@@ -278,7 +301,7 @@ const server = createServer(async (req, res) => {
       writeDraft(key, doc)
       const { beats } = buildBeats(readFileSync(outlinePath(key), 'utf8'))
       const beat = beats.find((b) => b.num === num)
-      return sendJson(res, 200, { lines: beat?.notes ?? [] })
+      return sendJson(res, 200, { lines: plannedNotes(beat) })
     }
 
     // POST /api/beat/:num/restore?key=<key>
