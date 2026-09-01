@@ -6,7 +6,7 @@ main="${WT_MAIN_CHECKOUT:?}"
 link() {  # link <relpath>
   [ -e "$main/$1" ] || return 0
   mkdir -p "$(dirname "$1")"
-  ln -sfn "$main/$1" "$1"
+  MSYS="winsymlinks:nativestrict" ln -sfn "$main/$1" "$1"
 }
 link pipelines/.env
 link pipelines/credentials.json
