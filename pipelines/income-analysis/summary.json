@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T19:07:04",
+  "generated_at": "2026-09-01T23:14:35",
   "coverage": {
     "from": "2026-01",
     "to": "2026-08"
@@ -22,7 +22,7 @@
       "label": "PayPal",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-30T10:59:59Z"
+      "as_of": "2026-09-01T15:29:59Z"
     },
     {
       "id": "bank",
@@ -41,7 +41,7 @@
       "label": "PartnerStack",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-30T19:06:57"
+      "as_of": "2026-08-31T18:42:02"
     },
     {
       "id": "paykickstart",
@@ -458,7 +458,7 @@
     }
   },
   "paypal_pending": {
-    "as_of": "2026-08-30T10:59:59Z",
+    "as_of": "2026-09-01T15:29:59Z",
     "holdings": [
       {
         "currency": "USD",

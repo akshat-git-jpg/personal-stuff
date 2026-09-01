@@ -1,5 +1,9 @@
 {
-  "generated_at": "2026-08-30T17:30:58",
+  "generated_at": "2026-09-01T23:14:35",
+  "coverage": {
+    "from": "2026-01",
+    "to": "2026-08"
+  },
   "statements": [
     {
       "file": "PNBONE_STMT_XX****_30082026.pdf",
@@ -12,415 +16,449 @@
     "paypal": "PayPal",
     "airwallex": "Airwallex"
   },
-  "bank_by_month": {
+  "sources": [
+    {
+      "id": "paypal",
+      "label": "PayPal",
+      "kind": "api",
+      "state": "connected",
+      "as_of": "2026-09-01T15:29:59Z"
+    },
+    {
+      "id": "bank",
+      "label": "Bank passbook",
+      "kind": "manual",
+      "state": "manual"
+    },
+    {
+      "id": "impact",
+      "label": "impact.com",
+      "kind": "api",
+      "state": "connected"
+    },
+    {
+      "id": "partnerstack",
+      "label": "PartnerStack",
+      "kind": "api",
+      "state": "connected",
+      "as_of": "2026-08-31T18:42:02"
+    },
+    {
+      "id": "paykickstart",
+      "label": "PayKickstart",
+      "kind": "api",
+      "note": "No credentials. Affiliate accounts have no API access, so any PayKickstart commission shows up as untraced.",
+      "state": "absent"
+    }
+  ],
+  "months": {
     "2026-01": {
-      "paypal": 24711.29,
-      "personal": 10950.0
+      "bank_total": 24711.29,
+      "rails": {
+        "paypal": 24711.29
+      },
+      "tools": [
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 17692.87,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 7018.42,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
+      }
     },
     "2026-02": {
-      "airwallex": 3818.16,
-      "paypal": 168587.82,
-      "personal": 15714.0,
-      "self_transfer": 40000.0
-    },
-    "2026-03": {
-      "airwallex": 29651.76,
-      "interest": 166.0,
-      "paypal": 11409.81,
-      "personal": 612311.0
-    },
-    "2026-04": {
-      "airwallex": 12616.8,
-      "paypal": 12772.64,
-      "personal": 176385.0
-    },
-    "2026-05": {
-      "airwallex": 14895.03,
-      "paypal": 12061.12,
-      "personal": 13080.0,
-      "self_transfer": 100000.0
-    },
-    "2026-06": {
-      "airwallex": 14759.13,
-      "interest": 465.0,
-      "paypal": 26594.56,
-      "personal": 258588.0
-    },
-    "2026-07": {
-      "airwallex": 12605.66,
-      "paypal": 15394.05,
-      "personal": 7080.0
-    },
-    "2026-08": {
-      "paypal": 33001.07,
-      "personal": 41341.0
-    }
-  },
-  "paypal": {
-    "months": [
-      {
-        "month": "2026-01",
-        "currency": "USD",
-        "received": "442.88",
-        "bank_amount": "38731.36",
-        "bank_currency": "INR",
-        "programs": [
-          {
-            "program": "Heygen Technology Inc.",
-            "currency": "USD",
-            "received": "203.28",
-            "gross": "203.28",
-            "fees": "0.00",
-            "count": 3,
-            "bank_amount": "17692.87",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Pictory, Corp",
-            "currency": "USD",
-            "received": "158.60",
-            "gross": "158.60",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "14020.07",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "EverBee",
-            "currency": "USD",
-            "received": "81.00",
-            "gross": "81.00",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "7018.42",
-            "bank_currency": "INR",
-            "unsettled": ""
-          }
-        ]
+      "bank_total": 172405.98,
+      "rails": {
+        "airwallex": 3818.16,
+        "paypal": 168587.82
       },
-      {
-        "month": "2026-02",
-        "currency": "USD",
-        "received": "1786.59",
-        "bank_amount": "156138.93",
-        "bank_currency": "INR",
-        "programs": [
+      "tools": [
+        {
+          "tool": "TradingView, Inc.",
+          "amount": 128325.39,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Pictory, Corp",
+          "amount": 14020.07,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Nine Thirty Five LLC",
+          "amount": 13964.96,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 12277.4,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 3818.16,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
           {
-            "program": "TradingView, Inc.",
-            "currency": "USD",
-            "received": "1470.00",
-            "gross": "1470.00",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "128325.39",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Nine Thirty Five LLC",
-            "currency": "USD",
-            "received": "157.97",
-            "gross": "167.00",
-            "fees": "-9.03",
-            "count": 1,
-            "bank_amount": "13964.96",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "EverBee",
-            "currency": "USD",
-            "received": "140.70",
-            "gross": "140.70",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "12277.40",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Pictory, Corp",
-            "currency": "USD",
-            "received": "17.92",
-            "gross": "17.92",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "1571.18",
-            "bank_currency": "INR",
-            "unsettled": ""
-          }
-        ]
-      },
-      {
-        "month": "2026-03",
-        "currency": "USD",
-        "received": "252.02",
-        "bank_amount": "22611.27",
-        "bank_currency": "INR",
-        "programs": [
-          {
-            "program": "Pictory, Corp",
-            "currency": "USD",
-            "received": "140.70",
-            "gross": "140.70",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "12772.64",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Heygen Technology Inc.",
-            "currency": "USD",
-            "received": "63.19",
-            "gross": "63.19",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "5587.69",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Synthesia Limited",
-            "currency": "USD",
-            "received": "48.13",
-            "gross": "48.13",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "4250.94",
-            "bank_currency": "INR",
-            "unsettled": ""
-          }
-        ]
-      },
-      {
-        "month": "2026-04",
-        "currency": "USD",
-        "received": "17.40",
-        "bank_amount": "1592.14",
-        "bank_currency": "INR",
-        "programs": [
-          {
-            "program": "Pictory, Corp",
-            "currency": "USD",
-            "received": "17.40",
-            "gross": "17.40",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "1592.14",
-            "bank_currency": "INR",
-            "unsettled": ""
-          }
-        ]
-      },
-      {
-        "month": "2026-05",
-        "currency": "USD",
-        "received": "127.33",
-        "bank_amount": "11696.40",
-        "bank_currency": "INR",
-        "programs": [
-          {
-            "program": "Synthesia Limited",
-            "currency": "USD",
-            "received": "66.75",
-            "gross": "66.75",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "6169.41",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Heygen Technology Inc.",
-            "currency": "USD",
-            "received": "47.18",
-            "gross": "47.18",
-            "fees": "0.00",
-            "count": 2,
-            "bank_amount": "4299.57",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Pictory, Corp",
-            "currency": "USD",
-            "received": "13.40",
-            "gross": "13.40",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "1227.42",
-            "bank_currency": "INR",
-            "unsettled": ""
-          }
-        ]
-      },
-      {
-        "month": "2026-06",
-        "currency": "USD",
-        "received": "286.83",
-        "bank_amount": "26221.70",
-        "bank_currency": "INR",
-        "programs": [
-          {
-            "program": "Book Bolt LLC",
-            "currency": "USD",
-            "received": "172.52",
-            "gross": "182.34",
-            "fees": "-9.82",
-            "count": 1,
-            "bank_amount": "15763.57",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "EverBee",
-            "currency": "USD",
-            "received": "63.00",
-            "gross": "63.00",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "5769.37",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Creatify Lab Inc",
-            "currency": "USD",
-            "received": "23.29",
-            "gross": "23.29",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "2132.84",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Heygen Technology Inc.",
-            "currency": "USD",
-            "received": "18.62",
-            "gross": "18.62",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "1701.36",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Pictory, Corp",
-            "currency": "USD",
-            "received": "9.40",
-            "gross": "9.40",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "854.56",
-            "bank_currency": "INR",
-            "unsettled": ""
-          }
-        ]
-      },
-      {
-        "month": "2026-07",
-        "currency": "USD",
-        "received": "158.27",
-        "bank_amount": "14539.49",
-        "bank_currency": "INR",
-        "programs": [
-          {
-            "program": "Heygen Technology Inc.",
-            "currency": "USD",
-            "received": "97.52",
-            "gross": "97.52",
-            "fees": "0.00",
-            "count": 2,
-            "bank_amount": "8960.36",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "EverBee",
-            "currency": "USD",
-            "received": "36.00",
-            "gross": "36.00",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "3306.99",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "Creatify Lab Inc",
-            "currency": "USD",
-            "received": "24.75",
-            "gross": "24.75",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "2272.14",
-            "bank_currency": "INR",
-            "unsettled": ""
-          }
-        ]
-      },
-      {
-        "month": "2026-08",
-        "currency": "USD",
-        "received": "359.16",
-        "bank_amount": "33001.07",
-        "bank_currency": "INR",
-        "programs": [
-          {
-            "program": "Heygen Technology Inc.",
-            "currency": "USD",
-            "received": "133.70",
-            "gross": "133.70",
-            "fees": "0.00",
-            "count": 2,
-            "bank_amount": "12272.28",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "EverBee",
-            "currency": "USD",
-            "received": "125.70",
-            "gross": "125.70",
-            "fees": "0.00",
-            "count": 1,
-            "bank_amount": "11563.20",
-            "bank_currency": "INR",
-            "unsettled": ""
-          },
-          {
-            "program": "\u0414\u0438\u0433\u0438\u0442\u0430\u043b \u041c\u0430\u0440\u043a\u0435\u0442\u0438\u043d\u0433 \u0421\u043e\u043b\u0443\u0442\u0438\u043e\u043d\u0441 2011 \u041e\u041e\u0414",
-            "currency": "USD",
-            "received": "99.76",
-            "gross": "105.60",
-            "fees": "-5.84",
-            "count": 1,
-            "bank_amount": "9165.59",
-            "bank_currency": "INR",
-            "unsettled": ""
+            "date": "25/02/2026",
+            "amount": 3818.16,
+            "rail": "airwallex"
           }
         ]
       }
-    ],
-    "total_by_currency": {
-      "USD": "3430.48"
     },
-    "bank_by_currency": {
-      "INR": "304532.36"
+    "2026-03": {
+      "bank_total": 41061.57,
+      "rails": {
+        "airwallex": 29651.76,
+        "paypal": 11409.81
+      },
+      "tools": [
+        {
+          "tool": "Eleven Labs Inc.",
+          "amount": 6102.63,
+          "route": [
+            "PartnerStack",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 88.73
+        },
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 5587.69,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Synthesia Limited",
+          "amount": 4250.94,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Pictory, Corp",
+          "amount": 1571.18,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Jungle Scout",
+          "amount": 882.61,
+          "route": [
+            "PartnerStack",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 88.73
+        },
+        {
+          "tool": "n8n GmbH",
+          "amount": 582.16,
+          "route": [
+            "PartnerStack",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 88.73
+        }
+      ],
+      "untraced": {
+        "amount": 22084.36,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "19/03/2026",
+            "amount": 22084.36,
+            "rail": "airwallex"
+          }
+        ]
+      }
     },
-    "unsettled_by_currency": {},
-    "transactions_scanned": 114,
-    "income_transactions": 30,
-    "windows": 8,
-    "start": "2026-01-01",
-    "end": "2026-08-30"
+    "2026-04": {
+      "bank_total": 25389.44,
+      "rails": {
+        "airwallex": 12616.8,
+        "paypal": 12772.64
+      },
+      "tools": [
+        {
+          "tool": "Pictory, Corp",
+          "amount": 12772.64,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 12616.8,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "17/04/2026",
+            "amount": 12616.8,
+            "rail": "airwallex"
+          }
+        ]
+      }
+    },
+    "2026-05": {
+      "bank_total": 26956.15,
+      "rails": {
+        "airwallex": 14895.03,
+        "paypal": 12061.12
+      },
+      "tools": [
+        {
+          "tool": "Synthesia Limited",
+          "amount": 6169.41,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 4299.57,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Pictory, Corp",
+          "amount": 1592.14,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 14895.03,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "07/05/2026",
+            "amount": 7988.68,
+            "rail": "airwallex"
+          },
+          {
+            "date": "22/05/2026",
+            "amount": 6906.35,
+            "rail": "airwallex"
+          }
+        ]
+      }
+    },
+    "2026-06": {
+      "bank_total": 41353.69,
+      "rails": {
+        "airwallex": 14759.13,
+        "paypal": 26594.56
+      },
+      "tools": [
+        {
+          "tool": "Book Bolt LLC",
+          "amount": 15763.57,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "grouped"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 5769.37,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "grouped"
+        },
+        {
+          "tool": "Creatify Lab Inc",
+          "amount": 2132.84,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "grouped"
+        },
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 1701.36,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "grouped"
+        },
+        {
+          "tool": "Pictory, Corp",
+          "amount": 1227.42,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 14759.13,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "30/06/2026",
+            "amount": 14759.13,
+            "rail": "airwallex"
+          }
+        ]
+      }
+    },
+    "2026-07": {
+      "bank_total": 27999.71,
+      "rails": {
+        "airwallex": 12605.66,
+        "paypal": 15394.05
+      },
+      "tools": [
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 8960.36,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 3306.99,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Creatify Lab Inc",
+          "amount": 2272.14,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Pictory, Corp",
+          "amount": 854.56,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 12605.66,
+        "reasons": [
+          "airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "date": "07/07/2026",
+            "amount": 3363.6,
+            "rail": "airwallex"
+          },
+          {
+            "date": "23/07/2026",
+            "amount": 9242.06,
+            "rail": "airwallex"
+          }
+        ]
+      }
+    },
+    "2026-08": {
+      "bank_total": 33001.07,
+      "rails": {
+        "paypal": 33001.07
+      },
+      "tools": [
+        {
+          "tool": "Heygen Technology Inc.",
+          "amount": 12272.28,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 11563.2,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "Дигитал Маркетинг Солутионс 2011 ООД",
+          "amount": 9165.59,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
+      }
+    }
   },
   "paypal_pending": {
-    "as_of": "2026-08-30T09:59:59Z",
+    "as_of": "2026-09-01T15:29:59Z",
     "holdings": [
       {
         "currency": "USD",
