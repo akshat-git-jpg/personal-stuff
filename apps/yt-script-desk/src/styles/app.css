@@ -800,3 +800,39 @@
   resize: none;
 }
 .right-block-area:focus { outline: none; }
+
+/* Approve — the owner's sign-off, and the thing `bin/desk.mjs publish` gates on.
+   It sits beside Edit because they are the same class of control: local-only, owner-only,
+   absent entirely on a freelancer's link. */
+.approve-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--line, #d8d4cc);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.approve-toggle:hover:not(:disabled) {
+  border-color: #8a8378;
+}
+.approve-toggle:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+/* Approved reads as settled, not as a call to action. */
+.approve-toggle-on {
+  border-color: #2f7a4f;
+  background: #eaf5ee;
+  color: #1e5735;
+}
+/* Stale is the one that has to catch the eye: he approved, then changed something. */
+.approve-toggle-stale {
+  border-color: #b6791f;
+  background: #fdf4e3;
+  color: #7a5310;
+}

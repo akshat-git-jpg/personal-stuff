@@ -20,6 +20,14 @@ import { join, resolve } from 'node:path'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildBeats, buildEditModel } from '../../../pipelines/youtube/yt-script/lib/beats.mjs'
+import {
+  effectiveBeats,
+  fingerprint,
+  approvalState,
+  formatApprovalRefusal,
+  stagedCount,
+  formatStagedRefusal,
+} from '../lib/approval.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 // Overridable ONLY so `apply`'s tests can point at a scratch directory. Writing
@@ -172,6 +180,34 @@ async function cmdPublish(key, base, force = false) {
     process.stderr.write(formatAskRefusal(key, open))
     process.exit(2)
   }
+
+  // THE APPROVAL GATE. Publishing mints a live secret URL and hands the script to the
+  // maker, so it is the one step in this flow that cannot be taken back — and until
+  // 2026-09-01 the only thing in front of it was the ASK gate.
+  //
+  // The fingerprint is taken over the EFFECTIVE plan (file + staged edits), which is
+  // what the owner actually read on the desk. That is deliberate: it makes the gate
+  // survive `apply`, because applying staged edits into the file does not change what
+  // the plan SAYS. Approve, apply, publish — one approval, and it holds.
+  //
+  // It also means the reverse is caught. An edit made after approving — in the desk or
+  // straight in his editor — changes the effective plan, so the hash moves and the gate
+  // refuses rather than shipping a version nobody signed off.
+  const staged = readStaged(key)
+  const approval = approvalState(staged.approved, fingerprint(title, effectiveBeats(beats, staged)))
+  if (approval.state !== 'ok' && !force) {
+    process.stderr.write(formatApprovalRefusal(key, approval))
+    process.exit(3)
+  }
+
+  // And publish only what is IN the file. See formatStagedRefusal — this is the gate
+  // that stops an approved-but-unapplied plan shipping its pre-edit text.
+  const nStaged = stagedCount(staged)
+  if (nStaged > 0 && !force) {
+    process.stderr.write(formatStagedRefusal(key, nStaged))
+    process.exit(4)
+  }
+
   const clean = stripAsks(beats)
   const res = await fetch(`${base}/api/admin/publish`, {
     method: 'POST',
@@ -287,7 +323,8 @@ function draftFile(key) {
 
 function readStaged(key) {
   const p = draftFile(key)
-  if (!existsSync(p)) return { notes: {}, noteEdits: {}, says: {}, edits: {}, draft: {}, finished: false }
+  if (!existsSync(p))
+    return { notes: {}, noteEdits: {}, says: {}, edits: {}, draft: {}, approved: null, finished: false }
   const raw = JSON.parse(readFileSync(p, 'utf8'))
   return {
     notes: raw.notes ?? {},
@@ -295,6 +332,7 @@ function readStaged(key) {
     says: raw.says ?? {},
     edits: raw.edits ?? {},
     draft: raw.draft ?? {},
+    approved: raw.approved ?? null,
     finished: raw.finished ?? false,
   }
 }

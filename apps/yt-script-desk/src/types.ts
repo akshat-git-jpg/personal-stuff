@@ -1,3 +1,8 @@
+export type Approval =
+  | { state: 'none' }
+  | { state: 'stale'; at: string | null; fingerprint: string }
+  | { state: 'ok'; at: string | null; fingerprint: string }
+
 // Mirrors pipelines/youtube/yt-script/lib/beats.mjs `buildBeats()` verbatim
 // (plan 231). Do not add fields here that beats.mjs does not produce — this
 // type is the contract, not a place to grow the model.
@@ -31,6 +36,10 @@ export type VideoDoc = {
   draft: Record<string, string> // beat.num -> the maker's typed text
   edits: Record<string, Edit> // beat.num -> the original spoken lines, kept
   says: Record<string, string[]> // beat.num -> current spoken lines, when edited
+  // The owner's sign-off on this plan, recomputed by the server on every read so an
+  // edit made outside the desk shows up as stale rather than silently holding.
+  // LOCAL ONLY — the hosted Worker never sends it, so it is absent on a maker's link.
+  approval?: Approval
   // STAGED instruction edits, local mode only. `notes` is the current text and
   // `noteEdits` holds the FIRST original, so a restore goes back to what the plan
   // says. Nothing here has reached script-plan.md yet — `bin/desk.mjs apply`
