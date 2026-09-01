@@ -101,9 +101,30 @@ and deletes the ASK lines.
 
 Round two is the same loop. There is no limit.
 
-Then say go, and step 070 publishes the file you just approved. **Publishing
-refuses while any ASK is still open** and lists them - an unanswered question means
-this review never finished.
+**7. Hit Approve in the desk header, then say so in the terminal.** The button is
+in the top right, next to Edit, and it is the end of this gate. Owner, 2026-09-01:
+*"when I click on approve and when I tell you in the terminal that I have approved
+the script, you should go ahead and publish that using my latest changes."*
+
+Both halves are needed and they do different jobs. The **click** is the record -
+`publish` reads it and refuses without it, so nothing reaches a freelancer that you
+did not sign off. The **sentence in the terminal** is what tells the session to go;
+it does not watch the button.
+
+Then the session runs step 070: `apply` first, so the edits you made on the desk are
+written into `script-plan.md`, then `publish`.
+
+**Approval is of a specific script.** Clicking it records a fingerprint of the plan
+exactly as you read it - the file plus anything staged. Change anything afterwards
+and the button turns amber and reads **Re-approve**, and publish refuses until you
+have re-read and approved again. Editing the markdown in your own editor trips it
+too. There is no way to hold an approval over a script you then changed.
+
+**The button does not exist on the freelancer's link.** It is local-only, and not
+merely hidden: the hosted Worker has no approve route at all.
+
+**Publishing also refuses while any ASK is still open** and lists them - an
+unanswered question means this review never finished.
 
 ## Why these were one gate from 2026-08-27
 
@@ -196,6 +217,11 @@ node bin/desk.mjs apply <key>     # spliced into script-plan.md, stage cleared
 
 Owner, 2026-08-29: *"can we do commit in 1 go. i will edit wherever required and
 tell you once all are reviewed and done. then you can update/edit in 1 go."*
+
+**Read `edits` before you approve.** `apply` writes every staged item into a tracked
+file, and a stray keystroke left in a box during review becomes part of the brief the
+maker reads. On 2026-09-01 a review pass left `fvgggh`, `gtrhyu` and `dfg` staged in
+three separate cards alongside four real edits.
 
 Editing the markdown in your own editor still works and always will — the desk
 re-reads the file on every request. The two are interchangeable, but do not do

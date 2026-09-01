@@ -3,6 +3,8 @@ import {
   getSource,
   getVideo,
   isHosted,
+  approveScript,
+  unapproveScript,
   postFinish,
   putDraft,
   putNotes,
@@ -11,7 +13,7 @@ import {
   restoreNotes,
   restoreSay,
 } from './api'
-import type { SourceDoc, VideoDoc } from './types'
+import type { Approval, SourceDoc, VideoDoc } from './types'
 import { mergedLanes, stageNotes } from './lib/lanes'
 import { useChromeOffset } from './hooks/useChromeOffset'
 import { usePrefs } from './hooks/usePrefs'
@@ -61,6 +63,10 @@ export function App() {
   const [source, setSource] = useState<SourceDoc | null>(null)
   const [editBusy, setEditBusy] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
+  // Sits with the other hooks deliberately: App returns early for an unidentified
+  // link and for a dead token, so a useState below those runs on some renders and
+  // not others — "rendered fewer hooks than expected", caught by appIdentity.test.tsx.
+  const [approveBusy, setApproveBusy] = useState(false)
   const key = getKeyFromUrl()
   const identified = hasVideoIdentity(key)
 
@@ -192,6 +198,23 @@ export function App() {
     })
   }
 
+  // APPROVAL. Local only — the hosted Worker has no /api/approve route, so this is not
+  // merely a hidden button. What comes back is the server's own recomputed state, never
+  // an optimistic guess: it fingerprints the plan plus staged edits, and that hash is
+  // the same thing `bin/desk.mjs publish` checks before it will mint a link.
+  const runApproval = async (call: (k: string) => Promise<{ approval: Approval }>) => {
+    setApproveBusy(true)
+    try {
+      const { approval } = await call(key)
+      setDoc((prev) => (prev ? { ...prev, approval } : prev))
+    } finally {
+      setApproveBusy(false)
+    }
+  }
+
+  const handleApprove = () => runApproval(approveScript)
+  const handleUnapprove = () => runApproval(unapproveScript)
+
   // Entering edit mode reads the file fresh, so it always starts from what is on
   // disk rather than from whatever this tab loaded ten minutes ago.
   const handleToggleEdit = async () => {
@@ -260,6 +283,10 @@ export function App() {
           onTabChange={setTab}
           editing={source !== null}
           onToggleEdit={isHosted || !MARKDOWN_EDIT_MODE ? undefined : handleToggleEdit}
+          approval={doc?.approval}
+          onApprove={isHosted ? undefined : handleApprove}
+          onUnapprove={isHosted ? undefined : handleUnapprove}
+          approveBusy={approveBusy}
         />
         {!source && (
           <ToggleRail prefs={prefs} setPrefs={setPrefs} chips={tab === 'full' ? FULL_SCRIPT_CHIPS : undefined} />

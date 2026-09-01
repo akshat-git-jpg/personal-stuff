@@ -1,4 +1,4 @@
-import type { SourceDoc, VideoDoc } from './types'
+import type { Approval, SourceDoc, VideoDoc } from './types'
 
 // This shape is the contract plan 234's Cloudflare Worker must also serve —
 // do not change a call here without changing it there too. The call shapes
@@ -88,6 +88,14 @@ export const restoreNotes = (key: string, num: string) =>
 
 export const restoreSay = (key: string, num: string) =>
   j<{ lines: string[] }>(`${base}/beat/${num}/restore${keyQuery(key)}`, 'POST')
+
+// Approval. LOCAL ONLY, like edit mode and staged notes: the hosted Worker has no such
+// route, so a freelancer cannot sign off his own brief even by crafting the request.
+export const approveScript = (key: string) =>
+  j<{ approval: Approval }>(`${base}/approve${keyQuery(key)}`, 'POST')
+
+export const unapproveScript = (key: string) =>
+  j<{ approval: Approval }>(`${base}/approve${keyQuery(key)}`, 'DELETE')
 
 export const postFinish = (key: string) => j(`${base}/finish${keyQuery(key)}`, 'POST')
 

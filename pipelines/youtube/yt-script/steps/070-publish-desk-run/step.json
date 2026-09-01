@@ -6,7 +6,8 @@
   "actorLabel": "[RUN]",
   "oneLiner": "Publishes and prints the freelancer URL.",
   "consumes": [
-    "script-plan.md"
+    "script-plan.md",
+    "desk-draft.json (the owner's approval)"
   ],
   "produces": [
     "a secret desk URL"
@@ -14,5 +15,5 @@
   "gate": null,
   "external": false,
   "optional": false,
-  "summary": "Parses `script-plan.md` into beats, mints or reuses that video's secret token, and pushes the snapshot to D1. Prints one URL, which is the entire handoff. Runs ONLY after the owner approves at 055."
+  "summary": "Applies the owner's staged desk edits into `script-plan.md`, then parses it into beats, mints or reuses that video's secret token, and pushes the snapshot to D1. Prints one URL, which is the entire handoff. Refuses unless the owner has hit Approve on the local desk for THIS version of the plan (exit 3) and no edit is left staged (exit 4)."
 }

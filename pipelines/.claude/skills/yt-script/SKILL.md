@@ -30,8 +30,8 @@ knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  scri
 | `030-write-outline-llm` | [LLM] | One page: sections and headings only, no script |
 | `040-approve-outline-human` | **[OWNER]** | You approve the direction, while it is cheap to change |
 | `050-write-script-draft-llm` | [LLM] | Turns the approved outline into the intro, the conclusion, and one card per body section |
-| `055-review-plan-human` | **[OWNER]** | You read the markdown and the local desk side by side, and give feedback |
-| `070-publish-desk-run` | [RUN] | Publishes and prints the freelancer URL |
+| `055-review-plan-human` | **[OWNER]** | You read the markdown and the local desk side by side, give feedback, then hit **Approve** |
+| `070-publish-desk-run` | [RUN] | Applies the staged desk edits, then publishes and prints the freelancer URL |
 | `080-freelancer-writes-human` | **[OWNER]** | He records, writes his lines, tells you he is done |
 | `090-pull-draft-run` | [RUN] | Pulls his completed draft back into the repo |
 | `100-write-script-llm` | [LLM] | Finalises his words into the VO-ready script |
@@ -45,6 +45,12 @@ in this table, or a row here with no folder, is a bug in the docs.
 **Five owner gates: 020, 040, 055, 080, 110. None is skippable.** The owner drives
 every transition — never advance a step on your own, and never treat "it looks
 fine" as approval.
+
+**055 is the one gate with a machine record.** It ends with the owner clicking
+**Approve** in the local desk header, and `bin/desk.mjs publish` refuses without it.
+The click is the record; his sentence in the terminal is the instruction to proceed.
+Neither substitutes for the other — do not publish on the sentence alone, and do not
+publish on the click alone.
 
 ## Tutorial or comparison — the fork that runs through everything
 
@@ -158,6 +164,20 @@ question for him, never a cue to go find the answer.
   is not approval.
 - **Never publish before 055.** Publishing mints a live secret URL. Reviewing
   after that is reviewing something already shipped.
+- **Never publish without the owner's Approve, and never `--force` past it.**
+  `publish` refuses on three counts — an unanswered `**ASK**` (exit 2), a missing or
+  stale approval (exit 3), and desk edits still staged (exit 4). Each is a real
+  condition, not a nuisance. `--force` exists for the owner to invoke deliberately;
+  reaching for it yourself publishes something nobody signed off.
+- **Publish his latest words, not the file's.** `publish` snapshots
+  `script-plan.md` alone. Everything he edited on the desk sits in `desk-draft.json`
+  until `apply` writes it in, so step 070 is **`apply` then `publish`** — in that
+  order, every time. Read `node bin/desk.mjs edits <key>` to him first: `apply`
+  writes into a tracked file, and a stray keystroke staged during review becomes part
+  of the brief.
+- **An approval covers one version of the script.** It is a fingerprint of the plan
+  he read, so any later edit — desk or editor — makes it stale and publish refuses.
+  Ask him to re-approve; never work around it.
 - **Never ask the owner whether a video is a tutorial or a comparison.** 010
   decides; gate 040 is where he overrides.
 - **Never name an approach without its detail.** The owner picks the approach at

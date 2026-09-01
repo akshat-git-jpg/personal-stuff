@@ -9,6 +9,7 @@ import { readFileSync, writeFileSync, renameSync, existsSync, statSync, copyFile
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildBeats, buildEditModel } from '../../../pipelines/youtube/yt-script/lib/beats.mjs'
+import { effectiveBeats, fingerprint, approvalState, plannedNotes } from '../lib/approval.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.API_PORT) || 4327
@@ -46,7 +47,7 @@ function outlinePath(key) {
 // since the desk existed: the current text in one map, the FIRST original in the
 // other, so a restore always goes back to what the plan said rather than to the
 // previous edit.
-const EMPTY_DRAFT = () => ({ draft: {}, says: {}, edits: {}, notes: {}, noteEdits: {}, finished: false })
+const EMPTY_DRAFT = () => ({ draft: {}, says: {}, edits: {}, notes: {}, noteEdits: {}, approved: null, finished: false })
 
 function readDraft(key) {
   const p = draftPath(key)
@@ -59,6 +60,7 @@ function readDraft(key) {
       edits: raw.edits ?? {},
       notes: raw.notes ?? {},
       noteEdits: raw.noteEdits ?? {},
+      approved: raw.approved ?? null,
       finished: raw.finished ?? false,
     }
   } catch {
@@ -67,11 +69,30 @@ function readDraft(key) {
 }
 
 // Atomic write: write to a .tmp sibling, then rename over the real file.
-function writeDraft(key, data) {
+// APPROVAL IS OF A SPECIFIC SCRIPT, so any edit voids it. This runs on every write:
+// the moment the owner changes a note, a spoken line or the file itself, the sign-off
+// he gave for the previous version is dropped and the Approve button comes back.
+//
+// The publish gate would catch a stale approval anyway — it recomputes the fingerprint
+// — but catching it here is what makes the desk HONEST while he is still looking at it,
+// rather than at the point of no return.
+//
+// It is a property of `writeDraft` ITSELF rather than a call each route remembers to
+// make, so a mutating route added later cannot forget it. `writeApproval` is the one
+// deliberate exception, and it is the route that records the sign-off.
+function writeDraftRaw(key, data) {
   const p = draftPath(key)
   const tmp = `${p}.tmp`
   writeFileSync(tmp, JSON.stringify(data, null, 2) + '\n')
   renameSync(tmp, p)
+}
+
+function writeDraft(key, data) {
+  writeDraftRaw(key, { ...data, approved: null })
+}
+
+function writeApproval(key, data, approved) {
+  writeDraftRaw(key, { ...data, approved })
 }
 
 // A save that changes nothing must stage nothing.
@@ -88,26 +109,11 @@ function sameLines(a, b) {
   return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((l, i) => l === b[i])
 }
 
-// The desk shows ONE instruction block per beat, and it is a MERGE of five lanes —
-// see `laneLines` in src/components/WriteView.tsx. So "what the plan says" for that
-// block is the merge, not the NOTES lane on its own. Reading only `notes` here made
-// every edit on a plan that writes `**VIDEO**` blocks duplicate itself: the box saved
-// all five lanes into `notes`, the other four stayed put, and the next render merged
-// them back on top. Seen 2026-09-01 on ai-avatar-generators, where one section reached
-// three copies of its own text and a deleted line came straight back.
-// The client half of this rule lives in src/lib/lanes.ts (`mergedLanes` /
-// `stageNotes`). This copy exists only because that is TypeScript and this is a
-// plain .mjs the node server imports directly. Change one, change the other.
-function plannedNotes(beat) {
-  if (!beat) return []
-  return [
-    ...(beat.notes ?? []),
-    ...(beat.angle ?? []),
-    ...(beat.video ?? []),
-    ...(beat.rules ?? []),
-    ...(beat.facts ?? []),
-  ]
-}
+// The instruction box is a MERGE of five lanes, and `apply` plus the publish gate have
+// to fold it exactly the way this server renders it. That rule now lives in ONE place,
+// lib/approval.mjs, imported here and by bin/desk.mjs. The client half is
+// src/lib/lanes.ts. It was written out three times until 2026-09-01, when only two of
+// the three copies got fixed and the instruction box grew by a copy on every save.
 
 function buildVideoDoc(key) {
   const outPath = outlinePath(key)
@@ -117,20 +123,15 @@ function buildVideoDoc(key) {
   const doc = readDraft(key)
   // Apply any staged edits on top of the parsed beats before returning: edited
   // spoken lines, and edited instruction notes.
-  const beatsWithEdits = beats.map((b) => {
-    let out = b
-    if (doc.says[b.num]) out = { ...out, say: doc.says[b.num] }
-    // A staged note replaces the WHOLE merged block the desk renders, so the lanes it
-    // was merged from must be emptied here. Leaving them is what made the block grow on
-    // every save.
-    if (doc.notes[b.num]) {
-      out = { ...out, notes: doc.notes[b.num], angle: null, video: [], rules: [], facts: [] }
-    }
-    return out
-  })
+  const beatsWithEdits = effectiveBeats(beats, doc)
+  // The desk shows whether the plan on screen is the one the owner signed off. It is
+  // recomputed on every read rather than trusted from the file, so an edit made in his
+  // editor — outside the desk entirely — shows up as a stale approval too.
+  const approval = approvalState(doc.approved, fingerprint(title, beatsWithEdits))
   return {
     key,
     title,
+    approval,
     beats: beatsWithEdits,
     draft: doc.draft,
     edits: doc.edits,
@@ -320,6 +321,36 @@ const server = createServer(async (req, res) => {
       const { beats } = buildBeats(readFileSync(outPath, 'utf8'))
       const beat = beats.find((b) => b.num === num)
       return sendJson(res, 200, { lines: beat?.say ?? [] })
+    }
+
+    // POST /api/approve?key=<key> — the owner signs off the plan on screen.
+    //
+    // LOCAL ONLY, and structurally so: the hosted Worker (src/worker/routes.ts) has no
+    // such route, so the freelancer cannot approve his own brief even by crafting the
+    // request. The button is hidden there too, but hiding is not the control.
+    //
+    // The fingerprint of what he is approving is computed HERE, from the file plus the
+    // staged edits, rather than accepted from the browser. A client-supplied hash would
+    // let a stale tab approve a version that no longer exists.
+    if (req.method === 'POST' && url.pathname === '/api/approve') {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const built = buildVideoDoc(key)
+      if (!built) return sendJson(res, 404, { error: `no outline for ${key}` })
+      const doc = readDraft(key)
+      const approved = {
+        at: new Date().toISOString(),
+        fingerprint: fingerprint(built.title, built.beats),
+      }
+      writeApproval(key, doc, approved)
+      return sendJson(res, 200, { approval: { state: 'ok', ...approved } })
+    }
+
+    // DELETE /api/approve?key=<key> — take the sign-off back.
+    if (req.method === 'DELETE' && url.pathname === '/api/approve') {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const doc = readDraft(key)
+      writeApproval(key, doc, null)
+      return sendJson(res, 200, { approval: { state: 'none' } })
     }
 
     // POST /api/finish?key=<key>

@@ -8,9 +8,11 @@
   "consumes": [
     "script-plan.md"
   ],
-  "produces": [],
-  "gate": "the words are right AND the plan reads right in the actual UI",
+  "produces": [
+    "the owner's approval (desk-draft.json)"
+  ],
+  "gate": "the words are right AND the plan reads right in the actual UI — ending in Approve on the local desk",
   "external": false,
   "optional": false,
-  "summary": "The owner reviews `videos/<key>/script-plan.md` two ways at once: the raw markdown in an editor, and the same file rendered by the local desk at `localhost:5175`. One gate, one pass. Feedback goes in the terminal and the session edits that same file; the owner can also edit it directly. Merged from the old 055 (markdown only) and 060 (desk only) on 2026-08-27."
+  "summary": "The owner reviews `videos/<key>/script-plan.md` two ways at once: the raw markdown in an editor, and the same file rendered by the local desk at `localhost:5175`. One gate, one pass. Feedback goes in the terminal and the session edits that same file; the owner can also edit it directly. Merged from the old 055 (markdown only) and 060 (desk only) on 2026-08-27. Ends with the owner hitting **Approve** in the desk header and saying so in the terminal; step 070 refuses to publish without that sign-off, and the sign-off is void the moment the plan changes again."
 }
