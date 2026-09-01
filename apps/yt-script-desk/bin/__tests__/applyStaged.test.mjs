@@ -67,15 +67,66 @@ No browser, no logo.
 > Thanks for watching.
 `
 
+
+// A plan in the OLDER shape: its body instructions are `**VIDEO**` blocks, not
+// `**NOTES**`. The desk shows them in the same column either way (`laneLines`
+// merges the lanes), so they are editable, and everything that goes wrong on the
+// write path goes wrong here rather than on the plan above.
+const VIDEO_PLAN = `# Video Lane Plan
+
+## Contents
+1. What Makes It Work
+2. How To Do It
+   2.1 Step One
+
+## 1 · INTRODUCTION
+
+#### A1 · Cold open
+
+**VIDEO**
+About 12 seconds of the finished shot.
+
+**SAY**
+> The first line.
+> The second line.
+
+## 2 · BODY
+
+### SECTION: What Makes It Work
+
+**VIDEO**
+Leaf section instruction.
+
+### SECTION: How To Do It
+
+#### Step One
+
+**VIDEO**
+Subsection instruction.
+
+## 3 · CONCLUSION
+
+#### C1 · Sign-off
+
+**SAY**
+> Thanks for watching.
+`
+
+// What the desk actually SHOWS in the Notes column — the merge, in WriteView order.
+const shown = (b) =>
+  b ? [...(b.notes ?? []), ...(b.angle ?? []), ...(b.video ?? []), ...(b.rules ?? []), ...(b.facts ?? [])] : []
+
+const buildBeatsOf = (md) => buildBeats(md).beats.map((b) => [b.num, b])
+
 // `DESK_VIDEOS_ROOT` points desk.mjs at a scratch tree. The fixture never goes
 // near the real `videos/` directory, which every plan-walking test iterates.
-function withFixture(staged, fn) {
+function withFixture(staged, fn, plan = PLAN) {
   const root = mkdtempSync(join(tmpdir(), 'desk-apply-'))
   const key = 'fixture'
   const dir = join(root, key)
   mkdirSync(dir, { recursive: true })
   try {
-    writeFileSync(join(dir, 'script-plan.md'), PLAN)
+    writeFileSync(join(dir, 'script-plan.md'), plan)
     writeFileSync(join(dir, 'desk-draft.json'), JSON.stringify(staged, null, 2))
     const out = execFileSync('node', [DESK, 'apply', key], {
       encoding: 'utf8',
@@ -219,4 +270,74 @@ describe('desk.mjs apply', () => {
       },
     )
   })
+
+  // A plan written before the NOTES lane existed puts its instructions in
+  // `**VIDEO**` blocks, and the desk's Notes column shows them because
+  // `laneLines` merges the two. Editing that column staged an edit whose number
+  // came from `buildBeats` (`1.1`, `2.1`) while `apply` looked it up in
+  // `buildEditModel`, which numbers `####` headings positionally (`6`, `7`). The
+  // lookup missed EVERY time, the edit was pushed onto `skipped`, and the run
+  // printed a count. Measured 2026-09-01 against the owner's real store:
+  // `0 edit(s) would be applied; 4 skipped`.
+  it('APPLY_VIDEO_LANE: an edit to a VIDEO-lane body card is applied, not skipped', () => {
+    withFixture(
+      {
+        notes: { '2.1': ['- Rewritten through the desk.'] },
+        noteEdits: { '2.1': { original: [], at: 'x' } },
+      },
+      ({ md, out }) => {
+        const byNum = Object.fromEntries(buildBeatsOf(md))
+        expect(out, 'the edit was skipped instead of applied').not.toMatch(/SKIPPED/)
+        expect(shown(byNum['2.1'])).toEqual(['- Rewritten through the desk.'])
+      },
+      VIDEO_PLAN,
+    )
+  })
+
+  it('APPLY_VIDEO_LANE_HEADER: it writes back under **VIDEO**, not a new **NOTES**', () => {
+    withFixture(
+      { notes: { '2.1': ['- Rewritten.'] }, noteEdits: { '2.1': { original: [], at: 'x' } } },
+      ({ md }) => {
+        expect(md).toMatch(/\*\*VIDEO\*\*\n- Rewritten\./)
+        expect(md.includes('**NOTES**'), 'grew a NOTES lane the plan never had').toBe(false)
+      },
+      VIDEO_PLAN,
+    )
+  })
+
+  // The block parser collects an unquoted lane until the first EMPTY line, so a
+  // blank written into the middle of one truncates it on the next read — and the
+  // file still parses, so nothing complained. The owner separates his bullets
+  // with blank lines: 37 lines went in, 9 came back.
+  it('APPLY_BLANK_LINE: a blank line inside a staged note cannot truncate the block', () => {
+    withFixture(
+      {
+        notes: { '2.1': ['- first', '', '- second', '', '- third'] },
+        noteEdits: { '2.1': { original: [], at: 'x' } },
+      },
+      ({ md }) => {
+        const byNum = Object.fromEntries(buildBeatsOf(md))
+        expect(shown(byNum['2.1'])).toEqual(['- first', '- second', '- third'])
+      },
+      VIDEO_PLAN,
+    )
+  })
+
+  // The guard that matters most, because it is the only one that catches the
+  // NEXT bug of this shape rather than the three already found. Every one of them
+  // wrote a file that parsed perfectly and had lost the edit anyway.
+  it('APPLY_ROUND_TRIP: what goes in is what reads back, on every applied edit', () => {
+    const staged = {
+      notes: { '2.1': ['- a', '- b'] },
+      noteEdits: { '2.1': { original: [], at: 'x' } },
+      says: { A1: ['Spoken one.', '', 'Spoken two.'] },
+      edits: { A1: { original: ['The first line.', 'The second line.'], at: 'x' } },
+    }
+    withFixture(staged, ({ md }) => {
+      const byNum = Object.fromEntries(buildBeatsOf(md))
+      expect(shown(byNum['2.1'])).toEqual(['- a', '- b'])
+      expect(byNum['A1'].say).toEqual(['Spoken one.', '', 'Spoken two.'])
+    }, VIDEO_PLAN)
+  })
+
 })

@@ -333,7 +333,15 @@ function stagedList(key) {
   const unchanged = (it) => {
     const beat = planned.get(it.num)
     const inFile = it.kind === 'NOTES' ? shownNotes(beat) : (beat?.say ?? [])
-    return sameLines(it.lines, inFile) || sameLines(it.original, it.lines)
+    // ONLY against the file. `original` is a snapshot taken when the edit was
+    // first staged, and a store written before 2026-09-01 recorded it from the
+    // NOTES lane alone while the desk was showing the merge — so on a plan whose
+    // instructions live in `**VIDEO**` blocks it was recorded as `[]`. Deleting
+    // that beat's notes then made `original` and `lines` both empty, the edit
+    // read as a no-op, and `apply` reported "nothing staged" over the top of a
+    // real deletion. The file is the only thing `apply` changes and the only
+    // thing worth comparing against.
+    return sameLines(it.lines, inFile)
   }
   return out
     .filter((it) => !unchanged(it))
@@ -378,15 +386,49 @@ function cmdApply(key, { dryRun = false } = {}) {
   // section with no subsections — off the section itself. `buildBeats` numbers
   // those synthesized cards, `buildEditModel` does not, so match by position:
   // the Nth body card in reading order is the Nth notes-carrying owner.
-  const notesOwners = owners
-    .filter((o) => o.blocks.some((b) => b.kind === 'NOTES'))
-    .sort((a, b) => a.line - b.line)
+  // MATCH BY SHAPE, NEVER BY NUMBER. `buildBeats` numbers a body card from the
+  // outline's shape — `3` is a leaf section, `3.2` is the second `####` under
+  // section 3 — while `buildEditModel` numbers a `####` heading POSITIONALLY
+  // (`6`, `7`, `8`…) because the heading carries no number of its own. The two
+  // never agree in the body, so a lookup keyed on `beat.num` missed every time
+  // and the edit was dropped in silence. Measured 2026-09-01 on
+  // ai-avatar-generators: `0 edit(s) would be applied; 4 skipped` — a full
+  // afternoon of the owner's edits would have reached nothing.
+  //
+  // So rebuild the same shape here: body sections in reading order, each one
+  // either a leaf card (`S`) or the parent of `S.1 … S.n`.
   const bodyCards = buildBeats(md).beats.filter((b) => b.partKind === 'body')
   const notesRangeFor = new Map()
-  bodyCards.forEach((card, i) => {
-    const owner = notesOwners[i]
-    if (owner) notesRangeFor.set(card.num, owner.blocks.find((b) => b.kind === 'NOTES'))
-  })
+  const ownerForCard = new Map()
+  model.sections
+    .filter((s) => /\bBODY\b/i.test(s.part ?? ''))
+    .sort((a, b) => a.line - b.line)
+    .forEach((sec, si) => {
+      const subs = model.beats
+        .filter((b) => b.section === sec.name && b.part === sec.part)
+        .sort((a, b) => a.line - b.line)
+      if (subs.length === 0) ownerForCard.set(String(si + 1), sec)
+      else subs.forEach((sub, i) => ownerForCard.set(`${si + 1}.${i + 1}`, sub))
+    })
+
+  // The desk's Notes column is a MERGE of five lanes, so the block an edit came
+  // from is whichever one is actually there: `**NOTES**` on a plan written in the
+  // current shape, `**VIDEO**` on one written before it. Write back under that
+  // block's own header, or the plan grows a NOTES lane where the parser does not
+  // expect one. Two merged lanes cannot be told apart after the merge, so that
+  // case is skipped LOUDLY below rather than guessed at.
+  const MERGED = new Set(['VIDEO', 'FACTS', 'RULES'])
+  const rangeIn = (owner) => {
+    if (!owner) return undefined
+    const notes = owner.blocks.find((b) => b.kind === 'NOTES')
+    if (notes) return notes
+    const merged = owner.blocks.filter((b) => MERGED.has(b.kind))
+    return merged.length === 1 ? merged[0] : undefined
+  }
+  for (const card of bodyCards) {
+    const range = rangeIn(ownerForCard.get(card.num))
+    if (range) notesRangeFor.set(card.num, range)
+  }
 
   // An INTRO or CONCLUSION beat has no `NOTES` lane — the desk's Notes block is
   // built from its `VIDEO` lane, and editing it stages something that had nowhere
@@ -396,11 +438,13 @@ function cmdApply(key, { dryRun = false } = {}) {
   // block, under that block's own header. Exactly one, because `laneLines` merges
   // several lanes into one column and a merge cannot be undone — a beat with two
   // of them is skipped LOUDLY instead.
-  const MERGED = new Set(['VIDEO', 'FACTS', 'RULES'])
+  // Intro and conclusion beats carry their own number in the heading (`A1 · …`,
+  // `C1 · …`), so BEAT_RE picks it up and both models agree — those can be keyed
+  // on the number directly.
   for (const beat of model.beats) {
     if (notesRangeFor.has(beat.num)) continue
-    const sources = beat.blocks.filter((b) => MERGED.has(b.kind))
-    if (sources.length === 1) notesRangeFor.set(beat.num, sources[0])
+    const range = rangeIn(beat)
+    if (range) notesRangeFor.set(beat.num, range)
   }
 
   const sayRangeFor = new Map()
@@ -421,8 +465,17 @@ function cmdApply(key, { dryRun = false } = {}) {
     // block is `**VIDEO**` and must stay that way, or the plan grows a NOTES lane
     // in the introduction and the parser reads it as a body card.
     const header = range.text.split('\n')[0]
-    const body = it.kind === 'NOTES' ? it.lines : it.lines.map((l) => (l ? '> ' + l : '>'))
-    splices.push({ range, text: [header, ...body].join('\n') })
+    // A BLANK LINE ENDS AN UNQUOTED LANE. The block parser collects a non-spoken
+    // lane until the first empty line, so a blank written into the middle of one
+    // truncates it on the next read — silently, because the file still parses.
+    // The owner separates his bullets with blank lines, and writing 37 of his
+    // lines back produced a block that read as 9. Spoken lanes are exempt: there
+    // an empty line is a paragraph break and is written as a bare `>`.
+    const body =
+      it.kind === 'NOTES'
+        ? it.lines.filter((l) => l.trim())
+        : it.lines.map((l) => (l ? '> ' + l : '>'))
+    splices.push({ range, text: [header, ...body].join('\n'), it, body })
   }
 
   const lines = md.split(/\r?\n/)
@@ -432,11 +485,53 @@ function cmdApply(key, { dryRun = false } = {}) {
   const next = lines.join('\n')
 
   // Never write markdown that does not parse. Same guard the browser editor has.
+  let nextBeats
   try {
-    const { beats } = buildBeats(next)
-    if (!beats.length) throw new Error('that leaves the plan with no beats at all')
+    nextBeats = buildBeats(next).beats
+    if (!nextBeats.length) throw new Error('that leaves the plan with no beats at all')
   } catch (err) {
     throw new Error(`refusing to write: ${String(err?.message ?? err)}`)
+  }
+
+  // AND NEVER WRITE MARKDOWN THAT PARSES BUT LOSES THE EDIT. Parsing was never
+  // the bar. The bar is that reading the file back hands the desk exactly what
+  // the owner typed, and every defect found in this path so far has had the same
+  // shape — the write succeeded and the text was gone anyway. A lookup that
+  // missed on a number the two parsers disagree about. A lane that truncated at
+  // a blank line. A staged note merged back on top of the lane it came from.
+  // None of those broke the parse, so none of them tripped the guard above.
+  //
+  // This round trip is the guard that catches the NEXT one, whatever shape it
+  // takes: write it, read it back, and refuse the whole file if what comes back
+  // is not what went in. Refusing costs a staged edit that is still staged;
+  // writing costs work nobody notices is missing until the recording day.
+  const byNum = new Map(nextBeats.map((b) => [b.num, b]))
+  const lost = []
+  for (const sp of splices) {
+    const beat = byNum.get(sp.it.num)
+    const wrote = sp.body.map((l) => l.replace(/^> ?/, ''))
+    const readBack = sp.it.kind === 'NOTES' ? shownNotes(beat) : (beat?.say ?? [])
+    if (!sameLines(readBack, wrote)) {
+      lost.push(`  ${sp.it.num} ${sp.it.kind}: wrote ${wrote.length} line(s), reads back as ${readBack.length}`)
+    }
+  }
+  if (lost.length) {
+    throw new Error(
+      `refusing to write — script-plan.md would not read back what was put in it:\n${lost.join('\n')}\n` +
+        `Nothing was written and every edit is still staged.`,
+    )
+  }
+
+  // A skipped edit is REAL WORK that did not land, so say which one and why.
+  // It was a bare count, and a count reads like a footnote next to "0 edit(s)
+  // would be applied" — which is exactly what it said while four sections of
+  // the owner's edits were going nowhere.
+  for (const it of skipped) {
+    console.error(
+      `SKIPPED ${it.num} ${it.kind}: no single block to write it back to. The desk merges ` +
+        `several instruction lanes into one column and this beat has more than one of them, ` +
+        `so edit it directly in script-plan.md.`,
+    )
   }
 
   if (dryRun) {
