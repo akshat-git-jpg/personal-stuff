@@ -20,7 +20,7 @@ export MAINT_DIR
 
 # We will test lib.sh functions by sourcing it in a subshell
 jobs="$(bash -c "source $MAINT_DIR/bin/lib.sh; discover_jobs" | sort | tr '\n' ' ')"
-if [ "$jobs" != "artifacts bigfiles claude-health crons improve mcp memory routing skills token-budget uptime " ]; then
+if [ "$jobs" != "artifacts bigfiles claude-health crons diskspace improve mcp memory routing skills token-budget uptime " ]; then
   if [ -z "$jobs" ]; then
     fail "job discovery found no jobs"
   else
