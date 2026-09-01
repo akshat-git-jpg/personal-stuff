@@ -46,6 +46,14 @@ Thumbs.db
 .claude/cache/
 .claude/logs/
 
+# The one-off override token for no-edits-in-main.sh (`touch .claude/allow-main-edit`).
+# It is a bare timestamp, machine-local, and expires 10 minutes after it is touched — but
+# nobody deletes it, and while it sat untracked it kept `git status` dirty forever. That
+# made commit-before-stop.sh nag EVERY session that ended in the main checkout, including
+# sessions that edited nothing at all (2026-09-01). Ignoring it costs nothing: the wall
+# stats the file on disk and never consults git.
+.claude/allow-main-edit
+
 # Backup files from edits
 *.bak
 *.bak-*

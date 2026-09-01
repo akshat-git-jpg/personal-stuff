@@ -114,7 +114,13 @@ git -C "$DIR_P" ls-files --error-unmatch -- "$ABS_P" >/dev/null 2>&1 || exit 0
 SENTINEL="$MAIN_TOP/.claude/allow-main-edit"
 if [ -f "$SENTINEL" ]; then
   NOW=$(date +%s)
-  MOD=$(stat -f %m "$SENTINEL" 2>/dev/null || stat -c %Y "$SENTINEL" 2>/dev/null || echo 0)
+  # GNU stat's `-f` is --file-system and SUCCEEDS on a real path, so the BSD-first
+  # `stat -f %m || stat -c %Y` order never fell through on Linux or Git Bash — MOD
+  # caught a block of filesystem info and the `-gt` below errored, leaving the
+  # override permanently dead on Windows. GNU first is the only ordering that
+  # degrades onto BSD. Same fix `ppwork_mtime` already carries in tooling/cli/pp-work.
+  MOD=$(stat -c %Y "$SENTINEL" 2>/dev/null || stat -f %m "$SENTINEL" 2>/dev/null || echo 0)
+  case "$MOD" in ''|*[!0-9]*) MOD=0 ;; esac
   if [ "$MOD" -gt 0 ] && [ $((NOW - MOD)) -lt "$ALLOW_WINDOW" ]; then
     echo "no-edits-in-main: allowing this edit — $SENTINEL was touched $((NOW - MOD))s ago." >&2
     exit 0
