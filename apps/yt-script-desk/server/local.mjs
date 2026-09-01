@@ -95,6 +95,9 @@ function sameLines(a, b) {
 // all five lanes into `notes`, the other four stayed put, and the next render merged
 // them back on top. Seen 2026-09-01 on ai-avatar-generators, where one section reached
 // three copies of its own text and a deleted line came straight back.
+// The client half of this rule lives in src/lib/lanes.ts (`mergedLanes` /
+// `stageNotes`). This copy exists only because that is TypeScript and this is a
+// plain .mjs the node server imports directly. Change one, change the other.
 function plannedNotes(beat) {
   if (!beat) return []
   return [
