@@ -5,6 +5,7 @@ import type { Prefs } from '../hooks/usePrefs'
 import { SayCard } from './SayCard'
 import { useAutoGrow } from '../hooks/useAutoGrow'
 import { WriteBox } from './WriteBox'
+import { mergedLanes } from '../lib/lanes'
 
 type WriteViewProps = {
   beats: Beat[]
@@ -134,9 +135,7 @@ export function WriteView({
 // How long after the last keystroke an always-open notes box saves itself.
 const NOTES_DEBOUNCE_MS = 600
 
-function laneLines(b: Beat): string[] {
-  return [...b.notes, ...(b.angle ?? []), ...b.video, ...b.rules, ...b.facts]
-}
+
 
 type NoteEditing = {
   edited: boolean
@@ -146,7 +145,7 @@ type NoteEditing = {
 }
 
 function renderRightCell(beat: Beat, editing: NoteEditing): ReactNode {
-  const lines = laneLines(beat)
+  const lines = mergedLanes(beat)
   if (lines.length === 0 && !editing.onSave) {
     return <p className="right-empty">No notes for this section.</p>
   }

@@ -12,6 +12,7 @@ import {
   restoreSay,
 } from './api'
 import type { SourceDoc, VideoDoc } from './types'
+import { mergedLanes, stageNotes } from './lib/lanes'
 import { useChromeOffset } from './hooks/useChromeOffset'
 import { usePrefs } from './hooks/usePrefs'
 import { SaveStatusProvider } from './hooks/useSaveStatus'
@@ -161,10 +162,10 @@ export function App() {
     setDoc((prev) => {
       if (!prev) return prev
       const beat = prev.beats.find((b) => b.num === num)
-      const original = prev.noteEdits?.[num]?.original ?? beat?.notes ?? []
+      const original = prev.noteEdits?.[num]?.original ?? mergedLanes(beat) ?? []
       return {
         ...prev,
-        beats: prev.beats.map((b) => (b.num === num ? { ...b, notes: lines } : b)),
+        beats: prev.beats.map((b) => (b.num === num ? stageNotes(b, lines) : b)),
         notes: { ...(prev.notes ?? {}), [num]: lines },
         noteEdits: {
           ...(prev.noteEdits ?? {}),
@@ -186,7 +187,7 @@ export function App() {
         ...prev,
         notes: nextNotes,
         noteEdits: nextNoteEdits,
-        beats: prev.beats.map((b) => (b.num === num ? { ...b, notes: lines } : b)),
+        beats: prev.beats.map((b) => (b.num === num ? stageNotes(b, lines) : b)),
       }
     })
   }
