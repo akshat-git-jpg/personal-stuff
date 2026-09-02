@@ -118,6 +118,15 @@ fi
 
 # --- the MAIN checkout: ask for relocation, not a commit ---
 if [ "$GD" = "$GCD" ]; then
+  # Second suppression: the yt-script-desk process (a scheduled task on 5175) stages its
+  # in-flight edits into pipelines/youtube/yt-script/videos/<slug>/script-plan.md and only
+  # clears them at Publish. That means main is *supposed to* carry a dirty script-plan.md
+  # between an edit and a publish — the hook's "someone left main dirty" assumption does
+  # not apply. If every dirty path is a desk-managed script-plan.md, exit silently. Any
+  # other dirty file (even one, alongside a desk file) still trips the nag.
+  NON_DESK="$(printf '%s\n' "$DIRTY" | awk 'NF { p=substr($0,4); if (p !~ /^pipelines\/youtube\/yt-script\/videos\/[^/]+\/script-plan\.md$/) print }')"
+  [ -z "$NON_DESK" ] && exit 0
+
   # Suppress the nag when THIS session made no file-editing tool call. Main is shared, so
   # its dirty files usually belong to someone else's session; forcing every read-only or
   # greeting-only turn to answer for those files was noise. We look at the session's own
