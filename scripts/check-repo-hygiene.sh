@@ -29,13 +29,22 @@ git check-ignore -q pipelines/archive/hyperframes-vs-remotion/yt-visuals/cutaway
 # months. So this executes the hook and checks for real symlinks.
 repo="$PWD"
 probe=$(mktemp -d)
-( cd "$probe" && WT_MAIN_CHECKOUT="$repo" bash "$repo/tooling/cli/wt/bootstrap.d/personal-stuff.sh" ) >/dev/null 2>&1 \
-  || { rm -rf "$probe"; fail "HYGIENE-4: the wt bootstrap hook failed to run"; }
+mock_main=$(mktemp -d)
+mkdir -p "$mock_main/pipelines" "$mock_main/apps/tutorial-tracker-app"
+touch "$mock_main/pipelines/.env" "$mock_main/pipelines/credentials.json" "$mock_main/.mcp.json"
+for d in apps/*; do
+  if [ -d "$d" ]; then
+    mkdir -p "$mock_main/$d"
+    touch "$mock_main/$d/.dev.vars"
+  fi
+done
+( cd "$probe" && WT_MAIN_CHECKOUT="$mock_main" bash "$repo/tooling/cli/wt/bootstrap.d/personal-stuff.sh" ) >/dev/null 2>&1 \
+  || { rm -rf "$probe" "$mock_main"; fail "HYGIENE-4: the wt bootstrap hook failed to run"; }
 for f in pipelines/.env pipelines/credentials.json .mcp.json apps/tutorial-tracker-app/.dev.vars; do
-  [ -L "$probe/$f" ] || { rm -rf "$probe"; fail "HYGIENE-4: bootstrap hook did not link $f into a fresh worktree"; }
+  [ -L "$probe/$f" ] || { rm -rf "$probe" "$mock_main"; fail "HYGIENE-4: bootstrap hook did not link $f into a fresh worktree"; }
 done
 n=$(find "$probe/apps" -maxdepth 2 -name .dev.vars -type l 2>/dev/null | wc -l | tr -d ' ')
-rm -rf "$probe"
+rm -rf "$probe" "$mock_main"
 [ "${n:-0}" -ge 8 ] || fail "HYGIENE-4: bootstrap linked only ${n:-0} app .dev.vars files, expected at least 8"
 
 # HYGIENE-5: the store is gone (2026-08-25). Skills are repo-scoped: Claude Code reads
