@@ -15,7 +15,7 @@
 // maker's answers back down and writes videos/<key>/script-draft.md in the
 // exact markdown shape step 3 of the yt-script skill reads.
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -405,6 +405,14 @@ function cmdEdits(key) {
 // Splice every staged edit into script-plan.md. Ranges come from
 // `buildEditModel`, so each one is the real source lines of that block, and they
 // are applied BOTTOM-UP so an earlier splice cannot shift a later range.
+// Newest last, alongside the plan, matching what edit mode writes.
+function backupPlan(planPath) {
+  const dir = join(dirname(planPath), '.desk-backups')
+  mkdirSync(dir, { recursive: true })
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+  copyFileSync(planPath, join(dir, `script-plan.${stamp}.md`))
+}
+
 function cmdApply(key, { dryRun = false } = {}) {
   if (!isSafeKey(key)) throw new Error(`unsafe key: ${key}`)
   const planPath = join(VIDEOS_ROOT, key, 'script-plan.md')
@@ -615,6 +623,15 @@ function cmdApply(key, { dryRun = false } = {}) {
     return
   }
 
+  // KEEP THE LAST GOOD VERSION BEFORE OVERWRITING IT.
+  //
+  // The desk's edit mode has done this since 2026-08-28 (`backupPlan` in
+  // server/local.mjs) and `apply` never did, even though it rewrites the same file with
+  // the same splice machinery. The gap showed on 2026-09-02: an approval went stale
+  // right after an apply, and there was no pre-apply copy to diff, so the cause could
+  // only be guessed at in front of the owner. `script-plan.md` is hours of his work and
+  // is not always tracked in git — the video that exposed this was untracked entirely.
+  backupPlan(planPath)
   writeFileSync(planPath, next)
   const st = readStaged(key)
   writeFileSync(

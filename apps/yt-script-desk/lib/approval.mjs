@@ -68,19 +68,55 @@ export function effectiveBeats(beats, staged = {}) {
 }
 
 /**
+ * THE HASH IS OF THE WORDS, NOT THE WHITESPACE.
+ *
+ * A staged edit is RAW TEXT out of a browser textarea. The same text written into
+ * `script-plan.md` and read back is PARSER-NORMALISED — and the parser drops blank
+ * lines, because a blank line is what ends an unquoted lane. So the owner types a
+ * 30-line brief with blank lines between his bullets, `apply` writes it, the parse
+ * gives back 29 lines, and a fingerprint over the raw arrays moves even though not
+ * one word changed.
+ *
+ * That is what happened on 2026-09-02: the owner approved
+ * realistic-ai-avatar-online-courses at 09:43, `apply` ran, and the desk demanded he
+ * approve the identical script a second time. He was right to refuse to accept it:
+ * *"Last time you had made many mistakes like after approved you asked me to
+ * re-approve the things this time I won't tolerate this thing please fix this thing
+ * for the long run."*
+ *
+ * Measured, all four on his real plan — only the first was already safe:
+ *
+ *   stable  trailing space on a line   staged 29 -> file 29 lines
+ *   MOVED   interior blank line        staged 30 -> file 29 lines
+ *   MOVED   trailing blank line        staged 30 -> file 29 lines
+ *   MOVED   leading blank line         staged 30 -> file 29 lines
+ *
+ * So both sides are reduced to the same shape before hashing: trailing whitespace
+ * off each line, blank lines dropped. Dropping them is CORRECT rather than lenient —
+ * a blank line cannot survive into the file, so an approval that still holds after
+ * one is typed is approving exactly what will publish.
+ *
+ * What this does NOT hide: any change to a word, to line order, or to which lines
+ * exist. Those all still move the hash, which is the whole job.
+ */
+function meaningful(lines) {
+  return (lines ?? []).map((l) => String(l).replace(/\s+$/, '')).filter((l) => l !== '')
+}
+
+/**
  * A stable hash of what would be published. Only the fields the freelancer actually
  * reads go in: chrome, ordering metadata and the owner's private `**ASK**` lane are
  * deliberately excluded, so answering an ASK note does not silently void an approval.
  */
 export function fingerprint(title, beats) {
   const material = JSON.stringify({
-    title: title ?? '',
+    title: String(title ?? '').trim(),
     beats: (beats ?? []).map((b) => ({
       num: b.num,
-      title: b.title ?? '',
+      title: String(b.title ?? '').trim(),
       section: b.section ?? null,
-      say: b.say ?? [],
-      notes: plannedNotes(b),
+      say: meaningful(b.say),
+      notes: meaningful(plannedNotes(b)),
     })),
   })
   return createHash('sha256').update(material).digest('hex')
