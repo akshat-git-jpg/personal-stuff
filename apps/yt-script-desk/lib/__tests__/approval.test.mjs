@@ -123,3 +123,38 @@ describe('the refusals tell you what to do', () => {
     expect(formatStagedRefusal('k', 1)).toContain('1 desk edit in k is not')
   })
 })
+
+describe('approval covers BOTH tracks, not just the instructions', () => {
+  // Owner, 2026-09-02: *"I have made changes in left as well. I want it to be approved
+  // too, so you have to fix the approve button for both changes made in right and left."*
+  // The Approve button is one sign-off over the whole plan, so a spoken-track edit has to
+  // move the fingerprint exactly as an instruction edit does — otherwise he could approve,
+  // rewrite the voiceover, and publish a script nobody signed off.
+  const base = fingerprint('T', effectiveBeats(PLAN, {}))
+  const approved = { at: '2026-09-02T06:50:00Z', fingerprint: base }
+
+  it('holds while nothing has changed', () => {
+    expect(approvalState(approved, base).state).toBe('ok')
+  })
+
+  it('goes stale on a RIGHT-side instruction edit', () => {
+    const after = fingerprint('T', effectiveBeats(PLAN, { notes: { '1.1': ['Changed.'] } }))
+    expect(approvalState(approved, after).state).toBe('stale')
+  })
+
+  it('goes stale on a LEFT-side spoken edit', () => {
+    const after = fingerprint('T', effectiveBeats(PLAN, { says: { A1: ['A rewritten line.'] } }))
+    expect(
+      approvalState(approved, after).state,
+      'LEFT_TRACK_UNGUARDED: the voiceover could change after sign-off',
+    ).toBe('stale')
+  })
+
+  it('goes stale when both tracks change at once', () => {
+    const after = fingerprint(
+      'T',
+      effectiveBeats(PLAN, { says: { A1: ['New line.'] }, notes: { '1.1': ['New note.'] } }),
+    )
+    expect(approvalState(approved, after).state).toBe('stale')
+  })
+})

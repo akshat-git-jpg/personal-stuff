@@ -112,6 +112,61 @@ Subsection instruction.
 > Thanks for watching.
 `
 
+
+// A plan whose BODY subsections carry spoken copy. This is the shape that exposed the
+// SAY write-back bug: `buildBeats` calls the first subsection of body section 2 `2.1`,
+// while `buildEditModel` numbers the same `####` heading positionally, so a lookup keyed
+// on `2.1` found nothing and the edit was skipped. Intro beats (`A1 · …`) carry their
+// number in the heading and always matched, which is why every earlier SAY test passed.
+const BODY_SAY_PLAN = `# Body Say Plan
+
+## Contents
+1. First Section
+2. Second Section
+   2.1 Step One
+   2.2 Step Two
+
+## 1 · INTRODUCTION
+
+#### A1 · Cold open
+
+**SAY**
+> Intro line.
+
+## 2 · BODY
+
+### SECTION: First Section
+
+**NOTES**
+- Leaf section instruction.
+
+### SECTION: Second Section
+
+#### Step One
+
+**SAY** - final
+> The original spoken line.
+> A second original line.
+
+**NOTES**
+- Step one instruction.
+
+#### Step Two
+
+**SAY** - final
+> Another beat entirely.
+
+**NOTES**
+- Step two instruction.
+
+## 3 · CONCLUSION
+
+#### C1 · Sign-off
+
+**SAY**
+> Thanks for watching.
+`
+
 // What the desk actually SHOWS in the Notes column — the merge, in WriteView order.
 const shown = (b) =>
   b ? [...(b.notes ?? []), ...(b.angle ?? []), ...(b.video ?? []), ...(b.rules ?? []), ...(b.facts ?? [])] : []
@@ -340,4 +395,80 @@ describe('desk.mjs apply', () => {
     }, VIDEO_PLAN)
   })
 
+})
+
+describe('APPLY_BODY_SAY: spoken edits on a BODY beat reach the file', () => {
+  // The live failure, 2026-09-02 on ai-avatar-generators: `10 edit(s) would be applied;
+  // 2 skipped`, and the two skipped were the owner's whole five-tool demo walkthrough
+  // and his pricing rewrite. `apply` clears staging wholesale, so a skip is not a
+  // deferral — the edit is destroyed and the freelancer receives the pre-edit script.
+  it('writes a body subsection say edit back, instead of skipping it', () => {
+    withFixture(
+      {
+        says: { '2.1': ['> A REPLACED spoken line.'] },
+        edits: { '2.1': { original: ['The original spoken line.'], at: 'x' } },
+      },
+      ({ md, out }) => {
+        expect(out, "SAY_SKIPPED: the owner's spoken edit was silently destroyed").not.toContain(
+          'SKIPPED 2.1 SAY',
+        )
+        expect(out).toContain('applied 1 edit')
+        const byNum = Object.fromEntries(buildBeatsOf(md))
+        expect(byNum['2.1'].say.join(' ')).toContain('A REPLACED spoken line.')
+        expect(byNum['2.2'].say, 'a sibling beat changed').toEqual(['Another beat entirely.'])
+      },
+      BODY_SAY_PLAN,
+    )
+  })
+
+  it('leaves the instruction lane of that beat alone', () => {
+    withFixture(
+      {
+        says: { '2.1': ['> A REPLACED spoken line.'] },
+        edits: { '2.1': { original: ['The original spoken line.'], at: 'x' } },
+      },
+      ({ md }) => {
+        const byNum = Object.fromEntries(buildBeatsOf(md))
+        expect(shown(byNum['2.1'])).toEqual(['- Step one instruction.'])
+      },
+      BODY_SAY_PLAN,
+    )
+  })
+
+  it('still handles an INTRO beat say, which always worked', () => {
+    withFixture(
+      {
+        says: { A1: ['> A new intro line.'] },
+        edits: { A1: { original: ['Intro line.'], at: 'x' } },
+      },
+      ({ md, out }) => {
+        expect(out).not.toContain('SKIPPED')
+        const byNum = Object.fromEntries(buildBeatsOf(md))
+        expect(byNum['A1'].say.join(' ')).toContain('A new intro line.')
+      },
+      BODY_SAY_PLAN,
+    )
+  })
+
+  it('applies a say and a note on the SAME beat in one pass', () => {
+    // Both tracks at once is the real review shape, and the two splices must not
+    // shift each other's ranges.
+    withFixture(
+      {
+        says: { '2.1': ['> Spoken, replaced.'] },
+        edits: { '2.1': { original: ['The original spoken line.'], at: 'x' } },
+        notes: { '2.1': ['- Instruction, replaced.'] },
+        noteEdits: { '2.1': { original: ['- Step one instruction.'], at: 'x' } },
+      },
+      ({ md, out }) => {
+        expect(out).toContain('applied 2 edit')
+        expect(out).not.toContain('SKIPPED')
+        const byNum = Object.fromEntries(buildBeatsOf(md))
+        expect(byNum['2.1'].say.join(' ')).toContain('Spoken, replaced.')
+        expect(shown(byNum['2.1'])).toEqual(['- Instruction, replaced.'])
+        expect(byNum['2.2'].say, 'the next beat was disturbed').toEqual(['Another beat entirely.'])
+      },
+      BODY_SAY_PLAN,
+    )
+  })
 })
