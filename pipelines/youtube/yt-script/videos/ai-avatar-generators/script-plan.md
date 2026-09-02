@@ -36,8 +36,8 @@
 > So before I tell you anything else, remember this moment."
 
 **VIDEO**
-HeyGen Avatar IV with the owner's custom voice. Owner supplies both.
-No logos and no UI on screen, so the reveal lands.
+Use a HeyGen Avatar IV with my custom voice (I will provide both).
+Do not show any logos or UI.
 
 #### A2 · Reveal
 
@@ -110,7 +110,7 @@ The six parenthetical tags are the on-screen chapter labels, read in the normal 
 > Unlike the others, it's a general AI video generation platform that happens to include avatar features, rather than being built specifically for talking-head videos."
 
 **VIDEO**
-Show each platform's homepage or dashboard briefly. No deep feature dive here, that comes later.
+Show each platform's homepage/dashboard briefly. No deep feature dive here — that comes later. 
 
 ### SECTION: Live Demo
 
@@ -130,14 +130,48 @@ Show each platform's homepage or dashboard briefly. No deep feature dive here, t
 >
 > And to keep things interesting, I won't reveal any of the final videos just yet.
 > We'll generate all five first, then compare them side by side in the next section."
+>
+>
+> Let's start with Colossyan. We'll use the same avatar, the same script, and my custom voice. (Write demo script.) Once the video starts rendering, we'll move on to the next platform.
+>
+>
+> Next is Synthesia. We'll use the same script and avatar, but since Synthesia doesn't support uploading a custom voice, I'll use one of Synthesia's built-in voices. (Write demo script.) Once it's rendering, we'll move on to the next tool.
+>
+>
+>
+> Now it's HeyGen. This is the exact same avatar you saw at the beginning of the video. We'll use the same script and my custom voice, start the generation, (write demo script) and let it render while we continue.
+>
+>
+> Next is D-ID. Once again, we'll use the same avatar, the same script, and my custom voice so every platform is tested under the same conditions. (Write demo script.) and let it render while we continue.
+>
+>
+> Finally, we have Google Flow. We'll use the same script and avatar, but since it doesn't support uploading a custom voice, I'll use one of its built-in voices. (Write demo script.) Once that's done, all five videos will be ready.
 
 **VIDEO**
-Per-tool narration is finalised and recorded on the day. Reference lines are in script-draft.md.
-On-screen order: Colossyan, Synthesia, HeyGen, D-ID, Google Flow. Setup workflow only, never the generated video.
-Custom voice: HeyGen, Colossyan, D-ID. Built-in voice: Synthesia and Google Flow, no custom-voice upload.
-Custom avatar photo for every tool that supports it: prnt.sc/nvZNEVQWD7bJ
-Colossyan: skip loading screens. Synthesia: same face from the pre-made library, do not dwell on it. HeyGen: reuse the cold-open avatar.
-Demo script for all five: "Most people think they can instantly tell when they're looking at an AI avatar. They expect awkward lip-sync, unnatural expressions, or something that just feels off. But AI avatar technology has come a long way."
+general instructions:
+Use the same script and avatar for all five tools wherever possible.
+Custom avatar photo: https://prnt.sc/nvZNEVQWD7bJ
+I will provide the voiceover during recording.
+Use a custom voice for Colossyan, HeyGen, and D-ID.
+Use a built-in voice for Synthesia and Google Flow.
+Show only the setup workflow. Do not show the generated videos.
+Skip loading screens and unnecessary waiting.
+Tool-Specific Instructions
+Colossyan
+Use the custom avatar photo and custom voice.
+Skip loading screens.
+Synthesia
+see this avatar (https://prnt.sc/nvZNEVQWD7bJ  )  from the pre-made avatar library. Do not focus on showing that it comes from the avatar library, as we’ll use the same avatar image in the other tools as a custom avatar for consistency.” Use Synthesia's built-in voice (custom voice upload not supported in this workflow). Show only the setup workflow. Do not reveal the generated video. 
+HeyGen 
+Reuse the same avatar from the cold open.
+Use a custom voice.
+D-ID
+Use the custom avatar photo and custom voice.
+Google Flow
+Use Google's avatar feature.
+Use a built-in voice.
+Script for All Five Tools
+“Most people think they can instantly tell when they're looking at an AI avatar. They expect awkward lip-sync, unnatural expressions, or something that just feels... off.”
 
 ### SECTION: Realism Comparison
 
@@ -151,8 +185,10 @@ Demo script for all five: "Most people think they can instantly tell when they'r
 > As we go through them, I'll share a few quick observations before we break everything down in the Realism Scorecard."
 
 **VIDEO**
-Each generated clip full screen, 10 to 12 seconds. One or two sentence observation after each clip.
-No scores in this section. After the fifth clip, go straight into the Realism Scorecard.
+Show each generated video one by one on full screen for 10-12 seconds.
+After each clip, add a 1–2 sentence observation highlighting its strengths or weaknesses.
+Avoid revealing scores during this section.
+After the fifth video, transition directly to the Realism Scorecard.
 
 #### The realism scorecard
 
@@ -161,8 +197,8 @@ No scores in this section. After the fifth clip, go straight into the Realism Sc
 > Here's how each platform scored, based on the footage we just generated."
 
 **VIDEO**
-Show the scorecard table on screen while walking each row. Presentation style like the reference: youtu.be/bJVMh8j5wRI?t=709
-Source screenshot: prnt.sc/XpePrrd8gyiI
+Show the table on screen while explaining it. https://prnt.sc/XpePrrd8gyiI
+Try to implement a presentation style similar to the reference video,https://youtu.be/bJVMh8j5wRI?t=709 
 
 | Metric | HeyGen | Synthesia | Colossyan | D-ID | Google Flow |
 |---|---|---|---|---|---|
@@ -231,21 +267,16 @@ The last spoken line is CTA 3 of 5. It rides the realism win. Keep it to the one
 #### What each tool costs
 
 **SAY** - final
-> "We've seen how realistic each platform is, but realism is only part of the story.
-> If you're making long-form YouTube videos, pricing and overall value matter just as much.
-> A tool might create amazing avatars, but if a few minutes of video cost too much, it's hard to recommend.
+> We've seen how realistic each platform is, but realism is only part of the story. If you're creating long-form YouTube videos, pricing and overall value matter just as much. A tool might create amazing avatars, but if it costs too much to produce just a few minutes of video, it's hard to recommend.
+> So in this section, let's compare pricing, avatar cloning, voice cloning, and overall value to see which platform gives you the best value for your money.
 >
-> So let's compare pricing, avatar cloning, voice cloning, and overall value, and see which platform gives you the best value for your money.
->
-> Every tool here except Google Flow lets you clone your own avatar and your own voice.
-> HeyGen does it at a much more accessible price than most competitors.
-> It's also the only platform in this comparison that rolls your unused monthly credits over to the next month.
-> For a long-form YouTube creator, that combination makes HeyGen the best value of the five."
 
 **VIDEO**
-Walk each tool's actual current pricing from the pricing SOP, on screen, narrated on recording day. No dollar figures are baked into the script because they change.
-Cover avatar cloning and voice cloning for every tool except Google Flow, which has neither.
-Land the section on HeyGen: best value for long-form creators, winner on pricing, overall value, avatar cloning, and voice cloning.
+Compare each tool's pricing according to the SOP.
+Explain the avatar cloning and voice cloning features of every tool except Google Flow, as it doesn't support them.
+Emphasize that HeyGen offers the best value for long-form YouTube creators.
+Highlight HeyGen as the winner for pricing, overall value, avatar cloning, and voice cloning.
+Mention that HeyGen is the only platform in this comparison that lets unused monthly credits roll over to the next month.
 
 ### SECTION: Summary Table
 
@@ -256,9 +287,8 @@ Land the section on HeyGen: best value for long-form creators, winner on pricing
 > Let's bring it all together in one Summary Table and see how these five platforms stack up."
 
 **VIDEO**
-Show the summary table on screen while walking each row. Presentation style like the reference: youtu.be/bJVMh8j5wRI?t=709
-Source screenshot: prnt.sc/60WsvQIBm9hc
-"ess." means "covers the essentials", no number in the source.
+Notes: Show the table on screen while explaining it. https://prnt.sc/60WsvQIBm9hc
+Try to implement a presentation style similar to the reference video,https://youtu.be/bJVMh8j5wRI?t=709 
 
 | Category | HeyGen | Synthesia | Colossyan | D-ID | Google Flow |
 |---|---|---|---|---|---|
