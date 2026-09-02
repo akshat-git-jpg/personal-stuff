@@ -6,6 +6,7 @@
 # owned by other tools, so the script must never overwrite or prune a foreign
 # entry, however it is shaped.
 set -euo pipefail
+export MSYS="${MSYS:-} winsymlinks:nativestrict"
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MIRROR="$SCRIPTS_DIR/mirror-codex-skills.sh"
 fails=0
@@ -57,12 +58,26 @@ run >/dev/null
 
 echo "5. WINDOWS: a git-degraded symlink is reported, not linked to nothing"
 new_env
-rm "$TMP/repo/.claude/skills/beta"
+rm -rf "$TMP/repo/.claude/skills/beta"
 printf '../../pipelines/.claude/skills/beta' > "$TMP/repo/.claude/skills/beta"
 out="$(run || true)"
 grep -q "degraded symlink" <<<"$out" && ok "degraded source reported" || bad "degraded source reported"
 ( cd "$TMP/repo" && CODEX_HOME="$TMP/home" ./scripts/mirror-codex-skills.sh >/dev/null 2>&1 ) \
   && bad "exits non-zero on degraded" || ok "exits non-zero on degraded"
+
+echo "5b. WINDOWS: NTFS junctions are detected by fsutil and pruned"
+new_env; run >/dev/null
+if command -v fsutil >/dev/null 2>&1 && command -v cmd >/dev/null 2>&1; then
+  # Replace alpha symlink with an NTFS junction to simulate non-admin Windows
+  rm -f "$TMP/home/skills/alpha"
+  cmd //c mklink //J "$(cygpath -w "$TMP/home/skills/alpha")" "$(cygpath -w "$TMP/repo/.claude/skills/alpha")" >/dev/null
+  # Now delete alpha from repo and run mirror
+  rm -rf "$TMP/repo/.claude/skills/alpha"
+  run >/dev/null
+  [[ -e "$TMP/home/skills/alpha" ]] && bad "NTFS junction was NOT pruned" || ok "NTFS junction pruned"
+else
+  echo "  skip NTFS junction test (not on Windows or missing fsutil/cmd)"
+fi
 
 echo "6. prunes a link once its name leaves codex.txt"
 new_env; run >/dev/null

@@ -29,6 +29,7 @@
 #
 # Run standalone, or let scripts/relink.sh call it.
 set -euo pipefail
+export MSYS="${MSYS:-} winsymlinks:nativestrict"
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
@@ -52,9 +53,27 @@ mkdir -p "$DST"
 # Anything else in $DST belongs to another tool and is off limits.
 owned_by_repo() {
   local path="$1" real
-  [[ -L "$path" ]] || return 1
-  real="$(cd "$(dirname "$path")" && cd "$(dirname "$(readlink "$path")")" 2>/dev/null && pwd)" || return 1
-  [[ "$real" == "$REPO_ROOT"/* ]]
+  if [[ -L "$path" ]]; then
+    real="$(cd "$(dirname "$path")" && cd "$(dirname "$(readlink "$path")")" 2>/dev/null && pwd)" || return 1
+    [[ "$real" == "$REPO_ROOT"/* ]] && return 0
+    return 1
+  fi
+  
+  # WINDOWS: MSYS ln -s can silently make an NTFS junction that [ -L ] misses.
+  # rmdir/rm -rf on these is safe (removes link, not target).
+  # We detect if it's our junction by checking its Substitute Name with fsutil.
+  if [[ -d "$path" && -f "$path/SKILL.md" ]] && command -v fsutil >/dev/null 2>&1; then
+    local target win_root
+    target="$(fsutil reparsepoint query "$path" 2>/dev/null | grep "Substitute Name:" | sed 's/.*Substitute Name:[[:space:]]*//' | tr -d '\r')"
+    if [[ -n "$target" ]]; then
+      win_root="$(cygpath -w "$REPO_ROOT" 2>/dev/null || echo "$REPO_ROOT")"
+      if [[ "$target" == *"$win_root"* ]]; then
+        return 0
+      fi
+    fi
+  fi
+  
+  return 1
 }
 
 linked=0 pruned=0 skipped=0 broken=0 degraded=0
