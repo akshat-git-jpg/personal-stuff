@@ -495,9 +495,32 @@ function cmdApply(key, { dryRun = false } = {}) {
     headedCards.add(beat.num)
   }
 
+  // SAY HAS THE SAME TWO-NUMBERING PROBLEM AS NOTES, and for a year it only had half
+  // the fix. `buildBeats` numbers a body card from the outline's shape (`2.1` is the
+  // first `####` under the second body section); `buildEditModel` numbers a `####`
+  // heading POSITIONALLY (`6`, `7`, `8`…) because the heading carries no number. The
+  // two NEVER agree in the body — the long comment above says exactly that, and the
+  // notes path was rebuilt around `ownerForCard` to respect it. This map was not, so
+  // it kept looking up `2.1` in a model that calls that beat `7`, missed every time,
+  // and every body SAY edit was skipped.
+  //
+  // Measured 2026-09-02 on ai-avatar-generators: `10 edit(s) would be applied; 2
+  // skipped`, and the two skipped were the owner's entire five-tool demo walkthrough
+  // and his pricing rewrite. `apply` clears staging wholesale, so both would have been
+  // destroyed and the freelancer would have received the pre-edit script.
+  //
+  // Intro and conclusion beats DO carry their number in the heading (`A1 · …`), so both
+  // models agree there — which is precisely why this went unnoticed: every SAY edit
+  // anyone happened to test was on an intro beat.
+  const sayIn = (owner) => owner?.blocks.find((b) => b.kind === 'SAY' && b.spoken)
   const sayRangeFor = new Map()
+  for (const card of bodyCards) {
+    const say = sayIn(ownerForCard.get(card.num))
+    if (say) sayRangeFor.set(card.num, say)
+  }
   for (const beat of model.beats) {
-    const say = beat.blocks.find((b) => b.kind === 'SAY' && b.spoken)
+    if (sayRangeFor.has(beat.num)) continue
+    const say = sayIn(beat)
     if (say) sayRangeFor.set(beat.num, say)
   }
 
