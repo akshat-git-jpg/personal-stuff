@@ -75,8 +75,6 @@ Do not show any logos or UI.
 > Then, we'll bring everything together in one easy side-by-side comparison table. (Summary Table)
 > And finally, I'll share my honest recommendation based on different budgets and use cases. (Honest Verdict)"
 
-**VIDEO**
-The six parenthetical tags are the on-screen chapter labels, read in the normal flow, not stressed.
 
 #### A5 · First CTA
 
