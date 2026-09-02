@@ -118,6 +118,22 @@ fi
 
 # --- the MAIN checkout: ask for relocation, not a commit ---
 if [ "$GD" = "$GCD" ]; then
+  # Suppress the nag when THIS session made no file-editing tool call. Main is shared, so
+  # its dirty files usually belong to someone else's session; forcing every read-only or
+  # greeting-only turn to answer for those files was noise. We look at the session's own
+  # transcript for a tool_use of Edit/Write/MultiEdit/NotebookEdit/Bash — anything that
+  # could plausibly have dirtied a tracked file. A grep is enough: false positives (the
+  # name appearing in message text) preserve the pre-fix behaviour of nagging, and false
+  # negatives cannot occur when the session made no tool calls at all.
+  TRANSCRIPT="$(json_field transcript_path)"
+  if [ -n "$TRANSCRIPT" ]; then
+    if command -v cygpath >/dev/null 2>&1; then
+      TRANSCRIPT="$(cygpath -u "$TRANSCRIPT" 2>/dev/null || printf '%s' "$TRANSCRIPT")"
+    fi
+    if [ -f "$TRANSCRIPT" ] && ! grep -qE '"name":"(Edit|Write|MultiEdit|NotebookEdit|Bash)"' "$TRANSCRIPT" 2>/dev/null; then
+      exit 0
+    fi
+  fi
   cat >&2 <<MSG
 The main checkout has $COUNT uncommitted change(s) and the turn is about to end.
 
