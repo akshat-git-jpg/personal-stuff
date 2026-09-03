@@ -225,3 +225,10 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/consistent-character-ai-animation-howto-s11--2ed194593ba9430c9673f283df50a386) | 7629dffbebe141eb8f701630948bd707 | s11.mp3 | `2ed194593ba9430c9673f283df50a386` |
 | [heygen link](https://app.heygen.com/videos/consistent-character-ai-animation-howto-s01--2dc28310aa004a368390daea43537de7) | 7629dffbebe141eb8f701630948bd707 | s01.mp3 | `2dc28310aa004a368390daea43537de7` |
 | [heygen link](https://app.heygen.com/videos/consistent-character-ai-animation-howto-s08--adeaf10fd31841999d66ba9b01990170) | 7629dffbebe141eb8f701630948bd707 | s08.mp3 | `adeaf10fd31841999d66ba9b01990170` |
+| [heygen link](https://app.heygen.com/videos/lovable-vs-claude-code-s02-hg4--f3ee23557bd14fef995f06ac96024669) | 1584748ec3d84d79a5e0c187037c226d | s02.mp3 | `f3ee23557bd14fef995f06ac96024669` |
+| [heygen link](https://app.heygen.com/videos/lovable-vs-claude-code-s01-hg4--e38ab591a0ed4ccea782ce4e491272c6) | 1584748ec3d84d79a5e0c187037c226d | s01.mp3 | `e38ab591a0ed4ccea782ce4e491272c6` |
+| [heygen link](https://app.heygen.com/videos/lovable-vs-claude-code-s05-hg4--d596c042bbcc4f09a3b32867649b8497) | 1584748ec3d84d79a5e0c187037c226d | s05.mp3 | `d596c042bbcc4f09a3b32867649b8497` |
+| [heygen link](https://app.heygen.com/videos/lovable-vs-claude-code-s06-hg4--4bd12f25e01844ea8227e364aaeb14d9) | 1584748ec3d84d79a5e0c187037c226d | s06.mp3 | `4bd12f25e01844ea8227e364aaeb14d9` |
+| [heygen link](https://app.heygen.com/videos/lovable-vs-claude-code-s08-hg4--321eec378f984166ae38f326f50f4900) | 1584748ec3d84d79a5e0c187037c226d | s08.mp3 | `321eec378f984166ae38f326f50f4900` |
+| [heygen link](https://app.heygen.com/videos/lovable-vs-claude-code-s09-hg4--e7817804028b44e3986f4c335657c5ed) | 1584748ec3d84d79a5e0c187037c226d | s09.mp3 | `e7817804028b44e3986f4c335657c5ed` |
+| [heygen link](https://app.heygen.com/videos/lovable-vs-claude-code-corner-s07-hg4--54cb9deea12b45fbb477afdba0bed076) | 1584748ec3d84d79a5e0c187037c226d | corner-s07.mp3 | `54cb9deea12b45fbb477afdba0bed076` |
