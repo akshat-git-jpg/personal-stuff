@@ -1407,3 +1407,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 263-analytics-channel-switcher — PR#223 263-analytics-channel-switcher: the analytics dashboard gets a channel switcher — DONE
 - 262-tracker-channel-aware — PR#222 262-tracker-channel-aware: the tracker learns which channel a video belongs to — DONE
 - 265-no-writes-in-main-wall — third main-checkout wall: catches Bash subprocess writes that slip past no-edits-in-main.sh / no-history-in-main.sh; quarantine + auto-revert with 10-min sentinel escape hatch — TODO
+- 265-no-writes-in-main-wall — PR#225 265-no-writes-in-main-wall: third main-checkout wall (catches Bash subprocess writes) — DONE
