@@ -445,6 +445,8 @@
                     <ul class="task-list">
                         <li class="task-item">- Creates script</li>
                         <li class="task-item">- Gets Approval</li>
+                        <li class="task-item">- Gets tts</li>
+                        <li class="task-item">- Records screen recording in sync with vo</li>
                     </ul>
                 </div>
 
@@ -458,8 +460,7 @@
                 <div class="step editor-host">
                     <span class="role-tag editor">3) Video Editor</span>
                     <ul class="task-list">
-                        <li class="task-item">- Understands script and records screen recording</li>
-                        <li class="task-item">- Takes VO</li>
+                        <li class="task-item">- Takes VO and screen recordings</li>
                         <li class="task-item">- Syncs vo, screen recording, b rolls, motion graphics, etc</li>
                     </ul>
                 </div>
@@ -479,8 +480,6 @@
                     <ul class="task-list">
                         <li class="task-item">- Creates script</li>
                         <li class="task-item">- Gets Approval</li>
-                        <li class="task-item">- Gets tts</li>
-                        <li class="task-item">- Records screen recording in sync with vo</li>
                     </ul>
                 </div>
 
@@ -494,7 +493,8 @@
                 <div class="step editor-host">
                     <span class="role-tag editor">3) Video Editor</span>
                     <ul class="task-list">
-                        <li class="task-item">- Takes VO and screen recordings</li>
+                        <li class="task-item">- Understands script and records screen recording</li>
+                        <li class="task-item">- Takes VO</li>
                         <li class="task-item">- Syncs vo, screen recording, b rolls, motion graphics, etc</li>
                     </ul>
                 </div>
@@ -563,28 +563,7 @@
             </div>
 
             <div class="brainstorm-section">
-                <h2>Workflow B - Editor records the screen</h2>
-                <p>Editor understands the script and records the screen themselves.</p>
-                <div class="pros-cons">
-                    <div class="col pros">
-                        <h4>Pros</h4>
-                        <ul>
-                            <li>Total control over sync in one head.</li>
-                            <li>No handoff friction between roles.</li>
-                        </ul>
-                    </div>
-                    <div class="col cons">
-                        <h4>Cons</h4>
-                        <ul>
-                            <li>Editor does not know the tool. Wrong clicks, wrong menus, wrong outcomes.</li>
-                            <li>Not viable for real software tutorials.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="brainstorm-section">
-                <h2>Workflow C - Record screen in sync with TTS</h2>
+                <h2>Workflow B - Record screen in sync with TTS</h2>
                 <p>Tutorial maker records the screen with the TTS playing, matching action to voice.</p>
                 <div class="pros-cons">
                     <div class="col pros">
@@ -607,130 +586,34 @@
             </div>
 
             <div class="brainstorm-section">
-                <h2>The core tension</h2>
-                <div class="tension-box">
-                    <p><strong>Recorder pain vs Editor pain.</strong> C moves the sync burden to the recorder (hard to do live). A moves it to the editor (fine when trimming, ugly when stretching).</p>
+                <h2>Workflow C - Editor records the screen</h2>
+                <p>Editor understands the script and records the screen themselves.</p>
+                <div class="pros-cons">
+                    <div class="col pros">
+                        <h4>Pros</h4>
+                        <ul>
+                            <li>Total control over sync in one head.</li>
+                            <li>No handoff friction between roles.</li>
+                        </ul>
+                    </div>
+                    <div class="col cons">
+                        <h4>Cons</h4>
+                        <ul>
+                            <li>Editor does not know the tool. Wrong clicks, wrong menus, wrong outcomes.</li>
+                            <li>Not viable for real software tutorials.</li>
+                        </ul>
+                    </div>
                 </div>
-                <p style="margin-top: 0.75rem;">Editors can cut, but they cannot magic more screen time out of thin air. Slow-motion on a cursor looks wrong. Freeze frames look worse. B-roll cover-ups only work when there is a pause to drop them into. So Workflow A only works if the raw recording is <strong>always longer than the VO section</strong> - which means the recorder needs a discipline: click slow, leave pauses.</p>
             </div>
 
             <div class="brainstorm-section">
-                <h2>My recommendation: Workflow A</h2>
-                <div class="verdict-box">
-                    <p><strong>Pick Workflow A</strong> with one rule for the tutorial maker: "Click slow. Leave 1-2 seconds between actions. When in doubt, add another beat."</p>
-                </div>
-                <h3>Why</h3>
+                <h2>Notes</h2>
+                <p>Workflow A and Workflow B are pretty similar. The only difference is who is responsible for syncing the voiceover with the screen recording.</p>
                 <ul>
-                    <li>Plays to team strengths: tutorial maker demos the tool; editor handles sync.</li>
-                    <li>The "record slow with pauses" rule makes the editor's job easy: always cut, never stretch.</li>
-                    <li>Section-wise recording keeps sync problems small and local.</li>
-                    <li>C fights human nature. Nobody clicks in rhythm to a robot voice for 8+ minutes.</li>
-                    <li>Matches how team-based YT tutorial channels operate: creator captures, editor assembles.</li>
+                    <li>In <strong>Workflow A</strong>, it is mostly relied on the video editor to sync the voiceover and screen recording.</li>
+                    <li>In <strong>Workflow B</strong>, it is mostly relied on the tutorial maker.</li>
                 </ul>
-                <h3>What the YouTube norm looks like</h3>
-                <ul>
-                    <li><strong>Solo YouTubers</strong> (Fireship, MKBHD) record their own voice while clicking - natural rhythm, no TTS. That is closer to C but only works with live voice.</li>
-                    <li><strong>Team-based scripted channels</strong> split it: recorder captures raw, editor assembles. That is Workflow A.</li>
-                    <li><strong>TTS-only channels</strong> follow the team pattern because TTS gives no natural rhythm to record along with.</li>
-                </ul>
-            </div>
-
-            <div class="brainstorm-section">
-                <h2>Key variables (KVs)</h2>
-                <table class="kv-table">
-                    <tr>
-                        <th>Variable</th>
-                        <th>Value here</th>
-                        <th>Effect on pick</th>
-                    </tr>
-                    <tr>
-                        <td>Voiceover source</td>
-                        <td>TTS (fixed track)</td>
-                        <td>Kills freestyle narration options.</td>
-                    </tr>
-                    <tr>
-                        <td>Team split</td>
-                        <td>Recorder knows tool, editor does not</td>
-                        <td>Rules out Workflow B.</td>
-                    </tr>
-                    <tr>
-                        <td>Editor sync tools</td>
-                        <td>Can cut, cannot stretch well</td>
-                        <td>Recording must be longer than VO.</td>
-                    </tr>
-                    <tr>
-                        <td>Script rewrite frequency</td>
-                        <td>Occasional</td>
-                        <td>C = re-record. A = trim. A is cheaper on rewrites.</td>
-                    </tr>
-                    <tr>
-                        <td>Recording cognitive load</td>
-                        <td>Should be low</td>
-                        <td>Favors A over C.</td>
-                    </tr>
-                    <tr>
-                        <td>Section granularity</td>
-                        <td>Section-wise files</td>
-                        <td>Small sync errors, easy re-shoots. Favors A.</td>
-                    </tr>
-                </table>
-            </div>
-
-            <div class="brainstorm-section">
-                <h2>Rule of thumb (the "how" for Workflow A)</h2>
-                <ul>
-                    <li><strong>Recorder:</strong> read the script aloud once for pace, then record slower. Pause between clicks. Do not chase the TTS.</li>
-                    <li><strong>Processor:</strong> deliver TTS with per-section timestamps so the editor knows how long each section should be.</li>
-                    <li><strong>Editor:</strong> trim the raw clip to the VO length. Fill any pause with a zoom, a motion graphic, or a b-roll. Never slow-motion the cursor.</li>
-                </ul>
-            </div>
-
-            <div class="brainstorm-section" id="second-opinion-slot">
-                <h2>Second opinion (independent Opus agent): pick Workflow C</h2>
-                <p>A fresh Opus agent was asked the same question with no anchoring. It came back with the opposite call. The core points:</p>
-
-                <h3>Kill Workflow B outright</h3>
-                <p>Editor does not know the software. Making them record wastes the only expertise asymmetry that matters.</p>
-
-                <h3>Why C beats A (the point I underweighted)</h3>
-                <ul>
-                    <li><strong>The person who knows the tool should make the timing decisions.</strong> In A, the editor decides pacing but does not know which click is the load-bearing beat vs a throwaway. They cut the wrong frame, hold on the wrong panel, miss the moment the viewer needs to see.</li>
-                    <li><strong>A hides a brutal review-and-redo loop.</strong> The tutorial maker keeps sending the cut back for pacing fixes. That is where A quietly bleeds hours.</li>
-                    <li><strong>TTS in headphones self-enforces the "record longer than VO" rule.</strong> In A, that rule is a hope. In C, the recorder literally cannot record too short unless they willfully rush - the VO is playing, they just wait for it to finish before clicking. Awkward waiting is the SAFE failure mode; that dead air is exactly what the editor trims cleanly.</li>
-                    <li><strong>TTS is deterministic.</strong> Section length is known before recording. Rewrites regenerate cleanly. TTS was made for C.</li>
-                </ul>
-
-                <h3>YouTube norm (Opus take)</h3>
-                <ul>
-                    <li>Scripted tutorial/review content on YT is <strong>voice-first</strong>. MKBHD, LTT, most tech reviewers: script -> VO -> visuals cut to VO.</li>
-                    <li>Solo YouTubers often go screen-first-then-narrate. Team channels almost always go voice-first because voice-first parallelizes cleanly across roles.</li>
-                    <li>Faceless AI-voice channels: the ones that look good pre-sync the screen to the TTS. The ones that do not have that telltale "cursor drifting, VO over/under" feel that reads as low effort.</li>
-                </ul>
-
-                <h3>Opus rules for Workflow C</h3>
-                <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem;">
-                    <li>Section by section, not one continuous take. One script beat = one clip.</li>
-                    <li>TTS in headphones, on loop, while recording that section.</li>
-                    <li>Recorder rule: when in doubt, wait longer. Never rush.</li>
-                    <li>Editor rule: no slow-motion on real footage, ever. Trim, speed-ramp, hold on stills, zooms/highlights over dead time.</li>
-                    <li>Script writer must know approx action time per beat before finalising. If the VO says "click Save" but the action is a 4-step wizard, the VO for that beat needs to be long enough.</li>
-                </ol>
-
-                <h3>Opus's fallback to A</h3>
-                <p>Only if the recorder freezes up against a click track after an honest try. Then A survives only with a strict rule: every beat recorded at 0.7x the pace that feels natural, so the editor always has room to trim.</p>
-            </div>
-
-            <div class="brainstorm-section">
-                <h2>Final call (honest)</h2>
-                <div class="verdict-box">
-                    <p>Two takes on the table. <strong>Sonnet says A.</strong> <strong>Opus says C.</strong> Opus's "editor does not know what matters" point is real and shifts the balance toward C. But your original worry (recording to TTS is hard) is also real.</p>
-                </div>
-                <h3>How to decide</h3>
-                <ul>
-                    <li><strong>Try C first on one video.</strong> One section at a time, TTS in headphones. If the tutorial maker can hold pace without freezing, you win: sync is nearly free.</li>
-                    <li><strong>If C feels stiff after a real try,</strong> fall back to A with the "record at 0.7x pace" rule so the editor only ever trims.</li>
-                    <li><strong>Do not do B.</strong> Both agents agree on this.</li>
-                </ul>
+                <p>Basically in Workflow A, the first role is mainly a script writer. In Workflow B, the first role is mainly a tutorial maker.</p>
             </div>
 
         </div>
