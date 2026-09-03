@@ -124,3 +124,7 @@ CLAUDE.local.md
 # apps/telegram-email-assistant/imap-accounts.json carries only `password_env`
 # pointers; this ignores any local override that inlines a real password.
 apps/telegram-email-assistant/imap-accounts.local.json
+
+# Quarantined content from the no-writes-in-main wall — reverted file bytes,
+# never meant to be tracked.
+/.claude/quarantine/

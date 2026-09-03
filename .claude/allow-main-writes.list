@@ -1,0 +1,9 @@
+# Allow-list for the no-writes-in-main wall.
+# One path glob per line, repo-relative. Blank lines and #-comments are ignored.
+# Only add a line here for a KNOWN-LEGIT write-through (e.g. npm install regenerating
+# package-lock.json under a specific app). Prefer teaching the tool to write elsewhere.
+#
+# Format: shell globs matched against the repo-relative path with case-sensitive fnmatch.
+# Examples (not enabled):
+#   apps/*/package-lock.json
+#   pipelines/**/generated/*.json
