@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Wrapper — dispatches to the Node entry.
+set -euo pipefail
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec node "$DIR/pp-heygen-batch.mjs" "$@"

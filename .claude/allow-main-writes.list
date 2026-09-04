@@ -7,3 +7,4 @@
 # Examples (not enabled):
 #   apps/*/package-lock.json
 #   pipelines/**/generated/*.json
+pipelines/video/heygen/RENDERS.md

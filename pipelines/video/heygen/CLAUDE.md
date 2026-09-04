@@ -42,3 +42,9 @@ Renders live in `~/kb-scratch/video/heygen/`. (The media-board gallery was retir
 - **fal-lipsync (validated replacement, not yet productized):** see `fal-lipsync/README.md` —
   next step is the owner's verdict on the base clip, then a thin `tooling/cli/` avatar CLI
   via the orchestrate → secretary flow.
+- **Batch avatar clips for one video from selected script ranges:**
+  `tooling/cli/pp-heygen-batch <video-key>`. Reads
+  `videos/<key>/heygen-selections.json` (produced by the yt-script desk's
+  avatar mode, plans 266/267), slices the section wavs, dispatches to
+  heygen-web per selection, and uploads mp4s to Drive. Refuses if the sum of
+  Avatar IV seconds requested exceeds the `/1200` monthly pool remaining.
