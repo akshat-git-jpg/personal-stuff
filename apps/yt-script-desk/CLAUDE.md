@@ -196,3 +196,6 @@ it is not a note, and it is not the maker's business.
 
 **The SAY edit boxes are a different thing again** — those are for the MAKER, in
 hosted mode, and are unrelated to the owner's edit mode above.
+
+## Editor Role
+The `?role=editor` query string enables internal creator tools (like avatar selection) that freelancers should not see.

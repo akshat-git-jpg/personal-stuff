@@ -6,8 +6,9 @@ type HeaderProps = {
   beatCount: number
   writtenCount: number
   totalWritable: number
-  tab: 'write' | 'full'
-  onTabChange: (tab: 'write' | 'full') => void
+  tab: 'write' | 'full' | 'avatar'
+  onTabChange: (tab: 'write' | 'full' | 'avatar') => void
+  showAvatarTab?: boolean
   // Edit mode is LOCAL ONLY. On the hosted link these are undefined and no
   // button renders - the freelancer must never be able to rewrite the plan he
   // was sent, and the hosted Worker has no file to write anyway.
@@ -114,6 +115,7 @@ export function Header({
   onApprove,
   onUnapprove,
   approveBusy,
+  showAvatarTab,
 }: HeaderProps) {
   const pct = totalWritable === 0 ? 0 : Math.round((writtenCount / totalWritable) * 100)
   const subtitle = editing
@@ -148,6 +150,17 @@ export function Header({
         >
           Full script
         </button>
+        {showAvatarTab && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'avatar'}
+            className="tab"
+            onClick={() => onTabChange('avatar')}
+          >
+            Avatar selection
+          </button>
+        )}
       </div>
 
       <div className="progress">
