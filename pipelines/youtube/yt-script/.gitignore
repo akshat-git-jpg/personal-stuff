@@ -20,3 +20,5 @@ videos/*/desk-draft.json
 videos/*/audio/
 videos/*/*.wav
 videos/*/*.mp3
+
+videos/*/heygen-selections.json

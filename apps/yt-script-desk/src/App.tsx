@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useMemo } from 'react'
 import {
   getSource,
   getVideo,
@@ -23,6 +23,7 @@ import { ToggleRail, FULL_SCRIPT_CHIPS } from './components/ToggleRail'
 import { WriteView } from './components/WriteView'
 import { EditView } from './components/EditView'
 import { FullScript } from './components/FullScript'
+import { AvatarMode } from './components/AvatarMode'
 
 function getKeyFromUrl(): string {
   const params = new URLSearchParams(window.location.search)
@@ -45,6 +46,7 @@ function hasVideoIdentity(key: string): boolean {
 // a section, delete one, add a block. Reach it with `?edit=1` on the local URL.
 // Owner, asked whether to remove it outright: *"Keep it, just hidden."*
 const MARKDOWN_EDIT_MODE = new URLSearchParams(window.location.search).get('edit') === '1'
+const EDITOR_ROLE = new URLSearchParams(window.location.search).get('role') === 'editor'
 
 function isFinishedError(err: unknown): boolean {
   return err instanceof Error && /-> 409/.test(err.message)
@@ -56,7 +58,7 @@ export function App() {
   const [doc, setDoc] = useState<VideoDoc | null>(null)
   const [loadError, setLoadError] = useState<'notfound' | 'network' | null>(null)
   const [saveBlocked, setSaveBlocked] = useState(false)
-  const [tab, setTab] = useState<'write' | 'full'>('write')
+  const [tab, setTab] = useState<'write' | 'full' | 'avatar'>('write')
   // Edit mode holds the raw markdown and the structural model beside the doc.
   // `source` being non-null IS "we are editing" - there is no separate flag to
   // get out of step with it.
@@ -69,6 +71,11 @@ export function App() {
   const [approveBusy, setApproveBusy] = useState(false)
   const key = getKeyFromUrl()
   const identified = hasVideoIdentity(key)
+  const showAvatar = useMemo(() => EDITOR_ROLE && doc?.voLocked === true, [doc])
+
+  useEffect(() => {
+    if (!showAvatar && tab === 'avatar') setTab('write')
+  }, [showAvatar, tab])
 
   const fetchDoc = useCallback(() => {
     getVideo(key)
@@ -287,9 +294,10 @@ export function App() {
           onApprove={isHosted ? undefined : handleApprove}
           onUnapprove={isHosted ? undefined : handleUnapprove}
           approveBusy={approveBusy}
+          showAvatarTab={showAvatar}
         />
         {!source && (
-          <ToggleRail prefs={prefs} setPrefs={setPrefs} chips={tab === 'full' ? FULL_SCRIPT_CHIPS : undefined} />
+          <ToggleRail chips={tab === 'full' ? FULL_SCRIPT_CHIPS : undefined} prefs={prefs} setPrefs={setPrefs} />
         )}
         {saveBlocked && <p className="finished-notice">Script finished — ask Kushal to reopen it.</p>}
         {source ? (
@@ -301,6 +309,8 @@ export function App() {
             onApply={handleApplyEdit}
             onDismissError={() => setEditError(null)}
           />
+        ) : tab === 'avatar' && showAvatar ? (
+          <AvatarMode doc={doc!} onSubmitted={fetchDoc} />
         ) : tab === 'write' ? (
           !doc ? (
             <p style={{ padding: '20px 40px' }}>{loadError ? 'Could not load the script.' : 'Loading…'}</p>

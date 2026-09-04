@@ -10,10 +10,12 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildBeats, buildEditModel } from '../../../pipelines/youtube/yt-script/lib/beats.mjs'
 import { effectiveBeats, fingerprint, approvalState, plannedNotes } from '../lib/approval.mjs'
+import { channelOf } from '../../../pipelines/video-registry/lib/registry.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
+const REPO_ROOT = resolve(HERE, '..', '..', '..')
 const PORT = Number(process.env.API_PORT) || 4327
-const VIDEOS_ROOT = resolve(HERE, '..', '..', '..', 'pipelines', 'youtube', 'yt-script', 'videos')
+const VIDEOS_ROOT = process.env.YTS_VIDEOS_ROOT || resolve(REPO_ROOT, 'pipelines', 'youtube', 'yt-script', 'videos')
 
 if (!existsSync(VIDEOS_ROOT)) {
   console.error(`script-desk: no videos root at ${VIDEOS_ROOT} — is pipelines/youtube/yt-script present?`)
@@ -33,6 +35,52 @@ function draftPath(key) {
 
 function outlinePath(key) {
   return join(VIDEOS_ROOT, key, 'script-plan.md')
+}
+
+function scriptJsonPath(key) {
+  return join(VIDEOS_ROOT, key, 'script.json')
+}
+function heygenSelectionsPath(key) {
+  return join(VIDEOS_ROOT, key, 'heygen-selections.json')
+}
+function readScriptJson(key) {
+  const p = scriptJsonPath(key)
+  if (!existsSync(p)) return null
+  try {
+    return JSON.parse(readFileSync(p, 'utf8'))
+  } catch {
+    return null
+  }
+}
+function voLockedFrom(scriptJson) {
+  if (!scriptJson || !Array.isArray(scriptJson.sections) || scriptJson.sections.length === 0) return false
+  return scriptJson.sections.every((s) => s?.tts?.locked === true)
+}
+function readHeygenSelections(key) {
+  const p = heygenSelectionsPath(key)
+  if (!existsSync(p)) return null
+  try {
+    return JSON.parse(readFileSync(p, 'utf8'))
+  } catch {
+    return null
+  }
+}
+function writeHeygenSelectionsAtomic(key, payload) {
+  const p = heygenSelectionsPath(key)
+  const tmp = `${p}.tmp`
+  writeFileSync(tmp, JSON.stringify(payload, null, 2) + '\n')
+  // renameSync is atomic on POSIX
+  renameSync(tmp, p)
+}
+
+const VREG_PATH = process.env.VREG_PATH || join(REPO_ROOT, 'pipelines', 'video-registry', 'videos.json')
+function channelForKey(key) {
+  try {
+    const reg = JSON.parse(readFileSync(VREG_PATH, 'utf8'))
+    return channelOf(key, reg)
+  } catch {
+    return null
+  }
 }
 
 // `notes` and `noteEdits` are STAGED instruction edits. Added 2026-08-29.
@@ -128,6 +176,9 @@ function buildVideoDoc(key) {
   // recomputed on every read rather than trusted from the file, so an edit made in his
   // editor — outside the desk entirely — shows up as a stale approval too.
   const approval = approvalState(doc.approved, fingerprint(title, beatsWithEdits))
+  const scriptJson = readScriptJson(key)
+  const voLocked = voLockedFrom(scriptJson)
+  const heygenSelections = readHeygenSelections(key)
   return {
     key,
     title,
@@ -139,6 +190,8 @@ function buildVideoDoc(key) {
     notes: doc.notes,
     noteEdits: doc.noteEdits,
     finished: doc.finished,
+    voLocked,
+    heygenSelections,
   }
 }
 
@@ -263,6 +316,54 @@ const server = createServer(async (req, res) => {
       doc.says[num] = lines
       writeDraft(key, doc)
       return sendJson(res, 200, { ok: true, savedAt: new Date().toISOString() })
+    }
+
+    // GET /api/heygen-selections?key=<key>
+    if (req.method === 'GET' && url.pathname === '/api/heygen-selections') {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const data = readHeygenSelections(key)
+      return sendJson(res, 200, data)
+    }
+
+    // PUT /api/heygen-selections?key=<key> — writes the editor's queued avatar selections.
+    // Independent of the desk-draft.json approval path: writing this file does NOT void
+    // script approval. It is a separate output consumed by tooling/cli/pp-heygen-batch (plan 267).
+    if (req.method === 'PUT' && url.pathname === '/api/heygen-selections') {
+      if (!isSafeKey(key)) return sendJson(res, 400, { error: 'invalid key' })
+      const body = await readBody(req)
+      if (!body || !Array.isArray(body.selections)) {
+        return sendJson(res, 400, { error: 'selections[] required' })
+      }
+      if (!['heygen3', 'heygen4'].includes(body.default_engine)) {
+        return sendJson(res, 400, { error: 'default_engine must be heygen3 or heygen4' })
+      }
+      const scriptJson = readScriptJson(key)
+      if (!voLockedFrom(scriptJson)) {
+        return sendJson(res, 409, { error: 'VO is not locked; every section must have tts.locked=true' })
+      }
+      const validSectionIds = new Set(scriptJson.sections.map((s) => s.id))
+      for (const sel of body.selections) {
+        if (typeof sel !== 'object' || sel === null) return sendJson(res, 400, { error: 'selection is not an object' })
+        if (typeof sel.text !== 'string' || sel.text.trim().length === 0) return sendJson(res, 400, { error: 'selection.text empty' })
+        if (!validSectionIds.has(sel.section_id)) return sendJson(res, 400, { error: `unknown section_id ${sel.section_id}` })
+        if (!['heygen3', 'heygen4'].includes(sel.engine)) return sendJson(res, 400, { error: 'selection.engine invalid' })
+      }
+      const payload = {
+        version: 1,
+        video_key: key,
+        channel: channelForKey(key),
+        submitted_at: new Date().toISOString(),
+        default_engine: body.default_engine,
+        selections: body.selections.map((sel, i) => ({
+          id: `sel-${String(i + 1).padStart(2, '0')}`,
+          section_id: sel.section_id,
+          engine: sel.engine,
+          text: sel.text,
+          text_word_count: sel.text.trim().split(/\s+/).length,
+        })),
+      }
+      writeHeygenSelectionsAtomic(key, payload)
+      return sendJson(res, 200, { ok: true, savedAt: payload.submitted_at, count: payload.selections.length })
     }
 
     // PUT /api/beat/:num/notes?key=<key> — a STAGED instruction edit. It does not

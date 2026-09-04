@@ -118,3 +118,8 @@ export type SaveSourceResult = {
 // write, and no partial-update protocol that could half-apply.
 export const putSource = (key: string, text: string, stamp: string | null) =>
   j<SaveSourceResult>(`${base}/source${keyQuery(key)}`, 'PUT', { text, stamp })
+
+export const putHeygenSelections = (
+  key: string,
+  payload: { default_engine: string; selections: { section_id: string; engine: string; text: string }[] },
+) => j(`${base}/heygen-selections${keyQuery(key)}`, 'PUT', payload)

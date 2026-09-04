@@ -29,6 +29,25 @@ export type Beat = {
 
 export type Edit = { original: string[]; at: string }
 
+export type HeygenEngine = 'heygen3' | 'heygen4'
+
+export type HeygenSelection = {
+  id: string           // sel-01, sel-02, ...
+  section_id: string
+  engine: HeygenEngine
+  text: string
+  text_word_count: number
+}
+
+export type HeygenSelectionsFile = {
+  version: 1
+  video_key: string
+  channel: string | null
+  submitted_at: string
+  default_engine: HeygenEngine
+  selections: HeygenSelection[]
+}
+
 export type VideoDoc = {
   key: string
   title: string
@@ -47,6 +66,8 @@ export type VideoDoc = {
   notes?: Record<string, string[]>
   noteEdits?: Record<string, Edit>
   finished: boolean
+  voLocked?: boolean                       // absent on hosted-mode responses (Worker never sends it)
+  heygenSelections?: HeygenSelectionsFile | null  // absent on hosted-mode; null in local mode when no file yet
 }
 
 // ---------------------------------------------------------------- edit mode

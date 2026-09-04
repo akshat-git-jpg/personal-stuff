@@ -22,3 +22,4 @@ tooling/press-clis/	cd tooling/press-clis/paypal-txns && go build ./... && go te
 pipelines/video-registry/	cd pipelines/video-registry && node --test registry.test.mjs
 tooling/maintainer/	bash tooling/maintainer/test-maintainer.sh
 pipelines/income-analysis/	python3 pipelines/income-analysis/test_income.py
+apps/yt-script-desk/	cd apps/yt-script-desk && PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm test -- --run && PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm run typecheck
