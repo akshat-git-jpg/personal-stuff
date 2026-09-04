@@ -31,6 +31,7 @@ NETWORKS = DATA / "networks"
 
 sys.path.insert(0, str(HERE))
 import attribute  # noqa: E402
+import mailbox   # noqa: E402
 import sources    # noqa: E402
 
 # Every source the dashboard knows about, including ones with no credentials.
@@ -40,6 +41,20 @@ SOURCE_CATALOGUE = [
     {"id": "bank", "label": "Bank passbook", "kind": "manual"},
     {"id": "impact", "label": "impact.com", "kind": "api"},
     {"id": "partnerstack", "label": "PartnerStack", "kind": "api"},
+    {"id": "bookbolt", "label": "Book Bolt", "kind": "cli",
+     "note": "Read straight from the Book Bolt affiliate portal by "
+             "bookbolt-pp-cli. Book Bolt settles over PayPal, so this is a "
+             "CHECK on the PayPal ledger rather than a source of new money: it "
+             "is the only independent statement of what Book Bolt believes it "
+             "paid. Its portal session lasts two hours, so the CLI logs itself "
+             "in; a rejected password is reported, never retried."},
+    {"id": "tolt", "label": "Tolt (OpenArt)", "kind": "cli",
+     "note": "Read straight from the partner dashboard by tolt-pp-cli. Uses a "
+             "browser session that lapses every couple of weeks; when it does, "
+             "this reads as not connected rather than as zero."},
+    {"id": "mailbox", "label": "Affiliate mailboxes", "kind": "imap",
+     "note": "Both agrolloo.com inboxes. The only source that sees programs with "
+             "no API at all, so it supplies leads on untraced money."},
     {"id": "paykickstart", "label": "PayKickstart", "kind": "api",
      "note": "No credentials. Affiliate accounts have no API access, so any "
              "PayKickstart commission shows up as untraced."},
@@ -51,23 +66,47 @@ def load_network(name):
     return json.loads(p.read_text()) if p.exists() else None
 
 
-def source_states(ps, im, pending):
-    """Report each source's state so the UI never has to infer it from silence."""
+def source_states(ps, im, pending, checks=None, mail_events=None, tolt=None,
+                  bookbolt=None):
+    """Report each source's state so the UI never has to infer it from silence.
+
+    `checks` is the preflight result. When a source is configured but this run
+    could not reach it, that is a different thing from never having been set up,
+    and the dashboard says which — otherwise a broken credential looks exactly
+    like a deliberate omission.
+    """
+    reachable = {c["id"]: c["ok"] for c in (checks or [])}
+    detail = {c["id"]: c["detail"] for c in (checks or [])}
     out = []
     for s in SOURCE_CATALOGUE:
         e = dict(s)
-        if s["id"] == "paypal":
-            e["state"] = "connected" if pending else "stale"
-            e["as_of"] = (pending or {}).get("as_of")
-        elif s["id"] == "bank":
+        got = {"paypal": bool(pending), "partnerstack": bool(ps),
+               "impact": bool(im), "mailbox": bool(mail_events),
+               "tolt": bool(tolt),
+               "bookbolt": bool(bookbolt)}.get(s["id"])
+        if s["id"] == "bank":
             e["state"] = "manual"
-        elif s["id"] == "partnerstack":
-            e["state"] = "connected" if ps else "absent"
-            e["as_of"] = (ps or {}).get("fetched_at")
-        elif s["id"] == "impact":
-            e["state"] = "connected" if im else "absent"
+        elif s["id"] == "paykickstart":
+            e["state"] = "absent"
+        elif got:
+            e["state"] = "connected"
+        elif reachable.get(s["id"]):
+            # Configured and healthy, but this run has no data — offline mode.
+            e["state"] = "stale"
         else:
             e["state"] = "absent"
+            if detail.get(s["id"]):
+                e["note"] = detail[s["id"]]
+        if s["id"] == "paypal":
+            e["as_of"] = (pending or {}).get("as_of")
+        elif s["id"] == "partnerstack":
+            e["as_of"] = (ps or {}).get("fetched_at")
+        elif s["id"] == "bookbolt" and bookbolt:
+            e["as_of"] = bookbolt.get("fetched_at")
+        elif s["id"] == "tolt" and tolt:
+            e["as_of"] = tolt.get("fetched_at")
+        elif s["id"] == "mailbox" and mail_events:
+            e["as_of"] = max(x.date for x in mail_events)
         out.append(e)
     return out
 
@@ -228,7 +267,7 @@ def paypal_env():
     return env
 
 
-def print_tally(months, notes, paypal_months):
+def print_tally(months, notes, paypal_months, bookbolt=None):
     """Print the same tally the dashboard publishes.
 
     The owner's rule: a discrepancy is reported in both places or in neither.
@@ -243,15 +282,25 @@ def print_tally(months, notes, paypal_months):
     g_bank = g_traced = g_untraced = 0.0
     for m in sorted(months):
         d = months[m]
-        traced = sum(t["amount"] for t in d["tools"])
+        traced = sum(x["amount"] for x in d["tools"])
         un = d["untraced"]["amount"]
-        g_bank += d["bank_total"]; g_traced += traced; g_untraced += un
-        pct = (traced / d["bank_total"] * 100) if d["bank_total"] else 100.0
+        bank = d["bank_total"]
+        g_bank += bank; g_traced += traced; g_untraced += un
+        pct = (traced / bank * 100) if bank else 100.0
         mark = "ok " if un <= 1 else "!! "
-        print(f"  {mark}{m}  bank {d['bank_total']:>11,.2f}   "
-              f"traced {traced:>11,.2f} ({pct:5.1f}%)   untraced {un:>10,.2f}")
+        print(f"  {mark}{m}  bank {bank:>11,.2f}   "
+              f"traced {traced:>11,.2f} ({pct:5.1f}%)   "
+              f"untraced {un:>10,.2f}")
+        # Every untraced line says what we DO know, so the terminal is as useful
+        # for chasing money as the dashboard is.
         for c in d["untraced"]["credits"]:
-            print(f"        untraced credit  {c['date']}  {c['amount']:>10,.2f}  {c['rail']}")
+            if c.get("kind") == "payer":
+                print(f"        untraced  {c['amount']:>10,.2f}  paid by "
+                      f"{c.get('via') or c.get('payer')} — payer is not a tool")
+            else:
+                ref = f"  ref {c['ref']}" if c.get("ref") else ""
+                print(f"        untraced  {c['amount']:>10,.2f}  {c['date']}  "
+                      f"via {c['rail']}{ref}")
 
     print("  " + "-" * 64)
     share = (g_untraced / g_bank * 100) if g_bank else 0.0
@@ -276,14 +325,46 @@ def print_tally(months, notes, paypal_months):
             print("\n  FAIL: PayPal and the bank disagree. Numbers not trustworthy.")
             sys.exit(1)
         print("     tallies")
+
+    # Merchant-ledger cross-check. See the module note: a warning, never a gate.
+    if bookbolt:
+        claimed = float(bookbolt["stats"].get("total_paid") or 0)
+        # What the attribution engine actually credited to Book Bolt, in USD.
+        # The tally works in rupees, so compare in dollars via the payouts the
+        # merchant itself listed rather than trying to invert an exchange rate.
+        attributed = sum(
+            x["amount"] for d in months.values() for x in d["tools"]
+            if x["tool"] == "Book Bolt")
+        print(f"\n  Book Bolt ledger check")
+        print(f"     Book Bolt says paid    ${claimed:>10,.2f}")
+        print(f"     attributed (INR)       {attributed:>11,.2f}")
+        pending = float(bookbolt["stats"].get("current_unpaid") or 0)
+        thresh = float(bookbolt["stats"].get("payout_threshold") or 0)
+        if pending and thresh:
+            print(f"     pending                ${pending:>10,.2f} "
+                  f"of ${thresh:,.2f} threshold")
+        # Every payout the merchant lists should be reflected somewhere. The
+        # cheap, currency-free version of that test is a count.
+        listed = len(bookbolt.get("payouts") or [])
+        if listed and attributed <= 0:
+            print("     WARNING: Book Bolt lists %d payout(s) but the tally "
+                  "credits it nothing." % listed)
+        else:
+            print("     %d payout(s) on the merchant ledger" % listed)
     print("=" * 66)
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--with-paypal", action="store_true",
-                    help="also refresh the PayPal earned-side numbers")
+    ap = argparse.ArgumentParser(
+        description="Parse the passbook, pull every income source, attribute each "
+                    "bank credit to a tool, and print the tally.")
+    ap.add_argument("--offline", action="store_true",
+                    help="skip all network calls and reuse the last fetched data")
+    # The old name for the default behaviour. Kept so anything still passing it
+    # keeps working; it is now a no-op because fetching is the default.
+    ap.add_argument("--with-paypal", action="store_true", help=argparse.SUPPRESS)
     args = ap.parse_args()
+    fetch = not args.offline
 
     rules = json.loads((HERE / "rules.json").read_text())
     pw = password()
@@ -316,7 +397,10 @@ def main():
                           if t["type"] == "CR" and t["rail"] in rail_ids})
 
     paypal_months, pending = [], None
-    if args.with_paypal:
+    checks = sources.preflight()
+    if fetch:
+        sources.print_preflight(checks)
+        print()
         env = paypal_env()
         pp = paypal_by_month(env)
         if pp:
@@ -325,6 +409,12 @@ def main():
         if pending:
             print(f"  still in PayPal: USD {pending['total_any_currency']:,.2f}"
                   f" (as of {pending['as_of']})")
+        # Cache alongside the other sources so --offline is a real option and not
+        # a silent downgrade that drops every PayPal attribution.
+        if paypal_months or pending:
+            NETWORKS.mkdir(parents=True, exist_ok=True)
+            (NETWORKS / "paypal.json").write_text(json.dumps(
+                {"months": paypal_months, "pending": pending}, indent=1, ensure_ascii=False))
 
         # The networks that pay the bank directly. Failing to reach one is not
         # fatal — its money simply stays untraced and the UI says so.
@@ -338,19 +428,76 @@ def main():
                       f"{len(ps['rewards'])} rewards")
         except SystemExit as e:
             print(f"  ! PartnerStack: {e}", file=sys.stderr)
+        # Per-tool CLI sources. Each reads its own dashboard, so it knows
+        # things the bank cannot: which tool, and which month it was earned in.
+        try:
+            tolt = sources.fetch_tolt()
+            if tolt:
+                NETWORKS.mkdir(parents=True, exist_ok=True)
+                (NETWORKS / "tolt.json").write_text(
+                    json.dumps(tolt, indent=1, ensure_ascii=False))
+                paid = [p for p in tolt["payouts"] if p["status"] == "paid"]
+                print(f"  Tolt (OpenArt): {len(tolt['payouts'])} payouts, "
+                      f"{len(paid)} paid, ${tolt['stats'].get('total_paid', 0):,.2f} total")
+        except Exception as e:
+            print(f"  ! Tolt: {e}", file=sys.stderr)
+
+        try:
+            bb = sources.fetch_bookbolt()
+            if bb:
+                NETWORKS.mkdir(parents=True, exist_ok=True)
+                (NETWORKS / "bookbolt.json").write_text(
+                    json.dumps(bb, indent=1, ensure_ascii=False))
+                st = bb["stats"]
+                print(f"  Book Bolt: {len(bb['payouts'])} payouts, "
+                      f"${st.get('total_paid', 0):,.2f} paid, "
+                      f"${st.get('current_unpaid', 0):,.2f} pending")
+        except Exception as e:
+            print(f"  ! Book Bolt: {e}", file=sys.stderr)
+
         im = sources.fetch_impact_by_month(bank_months)
         if im:
             (NETWORKS).mkdir(parents=True, exist_ok=True)
             (NETWORKS / "impact.json").write_text(json.dumps(im, indent=1, ensure_ascii=False))
             print(f"  impact.com: {len(im)} months")
 
+        # The mailboxes. Every other source knows only its own programs; the mail
+        # sees all of them, including the ones with no API at all. Cached as plain
+        # dicts so --offline keeps the leads.
+        mail_events, mail_notes = mailbox.fetch_events(
+            since_month=bank_months[0] if bank_months else "2026-01")
+        for n in mail_notes:
+            print(f"  ! mailbox: {n}", file=sys.stderr)
+        if mail_events:
+            NETWORKS.mkdir(parents=True, exist_ok=True)
+            (NETWORKS / "mailbox.json").write_text(json.dumps(
+                [e._asdict() for e in mail_events], indent=1, ensure_ascii=False))
+            payouts = sum(1 for e in mail_events if e.kind.startswith("payout"))
+            print(f"  mailbox: {len(mail_events)} events "
+                  f"({payouts} payouts, {len(mail_events) - payouts} accruals)")
+
+    if not fetch:
+        cached = load_network("paypal.json") or {}
+        paypal_months = cached.get("months", [])
+        pending = cached.get("pending")
+        print("  --offline: reusing the last fetched PayPal, PartnerStack, "
+              "impact.com and mailbox data")
+
     ps_data = load_network("partnerstack.json")
+    tolt_data = load_network("tolt.json")
+    bb_data = load_network("bookbolt.json")
     im_data = load_network("impact.json")
+    mail_events = [mailbox.Event(**e) for e in (load_network("mailbox.json") or [])]
     absent = [s for s in SOURCE_CATALOGUE
               if s["id"] == "paykickstart"]  # parked: affiliate accounts have no API
 
     months, notes = attribute.attribute(
-        rail_ids, paypal_months, ps_data, im_data, [s["id"] for s in absent])
+        rail_ids, paypal_months, ps_data, im_data, [s["id"] for s in absent],
+        manual=rules.get("manual_attribution"),
+        rail_labels={r["id"]: r["label"] for r in rules["income_rails"]},
+        aliases=rules.get("tool_aliases"),
+        unidentified=rules.get("unidentified_payers"),
+        mail_events=mail_events, tolt=tolt_data)
 
     # Nothing below carries a counterparty, an account number or an address,
     # which is what makes summary.json safe to commit to a public repo.
@@ -360,7 +507,8 @@ def main():
                      "to": bank_months[-1] if bank_months else None},
         "statements": statements,
         "rails": {r["id"]: r["label"] for r in rules["income_rails"]},
-        "sources": source_states(ps_data, im_data, pending),
+        "sources": source_states(ps_data, im_data, pending, checks, mail_events,
+                                 tolt_data, bb_data),
         "months": months,
     }
     if pending:
@@ -370,7 +518,7 @@ def main():
     out.write_text(json.dumps(summary, indent=2, ensure_ascii=False))
     print(f"\n  wrote {out.relative_to(HERE.parent.parent)}")
 
-    print_tally(months, notes, paypal_months)
+    print_tally(months, notes, paypal_months, bb_data)
 
 
 if __name__ == "__main__":

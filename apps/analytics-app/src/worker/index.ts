@@ -6,7 +6,6 @@
  *   POST /api/login   → check shared password, set signed cookie
  *   POST /api/logout  → clear cookie
  *   GET  /api/videos  → de-duplicated per-video / per-link click stats (auth-gated)
- *   GET  /api/income  → affiliate income by month and program (auth-gated)
  *   GET  *            → serve the SPA via the ASSETS binding
  */
 
@@ -23,7 +22,6 @@ import { getVideoStats } from "./analytics";
 import { addKeyword, checkVideo, deleteKeyword, getQuota, getRankings } from "./rankings";
 
 import { DEFAULT_CHANNEL_ID, listChannels } from "./channels";
-import incomeSummary from "./income-summary.json";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -63,13 +61,6 @@ app.get("/api/videos", requireAuth, async (c) => {
   const result = await getVideoStats(c.env, channelId);
   return c.json({ ...result, generated_at: Math.floor(Date.now() / 1000) });
 });
-
-// ── Affiliate income ────────────────────────────────────────────────────────
-// Static aggregates bundled at build time by scripts/sync-income.mjs, out of
-// pipelines/income-analysis/summary.json. Deliberately not live: the bank half
-// of this income can only come from a passbook the owner exports by hand, so
-// the numbers refresh when `yt-income` is run, not on request.
-app.get("/api/income", requireAuth, (c) => c.json(incomeSummary));
 
 // ── Keyword rank tracking (this app's own RANKINGS_DB) ──────────────────────
 app.get("/api/rankings", requireAuth, async (c) => {

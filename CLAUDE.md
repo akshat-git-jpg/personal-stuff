@@ -88,6 +88,16 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 - `VPS-CRONS.md` — cron architecture (Pattern B). It's a runbook, not auto-loaded; open it only for cron work.
 - `my-hosted-sites.md` — flat index of every live URL across this repo, including `pipelines/`.
 - Skills are **repo-scoped**: Claude Code reads `.claude/skills/` automatically for whoever opens the repo, so nothing depends on which Claude account is logged in. Two exceptions, both machine-local and both handled by `scripts/relink.sh`: Codex has no per-repo skill path (`.claude/codex-skills.txt` lists the few it gets globally), and five person-level skills are duplicated into the private `work-skills` plugin by `scripts/sync-shared-skills.sh`.
+- **Shipped a new public surface? ASK about the hub before you call it done.** Any new
+  app, dashboard, tool or domain must land in three places, and the third is the one that
+  keeps getting forgotten: `my-hosted-sites.md`, `INFRA.md`, and the **kushal-tools hub
+  card** (`apps/kushal-tools/src/hub.ts` `APPS` array — then redeploy kushal-tools, or the
+  card never appears). The rule was already written down in three skills and still slipped,
+  because those skills only load if you happen to route to them; it lives here because this
+  file is always loaded. So: the moment something becomes reachable at a URL, put the
+  question to the owner — *"add this to kushal-tools?"* — rather than trusting yourself to
+  remember at the end. Detail in `personal-stuff-hosting-inventory`.
+
 - **Changing tracked files? Claim a workspace first.** `cd "$(pp-work claim --kind code --slug <task>)"` — the main checkout refuses to record git history (`.claude/hooks/no-history-in-main.sh`).
 - **On main: read, talk, and scratch only.** Any edit you intend to KEEP — including a one-line append to `decisions.md` — claims a workspace FIRST. There is no such thing as a safe "one-off" edit here: you cannot commit it in main, so it sits in a tree two sessions share until someone else's commit sweeps it up (2026-08-22) or you lose track of it. **Three walls enforce this now**: `no-history-in-main.sh` (PreToolUse Bash) refuses git verbs that record history; `no-edits-in-main.sh` (PreToolUse Edit/Write/NotebookEdit) refuses editing a *tracked* file; `no-writes-in-main.sh` (PreToolUse + PostToolUse Bash) catches subprocess writes that slip through the other two — it snapshots `git status` around every Bash call, quarantines the newly-dirty content to `.claude/quarantine/`, then reverts. Untracked scratch stays allowed; one-off override is `touch .claude/allow-main-edit`, which expires after 10 minutes. The Stop hook still nags on a dirty checkout, as the backstop.
 - **The claim decision gets re-asked when the job grows.** A turn that starts as a question needs no workspace; the moment it turns into an edit you mean to keep, it does. Nothing prompts you at that boundary — 2026-08-23, a PayPal reporting question became a code fix plus two doc edits, all of them landing in main.

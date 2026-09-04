@@ -1,15 +1,16 @@
 {
-  "name": "yt-analytics",
+  "name": "yt-income",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": ". ../../scripts/node22-path.sh && vite",
-    "build": ". ../../scripts/node22-path.sh && tsc -b && vite build",
+    "sync": "node scripts/sync-summary.mjs",
+    "dev": ". ../../scripts/node22-path.sh && npm run sync && vite",
+    "dev:api": ". ../../scripts/node22-path.sh && wrangler dev --port ${API_PORT:-8787}",
+    "build": ". ../../scripts/node22-path.sh && npm run sync && tsc -b && vite build",
+    "typecheck": ". ../../scripts/node22-path.sh && tsc -b",
     "lint": "eslint .",
-    "typecheck": ". ../../scripts/node22-path.sh && npm install && tsc -b",
-    "preview": ". ../../scripts/node22-path.sh && vite preview",
-    "test": ". ../../scripts/node22-path.sh && npm install && vitest run",
+    "shoot": "node scripts/shoot.mjs",
     "deploy": ". ../../scripts/node22-path.sh && npm run build && wrangler deploy"
   },
   "dependencies": {
@@ -18,11 +19,9 @@
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260529.1",
+    "@cloudflare/workers-types": "^5.20260811.1",
     "@eslint/js": "^10.0.1",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/react": "^16.3.3",
-    "@types/node": "^24.12.3",
+    "@types/node": "^24.13.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
@@ -30,12 +29,9 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
-    "jsdom": "^25.0.1",
-    "puppeteer-core": "^25.9.0",
+    "puppeteer-core": "^25.1.0",
     "typescript": "~6.0.2",
-    "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12",
-    "vitest": "^4.1.7",
     "wrangler": "^4.95.0"
   }
 }

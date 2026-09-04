@@ -24,7 +24,10 @@ import datetime as dt
 import itertools
 import json
 import pathlib
+import re
 from collections import defaultdict
+
+import mailbox
 
 HERE = pathlib.Path(__file__).resolve().parent
 DATA = HERE / "data"
@@ -59,11 +62,25 @@ def month_of(d):
 
 # ── inputs ──────────────────────────────────────────────────────────────────
 
+# Bank reference inside a credit's remarks. This is a transaction identifier, not
+# a person: quoting it to the bank is how the owner asks "who sent this?", which
+# is the whole point of surfacing it on an untraced row.
+REF_RE = re.compile(r"(?:IMPS-?\s*IN/(\d+)|NEFT_IN:\d*(CITIN\d+)|/([A-Z]{4}[A-Z0-9]{8,}))")
+
+
+def extract_ref(remarks):
+    m = REF_RE.search(remarks or "")
+    if not m:
+        return None
+    return next((g for g in m.groups() if g), None)
+
+
 def load_bank_credits(rails):
     """Income-rail credits from every parsed statement, newest last.
 
     Each carries a stable id so a pass can claim it and later passes can see it
-    is spoken for.
+    is spoken for, plus the bank reference so an untraced credit can be chased
+    rather than just reported.
     """
     out = []
     for f in sorted((DATA / "parsed").glob("*.json")):
@@ -78,6 +95,7 @@ def load_bank_credits(rails):
                 "date": d,
                 "amount": round(t["amount"], 2),
                 "rail": t["rail"],
+                "ref": extract_ref(t.get("remarks")),
             })
     return sorted(out, key=lambda c: (c["date"], c["amount"]))
 
@@ -85,6 +103,80 @@ def load_bank_credits(rails):
 def load_json(path, default=None):
     p = pathlib.Path(path)
     return json.loads(p.read_text()) if p.exists() else default
+
+
+# ── tool names ──────────────────────────────────────────────────────────────
+
+# Legal-entity noise, stripped from the end of a payer name. Ordered longest-first
+# so ", Inc." wins over " Inc" and nothing is left half-trimmed.
+LEGAL_SUFFIXES = [
+    ", Inc.", ", Inc", " Inc.", " Inc",
+    ", Corp.", ", Corp", " Corp.", " Corp",
+    ", LLC", " LLC", ", L.L.C.", " L.L.C.",
+    " GmbH", " Limited", " Ltd.", " Ltd",
+    " ООД", " OOD", " Pvt Ltd", " Pvt. Ltd.", " B.V.", " BV", " AB", " Oy",
+]
+
+
+def canonical_tool(name, aliases=None):
+    """The name the owner would recognise, from whatever the payer calls itself.
+
+    Two different problems, one function. "Pictory, Corp" is just legal noise and
+    strips automatically. "Дигитал Маркетинг Солутионс 2011 ООД" is Book Bolt's
+    Bulgarian entity — no amount of suffix-stripping gets there, and because Book
+    Bolt *also* pays as "Book Bolt LLC", leaving it alone splits one tool's
+    revenue across two rows and understates it. So explicit aliases win, and
+    stripping is the fallback.
+    """
+    if not name:
+        return name
+    raw = name.strip()
+    for k, v in (aliases or {}).items():
+        if k.strip().casefold() == raw.casefold():
+            return v
+    out = raw
+    for suf in LEGAL_SUFFIXES:
+        if out.casefold().endswith(suf.casefold()):
+            out = out[: -len(suf)]
+            break
+    return out.strip().rstrip(",").strip() or raw
+
+
+# ── pass 0: what the owner has confirmed by hand ───────────────────────────
+
+def pass_manual(credits, manual):
+    """Attributions the owner established himself, from rules.json.
+
+    This is the exit route for untraced money. When he rings the bank about a
+    reference, or spots a payout in a network dashboard, he records it once here
+    and the credit is named forever after — no heuristic can undo it, because
+    this pass runs before every other and its claims are marked `confirmed`.
+
+    An entry matches on date + amount, which is unique in a passbook:
+
+        { "date": "19/03/2026", "amount": 22084.36,
+          "tool": "Base44", "route": ["impact.com", "Airwallex"],
+          "note": "confirmed in the impact.com dashboard, 2026-09-02" }
+    """
+    claims = []
+    for entry in manual or []:
+        d = parse_day(entry.get("date"))
+        amt = round(float(entry.get("amount", 0)), 2)
+        hit = next((c for c in credits
+                    if not c.get("claimed") and c["date"] == d
+                    and abs(c["amount"] - amt) <= PAISE), None)
+        if not hit:
+            continue
+        hit["claimed"] = True
+        claims.append({
+            "tool": entry["tool"],
+            "amount": hit["amount"],
+            "month": month_of(hit["date"]),
+            "route": entry.get("route") or [],
+            "confidence": "confirmed",
+            "credit_ids": [hit["id"]],
+        })
+    return claims
 
 
 # ── pass 1: PayPal ──────────────────────────────────────────────────────────
@@ -226,15 +318,105 @@ def split_by_reward(payout_usd, payout_date, rewards, used):
     return {t: v / total for t, v in by_tool.items()} if total else None
 
 
-def pass_partnerstack(credits, ps):
+def partnerstack_dates(ps, mail_events):
+    """amount -> the date PartnerStack's own mail says the payout was released.
+
+    Their API's `date` looks like a created-at, not a paid-at: the same amounts
+    appear in the mail months later. A bank credit follows the release, so the
+    mail is the clock to match against. Amount is the join key because it is what
+    both sources agree on.
+    """
+    out = {}
+    for e in mail_events or []:
+        if e.kind != "payout" or e.currency != "USD":
+            continue
+        if "partnerstack" not in (e.source or ""):
+            continue
+        # Earliest mail wins if an amount ever repeats — the first release is the
+        # one a credit can follow.
+        key = round(e.amount, 2)
+        if key not in out or e.date < out[key]:
+            out[key] = e.date
+    return out
+
+
+# How long a network's money may take to reach the bank, per network.
+# Measured, not guessed -- see the module docstring for each one's evidence.
+SETTLEMENT_WINDOW_DAYS = {
+    "Tolt": 20,          # observed 7-15 days; the payout row is stamped at
+                         # generation, the money moves at invoice.
+}
+
+
+def pass_network_payouts(credits, payouts, source, route, rail="airwallex",
+                         window_days=None):
+    """Match a network's dated payouts to bank credits on that network's rail.
+
+    The shared engine behind every per-tool CLI source. A source supplies rows of
+    ``{key, date, amount, currency, tool}`` and inherits everything that makes a
+    match trustworthy:
+
+    * the payout must predate the credit, by no more than PAYOUT_WINDOW_DAYS;
+    * the implied rate must sit inside the FX band;
+    * **exactly one** candidate credit must qualify. Two plausible credits is a
+      coin flip, and a coin flip in this file becomes a confident wrong number on
+      a dashboard the owner treats as truth. Ambiguity is reported, never
+      resolved.
+
+    Claims come back at confidence ``matched``: a dated payout from the source's
+    own dashboard lining up with a bank credit is real evidence, but the split of
+    a credit across tools is still the source's word rather than the bank's.
+    """
+    claims, notes = [], []
+    window = window_days or SETTLEMENT_WINDOW_DAYS.get(source, PAYOUT_WINDOW_DAYS)
+    for payout in sorted(payouts or [], key=lambda p: p.get("date") or ""):
+        pd = parse_day(payout.get("date"))
+        amount = payout.get("amount") or 0
+        if not pd or payout.get("currency") != "USD" or amount <= 0:
+            continue
+        cands = [
+            c for c in credits
+            if c["rail"] == rail and not c.get("claimed")
+            and 0 <= (c["date"] - pd).days <= window
+            and FX_MIN <= c["amount"] / amount <= FX_MAX
+        ]
+        if not cands:
+            notes.append({"payout": payout.get("key"), "source": source,
+                          "reason": "no_candidate"})
+            continue
+        if len(cands) > 1:
+            notes.append({"payout": payout.get("key"), "source": source,
+                          "reason": "ambiguous", "candidates": len(cands)})
+            continue
+
+        credit = cands[0]
+        credit["claimed"] = True
+        claims.append({
+            "tool": payout.get("tool") or source,
+            "amount": credit["amount"],
+            "month": month_of(credit["date"]),
+            "route": list(route),
+            "confidence": "matched",
+            "implied_fx": round(credit["amount"] / amount, 2),
+            "credit_ids": [credit["id"]],
+        })
+    return claims, notes
+
+
+def pass_partnerstack(credits, ps, mail_events=None):
     """Match dated PartnerStack payouts to Airwallex credits."""
     if not ps:
         return [], []
     claims, notes = [], []
     used_rewards = set()
+    by_amount = partnerstack_dates(ps, mail_events)
 
-    for payout in sorted(ps.get("payouts", []), key=lambda p: p["date"] or ""):
-        pd = parse_day(payout.get("date"))
+    def released(p):
+        """The mail's date if we have one, else whatever the API claims."""
+        return by_amount.get(round(p.get("amount") or 0, 2)) or p.get("date")
+
+    for payout in sorted(ps.get("payouts", []), key=lambda p: released(p) or ""):
+        pd = parse_day(released(payout))
         if not pd or payout.get("currency") != "USD":
             continue
         cands = [
@@ -326,16 +508,107 @@ def pass_impact(credits, impact):
     return claims, notes
 
 
+# ── leads ───────────────────────────────────────────────────────────────────
+
+LEAD_WINDOW_DAYS = 45
+
+
+def leads_for(credit, ps, ps_notes, impact, im_notes, mail_events=None):
+    """Network activity near an untraced credit, as investigation leads.
+
+    Not a claim — a starting point. If PartnerStack sent a payout a week before a
+    credit landed but the rate was off, that payout is the first thing to check
+    in the dashboard. Ranked nearest-first so the top lead is the likeliest.
+    """
+    out = []
+    unmatched_payouts = {n["payout"] for n in (ps_notes or [])}
+    for p in (ps or {}).get("payouts", []):
+        if p["key"] not in unmatched_payouts:
+            continue
+        pd = parse_day(p.get("date"))
+        if not pd:
+            continue
+        gap = (credit["date"] - pd).days
+        if 0 <= gap <= LEAD_WINDOW_DAYS:
+            out.append({
+                "source": "PartnerStack",
+                "what": f"payout {p['currency']} {p['amount']:.2f} on {p['date']}",
+                "gap_days": gap,
+                "implied_fx": round(credit["amount"] / p["amount"], 1) if p["amount"] else None,
+            })
+
+    # Mail is the only source that ever names a tool outright, so its leads sort
+    # above the network guesses -- leads_for_credit has already ranked them by how
+    # much they actually settle.
+    for lead in mailbox.leads_for_credit(
+            credit["date"].strftime("%d/%m/%Y"), credit["amount"], mail_events or []):
+        out.append({
+            "source": lead["source"],
+            "what": lead["what"],
+            "gap_days": lead["gap_days"],
+            "implied_fx": None,
+        })
+
+    unmatched_months = {n["month"] for n in (im_notes or []) if "month" in n}
+    for m in sorted(unmatched_months):
+        total = sum(x["amount"] for x in (impact or {}).get(m, []))
+        if total <= 0:
+            continue
+        gap = (credit["date"] - month_end(m)).days
+        if 0 <= gap <= LEAD_WINDOW_DAYS:
+            out.append({
+                "source": "impact.com",
+                "what": f"INR {total:,.2f} earned in {m}, payout date unknown",
+                "gap_days": gap,
+                "implied_fx": None,
+            })
+
+    seen, uniq = set(), []
+    for lead in sorted(out, key=lambda x: x["gap_days"]):
+        # An API payout and its notification mail are one event. Key on the
+        # source and the amount, not the wording, which differs between them.
+        key = (lead["source"], re.sub(r"[^0-9.]", "", lead["what"]))
+        if key in seen:
+            continue
+        seen.add(key)
+        uniq.append(lead)
+    return uniq[:4]
+
+
 # ── assembly ────────────────────────────────────────────────────────────────
 
-def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=()):
-    """Run every pass and fold the result into per-month totals."""
-    credits = load_bank_credits(set(rails))
+def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=(),
+              manual=None, rail_labels=None, aliases=None, unidentified=None,
+              mail_events=None, tolt=None):
+    """Run every pass and fold the result into per-month totals.
 
-    claims = pass_paypal(credits, paypal_months or [])
-    ps_claims, ps_notes = pass_partnerstack(credits, ps)
+    Two buckets only, because there are only two answers to "which tool earned
+    this?" — we know, or we do not:
+
+        tools + untraced == bank_total
+
+    `unidentified` names payers that are not tools: agencies and processors that
+    pay out for other brands. Their money is real and we know exactly who sent
+    it, but the tool behind it is still unknown, so it belongs in untraced like
+    any other unnamed money. It does NOT get a bucket of its own — a second word
+    for "we do not know" reads as a second kind of money and invites a misread of
+    the one number the owner treats as truth. What it does keep is its evidence:
+    the payer travels on the row, the way an unclaimed bank credit keeps its
+    reference. Untraced is never a bare "unknown"; it always says what we know.
+    """
+    credits = load_bank_credits(set(rails))
+    rail_labels = rail_labels or {}
+
+    claims = pass_manual(credits, manual)
+    claims += pass_paypal(credits, paypal_months or [])
+    ps_claims, ps_notes = pass_partnerstack(credits, ps, mail_events)
+    # Per-tool CLI sources. Each one is a dashboard read directly, so it
+    # outranks inference -- but it runs AFTER PartnerStack because
+    # PartnerStack's mail-corrected dates are the tighter signal.
+    tolt_claims, tolt_notes = pass_network_payouts(
+        credits, (tolt or {}).get("payouts"), "Tolt", ["Tolt", "Airwallex"])
     im_claims, im_notes = pass_impact(credits, impact)
-    claims += ps_claims + im_claims
+    claims += ps_claims + tolt_claims + im_claims
 
     months = defaultdict(lambda: {"bank_total": 0.0, "rails": defaultdict(float),
                                   "tools": defaultdict(lambda: None),
@@ -346,10 +619,14 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=()):
         m["bank_total"] = round(m["bank_total"] + c["amount"], 2)
         m["rails"][c["rail"]] = round(m["rails"][c["rail"]] + c["amount"], 2)
 
-    # Merge claims for the same tool+route+confidence inside a month.
+    # Merge claims for the same tool+route+confidence inside a month. Names are
+    # canonicalised FIRST, so a tool paying from two payer profiles (Book Bolt
+    # pays as both "Book Bolt LLC" and its Bulgarian entity) lands on one row
+    # instead of being split and understated.
     merged = defaultdict(float)
     meta = {}
     for cl in claims:
+        cl["tool"] = canonical_tool(cl["tool"], aliases)
         k = (cl["month"], cl["tool"], tuple(cl["route"]), cl["confidence"])
         merged[k] += cl["amount"]
         meta.setdefault(k, {}).update(
@@ -358,30 +635,74 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=()):
     for (m, tool, route, conf), amt in merged.items():
         months[m]["tools"][(tool, route, conf)] = round(amt, 2)
 
-    # Untraced is whatever the passes could not claim. Carrying the credit dates
-    # is what lets the owner check the statement by hand.
+    # Untraced is whatever the passes could not claim. Never render it as a bare
+    # "unknown": we always know the rail it came in on and its bank reference, and
+    # often which network payouts were nearby but failed to match. That is the
+    # material the owner needs to chase it down, so it all travels with the row.
     for c in credits:
         if c.get("claimed"):
             continue
         m = months[month_of(c["date"])]
         u = m["untraced"]
         u["amount"] = round(u["amount"] + c["amount"], 2)
-        u["credits"].append({"date": c["date"].strftime("%d/%m/%Y"),
-                             "amount": c["amount"], "rail": c["rail"]})
+        u["credits"].append({
+            "date": c["date"].strftime("%d/%m/%Y"),
+            "amount": c["amount"],
+            "rail": c["rail"],
+            "rail_label": rail_labels.get(c["rail"], c["rail"]),
+            "ref": c.get("ref"),
+            "leads": leads_for(c, ps, ps_notes, impact, im_notes, mail_events),
+        })
+
+    # Key on the *canonical* name, because that is what the rows carry by the time
+    # we get here — suffix stripping has already turned "…2011 ООД" into "…2011",
+    # so keying on the raw payer name would silently never match.
+    non_tools = {canonical_tool(k, aliases).strip().casefold(): {**v, "payer": k}
+                 for k, v in (unidentified or {}).items()}
 
     out = {}
     for m in sorted(months):
         d = months[m]
-        tools = [
+        rows = [
             {"tool": t, "amount": a, "route": list(r), "confidence": conf,
              **({"implied_fx": meta[(m, t, r, conf)]["implied_fx"]}
                 if meta.get((m, t, r, conf), {}).get("implied_fx") else {})}
             for (t, r, conf), a in sorted(d["tools"].items(), key=lambda kv: -kv[1])
         ]
+        # An agency or processor is not a tool. Writing its name in the Tool
+        # column would claim the owner promotes it, which is false — so the row
+        # moves to untraced. It arrives there better off than an unclaimed bank
+        # credit, not worse: it carries a named payer, an exact amount and a
+        # route, which is a shorter path to the answer than a bank reference.
+        tools, named_rows = [], []
+        for row in rows:
+            info = non_tools.get(row["tool"].strip().casefold())
+            if info:
+                named_rows.append({
+                    "kind": "payer",
+                    "amount": row["amount"],
+                    "route": row["route"],
+                    "confidence": row["confidence"],
+                    "payer": info.get("payer", row["tool"]),
+                    "via": info.get("via", row["tool"]),
+                    "note": info.get("note"),
+                    "rail_label": rail_labels.get(row["route"][0].lower(),
+                                                  row["route"][0]),
+                })
+            else:
+                tools.append(row)
+
         untraced = d["untraced"]
+        # Named payers first: they are the cheapest to chase, so they lead.
+        credits = named_rows + [{"kind": "credit", **c} for c in untraced["credits"]]
+        amount = round(untraced["amount"] + sum(r["amount"] for r in named_rows), 2)
+
         reasons = []
-        if untraced["amount"] > PAISE:
-            reasons = sorted({c["rail"] for c in untraced["credits"]})
+        if amount > PAISE:
+            # The most useful thing we know leads. A named payer beats a rail,
+            # and a rail beats "unknown".
+            reasons = sorted({f"paid via {r['via']}" for r in named_rows})
+            reasons += sorted({c["rail_label"] for c in untraced["credits"]})
             if sources_absent:
                 reasons.append("source_not_connected")
         out[m] = {
@@ -389,14 +710,17 @@ def attribute(rails, paypal_months, ps=None, impact=None, sources_absent=()):
             "rails": {k: v for k, v in sorted(d["rails"].items())},
             "tools": tools,
             "untraced": {
-                "amount": round(untraced["amount"], 2),
+                "amount": amount,
                 "reasons": reasons,
-                "credits": untraced["credits"],
+                "credits": credits,
             },
         }
-        # The invariant this whole module exists to hold.
+        # The invariant this whole module exists to hold. Two buckets: money we
+        # can put a tool name against, and money we cannot.
         traced = sum(t["amount"] for t in tools)
-        drift = abs(traced + untraced["amount"] - d["bank_total"])
-        assert drift <= 1.0, f"{m}: tools+untraced off bank total by {drift:.2f}"
+        drift = abs(traced + amount - d["bank_total"])
+        assert drift <= 1.0, (
+            f"{m}: tools+untraced off bank total by {drift:.2f}")
 
-    return out, {"partnerstack": ps_notes, "impact": im_notes}
+    return out, {"partnerstack": ps_notes, "tolt": tolt_notes,
+                 "impact": im_notes}

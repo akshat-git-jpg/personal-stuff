@@ -55,6 +55,14 @@ When a public surface changes, update **all three in the same change**:
 2. `INFRA.md` (Worker/bindings/DNS inventory),
 3. the kushal-tools hub card (`apps/kushal-tools/src/hub.ts` `APPS` array) + redeploy kushal-tools — its own CLAUDE.md mandates this.
 
+**Do not rely on remembering step 3 — ask.** The moment a new surface is reachable at a
+URL, put the question to the owner directly: *"add this to kushal-tools?"* He asked for
+this on 2026-08-30, after yt-income shipped, deployed and got written into two inventories
+while the hub card was still missing. Adding it is one line in `APPS` plus a redeploy; the
+failure mode is not difficulty, it is that the step sits at the end of a long build when
+attention has already moved on. Asking converts it from something you must remember into
+something he decides.
+
 This rule has slipped repeatedly. The 2026-06/07 drift it caused (founders-tracker and timeblock missing from INFRA.md, D1 count 2-vs-5, `BLOCKS_KV` unlisted, 4 crons missing, no timeblock hub card) was repaired on 2026-07-12 and the canonical drift table that lived here was retired per its own all-OK condition (logged in `decisions.md` 2026-07-12).
 
 ## INFRA.md drift — regression check

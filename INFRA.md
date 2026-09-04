@@ -53,6 +53,7 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 - **kushal-gym** — `kushal-gym.agrolloo.com` — gym PWA, Google Sheet-backed via OAuth refresh token.
 - **kushal-docs** — `kushal-docs.agrolloo.com` — document-vault PWA, R2-backed (bucket `kushal-docs`), Google sign-in allow-listed to one email.
 - **yt-tutorials-tracker** — `tutorials-tracker.agrolloo.com` — YouTube tutorials Kanban app; also mints go.agrolloo.com short links. Bindings: `SESSIONS` (KV), `CLICKS_KV`, `clicks-db` (D1).
+- **yt-income** — `yt-income.agrolloo.com` — revenue dashboard: affiliate income by month and by tool, every figure tallied against bank credits, with an explicit Untraced row for money that arrived but cannot be attributed. Shared-password gate (stateless signed cookie). **No bindings and no upstream API keys** — the figures are a build-time snapshot of `pipelines/income-analysis/summary.json`, copied in by `scripts/sync-summary.mjs`, so the Worker never holds a PayPal, impact.com or PartnerStack credential. Refreshed by the `yt-income` skill, not on a schedule (half the income only exists in a hand-exported bank passbook). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 - **yt-analytics** — `yt-analytics.agrolloo.com` — click dashboard (per-video/per-link counts) over `clicks-db`, plus **live YouTube view counts** fetched from the YouTube Data API per load. Shared-password gate (stateless signed cookie, no KV). Binding: `clicks-db` (D1, read-only). Secrets: `APP_PASSWORD`, `SESSION_SECRET`, `YT_API_KEY` (YouTube Data API v3 key, project `n8n-workflows-454504`).
 - **lists-app** — `lists.agrolloo.com` — personal categorized-lists app (SPA). Shared-password gate (stateless signed cookie, no KV). Bindings: `ASSETS` (SPA in `dist/`), `DB` (D1 `lists-db`). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 - **founders-tracker** — `founders.agrolloo.com` — founders/CRM tracker SPA. Bindings: `ASSETS`, `DB` (D1 `founders-db`). Worker cron `35 18 * * *`. Secrets: `APP_PIN`, `SESSION_SECRET`.
@@ -74,6 +75,7 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 - `tracker-db` — yt-tutorials-tracker app data (second D1 binding alongside `clicks-db`).
 - `founders-db` — founders-tracker data store. Bound as `DB` in founders-tracker only.
 - `yt-rankings` — YouTube rankings data, bound in yt-analytics (second D1 binding alongside read-only `clicks-db`).
+  (yt-income has **no** database — its figures are baked into the Worker bundle at build time.)
 - `closet-db` — closet-app data (`clothes`, `looks`, `tags`, `item_tags`, `events`). Bound as `DB` in closet-app only. Id `f454ff38-7ed8-4903-923e-bab70a96d54a` (region APAC). The `events` table is the wear/wash log that powers Undo — do not derive counts from it, `clothes.wears` is the live value.
 
 ### R2 buckets (2)
@@ -95,6 +97,24 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 - SPF + DKIM (`cf2024`) for Cloudflare email.
 
 ---
+
+## Affiliate mailboxes (agrolloo.com)
+
+`agrolloo.com` mail is Hostinger's own (`mx1/mx2.hostinger.com`), **not** Gmail, so
+`pp-gmail` cannot read it. Two mailboxes carry every affiliate commission and payout
+notice: `khushibakliwal@agrolloo.com` and `kushalbakliwal@agrolloo.com`, 1 GB each.
+
+Two consumers, one credential, two copies:
+
+| Consumer | Where the password lives |
+|---|---|
+| gmail-digest cron (Telegram digest) | `/srv/crons/gmail-digest/.env` on the VPS |
+| `pipelines/income-analysis/mailbox.py` (yt-income tally) | `infra/secrets/hostinger-mail.env` (gitignored, chmod 600) |
+
+⚠️ These are **mailbox passwords, not scoped tokens** — they can send as well as read.
+Rotate in Hostinger webmail, then update **both** locations or one consumer breaks
+silently. Account config (hosts, ports, env-var names, no secrets) is committed at
+`apps/telegram-email-assistant/imap-accounts.json`.
 
 ## Hostinger VPS
 

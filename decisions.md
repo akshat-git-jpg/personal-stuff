@@ -1310,3 +1310,70 @@ raised, so the rewrite would sometimes have nothing to write.
 - 2026-09-01 — **The no-edits-in-main override token is gitignored.** `touch .claude/allow-main-edit` disarms `no-edits-in-main.sh` for 10 minutes, but nothing deletes the file afterwards. Left untracked and un-ignored it kept the main checkout permanently dirty, so `commit-before-stop.sh` blocked the end of EVERY session in main — including sessions that edited nothing (observed today on a session whose only input was "hello"). The nag then costs a turn and, worse, trains sessions to wave the hook away, which is exactly the reflex the 2026-08-22 incident needs them not to have. Ignoring the token is safe because the wall stats the file on disk and never consults git, so the override keeps working unchanged. Rejected: having the wall delete its own sentinel after use — a PreToolUse hook fires per edit, so it would revoke the override mid-batch, defeating the 10-minute window.
 - 2026-09-01 — **GNU `stat -c` is tried before BSD `stat -f`, everywhere.** The sentinel check in `no-edits-in-main.sh` read `stat -f %m || stat -c %Y`, and GNU stat's `-f` is `--file-system`, which SUCCEEDS on a real path — so the fallback never ran on Linux or Git Bash, `MOD` caught a block of filesystem info, and `[ "$MOD" -gt 0 ]` errored. The documented `touch .claude/allow-main-edit` escape hatch had therefore never worked on Windows: the wall refused the edit anyway, with no clue why. Found by `test-no-edits-in-main.sh`, which had been failing that one case on this box. `ppwork_mtime` in `tooling/cli/pp-work` had already learned this and fixed its own copy; the hook was never updated. GNU-first is the only ordering that degrades onto BSD, and the result is now digit-validated so a future surprise falls back to 0 (fail-closed) instead of erroring.
 - 2026-09-01 — **New maintainer job `diskspace`: gitignored bulk is classified before it is counted.** The checkout had grown to 39 GB, ~35 GB of it gitignored, and no job could see it: `bigfiles` walks the same `git status --ignored` list but its loop is `[ -f "$p" ] || continue`, so it reports oversized **files** and never sizes **directories** — the single largest item in the repo (`assembly-cache/`, 4.8 GB spread over thousands of small files, no one file near the 4 MB bar) was invisible to it. `artifacts` is scoped to one published video's leftovers, not the tree. So `diskspace` is its own job rather than a flag on either. The load-bearing design choice is that **size ranks, class decides**: every ignored path is sorted by `jobs/diskspace/classify.sh` into CACHE (returns by itself), REBUILD (one quoted command returns it), DERIVED (a pipeline re-run that costs GPU time or an API bill — archived, never deleted) or KEEP, and the classifier is an **allowlist** — an unrecognised path is UNCLASSIFIED and `fix.sh` refuses it. That is not caution for its own sake: the same ignored list holds `apps/*/.dev.vars`, `.mcp.json`, `seed.sql` and every owner-recorded `videos/*/src/` and `screen.mp4`, none of which has a copy in git and the last of which `PIPELINE.md` calls owner-provided. A blanket "clean the ignored files" is a data-loss event. `classify.sh` is sourced by both scripts so the reporting rule and the refusing rule cannot drift, `fix.sh` re-runs `git check-ignore` at the moment of acting (a `.gitignore` edit between check and apply would otherwise reach tracked work), takes one path per call, and dry-runs by default. Measured the same day: 39 GB -> 11 GB, 28 GB reclaimed — 11 GB of IndexTTS-2 weights that were dead because synth runs on Modal (local RTF 32.7), 11.6 GB of render/assembly cache, 5.7 GB of renders for three idle videos. `node_modules` (4.1 GB) was classified REBUILD and deliberately kept.
+
+## 2026-08-30 — yt-income: revenue is anchored to the bank, not to network reports
+
+Built `apps/yt-income` (yt-income.agrolloo.com) with a Revenue tab, and removed the
+short-lived Income tab from `yt-analytics`. Cost and Profit tabs are planned, and they
+have no business inside an analytics app — hence a separate dashboard.
+
+The load-bearing decision: **bank credits are the only source of revenue truth.** Affiliate
+networks report accruals that never reconcile against money received, so they are used
+only to *explain* bank credits, never to add to them. `pipelines/income-analysis/attribute.py`
+runs four passes (PayPal exact → PartnerStack matched → impact.com inferred → untraced) and
+guarantees `tools + untraced == bank total` for every month.
+
+**Untraced money is first-class, not an error.** ~20% of Jan–Aug 2026 cannot be tied to a
+tool. It is shown in dark red with a hatch on the dashboard and listed credit-by-credit in
+the terminal. When a credit has more than one plausible explanation the engine refuses to
+guess: a wrong attribution silently corrupts a source of truth, an honest gap does not.
+Only a broken PayPal reconciliation exits non-zero — a gate that fails on the normal case
+gets switched off within a week.
+
+Gotchas worth keeping: PartnerStack's WAF 403s the default `Python-urllib` User-Agent
+(reads exactly like a bad API key); its payouts response embeds the account holder's home
+address, so `sources.strip_pii()` runs before anything is written; impact.com's earnings
+field is `Action_Cost`, not `Earnings`, and reading the wrong one shows income as zero;
+PayKickstart is parked because its API is vendor-plan only.
+
+Spec: `docs/superpowers/specs/2026-08-30-yt-income-revenue-design.md`
+
+## 2026-08-30 — the two Hostinger mailboxes are an income source, not just a digest feed
+
+`khushibakliwal@agrolloo.com` and `kushalbakliwal@agrolloo.com` receive every affiliate
+commission and payout notification. They are IMAP (Hostinger), invisible to `pp-gmail`,
+but the gmail-digest cron already holds working passwords on the VPS. Reading them is a
+one-command SSH away and needs no new credential.
+
+**Why this matters:** the bank statement says *how much* arrived; only the mailbox says
+*who sent it and for what*. The first sweep immediately settled three things the API
+sources could not — PartnerStack settles over Airwallex, impact.com pays in rupees rather
+than converted USD, and the Rewardful/Tipalti payouts for Lovable and EverBee have been
+blocked on verification since Feb 2026, so that money was earned but never received.
+
+**Rule:** run the mailbox sweep before attributing anything by inference, and never loosen
+an FX band or a date window to make untraced money disappear. Details and the IMAP gotchas
+are in `.claude/skills/yt-income/SKILL.md` section 4d.
+
+## 2026-08-30 — impact.com settles to a different bank account
+
+Owner-confirmed. impact mailed two payments in 2026 (Rs.20,185.19 on 26 Feb,
+Rs.623.00 on 16 Mar) and neither reached the passbook the yt-income tally reads.
+
+**Why it matters:** the tally presents one passbook as the whole picture, and for
+impact that is false. `pass_impact` still infers impact attributions against this
+account, so its output is the weakest link in the engine. Closing it needs the second
+passbook — ask for it rather than inferring around the gap.
+
+## 2026-08-30 — the untraced money is unanswerable from the data we hold
+
+All ₹80,779 of untraced bank income is nine Airwallex IMPS credits from one sending
+account (`7259033210`). Airwallex is a payment middleman: the remitter's name is not
+in the bank remark, and no email anywhere in either mailbox names those amounts.
+
+**The rule this sets:** when the answer is genuinely absent, say so and record what was
+ruled out — do not loosen an FX band or a date window until something fits. Every
+near-miss candidate implies 91–94 INR/USD against a real rate near 87, and that gap is
+evidence *against* the match, not noise to tolerate. The way forward is the bank's own
+remitter lookup against an IMPS reference. Full workings in the yt-income skill,
+"Known open questions".

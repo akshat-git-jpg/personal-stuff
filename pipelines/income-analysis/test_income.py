@@ -14,13 +14,15 @@ import json
 import pathlib
 import sys
 import tempfile
+import contextlib
 import unittest
 from unittest import mock
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-import attribute  # noqa: E402
+import attribute
+import mailbox  # noqa: E402
 import sources    # noqa: E402
 
 
@@ -118,8 +120,9 @@ class PartnerStack(unittest.TestCase):
         self.assert_tallies(months)
         mar = months["2026-03"]
         self.assertEqual(mar["untraced"]["amount"], 0.0)
+        # Legal suffixes are stripped even with no alias configured.
         self.assertEqual({t["tool"] for t in mar["tools"]},
-                         {"Eleven Labs Inc.", "n8n GmbH"})
+                         {"Eleven Labs", "n8n"})
         self.assertTrue(all(t["confidence"] == "matched" for t in mar["tools"]))
         self.assertAlmostEqual(mar["tools"][0]["implied_fx"], 88.72, places=1)
 
@@ -197,6 +200,714 @@ class EdgeCases(unittest.TestCase):
         self.assertEqual(len(mar["tools"]), 1)
         self.assertEqual(mar["tools"][0]["tool"], "HeyGen")
         self.assertEqual(mar["tools"][0]["confidence"], "exact")
+
+
+class ManualAttribution(unittest.TestCase):
+    """The exit route for untraced money: what the owner establishes by hand."""
+
+    def test_manual_entry_names_an_otherwise_untraced_credit(self):
+        credits = [credit("a", "19/03/2026", 22084.36, "airwallex")]
+        manual = [{"date": "19/03/2026", "amount": 22084.36, "tool": "Base44",
+                   "route": ["impact.com", "Airwallex"],
+                   "note": "confirmed in the dashboard"}]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["airwallex"], [], manual=manual)
+        mar = months["2026-03"]
+        self.assertEqual(mar["untraced"]["amount"], 0.0)
+        self.assertEqual(mar["tools"][0]["tool"], "Base44")
+        self.assertEqual(mar["tools"][0]["confidence"], "confirmed")
+        self.assertEqual(mar["tools"][0]["route"], ["impact.com", "Airwallex"])
+
+    def test_manual_outranks_every_heuristic(self):
+        """A hand-confirmed claim must survive a competing automatic match."""
+        credits = [credit("a", "06/03/2026", 7567.40, "airwallex")]
+        ps = {"payouts": [{"key": "p1", "date": "2026-03-03", "amount": 85.29,
+                           "currency": "USD", "status": "successful"}],
+              "rewards": [{"key": "r1", "date": "2026-02-01", "amount": 85.29,
+                           "tool": "Eleven Labs Inc."}]}
+        manual = [{"date": "06/03/2026", "amount": 7567.40, "tool": "Jungle Scout",
+                   "route": ["PartnerStack", "Airwallex"]}]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["airwallex"], [], ps=ps, manual=manual)
+        tools = months["2026-03"]["tools"]
+        self.assertEqual(len(tools), 1)
+        self.assertEqual(tools[0]["tool"], "Jungle Scout")
+        self.assertEqual(tools[0]["confidence"], "confirmed")
+
+    def test_manual_entry_that_matches_nothing_is_ignored(self):
+        credits = [credit("a", "19/03/2026", 22084.36, "airwallex")]
+        manual = [{"date": "01/01/2026", "amount": 999.0, "tool": "Ghost", "route": []}]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["airwallex"], [], manual=manual)
+        self.assertEqual(months["2026-03"]["untraced"]["amount"], 22084.36)
+        self.assertEqual(months["2026-03"]["tools"], [])
+
+
+class BookBoltSource(unittest.TestCase):
+    """The per-tool CLI source, stubbed at the subprocess boundary."""
+
+    PAYOUTS = {
+        "payouts": [
+            {"key": "4344", "date": "2026-08-01", "amount": 105.60,
+             "currency": "USD", "tool": "Book Bolt", "commissions": 26},
+            {"key": "4225", "date": "2026-06-01", "amount": 182.34,
+             "currency": "USD", "tool": "Book Bolt", "commissions": 24},
+        ],
+        "count": 2, "total_paid": 287.94, "currency": "USD",
+    }
+    STATS = {"total_earned": 386.32, "current_unpaid": 98.38,
+             "payout_threshold": 100.0, "currency": "USD"}
+
+    def _stub(self, payouts=None, stats=None, fail=False):
+        """Replace the CLI call so no test ever touches the live portal.
+
+        Never hitting the network here is not just speed: a test that reached
+        the real login form could spend one of the five attempts that stand
+        between this account and a lockout.
+        """
+        import json as _json
+        import subprocess as _sp
+
+        class Result:
+            def __init__(self, out):
+                self.stdout = out
+
+        def fake_run(cmd, **kw):
+            if fail:
+                raise _sp.CalledProcessError(1, cmd)
+            if "payouts" in cmd:
+                return Result(_json.dumps(payouts if payouts is not None else self.PAYOUTS))
+            return Result(_json.dumps(stats if stats is not None else self.STATS))
+
+        return fake_run
+
+    @staticmethod
+    @contextlib.contextmanager
+    def _patched(fake_run):
+        """Patch only what this test needs, and unwind it automatically.
+
+        An earlier version assigned to pathlib.Path.exists by hand and restored
+        a BOUND method onto the class, which silently broke an unrelated mailbox
+        test three classes away. mock.patch unwinds correctly.
+        """
+        with mock.patch.object(sources.subprocess, "run", fake_run), \
+             mock.patch.object(sources.shutil, "which", lambda n: "/fake/" + n), \
+             mock.patch.object(type(sources.BOOKBOLT_SESSION), "exists",
+                               lambda self: True):
+            yield
+
+    def test_amounts_stay_in_dollars(self):
+        """THE units test. A /100 here turns $105.60 into $1.06 and the chart
+        still looks reasonable, which is what makes it dangerous."""
+        with self._patched(self._stub()):
+            out = sources.fetch_bookbolt()
+        amounts = sorted(p["amount"] for p in out["payouts"])
+        self.assertEqual(amounts, [105.60, 182.34])
+        self.assertAlmostEqual(sum(amounts), 287.94, places=2)
+        self.assertEqual(out["stats"]["total_paid"], 287.94)
+
+    def test_the_ledger_is_self_consistent(self):
+        """earned - pending should equal paid. If the portal ever disagrees
+        with itself, the source is reading the wrong fields."""
+        with self._patched(self._stub()):
+            out = sources.fetch_bookbolt()
+        st = out["stats"]
+        self.assertAlmostEqual(st["total_earned"] - st["current_unpaid"],
+                               st["total_paid"], places=2)
+
+    def test_pending_money_is_not_reported_as_paid(self):
+        """$98.38 is earned but NOT sent. Counting it as income double-counts
+        against the month it actually transfers in."""
+        with self._patched(self._stub()):
+            out = sources.fetch_bookbolt()
+        paid = sum(p["amount"] for p in out["payouts"])
+        self.assertNotAlmostEqual(paid, out["stats"]["total_earned"], places=2)
+        self.assertAlmostEqual(paid, out["stats"]["total_paid"], places=2)
+
+    def test_a_failed_login_reads_as_down_not_as_zero(self):
+        """The failure mode that matters. Returning {} or 0 would silently
+        erase Book Bolt from the tally; None makes preflight say 'down'."""
+        with self._patched(self._stub(fail=True)):
+            self.assertIsNone(sources.fetch_bookbolt())
+
+    def test_payouts_carry_an_iso_date_and_the_tool_name(self):
+        with self._patched(self._stub()):
+            out = sources.fetch_bookbolt()
+        for p in out["payouts"]:
+            self.assertRegex(p["date"], r"^\d{4}-\d{2}-\d{2}$")
+            self.assertEqual(p["tool"], "Book Bolt")
+            self.assertEqual(p["currency"], "USD")
+
+    def test_it_declares_the_paypal_rail(self):
+        """Book Bolt settles over PayPal, which is why this source is a CHECK
+        on the PayPal ledger rather than a source of new money."""
+        with self._patched(self._stub()):
+            self.assertEqual(sources.fetch_bookbolt()["rail"], "paypal")
+
+
+class BookBoltPayerOfRecord(unittest.TestCase):
+    """Book Bolt pays through a Bulgarian processor, and that is not a second tool.
+
+    The trap this guards: the payer email is on digitalworks.net, not
+    bookbolt.io, which looks like proof of two different sources. It is proof
+    the two are not the same COMPANY -- but a payer of record routinely differs
+    from the brand, so it never settled which TOOL earned the money.
+
+    What settled it (2026-08-31, via bookbolt-pp-cli reading the portal):
+      * Book Bolt's ledger lists exactly two payouts ever: $182.34 on
+        06/01/2026 and $105.60 on 08/01/2026;
+      * its configured payout rail is PayPal;
+      * the PayPal credit for $105.60 arrived 2026-08-01 -- same day, same cent;
+      * and Book Bolt has no third payout the $105.60 could otherwise be.
+    """
+
+    @staticmethod
+    def rules():
+        here = pathlib.Path(attribute.__file__).resolve().parent
+        return json.loads((here / "rules.json").read_text())
+
+    CYRILLIC = "\u0414\u0438\u0433\u0438\u0442\u0430\u043b \u041c\u0430\u0440\u043a\u0435\u0442\u0438\u043d\u0433 \u0421\u043e\u043b\u0443\u0442\u0438\u043e\u043d\u0441 2011 \u041e\u041e\u0414"
+
+    def test_both_payer_names_resolve_to_one_tool(self):
+        """Two payer identities, one tool. Splitting them understates Book Bolt."""
+        self.assertEqual(attribute.canonical_tool(self.CYRILLIC, self.rules()["tool_aliases"]),
+                         "Book Bolt")
+        self.assertEqual(attribute.canonical_tool("Book Bolt LLC", self.rules()["tool_aliases"]),
+                         "Book Bolt")
+
+    def test_it_is_an_alias_not_an_unidentified_payer(self):
+        """It must NOT sit in unidentified_payers any more: a row matched there
+        is pushed to Untraced, which is exactly the bug this resolved."""
+        rules = self.rules()
+        self.assertNotIn(self.CYRILLIC, rules.get("unidentified_payers", {}))
+        self.assertIn(self.CYRILLIC, rules["tool_aliases"])
+
+    def test_the_reasoning_is_recorded_for_the_next_reader(self):
+        """A merge this easy to second-guess has to carry its evidence inline."""
+        note = self.rules()["_alias_notes"].get("Book Bolt", "")
+        self.assertIn("105.60", note)
+        self.assertIn("2026-08-01", note)
+
+    def test_unidentified_payers_may_be_empty(self):
+        """Empty is the goal state, not a broken config. The mechanism stays."""
+        rules = self.rules()
+        self.assertIsInstance(rules.get("unidentified_payers"), dict)
+
+    def test_an_unaliased_processor_still_goes_to_untraced(self):
+        """The safety net is intact: resolving THIS payer must not teach the
+        engine to guess at the next one."""
+        credits = [credit("a", "01/08/2026", 9165.59, "paypal")]
+        with with_credits(credits):
+            out, _ = attribute.attribute(
+                ["paypal"], {}, None, None, [],
+                aliases={}, unidentified={"Some Agency Ltd": {"via": "SomeAgency"}})
+        self.assertTrue(out, "attribute() returned nothing")
+
+
+class UntracedDetail(unittest.TestCase):
+    """Untraced must never be a bare 'unknown' — it carries what we do know."""
+
+    def test_carries_rail_label_and_bank_reference(self):
+        with mock.patch.object(attribute, "load_bank_credits", lambda rails: [
+            {"id": "a", "date": attribute.parse_day("19/03/2026"), "amount": 22084.36,
+             "rail": "airwallex", "ref": "607882704572"}]):
+            months, _ = attribute.attribute(
+                ["airwallex"], [], rail_labels={"airwallex": "Airwallex"})
+        c = months["2026-03"]["untraced"]["credits"][0]
+        self.assertEqual(c["rail_label"], "Airwallex")
+        self.assertEqual(c["ref"], "607882704572")
+        self.assertIn("Airwallex", months["2026-03"]["untraced"]["reasons"])
+
+    def test_extracts_reference_from_real_remark_shapes(self):
+        cases = [
+            ("IMPS-IN/607882704572/7259033210/AIRWALLE", "607882704572"),
+            ("IMPS- IN/620464855840/917259033210/AIRWALLE", "620464855840"),
+            ("NEFT_IN:34CITIN26717459833CITI0100000//CITIN26717459833/PAYPAL PAYMENTS",
+             "CITIN26717459833"),
+        ]
+        for remark, want in cases:
+            self.assertEqual(attribute.extract_ref(remark), want, remark)
+        self.assertIsNone(attribute.extract_ref("BY CASH"))
+
+    def test_leads_point_at_nearby_unmatched_payouts(self):
+        credits = [credit("a", "19/03/2026", 22084.36, "airwallex")]
+        impact = {"2026-02": [{"tool": "Base44", "amount": 8911.96}]}
+        with with_credits(credits):
+            months, _ = attribute.attribute(
+                ["airwallex"], [], impact=impact, rail_labels={"airwallex": "Airwallex"})
+        leads = months["2026-03"]["untraced"]["credits"][0]["leads"]
+        self.assertTrue(leads, "a nearby unmatched impact month should surface as a lead")
+        self.assertEqual(leads[0]["source"], "impact.com")
+
+
+class ToolNames(unittest.TestCase):
+    """Payer names become names the owner recognises, and duplicates merge."""
+
+    ALIASES = {
+        "Nine Thirty Five LLC": "Fliki",
+        "Book Bolt LLC": "Book Bolt",
+        "Heygen Technology Inc.": "HeyGen",
+    }
+
+    def test_strips_legal_suffixes_without_an_alias(self):
+        for raw, want in [
+            ("Pictory, Corp", "Pictory"),
+            ("TradingView, Inc.", "TradingView"),
+            ("Synthesia Limited", "Synthesia"),
+            ("n8n GmbH", "n8n"),
+            ("Nine Thirty Five LLC", "Nine Thirty Five"),
+        ]:
+            self.assertEqual(attribute.canonical_tool(raw), want, raw)
+
+    def test_alias_beats_suffix_stripping(self):
+        self.assertEqual(
+            attribute.canonical_tool("Heygen Technology Inc.", self.ALIASES), "HeyGen")
+
+    def test_payer_note_beats_a_plausible_guess(self):
+        """'Nine Thirty Five LLC' looks anonymous; its PayPal note says Fliki."""
+        self.assertEqual(
+            attribute.canonical_tool("Nine Thirty Five LLC", self.ALIASES), "Fliki")
+
+    def test_unaliased_cyrillic_entity_is_not_silently_merged(self):
+        """Without an alias it keeps its own identity — never folded into a guess."""
+        out = attribute.canonical_tool("Дигитал Маркетинг Солутионс 2011 ООД", self.ALIASES)
+        self.assertNotEqual(out, "Book Bolt")
+        self.assertTrue(out.startswith("Дигитал"))
+
+    def test_leaves_a_clean_name_alone(self):
+        for name in ("EverBee", "Jungle Scout", "Base44", "Kittl"):
+            self.assertEqual(attribute.canonical_tool(name, self.ALIASES), name)
+
+    def test_two_profiles_of_the_SAME_tool_merge_into_one_row(self):
+        """An alias may deliberately merge two payer profiles onto one tool."""
+        aliases = {"Book Bolt LLC": "Book Bolt", "Book Bolt EU": "Book Bolt"}
+        credits = [credit("a", "10/06/2026", 15763.57, "paypal"),
+                   credit("b", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-06", [("Book Bolt LLC", 15763.57)]),
+              paypal_month("2026-08", [("Book Bolt EU", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, aliases=aliases)
+        names = {t["tool"] for m in months.values() for t in m["tools"]}
+        self.assertEqual(names, {"Book Bolt"})
+        total = sum(t["amount"] for m in months.values() for t in m["tools"])
+        self.assertAlmostEqual(total, 24929.16, places=2)
+
+    def test_distinct_payers_stay_distinct(self):
+        """Two unrelated payers must never collapse just because both are aliased."""
+        credits = [credit("a", "10/06/2026", 15763.57, "paypal"),
+                   credit("b", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-06", [("Book Bolt LLC", 15763.57)]),
+              paypal_month("2026-08", [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(
+                ["paypal"], pp,
+                aliases={"Book Bolt LLC": "Book Bolt",
+                         "Дигитал Маркетинг Солутионс 2011 ООД": "DigitalWorks"})
+        names = {t["tool"] for m in months.values() for t in m["tools"]}
+        self.assertEqual(names, {"Book Bolt", "DigitalWorks"})
+
+
+class PartnerStackDates(unittest.TestCase):
+    """PartnerStack's API date is a created-at, not a paid-at.
+
+    Its five payouts read 2024-04-03 … 2026-07-01 while its own "payout is ready"
+    mails put the SAME amounts months later. Matching on the API date made the
+    engine spend a May payout on a March credit and strand two real credits as
+    untraced, so the mail's date wins wherever the amounts agree.
+    """
+
+    def ev(self, date, amount):
+        return mailbox.Event(date, "payout", None, amount, "USD",
+                             "partnerstackmail.com", "Your PartnerStack Payout")
+
+    def test_mail_date_overrides_the_api_date(self):
+        ps = {"payouts": [{"key": "p1", "date": "2026-03-03",
+                           "amount": 85.29, "currency": "USD"}]}
+        got = attribute.partnerstack_dates(ps, [self.ev("2026-05-01", 85.29)])
+        self.assertEqual(got[85.29], "2026-05-01")
+
+    def test_an_api_payout_with_no_mail_keeps_its_own_date(self):
+        """Silence must not blank a date — that would drop the payout entirely."""
+        self.assertEqual(attribute.partnerstack_dates({"payouts": []}, []), {})
+
+    def test_only_partnerstack_payout_mail_counts(self):
+        """A Rewardful or impact payout mail must not redate a PartnerStack row."""
+        evs = [mailbox.Event("2026-05-01", "payout", None, 85.29, "USD",
+                             "app.impact.com", "x"),
+               mailbox.Event("2026-05-01", "accrual", None, 85.29, "USD",
+                             "partnerstackmail.com", "x")]
+        self.assertEqual(attribute.partnerstack_dates({"payouts": []}, evs), {})
+
+    def test_the_earliest_mail_wins_when_an_amount_repeats(self):
+        """A credit can only follow the first release of that amount."""
+        got = attribute.partnerstack_dates(
+            {"payouts": []}, [self.ev("2026-07-01", 35.64), self.ev("2026-05-04", 35.64)])
+        self.assertEqual(got[35.64], "2026-05-04")
+
+
+    def test_the_override_is_actually_wired_into_the_match(self):
+        """The map alone proves nothing — pass_partnerstack has to USE it.
+
+        API date 2026-03-03 is 65 days before the credit, far outside the 10-day
+        window, so without the override this payout finds no candidate at all.
+        """
+        credits = [credit("a", "07/05/2026", 7988.68, "airwallex")]
+        ps = {"payouts": [{"key": "p1", "date": "2026-03-03", "amount": 85.29,
+                           "currency": "USD"}],
+              "rewards": [{"key": "r1", "date": "2026-04-20", "amount": 85.29,
+                           "tool": "Eleven Labs Inc."}]}
+        with with_credits(credits):
+            claims, notes = attribute.pass_partnerstack(
+                credits, ps, [self.ev("2026-05-01", 85.29)])
+        self.assertTrue(claims, "mail date should bring the credit into range: %s" % notes)
+        # Raw payer name here: canonical_tool runs later, in attribute().
+        self.assertEqual(claims[0]["tool"], "Eleven Labs Inc.")
+        self.assertAlmostEqual(claims[0]["amount"], 7988.68, places=2)
+
+
+class NetworkPayoutPass(unittest.TestCase):
+    """The shared matcher every per-tool CLI source plugs into.
+
+    The owner is building one CLI per affiliate network, so this pass will carry
+    all of them. Its job is not to match as much as possible -- it is to match
+    only what is unambiguous, and to say so loudly when it cannot.
+    """
+
+    def payout(self, key, date, amount, tool="OpenArt"):
+        return {"key": key, "date": date, "amount": amount,
+                "currency": "USD", "tool": tool}
+
+    def test_a_single_candidate_is_claimed(self):
+        credits = [credit("a", "23/07/2026", 9242.06, "airwallex")]
+        with with_credits(credits):
+            claims, notes = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(len(claims), 1, notes)
+        self.assertEqual(claims[0]["tool"], "OpenArt")
+        self.assertAlmostEqual(claims[0]["amount"], 9242.06, places=2)
+        self.assertEqual(claims[0]["route"], ["Tolt", "Airwallex"])
+        self.assertEqual(claims[0]["confidence"], "matched")
+
+    def test_two_candidates_refuse_rather_than_guess(self):
+        """The rule the whole file exists for. A coin flip here becomes a
+        confident wrong number on the dashboard."""
+        credits = [credit("a", "20/07/2026", 9242.06, "airwallex"),
+                   credit("b", "23/07/2026", 9242.06, "airwallex")]
+        with with_credits(credits):
+            claims, notes = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(claims, [])
+        self.assertEqual(notes[0]["reason"], "ambiguous")
+        self.assertEqual(notes[0]["candidates"], 2)
+
+    def test_a_credit_before_the_payout_is_never_claimed(self):
+        """Money cannot arrive before it was sent."""
+        credits = [credit("a", "01/07/2026", 9242.06, "airwallex")]
+        with with_credits(credits):
+            claims, _ = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(claims, [])
+
+    def test_tolt_gets_a_wider_window_than_partnerstack(self):
+        """Tolt stamps the payout at generation and moves money at invoice, up
+        to a fortnight later -- proven by the 8 Jul payout whose receipt is dated
+        23 Jul, the day of the credit. PartnerStack keeps the tight window."""
+        self.assertGreater(attribute.SETTLEMENT_WINDOW_DAYS["Tolt"],
+                           attribute.PAYOUT_WINDOW_DAYS)
+        credits = [credit("a", "23/07/2026", 9242.06, "airwallex")]
+        with with_credits(credits):
+            claims, _ = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(len(claims), 1, "15-day lag must be inside Tolt's window")
+        # The same lag under the default window must NOT match.
+        credits = [credit("a", "23/07/2026", 9242.06, "airwallex")]
+        with with_credits(credits):
+            claims, _ = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "SomeOtherNetwork", ["X", "Airwallex"])
+        self.assertEqual(claims, [], "the wide window must be Tolt-only")
+
+    def test_a_rate_outside_the_band_is_refused(self):
+        """A credit that would imply an impossible exchange rate is not that
+        payout, however close the dates are."""
+        credits = [credit("a", "23/07/2026", 500000.00, "airwallex")]
+        with with_credits(credits):
+            claims, notes = attribute.pass_network_payouts(
+                credits, [self.payout("p1", "2026-07-08", 96.30)],
+                "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(claims, [])
+        self.assertEqual(notes[0]["reason"], "no_candidate")
+
+    def test_non_usd_and_zero_payouts_are_skipped(self):
+        credits = [credit("a", "23/07/2026", 9242.06, "airwallex")]
+        rows = [{"key": "p1", "date": "2026-07-08", "amount": 96.30,
+                 "currency": "INR", "tool": "OpenArt"},
+                self.payout("p2", "2026-07-08", 0)]
+        with with_credits(credits):
+            claims, _ = attribute.pass_network_payouts(
+                credits, rows, "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(claims, [])
+
+    def test_one_credit_is_claimed_once(self):
+        """Two payouts must not both take the same credit."""
+        credits = [credit("a", "23/07/2026", 9242.06, "airwallex")]
+        rows = [self.payout("p1", "2026-07-08", 96.30),
+                self.payout("p2", "2026-07-09", 96.30)]
+        with with_credits(credits):
+            claims, notes = attribute.pass_network_payouts(
+                credits, rows, "Tolt", ["Tolt", "Airwallex"])
+        self.assertEqual(len(claims), 1)
+        self.assertEqual([n["reason"] for n in notes], ["no_candidate"])
+
+
+class NonToolPayers(unittest.TestCase):
+    """An agency is not a tool, and must never be written as one.
+
+    It is not a third bucket either. There are two answers to "which tool earned
+    this?" — we know, or we do not — so an agency payment lands in untraced with
+    its payer attached as evidence.
+    """
+
+    UNKNOWN = {"Дигитал Маркетинг Солутионс 2011 ООД":
+               {"via": "DigitalWorks", "note": "affiliate agency"}}
+
+    def test_agency_is_kept_out_of_the_tool_list(self):
+        credits = [credit("a", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-08",
+                           [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, unidentified=self.UNKNOWN)
+        aug = months["2026-08"]
+        self.assertEqual(aug["tools"], [], "an agency must not appear as a tool")
+        self.assertAlmostEqual(aug["untraced"]["amount"], 9165.59, places=2)
+
+    def test_there_is_no_third_bucket(self):
+        """One word for "we do not know", not two. A second bucket reads as a
+        second kind of money and invites a misread of the tally."""
+        credits = [credit("a", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-08",
+                           [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, unidentified=self.UNKNOWN)
+        self.assertNotIn("unidentified", months["2026-08"])
+
+    def test_untraced_agency_row_keeps_its_evidence(self):
+        """Untraced is never a bare "unknown" — whatever we know rides along."""
+        credits = [credit("a", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-08",
+                           [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, unidentified=self.UNKNOWN)
+        row = months["2026-08"]["untraced"]["credits"][0]
+        self.assertEqual(row["kind"], "payer")
+        self.assertEqual(row["via"], "DigitalWorks")
+        self.assertIn("Дигитал", row["payer"])
+        self.assertEqual(row["route"], ["PayPal"])
+        self.assertIn("paid via DigitalWorks", months["2026-08"]["untraced"]["reasons"])
+
+    def test_invariant_holds_with_two_buckets(self):
+        credits = [credit("a", "03/08/2026", 9165.59, "paypal"),
+                   credit("b", "06/08/2026", 7014.74, "paypal"),
+                   credit("c", "21/08/2026", 5000.00, "airwallex")]
+        pp = [paypal_month("2026-08",
+                           [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59),
+                            ("HeyGen", 7014.74)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(
+                ["paypal", "airwallex"], pp, unidentified=self.UNKNOWN)
+        aug = months["2026-08"]
+        total = sum(t["amount"] for t in aug["tools"]) + aug["untraced"]["amount"]
+        self.assertAlmostEqual(total, aug["bank_total"], delta=1.0)
+        # The agency money and the unclaimed Airwallex credit share one bucket,
+        # each carrying its own evidence.
+        kinds = [c["kind"] for c in aug["untraced"]["credits"]]
+        self.assertEqual(sorted(kinds), ["credit", "payer"])
+
+    def test_matching_survives_suffix_stripping(self):
+        """The lookup keys on the canonical name, not the raw payer string."""
+        credits = [credit("a", "03/08/2026", 9165.59, "paypal")]
+        pp = [paypal_month("2026-08",
+                           [("Дигитал Маркетинг Солутионс 2011 ООД", 9165.59)])]
+        with with_credits(credits):
+            months, _ = attribute.attribute(["paypal"], pp, unidentified=self.UNKNOWN)
+        # " ООД" is stripped before the check; if the lookup used the raw name it
+        # would silently miss and the agency would show up as a tool.
+        self.assertEqual(months["2026-08"]["tools"], [])
+
+
+class MailboxParsing(unittest.TestCase):
+    """The mail parsers must be strict. A parser that guesses feeds a wrong tool
+    name into the one number the owner treats as truth."""
+
+    def test_impact_payout_is_read_in_rupees(self):
+        """impact.com pays INR straight to the bank -- the only source whose mail
+        states the exact figure the bank will show."""
+        body = ("Commission Payment Processed Hi Khushi, The funds for Agrollo's "
+                "most recent payment of Rs.20,185.19 have been transferred")
+        got = mailbox._p_impact("notifications@app.impact.com",
+                                "Commission Payment Processed", body)
+        self.assertEqual(got, ("payout", None, 20185.19, "INR"))
+
+    def test_impact_marketing_mail_is_ignored(self):
+        """Same domain, no payment. Must stay silent rather than invent a payout."""
+        self.assertIsNone(mailbox._p_impact(
+            "notifications@outreach.impact.com",
+            "We're Increasing Your Affiliate Commission",
+            "Earn up to $150 per sale and Rs.5,000 in bonuses"))
+
+    def test_partnerstack_payout_amount_comes_from_the_subject(self):
+        got = mailbox._p_partnerstack("hello@partnerstackmail.com",
+                                      "Your PartnerStack Payout of $32.66 USD is ready", "")
+        self.assertEqual(got, ("payout", None, 32.66, "USD"))
+
+    def test_bookbolt_accrual_names_its_tool(self):
+        got = mailbox._p_bookbolt("affiliates@bookbolt.io",
+                                  "New Commission Notification",
+                                  "Commission Amount: $4.80 USDSincerely,")
+        self.assertEqual(got, ("accrual", "Book Bolt", 4.80, "USD"))
+
+    def test_rewardful_payout_keeps_the_program_not_the_wrapper(self):
+        """The program is the tool. "Friends of EverBee" is EverBee."""
+        self.assertEqual(
+            mailbox._p_rewardful_payout(
+                "hello@getrewardful.com",
+                "Your Friends of EverBee payout is ready to withdraw", ""),
+            ("payout_undisclosed", "EverBee", None, None))
+        self.assertEqual(
+            mailbox._p_rewardful_payout(
+                "hello@getrewardful.com",
+                "Your Lovable Affiliates payout is ready to withdraw", "")[1],
+            "Lovable")
+
+    def test_rewardful_payout_carries_no_amount(self):
+        """Rewardful never states a figure. Claiming one would be a fabrication."""
+        kind, _, amount, currency = mailbox._p_rewardful_payout(
+            "hello@getrewardful.com", "Your Lovable Affiliates payout is ready", "")
+        self.assertEqual(kind, "payout_undisclosed")
+        self.assertIsNone(amount)
+        self.assertIsNone(currency)
+
+    def test_load_secrets_handles_the_export_prefix(self):
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".env", delete=False) as fh:
+            fh.write("# comment\nexport IMAP_PASS_A=secret1\nIMAP_PASS_B='secret2'\n")
+            path = fh.name
+        got = mailbox.load_secrets(path)
+        self.assertEqual(got, {"IMAP_PASS_A": "secret1", "IMAP_PASS_B": "secret2"})
+
+    def test_missing_secrets_is_a_note_not_a_crash(self):
+        """No passwords must degrade the tally, never break it."""
+        events, notes = mailbox.fetch_events(secrets_path="/nonexistent/x.env")
+        self.assertEqual(events, [])
+        self.assertTrue(notes)
+
+
+    def test_no_committed_file_carries_an_email_address(self):
+        """summary.json and rules.json are committed to a public repo. A payer's
+        identity is a useful fact; a named person's address at that payer is not,
+        and it was leaking through a rules.json note until 2026-08-30."""
+        import re
+        pat = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+        here = pathlib.Path(__file__).resolve().parent
+        for name in ("summary.json", "rules.json"):
+            p = here / name
+            if not p.exists():
+                continue
+            hit = pat.search(p.read_text())
+            self.assertIsNone(hit, "%s leaks %s" % (name, hit.group(0) if hit else ""))
+
+
+class MailboxLeads(unittest.TestCase):
+    """Mail becomes a lead on an untraced row, never an attribution."""
+
+    def ev(self, date, kind, tool=None, amount=None, currency=None, source="x.com"):
+        return mailbox.Event(date, kind, tool, amount, currency, source, "subj")
+
+    def test_an_exact_rupee_payout_outranks_a_nearer_vague_one(self):
+        """Strength beats recency. A payout matching to the paisa is an answer;
+        a payout with no amount is only a place to look."""
+        events = [
+            self.ev("2026-03-18", "payout_undisclosed", tool="Lovable",
+                    source="getrewardful.com"),
+            self.ev("2026-03-01", "payout", amount=22084.36, currency="INR",
+                    source="app.impact.com"),
+        ]
+        leads = mailbox.leads_for_credit("19/03/2026", 22084.36, events)
+        self.assertEqual(leads[0]["source"], "impact.com")
+        self.assertIn("exactly this credit", leads[0]["what"])
+
+    def test_a_non_matching_rupee_payout_does_not_claim_the_credit(self):
+        events = [self.ev("2026-03-16", "payout", amount=623.00, currency="INR",
+                          source="app.impact.com")]
+        leads = mailbox.leads_for_credit("19/03/2026", 22084.36, events)
+        self.assertNotIn("exactly this credit", leads[0]["what"])
+
+    def test_accruals_never_become_leads(self):
+        """Earned is not received. Rewardful commissions accrued all year behind a
+        blocked Tipalti verification and never reached a bank."""
+        events = [self.ev("2026-03-15", "accrual", tool="Book Bolt",
+                          amount=4.80, currency="USD", source="bookbolt.io")]
+        self.assertEqual(mailbox.leads_for_credit("19/03/2026", 22084.36, events), [])
+
+    def test_mail_after_the_credit_is_not_a_lead(self):
+        """Money cannot be explained by a payout announced after it landed."""
+        events = [self.ev("2026-03-25", "payout", amount=100.0, currency="USD")]
+        self.assertEqual(mailbox.leads_for_credit("19/03/2026", 22084.36, events), [])
+
+    def test_source_labels_are_human(self):
+        """A raw sender domain in the Source column reads as plumbing."""
+        self.assertEqual(mailbox.label("app.impact.com"), "impact.com")
+        self.assertEqual(mailbox.label("partnerstackmail.com"), "PartnerStack")
+        self.assertEqual(mailbox.label("unknown-sender.io"), "unknown-sender.io")
+
+
+class MailboxPrivacy(unittest.TestCase):
+    """summary.json is committed to a public repo."""
+
+    def test_events_carry_a_domain_never_an_address(self):
+        import email as _email
+        raw = (b"From: Someone <a.person@bookbolt.io>\r\n"
+               b"Subject: New Commission Notification\r\n"
+               b"Date: Tue, 17 Mar 2026 10:00:00 +0000\r\n"
+               b"Content-Type: text/plain\r\n\r\n"
+               b"Commission Amount: $4.80 USD")
+        ev = mailbox._parse(_email.message_from_bytes(raw))
+        self.assertEqual(ev.source, "bookbolt.io")
+        self.assertNotIn("@", ev.source)
+
+    def test_no_lead_text_carries_an_address(self):
+        events = [mailbox.Event("2026-03-01", "payout", None, 22084.36, "INR",
+                                "app.impact.com", "Commission Payment Processed")]
+        for lead in mailbox.leads_for_credit("19/03/2026", 22084.36, events):
+            self.assertNotIn("@", lead["what"] + lead["source"])
+
+
+class Preflight(unittest.TestCase):
+    """One trigger drives PayPal, impact.com and PartnerStack — and says so."""
+
+    def test_reports_every_source(self):
+        ids = {c["id"] for c in sources.preflight()}
+        # Every source must be named here. A new one that forgets to register
+        # is a source whose outage would look like zero income.
+        self.assertEqual(ids, {"paypal", "impact", "partnerstack", "paykickstart",
+                               "bookbolt",
+                               "tolt"})
+
+    def test_missing_cli_is_reported_not_swallowed(self):
+        with mock.patch.object(sources.shutil, "which",
+                               lambda n: None if n == "impact-pp-cli" else "/usr/bin/" + n):
+            checks = {c["id"]: c for c in sources.preflight()}
+        self.assertFalse(checks["impact"]["ok"])
+        self.assertIn("CLI missing", checks["impact"]["detail"])
+
+    def test_paykickstart_is_reported_as_parked_not_broken(self):
+        pk = next(c for c in sources.preflight() if c["id"] == "paykickstart")
+        self.assertFalse(pk["ok"])
+        self.assertIn("parked", pk["detail"])
 
 
 class Privacy(unittest.TestCase):
