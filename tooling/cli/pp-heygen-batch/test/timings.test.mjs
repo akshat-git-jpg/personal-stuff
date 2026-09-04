@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { rangeForText, ensureWords } from '../lib/timings.mjs'
 
-const wordsJsonPath = join(process.cwd(), 'tooling/cli/pp-heygen-batch/test/fixtures/words-s01.json')
+const wordsJsonPath = join(import.meta.dirname, 'fixtures/words-s01.json')
 const fixture = JSON.parse(readFileSync(wordsJsonPath, 'utf8'))
 
 test('rangeForText: exact match', () => {
