@@ -1409,3 +1409,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 265-no-writes-in-main-wall — third main-checkout wall: catches Bash subprocess writes that slip past no-edits-in-main.sh / no-history-in-main.sh; quarantine + auto-revert with 10-min sentinel escape hatch — TODO
 - 265-no-writes-in-main-wall — PR#225 265-no-writes-in-main-wall: third main-checkout wall (catches Bash subprocess writes) — DONE
 - 266-yt-script-desk-avatar-mode — PR#226 266-yt-script-desk-avatar-mode: editor selection view for HeyGen batches — DONE
+- 267-pp-heygen-batch-runner — PR#227 267-pp-heygen-batch-runner: whisper align + heygen dispatch + drive upload — DONE
