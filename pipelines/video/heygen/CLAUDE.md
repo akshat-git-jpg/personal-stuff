@@ -32,8 +32,13 @@ Renders live in `~/kb-scratch/video/heygen/`. (The media-board gallery was retir
 ## How to generate
 
 - **HeyGen (today's path):** `tooling/cli/heygen-web` — read its CLAUDE.md first (auth via
-  captured cURLs, Avatar III only, anti-ban rules). Template renders for girl-1/specs-man (the only two template ids left after the 2026-08-02 cull);
-  photo-avatar renders for the `avatar_id` characters.
+  captured cURLs, anti-ban rules). Default is **Avatar III (unlimited on the
+  subscription)**; **Avatar IV is supported** via `--iv` / `--engine heygen4` and is used
+  for approved final cuts. Avatar IV is not free — every second draws from the
+  monthly `/1200` generative-credit pool, so per batch: check `limits` before submit and
+  verify the meter with `usage --save` / `usage --diff` (an Avatar IV submit MUST print
+  ⚠️NOT-free). Template renders for girl-1/specs-man (the only two template ids left
+  after the 2026-08-02 cull); photo-avatar renders for the `avatar_id` characters.
 - **fal-lipsync (validated replacement, not yet productized):** see `fal-lipsync/README.md` —
   next step is the owner's verdict on the base clip, then a thin `tooling/cli/` avatar CLI
   via the orchestrate → secretary flow.
