@@ -124,7 +124,7 @@ if [ "$GD" = "$GCD" ]; then
   # between an edit and a publish — the hook's "someone left main dirty" assumption does
   # not apply. If every dirty path is a desk-managed script-plan.md, exit silently. Any
   # other dirty file (even one, alongside a desk file) still trips the nag.
-  NON_DESK="$(printf '%s\n' "$DIRTY" | awk 'NF { p=substr($0,4); if (p !~ /^pipelines\/youtube\/yt-script\/videos\/[^/]+\/script-plan\.md$/) print }')"
+  NON_DESK="$(printf '%s\n' "$DIRTY" | awk 'NF { p=substr($0,4); if (p !~ "^pipelines/youtube/yt-script/videos/[^/]+/script-plan\\.md$") print }')"
   [ -z "$NON_DESK" ] && exit 0
 
   # Suppress the nag when THIS session made no file-editing tool call. Main is shared, so
