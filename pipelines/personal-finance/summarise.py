@@ -23,6 +23,7 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+import emit       # noqa: E402
 import parse_sbi  # noqa: E402
 
 DATA = HERE / "data"
@@ -100,6 +101,10 @@ def main():
     PARSED.mkdir(parents=True, exist_ok=True)
     (PARSED / (stmt.stem + ".json")).write_text(
         json.dumps({"meta": meta, "transactions": rows}, indent=1, ensure_ascii=False))
+
+    # The dashboard's data file. Gitignored: it names real counterparties.
+    written = emit.write(emit.build(rows, meta, rules))
+    print("wrote   %s" % written.relative_to(HERE))
 
     render(rows, meta, rules, stmt)
 

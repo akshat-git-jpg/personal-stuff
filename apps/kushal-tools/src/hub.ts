@@ -22,6 +22,8 @@ const APPS: App[] = [
   { name: "Personal Dashboard", host: "my-dashboard.agrolloo.com", url: "https://my-dashboard.agrolloo.com", kind: "app" },
   { name: "Tutorials Tracker", host: "tutorials-tracker.agrolloo.com", url: "https://tutorials-tracker.agrolloo.com", kind: "app" },
   { name: "YT Analytics", host: "yt-analytics.agrolloo.com", url: "https://yt-analytics.agrolloo.com", kind: "app" },
+  { name: "YT Income", host: "yt-income.agrolloo.com", url: "https://yt-income.agrolloo.com", kind: "app" },
+  { name: "Kushal Income", host: "kushal-income.agrolloo.com", url: "https://kushal-income.agrolloo.com", kind: "app" },
   { name: "Founders Tracker", host: "founders.agrolloo.com", url: "https://founders.agrolloo.com", kind: "app" },
   { name: "Timeblock", host: "timeblock.agrolloo.com", url: "https://timeblock.agrolloo.com", kind: "app" },
   { name: "Hyperframes Renderer", host: "render2.agrolloo.com", url: "https://render2.agrolloo.com", kind: "infra" },
