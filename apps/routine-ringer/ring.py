@@ -149,6 +149,11 @@ def main() -> int:
     events, now = upcoming_events(tz)
     fired = 0
 
+    # Collect every event whose start falls in the fire window and hasn't
+    # been fired yet. Merge these into a SINGLE Bark push so simultaneous
+    # events (e.g. Commute Office + Talk to Dadiji both at 10:30) don't
+    # trigger a burst of pushes whose sounds fight each other on the phone.
+    due: list[tuple[dict, datetime.datetime, str]] = []
     for ev in events:
         eid = ev.get("id")
         if not eid:
@@ -169,15 +174,24 @@ def main() -> int:
         if not (-PAST_WINDOW <= delta <= FUTURE_WINDOW):
             continue
 
-        title = ev.get("summary", "(no title)")
+        due.append((ev, start, dedupe_key))
+
+    if due:
+        titles = [ev.get("summary", "(no title)") for (ev, _, _) in due]
+        n = len(due)
+        body = " | ".join(titles) if n > 1 else titles[0]
+        push_title = f"🔔 Routine Time ({n})" if n > 1 else "🔔 Routine Time"
+        first_start = due[0][1]
         try:
-            fire_bark("🔔 Routine Time", title)
-            fire_telegram(f"⏰ {start.strftime('%H:%M')} — {title}")
-            state["fired"][dedupe_key] = datetime.datetime.now(datetime.timezone.utc).timestamp()
-            fired += 1
-            print(f"[fired] {start.strftime('%H:%M')} {title}", flush=True)
+            fire_bark(push_title, body)
+            fire_telegram(f"⏰ {first_start.strftime('%H:%M')} — {body}")
+            now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
+            for (_, _, dedupe_key) in due:
+                state["fired"][dedupe_key] = now_ts
+            fired = n
+            print(f"[fired] {first_start.strftime('%H:%M')} {n} event(s): {body}", flush=True)
         except Exception as e:
-            print(f"[error] {title}: {e}", file=sys.stderr, flush=True)
+            print(f"[error] fire failed: {e}", file=sys.stderr, flush=True)
 
     save_state(state)
     if fired == 0:
