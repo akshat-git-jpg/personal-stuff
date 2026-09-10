@@ -7,6 +7,19 @@
   "docsFolderUrl": "https://drive.google.com/drive/folders/16y-IFrlP1SnScRY9M3YyfDkXpvEc8ASc",
   "days": [
     {
+      "date": "Thu 10 Sep",
+      "label": "Travel",
+      "items": [
+        {
+          "time": "17:15",
+          "what": "Bus out of Bengaluru",
+          "where": "Majestic, front of Bhagya Vinayaga Temple, opp Amar Hotel · 9994439935",
+          "tag": "TVA670297576",
+          "key": true
+        }
+      ]
+    },
+    {
       "date": "Fri 11 Sep",
       "label": "Arrive",
       "items": [
@@ -80,7 +93,7 @@
           "where": "Sekar Travels pickup · 9 km inland, leave by 20:15",
           "pinId": "bus-kallambalam",
           "tag": "TVA657295606",
-          "flag": "Two problems. The homestay is booked until Sun 13 Sep, but this bus leaves Sat night. And the ticket has one seat only (U4, Anusha T)."
+          "flag": "Two problems. Only Anusha has a seat (U4) -- Kushal has no return ticket. And the homestay is paid for Saturday night too, so that night goes unused."
         }
       ]
     },
@@ -93,7 +106,7 @@
           "what": "Homestay checkout deadline",
           "where": "Gouri's Homestay, before 11 AM",
           "pinId": "stay-gouri",
-          "flag": "Nothing else is planned for Sunday, because the return bus already left on Saturday night."
+          "flag": "Nothing is planned for Sunday: the return bus left Saturday 21:10 and reaches Bengaluru Sun 10:00. The room is paid to Sunday either way."
         }
       ]
     }
@@ -105,9 +118,19 @@
       "title": "Bengaluru → Varkala",
       "kind": "Bus ticket · inbound",
       "fields": [
-        { "label": "Operator", "value": "KBS Luxury" },
+        { "label": "Operator", "value": "KBS Luxury Bus" },
+        { "label": "Ref", "value": "TVA670297576" },
+        { "label": "PNR", "value": "1026679" },
+        { "label": "Departs", "value": "Thu 10 Sep · 17:15" },
+        { "label": "Boarding", "value": "Bengaluru Majestic" },
         { "label": "Arrives", "value": "Fri 11 Sep · 07:45" },
-        { "label": "Drop", "value": "Sivagiri Road" }
+        { "label": "Drop", "value": "Varkala Sivagiri Road" },
+        { "label": "Seats", "value": "U5 Anusha T · U6 Kushal Bakliwal" },
+        { "label": "Coach", "value": "A/C Seater / Sleeper (2+1)" }
+      ],
+      "files": [
+        { "name": "ticket.pdf", "url": "https://drive.google.com/file/d/1l7_TZchwSAFSPxQhZ8GgLFVZTKac4dyL/view" },
+        { "name": "tax invoice.pdf", "url": "https://drive.google.com/file/d/1FXQQfVbX_P50dYcACP54MM44KTO7xw7t/view" }
       ]
     },
     {
@@ -116,10 +139,18 @@
       "title": "Gouri's Homestay",
       "kind": "Stay · 2 nights",
       "fields": [
-        { "label": "Check in", "value": "Fri 11 Sep · 14:00" },
-        { "label": "Check out", "value": "Sun 13 Sep · 11:00" },
+        { "label": "Booking ID", "value": "GH20132277129890" },
+        { "label": "PNR", "value": "0186868727" },
+        { "label": "Check in", "value": "Fri 11 Sep · 14:00-23:30" },
+        { "label": "Check out", "value": "Sun 13 Sep · before 11:00" },
+        { "label": "Room", "value": "Non-AC private, 1 double bed" },
+        { "label": "Guests", "value": "2 adults · Kushal Bakliwal" },
         { "label": "Phone", "value": "9447123508" },
         { "label": "Address", "value": "Temple Rd, South Cliff 695141" }
+      ],
+      "files": [
+        { "name": "voucher.pdf", "url": "https://drive.google.com/file/d/1KloCCMB_BI_08WDPZfK6DxKuqljpcf56/view" },
+        { "name": "property rules.pdf", "url": "https://drive.google.com/file/d/1SmjIYA75Q1sApjOSASHaZ3DF6tBI6MAX/view" }
       ]
     },
     {
@@ -130,11 +161,19 @@
       "fields": [
         { "label": "Operator", "value": "Sekar Travels" },
         { "label": "Ref", "value": "TVA657295606" },
+        { "label": "PNR", "value": "SEKQ99BV5758" },
         { "label": "Departs", "value": "Sat 12 Sep · 21:10" },
-        { "label": "Pickup", "value": "Kallambalam" },
+        { "label": "Pickup", "value": "Kallambalam, near bus stop" },
+        { "label": "Contact", "value": "8147660330 / 7845450079" },
+        { "label": "Arrives", "value": "Sun 13 Sep · 10:00" },
+        { "label": "Drop", "value": "Bengaluru, opp Majestic" },
         { "label": "Seats", "value": "U4 · Anusha T" }
       ],
-      "flag": "One seat on this ticket. Kushal has no return seat."
+      "flag": "One seat on this ticket. Kushal has no return seat. KBS gave you 10% off a Varkala-Bengaluru return, valid to book until 25 Sep.",
+      "files": [
+        { "name": "ticket.pdf", "url": "https://drive.google.com/file/d/13Exq9eX4wpv0vIkKXnDYyXFh9lx6Zf8e/view" },
+        { "name": "tax invoice.pdf", "url": "https://drive.google.com/file/d/1-vO5PfAK5ecaCRQWfPNu_AG0JoM0ZbfZ/view" }
+      ]
     }
   ],
   "pins": [
