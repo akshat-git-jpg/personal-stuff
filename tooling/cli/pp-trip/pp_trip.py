@@ -211,7 +211,13 @@ def cmd_add(a: argparse.Namespace) -> None:
                 "geocode failed. NEVER GUESS COORDS. Do one of:\n"
                 "  1) pass --lat / --lon (right-click the exact spot in Google Maps -> click the coords to copy)\n"
                 "  2) refine with --query \"<name> <landmark or town>\"\n"
-                "  3) add a `viewbox` to the trip JSON to bound future searches",
+                "  3) add a `viewbox` to the trip JSON to bound future searches\n"
+                "  4) grep an Overpass bbox dump for a SUBSTRING of the name -- OSM\n"
+                "     spelling often differs (Sarwaa vs Sarva, Kurakkanni vs Kurakanni)\n"
+                "  5) the place may be on Google and genuinely absent from OSM. That is\n"
+                "     allowed as a last resort: see 'Using a coordinate that only Google\n"
+                "     has' in .claude/skills/pp-trip/SKILL.md, then pass --lat / --lon\n"
+                "     and record the provenance in --note.",
                 file=sys.stderr,
             )
             sys.exit(1)

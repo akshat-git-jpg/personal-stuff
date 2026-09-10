@@ -52,10 +52,75 @@ one of these three sources, in this order:
 3. **Overpass API** for named POIs the owner mentioned that Nominatim
    misses (temples, homestays, specific cafes). Query bounded to the
    trip's `viewbox`. Then run `pp-trip add --lat --lon`.
+4. **Google Maps place data lifted off the web**, but ONLY under the
+   three conditions in the next section. Added 2026-09-10 after the
+   owner correctly pushed back: "if it's present in google map and not
+   in openstreetmap then that's a gap and we need to take a call."
+   Zostel Varkala and Hope Hostels are real, busy, well-reviewed places
+   that simply are not in OSM. Refusing to pin them was the wrong call.
 
-There is no fourth source. If none of these three yields coordinates
-you can defend, **do not add the pin**. Tell the owner which name failed
-and ask them to long-press the spot in Google Maps and paste the coords.
+If none of these four yields coordinates you can defend, **do not add
+the pin**. Tell the owner which name failed and ask them to long-press
+the spot in Google Maps and paste the coords.
+
+## Before you declare a place "not findable", try spelling variants
+
+On 2026-09-10 "Sarva on the cliff" was reported missing from OSM. It is
+in OSM, as **Cafe Sarwaa**. A single letter cost a false negative.
+
+So a name miss is not a miss until you have tried:
+
+- **Substring, not whole word.** Grep the Overpass dump for `sarw`,
+  `zost`, `moll` - four or five characters, not the full name.
+- **Common transliteration swaps** for Indian names: v/w, aa/a, th/t,
+  ee/i, double letters collapsing (Sarwaa/Sarva, Kurakanni/Kurakkanni).
+- **The brand vs the branch.** "Hope Hostel" is one brand with several
+  properties in one town. Ask which branch, or pin the one whose
+  address the owner's other details match, and say which one you picked
+  in the pin's `note`.
+- **A web search for the plain name**, to learn its real spelling and
+  its street, then re-grep OSM with that.
+
+The cheap way to do all of this at once: pull every named node and way
+in the trip's bbox into one file, then grep that file locally as many
+times as you like.
+
+```bash
+[out:json][timeout:60];
+( node["name"](SOUTH,WEST,NORTH,EAST);
+  way["name"](SOUTH,WEST,NORTH,EAST); );
+out center tags;
+```
+
+Note the axis order: Overpass wants `(S,W,N,E)` while the trip's
+`viewbox` is `W,N,E,S`. They are not the same order. Convert carefully.
+
+## Using a coordinate that only Google has
+
+OSM has real gaps. Hostels, new cafes and small guest houses often
+exist on Google and nowhere else. When that happens you may use
+Google's coordinate, but only with all three of these:
+
+1. **Get the number from Google's own place data, not from prose.**
+   Pages that mirror Google Maps embed it as `!3d<lat>!4d<lon>` or as a
+   `center=<lat>,<lon>` map URL. That is Google's coordinate. A number
+   typed into a paragraph by a content farm is not.
+2. **Cross-check it against something you already trust.** Reverse-
+   geocode it through Nominatim and confirm the street or locality
+   matches the address on the booking page. Then check a distance: the
+   listing says "3 minute walk to Black Beach", so measure your
+   candidate against the Black Beach pin and see if it lands near
+   200 m. If a claimed 3-minute walk computes to 4 km, the coordinate
+   is wrong. Two independent sites agreeing on the same number is worth
+   more than one site you like.
+3. **Write the provenance into the pin's `note`.** Say "Coords: Google
+   Maps place data (NOT in OSM)" plus the cross-check you ran. The
+   owner must be able to see which pins rest on weaker evidence than a
+   surveyed OSM node, without asking.
+
+Order still matters. Google is source four, not source one, because
+OSM coordinates are surveyed and traceable while a scraped Google
+coordinate is neither. Exhaust one, two and three first.
 
 ## Every trip needs a viewbox
 

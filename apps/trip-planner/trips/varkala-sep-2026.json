@@ -189,7 +189,34 @@
       "lat": 8.738746,
       "lon": 76.701979,
       "note": "Cliff 2nd Street, North Cliff. Coords: OSM/Nominatim 'InDa'."
+    },
+    {
+      "id": "food-cafe-sarwaa-on-the-cliff",
+      "name": "Cafe Sarwaa (on the cliff)",
+      "emoji": "🌊",
+      "category": "food",
+      "lat": 8.7281626,
+      "lon": 76.7099027,
+      "note": "South Cliff, Temple Road, Perumkulam. Inside Mare Holidays. Sea view, sunset spot.\\nCoords: OSM amenity=restaurant 'Cafe Sarwaa'."
+    },
+    {
+      "id": "stay-zostel-varkala",
+      "name": "Zostel Varkala",
+      "emoji": "🎒",
+      "category": "stay",
+      "lat": 8.744874,
+      "lon": 76.698591,
+      "note": "Sea Breeze Building, North Cliff, Kurakanni PO 695141. 3 min walk to Black Beach.\\nCoords: Google Maps place data (NOT in OSM). Cross-checked: 190m to Black Beach, 1.15km to Varkala Cliff, both match listed walk times."
+    },
+    {
+      "id": "stay-hope-hostels-helipad",
+      "name": "Hope Hostels (Helipad)",
+      "emoji": "🎒",
+      "category": "stay",
+      "lat": 8.736232,
+      "lon": 76.703705,
+      "note": "Varkala Helipad Road / Cliff Street, 695141. 1 min walk to Varkala Beach.\\nCoords: Google Maps place data (NOT in OSM), agreed by 2 sources.\\nNOTE: Hope also has a 'North Cliff (Sea View)' branch. This pin is the Helipad one."
     }
   ],
-  "updatedAt": "2026-09-10T05:43:07.136809Z"
+  "updatedAt": "2026-09-10T05:47:39.763377Z"
 }
