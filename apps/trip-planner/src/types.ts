@@ -29,6 +29,15 @@ export interface Trip {
   centerLat?: number;      // initial map center (defaults to avg of pins)
   centerLon?: number;
   zoom?: number;           // initial zoom (defaults to 12)
+  // Bbox for Nominatim `bounded=1` searches by `pp-trip add`. Format
+  // "W,N,E,S" as lon/lat pairs. Prevents "Kappil Beach" from resolving to
+  // a beach 500 km away. Read by the CLI, ignored by the Worker.
+  viewbox?: string;
+  // Appended to every pin's Google-Maps handoff query so Google searches
+  // for the RIGHT "Cafe X" (there are many). e.g. "Varkala Kerala".
+  // Without this, Google reverse-geocodes lat/lon to the nearest random
+  // road name and shows that instead of the pin's real name.
+  locationHint?: string;
   pins: Pin[];
   updatedAt: string;       // ISO
 }

@@ -45,15 +45,18 @@ export function renderApp(): string {
   #map{position:absolute;inset:0}
   .maplibregl-ctrl-attrib.maplibregl-compact{background:rgba(255,255,255,.7)}
   /* top bar */
-  #top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:8px;right:8px;z-index:10;display:flex;gap:6px;flex-wrap:wrap;align-items:center;pointer-events:none}
+  #top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:8px;right:8px;z-index:20;display:flex;gap:6px;flex-wrap:wrap;align-items:center;pointer-events:none}
   #top>*{pointer-events:auto}
   select,button,input{font:inherit;color:#111;background:#fff;border:1px solid #d0d0d0;border-radius:10px;padding:8px 10px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
   select{max-width:60vw}
   button{cursor:pointer}
   button.active{background:#0d0c0b;color:#fff;border-color:#0d0c0b}
-  .chips{display:flex;gap:5px;flex-wrap:wrap}
-  .chip{padding:5px 9px;border-radius:999px;background:#fff;border:1px solid #d0d0d0;font-size:13px;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.12)}
-  .chip.off{opacity:.35}
+  /* Always-visible filter strip (own row, own scroller) */
+  #chips{position:absolute;top:calc(env(safe-area-inset-top,0px) + 60px);left:8px;right:8px;z-index:20;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0;scrollbar-width:none;pointer-events:none}
+  #chips::-webkit-scrollbar{display:none}
+  #chips>*{pointer-events:auto}
+  .chip{flex:0 0 auto;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid #d0d0d0;font-size:13px;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:nowrap}
+  .chip.off{opacity:.35;background:#f2f2f2}
   /* pin marker */
   .pin{width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #333;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
   .pin span{transform:rotate(45deg);font-size:16px;line-height:1}
@@ -88,7 +91,7 @@ export function renderApp(): string {
 
 <div id="top">
   <select id="trip" title="Trip"><option value="">Loading…</option></select>
-  <button id="filters-btn" title="Filters">Filters</button>
+  <button id="places-btn" title="Jump to a pin">📍 Places</button>
   <button id="route-btn" title="Plan a multi-stop route">Route</button>
   <div id="search-wrap">
     <input id="search" placeholder="near me: food, atm, pharmacy…" />
@@ -96,13 +99,17 @@ export function renderApp(): string {
   </div>
 </div>
 
-<div id="filters" class="sheet" hidden>
-  <button class="close" data-close="filters">×</button>
-  <h3>Show categories</h3>
-  <div id="chips" class="chips"></div>
-</div>
+<!-- Filter chips are ALWAYS visible: no toggle to fail on. Horizontal scroll if they don't fit. -->
+<div id="chips"></div>
 
 <div id="card" class="sheet" hidden></div>
+
+<div id="places" class="sheet" hidden>
+  <button class="close" data-close="places">×</button>
+  <h3>Jump to a pin</h3>
+  <input id="places-filter" placeholder="type to filter…" style="width:100%;margin:6px 0 8px" />
+  <div id="places-list" style="display:flex;flex-direction:column;gap:4px"></div>
+</div>
 
 <div id="route" class="sheet" hidden>
   <button class="close" data-close="route">×</button>
@@ -226,7 +233,44 @@ function renderChips() {
 }
 renderChips();
 
-document.getElementById('filters-btn').onclick = () => toggleSheet('filters');
+/* ------ Places sheet: type-to-filter list of every pin in the trip ------ */
+document.getElementById('places-btn').onclick = () => {
+  renderPlacesList('');
+  document.getElementById('places').hidden = false;
+  document.getElementById('card').hidden = true;
+  const inp = document.getElementById('places-filter');
+  inp.value = '';
+  setTimeout(() => inp.focus(), 50);
+};
+document.getElementById('places-filter').addEventListener('input', (e) => {
+  renderPlacesList(e.target.value.trim().toLowerCase());
+});
+function renderPlacesList(q) {
+  const el = document.getElementById('places-list');
+  if (!state.trip) { el.innerHTML = '<div class="cat">No trip loaded.</div>'; return; }
+  const pins = state.trip.pins.filter(p =>
+    !q || (p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
+  );
+  if (!pins.length) { el.innerHTML = '<div class="cat">No pins match.</div>'; return; }
+  // Sort by category, then name.
+  pins.sort((a, b) => (a.category + a.name).localeCompare(b.category + b.name));
+  el.innerHTML = pins.map(p =>
+    '<button style="text-align:left;padding:8px 10px" data-pinid="' + p.id + '">' +
+    (p.emoji || '📍') + ' <b>' + escapeHtml(p.name) + '</b>' +
+    ' <span class="cat" style="display:inline">· ' + p.category + '</span>' +
+    '</button>'
+  ).join('');
+  el.querySelectorAll('button[data-pinid]').forEach(b => {
+    b.onclick = () => {
+      const p = state.trip.pins.find(x => x.id === b.dataset.pinid);
+      if (!p) return;
+      document.getElementById('places').hidden = true;
+      map.flyTo({ center: [p.lon, p.lat], zoom: 17, duration: 500 });
+      showCard(p);
+    };
+  });
+}
+
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => document.getElementById(b.dataset.close).hidden = true);
 
 function toggleSheet(id) {
@@ -273,11 +317,23 @@ function fitToPins() {
 }
 
 /* ------ Info card ------ */
+
+// Build the Google Maps query for one pin. Prefers the pin's own name
+// (so Google searches for the real place) over its lat/lon (which
+// reverse-geocodes to whatever road is nearest -- Nanma, Cliff 2nd
+// Street, etc). Appends the trip locationHint so ambiguous names
+// like Cafe del Mar find the Varkala one, not one in another country.
+function gmapsQueryFor(p) {
+  if (p.gmapsQuery) return p.gmapsQuery;
+  const hint = (state.trip && state.trip.locationHint) ? (', ' + state.trip.locationHint) : '';
+  return p.name + hint;
+}
+
 function showCard(p) {
-  const q = encodeURIComponent(p.gmapsQuery || p.name);
-  const ll = p.lat + ',' + p.lon;
-  const searchUrl = 'https://www.google.com/maps/search/?api=1&query=' + q + '&query_place_id=';
-  const navUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + ll + '&travelmode=driving';
+  const q = encodeURIComponent(gmapsQueryFor(p));
+  const searchUrl = 'https://www.google.com/maps/search/?api=1&query=' + q;
+  // destination = the pin's name; if Google can't find it, fall back to coords.
+  const navUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + q + '&travelmode=driving';
   const el = document.getElementById('card');
   el.innerHTML = '<button class="close" onclick="document.getElementById(\\'card\\').hidden=true">×</button>' +
     '<h3>' + (p.emoji || '📍') + ' ' + escapeHtml(p.name) + '</h3>' +
@@ -345,15 +401,18 @@ function renderRouteList() {
     return '<button onclick="window.__toggleRoute(\\'' + id + '\\')">' + (i + 1) + '. ' + (p ? escapeHtml(p.name) : '?') + ' ×</button>';
   });
   el.innerHTML = items.join('');
-  // Google Maps directions: /dir/?api=1&origin=...&destination=...&waypoints=lat,lng|lat,lng
-  const pts = state.routeOrder.map(id => {
+  // Google Maps directions API accepts destination + waypoints as NAMES
+  // (URL-encoded, pipe-separated for waypoints) or as lat,lng. We use
+  // names + locationHint so Google finds the actual Sivagiri Mutt
+  // rather than reverse-geocoding our lat/lon to the nearest random road.
+  const qs = state.routeOrder.map(id => {
     const p = state.trip.pins.find(x => x.id === id);
-    return p ? p.lat + ',' + p.lon : '';
+    return p ? encodeURIComponent(gmapsQueryFor(p)) : '';
   }).filter(Boolean);
   let origin = 'My+Location';
   if (state.userLoc) origin = state.userLoc.lat + ',' + state.userLoc.lon;
-  const dest = pts[pts.length - 1];
-  const wps = pts.slice(0, -1).join('|');
+  const dest = qs[qs.length - 1];
+  const wps = qs.slice(0, -1).join('|');
   let url = 'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=' + origin + '&destination=' + dest;
   if (wps) url += '&waypoints=' + wps;
   go.href = url;

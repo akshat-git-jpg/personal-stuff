@@ -99,27 +99,38 @@ def write_trip(trip: dict) -> None:
 
 _last_nominatim_hit = 0.0
 
-def nominatim_search(query: str) -> tuple[float, float] | None:
-    """Return (lat, lon) or None. Rate-limited to ~1 req/sec per policy."""
+def nominatim_search(query: str, viewbox: str | None = None) -> tuple[float, float, str] | None:
+    """Return (lat, lon, display_name) or None.
+
+    Uses curl to sidestep macOS Python's missing SSL cert bundle.
+    Rate-limited to ~1 req/sec per Nominatim policy. If `viewbox` is given
+    (format: 'W,N,E,S' as lon/lat pairs), the search is bounded to it — this
+    is what stops "Kappil Beach" in Varkala from resolving to a beach 500 km
+    away in Kasaragod.
+    """
     global _last_nominatim_hit
     wait = 1.05 - (time.time() - _last_nominatim_hit)
     if wait > 0:
         time.sleep(wait)
     _last_nominatim_hit = time.time()
 
-    url = "https://nominatim.openstreetmap.org/search?" + urllib.parse.urlencode(
-        {"q": query, "format": "json", "limit": 1}
+    params = {"q": query, "format": "json", "limit": "1"}
+    if viewbox:
+        params["viewbox"] = viewbox
+        params["bounded"] = "1"
+    url = "https://nominatim.openstreetmap.org/search?" + urllib.parse.urlencode(params)
+    r = subprocess.run(
+        ["curl", "-sS", "-H", "User-Agent: pp-trip/1.0 (kushal.b@zluri.com)", url],
+        capture_output=True, timeout=20,
     )
-    req = urllib.request.Request(url, headers={"User-Agent": "pp-trip/1.0 (kushal.b@zluri.com)"})
     try:
-        with urllib.request.urlopen(req, timeout=15) as r:
-            data = json.load(r)
-    except (urllib.error.URLError, TimeoutError) as e:
-        print(f"nominatim error: {e}", file=sys.stderr)
+        data = json.loads(r.stdout.decode("utf-8", errors="replace") or "[]")
+    except json.JSONDecodeError:
+        print(f"nominatim: bad response: {r.stdout[:200]!r}", file=sys.stderr)
         return None
     if not data:
         return None
-    return float(data[0]["lat"]), float(data[0]["lon"])
+    return float(data[0]["lat"]), float(data[0]["lon"]), data[0].get("display_name", "")
 
 # --- deploy / http ---------------------------------------------------------
 
@@ -192,12 +203,23 @@ def cmd_add(a: argparse.Namespace) -> None:
         lat, lon = a.lat, a.lon
     else:
         q = a.query or a.name
-        print(f"geocoding: {q}", file=sys.stderr)
-        got = nominatim_search(q)
+        vb = a.viewbox or t.get("viewbox")
+        print(f"geocoding: {q}" + (f"  (viewbox {vb})" if vb else ""), file=sys.stderr)
+        got = nominatim_search(q, viewbox=vb)
         if not got:
-            print("geocode failed. pass --lat / --lon, or use a more specific --query.", file=sys.stderr)
+            print(
+                "geocode failed. NEVER GUESS COORDS. Do one of:\n"
+                "  1) pass --lat / --lon (right-click the exact spot in Google Maps -> click the coords to copy)\n"
+                "  2) refine with --query \"<name> <landmark or town>\"\n"
+                "  3) add a `viewbox` to the trip JSON to bound future searches",
+                file=sys.stderr,
+            )
             sys.exit(1)
-        lat, lon = got
+        lat, lon, display = got
+        print(f"nominatim -> {lat:.5f},{lon:.5f}  |  {display[:120]}", file=sys.stderr)
+        if not a.yes:
+            print("verify the address above looks right, then re-run with --yes to save.", file=sys.stderr)
+            sys.exit(3)
     existing = {p["id"] for p in t["pins"]}
     pin_id = a.id or make_pin_id(a.name, a.category, existing)
     if pin_id in existing:
@@ -293,6 +315,8 @@ def build_parser() -> argparse.ArgumentParser:
     add.add_argument("--note")
     add.add_argument("--id")
     add.add_argument("--gmaps-query", dest="gmaps_query")
+    add.add_argument("--viewbox", help="Bound the geocoder to this bbox 'W,N,E,S' (lon,lat pairs). Defaults to the trip's `viewbox` field if set.")
+    add.add_argument("--yes", action="store_true", help="Skip the geocode confirmation step (only after the printed display_name has been verified).")
     add.set_defaults(func=cmd_add)
 
     rm = sub.add_parser("remove", help="Remove a pin by id.")
