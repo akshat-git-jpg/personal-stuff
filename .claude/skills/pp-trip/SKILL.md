@@ -17,154 +17,195 @@ The owner is telling you to change what shows on the map:
 
 - "add Cafe X to varkala trip" -> `pp-trip add`
 - "make a new trip called bali-dec-2026" -> `pp-trip new`
-- "find the top 10 beaches near Goa and pin them" -> research (WebSearch),
-  then a batch of `pp-trip add` calls, then one `pp-trip deploy`
+- "find the top 10 beaches near Goa and pin them" -> research, then a
+  batch of `pp-trip add` calls, then one `pp-trip deploy`
 - "remove the anjengo fort pin" -> `pp-trip remove`
+- "these coords are wrong" -> `pp-trip update <slug> <pin-id> --lat --lon`
+- "check my pins are right" -> `pp-trip audit <slug>`
 - "what's on my varkala trip" -> `pp-trip list <slug>`
 - "deploy my trip" -> `pp-trip deploy <slug>`
-- "push everything" -> `pp-trip deploy all`
 
 ## The one flow that matters
 
-1. Edit the trip JSON (via `new` / `add` / `remove`) - this changes the
-   git-tracked file only.
-2. **Then** `pp-trip deploy <slug>` - this mirrors the file into
-   Cloudflare KV so the live PWA sees it.
+1. Edit the trip JSON (`new` / `add` / `update` / `remove`) - git-tracked file only.
+2. **Then** `pp-trip deploy <slug>` - mirrors the file into Cloudflare KV
+   so the live PWA sees it.
 
-Forget step 2 and the change never reaches the phone. Always end an
-add/remove batch with a single `deploy`.
+Forget step 2 and the change never reaches the phone. Always end a batch
+with a single `deploy`.
+
+Tracked-file edits need a workspace. `pp-trip` refuses on branch `main`
+and tells you to run `pp-work claim` first.
 
 ## HARD RULE - never guess coordinates
 
-Pins placed at guessed coordinates ended up in the sea on 2026-09-10.
-Do NOT invent a lat/lon from memory of a town, and do NOT hand-edit a
-pin's `lat`/`lon` in the JSON. Coordinates for a pin come from exactly
-one of these three sources, in this order:
+Pins placed at guessed coordinates ended up in the sea on 2026-09-10. Do
+NOT invent a lat/lon from memory of a town, and do NOT hand-edit a pin's
+`lat`/`lon`. Coordinates come from exactly one of these four sources:
 
-1. **`pp-trip add --lat <n> --lon <n>`** - the owner right-clicked in
-   Google Maps and gave you the numbers. Trust these fully.
-2. **`pp-trip add` with no lat/lon** - the CLI hits Nominatim
-   (`bounded=1` inside the trip's `viewbox`), prints the returned
-   `display_name`, and exits code 3 asking for `--yes`. **Read that
-   `display_name` before re-running with `--yes`.** If it names a town,
-   region or country the owner did not name, or a "Kappil in Kasaragod"
-   500 km away, the geocode is wrong - stop and ask for `--lat/--lon`.
-3. **Overpass API** for named POIs the owner mentioned that Nominatim
-   misses (temples, homestays, specific cafes). Query bounded to the
-   trip's `viewbox`. Then run `pp-trip add --lat --lon`.
-4. **Google Maps place data lifted off the web**, but ONLY under the
-   three conditions in the next section. Added 2026-09-10 after the
-   owner correctly pushed back: "if it's present in google map and not
-   in openstreetmap then that's a gap and we need to take a call."
-   Zostel Varkala and Hope Hostels are real, busy, well-reviewed places
-   that simply are not in OSM. Refusing to pin them was the wrong call.
+1. **`pp-trip add --lat --lon`** - the owner long-pressed the spot in
+   Google Maps and read you the numbers. Trust these fully. Stored as
+   `source: owner`, and `audit` will not touch them.
+2. **Nominatim / OpenStreetMap**, bounded to the trip's `viewbox`. The
+   CLI does this automatically. Good for beaches, temples, roads, forts.
+   Stored as `source: osm`.
+3. **Google Places API (New)** - the CLI's last rung, and the only source
+   that reliably has small businesses in India. OSM was missing Zostel
+   Varkala, Hope Hostels and Coffee Temple entirely. Stored as
+   `source: google`, with Google's `placeId`.
+4. **Overture Maps** - a free open POI dataset (Meta/Microsoft/AWS), for
+   the rare place even Google misses under the name the owner used. Query
+   it yourself with DuckDB (recipe below) and pass
+   `--lat --lon --source overture`.
 
-If none of these four yields coordinates you can defend, **do not add
-the pin**. Tell the owner which name failed and ask them to long-press
-the spot in Google Maps and paste the coords.
+If none of the four yields a coordinate you can defend, **do not add the
+pin**. Say which name failed and ask the owner to long-press the spot.
+
+## Google Places: it is free, and it cannot be billed
+
+Key lives in `infra/secrets/google-places.env` (gitignored), on Google
+Cloud project `n8n-workflows-454504`, restricted to `places.googleapis.com`.
+
+**That project has no billing account attached, deliberately.** So the key
+cannot be charged: past the free tier, calls fail instead of costing
+money. There is nothing to budget and no cap to configure. India pricing
+also gives Text Search Pro 35,000 free calls/month against a real need of
+about 15.
+
+Three further guards, in order of which trips first:
+
+- The **cache** (`apps/trip-planner/geocache.json`, git-tracked) means a
+  name resolved once is never queried again, on any machine.
+- Google is the **last** rung, so most pins never reach it.
+- A self-imposed **200 calls/month** ceiling in the CLI, counted from an
+  append-only log. Raise it for one run with `PP_TRIP_GOOGLE_CAP=<n>`.
+  This is a runaway-loop detector, not a spend control.
+
+**No key is a normal state, not an error.** A fresh clone (the sister's
+Windows checkout) just stops at rung 2. Never print Cloud Console setup
+steps at her; if her machine genuinely needs work, write a prompt the
+owner forwards to her Claude.
+
+## audit: report first, apply almost never
+
+`pp-trip audit <slug>` re-resolves every pin and prints the drift. It has
+two outcomes, and the split is the whole point:
+
+- **Agrees** (within `--tolerance`, default 150 m): adopts the `placeId`
+  and `source` and **leaves the coordinates alone**. Agreement is
+  confirmation, not a reason to nudge a good pin.
+- **Disagrees**: prints the suggestion and changes nothing. Moving a
+  coordinate needs `--apply --only <pin-id>`.
+
+**Do not batch-accept disagreements.** The 2026-09-10 audit found six,
+and only one was our pin being wrong. For the rest Google offered a
+resort 357 m from the beach it was asked about, an unnamed plus-code in
+place of North Cliff, and a boat club in place of a lake. Auto-applying
+would have made the map worse. Read each one, decide, then `update` it.
+
+`audit` also refuses to adopt a `placeId` when the returned name does not
+plausibly match the pin's (`name_matches`). A pin for "Holy Rabbit Cafe"
+sat 119 m from Google's "The White Rabbit Cafe" and would have picked up
+that restaurant's id, sending Directions to the wrong door. On a cliff
+packed with cafes, distance alone cannot catch this.
 
 ## Before you declare a place "not findable", try spelling variants
 
-On 2026-09-10 "Sarva on the cliff" was reported missing from OSM. It is
-in OSM, as **Cafe Sarwaa**. A single letter cost a false negative.
+On 2026-09-10 "Sarva on the cliff" was reported missing. It is in OSM, as
+**Cafe Sarwaa**. One letter cost a false negative. A name miss is not a
+miss until you have tried:
 
-So a name miss is not a miss until you have tried:
+- **Substring, not whole word.** Grep for `sarw`, `zost`, `moll` - four
+  or five characters.
+- **Transliteration swaps** for Indian names: v/w, aa/a, th/t, ee/i,
+  collapsing double letters (Sarwaa/Sarva, Kurakanni/Kurakkanni).
+- **Brand vs branch.** "Hope Hostels" is one brand with several Varkala
+  properties. Ask which, or pin the one whose address fits and say which
+  you picked in the `note`.
+- **A web search for the plain name**, to learn its real spelling, then
+  re-query with that.
 
-- **Substring, not whole word.** Grep the Overpass dump for `sarw`,
-  `zost`, `moll` - four or five characters, not the full name.
-- **Common transliteration swaps** for Indian names: v/w, aa/a, th/t,
-  ee/i, double letters collapsing (Sarwaa/Sarva, Kurakanni/Kurakkanni).
-- **The brand vs the branch.** "Hope Hostel" is one brand with several
-  properties in one town. Ask which branch, or pin the one whose
-  address the owner's other details match, and say which one you picked
-  in the pin's `note`.
-- **A web search for the plain name**, to learn its real spelling and
-  its street, then re-grep OSM with that.
-
-The cheap way to do all of this at once: pull every named node and way
-in the trip's bbox into one file, then grep that file locally as many
-times as you like.
+Pull every named POI in the trip's bbox once, then grep it locally as
+many times as you like:
 
 ```bash
-[out:json][timeout:60];
-( node["name"](SOUTH,WEST,NORTH,EAST);
-  way["name"](SOUTH,WEST,NORTH,EAST); );
-out center tags;
+pip3 install --quiet --target ./pylibs duckdb
+```
+```sql
+INSTALL httpfs; LOAD httpfs; SET s3_region='us-west-2';
+SELECT names.primary, bbox.ymin AS lat, bbox.xmin AS lon, confidence
+FROM read_parquet('s3://overturemaps-us-west-2/release/<YYYY-MM-DD.0>/theme=places/type=place/*.parquet')
+WHERE bbox.xmin BETWEEN <west> AND <east>
+  AND bbox.ymin BETWEEN <south> AND <north>;
 ```
 
-Note the axis order: Overpass wants `(S,W,N,E)` while the trip's
-`viewbox` is `W,N,E,S`. They are not the same order. Convert carefully.
+List releases first - the newest is not guessable:
+`curl -sS "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/?list-type=2&delimiter=/&prefix=release/"`
 
-## Using a coordinate that only Google has
+**Overture's precision varies, and it has a tell.** Some entries are
+dumped on a fake town-centre point: 52 unrelated POIs shared the
+coordinate Overture gave for Hope Hostels, and 15 shared Molly's. Both
+were wrong by over a kilometre. So before trusting an Overture
+coordinate, count how many other POIs sit on the exact same point. More
+than one means throw it out. `confidence` alone does not catch this (that
+Hope Hostels row scored 0.755).
 
-OSM has real gaps. Hostels, new cafes and small guest houses often
-exist on Google and nowhere else. When that happens you may use
-Google's coordinate, but only with all three of these:
-
-1. **Get the number from Google's own place data, not from prose.**
-   Pages that mirror Google Maps embed it as `!3d<lat>!4d<lon>` or as a
-   `center=<lat>,<lon>` map URL. That is Google's coordinate. A number
-   typed into a paragraph by a content farm is not.
-2. **Cross-check it against something you already trust.** Reverse-
-   geocode it through Nominatim and confirm the street or locality
-   matches the address on the booking page. Then check a distance: the
-   listing says "3 minute walk to Black Beach", so measure your
-   candidate against the Black Beach pin and see if it lands near
-   200 m. If a claimed 3-minute walk computes to 4 km, the coordinate
-   is wrong. Two independent sites agreeing on the same number is worth
-   more than one site you like.
-3. **Write the provenance into the pin's `note`.** Say "Coords: Google
-   Maps place data (NOT in OSM)" plus the cross-check you ran. The
-   owner must be able to see which pins rest on weaker evidence than a
-   surveyed OSM node, without asking.
-
-Order still matters. Google is source four, not source one, because
-OSM coordinates are surveyed and traceable while a scraped Google
-coordinate is neither. Exhaust one, two and three first.
+Overpass is still fine for OSM-only lookups. Note the axis order:
+Overpass wants `(S,W,N,E)` while the trip's `viewbox` is `W,N,E,S`.
 
 ## Every trip needs a viewbox
 
-The moment you `pp-trip new <slug>`, put a `viewbox` on the trip JSON:
-format `"W,N,E,S"` as lon/lat pairs, sized to the destination town
-(roughly 20-30 km on a side). Without it, "Kappil Beach" resolves to a
-beach in Kasaragod; "Suprabhatham" resolves to a village 8 km outside
-Varkala. `viewbox` is checked into git and read by `pp-trip add` as the
-default `bounded` box, so every future add on that trip is safe by
-default.
+The moment you `pp-trip new <slug>`, set `viewbox`: format `"W,N,E,S"` as
+lon/lat pairs, sized to the destination town (20-30 km a side). Without
+it "Kappil Beach" resolves to Kasaragod, 500 km away, and "Suprabhatham"
+to a village 8 km outside Varkala. It is checked into git and read by
+`add` and `audit`, and it is sent to Google as `locationRestriction` so
+the search is bounded server-side rather than filtered afterwards.
 
 ## Every trip needs a locationHint
 
-Right next to `viewbox`, add a `locationHint` on the trip JSON. Format:
-`"Town, Region, Country"` (e.g. `"Varkala, Kerala, India"`), NOT just
-`"Varkala"`. The PWA appends this to every pin's name when it hands
-off to the Google Maps app, so Google searches for the right "Cafe del
-Mar" (there is one in every beach town on earth) and the right
-"Sivagiri Mutt" (there are several). Without it, Google reverse-
-geocodes the pin's lat/lon to whatever road name is nearest -- 2026-
-09-10 that showed the Sivagiri Mutt pin as "Nanma" in the directions
-strip. Skip a hint only for trips whose pins are all unambiguously
-named globally, and even then it costs you nothing to add.
+Right next to `viewbox`, format `"Town, Region, Country"` (e.g.
+`"Varkala, Kerala, India"`), NOT just `"Varkala"`. Two jobs: the CLI
+checks a returned address mentions at least one of those words before
+accepting it, and the PWA appends it to the Google Maps handoff so
+Google finds the right "Cafe del Mar".
 
-## Categories
+A pin's `placeId` beats the hint outright when present - the map sends it
+as `query_place_id`/`destination_place_id` and Google opens that exact
+place. That is the real fix for the 2026-09-10 bug where the Sivagiri
+Mutt pin arrived in Google Maps labelled "Nanma".
 
-`stay | transport | beach | sight | food | utility`. Each has a default
-emoji; override with `--emoji`.
+## Categories and provenance
 
-## Slugs
+Categories: `stay | transport | beach | sight | food | utility`. Each has
+a default emoji; override with `--emoji`.
 
-Trip slugs: `^[a-z0-9-]{1,64}$`. Pin ids are auto-generated from the pin
-name; the CLI ensures uniqueness within the trip.
+`source` on every pin is one of `owner | google | osm | overture |
+unknown`. It shows on the info card, so the owner can see which pins rest
+on weaker evidence without asking. Set it honestly: `--source` exists
+precisely so an Overture coordinate is not mislabelled as owner-supplied.
+
+## Tests
+
+`python3 tooling/cli/pp-trip/test_pp_trip.py` - stdlib unittest, no
+network, no deps, runs on Windows too. Extend it when you touch viewbox
+parsing, distance, the address/hint match, name matching, cache keys or
+the env-file parse. Those are the five places where a silent bug becomes
+a wrong pin on a map.
 
 ## Escape hatches
 
-Anything in `trips/<slug>.json` you can also edit by hand for
-non-coordinate fields (name, note, emoji, category). Do NOT hand-edit
-`lat`/`lon` - see the hard rule above. If Claude ever mangles a file,
-the previous version is one `git checkout` away.
+Non-coordinate fields (name, note, emoji, category) are safe to hand-edit
+in `trips/<slug>.json`. Do NOT hand-edit `lat`/`lon` - use `update`. If a
+file gets mangled, the previous version is one `git checkout` away.
+`pp-trip add --dry-run` prints the lookup it would run without calling
+anything.
 
 ## Non-goals
 
-- No login gate here. Do not add auth for reads without a real reason.
+- No login gate for reads. Do not add auth without a real reason.
 - Do not write to KV outside the CLI's `deploy`; the JSON in git is truth.
 - Do not switch tile provider without touching only `TILE_SOURCE` in
   `apps/trip-planner/src/app-html.ts` - that boundary is deliberate.
+- Do not put the Places key anywhere near the Worker. `app-html.ts` is
+  client-side; a key in a Worker secret is one refactor from page source.

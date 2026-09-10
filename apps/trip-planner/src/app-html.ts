@@ -44,15 +44,24 @@ export function renderApp(): string {
   html,body{margin:0;height:100%;font:15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#111;background:#0d0c0b}
   #map{position:absolute;inset:0}
   .maplibregl-ctrl-attrib.maplibregl-compact{background:rgba(255,255,255,.7)}
-  /* top bar */
-  #top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:8px;right:8px;z-index:20;display:flex;gap:6px;flex-wrap:wrap;align-items:center;pointer-events:none}
+  /* HUD: ONE absolutely-positioned column holding every top control.
+     The rows used to be positioned separately, with the chip strip pinned at
+     a hard-coded 60px from the top. On a phone the bar wrapped to two or three
+     rows and the chips landed on top of it. Stacking them in normal flow means
+     the offset can never be wrong, whatever wraps. */
+  #hud{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:8px;right:8px;z-index:20;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+  #hud>*{pointer-events:auto}
+  #top{display:flex;gap:6px;align-items:center;flex-wrap:wrap;pointer-events:none}
   #top>*{pointer-events:auto}
   select,button,input{font:inherit;color:#111;background:#fff;border:1px solid #d0d0d0;border-radius:10px;padding:8px 10px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-  select{max-width:60vw}
+  /* 42vw, not 60vw: at 60 the trip name alone pushed the buttons onto a
+     second row on every phone. */
+  select{max-width:42vw}
   button{cursor:pointer}
   button.active{background:#0d0c0b;color:#fff;border-color:#0d0c0b}
-  /* Always-visible filter strip (own row, own scroller) */
-  #chips{position:absolute;top:calc(env(safe-area-inset-top,0px) + 60px);left:8px;right:8px;z-index:20;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0;scrollbar-width:none;pointer-events:none}
+  /* Always-visible filter strip (own row, own scroller). min-width:0 keeps a
+     scrolling flex child from forcing the whole column wider than the screen. */
+  #chips{display:flex;gap:6px;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0;scrollbar-width:none;pointer-events:none}
   #chips::-webkit-scrollbar{display:none}
   #chips>*{pointer-events:auto}
   .chip{flex:0 0 auto;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid #d0d0d0;font-size:13px;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:nowrap}
@@ -70,17 +79,25 @@ export function renderApp(): string {
   .pin.sight{background:#d6f0d0}
   .pin.food{background:#ecd6ff}
   .pin.utility{background:#dfe7ff}
-  /* info card + route bar (bottom sheets) */
-  .sheet{position:absolute;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:10;background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 6px 24px rgba(0,0,0,.28);max-height:45vh;overflow:auto}
-  .sheet h3{margin:0 0 4px;font-size:16px}
+  /* Bottom sheets live in ONE column too. Route mode plus a tapped pin means
+     two sheets are open at once; when each was independently pinned to
+     bottom:8px they sat on top of each other. */
+  #sheets{position:absolute;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:10;display:flex;flex-direction:column;gap:8px;max-height:70vh;pointer-events:none}
+  #sheets>*{pointer-events:auto}
+  .sheet{position:relative;flex:0 1 auto;min-height:0;background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 6px 24px rgba(0,0,0,.28);overflow:auto;-webkit-overflow-scrolling:touch}
+  .sheet h3{margin:0 0 4px;font-size:16px;padding-right:28px}
   .sheet .cat{font-size:12px;color:#666;text-transform:capitalize;margin-bottom:8px}
   .sheet .note{white-space:pre-wrap;color:#333;margin:8px 0}
   .row{display:flex;flex-wrap:wrap;gap:6px}
   .row a,.row button{padding:8px 10px;border-radius:10px;border:1px solid #d0d0d0;background:#fff;text-decoration:none;color:#111;font-size:13px}
   .row a.primary{background:#1a73e8;color:#fff;border-color:#1a73e8}
-  .close{position:absolute;top:6px;right:8px;border:none;background:transparent;font-size:22px;line-height:1;color:#888;padding:4px 8px}
+  /* sticky so the × stays reachable once a long note scrolls */
+  .close{position:sticky;float:right;top:0;border:none;background:transparent;font-size:22px;line-height:1;color:#888;padding:0 4px;margin:-4px -6px 0 0}
   .empty{padding:24px;text-align:center;color:#666;background:#fff;margin:16px;border-radius:12px}
-  #search-wrap{display:flex;gap:4px;flex:1;min-width:180px}
+  /* Search gets its own full-width row rather than competing for space in the
+     top row, which is what made the bar wrap in the first place. */
+  #search-wrap{display:flex;gap:4px;pointer-events:none}
+  #search-wrap>*{pointer-events:auto}
   #search{flex:1;min-width:0}
   /* geolocate active */
   .maplibregl-ctrl-geolocate{background-color:#fff !important}
@@ -89,38 +106,46 @@ export function renderApp(): string {
 <body>
 <div id="map"></div>
 
-<div id="top">
-  <select id="trip" title="Trip"><option value="">Loading…</option></select>
-  <button id="places-btn" title="Jump to a pin">📍 Places</button>
-  <button id="route-btn" title="Plan a multi-stop route">Route</button>
+<!-- One stacking column for every top control. Rows may wrap freely; nothing
+     below them is positioned by a hard-coded offset any more. -->
+<div id="hud">
+  <div id="top">
+    <select id="trip" title="Trip"><option value="">Loading…</option></select>
+    <button id="places-btn" title="Jump to a pin">📍 Places</button>
+    <button id="route-btn" title="Plan a multi-stop route">Route</button>
+  </div>
   <div id="search-wrap">
     <input id="search" placeholder="near me: food, atm, pharmacy…" />
     <button id="search-btn" title="Search near me">→</button>
   </div>
+  <!-- Filter chips are ALWAYS visible: no toggle to fail on. Scrolls sideways if they don't fit. -->
+  <div id="chips"></div>
 </div>
 
-<!-- Filter chips are ALWAYS visible: no toggle to fail on. Horizontal scroll if they don't fit. -->
-<div id="chips"></div>
-
-<div id="card" class="sheet" hidden></div>
-
-<div id="places" class="sheet" hidden>
-  <button class="close" data-close="places">×</button>
-  <h3>Jump to a pin</h3>
-  <input id="places-filter" placeholder="type to filter…" style="width:100%;margin:6px 0 8px" />
-  <div id="places-list" style="display:flex;flex-direction:column;gap:4px"></div>
-</div>
-
-<div id="route" class="sheet" hidden>
-  <button class="close" data-close="route">×</button>
-  <h3>Plan a route</h3>
-  <div class="cat">Tap pins on the map in the order you want to visit them.</div>
-  <div id="route-list" class="row"></div>
-  <div class="row" style="margin-top:10px">
-    <button id="route-clear">Clear</button>
-    <a id="route-go" class="primary" href="#" target="_blank" rel="noopener">Open in Google Maps</a>
+<!-- One stacking column for the bottom sheets, so two open at once stack
+     instead of covering each other. -->
+<div id="sheets">
+  <div id="places" class="sheet" hidden>
+    <button class="close" data-close="places">×</button>
+    <h3>Jump to a pin</h3>
+    <input id="places-filter" placeholder="type to filter…" style="width:100%;margin:6px 0 8px" />
+    <div id="places-list" style="display:flex;flex-direction:column;gap:4px"></div>
   </div>
-  <div class="cat" style="margin-top:8px">Google Maps opens with turn-by-turn, live traffic, and up to ~9 stops.</div>
+
+  <div id="route" class="sheet" hidden>
+    <button class="close" data-close="route">×</button>
+    <h3>Plan a route</h3>
+    <div class="cat">Tap pins on the map in the order you want to visit them.</div>
+    <div id="route-list" class="row"></div>
+    <div class="row" style="margin-top:10px">
+      <button id="route-clear">Clear</button>
+      <a id="route-go" class="primary" href="#" target="_blank" rel="noopener">Open in Google Maps</a>
+    </div>
+    <div class="cat" style="margin-top:8px">Google Maps opens with turn-by-turn, live traffic, and up to ~9 stops.</div>
+  </div>
+
+  <!-- Card last so a tapped pin reads closest to the thumb. -->
+  <div id="card" class="sheet" hidden></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.min.js"></script>
@@ -332,15 +357,23 @@ function gmapsQueryFor(p) {
   return p.name + hint;
 }
 
+// A pin's placeId is Google's own stable id for that place. Passing it as
+// query_place_id / destination_place_id removes all guessing: Google opens
+// THAT place, not its best match for our text. Google requires the text
+// parameter alongside the id, and uses the text only if the id fails to
+// resolve, so sending both is strictly better than sending either.
+function gmapsIdParam(p, key) {
+  return p.placeId ? ('&' + key + '=' + encodeURIComponent(p.placeId)) : '';
+}
+
 function showCard(p) {
   const q = encodeURIComponent(gmapsQueryFor(p));
-  const searchUrl = 'https://www.google.com/maps/search/?api=1&query=' + q;
-  // destination = the pin's name; if Google can't find it, fall back to coords.
-  const navUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + q + '&travelmode=driving';
+  const searchUrl = 'https://www.google.com/maps/search/?api=1&query=' + q + gmapsIdParam(p, 'query_place_id');
+  const navUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + q + gmapsIdParam(p, 'destination_place_id') + '&travelmode=driving';
   const el = document.getElementById('card');
   el.innerHTML = '<button class="close" onclick="document.getElementById(\\'card\\').hidden=true">×</button>' +
     '<h3>' + (p.emoji || '📍') + ' ' + escapeHtml(p.name) + '</h3>' +
-    '<div class="cat">' + p.category + '</div>' +
+    '<div class="cat">' + p.category + (p.source ? ' · ' + p.source : '') + '</div>' +
     (p.note ? '<div class="note">' + escapeHtml(p.note) + '</div>' : '') +
     '<div class="row">' +
       '<a class="primary" href="' + navUrl + '" target="_blank" rel="noopener">Directions</a>' +
@@ -404,20 +437,29 @@ function renderRouteList() {
     return '<button onclick="window.__toggleRoute(\\'' + id + '\\')">' + (i + 1) + '. ' + (p ? escapeHtml(p.name) : '?') + ' ×</button>';
   });
   el.innerHTML = items.join('');
-  // Google Maps directions API accepts destination + waypoints as NAMES
-  // (URL-encoded, pipe-separated for waypoints) or as lat,lng. We use
-  // names + locationHint so Google finds the actual Sivagiri Mutt
-  // rather than reverse-geocoding our lat/lon to the nearest random road.
-  const qs = state.routeOrder.map(id => {
-    const p = state.trip.pins.find(x => x.id === id);
-    return p ? encodeURIComponent(gmapsQueryFor(p)) : '';
-  }).filter(Boolean);
+  // Google takes destination + waypoints as names (URL-encoded, pipe-separated)
+  // and optionally the matching place ids. Names alone made Google re-guess and
+  // sometimes reverse-geocode to the nearest road; the ids remove the guessing.
+  const picked = state.routeOrder
+    .map(id => state.trip.pins.find(x => x.id === id))
+    .filter(Boolean);
+  const qs = picked.map(p => encodeURIComponent(gmapsQueryFor(p)));
   let origin = 'My+Location';
   if (state.userLoc) origin = state.userLoc.lat + ',' + state.userLoc.lon;
+  const last = picked[picked.length - 1];
   const dest = qs[qs.length - 1];
+  const wpPins = picked.slice(0, -1);
   const wps = qs.slice(0, -1).join('|');
-  let url = 'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=' + origin + '&destination=' + dest;
-  if (wps) url += '&waypoints=' + wps;
+  let url = 'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=' + origin +
+            '&destination=' + dest + gmapsIdParam(last, 'destination_place_id');
+  if (wps) {
+    url += '&waypoints=' + wps;
+    // waypoint_place_ids must line up 1:1 with waypoints, so send it only when
+    // EVERY waypoint has an id. A partial list would misalign the whole route.
+    if (wpPins.every(p => p.placeId)) {
+      url += '&waypoint_place_ids=' + wpPins.map(p => encodeURIComponent(p.placeId)).join('|');
+    }
+  }
   go.href = url;
   go.style.pointerEvents = '';
   go.style.opacity = '';

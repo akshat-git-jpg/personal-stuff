@@ -11,6 +11,13 @@ export type PinCategory =
   | "food"       // ☕ cafe / restaurant
   | "utility";   // 🏧 atm / pharmacy / hospital / shop
 
+// Where a pin's lat/lon came from. Shown in the UI so the owner can tell a
+// surveyed coordinate from a weaker one without having to ask.
+//   owner  - the owner long-pressed the spot in Google Maps. Most trusted.
+//   google - Google Places API. Authoritative for small businesses in India.
+//   osm    - Nominatim / OpenStreetMap. Good for beaches, temples, roads.
+export type PinSource = "owner" | "google" | "osm" | "unknown";
+
 export interface Pin {
   id: string;              // stable id within the trip
   name: string;            // display name
@@ -20,6 +27,12 @@ export interface Pin {
   lon: number;
   note?: string;           // any free text (address, phone, opening hours)
   gmapsQuery?: string;     // fallback query for "open in google maps" — defaults to `name`
+  // Google's stable id for this place. When present the map hands it to the
+  // Google Maps app as query_place_id / destination_place_id, which resolves to
+  // the EXACT place instead of Google re-guessing from a name or, worse,
+  // reverse-geocoding lat/lon to the nearest road (the "Nanma" bug).
+  placeId?: string;
+  source?: PinSource;
 }
 
 export interface Trip {

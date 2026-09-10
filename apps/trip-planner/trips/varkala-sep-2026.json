@@ -12,7 +12,9 @@
       "category": "stay",
       "lat": 8.7306815,
       "lon": 76.7104861,
-      "note": "Temple Road, South Cliff, Varkala 695141.\nPhone 9447123508.\nCheck-in Fri 11 Sep 2 PM.\nCheck-out Sun 13 Sep before 11 AM.\nCoords: OSM 'Gouri's Rooms'."
+      "note": "Temple Road, South Cliff, Varkala 695141.\nPhone 9447123508.\nCheck-in Fri 11 Sep 2 PM.\nCheck-out Sun 13 Sep before 11 AM.\nCoords: OSM 'Gouri's Rooms'.",
+      "placeId": "ChIJeX5a39_uBTsR-RuezFBYSGw",
+      "source": "google"
     },
     {
       "id": "bus-varkala-in",
@@ -21,16 +23,20 @@
       "category": "transport",
       "lat": 8.7406369,
       "lon": 76.723134,
-      "note": "KBS Luxury Bus drops here Fri 11 Sep ~7:45 AM. Address in ticket: Sivagiri Road, near Sivagiri Madam."
+      "note": "KBS Luxury Bus drops here Fri 11 Sep ~7:45 AM. Address in ticket: Sivagiri Road, near Sivagiri Madam.",
+      "placeId": "ChIJH3ndAnvvBTsRDLOKoYwaHWc",
+      "source": "google"
     },
     {
       "id": "bus-kallambalam",
       "name": "Departure — Kallambalam",
       "emoji": "🚌",
       "category": "transport",
-      "lat": 8.7629298,
-      "lon": 76.7919242,
-      "note": "Sekar Travels pickup Sat 12 Sep 9:10 PM. Address in ticket: 'Kallambalam, Near Bus Stop'."
+      "lat": 8.76232,
+      "lon": 76.789944,
+      "note": "Sekar Travels pickup Sat 12 Sep 9:10 PM.\nThis is the Kallambalam-Varkala bus stop, the one the ticket means.",
+      "placeId": "ChIJkZ4hddnpBTsRP3h3H_POfGI",
+      "source": "google"
     },
     {
       "id": "beach-papanasam",
@@ -38,7 +44,8 @@
       "emoji": "🏖️",
       "category": "beach",
       "lat": 8.7360775,
-      "lon": 76.7029692
+      "lon": 76.7029692,
+      "source": "osm"
     },
     {
       "id": "beach-black",
@@ -46,7 +53,8 @@
       "emoji": "🏖️",
       "category": "beach",
       "lat": 8.743202,
-      "lon": 76.6987329
+      "lon": 76.6987329,
+      "source": "osm"
     },
     {
       "id": "beach-odayam",
@@ -54,15 +62,20 @@
       "emoji": "🏖️",
       "category": "beach",
       "lat": 8.7502707,
-      "lon": 76.6939263
+      "lon": 76.6939263,
+      "placeId": "ChIJZ-DdhgzvBTsRS9OPZlTRR5Q",
+      "source": "google"
     },
     {
       "id": "beach-kappil",
       "name": "Kappil Beach (backwaters meet sea)",
       "emoji": "🏖️",
       "category": "beach",
-      "lat": 8.768672,
-      "lon": 76.6822751
+      "lat": 8.77257,
+      "lon": 76.679892,
+      "note": "Where the backwaters meet the sea. Edava side, PIN 695311.",
+      "placeId": "ChIJ063sHIfvBTsROIVwcH17iLA",
+      "source": "google"
     },
     {
       "id": "sight-north-cliff",
@@ -70,7 +83,8 @@
       "emoji": "🌅",
       "category": "sight",
       "lat": 8.7372097,
-      "lon": 76.7025671
+      "lon": 76.7025671,
+      "source": "osm"
     },
     {
       "id": "sight-janardhana",
@@ -78,24 +92,31 @@
       "emoji": "⛩️",
       "category": "sight",
       "lat": 8.7319233,
-      "lon": 76.7099161
+      "lon": 76.7099161,
+      "placeId": "ChIJ5anhBODuBTsRj_LOMecC_jg",
+      "source": "google"
     },
     {
       "id": "sight-sivagiri",
       "name": "Sivagiri Mutt (Sree Narayana Guru samadhi area)",
       "emoji": "🕉️",
       "category": "sight",
-      "lat": 8.7275,
-      "lon": 76.7275,
-      "note": "COORDS APPROXIMATE (Sivagiri hill complex). Long-press the exact spot on Google Maps and I'll re-pin."
+      "lat": 8.738879,
+      "lon": 76.732411,
+      "note": "Sivagiri Rd, Varkala. Sree Narayana Guru samadhi.\nCoords FIXED 2026-09-10: old pin was 1.4 km off. Google + Overture agree within 8 m.",
+      "placeId": "ChIJ1WAtoyzvBTsR_KDWpC-b72Q",
+      "source": "google"
     },
     {
       "id": "sight-kappil-lake",
-      "name": "Kappil Lake (backwater boat)",
+      "name": "Kappil Boat Club (backwaters)",
       "emoji": "🚣",
       "category": "sight",
-      "lat": 8.7864379,
-      "lon": 76.6704997
+      "lat": 8.781518,
+      "lon": 76.67521,
+      "note": "Kappil International Boat Club, Thekkumbhagam Paravur Rd. This is where you actually hire the backwater boat.",
+      "placeId": "ChIJacgxT1nlBTsR1bhl6WiQAVc",
+      "source": "google"
     },
     {
       "id": "sight-anjengo",
@@ -103,7 +124,8 @@
       "emoji": "🏰",
       "category": "sight",
       "lat": 8.6626801,
-      "lon": 76.7644602
+      "lon": 76.7644602,
+      "source": "osm"
     },
     {
       "id": "food-del-mar",
@@ -111,7 +133,8 @@
       "emoji": "🍽️",
       "category": "food",
       "lat": 8.7376457,
-      "lon": 76.7019002
+      "lon": 76.7019002,
+      "source": "osm"
     },
     {
       "id": "food-trattorias",
@@ -119,7 +142,9 @@
       "emoji": "🍕",
       "category": "food",
       "lat": 8.7422235,
-      "lon": 76.6989733
+      "lon": 76.6989733,
+      "placeId": "ChIJMwfkzhrvBTsRg2z3mhWkato",
+      "source": "google"
     },
     {
       "id": "food-little-tibet",
@@ -127,7 +152,9 @@
       "emoji": "🥟",
       "category": "food",
       "lat": 8.7368544,
-      "lon": 76.7030054
+      "lon": 76.7030054,
+      "note": "RECOMMENDED: good food for the price, sea view.",
+      "source": "osm"
     },
     {
       "id": "food-gods-own",
@@ -135,7 +162,8 @@
       "emoji": "🍛",
       "category": "food",
       "lat": 8.7364658,
-      "lon": 76.7033461
+      "lon": 76.7033461,
+      "source": "osm"
     },
     {
       "id": "food-darjeeling",
@@ -143,7 +171,8 @@
       "emoji": "☕",
       "category": "food",
       "lat": 8.7402388,
-      "lon": 76.6997223
+      "lon": 76.6997223,
+      "source": "osm"
     },
     {
       "id": "food-suprabhatham",
@@ -152,7 +181,8 @@
       "category": "food",
       "lat": 8.734567,
       "lon": 76.7254477,
-      "note": "South Indian breakfast."
+      "note": "South Indian breakfast.",
+      "source": "osm"
     },
     {
       "id": "sight-south-cliff",
@@ -161,7 +191,8 @@
       "category": "sight",
       "lat": 8.7272138,
       "lon": 76.7108434,
-      "note": "Quieter cliff, near Gouri's Homestay. Coords: OSM natural=cliff."
+      "note": "Quieter cliff, near Gouri's Homestay. Coords: OSM natural=cliff.",
+      "source": "osm"
     },
     {
       "id": "stay-molly-s-hostel",
@@ -170,7 +201,8 @@
       "category": "stay",
       "lat": 8.7245998,
       "lon": 76.714953,
-      "note": "Coords: OSM tourism=hostel 'Molly's hotel'."
+      "note": "Coords: OSM tourism=hostel 'Molly's hotel'.",
+      "source": "osm"
     },
     {
       "id": "food-trip-is-life-cafe",
@@ -179,7 +211,8 @@
       "category": "food",
       "lat": 8.7247478,
       "lon": 76.7128007,
-      "note": "Coords: OSM 'Cafe Trip is life'. Same block as Molly's."
+      "note": "RECOMMENDED: good vibe, good food.\nPacked at sunset -- get there early or you will not get a seat.",
+      "source": "osm"
     },
     {
       "id": "food-inda-cafe",
@@ -188,7 +221,9 @@
       "category": "food",
       "lat": 8.738746,
       "lon": 76.701979,
-      "note": "Cliff 2nd Street, North Cliff. Coords: OSM/Nominatim 'InDa'."
+      "note": "Cliff 2nd Street, North Cliff. Coords: OSM/Nominatim 'InDa'.",
+      "placeId": "ChIJW_UBoBvvBTsRz1shGedxcgQ",
+      "source": "google"
     },
     {
       "id": "food-cafe-sarwaa-on-the-cliff",
@@ -197,7 +232,9 @@
       "category": "food",
       "lat": 8.7281626,
       "lon": 76.7099027,
-      "note": "South Cliff, Temple Road, Perumkulam. Inside Mare Holidays. Sea view, sunset spot.\\nCoords: OSM amenity=restaurant 'Cafe Sarwaa'."
+      "note": "South Cliff, Temple Road, Perumkulam. Inside Mare Holidays. Sea view, sunset spot.\\nCoords: OSM amenity=restaurant 'Cafe Sarwaa'.",
+      "placeId": "ChIJkbyEf9nvBTsRbHm_g9KyUbU",
+      "source": "google"
     },
     {
       "id": "stay-zostel-varkala",
@@ -206,7 +243,9 @@
       "category": "stay",
       "lat": 8.744874,
       "lon": 76.698591,
-      "note": "Sea Breeze Building, North Cliff, Kurakanni PO 695141. 3 min walk to Black Beach.\\nCoords: Google Maps place data (NOT in OSM). Cross-checked: 190m to Black Beach, 1.15km to Varkala Cliff, both match listed walk times."
+      "note": "Sea Breeze Building, North Cliff, Kurakanni PO 695141. 3 min walk to Black Beach.\\nCoords: Google Maps place data (NOT in OSM). Cross-checked: 190m to Black Beach, 1.15km to Varkala Cliff, both match listed walk times.",
+      "placeId": "ChIJJ_DaPrLvBTsReRb0TtkE5tk",
+      "source": "google"
     },
     {
       "id": "stay-hope-hostels-helipad",
@@ -215,8 +254,42 @@
       "category": "stay",
       "lat": 8.736232,
       "lon": 76.703705,
-      "note": "Varkala Helipad Road / Cliff Street, 695141. 1 min walk to Varkala Beach.\\nCoords: Google Maps place data (NOT in OSM), agreed by 2 sources.\\nNOTE: Hope also has a 'North Cliff (Sea View)' branch. This pin is the Helipad one."
+      "note": "Varkala Helipad Road / Cliff Street, 695141. 1 min walk to Varkala Beach.\\nCoords: Google Maps place data (NOT in OSM), agreed by 2 sources.\\nNOTE: Hope also has a 'North Cliff (Sea View)' branch. This pin is the Helipad one.",
+      "placeId": "ChIJz7AwpR7vBTsRiLvaiKZSQfE",
+      "source": "google"
+    },
+    {
+      "id": "food-holy-rabbit-cafe",
+      "name": "Holy Rabbit Cafe",
+      "emoji": "🐰",
+      "category": "food",
+      "lat": 8.737503,
+      "lon": 76.702263,
+      "source": "overture",
+      "note": "RECOMMENDED: good food.\nCoords: Overture Maps, confidence 0.96. Google has no 'Holy Rabbit' -- its nearest is 'The White Rabbit Cafe' 130 m away, which looks like a different place."
+    },
+    {
+      "id": "food-coffee-temple",
+      "name": "Coffee Temple",
+      "emoji": "☕",
+      "category": "food",
+      "lat": 8.737389,
+      "lon": 76.70252,
+      "placeId": "ChIJkQR2hG3vBTsRX2CofK2uN6Y",
+      "source": "google",
+      "note": "I told you this did not exist. It does. Google has it on the cliff."
+    },
+    {
+      "id": "sight-ponnumthuruthu-golden-island",
+      "name": "Ponnumthuruthu (Golden Island)",
+      "emoji": "🏝️",
+      "category": "sight",
+      "lat": 8.69877,
+      "lon": 76.747179,
+      "placeId": "ChIJf3Yci1rpBTsRzcDgTQqzduI",
+      "source": "google",
+      "note": "Backwater island temple, reached by boat. ~8 km south of Varkala."
     }
   ],
-  "updatedAt": "2026-09-10T05:47:39.763377Z"
+  "updatedAt": "2026-09-10T06:54:29.621061Z"
 }
