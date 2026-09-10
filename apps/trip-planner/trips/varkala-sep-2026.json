@@ -1,0 +1,28 @@
+{
+  "slug": "varkala-sep-2026",
+  "name": "Varkala Trip",
+  "dates": "11-13 Sep 2026",
+  "pins": [
+    { "id": "stay-gouri",        "name": "Gouri's Homestay",              "emoji": "🏠", "category": "stay",      "lat": 8.7305, "lon": 76.7040, "note": "Temple Road, South Cliff, Varkala 695141.\nPhone 9447123508.\nCheck-in Fri 11 Sep 2 PM.\nCheck-out Sun 13 Sep before 11 AM." },
+    { "id": "bus-varkala-in",    "name": "Arrival — Varkala (Sivagiri Rd)","emoji": "🚌", "category": "transport", "lat": 8.7369, "lon": 76.7156, "note": "KBS Luxury Bus drops here Fri 11 Sep ~7:45 AM." },
+    { "id": "bus-kallambalam",   "name": "Departure — Kallambalam bus stop","emoji": "🚌", "category": "transport", "lat": 8.6889, "lon": 76.8203, "note": "Sekar Travels pickup Sat 12 Sep 9:10 PM." },
+    { "id": "beach-papanasam",   "name": "Papanasam Beach (Varkala Beach)","emoji": "🏖️", "category": "beach",    "lat": 8.7333, "lon": 76.7052 },
+    { "id": "beach-black",       "name": "Black Beach",                    "emoji": "🏖️", "category": "beach",    "lat": 8.7422, "lon": 76.6997 },
+    { "id": "beach-odayam",      "name": "Odayam Beach",                   "emoji": "🏖️", "category": "beach",    "lat": 8.7443, "lon": 76.6981, "note": "Quieter than Papanasam." },
+    { "id": "beach-kappil",      "name": "Kappil Beach",                   "emoji": "🏖️", "category": "beach",    "lat": 8.7828, "lon": 76.6822, "note": "Where backwaters meet the sea." },
+    { "id": "sight-north-cliff", "name": "North Cliff (sunset walk)",      "emoji": "🌅", "category": "sight",    "lat": 8.7382, "lon": 76.7020 },
+    { "id": "sight-janardhana",  "name": "Janardhana Swamy Temple",        "emoji": "⛩️", "category": "sight",    "lat": 8.7314, "lon": 76.7048 },
+    { "id": "sight-sivagiri",    "name": "Sivagiri Mutt",                  "emoji": "🕉️", "category": "sight",    "lat": 8.7379, "lon": 76.7217 },
+    { "id": "sight-kappil-lake", "name": "Kappil Lake (backwater boat)",   "emoji": "🚣", "category": "sight",    "lat": 8.7801, "lon": 76.6862 },
+    { "id": "sight-ponnu",       "name": "Ponnumthuruthu Island (Golden Island)","emoji": "🌴", "category": "sight", "lat": 8.6570, "lon": 76.7396 },
+    { "id": "sight-anjengo",     "name": "Anjengo Fort",                   "emoji": "🏰", "category": "sight",    "lat": 8.6752, "lon": 76.7548 },
+    { "id": "food-coffee-temple","name": "Coffee Temple",                  "emoji": "☕", "category": "food",     "lat": 8.7392, "lon": 76.7017 },
+    { "id": "food-del-mar",      "name": "Cafe del Mar",                   "emoji": "🍽️", "category": "food",     "lat": 8.7395, "lon": 76.7012 },
+    { "id": "food-trattorias",   "name": "Trattorias (Italian)",           "emoji": "🍕", "category": "food",     "lat": 8.7385, "lon": 76.7020 },
+    { "id": "food-little-tibet", "name": "Little Tibet",                   "emoji": "🥟", "category": "food",     "lat": 8.7390, "lon": 76.7015 },
+    { "id": "food-gods-own",     "name": "God's Own Country Kitchen",      "emoji": "🍛", "category": "food",     "lat": 8.7397, "lon": 76.7014 },
+    { "id": "food-darjeeling",   "name": "Darjeeling Cafe",                "emoji": "☕", "category": "food",     "lat": 8.7393, "lon": 76.7016 },
+    { "id": "food-suprabhatham", "name": "Suprabhatham (South Indian breakfast)","emoji": "🥞", "category": "food", "lat": 8.7315, "lon": 76.7071 }
+  ],
+  "updatedAt": "2026-09-10T00:00:00.000Z"
+}

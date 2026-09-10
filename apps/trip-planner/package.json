@@ -1,0 +1,19 @@
+{
+  "name": "trip-planner",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": ". ../../scripts/node22-path.sh && wrangler dev",
+    "typecheck": ". ../../scripts/node22-path.sh && tsc",
+    "deploy": ". ../../scripts/node22-path.sh && wrangler deploy"
+  },
+  "dependencies": {
+    "hono": "^4.12.23"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260908.1",
+    "typescript": "~6.0.2",
+    "wrangler": "^4.95.0"
+  }
+}

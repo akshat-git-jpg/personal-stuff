@@ -59,15 +59,17 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 - **founders-tracker** — `founders.agrolloo.com` — founders/CRM tracker SPA. Bindings: `ASSETS`, `DB` (D1 `founders-db`). Worker cron `35 18 * * *`. Secrets: `APP_PIN`, `SESSION_SECRET`.
 - **timeblock** — `timeblock.agrolloo.com` — tap-to-block day planner. Shared-password gate (stateless signed cookie, no KV sessions). Bindings: `ASSETS`, `BLOCKS_KV` (KV, one JSON blob per day). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 - **closet-app** — `closet.agrolloo.com` — wear counter + tagged outfit gallery PWA (two tabs: Clothes = raw wears-since-wash per garment, Looks = tagged outfit photos). Shared-password gate (stateless signed cookie, no KV). Bindings: `ASSETS` (SPA in `dist/`), `DB` (D1 `closet-db`), `PHOTOS` (R2 `closet-photos`). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. Deployed 2026-08-17.
+- **trip-planner** — `trips.agrolloo.com` — per-trip pin map PWA (one dropdown, one URL). MapLibre + OSM tiles for the pin canvas; navigation, live traffic, place details and "near me" search hand off to the Google Maps app via `google.com/maps/dir/` and `.../search/` URLs. No login (unlisted). Bindings: `TRIPS_KV` (KV, one JSON per trip + reserved `__index` for the dropdown). Secret: `ADMIN_TOKEN` (write-gate for the `pp-trip` CLI). Deployed 2026-09-10.
 - **yt-script-desk** — `https://script-desk.agrolloo.com` — access is a per-video secret link; there is no login. Binding: `DESK_DB` (D1 `script-desk-db`). Secret: `DESK_ADMIN_TOKEN`.
 - **bridebestie** — `bridebestie.com` + `www` — static landing page (assets-only).
 - **vps-watchdog** — cron `*/2 * * * *`, no HTTP route — pings the dashboard; reboots VPS via Hostinger API if down. Binding: `WATCHDOG_KV`.
 
-### KV namespaces (4)
+### KV namespaces (5)
 - `WATCHDOG_KV` — vps-watchdog state.
 - `CLICKS_KV` — redirector clicks.
 - `SESSIONS` — tutorials-tracker logins.
 - `BLOCKS_KV` — timeblock day blobs (key `day:YYYY-MM-DD`).
+- `TRIPS_KV` — trip-planner trips (key = slug; value = trip JSON; reserved `__index` = dropdown data).
 
 ### D1 databases (6)
 - `lists-db` — lists-app data store (categories + items). Bound as `DB` in lists-app only.

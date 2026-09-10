@@ -1,0 +1,383 @@
+/**
+ * app-html.ts
+ * The whole PWA as one HTML string. No build step, no framework.
+ *
+ * Boundaries:
+ *   - Map rendering: MapLibre GL JS (CDN). Tile provider is defined ONCE in
+ *     TILE_SOURCE below — swap it to Google/Mapbox later without touching
+ *     anything else.
+ *   - Navigation, live traffic, "food near me", Street View, place details:
+ *     handed off to the Google Maps app via well-known URL schemes.
+ *
+ * Data flow (client):
+ *   1) GET /api/trips → populate dropdown, pick last-used or ?trip=<slug>.
+ *   2) GET /api/trips/:slug → render pins + fit map to their bounds.
+ *   3) User taps a pin → info card with Google-Maps handoff buttons.
+ *   4) User toggles "Route" → tick multiple pins → opens Google Maps
+ *      directions with the selected waypoints in order.
+ */
+
+// One source of truth for the map tiles. Swap to Google/Mapbox by changing this.
+const TILE_SOURCE = {
+  tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+  attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
+  maxzoom: 19,
+};
+
+export function renderApp(): string {
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5" />
+<meta name="theme-color" content="#0d0c0b" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Trips" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="icon" href='data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#0d0c0b"/><text x="16" y="24" font-size="22" text-anchor="middle">🗺️</text></svg>`,
+  )}' />
+<title>Trips</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.min.css" />
+<style>
+  html,body{margin:0;height:100%;font:15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#111;background:#0d0c0b}
+  #map{position:absolute;inset:0}
+  .maplibregl-ctrl-attrib.maplibregl-compact{background:rgba(255,255,255,.7)}
+  /* top bar */
+  #top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:8px;right:8px;z-index:10;display:flex;gap:6px;flex-wrap:wrap;align-items:center;pointer-events:none}
+  #top>*{pointer-events:auto}
+  select,button,input{font:inherit;color:#111;background:#fff;border:1px solid #d0d0d0;border-radius:10px;padding:8px 10px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  select{max-width:60vw}
+  button{cursor:pointer}
+  button.active{background:#0d0c0b;color:#fff;border-color:#0d0c0b}
+  .chips{display:flex;gap:5px;flex-wrap:wrap}
+  .chip{padding:5px 9px;border-radius:999px;background:#fff;border:1px solid #d0d0d0;font-size:13px;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+  .chip.off{opacity:.35}
+  /* pin marker */
+  .pin{width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #333;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
+  .pin span{transform:rotate(45deg);font-size:16px;line-height:1}
+  .pin.sel{background:#ffe08a;border-color:#e08a00}
+  .pin.selnum{position:relative}
+  .pin.selnum::after{content:attr(data-num);position:absolute;top:-8px;right:-8px;transform:rotate(45deg);background:#e08a00;color:#fff;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+  /* category tints on the pin body */
+  .pin.stay{background:#ffe1e1}
+  .pin.transport{background:#ffe6c8}
+  .pin.beach{background:#fff2b3}
+  .pin.sight{background:#d6f0d0}
+  .pin.food{background:#ecd6ff}
+  .pin.utility{background:#dfe7ff}
+  /* info card + route bar (bottom sheets) */
+  .sheet{position:absolute;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:10;background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 6px 24px rgba(0,0,0,.28);max-height:45vh;overflow:auto}
+  .sheet h3{margin:0 0 4px;font-size:16px}
+  .sheet .cat{font-size:12px;color:#666;text-transform:capitalize;margin-bottom:8px}
+  .sheet .note{white-space:pre-wrap;color:#333;margin:8px 0}
+  .row{display:flex;flex-wrap:wrap;gap:6px}
+  .row a,.row button{padding:8px 10px;border-radius:10px;border:1px solid #d0d0d0;background:#fff;text-decoration:none;color:#111;font-size:13px}
+  .row a.primary{background:#1a73e8;color:#fff;border-color:#1a73e8}
+  .close{position:absolute;top:6px;right:8px;border:none;background:transparent;font-size:22px;line-height:1;color:#888;padding:4px 8px}
+  .empty{padding:24px;text-align:center;color:#666;background:#fff;margin:16px;border-radius:12px}
+  #search-wrap{display:flex;gap:4px;flex:1;min-width:180px}
+  #search{flex:1;min-width:0}
+  /* geolocate active */
+  .maplibregl-ctrl-geolocate{background-color:#fff !important}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="top">
+  <select id="trip" title="Trip"><option value="">Loading…</option></select>
+  <button id="filters-btn" title="Filters">Filters</button>
+  <button id="route-btn" title="Plan a multi-stop route">Route</button>
+  <div id="search-wrap">
+    <input id="search" placeholder="near me: food, atm, pharmacy…" />
+    <button id="search-btn" title="Search near me">→</button>
+  </div>
+</div>
+
+<div id="filters" class="sheet" hidden>
+  <button class="close" data-close="filters">×</button>
+  <h3>Show categories</h3>
+  <div id="chips" class="chips"></div>
+</div>
+
+<div id="card" class="sheet" hidden></div>
+
+<div id="route" class="sheet" hidden>
+  <button class="close" data-close="route">×</button>
+  <h3>Plan a route</h3>
+  <div class="cat">Tap pins on the map in the order you want to visit them.</div>
+  <div id="route-list" class="row"></div>
+  <div class="row" style="margin-top:10px">
+    <button id="route-clear">Clear</button>
+    <a id="route-go" class="primary" href="#" target="_blank" rel="noopener">Open in Google Maps</a>
+  </div>
+  <div class="cat" style="margin-top:8px">Google Maps opens with turn-by-turn, live traffic, and up to ~9 stops.</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.min.js"></script>
+<script>
+/* ------ Constants (mirrored from the server for now) ------ */
+const TILE_SOURCE = ${JSON.stringify(TILE_SOURCE)};
+const CATS = [
+  ['stay','🏠 Stay'],
+  ['transport','🚌 Transport'],
+  ['beach','🏖️ Beach'],
+  ['sight','🌅 Sight'],
+  ['food','☕ Food'],
+  ['utility','🏧 Utility'],
+];
+
+/* ------ Register the no-op service worker (needed for iOS A2HS) ------ */
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+
+/* ------ State ------ */
+const state = {
+  trips: [],           // index
+  trip: null,          // current trip
+  markers: [],         // MapLibre marker instances
+  activeCats: new Set(CATS.map(c=>c[0])),
+  routeMode: false,
+  routeOrder: [],      // pin ids in tap order
+  userLoc: null,       // {lat,lon} from geolocate
+};
+
+/* ------ Map ------ */
+const map = new maplibregl.Map({
+  container: 'map',
+  style: {
+    version: 8,
+    sources: { osm: { type: 'raster', tileSize: 256, ...TILE_SOURCE } },
+    layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
+  },
+  center: [77.5946, 12.9716], // Bengaluru default
+  zoom: 4,
+});
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+const geo = new maplibregl.GeolocateControl({
+  positionOptions: { enableHighAccuracy: true },
+  trackUserLocation: true,
+  showUserHeading: true,
+});
+map.addControl(geo, 'bottom-right');
+geo.on('geolocate', (e) => {
+  state.userLoc = { lat: e.coords.latitude, lon: e.coords.longitude };
+});
+
+// Auto-request location once the map is ready (user still sees the OS prompt).
+map.on('load', () => setTimeout(() => { try { geo.trigger(); } catch {} }, 300));
+
+/* ------ Trip index (dropdown) ------ */
+async function loadIndex() {
+  const r = await fetch('/api/trips');
+  state.trips = await r.json();
+  const sel = document.getElementById('trip');
+  sel.innerHTML = '';
+  if (!state.trips.length) {
+    sel.innerHTML = '<option value="">No trips yet</option>';
+    document.body.insertAdjacentHTML('beforeend', '<div class="empty">No trips yet. Add pins via the <code>pp-trip</code> CLI.</div>');
+    return;
+  }
+  for (const t of state.trips) {
+    const o = document.createElement('option');
+    o.value = t.slug;
+    o.textContent = t.name + (t.dates ? ' — ' + t.dates : '') + ' (' + t.pinCount + ')';
+    sel.appendChild(o);
+  }
+  // Pick trip: ?trip= wins, then localStorage, then first.
+  const url = new URL(location.href);
+  const wanted = url.searchParams.get('trip') || localStorage.getItem('trip-planner:last') || state.trips[0].slug;
+  const found = state.trips.find(t => t.slug === wanted) ? wanted : state.trips[0].slug;
+  sel.value = found;
+  await selectTrip(found);
+  sel.addEventListener('change', () => selectTrip(sel.value));
+}
+
+async function selectTrip(slug) {
+  localStorage.setItem('trip-planner:last', slug);
+  const url = new URL(location.href);
+  url.searchParams.set('trip', slug);
+  history.replaceState(null, '', url.toString());
+  const r = await fetch('/api/trips/' + encodeURIComponent(slug));
+  if (!r.ok) return;
+  state.trip = await r.json();
+  clearRoute();
+  renderPins();
+  fitToPins();
+}
+
+/* ------ Filters ------ */
+function renderChips() {
+  const el = document.getElementById('chips');
+  el.innerHTML = '';
+  for (const [key, label] of CATS) {
+    const b = document.createElement('button');
+    b.className = 'chip' + (state.activeCats.has(key) ? '' : ' off');
+    b.textContent = label;
+    b.onclick = () => {
+      if (state.activeCats.has(key)) state.activeCats.delete(key);
+      else state.activeCats.add(key);
+      b.className = 'chip' + (state.activeCats.has(key) ? '' : ' off');
+      renderPins();
+    };
+    el.appendChild(b);
+  }
+}
+renderChips();
+
+document.getElementById('filters-btn').onclick = () => toggleSheet('filters');
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => document.getElementById(b.dataset.close).hidden = true);
+
+function toggleSheet(id) {
+  const el = document.getElementById(id);
+  el.hidden = !el.hidden;
+}
+
+/* ------ Pins ------ */
+function renderPins() {
+  for (const m of state.markers) m.remove();
+  state.markers = [];
+  if (!state.trip) return;
+  for (const p of state.trip.pins) {
+    if (!state.activeCats.has(p.category)) continue;
+    const el = document.createElement('div');
+    el.className = 'pin ' + p.category;
+    const routeIdx = state.routeOrder.indexOf(p.id);
+    if (routeIdx >= 0) { el.classList.add('sel','selnum'); el.setAttribute('data-num', String(routeIdx + 1)); }
+    const s = document.createElement('span');
+    s.textContent = p.emoji || '📍';
+    el.appendChild(s);
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (state.routeMode) toggleRoutePin(p.id);
+      else showCard(p);
+    });
+    const m = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+      .setLngLat([p.lon, p.lat])
+      .addTo(map);
+    state.markers.push(m);
+  }
+}
+
+function fitToPins() {
+  if (!state.trip || !state.trip.pins.length) return;
+  const t = state.trip;
+  if (t.centerLat != null && t.centerLon != null) {
+    map.jumpTo({ center: [t.centerLon, t.centerLat], zoom: t.zoom || 12 });
+    return;
+  }
+  const b = new maplibregl.LngLatBounds();
+  for (const p of t.pins) b.extend([p.lon, p.lat]);
+  map.fitBounds(b, { padding: 60, maxZoom: 15, duration: 400 });
+}
+
+/* ------ Info card ------ */
+function showCard(p) {
+  const q = encodeURIComponent(p.gmapsQuery || p.name);
+  const ll = p.lat + ',' + p.lon;
+  const searchUrl = 'https://www.google.com/maps/search/?api=1&query=' + q + '&query_place_id=';
+  const navUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + ll + '&travelmode=driving';
+  const el = document.getElementById('card');
+  el.innerHTML = '<button class="close" onclick="document.getElementById(\\'card\\').hidden=true">×</button>' +
+    '<h3>' + (p.emoji || '📍') + ' ' + escapeHtml(p.name) + '</h3>' +
+    '<div class="cat">' + p.category + '</div>' +
+    (p.note ? '<div class="note">' + escapeHtml(p.note) + '</div>' : '') +
+    '<div class="row">' +
+      '<a class="primary" href="' + navUrl + '" target="_blank" rel="noopener">Directions</a>' +
+      '<a href="' + searchUrl + '" target="_blank" rel="noopener">Open in Maps</a>' +
+      (state.routeMode
+        ? '<button onclick="window.__toggleRoute(\\'' + p.id + '\\')">' + (state.routeOrder.includes(p.id) ? 'Remove from route' : 'Add to route') + '</button>'
+        : '<button onclick="window.__enterRoute(\\'' + p.id + '\\')">Add to route</button>') +
+    '</div>';
+  el.hidden = false;
+}
+window.__toggleRoute = (id) => { toggleRoutePin(id); const p = state.trip.pins.find(x=>x.id===id); if (p) showCard(p); };
+window.__enterRoute = (id) => { enterRouteMode(); toggleRoutePin(id); const p = state.trip.pins.find(x=>x.id===id); if (p) showCard(p); };
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ------ Route mode ------ */
+const routeBtn = document.getElementById('route-btn');
+routeBtn.onclick = () => state.routeMode ? exitRouteMode() : enterRouteMode();
+function enterRouteMode() {
+  state.routeMode = true;
+  routeBtn.classList.add('active');
+  document.getElementById('route').hidden = false;
+  document.getElementById('card').hidden = true;
+  renderRouteList();
+}
+function exitRouteMode() {
+  state.routeMode = false;
+  routeBtn.classList.remove('active');
+  document.getElementById('route').hidden = true;
+  clearRoute();
+}
+function clearRoute() {
+  state.routeOrder = [];
+  renderRouteList();
+  renderPins();
+}
+document.getElementById('route-clear').onclick = clearRoute;
+
+function toggleRoutePin(id) {
+  const i = state.routeOrder.indexOf(id);
+  if (i >= 0) state.routeOrder.splice(i, 1);
+  else state.routeOrder.push(id);
+  renderRouteList();
+  renderPins();
+}
+
+function renderRouteList() {
+  const el = document.getElementById('route-list');
+  const go = document.getElementById('route-go');
+  if (!state.routeOrder.length) {
+    el.innerHTML = '<div class="cat">No stops yet.</div>';
+    go.href = '#';
+    go.style.pointerEvents = 'none';
+    go.style.opacity = '0.5';
+    return;
+  }
+  const items = state.routeOrder.map((id, i) => {
+    const p = state.trip.pins.find(x => x.id === id);
+    return '<button onclick="window.__toggleRoute(\\'' + id + '\\')">' + (i + 1) + '. ' + (p ? escapeHtml(p.name) : '?') + ' ×</button>';
+  });
+  el.innerHTML = items.join('');
+  // Google Maps directions: /dir/?api=1&origin=...&destination=...&waypoints=lat,lng|lat,lng
+  const pts = state.routeOrder.map(id => {
+    const p = state.trip.pins.find(x => x.id === id);
+    return p ? p.lat + ',' + p.lon : '';
+  }).filter(Boolean);
+  let origin = 'My+Location';
+  if (state.userLoc) origin = state.userLoc.lat + ',' + state.userLoc.lon;
+  const dest = pts[pts.length - 1];
+  const wps = pts.slice(0, -1).join('|');
+  let url = 'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=' + origin + '&destination=' + dest;
+  if (wps) url += '&waypoints=' + wps;
+  go.href = url;
+  go.style.pointerEvents = '';
+  go.style.opacity = '';
+}
+
+/* ------ Search near me (hand off to Google Maps) ------ */
+document.getElementById('search-btn').onclick = doSearch;
+document.getElementById('search').addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+function doSearch() {
+  const q = document.getElementById('search').value.trim();
+  if (!q) return;
+  const c = map.getCenter();
+  const near = state.userLoc ? (state.userLoc.lat + ',' + state.userLoc.lon) : (c.lat.toFixed(6) + ',' + c.lng.toFixed(6));
+  const url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q + ' near ' + near);
+  window.open(url, '_blank', 'noopener');
+}
+
+/* ------ Go ------ */
+loadIndex().catch(err => {
+  document.body.insertAdjacentHTML('beforeend', '<div class="empty">Failed to load: ' + escapeHtml(String(err)) + '</div>');
+});
+</script>
+</body>
+</html>`;
+}

@@ -1,0 +1,23 @@
+name = "trip-planner"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Trip pins live here. Key = trip slug, value = trip JSON (see src/types.ts).
+# Also the reserved key `__index` = JSON array of {slug, name, dates} for the
+# dropdown; the Worker rebuilds it on every trip write.
+[[kv_namespaces]]
+binding = "TRIPS_KV"
+id = "8c1613e4d24d43e78fa81c54aa385bc4"
+
+# Custom domain — Cloudflare auto-provisions DNS + SSL on the agrolloo.com zone.
+[[routes]]
+pattern = "trips.agrolloo.com"
+custom_domain = true
+
+# ADMIN_TOKEN is the write-secret the pp-trip CLI sends in `X-Admin-Token`.
+#   npx wrangler secret put ADMIN_TOKEN
+# Local dev mirrors it in .dev.vars.
+
+[observability]
+enabled = true
