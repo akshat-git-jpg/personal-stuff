@@ -53,19 +53,32 @@ export function renderApp(): string {
   #hud>*{pointer-events:auto}
   #top{display:flex;gap:6px;align-items:center;flex-wrap:wrap;pointer-events:none}
   #top>*{pointer-events:auto}
+  /* border-box everywhere: without it a width:100% input plus its 20px of
+     padding is 20px wider than its parent, which made the Places filter poke
+     out of its sheet. */
+  *,*::before,*::after{box-sizing:border-box}
   select,button,input{font:inherit;color:#111;background:#fff;border:1px solid #d0d0d0;border-radius:10px;padding:8px 10px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
   /* 42vw, not 60vw: at 60 the trip name alone pushed the buttons onto a
      second row on every phone. */
   select{max-width:42vw}
   button{cursor:pointer}
   button.active{background:#0d0c0b;color:#fff;border-color:#0d0c0b}
-  /* Always-visible filter strip (own row, own scroller). min-width:0 keeps a
-     scrolling flex child from forcing the whole column wider than the screen. */
-  #chips{display:flex;gap:6px;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0;scrollbar-width:none;pointer-events:none}
-  #chips::-webkit-scrollbar{display:none}
+  /* Filter chips WRAP, they do not scroll.
+     A sideways scroller hid Food and Utility off the right edge on every
+     phone, with no visual hint that anything was there: the row needed 500px
+     and a 390px phone gives it 374px. Wrapping is also the scalable choice --
+     a seventh category adds a row instead of silently disappearing. */
+  #chips{display:flex;flex-wrap:wrap;gap:5px;padding:2px 0;pointer-events:none}
   #chips>*{pointer-events:auto}
-  .chip{flex:0 0 auto;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid #d0d0d0;font-size:13px;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:nowrap}
-  .chip.off{opacity:.35;background:#f2f2f2}
+  .chip{flex:0 0 auto;padding:5px 9px;border-radius:999px;background:#fff;border:1px solid #d0d0d0;font-size:12px;line-height:1.25;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:nowrap}
+  .chip.off{opacity:.4;background:#f2f2f2}
+  /* Tint each chip like its pins, so the emoji is not the only cue. */
+  .chip.on-stay{border-color:#e8a0a0}
+  .chip.on-transport{border-color:#e8bb80}
+  .chip.on-beach{border-color:#ddc040}
+  .chip.on-sight{border-color:#84c078}
+  .chip.on-food{border-color:#c090e0}
+  .chip.on-utility{border-color:#8fa8e8}
   /* pin marker */
   .pin{width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #333;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
   .pin span{transform:rotate(45deg);font-size:16px;line-height:1}
@@ -118,7 +131,8 @@ export function renderApp(): string {
     <input id="search" placeholder="near me: food, atm, pharmacy…" />
     <button id="search-btn" title="Search near me">→</button>
   </div>
-  <!-- Filter chips are ALWAYS visible: no toggle to fail on. Scrolls sideways if they don't fit. -->
+  <!-- Filter chips are ALWAYS visible: no toggle to fail on, and they wrap
+       rather than scroll, so none can hide off the right edge. -->
   <div id="chips"></div>
 </div>
 
@@ -152,13 +166,16 @@ export function renderApp(): string {
 <script>
 /* ------ Constants (mirrored from the server for now) ------ */
 const TILE_SOURCE = ${JSON.stringify(TILE_SOURCE)};
+// Labels are kept SHORT so all six chips fit one wrapped row on a 390px
+// phone. 'Transport' and 'Utility' were the two that pushed the row to 500px
+// and shoved Food off the screen; the emoji carries the meaning either way.
 const CATS = [
   ['stay','🏠 Stay'],
-  ['transport','🚌 Transport'],
+  ['transport','🚌 Bus'],
   ['beach','🏖️ Beach'],
   ['sight','🌅 Sight'],
   ['food','☕ Food'],
-  ['utility','🏧 Utility'],
+  ['utility','🏧 ATM'],
 ];
 /* Owner wants a quiet map on open: only the things worth looking at from
    a distance. Everything else is one tap away on its chip. */
@@ -248,12 +265,16 @@ function renderChips() {
   el.innerHTML = '';
   for (const [key, label] of CATS) {
     const b = document.createElement('button');
-    b.className = 'chip' + (state.activeCats.has(key) ? '' : ' off');
+    const cls = () => 'chip ' + (state.activeCats.has(key) ? 'on-' + key : 'off');
+    b.className = cls();
     b.textContent = label;
+    b.setAttribute('aria-pressed', state.activeCats.has(key) ? 'true' : 'false');
+    b.title = key;
     b.onclick = () => {
       if (state.activeCats.has(key)) state.activeCats.delete(key);
       else state.activeCats.add(key);
-      b.className = 'chip' + (state.activeCats.has(key) ? '' : ' off');
+      b.className = cls();
+      b.setAttribute('aria-pressed', state.activeCats.has(key) ? 'true' : 'false');
       renderPins();
     };
     el.appendChild(b);

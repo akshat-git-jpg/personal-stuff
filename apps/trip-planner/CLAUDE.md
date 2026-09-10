@@ -48,3 +48,30 @@ the extra friction defeats the "open the app, see the map" goal.
 Everything is rendered by the Worker (HTML, manifest, SW) so there is no
 build step. Adding `[assets]` here would break the "no build, just deploy"
 promise this repo prefers.
+
+## Mobile layout: measure it, do not eyeball it
+
+`python3 apps/trip-planner/check-layout.py` renders the LIVE page inside
+fixed-width iframes (320/360/390/430) in headless Chrome and fails on any
+control that sits off-screen, any two HUD rows that overlap, a HUD taller than
+35% of the screen, or a sheet that scrolls sideways. It runs twice per width:
+map-only, and with the Places list, route panel and a pin card all open at
+once. Exit code is non-zero when anything is wrong.
+
+Run it after ANY change to `app-html.ts`. Two mobile bugs shipped without it:
+
+1. The filter strip was positioned at a hard-coded `top + 60px`, which assumed
+   the top bar was one row tall. On a phone the bar wrapped and the chips
+   landed on top of it. **No absolutely-positioned element may take an offset
+   derived from another element's assumed height** - that is why all top
+   controls now live in one `#hud` flex column and all bottom sheets in one
+   `#sheets` flex column.
+2. The chip row was a horizontal scroller. It needed 500px; a 390px phone
+   gives it 374px, so Food and Utility were simply off-screen with no visual
+   hint. **Controls wrap, they never scroll sideways.** A seventh category adds
+   a row rather than silently disappearing.
+
+Two notes on the harness: headless Chrome ignores `--window-size` for the
+layout viewport here (hence the iframe), and localhost is blocked in the
+sandbox, so it stubs `fetch` from a downloaded copy of the real trip JSON
+instead of proxying. Override the target with `TRIP_PLANNER_URL`.
