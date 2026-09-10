@@ -5,24 +5,191 @@
   "viewbox": "76.65,8.80,76.85,8.60",
   "locationHint": "Varkala, Kerala, India",
   "pins": [
-    { "id": "stay-gouri",        "name": "Gouri's Homestay",              "emoji": "🏠", "category": "stay",      "lat": 8.7306815, "lon": 76.7104861, "note": "Temple Road, South Cliff, Varkala 695141.\nPhone 9447123508.\nCheck-in Fri 11 Sep 2 PM.\nCheck-out Sun 13 Sep before 11 AM.\nCoords: OSM 'Gouri's Rooms'." },
-    { "id": "bus-varkala-in",    "name": "Arrival — Varkala Sivagiri railway station area", "emoji": "🚌", "category": "transport", "lat": 8.7406369, "lon": 76.7231340, "note": "KBS Luxury Bus drops here Fri 11 Sep ~7:45 AM. Address in ticket: Sivagiri Road, near Sivagiri Madam." },
-    { "id": "bus-kallambalam",   "name": "Departure — Kallambalam",       "emoji": "🚌", "category": "transport", "lat": 8.7629298, "lon": 76.7919242, "note": "Sekar Travels pickup Sat 12 Sep 9:10 PM. Address in ticket: 'Kallambalam, Near Bus Stop'." },
-    { "id": "beach-papanasam",   "name": "Papanasam Beach (Varkala Beach)","emoji": "🏖️", "category": "beach",    "lat": 8.7360775, "lon": 76.7029692 },
-    { "id": "beach-black",       "name": "Black Beach",                    "emoji": "🏖️", "category": "beach",    "lat": 8.7432020, "lon": 76.6987329 },
-    { "id": "beach-odayam",      "name": "Odayam Beach (quieter)",         "emoji": "🏖️", "category": "beach",    "lat": 8.7502707, "lon": 76.6939263 },
-    { "id": "beach-kappil",      "name": "Kappil Beach (backwaters meet sea)","emoji": "🏖️","category": "beach", "lat": 8.7686720, "lon": 76.6822751 },
-    { "id": "sight-north-cliff", "name": "North Cliff (sunset walk)",      "emoji": "🌅", "category": "sight",    "lat": 8.7372097, "lon": 76.7025671 },
-    { "id": "sight-janardhana",  "name": "Janardhana Swamy Temple",        "emoji": "⛩️", "category": "sight",    "lat": 8.7319233, "lon": 76.7099161 },
-    { "id": "sight-sivagiri",    "name": "Sivagiri Mutt (Sree Narayana Guru samadhi area)","emoji": "🕉️","category": "sight","lat": 8.7275000, "lon": 76.7275000, "note": "COORDS APPROXIMATE (Sivagiri hill complex). Long-press the exact spot on Google Maps and I'll re-pin." },
-    { "id": "sight-kappil-lake", "name": "Kappil Lake (backwater boat)",   "emoji": "🚣", "category": "sight",    "lat": 8.7864379, "lon": 76.6704997 },
-    { "id": "sight-anjengo",     "name": "Anjengo Fort",                   "emoji": "🏰", "category": "sight",    "lat": 8.6626801, "lon": 76.7644602 },
-    { "id": "food-del-mar",      "name": "Cafe del Mar",                   "emoji": "🍽️", "category": "food",     "lat": 8.7376457, "lon": 76.7019002 },
-    { "id": "food-trattorias",   "name": "Trattorias (Italian)",           "emoji": "🍕", "category": "food",     "lat": 8.7422235, "lon": 76.6989733 },
-    { "id": "food-little-tibet", "name": "Little Tibet Restaurant",        "emoji": "🥟", "category": "food",     "lat": 8.7368544, "lon": 76.7030054 },
-    { "id": "food-gods-own",     "name": "God's Own Country Restaurant",   "emoji": "🍛", "category": "food",     "lat": 8.7364658, "lon": 76.7033461 },
-    { "id": "food-darjeeling",   "name": "Darjeeling Cafe",                "emoji": "☕", "category": "food",     "lat": 8.7402388, "lon": 76.6997223 },
-    { "id": "food-suprabhatham", "name": "Hotel Suprabhatham Restaurant",  "emoji": "🥞", "category": "food",     "lat": 8.7345670, "lon": 76.7254477, "note": "South Indian breakfast." }
+    {
+      "id": "stay-gouri",
+      "name": "Gouri's Homestay",
+      "emoji": "🏠",
+      "category": "stay",
+      "lat": 8.7306815,
+      "lon": 76.7104861,
+      "note": "Temple Road, South Cliff, Varkala 695141.\nPhone 9447123508.\nCheck-in Fri 11 Sep 2 PM.\nCheck-out Sun 13 Sep before 11 AM.\nCoords: OSM 'Gouri's Rooms'."
+    },
+    {
+      "id": "bus-varkala-in",
+      "name": "Arrival — Varkala Sivagiri railway station area",
+      "emoji": "🚌",
+      "category": "transport",
+      "lat": 8.7406369,
+      "lon": 76.723134,
+      "note": "KBS Luxury Bus drops here Fri 11 Sep ~7:45 AM. Address in ticket: Sivagiri Road, near Sivagiri Madam."
+    },
+    {
+      "id": "bus-kallambalam",
+      "name": "Departure — Kallambalam",
+      "emoji": "🚌",
+      "category": "transport",
+      "lat": 8.7629298,
+      "lon": 76.7919242,
+      "note": "Sekar Travels pickup Sat 12 Sep 9:10 PM. Address in ticket: 'Kallambalam, Near Bus Stop'."
+    },
+    {
+      "id": "beach-papanasam",
+      "name": "Papanasam Beach (Varkala Beach)",
+      "emoji": "🏖️",
+      "category": "beach",
+      "lat": 8.7360775,
+      "lon": 76.7029692
+    },
+    {
+      "id": "beach-black",
+      "name": "Black Beach",
+      "emoji": "🏖️",
+      "category": "beach",
+      "lat": 8.743202,
+      "lon": 76.6987329
+    },
+    {
+      "id": "beach-odayam",
+      "name": "Odayam Beach (quieter)",
+      "emoji": "🏖️",
+      "category": "beach",
+      "lat": 8.7502707,
+      "lon": 76.6939263
+    },
+    {
+      "id": "beach-kappil",
+      "name": "Kappil Beach (backwaters meet sea)",
+      "emoji": "🏖️",
+      "category": "beach",
+      "lat": 8.768672,
+      "lon": 76.6822751
+    },
+    {
+      "id": "sight-north-cliff",
+      "name": "North Cliff (sunset walk)",
+      "emoji": "🌅",
+      "category": "sight",
+      "lat": 8.7372097,
+      "lon": 76.7025671
+    },
+    {
+      "id": "sight-janardhana",
+      "name": "Janardhana Swamy Temple",
+      "emoji": "⛩️",
+      "category": "sight",
+      "lat": 8.7319233,
+      "lon": 76.7099161
+    },
+    {
+      "id": "sight-sivagiri",
+      "name": "Sivagiri Mutt (Sree Narayana Guru samadhi area)",
+      "emoji": "🕉️",
+      "category": "sight",
+      "lat": 8.7275,
+      "lon": 76.7275,
+      "note": "COORDS APPROXIMATE (Sivagiri hill complex). Long-press the exact spot on Google Maps and I'll re-pin."
+    },
+    {
+      "id": "sight-kappil-lake",
+      "name": "Kappil Lake (backwater boat)",
+      "emoji": "🚣",
+      "category": "sight",
+      "lat": 8.7864379,
+      "lon": 76.6704997
+    },
+    {
+      "id": "sight-anjengo",
+      "name": "Anjengo Fort",
+      "emoji": "🏰",
+      "category": "sight",
+      "lat": 8.6626801,
+      "lon": 76.7644602
+    },
+    {
+      "id": "food-del-mar",
+      "name": "Cafe del Mar",
+      "emoji": "🍽️",
+      "category": "food",
+      "lat": 8.7376457,
+      "lon": 76.7019002
+    },
+    {
+      "id": "food-trattorias",
+      "name": "Trattorias (Italian)",
+      "emoji": "🍕",
+      "category": "food",
+      "lat": 8.7422235,
+      "lon": 76.6989733
+    },
+    {
+      "id": "food-little-tibet",
+      "name": "Little Tibet Restaurant",
+      "emoji": "🥟",
+      "category": "food",
+      "lat": 8.7368544,
+      "lon": 76.7030054
+    },
+    {
+      "id": "food-gods-own",
+      "name": "God's Own Country Restaurant",
+      "emoji": "🍛",
+      "category": "food",
+      "lat": 8.7364658,
+      "lon": 76.7033461
+    },
+    {
+      "id": "food-darjeeling",
+      "name": "Darjeeling Cafe",
+      "emoji": "☕",
+      "category": "food",
+      "lat": 8.7402388,
+      "lon": 76.6997223
+    },
+    {
+      "id": "food-suprabhatham",
+      "name": "Hotel Suprabhatham Restaurant",
+      "emoji": "🥞",
+      "category": "food",
+      "lat": 8.734567,
+      "lon": 76.7254477,
+      "note": "South Indian breakfast."
+    },
+    {
+      "id": "sight-south-cliff",
+      "name": "South Cliff",
+      "emoji": "🌄",
+      "category": "sight",
+      "lat": 8.7272138,
+      "lon": 76.7108434,
+      "note": "Quieter cliff, near Gouri's Homestay. Coords: OSM natural=cliff."
+    },
+    {
+      "id": "stay-molly-s-hostel",
+      "name": "Molly's Hostel",
+      "emoji": "🛏️",
+      "category": "stay",
+      "lat": 8.7245998,
+      "lon": 76.714953,
+      "note": "Coords: OSM tourism=hostel 'Molly's hotel'."
+    },
+    {
+      "id": "food-trip-is-life-cafe",
+      "name": "Trip is Life Cafe",
+      "emoji": "🍹",
+      "category": "food",
+      "lat": 8.7247478,
+      "lon": 76.7128007,
+      "note": "Coords: OSM 'Cafe Trip is life'. Same block as Molly's."
+    },
+    {
+      "id": "food-inda-cafe",
+      "name": "InDa Cafe",
+      "emoji": "☕",
+      "category": "food",
+      "lat": 8.738746,
+      "lon": 76.701979,
+      "note": "Cliff 2nd Street, North Cliff. Coords: OSM/Nominatim 'InDa'."
+    }
   ],
-  "updatedAt": "2026-09-10T00:00:00.000Z"
+  "updatedAt": "2026-09-10T05:43:07.136809Z"
 }
