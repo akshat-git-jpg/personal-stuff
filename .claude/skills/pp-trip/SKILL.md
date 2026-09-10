@@ -185,6 +185,37 @@ unknown`. It shows on the info card, so the owner can see which pins rest
 on weaker evidence without asking. Set it honestly: `--source` exists
 precisely so an Overture coordinate is not mislabelled as owner-supplied.
 
+## The Plan view: days and bookings are hand-written
+
+The app's second view reads three optional `Trip` fields. There is no CLI
+verb for them and that is on purpose - the owner dictates the plan, you
+write it into `trips/<slug>.json` and run `pp-trip deploy <slug>`.
+
+- `days[]` - `{date, label?, items[]}`. Each item is
+  `{time?, what, where?, pinId?, tag?, flag?, key?}`. Only `what` is
+  required, so a half-known day still renders. `pinId` must match a real
+  pin id or the "Show on map" jump does nothing. `key: true` marks a
+  fixed, unmissable moment; `flag` is a problem that gets an orange box
+  and outranks `key` on the timeline dot.
+- `bookings[]` - `{id, emoji, title, kind?, fields?, flag?, files?}`.
+- `docsFolderUrl` - the trip's Google Drive folder.
+
+**Document files are Drive links, never uploads.** One folder per trip at
+`My Drive / Trips / <trip name>` on the personal account. Create it with
+`tooling/mcp/google-shared`-authenticated Drive access, not by hand, and
+put the folder URL in `docsFolderUrl`. A booking with no `files` entry
+falls back to the folder link, so never leave a booking with a dead
+button.
+
+**What goes in a `fields` row is PUBLIC.** Reads have no login, so a phone
+number, ticket ref or passenger name in `fields` is visible to anyone with
+the URL - the same bargain the pins' notes already made. Anything that
+must stay private goes in the Drive folder only.
+
+After ANY change here, run `python3 apps/trip-planner/check-layout.py`. It
+opens the Plan view at four widths and fails if it renders no day rows,
+which is what a typo in the JSON looks like from the outside.
+
 ## Tests
 
 `python3 tooling/cli/pp-trip/test_pp_trip.py` - stdlib unittest, no

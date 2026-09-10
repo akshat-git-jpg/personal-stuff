@@ -35,6 +35,44 @@ export interface Pin {
   source?: PinSource;
 }
 
+/* ------------------------- the Plan view ------------------------- */
+
+// One line on a day's timeline. Everything except `what` is optional, so a
+// half-known day still renders: a stop with no time sorts where it is written.
+export interface DayItem {
+  time?: string;   // "07:45" — free text, printed as-is, never parsed
+  what: string;    // "Bus drops you at Varkala"
+  where?: string;  // one line of detail: address, distance, why
+  pinId?: string;  // when set, the row gets a "Show on map" jump to this pin
+  tag?: string;    // short badge, e.g. "KBS LUXURY" or a ticket ref
+  flag?: string;   // a problem worth an orange box (clash, missing seat)
+  key?: boolean;   // a fixed, unmissable moment — filled dot on the rail
+}
+
+export interface Day {
+  date: string;    // "Fri 11 Sep" — display only
+  label?: string;  // "Arrive", "Full day" — a word for the day's shape
+  items: DayItem[];
+}
+
+// A booking's files are LINKS, not uploads. The trip gets one Google Drive
+// folder (`Trip.docsFolderUrl`) and each file points inside it. Drive asks for
+// a Google login, so the files stay private even though this page does not.
+export interface BookingFile {
+  name: string;    // "sekar-ticket.pdf" — what the chip says
+  url: string;     // Drive file link
+}
+
+export interface Booking {
+  id: string;
+  emoji: string;
+  title: string;                                 // "Varkala → Bengaluru"
+  kind?: string;                                 // "Bus ticket · outbound"
+  fields?: { label: string; value: string }[];   // the detail rows
+  flag?: string;                                 // orange box under the rows
+  files?: BookingFile[];
+}
+
 export interface Trip {
   slug: string;            // url-safe id, must match the KV key
   name: string;            // "Varkala Trip (11-13 Sep 2026)"
@@ -52,6 +90,11 @@ export interface Trip {
   // road name and shows that instead of the pin's real name.
   locationHint?: string;
   pins: Pin[];
+  // The Plan view. All three are optional: a trip with only pins still works,
+  // and the Plan button hides itself when there is nothing to show.
+  days?: Day[];
+  bookings?: Booking[];
+  docsFolderUrl?: string;  // the trip's Google Drive folder
   updatedAt: string;       // ISO
 }
 

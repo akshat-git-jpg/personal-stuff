@@ -49,14 +49,38 @@ Everything is rendered by the Worker (HTML, manifest, SW) so there is no
 build step. Adding `[assets]` here would break the "no build, just deploy"
 promise this repo prefers.
 
+## The Plan view (second view)
+
+`#plan` is a full-screen scroller stacked ABOVE the map, not a panel beside
+it. That is deliberate: it keeps the Plan out of the HUD's layout entirely, so
+nothing in it can push a filter chip off-screen and the map keeps its own
+measured geometry. Everything inside `#plan` is normal document flow, so any
+amount of text survives. Its CSS classes are all `p`-prefixed so they cannot
+collide with the map's bare `button` / `select` / `.row` selectors.
+
+It renders from three optional `Trip` fields — `days`, `bookings`,
+`docsFolderUrl`. All optional on purpose: a pins-only trip hides the Plan
+button rather than showing a dead control.
+
+**Booking files are Drive LINKS, never uploads.** This page has no login, so a
+file served from here would be public; Drive makes the reader sign in. Each
+trip gets one folder (`My Drive / Trips / <trip name>`), `docsFolderUrl` points
+at it, and a booking with no file yet falls back to the folder link so no
+button is ever dead. Owner's decision, 2026-09-10 — see `decisions.md`.
+
+The trip's *details* (phone, ticket ref, seat name) do sit in the public JSON.
+That was already true of the pins. Anything that must stay private belongs in
+the Drive folder, not in a `fields` row.
+
 ## Mobile layout: measure it, do not eyeball it
 
 `python3 apps/trip-planner/check-layout.py` renders the LIVE page inside
 fixed-width iframes (320/360/390/430) in headless Chrome and fails on any
 control that sits off-screen, any two HUD rows that overlap, a HUD taller than
-35% of the screen, or a sheet that scrolls sideways. It runs twice per width:
-map-only, and with the Places list, route panel and a pin card all open at
-once. Exit code is non-zero when anything is wrong.
+35% of the screen, or a sheet that scrolls sideways. It runs three times per
+width: map-only; with the Places list, route panel and a pin card all open at
+once; and with the Plan view open (which also fails if the Plan renders no day
+rows at all). Exit code is non-zero when anything is wrong.
 
 Run it after ANY change to `app-html.ts`. Two mobile bugs shipped without it:
 

@@ -9,6 +9,9 @@ to write to.
 Lives at **https://trips.agrolloo.com** — one URL, dropdown picks the trip.
 Per-trip deep link: `https://trips.agrolloo.com/?trip=<slug>`.
 
+Two views: the **map**, and a **Plan** list (day-by-day itinerary plus the
+booking documents). The Plan button appears only for trips that have plan data.
+
 ## Add / edit / deploy a trip
 
 Use the [`pp-trip`](../../tooling/cli/pp-trip/README.md) CLI (or ask Claude —
@@ -23,6 +26,12 @@ pp-trip deploy bali-dec-2026
 
 Trip JSONs are checked in under `trips/` for history + easy manual edits; the
 CLI mirrors them into Cloudflare KV on `deploy`.
+
+The Plan view's data (`days`, `bookings`, `docsFolderUrl`) has no CLI verb —
+hand-write it in `trips/<slug>.json`, then `deploy`. Booking documents are
+links into one Google Drive folder per trip, not uploads: reads here have no
+login, so a file served from this app would be public. See
+`.claude/skills/pp-trip/SKILL.md`.
 
 ## Runtime layout
 

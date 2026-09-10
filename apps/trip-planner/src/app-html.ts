@@ -114,6 +114,54 @@ export function renderApp(): string {
   #search{flex:1;min-width:0}
   /* geolocate active */
   .maplibregl-ctrl-geolocate{background-color:#fff !important}
+
+  /* ---------------- Plan view (second view) ----------------
+     A full-screen scroller ABOVE the map, not a panel beside it. That keeps it
+     out of the HUD's layout entirely: nothing here can push a chip off-screen,
+     and the map keeps its own measured layout. Everything inside is normal
+     document flow, so it survives any amount of text.
+     Class prefix 'p' throughout, so these rules cannot collide with the map's
+     bare button / select / .row selectors above. */
+  #plan{position:absolute;inset:0;z-index:30;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f5f4;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 28px)}
+  #plan-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;background:#f4f5f4;border-bottom:1px solid #e0e2e0;padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 10px}
+  #plan-head .pt{flex:1;min-width:0}
+  #plan-title{font-weight:700;font-size:16px;line-height:1.25}
+  #plan-sub{font-size:12px;color:#666;margin-top:2px}
+  #plan-body{padding:14px 14px 0;display:flex;flex-direction:column;gap:22px}
+  .pday-head{display:flex;align-items:baseline;gap:8px;padding-bottom:8px;border-bottom:1px solid #dfe2df}
+  .pday-date{font-weight:700;font-size:15px}
+  .pday-label{font-size:12px;color:#777;margin-left:auto}
+  /* minmax(0,1fr) not 1fr: a long unbroken word in a 1fr track widens the grid
+     past the viewport instead of wrapping. */
+  .pstop{display:grid;grid-template-columns:46px 14px minmax(0,1fr);column-gap:9px;align-items:start;padding:11px 0;border-bottom:1px solid #e6e8e6}
+  .pday .pstop:last-child{border-bottom:none}
+  .ptime{font-size:13px;color:#666;padding-top:1px;font-variant-numeric:tabular-nums}
+  .prail{position:relative;justify-self:center;align-self:stretch}
+  .prail::before{content:"";position:absolute;left:50%;top:13px;bottom:-12px;width:1px;background:#ccd0cd;transform:translateX(-50%)}
+  .pday .pstop:last-child .prail::before{display:none}
+  .prail i{position:absolute;left:50%;top:4px;transform:translateX(-50%);width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #ccd0cd}
+  .pstop.key .prail i{background:#1a73e8;border-color:#1a73e8}
+  .pstop.warn .prail i{background:#c0522a;border-color:#c0522a}
+  .pwhat{font-weight:600;line-height:1.3}
+  .pwhere{font-size:13px;color:#555;margin-top:2px}
+  .ptag{display:inline-block;margin-top:6px;padding:2px 7px;border-radius:5px;background:#e8f0fe;color:#1558b0;font-size:11px;letter-spacing:.03em}
+  .pflag{margin-top:7px;padding:7px 9px;border-radius:7px;background:#fbe9e2;color:#8f3a17;font-size:12.5px;line-height:1.4}
+  .pjump{margin-top:7px;padding:0;border:none;background:none;box-shadow:none;color:#1a73e8;font-size:13px}
+  .psec{font-weight:700;font-size:15px}
+  .psub{font-size:12.5px;color:#666;margin:3px 0 12px}
+  .pdocs{display:flex;flex-direction:column;gap:10px}
+  .pdoc{background:#fff;border:1px solid #e0e2e0;border-radius:12px;padding:12px 13px;display:flex;flex-direction:column;gap:9px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .pdoc.folder{border-color:#1a73e8}
+  .pdoc-top{display:flex;gap:10px;align-items:flex-start}
+  .pdoc-ico{flex:0 0 32px;height:32px;border-radius:8px;background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .pdoc-name{font-weight:700;line-height:1.25}
+  .pdoc-kind{font-size:11px;color:#777;margin-top:3px;text-transform:uppercase;letter-spacing:.08em}
+  .pdl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0}
+  .pdl dt{font-size:12.5px;color:#777}
+  .pdl dd{margin:0;font-size:12.5px;font-weight:600;text-align:right;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+  .pfiles{display:flex;flex-wrap:wrap;gap:6px}
+  .pfile{display:inline-block;padding:7px 11px;border:1px solid #d5d8d5;border-radius:999px;background:#fff;color:#111;font-size:12.5px;text-decoration:none}
+  .pfile.solid{background:#1a73e8;border-color:#1a73e8;color:#fff}
 </style>
 </head>
 <body>
@@ -126,6 +174,9 @@ export function renderApp(): string {
     <select id="trip" title="Trip"><option value="">Loading…</option></select>
     <button id="places-btn" title="Jump to a pin">📍 Places</button>
     <button id="route-btn" title="Plan a multi-stop route">Route</button>
+    <!-- Hidden until the loaded trip actually has days or bookings, so a
+         pins-only trip shows no dead control. -->
+    <button id="plan-btn" title="Day plan and booking documents" hidden>🗓️ Plan</button>
   </div>
   <div id="search-wrap">
     <input id="search" placeholder="near me: food, atm, pharmacy…" />
@@ -160,6 +211,19 @@ export function renderApp(): string {
 
   <!-- Card last so a tapped pin reads closest to the thumb. -->
   <div id="card" class="sheet" hidden></div>
+</div>
+
+<!-- The second view. Sits above everything, has its own close button, and is
+     rendered from trip.days / trip.bookings by renderPlan(). -->
+<div id="plan" hidden>
+  <div id="plan-head">
+    <div class="pt">
+      <div id="plan-title">Plan</div>
+      <div id="plan-sub"></div>
+    </div>
+    <button id="plan-close" title="Back to the map">🗺️ Map</button>
+  </div>
+  <div id="plan-body"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.min.js"></script>
@@ -256,6 +320,7 @@ async function selectTrip(slug) {
   state.trip = await r.json();
   clearRoute();
   renderPins();
+  renderPlan();
   fitToPins();
 }
 
@@ -410,6 +475,109 @@ window.__enterRoute = (id) => { enterRouteMode(); toggleRoutePin(id); const p = 
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ------ Plan view: the day list plus the booking documents ------
+
+   Rendered from trip.days / trip.bookings, which the owner writes in the trip
+   JSON. Every field is optional, so a half-filled day still renders.
+
+   Booking files are LINKS into the trip's Google Drive folder, never uploads:
+   this page has no login, so a file served from here would be public, while
+   Drive makes the reader sign in. A booking with no file yet falls back to the
+   folder link, so the button is never dead. */
+const planEl = document.getElementById('plan');
+document.getElementById('plan-btn').onclick = () => { planEl.hidden = false; planEl.scrollTop = 0; };
+document.getElementById('plan-close').onclick = () => { planEl.hidden = true; };
+
+function renderPlan() {
+  const t = state.trip;
+  const days = (t && t.days) || [];
+  const bookings = (t && t.bookings) || [];
+  const folder = (t && t.docsFolderUrl) || '';
+  const body = document.getElementById('plan-body');
+  const has = !!(days.length || bookings.length || folder);
+  document.getElementById('plan-btn').hidden = !has;
+  if (!has) { planEl.hidden = true; body.innerHTML = ''; return; }
+
+  document.getElementById('plan-title').textContent = t.name;
+  document.getElementById('plan-sub').textContent = t.dates || '';
+
+  const out = [];
+
+  for (const d of days) {
+    const rows = (d.items || []).map(it => {
+      // A problem outranks a milestone on the rail dot: an orange dot is the
+      // one thing the owner must not scroll past.
+      const cls = 'pstop' + (it.flag ? ' warn' : (it.key ? ' key' : ''));
+      return '<div class="' + cls + '">' +
+        '<div class="ptime">' + escapeHtml(it.time || '') + '</div>' +
+        '<div class="prail"><i></i></div>' +
+        '<div>' +
+          '<div class="pwhat">' + escapeHtml(it.what || '') + '</div>' +
+          (it.where ? '<div class="pwhere">' + escapeHtml(it.where) + '</div>' : '') +
+          (it.tag ? '<span class="ptag">' + escapeHtml(it.tag) + '</span>' : '') +
+          (it.flag ? '<div class="pflag">' + escapeHtml(it.flag) + '</div>' : '') +
+          (it.pinId ? '<button class="pjump" data-jump="' + escapeHtml(it.pinId) + '">→ Show on map</button>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+    out.push('<section class="pday">' +
+      '<div class="pday-head">' +
+        '<span class="pday-date">' + escapeHtml(d.date || '') + '</span>' +
+        (d.label ? '<span class="pday-label">' + escapeHtml(d.label) + '</span>' : '') +
+      '</div>' + rows + '</section>');
+  }
+
+  if (bookings.length || folder) {
+    const cards = [];
+    if (folder) {
+      cards.push('<div class="pdoc folder">' +
+        '<div class="pdoc-top"><div class="pdoc-ico">📁</div><div>' +
+          '<div class="pdoc-name">Trip documents</div>' +
+          '<div class="pdoc-kind">Google Drive folder</div>' +
+        '</div></div>' +
+        '<div class="pfiles"><a class="pfile solid" href="' + escapeHtml(folder) +
+          '" target="_blank" rel="noopener">Open folder ↗</a></div>' +
+      '</div>');
+    }
+    for (const b of bookings) {
+      const fields = (b.fields || []).map(f =>
+        '<dt>' + escapeHtml(f.label) + '</dt><dd>' + escapeHtml(f.value) + '</dd>').join('');
+      let files = (b.files || []).map(f =>
+        '<a class="pfile" href="' + escapeHtml(f.url) + '" target="_blank" rel="noopener">📄 ' +
+        escapeHtml(f.name) + ' ↗</a>').join('');
+      if (!files && folder) {
+        files = '<a class="pfile" href="' + escapeHtml(folder) +
+          '" target="_blank" rel="noopener">📁 Open trip folder ↗</a>';
+      }
+      cards.push('<div class="pdoc">' +
+        '<div class="pdoc-top"><div class="pdoc-ico">' + escapeHtml(b.emoji || '📄') + '</div><div>' +
+          '<div class="pdoc-name">' + escapeHtml(b.title || '') + '</div>' +
+          (b.kind ? '<div class="pdoc-kind">' + escapeHtml(b.kind) + '</div>' : '') +
+        '</div></div>' +
+        (fields ? '<dl class="pdl">' + fields + '</dl>' : '') +
+        (b.flag ? '<div class="pflag">' + escapeHtml(b.flag) + '</div>' : '') +
+        (files ? '<div class="pfiles">' + files + '</div>' : '') +
+      '</div>');
+    }
+    out.push('<section>' +
+      '<div class="psec">Bookings &amp; documents</div>' +
+      '<div class="psub">The details are here. The files sit in the trip Drive folder.</div>' +
+      '<div class="pdocs">' + cards.join('') + '</div>' +
+    '</section>');
+  }
+
+  body.innerHTML = out.join('');
+  body.querySelectorAll('[data-jump]').forEach(b => {
+    b.onclick = () => {
+      const p = state.trip.pins.find(x => x.id === b.dataset.jump);
+      if (!p) return;
+      planEl.hidden = true;
+      map.flyTo({ center: [p.lon, p.lat], zoom: 17, duration: 500 });
+      showCard(p);
+    };
+  });
 }
 
 /* ------ Route mode ------ */

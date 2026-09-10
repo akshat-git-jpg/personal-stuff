@@ -30,7 +30,8 @@ CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 MEASURE = r"""
 <script>
 window.__measure = function(){
-  const ids=['hud','top','search-wrap','chips','sheets','card','places','route'];
+  const ids=['hud','top','search-wrap','chips','sheets','card','places','route',
+             'plan','plan-head','plan-body'];
   const out={viewport:{w:innerWidth,h:innerHeight},els:{},chips:[],problems:[]};
   for(const id of ids){
     const el=document.getElementById(id);
@@ -72,6 +73,23 @@ window.__measure = function(){
     if(el.scrollWidth > el.clientWidth + 0.5)
       out.problems.push('HSCROLL '+el.id+' content='+el.scrollWidth+' box='+el.clientWidth);
   });
+  // Plan view: nothing may sit outside the screen and no block may scroll
+  // sideways. Its day rows are a CSS grid, which is exactly where one long
+  // unbroken word widens the whole track instead of wrapping.
+  const plan=document.getElementById('plan');
+  if(plan && !plan.hidden){
+    if(plan.scrollWidth > plan.clientWidth + 0.5)
+      out.problems.push('HSCROLL plan content='+plan.scrollWidth+' box='+plan.clientWidth);
+    plan.querySelectorAll('button,a,.pstop,.pdoc,.pdl,.pflag').forEach(el=>{
+      const r=el.getBoundingClientRect();
+      if(r.width===0) return;
+      if(r.right>innerWidth+0.5||r.left<-0.5)
+        out.problems.push('OVERFLOW plan '+(el.id||el.className)+' ['+el.textContent.trim().slice(0,14)+'] left='+Math.round(r.left)+' right='+Math.round(r.right)+' vw='+innerWidth);
+    });
+    // An empty plan means the render broke, which no box measurement catches.
+    if(!plan.querySelectorAll('.pstop').length)
+      out.problems.push('PLAN EMPTY: no day rows rendered');
+  }
   const attr=document.querySelector('.maplibregl-ctrl-attrib');
   if(attr){const r=attr.getBoundingClientRect();
     if(r.right>innerWidth+0.5) out.problems.push('OVERFLOW attribution right='+Math.round(r.right));}
@@ -81,10 +99,30 @@ window.__measure = function(){
 """
 
 
-def stub(index_json: str, trip_json: str, open_sheets: bool) -> str:
-    """Replace fetch with canned responses, and optionally open both sheets."""
+def stub(index_json: str, trip_json: str, mode: str) -> str:
+    """Replace fetch with canned responses, then drive the page into `mode`.
+
+    Modes: 'map' (nothing open), 'sheets' (route + places + a pin card all
+    open at once), 'plan' (the Plan view open over the map).
+    """
     extra = ""
-    if open_sheets:
+    if mode == "plan":
+        # Open the second view the way a thumb does, once the pins exist so the
+        # trip JSON has certainly been applied.
+        extra = """
+  window.__opened=false;
+  (function waitPins(n){
+    n=n||0;
+    if(document.querySelectorAll('.pin').length){
+      document.getElementById('plan-btn').click();
+      window.__opened=true;
+      return;
+    }
+    if(n>60) { window.__opened=true; return; }
+    setTimeout(function(){waitPins(n+1)},200);
+  })();
+"""
+    if mode == "sheets":
         # Worst case for the bottom stack: route panel open AND a pin card open
         # AND the places list open. Driven by real clicks so it exercises the
         # same code path a thumb would.
@@ -136,13 +174,13 @@ def fetch(url: str) -> str:
     return r.stdout.decode("utf-8")
 
 
-def build(open_sheets: bool) -> Path:
+def build(mode: str) -> Path:
     page = fetch(f"{BASE}/")
     index_json = fetch(f"{BASE}/api/trips")
     trip_json = fetch(f"{BASE}/api/trips/{SLUG}")
     json.loads(index_json), json.loads(trip_json)  # fail loudly on bad JSON
-    inner = page.replace("</head>", MEASURE + stub(index_json, trip_json, open_sheets) + "</head>", 1)
-    name = "inner_sheets.html" if open_sheets else "inner.html"
+    inner = page.replace("</head>", MEASURE + stub(index_json, trip_json, mode) + "</head>", 1)
+    name = f"inner_{mode}.html"
     (HERE / name).write_text(inner, encoding="utf-8")
     return HERE / name
 
@@ -201,11 +239,13 @@ def report(label: str, d: dict | None) -> int:
     return len(d["problems"])
 
 
+MODES = {"map": "map only", "sheets": "sheets open", "plan": "plan open"}
+
+
 def main() -> int:
     total = 0
-    for open_sheets in (False, True):
-        inner = build(open_sheets)
-        tag = "sheets open" if open_sheets else "map only"
+    for mode, tag in MODES.items():
+        inner = build(mode)
         for w in WIDTHS:
             total += report(f"{w}px, {tag}", measure(outer(inner, w)))
     print(f"\nTOTAL PROBLEMS: {total}")

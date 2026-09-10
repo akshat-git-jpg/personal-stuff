@@ -4,6 +4,139 @@
   "dates": "11-13 Sep 2026",
   "viewbox": "76.65,8.80,76.85,8.60",
   "locationHint": "Varkala, Kerala, India",
+  "docsFolderUrl": "https://drive.google.com/drive/folders/16y-IFrlP1SnScRY9M3YyfDkXpvEc8ASc",
+  "days": [
+    {
+      "date": "Fri 11 Sep",
+      "label": "Arrive",
+      "items": [
+        {
+          "time": "07:45",
+          "what": "Bus drops you at Varkala",
+          "where": "Sivagiri Road, near Sivagiri Madam",
+          "pinId": "bus-varkala-in",
+          "tag": "KBS LUXURY",
+          "key": true
+        },
+        {
+          "time": "09:00",
+          "what": "Breakfast — Hotel Suprabhatham",
+          "where": "South Indian. 2.3 km from the drop point.",
+          "pinId": "food-suprabhatham"
+        },
+        {
+          "time": "14:00",
+          "what": "Check in — Gouri's Homestay",
+          "where": "Temple Road, South Cliff 695141 · 9447123508",
+          "pinId": "stay-gouri",
+          "tag": "CHECK-IN 2 PM",
+          "key": true
+        },
+        {
+          "time": "16:30",
+          "what": "North Cliff sunset walk",
+          "where": "Cliff path, Papanasam Beach below",
+          "pinId": "sight-north-cliff"
+        },
+        {
+          "time": "19:00",
+          "what": "Dinner — Little Tibet",
+          "where": "Good food for the price, sea view",
+          "pinId": "food-little-tibet"
+        }
+      ]
+    },
+    {
+      "date": "Sat 12 Sep",
+      "label": "Full day",
+      "items": [
+        {
+          "time": "07:00",
+          "what": "Papanasam Beach",
+          "where": "Before the crowd. 5 min from the homestay.",
+          "pinId": "beach-papanasam"
+        },
+        {
+          "time": "10:30",
+          "what": "Kappil Beach + backwater boat",
+          "where": "Hire the boat at Kappil Boat Club · 6 km north",
+          "pinId": "beach-kappil"
+        },
+        {
+          "time": "16:00",
+          "what": "Janardhana Swamy Temple",
+          "where": "Old temple, 10 min from the stay",
+          "pinId": "sight-janardhana"
+        },
+        {
+          "time": "17:15",
+          "what": "Sunset — Trip is Life Cafe",
+          "where": "Packed at sunset. Get there early or you lose the seat.",
+          "pinId": "food-trip-is-life-cafe"
+        },
+        {
+          "time": "21:10",
+          "what": "Bus out — Kallambalam",
+          "where": "Sekar Travels pickup · 9 km inland, leave by 20:15",
+          "pinId": "bus-kallambalam",
+          "tag": "TVA657295606",
+          "flag": "Two problems. The homestay is booked until Sun 13 Sep, but this bus leaves Sat night. And the ticket has one seat only (U4, Anusha T)."
+        }
+      ]
+    },
+    {
+      "date": "Sun 13 Sep",
+      "label": "Unclear",
+      "items": [
+        {
+          "time": "11:00",
+          "what": "Homestay checkout deadline",
+          "where": "Gouri's Homestay, before 11 AM",
+          "pinId": "stay-gouri",
+          "flag": "Nothing else is planned for Sunday, because the return bus already left on Saturday night."
+        }
+      ]
+    }
+  ],
+  "bookings": [
+    {
+      "id": "bus-in",
+      "emoji": "🚌",
+      "title": "Bengaluru → Varkala",
+      "kind": "Bus ticket · inbound",
+      "fields": [
+        { "label": "Operator", "value": "KBS Luxury" },
+        { "label": "Arrives", "value": "Fri 11 Sep · 07:45" },
+        { "label": "Drop", "value": "Sivagiri Road" }
+      ]
+    },
+    {
+      "id": "stay-gouri",
+      "emoji": "🏠",
+      "title": "Gouri's Homestay",
+      "kind": "Stay · 2 nights",
+      "fields": [
+        { "label": "Check in", "value": "Fri 11 Sep · 14:00" },
+        { "label": "Check out", "value": "Sun 13 Sep · 11:00" },
+        { "label": "Phone", "value": "9447123508" },
+        { "label": "Address", "value": "Temple Rd, South Cliff 695141" }
+      ]
+    },
+    {
+      "id": "bus-out",
+      "emoji": "⚠️",
+      "title": "Varkala → Bengaluru",
+      "kind": "Bus ticket · outbound",
+      "fields": [
+        { "label": "Operator", "value": "Sekar Travels" },
+        { "label": "Ref", "value": "TVA657295606" },
+        { "label": "Departs", "value": "Sat 12 Sep · 21:10" },
+        { "label": "Pickup", "value": "Kallambalam" },
+        { "label": "Seats", "value": "U4 · Anusha T" }
+      ],
+      "flag": "One seat on this ticket. Kushal has no return seat."
+    }
+  ],
   "pins": [
     {
       "id": "stay-gouri",
@@ -158,11 +291,12 @@
     },
     {
       "id": "food-gods-own",
-      "name": "God's Own Country Restaurant",
+      "name": "God's Own Country Kitchen",
       "emoji": "🍛",
       "category": "food",
       "lat": 8.7364658,
       "lon": 76.7033461,
+      "note": "RECOMMENDED: good music.",
       "source": "osm"
     },
     {
