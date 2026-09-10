@@ -135,6 +135,9 @@ const CATS = [
   ['food','☕ Food'],
   ['utility','🏧 Utility'],
 ];
+/* Owner wants a quiet map on open: only the things worth looking at from
+   a distance. Everything else is one tap away on its chip. */
+const DEFAULT_CATS = ['beach','sight'];
 
 /* ------ Register the no-op service worker (needed for iOS A2HS) ------ */
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
@@ -144,7 +147,7 @@ const state = {
   trips: [],           // index
   trip: null,          // current trip
   markers: [],         // MapLibre marker instances
-  activeCats: new Set(CATS.map(c=>c[0])),
+  activeCats: new Set(DEFAULT_CATS),
   routeMode: false,
   routeOrder: [],      // pin ids in tap order
   userLoc: null,       // {lat,lon} from geolocate
