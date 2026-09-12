@@ -1,7 +1,7 @@
 {
   "slug": "varkala-sep-2026",
   "name": "Varkala Trip",
-  "dates": "11-13 Sep 2026",
+  "dates": "10-16 Sep 2026",
   "viewbox": "76.65,8.80,76.85,8.60",
   "locationHint": "Varkala, Kerala, India",
   "docsFolderUrl": "https://drive.google.com/drive/folders/16y-IFrlP1SnScRY9M3YyfDkXpvEc8ASc",
@@ -89,24 +89,127 @@
         },
         {
           "time": "21:10",
-          "what": "Bus out — Kallambalam",
+          "what": "Anusha's bus out — Kallambalam",
           "where": "Sekar Travels pickup · 9 km inland, leave by 20:15",
           "pinId": "bus-kallambalam",
           "tag": "TVA657295606",
-          "flag": "Two problems. Only Anusha has a seat (U4) -- Kushal has no return ticket. And the homestay is paid for Saturday night too, so that night goes unused."
+          "key": true
         }
       ]
     },
     {
       "date": "Sun 13 Sep",
-      "label": "Unclear",
+      "label": "Move hostel",
       "items": [
         {
+          "time": "09:00",
+          "what": "Breakfast — Coffee Temple",
+          "where": "On the cliff. InDa Cafe is the backup.",
+          "pinId": "food-coffee-temple"
+        },
+        {
           "time": "11:00",
-          "what": "Homestay checkout deadline",
-          "where": "Gouri's Homestay, before 11 AM",
+          "what": "Check out — Gouri's Homestay",
+          "where": "Before 11 AM.",
           "pinId": "stay-gouri",
-          "flag": "Nothing is planned for Sunday: the return bus left Saturday 21:10 and reaches Bengaluru Sun 10:00. The room is paid to Sunday either way."
+          "key": true,
+          "flag": "Three hours before Molly's lets you in at 2 PM. Molly's is a short walk along South Cliff, so drop the bag there first and go for a coffee."
+        },
+        {
+          "time": "14:00",
+          "what": "Check in — Molly's Hostel",
+          "where": "South Cliff, near Aaliyirakkam Beach · 6238985429",
+          "pinId": "stay-molly-s-hostel",
+          "tag": "PNR 0187171622",
+          "key": true
+        },
+        {
+          "time": "17:30",
+          "what": "Sunset — South Cliff walk",
+          "where": "Quieter than North Cliff, and it starts at your door.",
+          "pinId": "sight-south-cliff"
+        },
+        {
+          "time": "19:30",
+          "what": "Dinner — Cafe Sarwaa",
+          "where": "South Cliff, sea view",
+          "pinId": "food-cafe-sarwaa-on-the-cliff"
+        }
+      ]
+    },
+    {
+      "date": "Mon 14 Sep",
+      "label": "Free day",
+      "items": [
+        {
+          "time": "08:00",
+          "what": "Odayam Beach",
+          "where": "Quieter sand, 2 km north",
+          "pinId": "beach-odayam"
+        },
+        {
+          "time": "11:00",
+          "what": "Ponnumthuruthu (Golden Island)",
+          "where": "Backwater island temple, reached by boat · 8 km south",
+          "pinId": "sight-ponnumthuruthu-golden-island"
+        },
+        {
+          "time": "15:00",
+          "what": "Anjengo Fort",
+          "where": "Old sea fort, 9 km south",
+          "pinId": "sight-anjengo"
+        },
+        {
+          "time": "18:30",
+          "what": "Dinner — Trip is Life Cafe",
+          "where": "Good vibe. Packed at sunset, so go early.",
+          "pinId": "food-trip-is-life-cafe"
+        }
+      ]
+    },
+    {
+      "date": "Tue 15 Sep",
+      "label": "Go home",
+      "items": [
+        {
+          "time": "08:00",
+          "what": "Last swim — Papanasam Beach",
+          "where": "5 min from Molly's",
+          "pinId": "beach-papanasam"
+        },
+        {
+          "time": "11:00",
+          "what": "Check out — Molly's Hostel",
+          "where": "Before 11 AM.",
+          "pinId": "stay-molly-s-hostel",
+          "key": true,
+          "flag": "Five hours between checkout and the bus. Ask Molly's to hold the bag; the host lives on site."
+        },
+        {
+          "time": "12:30",
+          "what": "Lunch — God's Own Country Kitchen",
+          "where": "Good music.",
+          "pinId": "food-gods-own"
+        },
+        {
+          "time": "15:45",
+          "what": "Bus home — Varkala Sivagiri Road",
+          "where": "KBS Luxury, seat U10 · near Sivagiri Madam · 9994439935",
+          "pinId": "bus-varkala-in",
+          "tag": "TVA984461139",
+          "key": true
+        }
+      ]
+    },
+    {
+      "date": "Wed 16 Sep",
+      "label": "Home",
+      "items": [
+        {
+          "time": "06:25",
+          "what": "Arrive Bengaluru Majestic",
+          "where": "Front of Bhagya Vinayaga Temple, opp Amar Hotel",
+          "key": true
         }
       ]
     }
@@ -118,61 +221,261 @@
       "title": "Bengaluru → Varkala",
       "kind": "Bus ticket · inbound",
       "fields": [
-        { "label": "Operator", "value": "KBS Luxury Bus" },
-        { "label": "Ref", "value": "TVA670297576" },
-        { "label": "PNR", "value": "1026679" },
-        { "label": "Departs", "value": "Thu 10 Sep · 17:15" },
-        { "label": "Boarding", "value": "Bengaluru Majestic" },
-        { "label": "Arrives", "value": "Fri 11 Sep · 07:45" },
-        { "label": "Drop", "value": "Varkala Sivagiri Road" },
-        { "label": "Seats", "value": "U5 Anusha T · U6 Kushal Bakliwal" },
-        { "label": "Coach", "value": "A/C Seater / Sleeper (2+1)" }
+        {
+          "label": "Operator",
+          "value": "KBS Luxury Bus"
+        },
+        {
+          "label": "Ref",
+          "value": "TVA670297576"
+        },
+        {
+          "label": "PNR",
+          "value": "1026679"
+        },
+        {
+          "label": "Departs",
+          "value": "Thu 10 Sep · 17:15"
+        },
+        {
+          "label": "Boarding",
+          "value": "Bengaluru Majestic"
+        },
+        {
+          "label": "Arrives",
+          "value": "Fri 11 Sep · 07:45"
+        },
+        {
+          "label": "Drop",
+          "value": "Varkala Sivagiri Road"
+        },
+        {
+          "label": "Seats",
+          "value": "U5 Anusha T · U6 Kushal Bakliwal"
+        },
+        {
+          "label": "Coach",
+          "value": "A/C Seater / Sleeper (2+1)"
+        }
       ],
       "files": [
-        { "name": "ticket.pdf", "url": "https://drive.google.com/file/d/1l7_TZchwSAFSPxQhZ8GgLFVZTKac4dyL/view" },
-        { "name": "tax invoice.pdf", "url": "https://drive.google.com/file/d/1FXQQfVbX_P50dYcACP54MM44KTO7xw7t/view" }
+        {
+          "name": "ticket.pdf",
+          "url": "https://drive.google.com/file/d/1l7_TZchwSAFSPxQhZ8GgLFVZTKac4dyL/view"
+        },
+        {
+          "name": "tax invoice.pdf",
+          "url": "https://drive.google.com/file/d/1FXQQfVbX_P50dYcACP54MM44KTO7xw7t/view"
+        }
       ]
     },
     {
       "id": "stay-gouri",
       "emoji": "🏠",
       "title": "Gouri's Homestay",
-      "kind": "Stay · 2 nights",
+      "kind": "Stay · 2 nights · both of you",
       "fields": [
-        { "label": "Booking ID", "value": "GH20132277129890" },
-        { "label": "PNR", "value": "0186868727" },
-        { "label": "Check in", "value": "Fri 11 Sep · 14:00-23:30" },
-        { "label": "Check out", "value": "Sun 13 Sep · before 11:00" },
-        { "label": "Room", "value": "Non-AC private, 1 double bed" },
-        { "label": "Guests", "value": "2 adults · Kushal Bakliwal" },
-        { "label": "Phone", "value": "9447123508" },
-        { "label": "Address", "value": "Temple Rd, South Cliff 695141" }
+        {
+          "label": "Booking ID",
+          "value": "GH20132277129890"
+        },
+        {
+          "label": "PNR",
+          "value": "0186868727"
+        },
+        {
+          "label": "Check in",
+          "value": "Fri 11 Sep · 14:00-23:30"
+        },
+        {
+          "label": "Check out",
+          "value": "Sun 13 Sep · before 11:00"
+        },
+        {
+          "label": "Room",
+          "value": "Non-AC private, 1 double bed"
+        },
+        {
+          "label": "Guests",
+          "value": "2 adults · Kushal Bakliwal"
+        },
+        {
+          "label": "Phone",
+          "value": "9447123508"
+        },
+        {
+          "label": "Address",
+          "value": "Temple Rd, South Cliff 695141"
+        }
       ],
       "files": [
-        { "name": "voucher.pdf", "url": "https://drive.google.com/file/d/1KloCCMB_BI_08WDPZfK6DxKuqljpcf56/view" },
-        { "name": "property rules.pdf", "url": "https://drive.google.com/file/d/1SmjIYA75Q1sApjOSASHaZ3DF6tBI6MAX/view" }
+        {
+          "name": "voucher.pdf",
+          "url": "https://drive.google.com/file/d/1KloCCMB_BI_08WDPZfK6DxKuqljpcf56/view"
+        },
+        {
+          "name": "property rules.pdf",
+          "url": "https://drive.google.com/file/d/1SmjIYA75Q1sApjOSASHaZ3DF6tBI6MAX/view"
+        }
       ]
     },
     {
       "id": "bus-out",
-      "emoji": "⚠️",
-      "title": "Varkala → Bengaluru",
-      "kind": "Bus ticket · outbound",
+      "emoji": "🚌",
+      "title": "Varkala → Bengaluru (Anusha)",
+      "kind": "Bus ticket · Anusha, 12 Sep",
       "fields": [
-        { "label": "Operator", "value": "Sekar Travels" },
-        { "label": "Ref", "value": "TVA657295606" },
-        { "label": "PNR", "value": "SEKQ99BV5758" },
-        { "label": "Departs", "value": "Sat 12 Sep · 21:10" },
-        { "label": "Pickup", "value": "Kallambalam, near bus stop" },
-        { "label": "Contact", "value": "8147660330 / 7845450079" },
-        { "label": "Arrives", "value": "Sun 13 Sep · 10:00" },
-        { "label": "Drop", "value": "Bengaluru, opp Majestic" },
-        { "label": "Seats", "value": "U4 · Anusha T" }
+        {
+          "label": "Operator",
+          "value": "Sekar Travels"
+        },
+        {
+          "label": "Ref",
+          "value": "TVA657295606"
+        },
+        {
+          "label": "PNR",
+          "value": "SEKQ99BV5758"
+        },
+        {
+          "label": "Departs",
+          "value": "Sat 12 Sep · 21:10"
+        },
+        {
+          "label": "Pickup",
+          "value": "Kallambalam, near bus stop"
+        },
+        {
+          "label": "Contact",
+          "value": "8147660330 / 7845450079"
+        },
+        {
+          "label": "Arrives",
+          "value": "Sun 13 Sep · 10:00"
+        },
+        {
+          "label": "Drop",
+          "value": "Bengaluru, opp Majestic"
+        },
+        {
+          "label": "Seats",
+          "value": "U4 · Anusha T"
+        }
       ],
-      "flag": "One seat on this ticket. Kushal has no return seat. KBS gave you 10% off a Varkala-Bengaluru return, valid to book until 25 Sep.",
       "files": [
-        { "name": "ticket.pdf", "url": "https://drive.google.com/file/d/13Exq9eX4wpv0vIkKXnDYyXFh9lx6Zf8e/view" },
-        { "name": "tax invoice.pdf", "url": "https://drive.google.com/file/d/1-vO5PfAK5ecaCRQWfPNu_AG0JoM0ZbfZ/view" }
+        {
+          "name": "ticket.pdf",
+          "url": "https://drive.google.com/file/d/13Exq9eX4wpv0vIkKXnDYyXFh9lx6Zf8e/view"
+        },
+        {
+          "name": "tax invoice.pdf",
+          "url": "https://drive.google.com/file/d/1-vO5PfAK5ecaCRQWfPNu_AG0JoM0ZbfZ/view"
+        }
+      ]
+    },
+    {
+      "id": "stay-mollys",
+      "emoji": "🎒",
+      "title": "Molly's Hostel Varkala",
+      "kind": "Stay · 2 nights · Kushal",
+      "fields": [
+        {
+          "label": "Booking ID",
+          "value": "NH28086516277254"
+        },
+        {
+          "label": "PNR",
+          "value": "0187171622"
+        },
+        {
+          "label": "Check in",
+          "value": "Sun 13 Sep · after 14:00"
+        },
+        {
+          "label": "Check out",
+          "value": "Tue 15 Sep · before 11:00"
+        },
+        {
+          "label": "Room",
+          "value": "1 bed · 1 adult"
+        },
+        {
+          "label": "Property",
+          "value": "6238985429"
+        },
+        {
+          "label": "Host Molly",
+          "value": "8281943508"
+        },
+        {
+          "label": "Address",
+          "value": "South Cliff, near Aaliyirakkam Beach 695141"
+        }
+      ],
+      "flag": "Non-refundable. Cancelling returns nothing. Local IDs are not accepted -- carry Aadhaar, passport or driving licence.",
+      "files": [
+        {
+          "name": "voucher.pdf",
+          "url": "https://drive.google.com/file/d/1xwcOQ0n_C8n-w_q7J-JPgHNpyknAy04w/view"
+        }
+      ]
+    },
+    {
+      "id": "bus-out-kushal",
+      "emoji": "🚌",
+      "title": "Varkala → Bengaluru (Kushal)",
+      "kind": "Bus ticket · Kushal, 15 Sep",
+      "fields": [
+        {
+          "label": "Operator",
+          "value": "KBS Luxury Bus"
+        },
+        {
+          "label": "Ref",
+          "value": "TVA984461139"
+        },
+        {
+          "label": "PNR",
+          "value": "1034687"
+        },
+        {
+          "label": "Departs",
+          "value": "Tue 15 Sep · 15:45"
+        },
+        {
+          "label": "Boarding",
+          "value": "Varkala Sivagiri Road"
+        },
+        {
+          "label": "Contact",
+          "value": "9994439935"
+        },
+        {
+          "label": "Arrives",
+          "value": "Wed 16 Sep · 06:25"
+        },
+        {
+          "label": "Drop",
+          "value": "Bengaluru Majestic"
+        },
+        {
+          "label": "Seat",
+          "value": "U10 · Kushal Bakliwal"
+        },
+        {
+          "label": "Coach",
+          "value": "Bharat Benz A/C Seater / Sleeper (2+1)"
+        }
+      ],
+      "files": [
+        {
+          "name": "ticket.pdf",
+          "url": "https://drive.google.com/file/d/1oX0UQKAWtPdaBK8bNEyfk9bkBnkAhMJr/view"
+        },
+        {
+          "name": "tax invoice.pdf",
+          "url": "https://drive.google.com/file/d/11h-ILLuHRA4XVsq-yvD80WJa3VJmYC3m/view"
+        }
       ]
     }
   ],
