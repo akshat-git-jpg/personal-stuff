@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0c10">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<title>Dayboard</title>
+<style>
+  :root {
+    --bg:#0b0c10; --surface:#14161d; --surface-2:#101219;
+    --line:#191c24; --line-2:#232733; --hour:#14171e; --hour-strong:#171a22;
+    --text:#eceef2; --dim:#8b92a1; --faint:#5c6371; --ghost:#3d4351;
+    --accent:#f0a32a; --ping:#d98b6a;
+    --sans:"Instrument Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono:"Space Grotesk", ui-monospace, SFMono-Regular, monospace;
+    --ppm:0.767;           /* px per minute — mobile */
+    --gutter:42px;
+  }
+  @media (min-width:980px) { :root { --ppm:0.633; --gutter:52px; } }
+
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); }
+  body { font-family:var(--sans); color:var(--text); -webkit-font-smoothing:antialiased; overscroll-behavior-y:contain; }
+  [hidden] { display:none !important; }
+  .num { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  button { font:inherit; color:inherit; background:none; border:none; cursor:pointer; touch-action:manipulation; }
+  a { color:var(--accent); text-decoration:none; }
+
+  /* ---------- login ---------- */
+  #login { position:fixed; inset:0; z-index:100; display:grid; place-items:center; background:var(--bg); padding:24px; }
+  #login form { width:100%; max-width:320px; }
+  #login h1 { font-family:var(--mono); font-size:22px; font-weight:600; letter-spacing:-0.03em; margin:0 0 20px; }
+  #login input { width:100%; height:46px; padding:0 14px; border-radius:12px; border:1px solid var(--line-2);
+                 background:var(--surface); color:var(--text); font-size:16px; }
+  #login button { width:100%; height:46px; margin-top:10px; border-radius:12px; background:var(--text); color:var(--bg); font-weight:600; }
+  #login .err { color:#f4517f; font-size:13px; margin-top:10px; min-height:18px; }
+
+  /* ---------- shell ---------- */
+  #app { display:flex; flex-direction:column; min-height:100dvh; }
+  @media (min-width:980px) {
+    #app { display:grid; grid-template-columns:260px minmax(0,1fr) 400px; height:100dvh; overflow:hidden; }
+  }
+
+  /* ---------- rail (left on desktop, header on mobile) ---------- */
+  #rail { padding:22px 18px 0; display:flex; flex-direction:column; gap:20px; }
+  @media (min-width:980px) { #rail { border-right:1px solid var(--line); padding:26px 22px; overflow-y:auto; } }
+
+  .brand { display:flex; align-items:center; gap:8px; }
+  .brand i { width:7px; height:7px; border-radius:2px; background:var(--accent); }
+  .brand span { font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:0.07em; }
+  .brand .sp { flex:1; }
+
+  .dayhead { display:flex; align-items:flex-end; gap:12px; }
+  .dayhead .who { flex:1; min-width:0; }
+  #dayname { font-family:var(--mono); font-size:26px; font-weight:600; letter-spacing:-0.035em; line-height:1; }
+  @media (min-width:980px) { #dayname { font-size:34px; letter-spacing:-0.04em; } }
+  #daysub { font-size:12.5px; color:var(--dim); margin-top:6px; }
+  .navrow { display:flex; align-items:center; gap:7px; }
+  .navbtn { width:32px; height:32px; border-radius:10px; border:1px solid var(--line-2); display:grid; place-items:center; }
+  .navbtn:active { background:var(--surface); }
+  .todaybtn { height:32px; padding:0 13px; border-radius:10px; border:1px solid #2c3140; font-size:12.5px; color:#cfd4de; }
+
+  .stats { padding:14px 15px; border-radius:14px; background:var(--surface-2); border:1px solid #1c202a; }
+  .stats .hdr { font-size:9.5px; letter-spacing:0.13em; color:var(--faint); margin-bottom:11px; text-transform:uppercase; }
+  .stats .row { display:flex; gap:20px; }
+  .stats b { display:block; font-family:var(--mono); font-size:19px; font-weight:600; letter-spacing:-0.02em; }
+  .stats small { display:block; font-size:10.5px; color:var(--faint); margin-top:2px; }
+  .bar { display:flex; height:5px; border-radius:99px; overflow:hidden; margin-top:14px; gap:1.5px; background:#22262f; }
+
+  .seclabel { font-size:9.5px; letter-spacing:0.13em; color:var(--faint); text-transform:uppercase; }
+  #types { display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:9px; }
+  .type { display:flex; align-items:center; gap:7px; font-size:11.5px; color:#9aa1b0; }
+  .type .dot { width:8px; height:8px; border-radius:3px; flex-shrink:0; }
+  .type .n { font-family:var(--mono); font-size:10.5px; color:var(--faint); }
+
+  #cals { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  @media (min-width:980px) { #cals { display:block; } }
+  .cal { display:flex; align-items:center; gap:8px; font-size:12px; color:#9aa1b0;
+         padding:4px 10px; border-radius:99px; border:1px solid var(--line); }
+  @media (min-width:980px) { .cal { padding:6px 0; border:none; font-size:12.5px; border-radius:0; } }
+  .cal.off { color:#464c59; }
+  .cal .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .cal.off .dot { background:#2a2f3a !important; }
+
+  /* ---------- now panel (right on desktop, top on mobile) ---------- */
+  #panel { padding:16px 16px 0; display:flex; flex-direction:column; gap:12px; order:-1; }
+  @media (min-width:980px) { #panel { order:0; border-left:1px solid var(--line); padding:26px 24px; overflow-y:auto; gap:16px; } }
+
+  .nowcard { position:relative; border-radius:18px; background:var(--surface); border:1px solid #242834; padding:16px; overflow:hidden; }
+  @media (min-width:980px) { .nowcard { padding:20px; } }
+  .nowcard::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); }
+  .nowcard .top { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .nowcard .pulse { width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 4px rgba(240,163,42,.16); }
+  .nowcard .tag { font-size:10.5px; font-weight:600; letter-spacing:0.13em; color:var(--accent); }
+  .nowcard .sp { flex:1; }
+  .nowcard h2 { font-family:var(--mono); font-size:23px; font-weight:600; letter-spacing:-0.033em; line-height:1.14; margin:0; }
+  @media (min-width:980px) { .nowcard h2 { font-size:28px; } }
+  .nowcard .when { font-size:12.5px; color:var(--dim); margin-top:5px; }
+  .nowcard .prog { display:flex; align-items:center; gap:10px; margin-top:13px; }
+  .nowcard .track { flex:1; height:4px; border-radius:99px; background:#242834; overflow:hidden; }
+  .nowcard .fill { height:4px; border-radius:99px; background:var(--accent); }
+  .nowcard .desc { margin-top:14px; padding-top:13px; border-top:1px solid #212532;
+                   font-size:13px; line-height:1.52; color:#c2c7d2; white-space:pre-line; }
+  .nowcard .inside { display:flex; align-items:center; gap:8px; margin-top:13px; flex-wrap:wrap; }
+  .nowcard .inside .lbl { font-size:10px; letter-spacing:0.11em; color:var(--faint); }
+  .chip { display:inline-flex; align-items:center; gap:7px; padding:3px 10px; border-radius:99px; border:1px dashed #333947; }
+  .chip .dot { width:5px; height:5px; border-radius:50%; }
+  .chip .txt { font-family:var(--mono); font-size:11px; color:#98a0b0; }
+
+  .nextbar { display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:13px;
+             background:var(--surface-2); border:1px solid #1d212b; }
+  .nextbar .tag { font-size:10px; font-weight:600; letter-spacing:0.13em; color:var(--faint); }
+  .nextbar .t { font-family:var(--mono); font-size:12px; }
+  .nextbar .n { font-size:13px; color:#c2c7d2; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nextbar .in { font-family:var(--mono); font-size:11.5px; color:var(--faint); white-space:nowrap; }
+
+  #rest { display:none; }
+  @media (min-width:980px) { #rest { display:block; } }
+  .restrow { display:flex; align-items:center; gap:12px; padding:11px 2px; border-bottom:1px solid #16191f; }
+  .restrow:last-child { border-bottom:none; }
+  .restrow .t { font-family:var(--mono); font-size:11.5px; color:var(--faint); width:64px; flex-shrink:0; }
+  .restrow .dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .restrow .n { font-size:13px; color:#c2c7d2; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .restrow.ghost .n { color:#585f6d; }
+  .restrow .d { font-family:var(--mono); font-size:11.5px; color:#414753; }
+
+  /* ---------- timeline ---------- */
+  #main { display:flex; flex-direction:column; min-width:0; padding:14px 16px 0; }
+  @media (min-width:980px) { #main { padding:26px 26px 0 28px; overflow:hidden; } }
+  .mainhead { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .legend { display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--faint); }
+  .legend i { width:4px; height:4px; border-radius:50%; background:var(--ping); }
+  .legend s { width:11px; height:0; border-top:1px dashed #333947; text-decoration:none; }
+
+  #scroller { flex:1; overflow-y:auto; padding-bottom:40px; -webkit-overflow-scrolling:touch; }
+  #track { position:relative; height:calc(1440 * var(--ppm) * 1px); }
+
+  .hline { position:absolute; left:var(--gutter); right:0; border-top:1px solid var(--hour); }
+  .hline.major { border-top-color:var(--hour-strong); }
+  .hlabel { position:absolute; left:0; font-family:var(--mono); font-size:10.5px; color:#3d4351; }
+  .hlabel.major { color:#4d5462; }
+
+  .band { position:absolute; left:var(--gutter); right:0; border-radius:13px; padding:0; display:block;
+          background:rgba(123,131,148,.07); border:1px dashed rgba(123,131,148,.24); }
+  .band:active { background:rgba(123,131,148,.13); }
+  .bandlab { position:absolute; font-size:9.5px; letter-spacing:0.12em; color:#646b7a; text-transform:uppercase;
+             white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .gap { position:absolute; left:var(--gutter); right:0; border-radius:12px; border:1px dashed #1e222b;
+         display:grid; place-items:center; }
+  .gap span { font-family:var(--mono); font-size:11px; color:var(--ghost); letter-spacing:0.04em; text-align:center; padding:0 8px; }
+
+  .blk { position:absolute; left:var(--gutter); right:0; border-radius:10px; overflow:hidden; padding:7px 11px;
+         background:color-mix(in srgb, var(--c) 13%, var(--bg));
+         border:1px solid color-mix(in srgb, var(--c) 24%, transparent);
+         box-shadow:inset 3px 0 0 var(--c); display:block; text-align:left; width:auto; }
+  .blk.nested { left:calc(var(--gutter) + 14px); right:10px; }
+  .blk.tiny { padding:2px 11px; display:flex; align-items:center; gap:9px; border-radius:7px; }
+  .blk .bt { font-size:12.5px; font-weight:600; letter-spacing:-0.01em;
+             color:color-mix(in srgb, var(--c) 42%, #ffffff);
+             white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .blk .bw { font-family:var(--mono); font-size:10.5px; color:#6f7787; }
+  .blk .bd { font-size:11px; line-height:1.48; color:#818a9a; margin-top:5px; white-space:pre-line; overflow:hidden; }
+  .blk .head { display:flex; align-items:baseline; gap:9px; }
+  .blk:active { filter:brightness(1.25); }
+
+  .ping { position:absolute; left:var(--gutter); right:0; height:0; }
+  .ping .ln { position:absolute; left:0; right:0; top:0; border-top:1px dashed rgba(217,139,106,.40); }
+  .ping .lb { position:absolute; right:0; top:-8px; display:flex; align-items:center; gap:5px;
+              background:var(--bg); padding:2px 0 2px 8px; max-width:78%; }
+  .ping .lb:active { filter:brightness(1.4); }
+  .ping .lb i { width:5px; height:5px; border-radius:50%; background:var(--ping); flex-shrink:0; }
+  .ping .lb span { font-family:var(--mono); font-size:10px; color:#a8836e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  #nowline { position:absolute; left:calc(var(--gutter) - 8px); right:0; height:0; z-index:9; }
+  #nowline .ln { position:absolute; left:8px; right:0; top:0; border-top:1.5px solid var(--accent); }
+  #nowline .dt { position:absolute; left:0; top:-4px; width:8px; height:8px; border-radius:50%;
+                 background:var(--accent); box-shadow:0 0 0 3.5px rgba(240,163,42,.18); }
+
+  /* ---------- misc ---------- */
+  #allday { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .adchip { display:flex; align-items:center; gap:7px; padding:4px 11px; border-radius:99px;
+            border:1px solid var(--line-2); font-size:11.5px; color:#b9c0cc; }
+  .adchip .dot { width:6px; height:6px; border-radius:50%; }
+
+  #banner { margin:0 16px 10px; padding:12px 14px; border-radius:12px; font-size:12.5px; line-height:1.45;
+            background:rgba(244,81,127,.10); border:1px solid rgba(244,81,127,.28); color:#f4a0bb; }
+  @media (min-width:980px) { #banner { margin:0 0 12px; } }
+  #banner b { color:#ffc7d8; }
+
+  /* ---------- detail sheet ---------- */
+  #backdrop { position:fixed; inset:0; z-index:60; background:rgba(4,5,8,.62); backdrop-filter:blur(2px); }
+  #sheet { position:fixed; z-index:61; left:0; right:0; bottom:0; max-height:82dvh; overflow-y:auto;
+           background:var(--surface); border-top:1px solid var(--line-2);
+           border-radius:20px 20px 0 0; padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+           animation:rise .18s ease-out; }
+  @media (min-width:980px) {
+    #sheet { left:50%; right:auto; bottom:auto; top:50%; transform:translate(-50%,-50%);
+             width:min(520px, 92vw); max-height:80dvh; border-radius:18px;
+             border:1px solid var(--line-2); animation:fade .14s ease-out; }
+  }
+  @keyframes rise { from { transform:translateY(18px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  @keyframes fade { from { opacity:0; } to { opacity:1; } }
+  @media (prefers-reduced-motion:reduce) { #sheet { animation:none; } }
+
+  #sheet .grip { width:36px; height:4px; border-radius:99px; background:#2b303c; margin:-6px auto 14px; }
+  @media (min-width:980px) { #sheet .grip { display:none; } }
+  #sheet .kind { display:inline-flex; align-items:center; gap:7px; padding:3px 10px; border-radius:99px;
+                 font-size:10px; letter-spacing:0.11em; text-transform:uppercase;
+                 background:color-mix(in srgb, var(--c) 15%, transparent);
+                 border:1px solid color-mix(in srgb, var(--c) 30%, transparent);
+                 color:color-mix(in srgb, var(--c) 45%, #ffffff); }
+  #sheet h3 { font-family:var(--mono); font-size:22px; font-weight:600; letter-spacing:-0.03em;
+              line-height:1.2; margin:13px 0 0; }
+  #sheet .meta { font-family:var(--mono); font-size:12.5px; color:var(--dim); margin-top:7px; }
+  #sheet .body { margin-top:16px; padding-top:15px; border-top:1px solid #212532;
+                 font-size:13.5px; line-height:1.58; color:#c2c7d2; white-space:pre-line; word-break:break-word; }
+  #sheet .body a { text-decoration:underline; }
+  #sheet .nodesc { margin-top:16px; padding-top:15px; border-top:1px solid #212532;
+                   font-size:13px; color:var(--faint); font-style:italic; }
+  #sheet .foot { display:flex; gap:9px; margin-top:18px; flex-wrap:wrap; }
+  #sheet .foot a, #sheet .foot button { flex:1; min-width:130px; height:42px; border-radius:12px;
+                 display:flex; align-items:center; justify-content:center; gap:8px; font-size:13.5px; font-weight:500; }
+  #sheet .foot .prim { background:var(--text); color:var(--bg); }
+  #sheet .foot .sec { border:1px solid var(--line-2); color:var(--dim); }
+
+  .empty { font-family:var(--mono); font-size:12px; color:var(--ghost); text-align:center; padding:40px 0; }
+  .spin { display:inline-block; width:12px; height:12px; border-radius:50%; border:1.5px solid #2a2f3a;
+          border-top-color:var(--accent); animation:sp .7s linear infinite; vertical-align:-1px; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce) { .spin { animation:none; } }
+  .synced { font-family:var(--mono); font-size:10.5px; color:#414753; padding:10px 0 18px; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <form id="loginform">
+    <h1>Dayboard</h1>
+    <input id="pw" type="password" placeholder="Password" autocomplete="current-password" required>
+    <button type="submit">Open</button>
+    <div class="err" id="loginerr"></div>
+  </form>
+</div>
+
+<div id="app" hidden>
+
+  <div id="rail">
+    <div class="brand"><i></i><span>DAYBOARD</span><span class="sp"></span>
+      <button class="navbtn" id="refresh" title="Refresh from Google" aria-label="Refresh">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b92a1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><polyline points="21 3 21 9 15 9"/></svg>
+      </button>
+    </div>
+
+    <div class="dayhead">
+      <div class="who">
+        <div id="dayname">&nbsp;</div>
+        <div id="daysub">&nbsp;</div>
+      </div>
+      <div class="navrow">
+        <button class="navbtn" id="prev" aria-label="Previous day">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b92a1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="todaybtn" id="today">Today</button>
+        <button class="navbtn" id="next" aria-label="Next day">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b92a1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats" hidden>
+      <div class="hdr" id="statshdr">Today</div>
+      <div class="row">
+        <div><b id="statBlocked">—</b><small>blocked</small></div>
+        <div><b id="statFree" style="color:var(--dim)">—</b><small>unplanned</small></div>
+        <div><b id="statPings" style="color:var(--ping)">—</b><small>pings</small></div>
+      </div>
+      <div class="bar" id="statbar"></div>
+    </div>
+
+    <div>
+      <div class="seclabel">Today’s types</div>
+      <div id="types"></div>
+    </div>
+
+    <div>
+      <div class="seclabel">Calendars</div>
+      <div id="cals"></div>
+    </div>
+
+    <div class="synced" id="synced"></div>
+  </div>
+
+  <div id="main">
+    <div class="mainhead">
+      <span class="seclabel">Timeline</span>
+      <span style="flex:1"></span>
+      <span class="legend"><i></i>ping<s style="margin-left:8px"></s>context</span>
+    </div>
+    <div id="banner" hidden></div>
+    <div id="allday"></div>
+    <div id="scroller"><div id="track"></div></div>
+  </div>
+
+  <div id="panel">
+    <div class="nowcard" id="nowcard">
+      <div class="top">
+        <span class="pulse"></span><span class="tag">NOW</span><span class="sp"></span>
+        <span class="num" id="clock" style="font-size:12.5px;color:var(--dim)"></span>
+      </div>
+      <h2 id="nowtitle">Loading<span class="spin" style="margin-left:8px"></span></h2>
+      <div class="when" id="nowwhen"></div>
+      <div class="prog" id="nowprog" hidden>
+        <div class="track"><div class="fill" id="nowfill" style="width:0%"></div></div>
+        <span class="num" id="nowleft" style="font-size:11.5px;color:var(--dim);white-space:nowrap"></span>
+      </div>
+      <div class="desc" id="nowdesc" hidden></div>
+      <div class="inside" id="nowinside" hidden><span class="lbl">INSIDE</span><span id="nowinsidechip"></span></div>
+    </div>
+
+    <div class="nextbar" id="nextbar" hidden>
+      <span class="tag">NEXT</span>
+      <span class="num t" id="nexttime"></span>
+      <span class="n" id="nextname"></span>
+      <span class="num in" id="nextin"></span>
+    </div>
+
+    <div id="rest">
+      <div class="seclabel" style="margin:10px 0 4px">Rest of day</div>
+      <div id="restlist"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="backdrop" hidden></div>
+<div id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+  <div class="grip"></div>
+  <span class="kind" id="sheetKind"></span>
+  <h3 id="sheetTitle"></h3>
+  <div class="meta" id="sheetMeta"></div>
+  <div class="meta" id="sheetInside" hidden></div>
+  <div class="body" id="sheetBody" hidden></div>
+  <div class="nodesc" id="sheetNoDesc" hidden>No description on this event.</div>
+  <div class="foot">
+    <a class="prim" id="sheetOpen" target="_blank" rel="noopener">Open in Google Calendar</a>
+    <button class="sec" id="sheetClose" type="button">Close</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const DAY_MIN = 1440;
+  const CLOCK_TICK_MS = 30_000;   // local only — never calls Google
+  const SCROLL_LEAD_MIN = 90;     // show an hour and a half above "now"
+
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; };
+
+  const state = { date: null, data: null, tz: 'Asia/Kolkata', hidden: new Set(), loading: false, scrolled: false };
+
+  try { state.hidden = new Set(JSON.parse(localStorage.getItem('dayboard:hidden') || '[]')); } catch { /* private mode */ }
+  const saveHidden = () => { try { localStorage.setItem('dayboard:hidden', JSON.stringify([...state.hidden])); } catch { /* ignore */ } };
+
+  // ---------- formatting ----------
+  const pad = (n) => String(n).padStart(2, '0');
+  function fmtTime(min, withSuffix = true) {
+    const m = Math.max(0, Math.min(DAY_MIN, Math.round(min)));
+    const h24 = Math.floor(m / 60) % 24, mm = m % 60;
+    const h = h24 % 12 === 0 ? 12 : h24 % 12;
+    return `${h}:${pad(mm)}${withSuffix ? (h24 < 12 ? ' AM' : ' PM') : ''}`;
+  }
+  function fmtShort(min) {
+    const m = Math.round(min), h24 = Math.floor(m / 60) % 24, mm = m % 60;
+    const h = h24 % 12 === 0 ? 12 : h24 % 12;
+    return mm === 0 ? String(h) : `${h}:${pad(mm)}`;
+  }
+  function fmtDur(min) {
+    const m = Math.max(0, Math.round(min)), h = Math.floor(m / 60), r = m % 60;
+    if (h === 0) return `${r}m`;
+    return r === 0 ? `${h}h` : `${h}h ${r}m`;
+  }
+  function ymd(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+  function shiftDate(dateStr, days) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+  }
+  function todayInTz(tz) {
+    const p = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+    const g = (t) => p.find((x) => x.type === t).value;
+    return `${g('year')}-${g('month')}-${g('day')}`;
+  }
+  /** Minutes past midnight right now, in the board's timezone. */
+  function nowMinutes(tz) {
+    const p = new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour12: false, hour: '2-digit', minute: '2-digit' }).formatToParts(new Date());
+    const g = (t) => Number(p.find((x) => x.type === t).value);
+    return (g('hour') % 24) * 60 + g('minute');
+  }
+  const isToday = () => state.date === todayInTz(state.tz);
+
+  // ---------- api ----------
+  async function api(path, opts) {
+    const res = await fetch(path, { credentials: 'same-origin', ...opts });
+    if (res.status === 401) { showLogin(); throw new Error('unauthorized'); }
+    return res;
+  }
+
+  async function load(date, fresh = false) {
+    if (state.loading) return;
+    state.loading = true;
+    try {
+      const res = await api(`/api/day?date=${date}${fresh ? '&fresh=1' : ''}`);
+      const json = await res.json();
+      if (!res.ok) { showBanner(json); state.loading = false; return; }
+      state.date = date;
+      state.data = json;
+      state.tz = json.timezone || state.tz;
+      hideBanner();
+      render();
+    } catch (err) {
+      if (String(err.message) !== 'unauthorized') showBanner({ error: 'network' });
+    } finally {
+      state.loading = false;
+    }
+  }
+
+  function showBanner(json) {
+    const b = $('banner');
+    b.innerHTML = '';
+    if (json.error === 'google_auth') {
+      b.append(document.createTextNode('Google turned the connection down. The refresh token needs re-minting — '));
+      b.append(el('b', null, 'the board is stale until then.'));
+    } else if (json.error === 'network') {
+      b.textContent = 'No connection. Showing whatever last loaded.';
+    } else {
+      b.textContent = `Could not read the calendar (${json.error || 'unknown'}).`;
+    }
+    b.hidden = false;
+  }
+  const hideBanner = () => { $('banner').hidden = true; };
+
+  // ---------- render ----------
+  function render() {
+    const d = state.data;
+    if (!d) return;
+
+    const [y, m, dd] = state.date.split('-').map(Number);
+    const dateObj = new Date(Date.UTC(y, m - 1, dd));
+    $('dayname').textContent = dateObj.toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' });
+    const nice = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+    $('daysub').textContent = d.allDay.length ? `${nice} · ${d.allDay.map((a) => a.title).join(' · ')}` : nice;
+
+    renderAllDay(d);
+    renderTypes(d);
+    renderCalendars(d);
+    renderTrack(d);
+    renderStats(d);
+    renderNow();
+
+    $('synced').textContent = d.fetchedAt
+      ? `synced ${new Date(d.fetchedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} · read-only`
+      : 'read-only';
+
+    if (!state.scrolled) { state.scrolled = true; scrollToNow(); }
+  }
+
+  function renderAllDay(d) {
+    const wrap = $('allday');
+    wrap.innerHTML = '';
+    for (const a of d.allDay) {
+      const c = el('div', 'adchip');
+      const dot = el('span', 'dot'); dot.style.background = a.color;
+      c.append(dot, el('span', null, a.title));
+      wrap.append(c);
+    }
+  }
+
+  /** Only the categories actually on screen today — a legend of nine is noise. */
+  function renderTypes(d) {
+    const v = shown(d);
+    const counts = new Map();
+    for (const e of [...v.blocks, ...v.contexts]) counts.set(e.category, (counts.get(e.category) || 0) + 1);
+    for (const p of v.pings) counts.set(p.category, (counts.get(p.category) || 0) + p.items.length);
+
+    const wrap = $('types');
+    wrap.innerHTML = '';
+    for (const [cat, n] of [...counts.entries()].sort((a, b) => b[1] - a[1])) {
+      const row = el('div', 'type');
+      const dot = el('span', 'dot');
+      dot.style.background = (d.palette && d.palette[cat]) || 'var(--dim)';
+      row.append(dot, el('span', null, CATEGORY_LABEL[cat] || cat), el('span', 'n', String(n)));
+      wrap.append(row);
+    }
+  }
+
+  function renderCalendars(d) {
+    const wrap = $('cals');
+    wrap.innerHTML = '';
+    for (const cal of d.calendars) {
+      const off = state.hidden.has(cal.id);
+      const row = el('button', 'cal' + (off ? ' off' : ''));
+      row.setAttribute('aria-pressed', String(!off));
+      const dot = el('span', 'dot'); dot.style.background = cal.color;
+      row.append(dot, el('span', null, cal.name));
+      row.addEventListener('click', () => {
+        if (off) state.hidden.delete(cal.id); else state.hidden.add(cal.id);
+        saveHidden();
+        render();
+      });
+      wrap.append(row);
+    }
+  }
+
+  function shown(d) {
+    const calName = new Map(d.calendars.map((c) => [c.name, c.id]));
+    const keep = (e) => !state.hidden.has(e.calendarId ?? calName.get(e.calendar) ?? '');
+    return {
+      contexts: d.contexts.filter(keep),
+      blocks: d.blocks.filter(keep),
+      pings: d.pings
+        .map((p) => ({ ...p, items: p.items.filter((i) => !state.hidden.has(calName.get(i.calendar) ?? '')) }))
+        .filter((p) => p.items.length > 0),
+    };
+  }
+
+  function px(min) { const ppm = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ppm')); return min * ppm; }
+
+  function renderTrack(d) {
+    const track = $('track');
+    track.innerHTML = '';
+    const v = shown(d);
+
+    // hour rules
+    for (let h = 0; h <= 24; h++) {
+      const y = px(h * 60);
+      const major = h % 6 === 0;
+      const line = el('div', 'hline' + (major ? ' major' : ''));
+      line.style.top = `${y}px`;
+      track.append(line);
+      if (h < 24) {
+        const lab = el('div', 'hlabel' + (major ? ' major' : ''), h === 0 ? '12 AM' : h === 12 ? '12 PM' : fmtShort(h * 60) + (h === 1 ? ' PM' : ''));
+        lab.textContent = h === 0 ? '12 AM' : (h === 12 ? '12 PM' : String(h % 12 === 0 ? 12 : h % 12));
+        lab.style.top = `${y - 7}px`;
+        track.append(lab);
+      }
+    }
+
+    // unplanned gaps
+    for (const g of gaps(v)) {
+      const box = el('div', 'gap');
+      box.style.top = `${px(g.startMin)}px`;
+      box.style.height = `${px(g.endMin - g.startMin)}px`;
+      box.append(el('span', null, `${fmtDur(g.endMin - g.startMin)} unplanned · ${fmtTime(g.startMin)} – ${fmtTime(g.endMin)}`));
+      track.append(box);
+    }
+
+    // context bands (behind everything)
+    for (const c of v.contexts) {
+      const band = el('button', 'band');
+      band.style.top = `${px(c.startMin)}px`;
+      band.style.height = `${px(c.endMin - c.startMin)}px`;
+      band.addEventListener('click', () => openSheet(c));
+      track.append(band);
+      const lab = el('div', 'bandlab', `${c.title} · ${fmtTime(c.startMin, false)} – ${fmtTime(c.endMin, false)}`);
+      lab.style.top = `${px(c.startMin) + 7}px`;
+      lab.style.left = `calc(var(--gutter) + 12px)`;
+      lab.style.right = '12px';
+      track.append(lab);
+    }
+
+    // blocks
+    for (const b of [...v.blocks].sort((x, y2) => (x.endMin - x.startMin) - (y2.endMin - y2.startMin))) {
+      const h = px(b.endMin - b.startMin);
+      const node = el('button', 'blk' + (b.depth === 1 ? ' nested' : '') + (h < 30 ? ' tiny' : ''));
+      node.style.setProperty('--c', b.color);
+      node.style.top = `${px(b.startMin)}px`;
+      node.style.height = `${h}px`;
+
+      const when = `${fmtTime(b.startMin, false)} – ${fmtTime(b.endMin, false)}`;
+      if (h < 30) {
+        node.append(el('span', 'bt', b.title), el('span', 'bw', when));
+      } else {
+        const head = el('div', 'head');
+        head.append(el('span', 'bt', b.title), el('span', 'bw', when));
+        node.append(head);
+        // Only render description where there is genuinely room for it — a clipped
+        // half-sentence is worse than none, and the NOW card always shows it in full.
+        if (b.description && h > 52) node.append(el('div', 'bd', b.description));
+      }
+      node.addEventListener('click', () => openSheet(b));
+      track.append(node);
+    }
+
+    // pings
+    for (const p of v.pings) {
+      const row = el('div', 'ping');
+      row.style.top = `${px(p.startMin)}px`;
+      row.append(el('div', 'ln'));
+      const lb = el('button', 'lb');
+      lb.append(el('i'), el('span', null, `${fmtTime(p.startMin, false)} · ${p.items.map((i) => i.title).join(' · ')}`));
+      lb.addEventListener('click', () => openSheet(p));
+      row.append(lb);
+      track.append(row);
+    }
+
+    // now line
+    if (isToday()) {
+      const nl = el('div', null); nl.id = 'nowline';
+      nl.append(el('div', 'ln'), el('div', 'dt'));
+      nl.style.top = `${px(nowMinutes(state.tz))}px`;
+      track.append(nl);
+    }
+
+    if (!v.blocks.length && !v.contexts.length && !v.pings.length) {
+      const e = el('div', 'empty', 'Nothing on the calendar for this day.');
+      e.style.position = 'absolute'; e.style.top = '40%'; e.style.left = '0'; e.style.right = '0';
+      track.append(e);
+    }
+  }
+
+  /** Same rule as the Worker's unplannedGaps, applied to what is currently visible. */
+  function gaps(v, minGap = 60) {
+    const busy = [...v.blocks, ...v.contexts].map((e) => ({ s: e.startMin, e: e.endMin })).sort((a, b) => a.s - b.s);
+    if (!busy.length) return [];
+    const from = Math.min(...busy.map((b) => b.s));
+    const to = Math.max(...busy.map((b) => b.e));
+    const out = [];
+    let cur = from;
+    for (const b of busy) {
+      if (b.s > cur) out.push({ startMin: cur, endMin: Math.min(b.s, to) });
+      cur = Math.max(cur, b.e);
+      if (cur >= to) break;
+    }
+    return out.filter((g) => g.endMin - g.startMin >= minGap);
+  }
+
+  function renderStats(d) {
+    const v = shown(d);
+    const busy = [...v.blocks, ...v.contexts].map((e) => [e.startMin, e.endMin]).sort((a, b) => a[0] - b[0]);
+    let covered = 0, cur = -1, end = -1;
+    for (const [s, e] of busy) {
+      if (s > end) { covered += Math.max(0, end - cur); cur = s; end = e; }
+      else end = Math.max(end, e);
+    }
+    covered += Math.max(0, end - cur);
+
+    $('stats').hidden = false;
+    $('statshdr').textContent = d.allDay.length ? d.allDay[0].title : 'Day';
+    $('statBlocked').textContent = fmtDur(covered);
+    $('statFree').textContent = fmtDur(Math.max(0, DAY_MIN - covered));
+    $('statPings').textContent = String(v.pings.reduce((n, p) => n + p.items.length, 0));
+
+    const bar = $('statbar');
+    bar.innerHTML = '';
+    const byCal = new Map();
+    for (const b of [...v.blocks, ...v.contexts]) {
+      byCal.set(b.color, (byCal.get(b.color) || 0) + (b.endMin - b.startMin));
+    }
+    for (const [color, mins] of [...byCal.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)) {
+      const seg = el('div');
+      seg.style.width = `${Math.max(2, (mins / DAY_MIN) * 100)}%`;
+      seg.style.background = color;
+      bar.append(seg);
+    }
+  }
+
+  function renderNow() {
+    const d = state.data;
+    if (!d) return;
+    const v = shown(d);
+    const live = isToday();
+    const now = live ? nowMinutes(state.tz) : 0;
+
+    $('clock').textContent = live ? fmtTime(now) : '';
+
+    const inBlocks = v.blocks.filter((b) => b.startMin <= now && now < b.endMin)
+      .sort((a, b) => (a.endMin - a.startMin) - (b.endMin - b.startMin));
+    const block = live ? (inBlocks[0] || null) : null;
+    const band = live ? (v.contexts.find((c) => c.startMin <= now && now < c.endMin) || null) : null;
+
+    const title = $('nowtitle'), when = $('nowwhen'), prog = $('nowprog'),
+          desc = $('nowdesc'), inside = $('nowinside');
+
+    // Tapping the NOW card opens the same detail sheet as tapping its block.
+    const card = $('nowcard');
+    card.onclick = (block || band) ? () => openSheet(block || band) : null;
+    card.style.cursor = (block || band) ? 'pointer' : 'default';
+
+    if (!live) {
+      title.textContent = 'Not today';
+      when.textContent = 'The NOW card only runs on today’s board.';
+      prog.hidden = desc.hidden = inside.hidden = true;
+    } else if (block) {
+      title.textContent = block.title;
+      when.textContent = `${fmtTime(block.startMin)} – ${fmtTime(block.endMin)} · ${block.calendar}`;
+      prog.hidden = false;
+      const span = block.endMin - block.startMin;
+      $('nowfill').style.width = `${Math.round(((now - block.startMin) / span) * 100)}%`;
+      $('nowleft').textContent = `${fmtDur(block.endMin - now)} left`;
+      desc.hidden = !block.description;
+      desc.textContent = block.description || '';
+      inside.hidden = !band;
+      if (band) {
+        const chip = el('span', 'chip');
+        const dot = el('span', 'dot'); dot.style.background = band.color;
+        chip.append(dot, el('span', 'txt', `${band.title} · ${fmtTime(band.startMin, false)} – ${fmtTime(band.endMin, false)}`));
+        $('nowinsidechip').replaceChildren(chip);
+      }
+    } else if (band) {
+      title.textContent = band.title;
+      when.textContent = `${fmtTime(band.startMin)} – ${fmtTime(band.endMin)} · ${band.calendar}`;
+      prog.hidden = false;
+      const span = band.endMin - band.startMin;
+      $('nowfill').style.width = `${Math.round(((now - band.startMin) / span) * 100)}%`;
+      $('nowleft').textContent = `${fmtDur(band.endMin - now)} left`;
+      desc.hidden = !band.description;
+      desc.textContent = band.description || '';
+      inside.hidden = true;
+    } else {
+      title.textContent = 'Nothing scheduled';
+      when.textContent = 'Open time.';
+      prog.hidden = desc.hidden = inside.hidden = true;
+    }
+
+    // NEXT
+    const upcoming = [
+      ...v.blocks.filter((b) => b.startMin > now).map((b) => ({ at: b.startMin, name: b.title, ping: false })),
+      ...v.pings.filter((p) => p.startMin > now).map((p) => ({ at: p.startMin, name: p.items.map((i) => i.title).join(' · '), ping: true })),
+    ].sort((a, b) => a.at - b.at);
+
+    const nb = $('nextbar');
+    if (live && upcoming.length) {
+      nb.hidden = false;
+      $('nexttime').textContent = fmtTime(upcoming[0].at);
+      $('nexttime').style.color = upcoming[0].ping ? 'var(--ping)' : 'var(--text)';
+      $('nextname').textContent = upcoming[0].name;
+      $('nextin').textContent = `in ${fmtDur(upcoming[0].at - now)}`;
+    } else {
+      nb.hidden = true;
+    }
+
+    // rest of day (desktop only)
+    const list = $('restlist');
+    list.innerHTML = '';
+    const rows = [
+      ...v.blocks.filter((b) => b.endMin > now).map((b) => ({ at: b.startMin > now ? b.startMin : b.endMin,
+        name: b.startMin > now ? b.title : `${b.title} ends`, color: b.color, dur: b.endMin - b.startMin, ghost: false })),
+      ...v.contexts.filter((c) => c.endMin > now).map((c) => ({ at: c.startMin > now ? c.startMin : c.endMin,
+        name: c.startMin > now ? c.title : `${c.title} ends`, color: c.color, dur: c.endMin - c.startMin, ghost: false })),
+      ...gaps(v).filter((g) => g.endMin > now).map((g) => ({ at: g.startMin, name: 'unplanned', color: null,
+        dur: g.endMin - g.startMin, ghost: true })),
+    ].sort((a, b) => a.at - b.at).slice(0, 6);
+
+    for (const r of rows) {
+      const row = el('div', 'restrow' + (r.ghost ? ' ghost' : ''));
+      row.append(el('span', 'num t', fmtTime(r.at)));
+      const dot = el('span', 'dot');
+      if (r.color) dot.style.background = r.color; else dot.style.border = '1px dashed #3a4150';
+      row.append(dot, el('span', 'n', r.name), el('span', 'num d', fmtDur(r.dur)));
+      list.append(row);
+    }
+  }
+
+  // ---------- detail sheet ----------
+  const CATEGORY_LABEL = {
+    sleep:'Sleep', fitness:'Fitness', food:'Food', work:'Work', routine:'Routine',
+    growth:'Growth', family:'Family', buffer:'Buffer', holiday:'Holiday', other:'Other',
+  };
+
+  let sheetOpen = false;
+
+  /** Show the full record for a block, a context band, or a merged ping. */
+  function openSheet(item) {
+    const isPing = item.kind === 'ping';
+    const first = isPing ? item.items[0] : item;
+    const color = item.color || 'var(--dim)';
+
+    $('sheet').style.setProperty('--c', color);
+    $('sheetKind').textContent = (CATEGORY_LABEL[item.category] || 'Event')
+      + (item.kind === 'context' ? ' · context' : isPing ? ' · ping' : '');
+
+    $('sheetTitle').textContent = isPing ? item.items.map((i) => i.title).join('  ·  ') : item.title;
+
+    const meta = [];
+    if (isPing) {
+      meta.push(fmtTime(item.startMin));
+      meta.push([...new Set(item.items.map((i) => i.calendar))].join(' · '));
+    } else {
+      meta.push(`${fmtTime(item.startMin)} – ${fmtTime(item.endMin)}`);
+      meta.push(fmtDur(item.endMin - item.startMin));
+      meta.push(item.calendar);
+      if (item.clippedStart) meta.push('starts the day before');
+      if (item.clippedEnd) meta.push('runs past midnight');
+    }
+    $('sheetMeta').textContent = meta.filter(Boolean).join('  ·  ');
+
+    const insideEl = $('sheetInside');
+    if (!isPing && item.insideTitle) {
+      insideEl.textContent = `inside ${item.insideTitle}`;
+      insideEl.hidden = false;
+    } else { insideEl.hidden = true; }
+
+    const desc = isPing ? item.items.map((i) => i.description).filter(Boolean).join('\n\n') : item.description;
+    const body = $('sheetBody');
+    if (desc) {
+      body.replaceChildren(...linkify(desc));
+      body.hidden = false; $('sheetNoDesc').hidden = true;
+    } else {
+      body.hidden = true; $('sheetNoDesc').hidden = false;
+    }
+
+    const link = first && first.htmlLink;
+    $('sheetOpen').href = link || '#';
+    $('sheetOpen').hidden = !link;
+
+    $('backdrop').hidden = false;
+    $('sheet').hidden = false;
+    sheetOpen = true;
+    $('sheetClose').focus();
+  }
+
+  function closeSheet() {
+    $('backdrop').hidden = true;
+    $('sheet').hidden = true;
+    sheetOpen = false;
+  }
+
+  /**
+   * Descriptions are plain text by the time they reach here (the Worker strips the
+   * markup), but they are full of Notion links — turn bare URLs into real anchors
+   * with createElement, never innerHTML.
+   */
+  function linkify(text) {
+    const out = [];
+    const re = /https?:\/\/[^\s<>"']+/g;
+    let last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) out.push(document.createTextNode(text.slice(last, m.index)));
+      const a = document.createElement('a');
+      a.href = m[0]; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = m[0].length > 46 ? m[0].slice(0, 44) + '…' : m[0];
+      out.push(a);
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) out.push(document.createTextNode(text.slice(last)));
+    return out;
+  }
+
+  $('backdrop').addEventListener('click', closeSheet);
+  $('sheetClose').addEventListener('click', closeSheet);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sheetOpen) closeSheet(); });
+
+  function scrollToNow() {
+    const sc = $('scroller');
+    if (!sc) return;
+    const target = isToday() ? nowMinutes(state.tz) - SCROLL_LEAD_MIN : firstEventMin() - 30;
+    sc.scrollTop = Math.max(0, px(target));
+  }
+  function firstEventMin() {
+    const d = state.data; if (!d) return 6 * 60;
+    const all = [...d.blocks, ...d.contexts].map((e) => e.startMin);
+    return all.length ? Math.min(...all) : 6 * 60;
+  }
+
+  // ---------- clock tick (no network) ----------
+  function tick() {
+    if (!state.data || !isToday()) return;
+    const nl = $('nowline');
+    if (nl) nl.style.top = `${px(nowMinutes(state.tz))}px`;
+    renderNow();
+  }
+
+  // ---------- auth ----------
+  function showLogin() { $('login').hidden = false; $('app').hidden = true; }
+  function showApp() { $('login').hidden = true; $('app').hidden = false; }
+
+  $('loginform').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('loginerr').textContent = '';
+    const res = await fetch('/auth/login', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ password: $('pw').value }),
+    });
+    if (!res.ok) { $('loginerr').textContent = 'Wrong password'; return; }
+    $('pw').value = '';
+    showApp();
+    load(state.date || todayInTz(state.tz));
+  });
+
+  // ---------- controls ----------
+  $('prev').addEventListener('click', () => { state.scrolled = false; load(shiftDate(state.date, -1)); });
+  $('next').addEventListener('click', () => { state.scrolled = false; load(shiftDate(state.date, 1)); });
+  $('today').addEventListener('click', () => { state.scrolled = false; load(todayInTz(state.tz), true); });
+  $('refresh').addEventListener('click', () => load(state.date, true));
+
+  // The mobile "reload": coming back to the tab. No polling — see README.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.data) load(state.date, true);
+  });
+
+  window.addEventListener('resize', () => { if (state.data) renderTrack(state.data); });
+
+  setInterval(tick, CLOCK_TICK_MS);
+
+  // ---------- boot ----------
+  (async () => {
+    const res = await fetch('/api/me', { credentials: 'same-origin' });
+    const json = await res.json().catch(() => ({ authenticated: false }));
+    if (!json.authenticated) { showLogin(); return; }
+    showApp();
+    await load(todayInTz(state.tz));
+  })();
+})();
+</script>
+</body>
+</html>

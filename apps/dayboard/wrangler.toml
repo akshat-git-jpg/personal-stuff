@@ -1,0 +1,32 @@
+name = "dayboard"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# IANA timezone the day grid is drawn in. Same value routine-ringer uses.
+TIMEZONE = "Asia/Kolkata"
+
+# Static frontend (public/index.html) served by the Worker via the ASSETS binding.
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Short-lived caches only: the Google access token (~50 min) and a 60s-per-day
+# event cache. Nothing here is a source of truth — Google Calendar is.
+# Fill the id AFTER `npx wrangler kv namespace create CACHE_KV`.
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Custom domain — Cloudflare auto-provisions DNS + SSL on the agrolloo.com zone.
+[[routes]]
+pattern = "dayboard.agrolloo.com"
+custom_domain = true
+
+# Secrets (never committed):
+#   npx wrangler secret put APP_PASSWORD
+#   npx wrangler secret put SESSION_SECRET
+#   npx wrangler secret put GOOGLE_CLIENT_ID
+#   npx wrangler secret put GOOGLE_CLIENT_SECRET
+#   npx wrangler secret put GOOGLE_REFRESH_TOKEN
