@@ -18,6 +18,13 @@ Three shapes instead of one rectangle:
 | **context** | event ≥ 2 h that ≥ 2 other timed events overlap | a faded dashed band *behind* everything |
 | **block** | everything else | a card; indented when it sits inside a context band |
 
+Overlapping blocks are packed into **side-by-side columns** (`public/lanes.js`), so an
+overlap costs width and never legibility.
+
+Only the **primary** calendar and the **holidays** feed are read (`isBoardCalendar`). The
+account has 13 calendars and 11 hold a duplicate "plan" copy of the same day at different
+times; reading them showed two Gyms, two Lunches and two Dinners.
+
 Plus:
 
 - **Descriptions render inline** — in the block when there is room, and always in full
@@ -75,7 +82,7 @@ you must restart it, or you will keep reading the previous account's calendar.
 ## Test
 
 ```bash
-npm run check    # tsc --noEmit + vitest (69 tests, offline, no Cloudflare account)
+npm run check    # tsc --noEmit + vitest (86 tests, offline, no Cloudflare account)
 ```
 
 The tests cover the parts where a bug is invisible: the ping/context/block rules against

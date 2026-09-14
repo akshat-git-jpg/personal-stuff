@@ -100,6 +100,20 @@ async function getJson<T>(url: string, token: string): Promise<T> {
   return (await res.json()) as T
 }
 
+/**
+ * The calendars this board draws, and nothing else.
+ *
+ * The account carries 13 calendars, 11 of which hold a second "plan" copy of the same
+ * day at DIFFERENT times — two Gyms, two Lunches, two Dinners. The owner keeps those
+ * unticked in Google and has said the selection is fixed, so this is a hard filter
+ * rather than a preference: it also cuts a day fetch from 13 API calls to 2.
+ *
+ * To show another calendar, add a test to this predicate.
+ */
+export function isBoardCalendar(c: GoogleCalendar): boolean {
+  return c.primary || c.id.endsWith('#holiday@group.v.calendar.google.com')
+}
+
 /** Every calendar on the account, with the colour Google already shows for it. */
 export async function listCalendars(token: string): Promise<GoogleCalendar[]> {
   const url = `${CAL_API}/users/me/calendarList?minAccessRole=reader&maxResults=250&fields=items(id,summary,backgroundColor,selected,primary)`
@@ -108,7 +122,9 @@ export async function listCalendars(token: string): Promise<GoogleCalendar[]> {
     id: c.id ?? '',
     summary: c.summary ?? 'Untitled',
     backgroundColor: c.backgroundColor ?? '#7b8394',
-    selected: c.selected !== false,
+    // Google OMITS a false `selected` from a partial (fields=) response, so
+    // `!== false` read every unticked calendar as ticked. Must be an explicit true.
+    selected: c.selected === true,
     primary: c.primary === true,
   })).filter((c) => c.id !== '')
 }

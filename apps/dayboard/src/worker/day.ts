@@ -6,6 +6,7 @@
  */
 import {
   getAccessToken,
+  isBoardCalendar,
   listCalendars,
   listEvents,
   sanitizeDescription,
@@ -43,6 +44,7 @@ export async function fetchDay(
   const token = await getAccessToken(kv, creds)
 
   const calendars = (await listCalendars(token))
+    .filter(isBoardCalendar)
     .filter((c) => !hiddenCalendarIds.has(c.id))
     // The primary calendar's Google "summary" is the raw email address, which is
     // useless on a card that says which calendar an event came from.

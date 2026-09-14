@@ -20,6 +20,19 @@ Read-only Google Calendar day board at `dayboard.agrolloo.com`. Full detail: `RE
 - **No polling.** Events refetch on load, on `visibilitychange`, and on the ↻ button.
   The NOW line ticks on the browser clock every 30 s with no network. Re-adding a
   `setInterval` fetch is a regression the owner explicitly rejected.
+- **Only two calendars reach the board** — `google.ts` -> `isBoardCalendar`: the primary
+  and the holidays feed. The account has 13, and 11 of them hold a SECOND copy of the
+  same day at different times (two Gyms, two Lunches, two Dinners), which is what made
+  the first version unreadable. The owner keeps them unticked in Google and has said the
+  selection is fixed, so this is a hard filter, not a preference. **Never filter on
+  Google's `selected` flag**: a partial (`fields=`) response omits `selected: false`
+  entirely, so `!== false` reads every unticked calendar as ticked.
+- **Overlapping blocks get COLUMNS, never a shared edge** — `public/lanes.js`, tested by
+  `test/lanes.test.ts`. It is a plain browser script (no build step) that also hands
+  itself to `globalThis` so the page and the test load the same file. Drawing two
+  overlapping blocks at the same left edge is the bug this app exists to avoid.
+- **Context bands are SPINES, not rectangles.** A full-width band buried whatever sat
+  inside it. Its name goes in the legend, the NOW card and its detail sheet.
 - **Colour comes from `palette.ts`, not from Google.** `cal.backgroundColor` is
   deliberately unused for events (it is still shown on the calendar toggles). Changing a
   category's hue means changing `PALETTE` and its test, not hardcoding in the HTML.
@@ -39,6 +52,9 @@ Two deliberate orderings, both regression-tested, both easy to "fix" wrongly:
 
 - Only **duration** events count toward the context-overlap threshold. A stack of water
   pings inside Gym must never promote Gym to a background band.
+- Two bands may coexist unless one swallows more than `BAND_MAX_CLASH_RATIO` (0.5) of the
+  shorter. A plain "do they overlap at all" test demoted `Random` (9:00-1:30, the whole
+  morning's backdrop) over a THIRTY MINUTE tail shared with the afternoon band.
 - In `palette.ts`, `routine` is checked **before** `food`, because a routine block lists
   its contents: `(Return home),Logout routine, chores, Dinner` is a routine, not a meal.
   And `sleep` is checked **last**, so `Pre Sleep Routine + Timepass` lands on routine.

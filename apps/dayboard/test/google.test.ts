@@ -1,5 +1,40 @@
 import { describe, expect, it } from 'vitest'
-import { sanitizeDescription } from '../src/worker/google'
+import { isBoardCalendar, sanitizeDescription, type GoogleCalendar } from '../src/worker/google'
+
+const cal = (over: Partial<GoogleCalendar>): GoogleCalendar => ({
+  id: 'x@group.calendar.google.com',
+  summary: 'Something',
+  backgroundColor: '#7b8394',
+  selected: false,
+  primary: false,
+  ...over,
+})
+
+describe('isBoardCalendar', () => {
+  it('keeps the primary calendar', () => {
+    expect(isBoardCalendar(cal({ primary: true, id: 'kushalbakliwal25@gmail.com', summary: 'Kushal' }))).toBe(true)
+  })
+
+  it('keeps the holidays calendar', () => {
+    expect(isBoardCalendar(cal({ id: 'en.indian#holiday@group.v.calendar.google.com', summary: 'Holidays in India' }))).toBe(true)
+  })
+
+  it('drops every duplicate plan calendar', () => {
+    // These 11 hold a second copy of the same day at different times: two Gyms, two
+    // Lunches, two Dinners. Reading them is what made the board unreadable.
+    for (const name of ['Work', 'Business', 'Daily chores', 'Health', 'Buffer',
+      'Personal Goal', 'Career Goals', 'Diet', 'Personal Goals', 'Family', 'Reminder']) {
+      expect(isBoardCalendar(cal({ summary: name }))).toBe(false)
+    }
+  })
+
+  it('ignores the selected flag, which Google omits when false', () => {
+    // A partial (fields=) response drops `selected: false` entirely, so it can never
+    // be trusted as the filter — that bug read all 13 calendars as ticked.
+    expect(isBoardCalendar(cal({ summary: 'Health', selected: true }))).toBe(false)
+    expect(isBoardCalendar(cal({ primary: true, selected: false }))).toBe(true)
+  })
+})
 
 describe('sanitizeDescription', () => {
   it('returns empty string for a missing description', () => {
