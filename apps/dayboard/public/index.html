@@ -59,7 +59,7 @@
   .dayhead .who { flex:1; min-width:0; }
   #dayname { font-family:var(--mono); font-size:26px; font-weight:600; letter-spacing:-0.035em; line-height:1; }
   @media (min-width:980px) { #dayname { font-size:34px; letter-spacing:-0.04em; } }
-  #daysub { font-size:12.5px; color:var(--dim); margin-top:6px; }
+  #daysub { font-size:12.5px; color:var(--dim); margin-top:6px; white-space:nowrap; }
   .navrow { display:flex; align-items:center; gap:7px; }
   .navbtn { width:32px; height:32px; border-radius:10px; border:1px solid var(--line-2); display:grid; place-items:center; }
   .navbtn:active { background:var(--surface); }
@@ -145,11 +145,19 @@
   .hlabel { position:absolute; left:0; font-family:var(--mono); font-size:10.5px; color:#3d4351; }
   .hlabel.major { color:#4d5462; }
 
+  /* A band is scenery: legible as a container without competing with the blocks
+     drawn on top of it. Hence the tinted left spine plus a solid label chip — a bare
+     dashed outline vanished completely once blocks covered it. */
   .band { position:absolute; left:var(--gutter); right:0; border-radius:13px; padding:0; display:block;
-          background:rgba(123,131,148,.07); border:1px dashed rgba(123,131,148,.24); }
-  .band:active { background:rgba(123,131,148,.13); }
-  .bandlab { position:absolute; font-size:9.5px; letter-spacing:0.12em; color:#646b7a; text-transform:uppercase;
-             white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+          background:color-mix(in srgb, var(--c) 7%, transparent);
+          border:1px dashed color-mix(in srgb, var(--c) 30%, transparent);
+          box-shadow:inset 3px 0 0 color-mix(in srgb, var(--c) 45%, transparent); }
+  .band:active { background:color-mix(in srgb, var(--c) 13%, transparent); }
+  .bandlab { position:absolute; z-index:6; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase;
+             white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:56%;
+             padding:2px 8px; border-radius:99px; background:var(--bg);
+             border:1px solid color-mix(in srgb, var(--c) 26%, transparent);
+             color:color-mix(in srgb, var(--c) 40%, #ffffff); pointer-events:none; }
 
   .gap { position:absolute; left:var(--gutter); right:0; border-radius:12px; border:1px dashed #1e222b;
          display:grid; place-items:center; }
@@ -165,14 +173,20 @@
              color:color-mix(in srgb, var(--c) 42%, #ffffff);
              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .blk .bw { font-family:var(--mono); font-size:10.5px; color:#6f7787; }
-  .blk .bd { font-size:11px; line-height:1.48; color:#818a9a; margin-top:5px; white-space:pre-line; overflow:hidden; }
+  /* Clamp to whole lines. A description sliced through the middle of a line reads
+     as a rendering bug; the full text is always one tap away in the detail sheet. */
+  .blk .bd { font-size:11px; line-height:1.5; color:#818a9a; margin-top:5px; white-space:pre-line;
+             overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; }
   .blk .head { display:flex; align-items:baseline; gap:9px; }
   .blk:active { filter:brightness(1.25); }
 
   .ping { position:absolute; left:var(--gutter); right:0; height:0; }
   .ping .ln { position:absolute; left:0; right:0; top:0; border-top:1px dashed rgba(217,139,106,.40); }
-  .ping .lb { position:absolute; right:0; top:-8px; display:flex; align-items:center; gap:5px;
-              background:var(--bg); padding:2px 0 2px 8px; max-width:78%; }
+  /* A pill, not bare text sitting on a block — otherwise a ping reads as part of
+     whatever block happens to be behind it. */
+  .ping .lb { position:absolute; right:0; top:-10px; display:flex; align-items:center; gap:5px;
+              background:var(--bg); padding:3px 9px; max-width:74%; border-radius:99px;
+              border:1px solid rgba(217,139,106,.26); }
   .ping .lb:active { filter:brightness(1.4); }
   .ping .lb i { width:5px; height:5px; border-radius:50%; background:var(--ping); flex-shrink:0; }
   .ping .lb span { font-family:var(--mono); font-size:10px; color:#a8836e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -276,8 +290,8 @@
     <div class="stats" id="stats" hidden>
       <div class="hdr" id="statshdr">Today</div>
       <div class="row">
-        <div><b id="statBlocked">—</b><small>blocked</small></div>
-        <div><b id="statFree" style="color:var(--dim)">—</b><small>unplanned</small></div>
+        <div><b id="statBlocked">—</b><small>scheduled</small></div>
+        <div><b id="statFree" style="color:var(--dim)">—</b><small>open</small></div>
         <div><b id="statPings" style="color:var(--ping)">—</b><small>pings</small></div>
       </div>
       <div class="bar" id="statbar"></div>
@@ -377,11 +391,16 @@
     const h = h24 % 12 === 0 ? 12 : h24 % 12;
     return `${h}:${pad(mm)}${withSuffix ? (h24 < 12 ? ' AM' : ' PM') : ''}`;
   }
-  function fmtShort(min) {
+  /** Compact and unambiguous: "6:30am", "11am", "4pm". Never a bare "4". */
+  function fmtClock(min) {
     const m = Math.round(min), h24 = Math.floor(m / 60) % 24, mm = m % 60;
     const h = h24 % 12 === 0 ? 12 : h24 % 12;
-    return mm === 0 ? String(h) : `${h}:${pad(mm)}`;
+    const ap = h24 < 12 ? 'am' : 'pm';
+    return mm === 0 ? `${h}${ap}` : `${h}:${pad(mm)}${ap}`;
   }
+  const fmtRange = (a, b) => `${fmtClock(a)} – ${fmtClock(b)}`;
+  /** Gutter label: "12a", "5a", "12p", "11p" — never an ambiguous bare digit. */
+  const fmtHour = (h) => `${h % 12 === 0 ? 12 : h % 12}${h < 12 ? 'a' : 'p'}`;
   function fmtDur(min) {
     const m = Math.max(0, Math.round(min)), h = Math.floor(m / 60), r = m % 60;
     if (h === 0) return `${r}m`;
@@ -456,8 +475,9 @@
     const [y, m, dd] = state.date.split('-').map(Number);
     const dateObj = new Date(Date.UTC(y, m - 1, dd));
     $('dayname').textContent = dateObj.toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' });
-    const nice = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-    $('daysub').textContent = d.allDay.length ? `${nice} · ${d.allDay.map((a) => a.title).join(' · ')}` : nice;
+    // The holiday already has its own chip above the timeline. Repeating it here
+    // wrapped the header onto four lines and shoved the day nav down the rail.
+    $('daysub').textContent = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
     renderAllDay(d);
     renderTypes(d);
@@ -547,8 +567,7 @@
       line.style.top = `${y}px`;
       track.append(line);
       if (h < 24) {
-        const lab = el('div', 'hlabel' + (major ? ' major' : ''), h === 0 ? '12 AM' : h === 12 ? '12 PM' : fmtShort(h * 60) + (h === 1 ? ' PM' : ''));
-        lab.textContent = h === 0 ? '12 AM' : (h === 12 ? '12 PM' : String(h % 12 === 0 ? 12 : h % 12));
+        const lab = el('div', 'hlabel' + (major ? ' major' : ''), fmtHour(h));
         lab.style.top = `${y - 7}px`;
         track.append(lab);
       }
@@ -559,23 +578,28 @@
       const box = el('div', 'gap');
       box.style.top = `${px(g.startMin)}px`;
       box.style.height = `${px(g.endMin - g.startMin)}px`;
-      box.append(el('span', null, `${fmtDur(g.endMin - g.startMin)} unplanned · ${fmtTime(g.startMin)} – ${fmtTime(g.endMin)}`));
+      box.append(el('span', null, `${fmtDur(g.endMin - g.startMin)} open · ${fmtRange(g.startMin, g.endMin)}`));
       track.append(box);
     }
 
     // context bands (behind everything)
+    const bandLabels = [];
     for (const c of v.contexts) {
       const band = el('button', 'band');
+      band.style.setProperty('--c', c.color);
       band.style.top = `${px(c.startMin)}px`;
       band.style.height = `${px(c.endMin - c.startMin)}px`;
       band.addEventListener('click', () => openSheet(c));
       track.append(band);
-      const lab = el('div', 'bandlab', `${c.title} · ${fmtTime(c.startMin, false)} – ${fmtTime(c.endMin, false)}`);
-      lab.style.top = `${px(c.startMin) + 7}px`;
-      lab.style.left = `calc(var(--gutter) + 12px)`;
-      lab.style.right = '12px';
-      track.append(lab);
+      const lab = el('div', 'bandlab', `${c.title} · ${fmtRange(c.startMin, c.endMin)}`);
+      lab.style.setProperty('--c', c.color);
+      lab.style.top = `${px(c.startMin) - 8}px`;
+      lab.style.left = `calc(var(--gutter) + 10px)`;
+      bandLabels.push(lab);
     }
+
+    // Band labels go on AFTER the blocks, so a block can never bury one.
+    for (const lab of bandLabels) track.append(lab);
 
     // blocks
     for (const b of [...v.blocks].sort((x, y2) => (x.endMin - x.startMin) - (y2.endMin - y2.startMin))) {
@@ -585,16 +609,21 @@
       node.style.top = `${px(b.startMin)}px`;
       node.style.height = `${h}px`;
 
-      const when = `${fmtTime(b.startMin, false)} – ${fmtTime(b.endMin, false)}`;
+      const when = fmtRange(b.startMin, b.endMin);
       if (h < 30) {
         node.append(el('span', 'bt', b.title), el('span', 'bw', when));
       } else {
         const head = el('div', 'head');
         head.append(el('span', 'bt', b.title), el('span', 'bw', when));
         node.append(head);
-        // Only render description where there is genuinely room for it — a clipped
-        // half-sentence is worse than none, and the NOW card always shows it in full.
-        if (b.description && h > 52) node.append(el('div', 'bd', b.description));
+        // Only render description where WHOLE lines fit. Below that the block shows
+        // title and time only; the full text lives in the detail sheet.
+        const room = Math.floor((h - 34) / 17);
+        if (b.description && room >= 2) {
+          const bd = el('div', 'bd', b.description);
+          bd.style.webkitLineClamp = String(Math.min(room, 6));
+          node.append(bd);
+        }
       }
       node.addEventListener('click', () => openSheet(b));
       track.append(node);
@@ -606,7 +635,7 @@
       row.style.top = `${px(p.startMin)}px`;
       row.append(el('div', 'ln'));
       const lb = el('button', 'lb');
-      lb.append(el('i'), el('span', null, `${fmtTime(p.startMin, false)} · ${p.items.map((i) => i.title).join(' · ')}`));
+      lb.append(el('i'), el('span', null, `${fmtClock(p.startMin)} · ${p.items.map((i) => i.title).join(' · ')}`));
       lb.addEventListener('click', () => openSheet(p));
       row.append(lb);
       track.append(row);
@@ -643,26 +672,36 @@
     return out.filter((g) => g.endMin - g.startMin >= minGap);
   }
 
-  function renderStats(d) {
-    const v = shown(d);
-    const busy = [...v.blocks, ...v.contexts].map((e) => [e.startMin, e.endMin]).sort((a, b) => a[0] - b[0]);
-    let covered = 0, cur = -1, end = -1;
-    for (const [s, e] of busy) {
-      if (s > end) { covered += Math.max(0, end - cur); cur = s; end = e; }
+  /** Total minutes covered by a set of ranges, counting any overlap once. */
+  function coverage(ranges) {
+    const sorted = ranges.map((e) => [e.startMin, e.endMin]).sort((a, b) => a[0] - b[0]);
+    let total = 0, cur = -1, end = -1;
+    for (const [s, e] of sorted) {
+      if (s > end) { total += Math.max(0, end - cur); cur = s; end = e; }
       else end = Math.max(end, e);
     }
-    covered += Math.max(0, end - cur);
+    return total + Math.max(0, end - cur);
+  }
+
+  function renderStats(d) {
+    const v = shown(d);
+    const all = [...v.blocks, ...v.contexts];
+    // Sleep is not scheduled work. Counting it made every single day read
+    // "24h blocked / 0m unplanned", which tells you nothing. Measure the waking day.
+    const asleep = coverage(all.filter((e) => e.category === 'sleep'));
+    const awake = Math.max(0, DAY_MIN - asleep);
+    const scheduled = Math.min(awake, coverage(all.filter((e) => e.category !== 'sleep')));
 
     $('stats').hidden = false;
-    $('statshdr').textContent = d.allDay.length ? d.allDay[0].title : 'Day';
-    $('statBlocked').textContent = fmtDur(covered);
-    $('statFree').textContent = fmtDur(Math.max(0, DAY_MIN - covered));
+    $('statshdr').textContent = d.allDay.length ? d.allDay[0].title : `${fmtDur(awake)} awake`;
+    $('statBlocked').textContent = fmtDur(scheduled);
+    $('statFree').textContent = fmtDur(Math.max(0, awake - scheduled));
     $('statPings').textContent = String(v.pings.reduce((n, p) => n + p.items.length, 0));
 
     const bar = $('statbar');
     bar.innerHTML = '';
     const byCal = new Map();
-    for (const b of [...v.blocks, ...v.contexts]) {
+    for (const b of all) {
       byCal.set(b.color, (byCal.get(b.color) || 0) + (b.endMin - b.startMin));
     }
     for (const [color, mins] of [...byCal.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)) {
@@ -701,7 +740,7 @@
       prog.hidden = desc.hidden = inside.hidden = true;
     } else if (block) {
       title.textContent = block.title;
-      when.textContent = `${fmtTime(block.startMin)} – ${fmtTime(block.endMin)} · ${block.calendar}`;
+      when.textContent = `${fmtRange(block.startMin, block.endMin)} · ${block.calendar}`;
       prog.hidden = false;
       const span = block.endMin - block.startMin;
       $('nowfill').style.width = `${Math.round(((now - block.startMin) / span) * 100)}%`;
@@ -712,12 +751,12 @@
       if (band) {
         const chip = el('span', 'chip');
         const dot = el('span', 'dot'); dot.style.background = band.color;
-        chip.append(dot, el('span', 'txt', `${band.title} · ${fmtTime(band.startMin, false)} – ${fmtTime(band.endMin, false)}`));
+        chip.append(dot, el('span', 'txt', `${band.title} · ${fmtRange(band.startMin, band.endMin)}`));
         $('nowinsidechip').replaceChildren(chip);
       }
     } else if (band) {
       title.textContent = band.title;
-      when.textContent = `${fmtTime(band.startMin)} – ${fmtTime(band.endMin)} · ${band.calendar}`;
+      when.textContent = `${fmtRange(band.startMin, band.endMin)} · ${band.calendar}`;
       prog.hidden = false;
       const span = band.endMin - band.startMin;
       $('nowfill').style.width = `${Math.round(((now - band.startMin) / span) * 100)}%`;
@@ -740,7 +779,7 @@
     const nb = $('nextbar');
     if (live && upcoming.length) {
       nb.hidden = false;
-      $('nexttime').textContent = fmtTime(upcoming[0].at);
+      $('nexttime').textContent = fmtClock(upcoming[0].at);
       $('nexttime').style.color = upcoming[0].ping ? 'var(--ping)' : 'var(--text)';
       $('nextname').textContent = upcoming[0].name;
       $('nextin').textContent = `in ${fmtDur(upcoming[0].at - now)}`;
@@ -762,7 +801,7 @@
 
     for (const r of rows) {
       const row = el('div', 'restrow' + (r.ghost ? ' ghost' : ''));
-      row.append(el('span', 'num t', fmtTime(r.at)));
+      row.append(el('span', 'num t', fmtClock(r.at)));
       const dot = el('span', 'dot');
       if (r.color) dot.style.background = r.color; else dot.style.border = '1px dashed #3a4150';
       row.append(dot, el('span', 'n', r.name), el('span', 'num d', fmtDur(r.dur)));
@@ -792,10 +831,10 @@
 
     const meta = [];
     if (isPing) {
-      meta.push(fmtTime(item.startMin));
+      meta.push(fmtClock(item.startMin));
       meta.push([...new Set(item.items.map((i) => i.calendar))].join(' · '));
     } else {
-      meta.push(`${fmtTime(item.startMin)} – ${fmtTime(item.endMin)}`);
+      meta.push(fmtRange(item.startMin, item.endMin));
       meta.push(fmtDur(item.endMin - item.startMin));
       meta.push(item.calendar);
       if (item.clippedStart) meta.push('starts the day before');

@@ -42,7 +42,11 @@ export async function fetchDay(
   const { startMs, endMs } = dayWindow(date, timeZone)
   const token = await getAccessToken(kv, creds)
 
-  const calendars = (await listCalendars(token)).filter((c) => !hiddenCalendarIds.has(c.id))
+  const calendars = (await listCalendars(token))
+    .filter((c) => !hiddenCalendarIds.has(c.id))
+    // The primary calendar's Google "summary" is the raw email address, which is
+    // useless on a card that says which calendar an event came from.
+    .map((c) => (c.primary ? { ...c, summary: 'Personal' } : c))
 
   const timeMin = new Date(startMs - 24 * 60 * 60 * 1000).toISOString()
   const timeMax = new Date(endMs + 24 * 60 * 60 * 1000).toISOString()
