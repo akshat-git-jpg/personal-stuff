@@ -4,6 +4,7 @@ import {
   currentAt,
   overlaps,
   unplannedGaps,
+  BAND_MAX_CLASH_RATIO,
   CONTEXT_MIN_MIN,
   PING_MAX_MIN,
   type DayEvent,
@@ -128,6 +129,48 @@ describe('buildLayout — rules that guard against bad promotions', () => {
   it('keeps a long-but-lonely event as a block', () => {
     const { contexts } = buildLayout('2026-09-14', 'Asia/Kolkata', [ev('sleep', at(22), at(24))])
     expect(contexts).toEqual([])
+  })
+
+  it('lets two bands coexist when they only clash at the edges', () => {
+    // The real regression: "Random" 9:00-1:30 is the morning's backdrop, and it shared
+    // only 30 minutes with the afternoon's "Zluri Work (Active)" 1:00-6:30. Demoting it
+    // over 11% of its length cost the whole morning its context.
+    const random = ev('random', at(9), at(13, 30))
+    const zluriActive = ev('zluriActive', at(13), at(18, 30))
+    const crowdMorning = [ev('m1', at(10, 30), at(11)), ev('m2', at(11), at(16))]
+    const crowdAfternoon = [ev('a1', at(14), at(15)), ev('a2', at(15, 30), at(17))]
+    const { contexts } = buildLayout('2026-09-14', 'Asia/Kolkata', [
+      random, zluriActive, ...crowdMorning, ...crowdAfternoon,
+    ])
+    expect(contexts.map((c) => c.id).sort()).toEqual(['random', 'zluriActive'])
+  })
+
+  it('still demotes a band that a longer one largely swallows', () => {
+    const outer = ev('outer', at(9), at(17))
+    const inner = ev('inner', at(10), at(16))
+    const fill = [ev('f1', at(11), at(12)), ev('f2', at(13), at(14))]
+    const { contexts } = buildLayout('2026-09-14', 'Asia/Kolkata', [outer, inner, ...fill])
+    expect(contexts.map((c) => c.id)).toEqual(['outer'])
+  })
+
+  it('draws the clash line exactly at BAND_MAX_CLASH_RATIO of the shorter band', () => {
+    expect(BAND_MAX_CLASH_RATIO).toBe(0.5)
+    // Shorter band is 4h. A 3h clash (75%) demotes it; a 1h clash (25%) does not.
+    const long = ev('long', at(6), at(16))
+    const crowd = [ev('c1', at(7), at(8)), ev('c2', at(9), at(10))]
+    const heavy = ev('heavy', at(13), at(17))
+    const heavyCrowd = [ev('h1', at(14), at(15)), ev('h2', at(15, 30), at(16, 30))]
+    expect(
+      buildLayout('2026-09-14', 'Asia/Kolkata', [long, heavy, ...crowd, ...heavyCrowd])
+        .contexts.map((c) => c.id),
+    ).toEqual(['long'])
+
+    const light = ev('light', at(15), at(19))
+    const lightCrowd = [ev('l1', at(17), at(18)), ev('l2', at(18), at(18, 30))]
+    expect(
+      buildLayout('2026-09-14', 'Asia/Kolkata', [long, light, ...crowd, ...lightCrowd])
+        .contexts.map((c) => c.id).sort(),
+    ).toEqual(['light', 'long'])
   })
 
   it('refuses to paint two context bands over each other — longest wins', () => {

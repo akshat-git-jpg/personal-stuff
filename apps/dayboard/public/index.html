@@ -6,6 +6,7 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0c10">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script src="/lanes.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap">
@@ -20,6 +21,7 @@
     --mono:"Space Grotesk", ui-monospace, SFMono-Regular, monospace;
     --ppm:0.767;           /* px per minute — mobile */
     --gutter:42px;
+    --spine:0px;           /* width reserved for context-band spines */
   }
   @media (min-width:980px) { :root { --ppm:0.633; --gutter:52px; } }
 
@@ -84,7 +86,11 @@
          padding:4px 10px; border-radius:99px; border:1px solid var(--line); }
   @media (min-width:980px) { .cal { padding:6px 0; border:none; font-size:12.5px; border-radius:0; } }
   .cal.off { color:#464c59; }
-  .cal .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .cal { cursor:pointer; }
+  .cal .dot { width:9px; height:9px; border-radius:3px; flex-shrink:0;
+              box-shadow:0 0 0 1px color-mix(in srgb, currentColor 30%, transparent); }
+  .cal.off .dot { background:transparent !important; }
+  .calhint { font-size:10.5px; line-height:1.45; color:var(--faint); margin-top:9px; }
   .cal.off .dot { background:#2a2f3a !important; }
 
   /* ---------- now panel (right on desktop, top on mobile) ---------- */
@@ -136,6 +142,9 @@
   .legend { display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--faint); }
   .legend i { width:4px; height:4px; border-radius:50%; background:var(--ping); }
   .legend s { width:11px; height:0; border-top:1px dashed #333947; text-decoration:none; }
+  #bandlegend { display:inline-flex; align-items:center; gap:10px; margin-left:4px; flex-wrap:wrap; }
+  #bandlegend b { display:inline-flex; align-items:center; gap:5px; font-weight:400; }
+  #bandlegend b em { width:3px; height:11px; border-radius:2px; background:var(--c); font-style:normal; }
 
   #scroller { flex:1; overflow-y:auto; padding-bottom:40px; -webkit-overflow-scrolling:touch; }
   #track { position:relative; height:calc(1440 * var(--ppm) * 1px); }
@@ -145,29 +154,29 @@
   .hlabel { position:absolute; left:0; font-family:var(--mono); font-size:10.5px; color:#3d4351; }
   .hlabel.major { color:#4d5462; }
 
-  /* A band is scenery: legible as a container without competing with the blocks
-     drawn on top of it. Hence the tinted left spine plus a solid label chip — a bare
-     dashed outline vanished completely once blocks covered it. */
-  .band { position:absolute; left:var(--gutter); right:0; border-radius:13px; padding:0; display:block;
-          background:color-mix(in srgb, var(--c) 7%, transparent);
-          border:1px dashed color-mix(in srgb, var(--c) 30%, transparent);
-          box-shadow:inset 3px 0 0 color-mix(in srgb, var(--c) 45%, transparent); }
-  .band:active { background:color-mix(in srgb, var(--c) 13%, transparent); }
-  .bandlab { position:absolute; z-index:6; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase;
-             white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:56%;
-             padding:2px 8px; border-radius:99px; background:var(--bg);
-             border:1px solid color-mix(in srgb, var(--c) 26%, transparent);
-             color:color-mix(in srgb, var(--c) 40%, #ffffff); pointer-events:none; }
+  /* A context band is now a narrow SPINE beside the blocks, not a rectangle behind
+     them. Drawn full-width it buried whatever sat inside it — the exact opposite of
+     what a background is for. Its name lives in the legend, the NOW card and its own
+     detail sheet, so nothing has to be painted over a block to explain it. */
+  .band { position:absolute; left:var(--gutter); width:10px; padding:0; display:block;
+          border-radius:5px; border:none;
+          background:color-mix(in srgb, var(--c) 24%, transparent);
+          box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--c) 38%, transparent); }
+  .band:hover, .band:active { background:color-mix(in srgb, var(--c) 42%, transparent); }
 
-  .gap { position:absolute; left:var(--gutter); right:0; border-radius:12px; border:1px dashed #1e222b;
+  .gap { position:absolute; left:calc(var(--gutter) + var(--spine)); right:8px; border-radius:12px; border:1px dashed #1e222b;
          display:grid; place-items:center; }
   .gap span { font-family:var(--mono); font-size:11px; color:var(--ghost); letter-spacing:0.04em; text-align:center; padding:0 8px; }
 
-  .blk { position:absolute; left:var(--gutter); right:0; border-radius:10px; overflow:hidden; padding:7px 11px;
+  /* Blocks live inside .blocks, which owns the horizontal space left over after the
+     hour gutter and any band spines. Each block's left/width come from its lane, so
+     two events that really do overlap sit SIDE BY SIDE instead of on top of one
+     another. See public/lanes.js. */
+  .blocks { position:absolute; left:calc(var(--gutter) + var(--spine)); right:8px; top:0; bottom:0; }
+  .blk { position:absolute; border-radius:10px; overflow:hidden; padding:7px 11px;
          background:color-mix(in srgb, var(--c) 13%, var(--bg));
          border:1px solid color-mix(in srgb, var(--c) 24%, transparent);
-         box-shadow:inset 3px 0 0 var(--c); display:block; text-align:left; width:auto; }
-  .blk.nested { left:calc(var(--gutter) + 14px); right:10px; }
+         box-shadow:inset 3px 0 0 var(--c); display:block; text-align:left; }
   .blk.tiny { padding:2px 11px; display:flex; align-items:center; gap:9px; border-radius:7px; }
   .blk .bt { font-size:12.5px; font-weight:600; letter-spacing:-0.01em;
              color:color-mix(in srgb, var(--c) 42%, #ffffff);
@@ -180,7 +189,7 @@
   .blk .head { display:flex; align-items:baseline; gap:9px; }
   .blk:active { filter:brightness(1.25); }
 
-  .ping { position:absolute; left:var(--gutter); right:0; height:0; }
+  .ping { position:absolute; left:var(--gutter); right:0; height:0; z-index:7; }
   .ping .ln { position:absolute; left:0; right:0; top:0; border-top:1px dashed rgba(217,139,106,.40); }
   /* A pill, not bare text sitting on a block — otherwise a ping reads as part of
      whatever block happens to be behind it. */
@@ -305,6 +314,7 @@
     <div>
       <div class="seclabel">Calendars</div>
       <div id="cals"></div>
+      <div class="calhint">Tap one to hide it. Hiding your plan calendars leaves just the detail layer.</div>
     </div>
 
     <div class="synced" id="synced"></div>
@@ -314,7 +324,7 @@
     <div class="mainhead">
       <span class="seclabel">Timeline</span>
       <span style="flex:1"></span>
-      <span class="legend"><i></i>ping<s style="margin-left:8px"></s>context</span>
+      <span class="legend"><i></i>ping<span id="bandlegend"></span></span>
     </div>
     <div id="banner" hidden></div>
     <div id="allday"></div>
@@ -559,6 +569,9 @@
     track.innerHTML = '';
     const v = shown(d);
 
+    // Reserve a strip for band spines only when there are bands to draw.
+    track.style.setProperty('--spine', v.contexts.length ? '18px' : '0px');
+
     // hour rules
     for (let h = 0; h <= 24; h++) {
       const y = px(h * 60);
@@ -578,36 +591,33 @@
       const box = el('div', 'gap');
       box.style.top = `${px(g.startMin)}px`;
       box.style.height = `${px(g.endMin - g.startMin)}px`;
-      box.append(el('span', null, `${fmtDur(g.endMin - g.startMin)} open · ${fmtRange(g.startMin, g.endMin)}`));
+      box.append(el('span', null, `${fmtDur(g.endMin - g.startMin)} open \u00b7 ${fmtRange(g.startMin, g.endMin)}`));
       track.append(box);
     }
 
-    // context bands (behind everything)
-    const bandLabels = [];
+    // context bands, as spines beside the blocks
     for (const c of v.contexts) {
       const band = el('button', 'band');
       band.style.setProperty('--c', c.color);
       band.style.top = `${px(c.startMin)}px`;
       band.style.height = `${px(c.endMin - c.startMin)}px`;
+      band.title = `${c.title} \u00b7 ${fmtRange(c.startMin, c.endMin)}`;
+      band.setAttribute('aria-label', band.title);
       band.addEventListener('click', () => openSheet(c));
       track.append(band);
-      const lab = el('div', 'bandlab', `${c.title} · ${fmtRange(c.startMin, c.endMin)}`);
-      lab.style.setProperty('--c', c.color);
-      lab.style.top = `${px(c.startMin) - 8}px`;
-      lab.style.left = `calc(var(--gutter) + 10px)`;
-      bandLabels.push(lab);
     }
 
-    // Band labels go on AFTER the blocks, so a block can never bury one.
-    for (const lab of bandLabels) track.append(lab);
-
-    // blocks
-    for (const b of [...v.blocks].sort((x, y2) => (x.endMin - x.startMin) - (y2.endMin - y2.startMin))) {
+    // blocks, packed into lanes so an overlap costs width, never legibility
+    const wrap = el('div', 'blocks');
+    track.append(wrap);
+    for (const b of assignLanes(v.blocks)) {
       const h = px(b.endMin - b.startMin);
-      const node = el('button', 'blk' + (b.depth === 1 ? ' nested' : '') + (h < 30 ? ' tiny' : ''));
+      const node = el('button', 'blk' + (h < 30 ? ' tiny' : ''));
       node.style.setProperty('--c', b.color);
       node.style.top = `${px(b.startMin)}px`;
       node.style.height = `${h}px`;
+      node.style.left = `${((b.lane / b.lanes) * 100).toFixed(4)}%`;
+      node.style.width = `calc(${(100 / b.lanes).toFixed(4)}% - 5px)`;
 
       const when = fmtRange(b.startMin, b.endMin);
       if (h < 30) {
@@ -616,17 +626,18 @@
         const head = el('div', 'head');
         head.append(el('span', 'bt', b.title), el('span', 'bw', when));
         node.append(head);
-        // Only render description where WHOLE lines fit. Below that the block shows
-        // title and time only; the full text lives in the detail sheet.
+        // Description only where WHOLE lines fit, and only in a full-width block —
+        // in a half-width column it degenerates into one word per line.
         const room = Math.floor((h - 34) / 17);
-        if (b.description && room >= 2) {
+        if (b.description && room >= 2 && b.lanes === 1) {
           const bd = el('div', 'bd', b.description);
           bd.style.webkitLineClamp = String(Math.min(room, 6));
           node.append(bd);
         }
       }
+      node.title = `${b.title} \u00b7 ${when}`;
       node.addEventListener('click', () => openSheet(b));
-      track.append(node);
+      wrap.append(node);
     }
 
     // pings
@@ -635,7 +646,7 @@
       row.style.top = `${px(p.startMin)}px`;
       row.append(el('div', 'ln'));
       const lb = el('button', 'lb');
-      lb.append(el('i'), el('span', null, `${fmtClock(p.startMin)} · ${p.items.map((i) => i.title).join(' · ')}`));
+      lb.append(el('i'), el('span', null, `${fmtClock(p.startMin)} \u00b7 ${p.items.map((i) => i.title).join(' \u00b7 ')}`));
       lb.addEventListener('click', () => openSheet(p));
       row.append(lb);
       track.append(row);
@@ -653,6 +664,20 @@
       const e = el('div', 'empty', 'Nothing on the calendar for this day.');
       e.style.position = 'absolute'; e.style.top = '40%'; e.style.left = '0'; e.style.right = '0';
       track.append(e);
+    }
+
+    renderBandLegend(v);
+  }
+
+  /** Band names belong in the legend — on the grid they can only cover a block. */
+  function renderBandLegend(v) {
+    const wrap = $('bandlegend');
+    wrap.innerHTML = '';
+    for (const c of v.contexts) {
+      const b = el('b');
+      b.style.setProperty('--c', c.color);
+      b.append(el('em'), el('span', null, c.title));
+      wrap.append(b);
     }
   }
 

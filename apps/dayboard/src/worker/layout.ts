@@ -94,6 +94,16 @@ export const PING_MAX_MIN = 15
 export const CONTEXT_MIN_MIN = 120
 /** ...and must have at least this many other timed events overlapping it. */
 export const CONTEXT_MIN_OVERLAPS = 2
+/**
+ * Two bands may coexist as long as neither substantially swallows the other. Only a
+ * clash larger than this fraction of the SHORTER band demotes the loser to a block.
+ *
+ * A plain "do they overlap at all?" test was wrong in practice: on the owner's real
+ * Monday, "Random" (9:00-1:30, the backdrop the whole morning sits in) was demoted by
+ * "Zluri Work (Active)" (1:00-6:30) over a THIRTY MINUTE tail — 11% of Random — and
+ * the morning lost its backdrop entirely.
+ */
+export const BAND_MAX_CLASH_RATIO = 0.5
 
 /** Half-open overlap: events that merely touch (10:30-11:00, 11:00-16:00) do NOT overlap. */
 export function overlaps(a: { startMin: number; endMin: number }, b: { startMin: number; endMin: number }): boolean {
@@ -153,15 +163,19 @@ export function buildLayout(
     return n >= CONTEXT_MIN_OVERLAPS
   })
 
-  // Two overlapping candidates would paint two bands over each other. Longest wins;
-  // the loser falls back to being an ordinary block.
+  // Two bands that largely cover each other would paint one on top of the other, so
+  // the longest wins and the loser falls back to an ordinary block. A small clash at
+  // the edges is fine and common — see BAND_MAX_CLASH_RATIO.
   const contextIds = new Set<string>()
   for (const cand of [...contextCandidates].sort(
     (a, b) => b.endMin - b.startMin - (a.endMin - a.startMin) || a.id.localeCompare(b.id),
   )) {
     const clashes = [...contextIds].some((id) => {
       const chosen = durationEvents.find((e) => e.id === id)!
-      return overlaps(cand, chosen)
+      const shared = Math.min(cand.endMin, chosen.endMin) - Math.max(cand.startMin, chosen.startMin)
+      if (shared <= 0) return false
+      const shorter = Math.min(cand.endMin - cand.startMin, chosen.endMin - chosen.startMin)
+      return shared / shorter > BAND_MAX_CLASH_RATIO
     })
     if (!clashes) contextIds.add(cand.id)
   }
