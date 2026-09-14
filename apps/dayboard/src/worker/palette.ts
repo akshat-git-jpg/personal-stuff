@@ -15,17 +15,28 @@ export type Category =
   | 'sleep' | 'fitness' | 'food' | 'work' | 'routine'
   | 'growth' | 'family' | 'buffer' | 'holiday' | 'other'
 
-/** Muted, equal-weight hues. Tuned against #0b0c10, not against white. */
+/**
+ * Saturated hues, spread around the wheel so neighbours are told apart at a glance.
+ *
+ * The first set was deliberately muted and it was a mistake: at the 13% tint the blocks
+ * used, every category collapsed into the same near-black rectangle and only the 3px
+ * left bar carried any hue at all. These are brighter AND further apart — the old
+ * food / growth / holiday were three warm oranges within 20 degrees of each other, and
+ * sleep / routine / work were a single blue-to-violet ramp.
+ *
+ * Each is the ACCENT (left bar, title tint, legend dot). The block's fill is mixed from
+ * it in oklab, which keeps the chroma that an sRGB mix with near-black throws away.
+ */
 export const PALETTE: Record<Category, string> = {
-  sleep:   '#6f8fd8', // deep blue — the day's bookends
-  fitness: '#5fb98a', // green — gym, walks, anything physical
-  food:    '#e0956a', // warm orange — meals AND the water/juice pings
-  work:    '#8b8ce8', // violet — Zluri, business, meetings
-  routine: '#4fb3bf', // cyan — wake-up, post-gym, logout, chores, commute
-  growth:  '#d7a84a', // gold — goals, YouTube, learning, to-dos
-  family:  '#e07a9c', // pink — family and birthdays
-  buffer:  '#79808f', // grey, deliberately dull — Random and Buffer are backdrop
-  holiday: '#c78b3f', // bronze — all-day markers only
+  sleep:   '#5f7fe8', // indigo — the day's bookends
+  routine: '#3fbfc9', // cyan — wake-up, post-gym, logout, chores, commute
+  fitness: '#4fc98a', // green — gym, walks, anything physical
+  growth:  '#e0b53a', // gold — goals, YouTube, learning, to-dos
+  food:    '#f08a55', // orange — meals AND the water/juice pings
+  family:  '#f0709e', // pink — family and birthdays
+  work:    '#a878f0', // purple — Zluri, business, meetings
+  holiday: '#c9803f', // bronze — all-day markers only
+  buffer:  '#7a8290', // grey, deliberately dull — Random and Buffer are backdrop
   other:   '#8a91a1', // neutral fallback
 }
 

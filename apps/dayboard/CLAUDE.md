@@ -33,6 +33,14 @@ Read-only Google Calendar day board at `dayboard.agrolloo.com`. Full detail: `RE
   overlapping blocks at the same left edge is the bug this app exists to avoid.
 - **Context bands are SPINES, not rectangles.** A full-width band buried whatever sat
   inside it. Its name goes in the legend, the NOW card and its detail sheet.
+- **Block fill mixes in OKLAB, never sRGB.** An sRGB mix toward near-black collapses the
+  chroma, so the first version — `color-mix(in srgb, var(--c) 13%, var(--bg))` — rendered
+  every category as the same dark grey with only a 3px bar carrying any hue. It is now
+  `color-mix(in oklab, var(--c) 26%, #0d0f14)`. If the blocks ever look dull again, check
+  the colour space before the percentage.
+- **Hues are spread deliberately.** The first palette had three warm oranges within 20
+  degrees (food / growth / holiday) and a single blue-to-violet ramp (sleep / routine /
+  work). Adding a category means finding a free arc, not a nice colour.
 - **Colour comes from `palette.ts`, not from Google.** `cal.backgroundColor` is
   deliberately unused for events (it is still shown on the calendar toggles). Changing a
   category's hue means changing `PALETTE` and its test, not hardcoding in the HTML.

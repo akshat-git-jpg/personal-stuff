@@ -16,7 +16,7 @@
     --bg:#0b0c10; --surface:#14161d; --surface-2:#101219;
     --line:#191c24; --line-2:#232733; --hour:#14171e; --hour-strong:#171a22;
     --text:#eceef2; --dim:#8b92a1; --faint:#5c6371; --ghost:#3d4351;
-    --accent:#f0a32a; --ping:#d98b6a;
+    --accent:#f0a32a; --ping:#f08a55;
     --sans:"Instrument Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
     --mono:"Space Grotesk", ui-monospace, SFMono-Regular, monospace;
     --ppm:0.767;           /* px per minute — mobile */
@@ -175,7 +175,7 @@
      "Zluri Work 11am-4pm", the biggest block of the day, into a sliver. Which block
      contains which is still reported on the NOW card and in the detail sheet, where it
      costs no space at all. */
-  .blk.ctx { border-style:dashed; background:color-mix(in srgb, var(--c) 8%, var(--bg)); }
+  .blk.ctx { border-style:dashed; background:color-mix(in oklab, var(--c) 15%, #0d0f14); }
   .blk.narrow .bw { display:none; }
 
   .gap { position:absolute; left:var(--gutter); right:calc(8px + var(--pingw)); border-radius:12px; border:1px dashed #1e222b;
@@ -190,29 +190,36 @@
      needs, so a ping is never painted over a block title. Nine were, and one hid the
      title of "Commute Office" outright. */
   .blocks { position:absolute; left:var(--gutter); right:calc(8px + var(--pingw)); top:0; bottom:0; }
+  /* Mix in OKLAB, not sRGB: an sRGB mix toward near-black collapses the chroma and
+     every category came out the same dark grey. And 13% was far too little tint —
+     only the 3px bar carried any colour at all. */
   .blk { position:absolute; border-radius:10px; overflow:hidden; padding:7px 11px;
-         background:color-mix(in srgb, var(--c) 13%, var(--bg));
-         border:1px solid color-mix(in srgb, var(--c) 24%, transparent);
-         box-shadow:inset 3px 0 0 var(--c); display:block; text-align:left; }
+         background:color-mix(in oklab, var(--c) 26%, #0d0f14);
+         border:1px solid color-mix(in oklab, var(--c) 40%, transparent);
+         box-shadow:inset 4px 0 0 var(--c); display:block; text-align:left; }
+  .blk:hover { background:color-mix(in oklab, var(--c) 33%, #0d0f14); }
   .blk.tiny { padding:2px 11px; display:flex; align-items:center; gap:9px; border-radius:7px; }
   .blk .bt { font-size:12.5px; font-weight:600; letter-spacing:-0.01em;
-             color:color-mix(in srgb, var(--c) 42%, #ffffff);
+             color:color-mix(in oklab, var(--c) 34%, #ffffff);
              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   /* Room for a second line? Use it rather than ellipsising a real title away. */
   .blk.wrap .head { display:block; }
   .blk.wrap .bt { white-space:normal; overflow-wrap:anywhere; line-height:1.25;
                   display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
   .blk.wrap .bw { display:block; margin-top:2px; }
-  .blk .bw { font-family:var(--mono); font-size:10.5px; color:#6f7787; }
+  .blk .bw { font-family:var(--mono); font-size:10.5px; color:color-mix(in oklab, var(--c) 22%, #9aa2b2); }
   /* Clamp to whole lines. A description sliced through the middle of a line reads
      as a rendering bug; the full text is always one tap away in the detail sheet. */
-  .blk .bd { font-size:11px; line-height:1.5; color:#818a9a; margin-top:5px; white-space:pre-line;
+  .blk .bd { font-size:11px; line-height:1.5; color:color-mix(in oklab, var(--c) 14%, #99a1b0); margin-top:5px; white-space:pre-line;
              overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; }
   .blk .head { display:flex; align-items:baseline; gap:9px; }
   .blk:active { filter:brightness(1.25); }
 
   .ping { position:absolute; left:var(--gutter); right:0; height:0; z-index:7; }
-  .ping .ln { position:absolute; left:0; right:0; top:0; border-top:1px dashed rgba(217,139,106,.40); }
+  /* Full width, this rule ran straight through every block it crossed and read as
+     strikethrough. It only needs to connect the day to its label. */
+  .ping .ln { position:absolute; right:0; top:0; border-top:1px dashed rgba(240,138,85,.45);
+              width:calc(var(--pingw) + 4px); }
   /* A pill, not bare text sitting on a block — otherwise a ping reads as part of
      whatever block happens to be behind it. */
   .ping .lb { position:absolute; right:0; top:-10px; display:flex; align-items:center; gap:5px;
@@ -220,7 +227,7 @@
               border:1px solid rgba(217,139,106,.26); box-shadow:0 2px 10px rgba(4,5,8,.7); }
   .ping .lb:active { filter:brightness(1.4); }
   .ping .lb i { width:5px; height:5px; border-radius:50%; background:var(--ping); flex-shrink:0; }
-  .ping .lb span { font-family:var(--mono); font-size:10px; color:#a8836e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ping .lb span { font-family:var(--mono); font-size:10px; color:#d79a72; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   #nowline { position:absolute; left:calc(var(--gutter) - 8px); right:0; height:0; z-index:9; }
   #nowline .ln { position:absolute; left:8px; right:0; top:0; border-top:1.5px solid var(--accent); }
@@ -630,8 +637,9 @@
       const lb = el('button', 'lb');
       const names = p.items.map((i) => i.title).join(' ' + '\u00b7' + ' ');
       const narrowScreen = window.innerWidth < 980;
-      const short = `${Math.floor(p.startMin / 60) % 12 === 0 ? 12 : Math.floor(p.startMin / 60) % 12}`
-        + (p.startMin % 60 ? ':' + pad(p.startMin % 60) : '');
+      // "6" alone is ambiguous; "6p" is one character longer and is not.
+      const h12 = Math.floor(p.startMin / 60) % 12 === 0 ? 12 : Math.floor(p.startMin / 60) % 12;
+      const short = `${h12}${p.startMin % 60 ? ':' + pad(p.startMin % 60) : ''}${p.startMin < 720 ? 'a' : 'p'}`;
       lb.append(el('i'), el('span', null, narrowScreen ? short : `${fmtClock(p.startMin)} \u00b7 ${names}`));
       lb.title = `${fmtClock(p.startMin)} \u00b7 ${names}`;
       lb.addEventListener('click', () => openSheet(p));
