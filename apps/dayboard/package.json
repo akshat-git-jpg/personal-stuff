@@ -7,13 +7,15 @@
     "typecheck": ". ../../scripts/node22-path.sh && tsc --noEmit",
     "test": ". ../../scripts/node22-path.sh && vitest run",
     "check": ". ../../scripts/node22-path.sh && tsc --noEmit && vitest run",
-    "deploy": ". ../../scripts/node22-path.sh && wrangler deploy"
+    "deploy": ". ../../scripts/node22-path.sh && wrangler deploy",
+    "shots": "node scripts/shot.mjs"
   },
   "dependencies": {
     "hono": "^4"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4",
+    "playwright-core": "^1",
     "typescript": "^5",
     "vitest": "^2",
     "wrangler": "^3"

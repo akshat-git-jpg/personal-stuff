@@ -59,6 +59,26 @@ Two deliberate orderings, both regression-tested, both easy to "fix" wrongly:
   its contents: `(Return home),Logout routine, chores, Dinner` is a routine, not a meal.
   And `sleep` is checked **last**, so `Pre Sleep Routine + Timepass` lands on routine.
 
+## LOOK AT IT BEFORE CLAIMING IT WORKS
+
+```bash
+npm run dev        # in one shell
+npm run shots      # in another -> /tmp/dayboard-shots/{desktop,mobile,sheet}.png
+```
+
+`scripts/shot.mjs` drives real Chrome at 1440x900 and 390x844, logs in, and prints a
+machine-checkable audit: **block collisions, ping labels covering a block, clipped
+titles, horizontal overflow, console errors** — then saves the PNGs to read.
+
+Six rounds of layout bugs shipped here on green unit tests, because the tests prove the
+DATA is right and say nothing about whether two rectangles are drawn on top of each
+other. Among them: the biggest block of the day rendered as a 10px sliver, the phone
+layout put the timeline a full screen below the fold, the desktop columns swapped sides,
+and nine ping labels sat on top of block titles. Every one of them was obvious in a
+screenshot and invisible to `npm run check`.
+
+**Any change to `public/index.html` runs `npm run shots` and the images get opened.**
+
 ## Run / deploy
 
 ```bash

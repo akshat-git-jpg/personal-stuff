@@ -21,7 +21,7 @@
     --mono:"Space Grotesk", ui-monospace, SFMono-Regular, monospace;
     --ppm:0.767;           /* px per minute — mobile */
     --gutter:42px;
-    --spine:0px;           /* width reserved for context-band spines */
+    --pingw:0px;           /* measured at render: room reserved for ping labels */
   }
   @media (min-width:980px) { :root { --ppm:0.633; --gutter:52px; } }
 
@@ -44,12 +44,21 @@
 
   /* ---------- shell ---------- */
   #app { display:flex; flex-direction:column; min-height:100dvh; }
+  /* Phone running order: what is on now, what is next, then the day itself.
+     Everything else (stats, type legend, calendar list) is reference material and
+     goes last — it was pushing the timeline a full screen below the fold. */
+  #panel { order:0; }
+  #main  { order:1; }
+  #rail  { order:2; }
   @media (min-width:980px) {
     #app { display:grid; grid-template-columns:260px minmax(0,1fr) 400px; height:100dvh; overflow:hidden; }
+    /* The phone running order above must NOT survive into the grid, or the rail and
+       the NOW panel swap sides. */
+    #rail { order:0; } #main { order:1; } #panel { order:2; }
   }
 
   /* ---------- rail (left on desktop, header on mobile) ---------- */
-  #rail { padding:22px 18px 0; display:flex; flex-direction:column; gap:20px; }
+  #rail { padding:22px 18px 28px; display:flex; flex-direction:column; gap:20px; }
   @media (min-width:980px) { #rail { border-right:1px solid var(--line); padding:26px 22px; overflow-y:auto; } }
 
   .brand { display:flex; align-items:center; gap:8px; }
@@ -57,10 +66,14 @@
   .brand span { font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:0.07em; }
   .brand .sp { flex:1; }
 
-  .dayhead { display:flex; align-items:flex-end; gap:12px; }
-  .dayhead .who { flex:1; min-width:0; }
-  #dayname { font-family:var(--mono); font-size:26px; font-weight:600; letter-spacing:-0.035em; line-height:1; }
-  @media (min-width:980px) { #dayname { font-size:34px; letter-spacing:-0.04em; } }
+  .dayhead { display:flex; align-items:flex-end; gap:12px 14px; flex-wrap:wrap; }
+  .dayhead .who { flex:1 1 140px; min-width:0; }
+  .dayhead .navrow { flex:0 0 auto; }
+  /* line-height:1 clipped the descender of "Monday" and let the day-nav buttons
+     wrap straight on top of the word. */
+  #dayname { font-family:var(--mono); font-size:26px; font-weight:600; letter-spacing:-0.035em;
+              line-height:1.18; padding-bottom:1px; }
+  @media (min-width:980px) { #dayname { font-size:30px; letter-spacing:-0.04em; } }
   #daysub { font-size:12.5px; color:var(--dim); margin-top:6px; white-space:nowrap; }
   .navrow { display:flex; align-items:center; gap:7px; }
   .navbtn { width:32px; height:32px; border-radius:10px; border:1px solid var(--line-2); display:grid; place-items:center; }
@@ -94,8 +107,8 @@
   .cal.off .dot { background:#2a2f3a !important; }
 
   /* ---------- now panel (right on desktop, top on mobile) ---------- */
-  #panel { padding:16px 16px 0; display:flex; flex-direction:column; gap:12px; order:-1; }
-  @media (min-width:980px) { #panel { order:0; border-left:1px solid var(--line); padding:26px 24px; overflow-y:auto; gap:16px; } }
+  #panel { padding:16px 16px 0; display:flex; flex-direction:column; gap:12px; }
+  @media (min-width:980px) { #panel { border-left:1px solid var(--line); padding:26px 24px; overflow-y:auto; gap:16px; } }
 
   .nowcard { position:relative; border-radius:18px; background:var(--surface); border:1px solid #242834; padding:16px; overflow:hidden; }
   @media (min-width:980px) { .nowcard { padding:20px; } }
@@ -110,8 +123,13 @@
   .nowcard .prog { display:flex; align-items:center; gap:10px; margin-top:13px; }
   .nowcard .track { flex:1; height:4px; border-radius:99px; background:#242834; overflow:hidden; }
   .nowcard .fill { height:4px; border-radius:99px; background:var(--accent); }
+  /* An unclamped description filled a whole phone screen on its own. Full text is
+     always one tap away in the detail sheet. */
   .nowcard .desc { margin-top:14px; padding-top:13px; border-top:1px solid #212532;
-                   font-size:13px; line-height:1.52; color:#c2c7d2; white-space:pre-line; }
+                   font-size:13px; line-height:1.52; color:#c2c7d2; white-space:pre-line;
+                   overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical;
+                   -webkit-line-clamp:7; }
+  @media (min-width:980px) { .nowcard .desc { -webkit-line-clamp:24; } }
   .nowcard .inside { display:flex; align-items:center; gap:8px; margin-top:13px; flex-wrap:wrap; }
   .nowcard .inside .lbl { font-size:10px; letter-spacing:0.11em; color:var(--faint); }
   .chip { display:inline-flex; align-items:center; gap:7px; padding:3px 10px; border-radius:99px; border:1px dashed #333947; }
@@ -142,9 +160,6 @@
   .legend { display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--faint); }
   .legend i { width:4px; height:4px; border-radius:50%; background:var(--ping); }
   .legend s { width:11px; height:0; border-top:1px dashed #333947; text-decoration:none; }
-  #bandlegend { display:inline-flex; align-items:center; gap:10px; margin-left:4px; flex-wrap:wrap; }
-  #bandlegend b { display:inline-flex; align-items:center; gap:5px; font-weight:400; }
-  #bandlegend b em { width:3px; height:11px; border-radius:2px; background:var(--c); font-style:normal; }
 
   #scroller { flex:1; overflow-y:auto; padding-bottom:40px; -webkit-overflow-scrolling:touch; }
   #track { position:relative; height:calc(1440 * var(--ppm) * 1px); }
@@ -154,17 +169,16 @@
   .hlabel { position:absolute; left:0; font-family:var(--mono); font-size:10.5px; color:#3d4351; }
   .hlabel.major { color:#4d5462; }
 
-  /* A context band is now a narrow SPINE beside the blocks, not a rectangle behind
-     them. Drawn full-width it buried whatever sat inside it — the exact opposite of
-     what a background is for. Its name lives in the legend, the NOW card and its own
-     detail sheet, so nothing has to be painted over a block to explain it. */
-  .band { position:absolute; left:var(--gutter); width:10px; padding:0; display:block;
-          border-radius:5px; border:none;
-          background:color-mix(in srgb, var(--c) 24%, transparent);
-          box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--c) 38%, transparent); }
-  .band:hover, .band:active { background:color-mix(in srgb, var(--c) 42%, transparent); }
+  /* A "context" — an event several others sit inside — is an ordinary block with a
+     dashed edge. Two earlier attempts at special-casing it both LOST information: as a
+     full-width band it buried its own children, and as a 10px spine it shrank
+     "Zluri Work 11am-4pm", the biggest block of the day, into a sliver. Which block
+     contains which is still reported on the NOW card and in the detail sheet, where it
+     costs no space at all. */
+  .blk.ctx { border-style:dashed; background:color-mix(in srgb, var(--c) 8%, var(--bg)); }
+  .blk.narrow .bw { display:none; }
 
-  .gap { position:absolute; left:calc(var(--gutter) + var(--spine)); right:8px; border-radius:12px; border:1px dashed #1e222b;
+  .gap { position:absolute; left:var(--gutter); right:calc(8px + var(--pingw)); border-radius:12px; border:1px dashed #1e222b;
          display:grid; place-items:center; }
   .gap span { font-family:var(--mono); font-size:11px; color:var(--ghost); letter-spacing:0.04em; text-align:center; padding:0 8px; }
 
@@ -172,7 +186,10 @@
      hour gutter and any band spines. Each block's left/width come from its lane, so
      two events that really do overlap sit SIDE BY SIDE instead of on top of one
      another. See public/lanes.js. */
-  .blocks { position:absolute; left:calc(var(--gutter) + var(--spine)); right:8px; top:0; bottom:0; }
+  /* --pingw is measured after every render: exactly the width the widest ping label
+     needs, so a ping is never painted over a block title. Nine were, and one hid the
+     title of "Commute Office" outright. */
+  .blocks { position:absolute; left:var(--gutter); right:calc(8px + var(--pingw)); top:0; bottom:0; }
   .blk { position:absolute; border-radius:10px; overflow:hidden; padding:7px 11px;
          background:color-mix(in srgb, var(--c) 13%, var(--bg));
          border:1px solid color-mix(in srgb, var(--c) 24%, transparent);
@@ -181,6 +198,11 @@
   .blk .bt { font-size:12.5px; font-weight:600; letter-spacing:-0.01em;
              color:color-mix(in srgb, var(--c) 42%, #ffffff);
              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* Room for a second line? Use it rather than ellipsising a real title away. */
+  .blk.wrap .head { display:block; }
+  .blk.wrap .bt { white-space:normal; overflow-wrap:anywhere; line-height:1.25;
+                  display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+  .blk.wrap .bw { display:block; margin-top:2px; }
   .blk .bw { font-family:var(--mono); font-size:10.5px; color:#6f7787; }
   /* Clamp to whole lines. A description sliced through the middle of a line reads
      as a rendering bug; the full text is always one tap away in the detail sheet. */
@@ -324,7 +346,7 @@
     <div class="mainhead">
       <span class="seclabel">Timeline</span>
       <span style="flex:1"></span>
-      <span class="legend"><i></i>ping<span id="bandlegend"></span></span>
+      <span class="legend"><i></i>ping<s style="margin-left:10px"></s>holds other events</span>
     </div>
     <div id="banner" hidden></div>
     <div id="allday"></div>
@@ -576,8 +598,6 @@
     track.innerHTML = '';
     const v = shown(d);
 
-    // Reserve a strip for band spines only when there are bands to draw.
-    track.style.setProperty('--spine', v.contexts.length ? '18px' : '0px');
 
     // hour rules
     for (let h = 0; h <= 24; h++) {
@@ -602,24 +622,39 @@
       track.append(box);
     }
 
-    // context bands, as spines beside the blocks
-    for (const c of v.contexts) {
-      const band = el('button', 'band');
-      band.style.setProperty('--c', c.color);
-      band.style.top = `${px(c.startMin)}px`;
-      band.style.height = `${px(c.endMin - c.startMin)}px`;
-      band.title = `${c.title} \u00b7 ${fmtRange(c.startMin, c.endMin)}`;
-      band.setAttribute('aria-label', band.title);
-      band.addEventListener('click', () => openSheet(c));
-      track.append(band);
+    // pings
+    for (const p of v.pings) {
+      const row = el('div', 'ping');
+      row.style.top = `${px(p.startMin)}px`;
+      row.append(el('div', 'ln'));
+      const lb = el('button', 'lb');
+      const names = p.items.map((i) => i.title).join(' ' + '\u00b7' + ' ');
+      const narrowScreen = window.innerWidth < 980;
+      const short = `${Math.floor(p.startMin / 60) % 12 === 0 ? 12 : Math.floor(p.startMin / 60) % 12}`
+        + (p.startMin % 60 ? ':' + pad(p.startMin % 60) : '');
+      lb.append(el('i'), el('span', null, narrowScreen ? short : `${fmtClock(p.startMin)} \u00b7 ${names}`));
+      lb.title = `${fmtClock(p.startMin)} \u00b7 ${names}`;
+      lb.addEventListener('click', () => openSheet(p));
+      row.append(lb);
+      track.append(row);
     }
 
-    // blocks, packed into lanes so an overlap costs width, never legibility
+    sizePingRail();
+
+    // Every event is drawn, contexts included — see the note on .blk.ctx in the CSS.
     const wrap = el('div', 'blocks');
     track.append(wrap);
-    for (const b of assignLanes(v.blocks)) {
+    const drawable = [...v.blocks, ...v.contexts.map((c) => ({ ...c, isContext: true }))];
+    const pendingClamp = [];
+    for (const b of assignLanes(drawable)) {
       const h = px(b.endMin - b.startMin);
-      const node = el('button', 'blk' + (h < 30 ? ' tiny' : ''));
+      // Hide the time only when the column is genuinely too narrow for it — lane
+      // COUNT alone hid it on a 1400px screen where each column was still 300px.
+      const colW = (wrap.clientWidth || 600) / b.lanes;
+      // wrap = there is vertical room for a second title line; narrow = the column is
+      // too tight for the time text as well. They are independent questions.
+      const node = el('button', 'blk' + (h < 30 ? ' tiny' : '') + (b.isContext ? ' ctx' : '')
+        + (colW < 150 && h < 46 ? ' narrow' : '') + (h >= 46 && colW < 300 ? ' wrap' : ''));
       node.style.setProperty('--c', b.color);
       node.style.top = `${px(b.startMin)}px`;
       node.style.height = `${h}px`;
@@ -635,11 +670,10 @@
         node.append(head);
         // Description only where WHOLE lines fit, and only in a full-width block —
         // in a half-width column it degenerates into one word per line.
-        const room = Math.floor((h - 34) / 17);
-        if (b.description && room >= 2 && b.lanes === 1) {
+        if (b.description && !b.isContext) {
           const bd = el('div', 'bd', b.description);
-          bd.style.webkitLineClamp = String(Math.min(room, 6));
           node.append(bd);
+          pendingClamp.push({ node, bd });
         }
       }
       node.title = `${b.title} \u00b7 ${when}`;
@@ -647,16 +681,15 @@
       wrap.append(node);
     }
 
-    // pings
-    for (const p of v.pings) {
-      const row = el('div', 'ping');
-      row.style.top = `${px(p.startMin)}px`;
-      row.append(el('div', 'ln'));
-      const lb = el('button', 'lb');
-      lb.append(el('i'), el('span', null, `${fmtClock(p.startMin)} \u00b7 ${p.items.map((i) => i.title).join(' \u00b7 ')}`));
-      lb.addEventListener('click', () => openSheet(p));
-      row.append(lb);
-      track.append(row);
+    // With the blocks in the document, clamp each description to the whole lines that
+    // actually fit under its (possibly wrapped) title. A half-height line of text
+    // reads as a rendering fault; the full text is one tap away in the sheet.
+    for (const item of pendingClamp) {
+      const lineH = parseFloat(getComputedStyle(item.bd).lineHeight) || 17;
+      const spare = item.node.clientHeight - item.bd.offsetTop - 6;
+      const lines = Math.floor(spare / lineH);
+      if (lines < 1) item.bd.remove();
+      else item.bd.style.webkitLineClamp = String(Math.min(lines, 8));
     }
 
     // now line
@@ -673,19 +706,20 @@
       track.append(e);
     }
 
-    renderBandLegend(v);
   }
 
-  /** Band names belong in the legend — on the grid they can only cover a block. */
-  function renderBandLegend(v) {
-    const wrap = $('bandlegend');
-    wrap.innerHTML = '';
-    for (const c of v.contexts) {
-      const b = el('b');
-      b.style.setProperty('--c', c.color);
-      b.append(el('em'), el('span', null, c.title));
-      wrap.append(b);
-    }
+  /**
+   * Reserve exactly as much width as the ping labels need. Measured rather than
+   * guessed: the labels carry event titles, so their width is data — a fixed rail is
+   * either wasteful or too small.
+   */
+  function sizePingRail() {
+    const track = $('track');
+    const pills = [...track.querySelectorAll('.ping .lb')];
+    if (!pills.length) { track.style.setProperty('--pingw', '0px'); return; }
+    const widest = Math.max(...pills.map((x) => x.offsetWidth));
+    const cap = Math.round(track.clientWidth * (window.innerWidth < 980 ? 0.2 : 0.34));
+    track.style.setProperty('--pingw', `${Math.min(widest + 12, cap)}px`);
   }
 
   /** Same rule as the Worker's unplannedGaps, applied to what is currently visible. */
@@ -933,8 +967,14 @@
   function scrollToNow() {
     const sc = $('scroller');
     if (!sc) return;
-    const target = isToday() ? nowMinutes(state.tz) - SCROLL_LEAD_MIN : firstEventMin() - 30;
-    sc.scrollTop = Math.max(0, px(target));
+    const target = Math.max(0, px(isToday() ? nowMinutes(state.tz) - SCROLL_LEAD_MIN : firstEventMin() - 30));
+    sc.scrollTop = target;
+    // The phone layout has no inner scroll column — the page itself scrolls, so
+    // scrollTop above is a no-op and the board opened at midnight every time.
+    if (sc.scrollTop < 1 && sc.scrollHeight <= sc.clientHeight + 1) {
+      const top = sc.getBoundingClientRect().top + window.scrollY + target;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+    }
   }
   function firstEventMin() {
     const d = state.data; if (!d) return 6 * 60;
