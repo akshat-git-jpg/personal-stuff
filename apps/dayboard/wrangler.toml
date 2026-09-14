@@ -17,7 +17,7 @@ binding = "ASSETS"
 # Fill the id AFTER `npx wrangler kv namespace create CACHE_KV`.
 [[kv_namespaces]]
 binding = "CACHE_KV"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "173438186cd3484194ff856411716b02"
 
 # Custom domain — Cloudflare auto-provisions DNS + SSL on the agrolloo.com zone.
 [[routes]]
