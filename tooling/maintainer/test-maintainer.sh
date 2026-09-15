@@ -338,4 +338,31 @@ while IFS= read -r f; do
   [ -x "$f" ] || fail "not executable: $f (the docs invoke it directly)"
 done < <(/usr/bin/find "$MAINT_DIR" -name '*.sh')
 
+# --- resolve_slug: a memory slug is lossy, so it must be resolved, not rewritten
+# The old sed-substitution turned 'personal-stuff' into 'personal/stuff' and
+# reported 24 live directories as dead. Pin the three shapes that broke it.
+SLUGTMP="$(mktemp -d)"
+mkdir -p "$SLUGTMP/codebase/personal-stuff/tooling/maintainer" "$SLUGTMP/.claude-work/projects"
+slugify() { printf '%s' "$1" | /usr/bin/sed 's/[^A-Za-z0-9]/-/g'; }
+( source "$MAINT_DIR/bin/lib.sh"
+  got="$(resolve_slug "$(slugify "$SLUGTMP/codebase/personal-stuff")")" \
+    || fail "resolve_slug cannot resolve a hyphenated dir name (the personal-stuff bug)"
+  [ "$got" = "$SLUGTMP/codebase/personal-stuff" ] || fail "resolve_slug returned $got"
+
+  got="$(resolve_slug "$(slugify "$SLUGTMP/.claude-work/projects")")" \
+    || fail "resolve_slug cannot resolve a dotted dir name (.claude-work)"
+  [ "$got" = "$SLUGTMP/.claude-work/projects" ] || fail "resolve_slug returned $got"
+
+  resolve_slug "$(slugify "$SLUGTMP/codebase/no-such-thing")" >/dev/null 2>&1 \
+    && fail "resolve_slug accepted a path that does not exist"
+  true
+) || exit 1
+/bin/rm -r "$SLUGTMP"
+
+# --- skills check: note() must not run inside a pipeline subshell -------------
+# Judging duplicates inside `... | while read` threw away found=1, so a real
+# duplicate could never fail the job. Assert the collect-then-judge shape.
+/usr/bin/grep -q 'dups="\$(' "$MAINT_DIR/jobs/skills/check.sh" \
+  || fail "skills check.sh judges duplicates inside a pipe again - found=1 will be lost"
+
 echo "ALL PASS"

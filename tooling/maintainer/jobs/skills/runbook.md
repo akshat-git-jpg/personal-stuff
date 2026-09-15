@@ -278,6 +278,17 @@ contents; it should have compared git state. Fixed.
 files on disk, 1,084 actually tracked after gitignore. Always check what git would take
 before committing an adopted skill.
 
+**A `| while read` loop cannot fail the job.** `jobs/skills/check.sh` judged duplicates
+on the right-hand side of a pipe, so `found=1` was set in a subshell and thrown away —
+a real duplicate skill could never make the check exit 1. Collect into a variable first,
+then judge in the main shell. Fixed 2026-09-15, pinned by `test-maintainer.sh`.
+
+**A reference count that excludes `.claude/skills` hides every skill another SKILL calls.**
+On 2026-09-15 it reported 10 skills with "zero repo references"; 7 were skills invoked by
+sibling skills (`durable-objects` alone had 18). Exclude only the skill's OWN folder and
+count repo references and peer-skill references separately. §8's "usage data does not
+exist" still holds — this only removes a false-positive class, it is still a candidate list.
+
 **Third-party skills carry someone else's name.** `loop-studio` and `video-taste` open
 with "Luuk's in-house AI edit studio". They are build-loop.ai's product. Do not assume a
 skill in your account is yours.
