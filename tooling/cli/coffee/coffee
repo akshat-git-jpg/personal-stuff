@@ -1,0 +1,128 @@
+#!/bin/bash
+# coffee — ask for a bounded "stay awake with the lid shut" lease.
+#
+# The CLI only writes a deadline file. It never changes a power setting itself.
+# The watchdog (com.kbtg.coffee-watchdog) is what acts on it, and what takes it
+# away again. If the watchdog is not running, coffee refuses rather than pretend.
+
+set -u
+
+COFFEE_STATE_DIR="${COFFEE_STATE_DIR:-$HOME/.local/state/coffee}"
+COFFEE_MAX_SECONDS="${COFFEE_MAX_SECONDS:-14400}"
+COFFEE_BATT_FLOOR="${COFFEE_BATT_FLOOR:-20}"
+COFFEE_LABEL="${COFFEE_LABEL:-com.kbtg.coffee-watchdog}"
+COFFEE_LAUNCHCTL="${COFFEE_LAUNCHCTL:-/bin/launchctl}"
+
+DEADLINE_FILE="$COFFEE_STATE_DIR/deadline"
+REASON_FILE="$COFFEE_STATE_DIR/last-reason"
+
+mkdir -p "$COFFEE_STATE_DIR" 2>/dev/null
+
+now() {
+  if [ -n "${COFFEE_NOW:-}" ]; then echo "$COFFEE_NOW"; else date +%s; fi
+}
+
+die() { echo "coffee: $*" >&2; exit 2; }
+
+usage() {
+  cat <<'USAGE'
+coffee — keep the Mac awake with the lid shut, for a bounded time.
+
+  coffee <duration>   start or extend a lease   (90m, 2h, 1h30m, or bare minutes)
+  coffee off          end the lease now
+  coffee              show status
+  coffee -h           this help
+
+Max lease is 4 hours. There is no "forever". The lease also ends by itself if
+the battery drops below 20% while unplugged, or if the watchdog stops.
+USAGE
+}
+
+# "90m" | "2h" | "1h30m" | "45" -> seconds on stdout. Non-zero exit if unparseable.
+parse_duration() {
+  local s="$1" total=0 h=0 m=0
+  case "$s" in
+    ''|*[!0-9hm]*) return 1 ;;
+  esac
+  if echo "$s" | grep -qE '^[0-9]+$'; then
+    total=$((s * 60))
+  elif echo "$s" | grep -qE '^[0-9]+m$'; then
+    m="${s%m}"; total=$((m * 60))
+  elif echo "$s" | grep -qE '^[0-9]+h$'; then
+    h="${s%h}"; total=$((h * 3600))
+  elif echo "$s" | grep -qE '^[0-9]+h[0-9]+m$'; then
+    h="${s%%h*}"; m="${s##*h}"; m="${m%m}"; total=$((h * 3600 + m * 60))
+  else
+    return 1
+  fi
+  [ "$total" -gt 0 ] || return 1
+  echo "$total"
+}
+
+watchdog_running() {
+  "$COFFEE_LAUNCHCTL" list 2>/dev/null | grep -q "$COFFEE_LABEL"
+}
+
+human() {
+  local s="$1"
+  if [ "$s" -ge 3600 ]; then
+    echo "$((s / 3600))h $(((s % 3600) / 60))m"
+  else
+    echo "$((s / 60))m"
+  fi
+}
+
+cmd_status() {
+  local n deadline left
+  n="$(now)"
+  if [ ! -f "$DEADLINE_FILE" ]; then
+    echo "coffee: OFF — the Mac sleeps normally when you shut the lid."
+    if [ -f "$REASON_FILE" ]; then
+      echo "        last lease ended: $(cat "$REASON_FILE")"
+    fi
+    watchdog_running || echo "        note: watchdog is NOT loaded (see README install)."
+    return 0
+  fi
+  deadline="$(cat "$DEADLINE_FILE" 2>/dev/null)"
+  left=$((deadline - n))
+  if [ "$left" -le 0 ]; then
+    echo "coffee: expiring — the watchdog will re-enable sleep within 20s."
+    return 0
+  fi
+  echo "coffee: ON — lid can stay shut for another $(human "$left")."
+  watchdog_running || echo "        WARNING: watchdog is NOT loaded; this lease is not being enforced."
+}
+
+cmd_off() {
+  rm -f "$DEADLINE_FILE"
+  echo "stopped" > "$REASON_FILE"
+  echo "coffee: OFF — sleep comes back within 20s."
+}
+
+cmd_start() {
+  local secs n
+  secs="$(parse_duration "$1")" || die "cannot read the time '$1'. Try 90m, 2h, 1h30m, or a plain number of minutes."
+  if [ "$secs" -gt "$COFFEE_MAX_SECONDS" ]; then
+    die "$1 is over the $((COFFEE_MAX_SECONDS / 3600))h ceiling. Ask for less."
+  fi
+  # Refuse rather than mislead: a lease nobody enforces is worse than none.
+  if ! watchdog_running; then
+    die "the watchdog is not loaded, so a lease would not be enforced. See tooling/cli/coffee/README.md."
+  fi
+  n="$(now)"
+  echo "$((n + secs))" > "$DEADLINE_FILE"
+  rm -f "$REASON_FILE"
+  echo "coffee: ON for $(human "$secs"). Shut the lid whenever you like."
+  echo "        It turns itself off at the deadline, under ${COFFEE_BATT_FLOOR}% battery, or if the watchdog stops."
+}
+
+main() {
+  case "${1:-}" in
+    ''|status)      cmd_status ;;
+    off|stop)       cmd_off ;;
+    -h|--help|help) usage ;;
+    *)              cmd_start "$1" ;;
+  esac
+}
+
+main "$@"

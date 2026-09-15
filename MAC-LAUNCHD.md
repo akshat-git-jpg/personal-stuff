@@ -21,6 +21,7 @@ one of them, `bt-audio-guard`, with its script unbacked-up anywhere.
 | `com.kushal.yt-claude-prune` | Deletes `~/yt-claude/<videoid>/` folders older than `YT_PRUNE_DAYS` (default 30). Nothing else ever removed them; 142 had accumulated by 2026-08-24. | Sunday 03:00 | `tooling/cli/yt-claude/` |
 | `com.kbtg.pp-work-snapshot` | Records every `pp-work` workspace's file tree **without committing it**. A commit inside a workspace fires `pp-land`, which rebases, verifies and pushes to `main` — so there is no such thing as a private "just in case" commit here. This is the safety net instead. | every 30 min | `tooling/cli/pp-work/` |
 | `com.kbtg.bt-audio-guard` | On earbud reconnect, switches the audio **input** back to the MacBook microphone. macOS otherwise grabs the earbud mic, which forces the link into HFP call mode — mono 16 kHz, and music sounds broken. | polls every 3s (`KeepAlive`) | `tooling/cli/bt-audio-guard/` |
+| `com.kbtg.coffee-watchdog` | Enforces the `coffee` lease: keeps the Mac awake with the lid shut while an unexpired lease exists, and re-enables sleep the moment it expires, the battery drops under 20% while discharging, or the lease file goes away. It never READS the power setting, it re-asserts the correct one every 20s — so sleep-enabled is the resting state and nothing forgotten can strand the Mac awake. | always on (`KeepAlive`) | `tooling/cli/coffee/` |
 | `com.kushal.skills-sync` | Copies the five person-level skills (`claude-router`, `github-router`, `humanizer`, `i-have-adhd`, `session-handoff`) from `.claude/skills/` into the **private** `work-skills` plugin, then commits and pushes it. Backstop: the repo hygiene gate already warns at commit time. Skips a dirty checkout. | daily 04:10 | `scripts/` |
 
 `mega.mac.megaupdater` also sits in `~/Library/LaunchAgents/`. It belongs to the MEGA
@@ -42,6 +43,7 @@ was unloaded and renamed `com.kbtg.pp-claude-tags.plist.retired`. Do not re-add 
 | yt-claude-prune | `~/Library/Logs/yt-claude-prune.log` |
 | pp-work-snapshot | `~/.local/state/pp-work/snapshot-timer.log` |
 | bt-audio-guard | `~/Library/Logs/bt-audio-guard.log` (and `/tmp/bt-audio-guard.err`) |
+| coffee-watchdog | `~/Library/Logs/coffee.log` (and `/tmp/coffee-watchdog.err`) |
 | skills-sync | `~/Library/Logs/skills-sync.log` |
 
 `logger` and `log show` do **not** work for retrieving bt-audio-guard's output on this
@@ -61,24 +63,37 @@ Run these from the repo root. Each is idempotent.
 mkdir -p ~/.local/bin
 ln -sfn "$PWD/tooling/cli/bt-audio-guard/bt-audio-guard.sh" ~/.local/bin/bt-audio-guard.sh
 
+#    coffee symlinks the same way — the plist and the `coffee` command both
+#    resolve through ~/.local/bin while the real files stay in git.
+ln -sfn "$PWD/tooling/cli/coffee/coffee-watchdog.sh" ~/.local/bin/coffee-watchdog.sh
+ln -sfn "$PWD/tooling/cli/coffee/coffee"             ~/.local/bin/coffee
+
 # 2. Install every plist.
 cp tooling/cli/yt-claude/com.kushal.yt-claude-relay.plist   ~/Library/LaunchAgents/
 cp tooling/cli/yt-claude/com.kushal.yt-claude-prune.plist   ~/Library/LaunchAgents/
 cp tooling/cli/pp-work/com.kbtg.pp-work-snapshot.plist      ~/Library/LaunchAgents/
 cp tooling/cli/bt-audio-guard/com.kbtg.bt-audio-guard.plist ~/Library/LaunchAgents/
+cp tooling/cli/coffee/com.kbtg.coffee-watchdog.plist        ~/Library/LaunchAgents/
 
 # 3. Load them.
 for j in com.kushal.yt-claude-relay com.kushal.yt-claude-prune \
-         com.kbtg.pp-work-snapshot com.kbtg.bt-audio-guard; do
+         com.kbtg.pp-work-snapshot com.kbtg.bt-audio-guard \
+         com.kbtg.coffee-watchdog; do
   launchctl load ~/Library/LaunchAgents/$j.plist 2>/dev/null
 done
 
-# 4. Verify — four lines, no "not registered".
-launchctl list | grep -E 'yt-claude|pp-work-snapshot|bt-audio-guard'
+# 4. Verify — five lines, no "not registered".
+launchctl list | grep -E 'yt-claude|pp-work-snapshot|bt-audio-guard|coffee-watchdog'
+
+# 5. coffee ALSO needs a scoped sudoers rule, or its watchdog cannot revoke a
+#    lease — which fails toward "stuck awake". Two exact command lines, nothing else.
+sudo install -m 0440 -o root -g wheel \
+  tooling/cli/coffee/sudoers.d-coffee.example /etc/sudoers.d/coffee
+sudo visudo -c        # must print "parsed OK"
 ```
 
 **Every plist hardcodes `/Users/kbtg/codebase/personal-stuff`.** If the repo ever moves,
-edit the paths in all five and reinstall. There is no indirection here on purpose — launchd
+edit the paths in all six and reinstall. There is no indirection here on purpose — launchd
 runs with a bare environment and cannot resolve anything clever.
 
 ## Everyday commands
