@@ -37,6 +37,8 @@ Plus:
   description with live links, duration, calendar, and a link out to Google Calendar.
 - **"N h unplanned"** ghost bands, derived from the gaps in the day.
 - **NOW card** — what is live, how long is left, and what it sits inside.
+- **Google-shaped date nav** — `Today`, `<`, `>` on one row, plus a mini month you can
+  click. Keyboard: left/right (or `j`/`k`) change day, `t` jumps to today.
 
 ## Syncing
 

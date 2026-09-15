@@ -87,6 +87,14 @@ screenshot and invisible to `npm run check`.
 
 **Any change to `public/index.html` runs `npm run shots` and the images get opened.**
 
+## Date navigation follows Google Calendar
+
+`Today` then the two arrows on one row, the date beside them, and a mini month below —
+that is the shape the owner already has in his hands all day. The first version stacked
+a 30px weekday, a date line and a wrapped nav row over three lines, and still had no way
+to reach a date three weeks out except 21 taps on an arrow. The keys are Google's too:
+left/right or `j`/`k` for the day, `t` for today.
+
 ## Run / deploy
 
 ```bash
