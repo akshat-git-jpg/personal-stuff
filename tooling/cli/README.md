@@ -16,6 +16,7 @@ Each tool lives in its own folder with the executable and (mostly) a README.
 - `drive/` — `pp-drive`, agent-native Google Drive CLI; shares Google auth with the others via `../mcp/google-shared`.
 - `heygen-web/` — drives HeyGen's web-session API for unlimited free Avatar III videos (the metered developer API/MCP can't do this).
 - `local-apps-dashboard/` — local control panel (`:4321`) for dev servers that don't run on the VPS or Cloudflare.
+- `coffee/` — keeps the Mac awake with the lid shut for a bounded time, so a long job survives the laptop going in a bag. A watchdog re-asserts normal sleep every 20s unless a live, unexpired lease says otherwise, so there is no way to leave it on by accident. macOS only.
 - `flow-queue/` — `pp-flow-queue`, a relay (`:4399`) that hands image-generation prompts to the ZAPI FLOW browser extension for Google Flow. Any pipeline with a "approve the look before building it" gate pushes to it; the extension polls and fills its own queue with no click.
 
 Printing Press generated a second set of CLIs (`paypal-txns`, `impact`, `gumroad`, `skool`, `pinterest`). Those are Go, they build out of `~/printing-press/library/`, and they are not in this folder. So far only `paypal-txns` has its source backed up into the repo, at `../press-clis/`.

@@ -1,0 +1,13 @@
+# /etc/sudoers.d/coffee — install with:
+#   sudo install -m 0440 -o root -g wheel \
+#     tooling/cli/coffee/sudoers.d-coffee.example /etc/sudoers.d/coffee
+#   sudo visudo -c        # must print "parsed OK"
+#
+# Grants exactly two command lines and nothing else. Arguments are matched
+# literally, so this rule cannot run any other pmset subcommand.
+#
+# The coffee watchdog needs these to re-enable sleep while the owner is away
+# from the keyboard. Without them the watchdog cannot revoke a lease, which
+# fails toward "stuck awake" — the one outcome this tool exists to prevent.
+kbtg ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0
+kbtg ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 1

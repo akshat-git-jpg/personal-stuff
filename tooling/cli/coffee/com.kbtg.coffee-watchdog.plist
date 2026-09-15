@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.kbtg.coffee-watchdog</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/kbtg/.local/bin/coffee-watchdog.sh</string>
+    </array>
+
+    <!-- Persistent reconciler: it polls internally every 20s, so StartInterval
+         is not used. KeepAlive is the "watchdog dies" safety net — launchd
+         restarts it within seconds, and its first act on start is to force
+         sleep back on. -->
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>LowPriorityIO</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/dev/null</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/coffee-watchdog.err</string>
+</dict>
+</plist>
