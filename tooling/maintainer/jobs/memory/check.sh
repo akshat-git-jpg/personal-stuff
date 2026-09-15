@@ -15,7 +15,17 @@ note() { echo "- $1"; found=1; }
 echo "# memory findings — $(today)"
 echo
 
-stores="$("$FIND" $ROOTS -maxdepth 4 -type d -name memory 2>/dev/null | sort)"
+# An EMPTY memory dir is a scratch artifact a short-lived session left behind, not
+# a store. Counting them alarmed on "4 real stores" and produced two bogus
+# "no MEMORY.md" hits when the real, correct answer was 2.
+stores=""
+for d in $("$FIND" $ROOTS -maxdepth 4 -type d -name memory 2>/dev/null | sort); do
+  n=$("$FIND" "$d" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
+  [ "$n" = "0" ] && continue
+  stores="${stores}${d}
+"
+done
+stores="$(printf '%s' "$stores")"
 if [ -z "$stores" ]; then
   echo "no memory stores found under: $ROOTS"
   exit 0
@@ -67,8 +77,7 @@ for root in $ROOTS; do
     [ -d "$entry" ] || continue
     slug="$(basename "$entry")"
     case "$slug" in -*) ;; *) continue ;; esac
-    src="$(echo "$slug" | "$SED" 's|-|/|g')"
-    [ -e "$src" ] || note "dead path: $slug (source directory $src no longer exists)"
+    resolve_slug "$slug" >/dev/null 2>&1 || note "dead path: $slug (no directory on disk normalises to this slug)"
   done
 done
 

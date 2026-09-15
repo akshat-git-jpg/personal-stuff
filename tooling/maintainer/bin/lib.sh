@@ -42,3 +42,37 @@ findings_file() { echo "$FINDINGS_DIR/$(today)-$1.md"; }
 proposal_file() { echo "$PROPOSALS_DIR/$(today)-$1.md"; }
 
 die() { echo "ERROR: $1" >&2; exit 2; }
+
+# A memory store slug is LOSSY: Claude replaces every non-alphanumeric char in the
+# path with '-', so '.claude-work' and 'personal-stuff' and a real '/' all become
+# the same character. `sed 's|-|/|g'` therefore cannot reverse it — it turned
+# 'personal-stuff' into 'personal/stuff' and reported 24 live directories as dead.
+#
+# Walk the real filesystem instead. At each level, normalise every directory entry
+# the same way Claude does and take the LONGEST entry whose normalised name is a
+# prefix of what is left of the slug. Prints the resolved path, or returns 1.
+resolve_slug() {
+  local rest="$1" path="" best="" bestnorm="" bestlen=0 e b norm ok
+  case "$rest" in -*) ;; *) return 1 ;; esac
+  while :; do
+    best=""; bestnorm=""; bestlen=0
+    for e in "$path"/* "$path"/.*; do
+      [ -d "$e" ] || continue
+      b="$(basename "$e")"
+      [ "$b" = "." ] && continue
+      [ "$b" = ".." ] && continue
+      norm="-$(printf '%s' "$b" | "$SED" 's/[^A-Za-z0-9]/-/g')"
+      ok=0
+      [ "$rest" = "$norm" ] && ok=1
+      case "$rest" in "$norm"-*) ok=1 ;; esac
+      [ "$ok" = "1" ] || continue
+      if [ "${#norm}" -gt "$bestlen" ]; then
+        best="$e"; bestnorm="$norm"; bestlen="${#norm}"
+      fi
+    done
+    [ -n "$best" ] || return 1
+    path="$best"
+    rest="${rest#"$bestnorm"}"
+    if [ -z "$rest" ]; then echo "$path"; return 0; fi
+  done
+}

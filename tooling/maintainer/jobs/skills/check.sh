@@ -31,10 +31,13 @@ done
 echo
 
 echo "## real duplicates (symlinks skipped — every intentional one looks like a dup)"
-for d in .claude/skills pipelines/.claude/skills pipelines/.agents/skills "$HOME/codebase/work-skills/skills"; do
+# Collect FIRST, then judge. Piping into `while read` puts note() in a subshell,
+# so `found=1` was thrown away and a real duplicate could never fail this job.
+dups="$(for d in .claude/skills pipelines/.claude/skills pipelines/.agents/skills "$HOME/codebase/work-skills/skills"; do
   [ -d "$d" ] || continue
   "$FIND" "$d" -maxdepth 1 -mindepth 1 -type d -exec basename {} \;
-done | sort | uniq -d | while read -r dup; do
+done | sort | uniq -d)"
+for dup in $dups; do
   case "$dup" in
     claude-router|github-router|humanizer|i-have-adhd|session-handoff) ;;   # the 5 duplicated on purpose
     *) note "unexpected duplicate skill: $dup" ;;
@@ -58,10 +61,15 @@ echo "## reference counts — A CANDIDATE LIST, NEVER A VERDICT"
 echo "(skill-maintenance runbook §8: usage data does not exist. 8 skills had zero"
 echo " references at the last audit and were correctly KEPT. Zero references means"
 echo " 'look at this', not 'delete this'.)"
+# Excluding .claude/skills entirely hid every skill that another SKILL invokes —
+# 7 of 10 hits on 2026-09-15 were that false positive (durable-objects had 18).
+# Exclude only the skill's own folder, and count the two kinds separately.
 for s in .claude/skills/*/; do
   name="$(basename "$s")"
-  n=$(git grep -l "$name" -- ':!.claude/skills' 2>/dev/null | wc -l | tr -d ' ')
-  [ "$n" = "0" ] && echo "  zero repo references: $name"
+  repo=$(git grep -l "$name" -- ':!.claude/skills' 2>/dev/null | wc -l | tr -d ' ')
+  peer=$(git grep -l "$name" -- '.claude/skills' 2>/dev/null \
+         | "$GREP" -v "^.claude/skills/$name/" | wc -l | tr -d ' ')
+  [ "$repo" = "0" ] && [ "$peer" = "0" ] && echo "  zero references anywhere: $name"
 done
 
 exit $found

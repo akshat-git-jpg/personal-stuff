@@ -223,6 +223,8 @@ actual code**, then sort into: keep / promote to repo / delete.
 | macOS ships bash 3.2 | `mapfile` does not exist, and an empty array is "unset" under `set -u`. launchd calls `/bin/bash` directly, so test with `/bin/bash`, not Homebrew's. |
 | `mktemp -d` resolves symlinks | `/var` → `/private/var`. A test computing a slug from the unresolved path asserts against directories nobody created. |
 | The main checkout does not fast-forward | After a land, `origin/main` moves and local `HEAD` does not. Read files with `git show origin/main:<path>`, not from `HEAD`. |
+| A store slug cannot be reversed by substitution | Claude maps EVERY non-alphanumeric char to `-`, so `/`, `.` and a literal `-` are indistinguishable in the slug. `sed 's\|-\|/\|g'` turned `personal-stuff` into `personal/stuff` and reported all 24 live directories as dead (2026-09-15). Use `resolve_slug()` in `bin/lib.sh`, which walks the real filesystem and matches each entry by its own normalised name, longest first. |
+| An empty `memory/` dir is not a store | Short-lived sessions leave bare `memory/` directories behind. Counting them tripped the store-count alarm at 4 when the correct answer was 2, and produced two bogus "no MEMORY.md" hits. `check.sh` now skips any store with zero files. |
 | A parallel session may fix your bug | The gh account-flip fix landed from another session mid-audit, making a just-written section wrong. Re-check before finalising a report. |
 
 ---
