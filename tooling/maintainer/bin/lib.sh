@@ -61,7 +61,9 @@ resolve_slug() {
       b="$(basename "$e")"
       [ "$b" = "." ] && continue
       [ "$b" = ".." ] && continue
-      norm="-$(printf '%s' "$b" | "$SED" 's/[^A-Za-z0-9]/-/g')"
+      # Bash-native, NOT a sed subprocess: this runs once per directory entry per
+      # level, and spawning sed there took the memory check from seconds to minutes.
+      norm="-${b//[!a-zA-Z0-9]/-}"
       ok=0
       [ "$rest" = "$norm" ] && ok=1
       case "$rest" in "$norm"-*) ok=1 ;; esac
