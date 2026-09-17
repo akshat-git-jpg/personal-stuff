@@ -19,9 +19,13 @@ Verified, `gh` currently authenticates as `akshat-git-jpg` via GH_TOKEN; with th
 
 ## The fallback that already exists
 
-`gh auth status` shows three keyring accounts — `kushal-zluri` (active), `akshat-git-jpg`, and `koala25`. Since `akshat-git-jpg` is already in the keyring, `boss_assert_gh`'s own `gh auth switch --hostname github.com --user akshat-git-jpg` fallback can authenticate boss without any env var. 
+`gh auth status` shows three keyring accounts — `kushal-zluri`, `akshat-git-jpg` and `koala25`. Since `akshat-git-jpg` is in the keyring, `gh-acct` mints a `GH_TOKEN` for it on demand, so no token needs storing in a file at all:
 
-Trade-off: `gh auth switch` changes the **global** active account, so a Zluri work session in another terminal would find `gh` acting as the personal account. That is why the env var exists, and it is why Step 1's .gitignore fix — not deletion — is the actual security fix.
+```
+eval "$(gh-acct export)"
+```
+
+`boss_assert_gh` does exactly this. **Do not reach for `gh auth switch`** — since 2026-09-18 it is banned and hook-blocked. It rewrites the global `~/.config/gh/hosts.yml` that every concurrent shell and Claude session reads, so a Zluri work session in another terminal would silently start acting as the personal account. `GH_TOKEN` is process-local and has no such reach. Step 1's .gitignore fix — not deletion — remains the actual security fix.
 
 ## Scopes to recreate
 

@@ -1011,25 +1011,30 @@ echo "PASS: boss_dep_prelude targets exactly the dirs that need installing"
 ) || exit 1
 echo "PASS: land_class treats an auth 403 as transient without softening a secret refusal"
 
-# --- boss_gh_restore hands the owner's gh account back on exit ------------------
-# `gh auth switch` moves the GLOBAL active account. Before this, every boss write
-# path (session-start/dispatch/merge/deploy) left the owner switched to
-# BOSS_GH_USER, so their next ZluriHQ work-repo `gh` call authenticated as the
-# personal account. The account is never logged OUT -- only "active" moves -- but
-# it had to be moved back by hand every time.
+# --- boss pins gh per-process and never moves the global account ----------------
+# `gh auth switch` rewrites ~/.config/gh/hosts.yml, which EVERY concurrent shell,
+# Claude session and crew worktree reads. Boss used to switch-and-restore, so any
+# work session running during a boss write path authenticated as the personal
+# account (the 2026-07-30 / 2026-08-01 leak). Boss now exports GH_TOKEN, which is
+# process-local, so two sessions can push as two accounts at the same instant.
 (
   ghT=$(mktemp -d)
   mkdir -p "$ghT/stub" "$ghT/state"
   printf 'work-acct' > "$ghT/active"
   cat > "$ghT/stub/gh" <<'GHR'
 #!/bin/bash
+# GH_TOKEN, when set, outranks the global active account -- same as the real gh.
 case "$1:$2" in
-  api:user) cat "$GH_FAKE_HOME/active" ;;
-  auth:switch)
+  api:user)
+    if [ -n "${GH_TOKEN:-}" ]; then printf '%s' "${GH_TOKEN#faketok-}"
+    else cat "$GH_FAKE_HOME/active"; fi ;;
+  auth:token)
     shift 2; user=""
-    while [ $# -gt 0 ]; do case "$1" in --user) user="$2"; shift 2 ;; *) shift ;; esac; done
-    printf '%s' "$user" > "$GH_FAKE_HOME/active"
-    printf '%s\n' "$user" >> "$GH_FAKE_HOME/switches.log" ;;
+    while [ $# -gt 0 ]; do case "$1" in -u|--user) user="$2"; shift 2 ;; *) shift ;; esac; done
+    [ -n "$user" ] || exit 1
+    printf 'faketok-%s\n' "$user" ;;
+  auth:switch)
+    printf 'BANNED\n' >> "$GH_FAKE_HOME/switches.log"; exit 0 ;;
   *) exit 0 ;;
 esac
 GHR
@@ -1037,47 +1042,55 @@ GHR
   export GH_FAKE_HOME="$ghT"
   export PATH="$ghT/stub:$PATH"
   export BOSS_STATE_DIR="$ghT/state"
+  unset GH_TOKEN
   # shellcheck disable=SC1090
   source "$BOSSDIR/bin/boss-lib.sh" >/dev/null 2>&1
   type boss_gh_restore >/dev/null 2>&1 || fail "(GH) boss_gh_restore not defined"
 
   boss_assert_gh >/dev/null 2>&1 || fail "(GH) boss_assert_gh failed against the stub"
-  [ "$(cat "$ghT/active")" = "akshat-git-jpg" ] || fail "(GH) did not switch to BOSS_GH_USER"
-  [ "$(cat "$ghT/state/gh_prev" 2>/dev/null)" = "work-acct" ] \
-    || fail "(GH) the displaced account was not recorded in gh_prev"
+  [ "${GH_TOKEN:-}" = "faketok-akshat-git-jpg" ] \
+    || fail "(GH) GH_TOKEN was not pinned to BOSS_GH_USER, got [${GH_TOKEN:-unset}]"
 
-  boss_gh_restore >/dev/null 2>&1
+  # The load-bearing assertion: the GLOBAL account never moved.
   [ "$(cat "$ghT/active")" = "work-acct" ] \
-    || fail "(GH) the owner's account was NOT restored, got [$(cat "$ghT/active")]"
-  [ ! -f "$ghT/state/gh_prev" ] || fail "(GH) gh_prev survived the restore"
+    || fail "(GH) the global active account MOVED to [$(cat "$ghT/active")] -- the leak is back"
+  [ ! -s "$ghT/switches.log" ] \
+    || fail "(GH) boss called 'gh auth switch' -- that mutates global state and is banned"
 
-  # Idempotent: a second restore (two traps, or a trap after a manual call) is a no-op.
+  # Restore is a no-op now, and must stay safe to call twice (two traps).
   boss_gh_restore >/dev/null 2>&1
-  [ "$(cat "$ghT/active")" = "work-acct" ] || fail "(GH) a second restore moved the account"
-
-  # BOSS_GH_KEEP=1 leaves boss's account active for hand-chained commands.
-  boss_assert_gh >/dev/null 2>&1
-  [ "$(cat "$ghT/active")" = "akshat-git-jpg" ] || fail "(GH) re-switch failed"
-  ( export BOSS_GH_KEEP=1; boss_gh_restore >/dev/null 2>&1 )
-  [ "$(cat "$ghT/active")" = "akshat-git-jpg" ] || fail "(GH) BOSS_GH_KEEP=1 still restored"
-  rm -f "$ghT/state/gh_prev"
-
-  # Already-correct account: no switch, nothing recorded, restore is a no-op.
-  printf 'akshat-git-jpg' > "$ghT/active"
-  rm -f "$ghT/switches.log"
-  boss_assert_gh >/dev/null 2>&1 || fail "(GH) assert failed when already correct"
-  [ ! -s "$ghT/switches.log" ] || fail "(GH) switched despite already being correct"
-  [ ! -f "$ghT/state/gh_prev" ] || fail "(GH) wrote gh_prev despite no switch"
   boss_gh_restore >/dev/null 2>&1
-  [ "$(cat "$ghT/active")" = "akshat-git-jpg" ] || fail "(GH) no-op restore moved the account"
+  [ "$(cat "$ghT/active")" = "work-acct" ] || fail "(GH) restore moved the global account"
+
+  # Already-correct account: assert is a no-op, no token pinned, nothing switched.
+  ( unset GH_TOKEN; printf 'akshat-git-jpg' > "$ghT/active"; rm -f "$ghT/switches.log"
+    boss_assert_gh >/dev/null 2>&1 || fail "(GH) assert failed when already correct"
+    [ -z "${GH_TOKEN:-}" ] || fail "(GH) pinned a token despite already being correct"
+    [ ! -s "$ghT/switches.log" ] || fail "(GH) switched despite already being correct" ) || exit 1
+
+  # No stored credentials for BOSS_GH_USER must fail loudly, not silently fall
+  # through to whatever account the global file happens to point at.
+  ( unset GH_TOKEN; printf 'work-acct' > "$ghT/active"
+    cat > "$ghT/stub/gh" <<'GHN'
+#!/bin/bash
+case "$1:$2" in
+  api:user) cat "$GH_FAKE_HOME/active" ;;
+  auth:token) exit 1 ;;
+  *) exit 0 ;;
+esac
+GHN
+    chmod +x "$ghT/stub/gh"
+    boss_assert_gh >/dev/null 2>&1 && fail "(GH) assert passed with no stored credentials"
+    [ "$(cat "$ghT/active")" = "work-acct" ] || fail "(GH) global account moved on the failure path" ) || exit 1
+
   rm -rf "$ghT"
 ) || exit 1
-echo "PASS: boss_gh_restore returns the owner's gh account after every boss write path"
+echo "PASS: boss pins gh via GH_TOKEN and never moves the global active account"
 
 # --- every boss entry script traps the restore ----------------------------------
-# The helper is useless if an entry script forgets it: boss_assert_gh's switch is
-# what leaks, so a path that asserts without trapping the restore is the whole bug
-# back again on that one path.
+# boss_gh_restore is a no-op now, but the traps stay wired: they mark the seam where
+# a future change could reintroduce a global switch, and a missing trap is the
+# cheapest early warning that someone did.
 for _e in boss-session-start boss-dispatch boss-merge boss-deploy; do
   grep -q 'trap boss_gh_restore EXIT' "$BOSSDIR/bin/$_e.sh" \
     || fail "(GH2) $_e.sh calls boss_assert_gh but never traps boss_gh_restore"

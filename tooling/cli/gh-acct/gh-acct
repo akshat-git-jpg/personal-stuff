@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+# gh-acct — the ONE place that answers "which GitHub account owns this repo?"
+#
+# Routes by the repo's git REMOTE, not its path. Paths move (worktree pools,
+# scratch clones, kb-scratch workspaces); a remote does not. Path rules remain
+# only as a fallback for a directory that has no remote yet.
+#
+# Callers: ~/.zshrc (_gh_auto_switch), tooling/boss/bin/boss-lib.sh,
+# .claude/hooks/no-global-gh-switch.sh, the github-router skill.
+#
+# Nothing here ever mutates global state. `gh auth switch` is banned repo-wide —
+# it rewrites ~/.config/gh/hosts.yml, which every concurrent shell and every
+# Claude session reads, so one session flips the account under another's feet.
+# GH_TOKEN is process-local and is the only safe way to pin an account.
+set -uo pipefail
+
+usage() {
+  cat <<'EOF'
+gh-acct — resolve the GitHub account for a repo, with zero global state.
+
+Usage:
+  gh-acct [who]   [-C DIR]   Print the gh login (kushal-zluri|akshat-git-jpg|koala25)
+  gh-acct email   [-C DIR]   Print the commit email for that account
+  gh-acct name    [-C DIR]   Print the commit name for that account
+  gh-acct token   [-C DIR]   Print that account's stored gh token
+  gh-acct export  [-C DIR]   Print `export GH_TOKEN=...`, for eval
+  gh-acct check   [-C DIR]   Verify git user.email matches; exit 1 on mismatch
+
+Exit codes: 0 ok · 2 cannot resolve an account · 3 no stored token · 1 mismatch
+EOF
+}
+
+dir="$PWD"
+cmd=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -C) dir="${2:-}"; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) cmd="$1"; shift ;;
+  esac
+done
+cmd="${cmd:-who}"
+
+# --- account table ------------------------------------------------------------
+acct_email() {
+  case "$1" in
+    kushal-zluri)    printf '%s' 'kushal.b@zluri.com' ;;
+    akshat-git-jpg)  printf '%s' 'akshatparty17@gmail.com' ;;
+    koala25)         printf '%s' 'kushalbakliwal25@gmail.com' ;;
+    *) return 1 ;;
+  esac
+}
+acct_name() {
+  case "$1" in
+    kushal-zluri)    printf '%s' 'Kushal Bakliwal' ;;
+    akshat-git-jpg)  printf '%s' 'akshat-git-jpg' ;;
+    koala25)         printf '%s' 'Kushal Bakliwal' ;;
+    *) return 1 ;;
+  esac
+}
+
+# GitHub org/user that owns the remote -> gh login that may write to it.
+owner_to_acct() {
+  case "$1" in
+    ZluriHQ|Zluri)   printf '%s' 'kushal-zluri' ;;
+    akshat-git-jpg)  printf '%s' 'akshat-git-jpg' ;;
+    koala25)         printf '%s' 'koala25' ;;
+    *) return 1 ;;
+  esac
+}
+
+# --- resolution ---------------------------------------------------------------
+# 1. remote origin owner (authoritative, survives every move)
+# 2. path prefix (only for a dir with no remote: fresh `git init`, notes folder)
+resolve() {
+  local d="$1" url owner root
+
+  url="$(git -C "$d" remote get-url origin 2>/dev/null)" || url=""
+  if [ -n "$url" ]; then
+    # https://github.com/OWNER/repo(.git)  and  git@github.com:OWNER/repo(.git)
+    owner="$(printf '%s' "$url" | sed -nE 's#^(https://|git\+?ssh://git@|git@)github\.com[:/]+([^/]+)/.*$#\2#p')"
+    if [ -n "$owner" ] && owner_to_acct "$owner"; then
+      return 0
+    fi
+    return 2
+  fi
+
+  root="$(git -C "$d" rev-parse --show-toplevel 2>/dev/null)" || root="$d"
+  case "$root" in
+    "$HOME"/codebase/personal-stuff|"$HOME"/codebase/personal-stuff/*) printf '%s' 'akshat-git-jpg' ;;
+    "$HOME"/codebase/IT|"$HOME"/codebase/IT/*)                         printf '%s' 'akshat-git-jpg' ;;
+    "$HOME"/codebase/TY|"$HOME"/codebase/TY/*)                         printf '%s' 'akshat-git-jpg' ;;
+    "$HOME"/kb-scratch/*personal-stuff*)                               printf '%s' 'akshat-git-jpg' ;;
+    "$HOME/codebase/personal projects"|"$HOME/codebase/personal projects"/*) printf '%s' 'koala25' ;;
+    "$HOME"/codebase/*)                                                printf '%s' 'kushal-zluri' ;;
+    *) return 2 ;;
+  esac
+}
+
+acct="$(resolve "$dir")" || {
+  case "$cmd" in
+    who|email|name|token|export)
+      echo "gh-acct: cannot tell which GitHub account owns '$dir' — ask the owner." >&2 ;;
+  esac
+  exit 2
+}
+
+case "$cmd" in
+  who)   printf '%s\n' "$acct" ;;
+  email) acct_email "$acct" && echo ;;
+  name)  acct_name  "$acct" && echo ;;
+  token|export)
+    tok="$(gh auth token -u "$acct" 2>/dev/null)" || tok=""
+    if [ -z "$tok" ]; then
+      echo "gh-acct: no stored credentials for $acct — run: gh auth login -h github.com -p https -w" >&2
+      exit 3
+    fi
+    if [ "$cmd" = token ]; then printf '%s\n' "$tok"; else printf 'export GH_TOKEN=%q\n' "$tok"; fi
+    ;;
+  check)
+    want_email="$(acct_email "$acct")"
+    have_email="$(git -C "$dir" config user.email 2>/dev/null || true)"
+    if [ "$have_email" = "$want_email" ]; then
+      printf 'ok: %s <%s>\n' "$acct" "$have_email"
+      exit 0
+    fi
+    cat >&2 <<EOF
+gh-acct: identity mismatch in $dir
+  remote says : $acct  -> $want_email
+  git says    : ${have_email:-<unset>}
+
+Fix it for THIS repo only (never --global):
+  git -C "$dir" config user.email "$want_email"
+  git -C "$dir" config user.name  "$(acct_name "$acct")"
+EOF
+    exit 1
+    ;;
+  *) usage >&2; exit 64 ;;
+esac
