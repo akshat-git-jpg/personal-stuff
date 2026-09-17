@@ -90,9 +90,11 @@ function Row({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={`exrow${isDragging ? " dragging" : ""}`}
     >
-      <div className="swipe-del" onClick={onRemove}>
-        Remove
-      </div>
+      {dx !== 0 && (
+        <div className="swipe-del" onClick={onRemove}>
+          Remove
+        </div>
+      )}
       <div
         className="exrow-fg"
         style={{

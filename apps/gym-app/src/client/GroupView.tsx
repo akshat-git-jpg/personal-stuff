@@ -32,11 +32,14 @@ function summarise(ex: Exercise): string {
 function Row({
   ex,
   doneToday,
+  sortable,
   onOpen,
   onDelete,
 }: {
   ex: Exercise;
   doneToday: number;
+  /** False in A-Z view: the order is computed, so dragging it means nothing. */
+  sortable: boolean;
   onOpen: () => void;
   onDelete: () => void;
 }) {
@@ -69,9 +72,11 @@ function Row({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={`exrow${isDragging ? " dragging" : ""}`}
     >
-      <div className="swipe-del" onClick={onDelete}>
-        Delete
-      </div>
+      {dx !== 0 && (
+        <div className="swipe-del" onClick={onDelete}>
+          Delete
+        </div>
+      )}
       <div
         className="exrow-fg"
         style={{
@@ -79,9 +84,14 @@ function Row({
           transition: start.current ? "none" : "transform 0.2s ease",
         }}
       >
-        <div className="grip" {...attributes} {...listeners} aria-label="Drag to reorder">
-          <IconGrip size={20} />
-        </div>
+        {sortable ? (
+          <div className="grip" {...attributes} {...listeners} aria-label="Drag to reorder">
+            <IconGrip size={20} />
+          </div>
+        ) : (
+          /* Keeps the row's left inset identical, so nothing shifts on toggle. */
+          <div className="grip" aria-hidden="true" />
+        )}
         <div
           className="body"
           onClick={() => (dx === 0 ? onOpen() : setDx(0))}
@@ -123,6 +133,9 @@ export function GroupView({
     ? all.filter((e) => (e.muscleGroup || "Other") === spec.muscle)
     : all;
   const [adding, setAdding] = useState(false);
+  // View-only. Never written back, and never the default - it resets every
+  // time the screen is opened.
+  const [alpha, setAlpha] = useState(false);
   const toast = useToast();
   const accent = accentFor(spec.muscle || spec.tab);
   const gym = specGym(spec);
@@ -132,9 +145,18 @@ export function GroupView({
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
   );
 
+  const view = alpha
+    ? [...items].sort((a, b) =>
+        (a.name || "").localeCompare(b.name || "", undefined, {
+          sensitivity: "base",
+          numeric: true,
+        }),
+      )
+    : items;
+
   function onDragEnd(e: DragEndEvent) {
     const { active, over } = e;
-    if (!over || active.id === over.id) return;
+    if (alpha || !over || active.id === over.id) return;
     const oldIdx = items.findIndex((x) => x.id === active.id);
     const newIdx = items.findIndex((x) => x.id === over.id);
     const nextIds = arrayMove(items, oldIdx, newIdx).map((x) => x.id);
@@ -157,6 +179,17 @@ export function GroupView({
         </div>
       </div>
 
+      {items.length > 1 && (
+        <div className="seg seg-sm" style={{ ["--accent" as string]: accent }}>
+          <button className={`seg-btn${alpha ? "" : " on"}`} onClick={() => setAlpha(false)}>
+            My order
+          </button>
+          <button className={`seg-btn${alpha ? " on" : ""}`} onClick={() => setAlpha(true)}>
+            A-Z
+          </button>
+        </div>
+      )}
+
       {items.length === 0 && (
         <div className="empty">
           <div className="big">Empty rack</div>
@@ -171,13 +204,14 @@ export function GroupView({
           modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           onDragEnd={onDragEnd}
         >
-          <SortableContext items={items.map((x) => x.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext items={view.map((x) => x.id)} strategy={verticalListSortingStrategy}>
             <div className="list">
-              {items.map((ex) => (
+              {view.map((ex) => (
                 <Row
                   key={ex.id}
                   ex={ex}
                   doneToday={setsTodayFor(ex.id)}
+                  sortable={!alpha}
                   onOpen={() => onOpenExercise(ex.id)}
                   onDelete={() =>
                     deleteExercise(spec.tab, ex.id).then((undo) => {
