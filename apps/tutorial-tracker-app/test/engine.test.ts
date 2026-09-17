@@ -12,7 +12,7 @@ describe("pipeline definitions", () => {
     expect(validatePipelines()).toEqual([]);
   });
   it("derive both pipelines + the full role roster", () => {
-    expect(pipelineIds().sort()).toEqual(["standard", "tut-2"]);
+    expect(pipelineIds().sort()).toEqual(["coupon-code", "standard", "tut-2"]);
     expect(allRoles()).toEqual(expect.arrayContaining([
       "Admin", "Reviewer", "Scriptwriter", "Recorder", "Video Editor", "Thumbnail Maker", "Uploader",
     ]));

@@ -15,10 +15,12 @@ import { colOf, stageHasReviewerSlot, workField } from "./types";
 import { lifecycle } from "./lifecycle";
 import { standard } from "./definitions/standard";
 import { tut2 } from "./definitions/tut-2";
+import { couponCode } from "./definitions/coupon-code";
 
 export const PIPELINES: Record<string, PipelineDef> = {
   [standard.id]: standard,
   [tut2.id]: tut2,
+  [couponCode.id]: couponCode,
 };
 
 export const DEFAULT_PIPELINE_ID = standard.id;
