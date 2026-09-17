@@ -15,7 +15,7 @@ pipelines/video/intro-studio/	cd pipelines/video/intro-studio && bash scripts/ch
 apps/tutorial-tracker-app/	cd apps/tutorial-tracker-app && npm test
 apps/analytics-app/	cd apps/analytics-app && npm run typecheck && npm run build
 apps/redirector/	cd apps/redirector && npm test && npm run typecheck
-.claude/hooks/	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh && bash .claude/hooks/test-no-edits-in-main.sh
+.claude/hooks/	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh && bash .claude/hooks/test-no-edits-in-main.sh && bash .claude/hooks/test-no-global-gh-switch.sh
 .claude/skills/	bash .claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh
 tooling/press-clis/	cd tooling/press-clis/paypal-txns && go build ./... && go test ./...
 .claude/settings.json	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh && bash .claude/hooks/test-no-edits-in-main.sh
@@ -25,3 +25,4 @@ pipelines/income-analysis/	python3 pipelines/income-analysis/test_income.py
 apps/yt-script-desk/	cd apps/yt-script-desk && PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm test -- --run && PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm run typecheck
 tooling/cli/pp-heygen-batch/	bash tooling/cli/pp-heygen-batch/test-pp-heygen-batch.sh
 tooling/cli/coffee/	bash tooling/cli/coffee/test-coffee.sh
+tooling/cli/gh-acct/	bash tooling/cli/gh-acct/test-gh-acct.sh

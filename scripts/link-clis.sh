@@ -22,6 +22,7 @@ CLIS=(
   "wt         tooling/cli/wt/wt"
   "pp-work    tooling/cli/pp-work/pp-work"
   "yt-claude  tooling/cli/yt-claude/yt-claude"
+  "gh-acct    tooling/cli/gh-acct/gh-acct"
 )
 
 mkdir -p "$BIN_DIR"

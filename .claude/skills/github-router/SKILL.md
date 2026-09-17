@@ -1,154 +1,109 @@
 ---
 name: github-router
-description: Pick the correct GitHub account (work / yt / personal) before any git commit, push, branch, or PR action. Verifies the current repo's `git config user.email` and `gh` active account match the path-based rule. Triggers on "commit", "push", "open PR", "make a PR", "gh pr create", "create a branch and push", or any user intent that writes to a git remote. Also runs before authoring commits so the wrong author isn't attached.
+description: Pick the correct GitHub account (work / yt / personal) before any git commit, push, branch, or PR action, verifying the repo's author email and gh token match its remote. Triggers on "commit", "push", "open PR", "gh pr create", "create a branch and push", or any intent that writes to a git remote. Also use when a push 403s, a commit landed under the wrong author, or two parallel sessions seem to be fighting over the GitHub account.
 user-invocable: true
 metadata:
   author: kbtg
-  version: 2.1.0
+  version: 3.0.0
 ---
 
 # GitHub Account Router
 
-The user has three GitHub accounts. Picking the wrong one means commits land under the wrong author or pushes fail. Use this skill BEFORE any git write action.
+Three GitHub accounts, and often two Claude sessions running at once — one in a ZluriHQ work repo, one in `personal-stuff`. Both must be able to commit and push **at the same instant**, as different people, without either one disturbing the other.
 
-## The three accounts
+Since 2026-09-18 that is enforced by configuration, not by discipline. This skill is now mostly a *verifier*: it tells you the routing is correct, or names the one thing that is wrong.
 
-| Account | GitHub username | Commit name | Commit email | `gh` login name |
-|---|---|---|---|---|
-| **Work** | (Zluri SSO) | `Kushal Bakliwal` | `kushal.b@zluri.com` | `kushal-zluri` |
-| **YT** | `akshat-git-jpg` | `akshat-git-jpg` | `akshatparty17@gmail.com` | `akshat-git-jpg` |
-| **Personal** | `koala25` | `Kushal Bakliwal` | `kushalbakliwal25@gmail.com` | `koala25` |
+## The rule that replaced everything
 
-## Path → account rule
+**Route by the repo's git REMOTE, not its path.** Paths move — worktree pools live in `~/kb-scratch/workspaces/…`, `wt` clones live elsewhere. A remote does not move.
 
-Apply these in order. First match wins.
+| Remote owner | `gh` login | Commit name | Commit email |
+|---|---|---|---|
+| `ZluriHQ` / `Zluri` | `kushal-zluri` | `Kushal Bakliwal` | `kushal.b@zluri.com` |
+| `akshat-git-jpg` | `akshat-git-jpg` | `akshat-git-jpg` | `akshatparty17@gmail.com` |
+| `koala25` | `koala25` | `Kushal Bakliwal` | `kushalbakliwal25@gmail.com` |
 
-1. Repo path starts with `/Users/kbtg/codebase/personal-stuff/` → **YT**
-3. Repo path starts with `/Users/kbtg/codebase/IT` → **YT**
-4. Repo path starts with `/Users/kbtg/codebase/personal projects/` → **Personal**
-5. Repo path starts with `/Users/kbtg/codebase/` (anything else) → **Work**
-6. Anywhere else → **ask the user**, do not guess
+One resolver owns this table: `tooling/cli/gh-acct`. Do not re-implement it anywhere.
 
-## Claude account per folder
+## Why two sessions no longer collide
 
-| Folder | Claude account |
-|---|---|
-| `/Users/kbtg/codebase/personal-stuff/` | `claude-personal` |
-| `/Users/kbtg/codebase/IT` | `claude-personal` |
-| `/Users/kbtg/codebase/personal projects/` | `claude-personal` |
-| `/Users/kbtg/codebase/` (everything else) | `claude-work` |
+Both halves of "who am I" resolve per repo, writing nothing shared:
 
-## When to run this skill
+| Half | Mechanism | Why it is parallel-safe |
+|---|---|---|
+| **Commit author** | `includeIf "hasconfig:remote.*.url:…"` blocks in `~/.gitconfig` | Git evaluates them per repo, at commit time. Nothing is written. |
+| **Push / API auth** | `GH_TOKEN`, exported per shell by `gh-acct` | An env var lives inside one process. Invisible to every other session. |
 
-Trigger before any of:
+`~/.zshrc` re-pins `GH_TOKEN` on every `cd`, and `boss_assert_gh` pins it for boss's process tree.
 
-- `git commit` / `git commit --amend`
-- `git push` / `git push --force`
-- `git pull --rebase` immediately followed by a push
-- `gh pr create` / `gh pr edit` / branch creation that will be pushed
-- `git rebase` if rewriting commits that will be pushed
-- Any user prompt with intent to publish, push, open a PR, or merge
+## Banned, and blocked by a hook
 
-If the user says *"commit and push X"*, run this skill before producing the commit.
+`.claude/hooks/no-global-gh-switch.sh` refuses these in any Bash tool call, on **both** accounts:
+
+- `gh auth switch` — rewrites `~/.config/gh/hosts.yml`, which every concurrent session reads
+- `gh auth login` — same, plus it needs a browser; it is the owner's command to run
+- `git config --global user.email` / `user.name` — moves the author for every repo at once
+
+This is not a style preference. `gh auth switch` is precisely how `kushal-zluri` (work) came to comment on the public `akshat-git-jpg/personal-stuff` repo on 2026-07-30 and 2026-08-01, routing GitHub notification mail to `kushal.b@zluri.com`. Switch-and-restore was tried and only narrowed the window.
+
+Override for one command, only with the owner's say-so: `GUARD_OK=1 <command>`.
 
 ## Procedure
 
-### Step 1 — Find the repo root and look up the expected account
+### Step 1 — Ask the resolver
 
 ```bash
-REPO_ROOT="$(git rev-parse --show-toplevel)"
+gh-acct check          # or: gh-acct check -C "$(git rev-parse --show-toplevel)"
 ```
 
-Apply the path → account rule above to choose **work / yt / personal**.
+- **exit 0** — identity matches the remote. Go to Step 2.
+- **exit 1** — mismatch. It prints the exact repo-scoped fix. Show the user, run it only after they confirm, never with `--global`.
+- **exit 2** — it cannot tell which account owns this directory. **Stop and ask the user.** Do not guess. If the answer is a new remote owner, the fix is a new `includeIf` block in `~/.gitconfig` plus a row in `gh-acct`'s table — not a one-off `git config`.
+- **exit 3** — that account has no stored `gh` token. Ask the owner to run `gh auth login -h github.com -p https -w` in their own terminal.
 
-If the repo is outside `/Users/kbtg/codebase/`, stop and ask the user which account this repo belongs to before proceeding.
-
-### Step 2 — Check current `git config` matches expected
+### Step 2 — Confirm the push token is pinned
 
 ```bash
-CURRENT_EMAIL="$(git -C "$REPO_ROOT" config user.email)"
-CURRENT_NAME="$(git -C "$REPO_ROOT" config user.name)"
+gh api user -q .login      # must equal `gh-acct who`
 ```
 
-Compare against the expected values from the table. If both match → continue to Step 3.
-
-If they don't match, **do not silently fix it**. Show the user the mismatch and propose the exact fix:
+If it does not match, the shell simply never pinned one (a crew shell, a script, a fresh subprocess):
 
 ```bash
-# Example fix for a personal repo currently set to work:
-git -C "$REPO_ROOT" config user.email "kushalbakliwal25@gmail.com"
-git -C "$REPO_ROOT" config user.name "Kushal Bakliwal"
+eval "$(gh-acct export)"
 ```
 
-Run the fix only after the user confirms. (The global git config is `kushal.b@zluri.com` / work — that's intentional; per-repo overrides are how non-work repos get the right author.)
+That is the whole fix. Never reach for `gh auth switch`.
 
-### Step 3 — Check `gh` active account matches expected
+### Step 3 — Do the git action
 
-```bash
-gh auth status 2>&1 | grep -E '^\s*(Active|Logged in)'
-```
-
-Look for "Active account: true" on the expected `gh` login name from the table.
-
-If the active account is wrong, propose:
-
-```bash
-gh auth switch -u <expected-gh-login-name>
-```
-
-If the expected account is not logged in at all (e.g., `koala25` not yet authenticated), tell the user:
-
-> *"`gh` isn't logged into `koala25` yet. Run this in a terminal (browser flow):*
-> ```
-> gh auth login --hostname github.com --git-protocol https --web
-> ```
-> *Pick the right account when the browser opens. Then re-run the push."*
-
-Do not attempt `gh auth login` from a tool call — it requires an interactive browser flow.
-
-### Step 4 — Verify the remote matches the account (sanity check)
-
-```bash
-git -C "$REPO_ROOT" remote get-url origin
-```
-
-- Work account → expect `github.com/ZluriHQ/*` or `github.com/Zluri/*`
-- YT account → expect `github.com/akshat-git-jpg/*`
-- Personal account → expect `github.com/koala25/*`
-
-If the remote doesn't match the expected account, **stop and ask**. Could be:
-- A repo placed in the wrong folder
-- A fork
-- A repo that legitimately belongs to a different account than its location suggests
-
-### Step 5 — Proceed with the requested git action
-
-Once Steps 2–4 are clean (or the user has confirmed any fixes), perform the commit / push / PR.
+Commit / push / PR as asked. Commit-message rules live in the repo's own commit skill (`commit-now` here, `commit-now-work` in ZluriHQ repos).
 
 ## Setting up a new repo
 
-When the user clones or creates a new repo under `/Users/kbtg/codebase/`:
+Clone it anywhere. If its remote owner is already in the table, both halves route themselves — there is nothing to configure.
 
-1. Identify the target account from the path rule (or ask if ambiguous).
-2. If the account is **not work**, set per-repo author:
-   ```bash
-   git -C "$REPO_ROOT" config user.email "<expected-email>"
-   git -C "$REPO_ROOT" config user.name "<expected-name>"
-   ```
-   Work repos don't need this — the global config already matches.
-3. Confirm `gh` is logged into the right account (Step 3 above).
+If the remote owner is new:
 
-## Common mismatches and fixes
+1. Add an `includeIf "hasconfig:remote.*.url:https://github.com/<owner>/**"` block to `~/.gitconfig` (and the `git@` form).
+2. Add the owner to `owner_to_acct` in `tooling/cli/gh-acct/gh-acct`.
+3. `gh-acct check` to confirm.
+
+A repo with no remote yet falls back to a path rule inside `gh-acct`; a path it does not recognise exits 2 and asks.
+
+## Common symptoms
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Commit shows `kushal.b@zluri.com` on a personal repo | No per-repo override set | `git config user.email kushalbakliwal25@gmail.com` (and name) |
-| `gh pr create` opens PR under `kushal-zluri` on a YT repo | Wrong active `gh` account | `gh auth switch -u akshat-git-jpg` |
-| `git push` fails 403 on personal repo | `gh` not logged into `koala25` | Run interactive `gh auth login` first |
-| Repo lives in `~/codebase/foo/` but remote is `akshat-git-jpg/foo` | Repo in wrong folder | Move to `~/codebase/personal-stuff/` if YT account, or set explicit per-repo override |
+| `git push` 403s | `GH_TOKEN` unset, so the call fell through to the global account | `eval "$(gh-acct export)"` |
+| A commit landed under the wrong author | The repo has a stale repo-local `user.email` overriding the remote rule | `gh-acct check` prints the exact fix |
+| `gh pr create` opened the PR as the wrong user | Same as the 403 | `eval "$(gh-acct export)"` |
+| Two sessions keep flipping the account | Something still calls `gh auth switch` | Find it: `grep -rn "gh auth switch"`. The hook blocks tool calls, not scripts the owner runs directly |
+| `gh-acct: command not found` | `~/.local/bin` symlink missing after a fresh clone | `scripts/relink.sh` |
 
 ## Notes
 
-- This skill is read-only on its own — it inspects and tells you what to do. It only modifies state (via `git config` or `gh auth switch`) after you confirm.
-- The path map is a heuristic. The git remote URL is the ground truth — if the path says one account but the remote says another, the remote wins. Surface the conflict, don't paper over it.
-- This skill is duplicated at `~/.claude-work/skills/github-router/` and `~/.claude-personal/skills/github-router/`. To update: edit one copy, then `cp` to the other.
+- This skill inspects and reports. It changes state only after the user confirms, and only ever with repo-scoped commands.
+- The remote is ground truth. If a path rule and a remote disagree, the remote wins — surface the conflict, do not paper over it.
+- `~/.gitconfig` keeps a global `[user]` of `kushal.b@zluri.com`. That is the safe default for the 28 ZluriHQ clones, not a statement that work owns an unmatched repo. An unmatched repo gets exit 2 and a question.
+- This skill is duplicated into the private `work-skills` plugin. After editing, run `scripts/sync-shared-skills.sh`.

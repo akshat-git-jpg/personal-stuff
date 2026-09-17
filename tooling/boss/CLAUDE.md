@@ -284,16 +284,20 @@ four commands: run `mutation_command` clean (must pass) → apply `mutation_appl
   kills the tree → it becomes `dead` and the one-fix-up→blocked policy above takes
   over. A genuinely computing crew never trips (CPU keeps moving). Override per-PR
   via meta `stall_warn`/`stall_kill`, or globally via `BOSS_STALL_WARN_MIN`/`_KILL_MIN`.
-- **gh account auto-asserted** on every write path (session-start/dispatch/merge/
-  deploy) — a silent account flip had broken all `gh` calls. Set `BOSS_GH_USER` to override.
-  **It now hands the account back.** `gh auth switch` moves the GLOBAL active
-  account, so until 2026-08-24 every boss write path left the owner switched to
-  `BOSS_GH_USER`, and their next ZluriHQ work-repo `gh` call authenticated as the
-  personal account. `boss_assert_gh` now records the displaced login in
-  `$STATE_DIR/gh_prev`, and all four entry scripts `trap boss_gh_restore EXIT`.
-  `BOSS_GH_KEEP=1` keeps boss active when chaining boss commands by hand. This is
-  orthogonal to the push 403 under *Blocked lands*: `git push` resolves through the
-  repo-local credential helper, not the active gh account.
+- **gh account pinned per-process** on every write path (session-start/dispatch/
+  merge/deploy). Set `BOSS_GH_USER` to override.
+  **It no longer touches global state (2026-09-18).** `gh auth switch` rewrites
+  `~/.config/gh/hosts.yml`, which every concurrent shell and Claude session reads —
+  so a boss run yanked the account out from under a parallel ZluriHQ work session.
+  The switch-and-restore dance only narrowed that window; it never closed it.
+  `boss_assert_gh` now exports `GH_TOKEN`, which is process-local and invisible to
+  every other session. `boss_gh_restore` is a kept no-op so the four `trap … EXIT`
+  lines stay wired as a tripwire; `BOSS_GH_KEEP` is inert. Never reintroduce
+  `gh auth switch` — `.claude/hooks/no-global-gh-switch.sh` blocks it, and
+  `test-boss.sh` fails if the global account moves. Resolver:
+  `tooling/cli/gh-acct`. This is orthogonal to the push 403 under *Blocked lands*:
+  `git push` resolves through the repo-local credential helper, not the active gh
+  account.
 
 ### Contention protection (added 2026-08-02)
 

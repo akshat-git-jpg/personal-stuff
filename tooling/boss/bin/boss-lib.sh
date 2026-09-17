@@ -589,34 +589,36 @@ boss_date_epoch() {
 BOSS_GH_USER="${BOSS_GH_USER:-$(git config --get boss.ghUser 2>/dev/null || true)}"
 BOSS_GH_USER="${BOSS_GH_USER:-akshat-git-jpg}"
 boss_assert_gh() {
-  local u; u=$(gh api user -q .login 2>/dev/null)
-  [ "$u" = "$BOSS_GH_USER" ] && return 0
-  # Remember whose gh session we are taking over so boss_gh_restore can hand it
-  # back on exit. `gh auth switch` changes the GLOBAL active account, so without
-  # this every boss write path left the owner switched to BOSS_GH_USER and they
-  # had to re-switch by hand before any unrelated (e.g. ZluriHQ work-repo) gh
-  # call. The work account stays logged in throughout -- only "active" moves.
-  if [ -n "$u" ]; then printf '%s' "$u" > "$STATE_DIR/gh_prev"; else rm -f "$STATE_DIR/gh_prev"; fi
-  gh auth switch --hostname github.com --user "$BOSS_GH_USER" >/dev/null 2>&1
+  # Pin the account for THIS process tree only, via GH_TOKEN. GH_TOKEN outranks
+  # the active account in ~/.config/gh/hosts.yml and is invisible to every other
+  # shell, so a ZluriHQ work session running at the same moment is untouched.
+  #
+  # This used to call `gh auth switch`, which rewrites that global file. Every
+  # boss write path therefore yanked the account out from under any concurrent
+  # session -- the 2026-07-30 / 2026-08-01 leak where kushal-zluri commented on
+  # the public akshat-git-jpg repo. See decisions.md 2026-09-18.
+  local u
   u=$(gh api user -q .login 2>/dev/null)
-  [ "$u" = "$BOSS_GH_USER" ] || { echo "FATAL: gh active account is '${u:-none}', need $BOSS_GH_USER (run: gh auth switch --user $BOSS_GH_USER)" >&2; return 1; }
-  echo "boss: gh account auto-switched to $BOSS_GH_USER (restores on exit)" >&2
+  [ "$u" = "$BOSS_GH_USER" ] && return 0
+
+  local tok
+  tok=$(gh auth token -u "$BOSS_GH_USER" 2>/dev/null) || tok=""
+  if [ -z "$tok" ]; then
+    echo "FATAL: no stored gh credentials for $BOSS_GH_USER (run: gh auth login -h github.com -p https -w)" >&2
+    return 1
+  fi
+  export GH_TOKEN="$tok"
+
+  u=$(gh api user -q .login 2>/dev/null)
+  [ "$u" = "$BOSS_GH_USER" ] || { echo "FATAL: gh resolved to '${u:-none}', need $BOSS_GH_USER" >&2; return 1; }
+  echo "boss: gh pinned to $BOSS_GH_USER for this process (GH_TOKEN, not global)" >&2
 }
 
-# Hand the owner's gh account back. Idempotent and safe to call unconditionally --
-# a no-op when boss never switched. Every boss entry script traps this on EXIT.
-# Set BOSS_GH_KEEP=1 to leave boss's account active (handy when chaining boss
-# commands by hand and you don't want a switch-and-restore on every call).
-boss_gh_restore() {
-  [ "${BOSS_GH_KEEP:-0}" = "1" ] && return 0
-  local prev; prev=$(cat "$STATE_DIR/gh_prev" 2>/dev/null) || return 0
-  rm -f "$STATE_DIR/gh_prev"
-  [ -n "$prev" ] || return 0
-  [ "$prev" = "$BOSS_GH_USER" ] && return 0
-  gh auth switch --hostname github.com --user "$prev" >/dev/null 2>&1 \
-    && echo "boss: gh account restored to $prev" >&2
-  return 0
-}
+# Kept as a no-op so the EXIT traps in the four entry scripts keep working.
+# There is nothing left to restore: boss no longer moves the global active
+# account, so the owner's other shells never saw it move. Do not reintroduce
+# `gh auth switch` here -- that is the bug this replaced.
+boss_gh_restore() { :; }
 
 # --- stall detection (fix: `alive` only proves the PID exists; a process blocked
 # forever looks identical to one working, which let the 2026-07-08 hang run 83m
