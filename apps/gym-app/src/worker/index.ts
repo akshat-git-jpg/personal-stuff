@@ -11,10 +11,11 @@ import {
   deleteLog,
   readLog,
   reorderExercises,
+  restoreExercise,
   updateExercise,
   updateLog,
 } from "./repo";
-import type { LogPatch } from "../shared";
+import type { Exercise, LogPatch } from "../shared";
 import type { ExerciseInput, LogInput } from "../shared";
 import { login, logout, me, requireAuth } from "./auth";
 
@@ -56,6 +57,13 @@ app.delete("/api/groups/:tab/exercises/:id", async (c) => {
   const id = c.req.param("id");
   await deleteExercise(c.env, tab, id);
   return c.json({ ok: true });
+});
+
+app.post("/api/groups/:tab/exercises/:id/restore", async (c) => {
+  const tab = decodeURIComponent(c.req.param("tab"));
+  const { exercise, planDays } = await c.req.json<{ exercise: Exercise; planDays?: number[] }>();
+  if (!exercise?.id) return c.json({ error: "exercise required" }, 400);
+  return c.json(await restoreExercise(c.env, tab, exercise, planDays ?? []));
 });
 
 app.post("/api/groups/:tab/reorder", async (c) => {

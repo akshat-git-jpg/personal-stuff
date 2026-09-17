@@ -22,7 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../shared";
-import { accentFor, IconBack, IconGrip, IconPlus, useToast } from "./ui";
+import { accentFor, IconBack, IconGrip, IconMinusCircle, IconPlus, useToast } from "./ui";
 import { useGym } from "./store";
 import { gymBadge } from "./gym";
 import { ExercisePicker } from "./ExercisePicker";
@@ -152,6 +152,15 @@ function Row({
             )}
           </div>
         </div>
+        {/* Mouse-reachable twin of the swipe gesture — Macs cannot swipe. */}
+        <button
+          className="rowdel"
+          onClick={onRemove}
+          title={`Remove ${ex.name} from this day`}
+          aria-label={`Remove ${ex.name} from this day`}
+        >
+          <IconMinusCircle size={18} />
+        </button>
       </div>
     </div>
   );
@@ -249,8 +258,16 @@ export function DayPlan({
                   }}
                   onOpen={() => onOpenExercise(ex)}
                   onRemove={() => {
+                    const orderBefore = dayIds(day);
                     removeFromDay(day, ex.id);
-                    toast("Removed from " + DAY_LONG[day]);
+                    toast(`Removed from ${DAY_LONG[day]}`, false, {
+                      label: "Undo",
+                      // Reorder only AFTER the row is back on the server —
+                      // firing both at once races and scrambles the day.
+                      onClick: () => {
+                        void addToDay(day, ex.id).then(() => setDayOrder(day, orderBefore));
+                      },
+                    });
                   }}
                 />
               ))}

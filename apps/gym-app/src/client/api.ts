@@ -56,6 +56,11 @@ export const api = {
     req<Exercise>("PUT", `/groups/${E(tab)}/exercises/${E(id)}`, input),
   deleteExercise: (tab: string, id: string) =>
     req<{ ok: true }>("DELETE", `/groups/${E(tab)}/exercises/${E(id)}`),
+  restoreExercise: (tab: string, exercise: Exercise, planDays: number[]) =>
+    req<Exercise>("POST", `/groups/${E(tab)}/exercises/${E(exercise.id)}/restore`, {
+      exercise,
+      planDays,
+    }),
   reorder: (tab: string, orderedIds: string[]) =>
     req<Exercise[]>("POST", `/groups/${E(tab)}/reorder`, { orderedIds }),
   addPlanRow: (day: number, exerciseId: string) =>

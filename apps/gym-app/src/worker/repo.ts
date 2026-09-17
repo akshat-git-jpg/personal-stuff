@@ -209,6 +209,37 @@ export async function deleteExercise(env: Env, tab: string, id: string): Promise
   await reindex(env, tab, list.map((e) => e.id));
 }
 
+/** Put a just-deleted exercise back under its ORIGINAL id, at its old slot,
+ *  with the plan rows the delete cascaded away. Powers the Undo toast. */
+export async function restoreExercise(
+  env: Env,
+  tab: string,
+  ex: Exercise,
+  planDays: number[],
+): Promise<Exercise> {
+  await env.DB.prepare(
+    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING",
+  )
+    .bind(
+      ex.id,
+      tab,
+      ex.name,
+      ex.setting ?? "",
+      ex.setsReps ?? "",
+      ex.notes ?? "",
+      isMixed(tab) ? ex.muscleGroup ?? "" : null,
+      ex.order ?? 0,
+      ex.gym ?? MIXED_TABS.get(tab) ?? "main",
+    )
+    .run();
+  const others = (await readExercises(env, tab)).filter((e) => e.id !== ex.id).map((e) => e.id);
+  const at = Math.min(Math.max(ex.order ?? others.length, 0), others.length);
+  await reindex(env, tab, [...others.slice(0, at), ex.id, ...others.slice(at)]);
+  for (const day of planDays) await addPlanRow(env, day, ex.id);
+  return ex;
+}
+
 async function reindex(env: Env, tab: string, orderedIds: string[]): Promise<void> {
   if (orderedIds.length === 0) return;
   await env.DB.batch(

@@ -17,7 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../shared";
-import { accentFor, IconBack, IconGrip, IconPlus, useToast } from "./ui";
+import { accentFor, IconBack, IconGrip, IconPlus, IconTrash, useToast } from "./ui";
 import { useGym } from "./store";
 import { gymLabel, rebuildSliceOrder, specGym, type GroupSpec } from "./gym";
 
@@ -99,6 +99,10 @@ function Row({
           </div>
           <div className="meta">{summarise(ex)}</div>
         </div>
+        {/* Mouse-reachable twin of the swipe gesture — Macs cannot swipe. */}
+        <button className="rowdel" onClick={onDelete} title={`Delete ${ex.name}`} aria-label={`Delete ${ex.name}`}>
+          <IconTrash size={18} />
+        </button>
       </div>
     </div>
   );
@@ -175,7 +179,11 @@ export function GroupView({
                   ex={ex}
                   doneToday={setsTodayFor(ex.id)}
                   onOpen={() => onOpenExercise(ex.id)}
-                  onDelete={() => deleteExercise(spec.tab, ex.id).then(() => toast("Deleted"))}
+                  onDelete={() =>
+                    deleteExercise(spec.tab, ex.id).then((undo) => {
+                      if (undo) toast(`Deleted ${ex.name}`, false, { label: "Undo", onClick: undo });
+                    })
+                  }
                 />
               ))}
             </div>
