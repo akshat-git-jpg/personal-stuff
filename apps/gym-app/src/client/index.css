@@ -372,6 +372,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 10px;
+  text-transform: uppercase;
   font-size: 15px;
   font-weight: 600;
 }
@@ -479,6 +480,7 @@ textarea {
   flex: none;
 }
 .sx-name {
+  text-transform: uppercase;
   font-weight: 700;
   font-size: 16px;
   line-height: 1.15;
@@ -613,6 +615,7 @@ textarea {
   padding: 14px 14px 14px 4px;
 }
 .exrow .name {
+  text-transform: uppercase;
   font-weight: 700;
   font-size: 17px;
   line-height: 1.15;
@@ -1261,6 +1264,7 @@ textarea {
   color: var(--text);
 }
 .plan-tick-name {
+  text-transform: uppercase;
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -1434,6 +1438,7 @@ textarea {
   opacity: 0.45;
 }
 .picker-name {
+  text-transform: uppercase;
   flex: 1;
   min-width: 0;
   overflow: hidden;
