@@ -13,6 +13,10 @@ Mobile gym PWA. Vite + React + Hono on a Cloudflare Worker. Full detail: `README
   /api/groups/:tab/exercises/:id/restore`, which re-inserts under the ORIGINAL id (a new
   `addExercise` would mint a new id and orphan the log).
 
+- **The A-Z toggle on a muscle group is a VIEW, not a sort.** It never writes an order
+  back, resets to "My order" every time the screen opens, and hides the drag handles while
+  on. Owner's call: his hand-made order must survive.
+
 - **Writes hit a Cloudflare D1 database** (`gym-db`). The original Google Sheet is now a frozen rollback copy, plus `Mirror: *` tabs updated weekly by a cron. Use `DB` binding, `schema.sql`, and `npm run db:local`/`npm run seed:local` to test locally.
 - **No auth** — single user, security is just the obscure URL. Don't add a login flow without asking.
 - The client store (`src/client/store.tsx`) is the session source of truth: hydrate from localStorage, one batched `GET /api/bootstrap`, optimistic writes. **Don't add per-navigation refetch** — it breaks the snappy/consistent model on purpose.

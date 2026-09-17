@@ -314,6 +314,19 @@ textarea {
   color: #0a0a0b;
   box-shadow: 0 0 16px var(--lime-glow);
 }
+/* Compact variant. Takes the screen's own accent, so it reads as part of the
+   muscle group rather than a second gym switcher. */
+.seg-sm {
+  margin-bottom: 14px;
+}
+.seg-sm .seg-btn {
+  height: 34px;
+  font-size: 12px;
+}
+.seg-sm .seg-btn.on {
+  background: var(--accent, var(--lime));
+  box-shadow: none;
+}
 
 /* ============ Today card ============ */
 .today-card {
