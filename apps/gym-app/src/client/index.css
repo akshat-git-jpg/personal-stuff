@@ -603,7 +603,8 @@ textarea {
   display: flex;
   align-items: stretch;
   background: var(--surface);
-  border-radius: var(--r-md);
+  /* No radius: .exrow already clips. Rounding here let the red swipe layer
+     bleed through the corners as a halo. */
   will-change: transform;
 }
 .exrow .body {
@@ -649,10 +650,39 @@ textarea {
   border-color: var(--lime);
   z-index: 5;
 }
+/* Row delete/remove button. Same job as the swipe gesture, but clickable —
+   a mouse has no swipe, so on desktop this is the ONLY way out. */
+.exrow .rowdel {
+  flex: none;
+  width: 46px;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--line-soft);
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.exrow .rowdel:hover,
+.exrow .rowdel:focus-visible {
+  color: var(--heat);
+  background: rgba(255, 90, 31, 0.1);
+  outline: none;
+}
+.exrow .rowdel:active {
+  color: var(--heat);
+  background: rgba(255, 90, 31, 0.2);
+}
+
 .swipe-del {
   position: absolute;
   inset: 0 0 0 auto;
   width: 88px;
+  /* Match the row's corner, or the red bleeds past it as a halo. */
+  border-radius: 0 var(--r-md) var(--r-md) 0;
   background: var(--heat);
   color: #fff;
   display: grid;
@@ -1051,19 +1081,49 @@ textarea {
   display: flex;
   align-items: center;
   gap: 8px;
+  max-width: calc(100vw - 32px);
 }
 .toast.err {
   border-color: var(--heat-dim);
 }
 .toast .tdot {
+  flex: none;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--lime);
 }
+/* One line, ellipsised — an exercise name must not wrap the pill to 3 rows. */
+.toast .tmsg {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .toast.err .tdot {
   background: var(--heat);
 }
+.toast-action {
+  flex: none;
+  margin-left: 4px;
+  padding: 5px 12px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--lime);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.toast-action:hover,
+.toast-action:focus-visible {
+  border-color: var(--lime);
+  outline: none;
+}
+
 @keyframes toastin {
   from {
     opacity: 0;

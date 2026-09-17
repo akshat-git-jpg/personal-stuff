@@ -47,6 +47,12 @@ export const IconTrash = (p: IP) => (
     <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
   </S>
 );
+export const IconMinusCircle = (p: IP) => (
+  <S {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M8 12h8" />
+  </S>
+);
 export const IconRepeat = (p: IP) => (
   <S {...p}>
     <path d="M17 2l4 4-4 4" />
@@ -87,24 +93,45 @@ export function accentFor(name: string): string {
 }
 
 /* ---- Toast ---- */
-type Toast = { id: number; msg: string; err?: boolean };
-const ToastCtx = createContext<(msg: string, err?: boolean) => void>(() => {});
+export type ToastAction = { label: string; onClick: () => void };
+type Toast = { id: number; msg: string; err?: boolean; action?: ToastAction };
+type Push = (msg: string, err?: boolean, action?: ToastAction) => void;
+const ToastCtx = createContext<Push>(() => {});
 export const useToast = () => useContext(ToastCtx);
+
+/** An actionable toast stays up long enough to be clicked. */
+const LIFE_MS = 2200;
+const LIFE_ACTION_MS = 5000;
 
 export function ToastHost({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const push = useCallback((msg: string, err?: boolean) => {
-    const id = Date.now() + Math.random();
-    setToasts((t) => [...t, { id, msg, err }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2200);
-  }, []);
+  const drop = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
+  const push = useCallback<Push>(
+    (msg, err, action) => {
+      const id = Date.now() + Math.random();
+      setToasts((t) => [...t, { id, msg, err, action }]);
+      setTimeout(() => drop(id), action ? LIFE_ACTION_MS : LIFE_MS);
+    },
+    [drop],
+  );
   return (
     <ToastCtx.Provider value={push}>
       {children}
       {toasts.map((t) => (
         <div key={t.id} className={`toast${t.err ? " err" : ""}`}>
           <span className="tdot" />
-          {t.msg}
+          <span className="tmsg">{t.msg}</span>
+          {t.action && (
+            <button
+              className="toast-action"
+              onClick={() => {
+                t.action!.onClick();
+                drop(t.id);
+              }}
+            >
+              {t.action.label}
+            </button>
+          )}
         </div>
       ))}
     </ToastCtx.Provider>

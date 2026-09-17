@@ -18,7 +18,7 @@ export type Plan = Record<string, string[]>;
 
 let current: PlanRow[] = [];
 let mutators: {
-  add: (day: number, id: string) => void;
+  add: (day: number, id: string) => Promise<void>;
   remove: (day: number, id: string) => void;
   reorder: (day: number, ids: string[]) => void;
 } | null = null;
@@ -39,8 +39,8 @@ export function daysFor(exerciseId: string): DayIdx[] {
   return WEEK.filter((d) => current.some((r) => r.day === d && r.exerciseId === exerciseId));
 }
 
-export const addToDay = (day: DayIdx, exerciseId: string): void =>
-  mutators?.add(day, exerciseId);
+export const addToDay = (day: DayIdx, exerciseId: string): Promise<void> =>
+  mutators?.add(day, exerciseId) ?? Promise.resolve();
 export const removeFromDay = (day: DayIdx, exerciseId: string): void =>
   mutators?.remove(day, exerciseId);
 export const setDayOrder = (day: DayIdx, orderedIds: string[]): void =>

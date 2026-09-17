@@ -263,4 +263,29 @@ describe('repo', () => {
     const res = await env.DB.prepare("SELECT COUNT(*) as c FROM plan WHERE exercise_id = 'C01'").first();
     expect(res.c).toBe(0);
   });
+
+  it('restoreExercise puts the row back at its old slot, under its old id, with its plan rows', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name) VALUES ('C01', 'Chest', 0, 'c1'), ('C02', 'Chest', 1, 'c2'), ('C03', 'Chest', 2, 'c3');");
+    await repo.addPlanRow(env, 5, 'C02');
+    await repo.addPlanRow(env, 2, 'C02');
+    const before = (await repo.bootstrap(env)).exercises['Chest'].find(e => e.id === 'C02');
+
+    await repo.deleteExercise(env, 'Chest', 'C02');
+    await repo.restoreExercise(env, 'Chest', before, [5, 2]);
+
+    const data = await repo.bootstrap(env);
+    expect(data.exercises['Chest'].map(e => e.id)).toEqual(['C01', 'C02', 'C03']);
+    expect(data.exercises['Chest'][1]).toMatchObject({ id: 'C02', name: 'c2', order: 1 });
+    expect(data.plan.filter(r => r.exerciseId === 'C02').map(r => r.day).sort()).toEqual([2, 5]);
+  });
+
+  it('restoreExercise is idempotent - restoring twice leaves one row', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name) VALUES ('C01', 'Chest', 0, 'c1');");
+    const before = (await repo.bootstrap(env)).exercises['Chest'][0];
+    await repo.deleteExercise(env, 'Chest', 'C01');
+    await repo.restoreExercise(env, 'Chest', before, []);
+    await repo.restoreExercise(env, 'Chest', before, []);
+    const res = await env.DB.prepare("SELECT COUNT(*) as c FROM exercise WHERE id = 'C01'").first();
+    expect(res.c).toBe(1);
+  });
 });

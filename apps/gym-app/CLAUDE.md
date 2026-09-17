@@ -6,6 +6,13 @@ Mobile gym PWA. Vite + React + Hono on a Cloudflare Worker. Full detail: `README
 
 - The plan lives in the `plan` table, `gym` is a column on `exercise`, and Sets/Reps is deliberately shared with the catalogue.
 
+- **Every row action needs a clickable twin.** The swipe gesture is touch-only, so a
+  desktop browser cannot reach it — each row also carries a `.rowdel` button (trash in
+  the catalogue, minus-circle in the week plan). Deletes are not confirmed; they show an
+  Undo toast instead, and undoing a catalogue delete calls `POST
+  /api/groups/:tab/exercises/:id/restore`, which re-inserts under the ORIGINAL id (a new
+  `addExercise` would mint a new id and orphan the log).
+
 - **Writes hit a Cloudflare D1 database** (`gym-db`). The original Google Sheet is now a frozen rollback copy, plus `Mirror: *` tabs updated weekly by a cron. Use `DB` binding, `schema.sql`, and `npm run db:local`/`npm run seed:local` to test locally.
 - **No auth** — single user, security is just the obscure URL. Don't add a login flow without asking.
 - The client store (`src/client/store.tsx`) is the session source of truth: hydrate from localStorage, one batched `GET /api/bootstrap`, optimistic writes. **Don't add per-navigation refetch** — it breaks the snappy/consistent model on purpose.
