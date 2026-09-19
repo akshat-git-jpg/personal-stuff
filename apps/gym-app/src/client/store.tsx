@@ -48,6 +48,8 @@ interface Gym {
   addPlanRow: (day: number, exerciseId: string) => Promise<void>;
   deletePlanRow: (day: number, exerciseId: string) => void;
   reorderPlanDay: (day: number, orderedIds: string[]) => void;
+  /** Star/unstar ONE (day, exercise) pair. Optimistic, like every write here. */
+  setPlanStar: (day: number, exerciseId: string, starred: boolean) => void;
   ready: boolean;
   syncing: boolean;
   logComplete: boolean;
@@ -63,8 +65,6 @@ interface Gym {
   loadFullLog: () => Promise<void>;
   addExercise: (tab: string, input: ExerciseInput) => Promise<Exercise | null>;
   updateExercise: (tab: string, id: string, patch: ExerciseInput) => void;
-  /** Flip the favourite flag. Optimistic, same as every other write here. */
-  toggleStar: (ex: Exercise) => void;
   /** Resolves to an undo callback, or null when nothing was deleted. */
   deleteExercise: (tab: string, id: string) => Promise<(() => void) | null>;
   reorder: (tab: string, orderedIds: string[]) => void;
@@ -179,7 +179,7 @@ export function GymProvider({ children }: { children: ReactNode }) {
       const before = snapRef.current.plan;
       if (before.some((r) => r.day === day && r.exerciseId === exerciseId)) return Promise.resolve();
       const position = before.filter((r) => r.day === day).length;
-      setSnap((s) => ({ ...s, plan: [...s.plan, { day, exerciseId, position }] }));
+      setSnap((s) => ({ ...s, plan: [...s.plan, { day, exerciseId, position, starred: false }] }));
       return api.addPlanRow(day, exerciseId).then(
         () => undefined,
         (e) => {
@@ -226,6 +226,23 @@ export function GymProvider({ children }: { children: ReactNode }) {
 
 
 
+  const setPlanStar = useCallback(
+    (day: number, exerciseId: string, starred: boolean) => {
+      const before = snapRef.current.plan;
+      setSnap((s) => ({
+        ...s,
+        plan: s.plan.map((r) =>
+          r.day === day && r.exerciseId === exerciseId ? { ...r, starred } : r,
+        ),
+      }));
+      api.setPlanStar(day, exerciseId, starred).catch((e) => {
+        toast(String((e as Error).message), true);
+        setSnap((s) => ({ ...s, plan: before }));
+      });
+    },
+    [toast],
+  );
+
   const addExercise = useCallback(
     async (tab: string, input: ExerciseInput): Promise<Exercise | null> => {
       try {
@@ -258,27 +275,6 @@ export function GymProvider({ children }: { children: ReactNode }) {
     [toast],
   );
 
-  const toggleStar = useCallback(
-    (ex: Exercise) => {
-      const next = !ex.starred;
-      const before = snapRef.current.byTab[ex.tab] ?? [];
-      setSnap((s) => ({
-        ...s,
-        byTab: {
-          ...s.byTab,
-          [ex.tab]: (s.byTab[ex.tab] ?? []).map((e) =>
-            e.id === ex.id ? { ...e, starred: next } : e,
-          ),
-        },
-      }));
-      api.updateExercise(ex.tab, ex.id, { name: ex.name, starred: next }).catch((e) => {
-        toast(String((e as Error).message), true);
-        setSnap((s) => ({ ...s, byTab: { ...s.byTab, [ex.tab]: before } }));
-      });
-    },
-    [toast],
-  );
-
   const deleteExercise = useCallback(
     async (tab: string, id: string): Promise<(() => void) | null> => {
       const before = snapRef.current.byTab[tab] ?? [];
@@ -286,7 +282,9 @@ export function GymProvider({ children }: { children: ReactNode }) {
       const ex = before.find((e) => e.id === id);
       // The server cascades plan rows away with the exercise; remember which
       // days it was on so an undo can put both back.
-      const planDays = planBefore.filter((r) => r.exerciseId === id).map((r) => r.day);
+      const planRows = planBefore
+        .filter((r) => r.exerciseId === id)
+        .map((r) => ({ day: r.day, starred: r.starred }));
       const gone = (s: Snapshot): Snapshot => ({
         ...s,
         byTab: { ...s.byTab, [tab]: (s.byTab[tab] ?? []).filter((e) => e.id !== id) },
@@ -308,7 +306,7 @@ export function GymProvider({ children }: { children: ReactNode }) {
       if (!ex) return null;
       return () => {
         setSnap(back);
-        api.restoreExercise(tab, ex, planDays).catch((err) => {
+        api.restoreExercise(tab, ex, planRows).catch((err) => {
           toast(String((err as Error).message), true);
           setSnap(gone);
         });
@@ -382,13 +380,19 @@ export function GymProvider({ children }: { children: ReactNode }) {
     [toast],
   );
 
-  publishPlan(snap.plan, { add: addToPlan, remove: removeFromPlan, reorder: reorderPlanDay });
+  publishPlan(snap.plan, {
+    add: addToPlan,
+    remove: removeFromPlan,
+    reorder: reorderPlanDay,
+    star: setPlanStar,
+  });
 
   const value: Gym = {
     plan: snap.plan,
     addPlanRow: addToPlan,
     deletePlanRow: removeFromPlan,
     reorderPlanDay,
+    setPlanStar,
 
     ready,
     syncing,
@@ -404,7 +408,6 @@ export function GymProvider({ children }: { children: ReactNode }) {
     loadFullLog,
     addExercise,
     updateExercise,
-    toggleStar,
     deleteExercise,
     reorder,
     addLog,

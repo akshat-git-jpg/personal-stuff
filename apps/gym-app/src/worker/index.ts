@@ -12,6 +12,7 @@ import {
   readLog,
   reorderExercises,
   restoreExercise,
+  setPlanStar,
   updateExercise,
   updateLog,
 } from "./repo";
@@ -61,9 +62,12 @@ app.delete("/api/groups/:tab/exercises/:id", async (c) => {
 
 app.post("/api/groups/:tab/exercises/:id/restore", async (c) => {
   const tab = decodeURIComponent(c.req.param("tab"));
-  const { exercise, planDays } = await c.req.json<{ exercise: Exercise; planDays?: number[] }>();
+  const { exercise, planRows } = await c.req.json<{
+    exercise: Exercise;
+    planRows?: { day: number; starred?: boolean }[];
+  }>();
   if (!exercise?.id) return c.json({ error: "exercise required" }, 400);
-  return c.json(await restoreExercise(c.env, tab, exercise, planDays ?? []));
+  return c.json(await restoreExercise(c.env, tab, exercise, planRows ?? []));
 });
 
 app.post("/api/groups/:tab/reorder", async (c) => {
@@ -88,6 +92,14 @@ app.post("/api/plan/:day/reorder", async (c) => {
   if (!Number.isInteger(day) || day < 0 || day > 6) return c.json({ error: "bad day" }, 400);
   const { orderedIds } = await c.req.json<{ orderedIds: string[] }>();
   return c.json(await reorderPlanDay(c.env, day, orderedIds));
+});
+
+app.put("/api/plan/:day/:exerciseId/star", async (c) => {
+  const day = Number(c.req.param("day"));
+  if (!Number.isInteger(day) || day < 0 || day > 6) return c.json({ error: "bad day" }, 400);
+  const { starred } = await c.req.json<{ starred: boolean }>();
+  await setPlanStar(c.env, day, decodeURIComponent(c.req.param("exerciseId")), !!starred);
+  return c.json({ ok: true });
 });
 
 app.delete("/api/plan/:day/:exerciseId", async (c) => {

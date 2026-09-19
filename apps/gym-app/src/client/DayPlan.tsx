@@ -30,9 +30,11 @@ import {
   DAY_LONG,
   addToDay,
   dayIds,
+  isDayStarred,
   muscleOf,
   removeFromDay,
   setDayOrder,
+  toggleDayStar,
   todayIdx,
   usePlan,
   type DayIdx,
@@ -40,6 +42,7 @@ import {
 
 function Row({
   ex,
+  starred,
   doneToday,
   onSetsReps,
   onOpen,
@@ -47,6 +50,8 @@ function Row({
   onRemove,
 }: {
   ex: Exercise;
+  /** Per-day, so it is passed in rather than read off the exercise. */
+  starred: boolean;
   doneToday: number;
   onSetsReps: (value: string) => void;
   onOpen: () => void;
@@ -90,7 +95,7 @@ function Row({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`exrow${isDragging ? " dragging" : ""}${ex.starred ? " starred" : ""}`}
+      className={`exrow${isDragging ? " dragging" : ""}${starred ? " starred" : ""}`}
     >
       {dx !== 0 && (
         <div className="swipe-del" onClick={onRemove}>
@@ -157,13 +162,13 @@ function Row({
           </div>
         </div>
         <button
-          className={`rowstar${ex.starred ? " on" : ""}`}
+          className={`rowstar${starred ? " on" : ""}`}
           onClick={onStar}
-          title={ex.starred ? `Unstar ${ex.name}` : `Star ${ex.name}`}
-          aria-label={ex.starred ? `Unstar ${ex.name}` : `Star ${ex.name}`}
-          aria-pressed={ex.starred}
+          title={starred ? `Unstar ${ex.name}` : `Star ${ex.name}`}
+          aria-label={starred ? `Unstar ${ex.name}` : `Star ${ex.name}`}
+          aria-pressed={starred}
         >
-          <IconStar size={18} on={ex.starred} />
+          <IconStar size={18} on={starred} />
         </button>
         {/* Mouse-reachable twin of the swipe gesture — Macs cannot swipe. */}
         <button
@@ -188,7 +193,7 @@ export function DayPlan({
   onBack: () => void;
   onOpenExercise: (ex: Exercise) => void;
 }) {
-  const { exerciseById, updateExercise, setsTodayFor, toggleStar } = useGym();
+  const { exerciseById, updateExercise, setsTodayFor } = useGym();
   usePlan(); // re-render on every plan change
   const ids = dayIds(day);
   const items = ids
@@ -264,12 +269,13 @@ export function DayPlan({
                 <Row
                   key={ex.id}
                   ex={ex}
+                  starred={isDayStarred(day, ex.id)}
                   doneToday={setsTodayFor(ex.id)}
                   onSetsReps={(value) => {
                     updateExercise(ex.tab, ex.id, { name: ex.name, setsReps: value });
                     toast("Sets/reps updated everywhere");
                   }}
-                  onStar={() => toggleStar(ex)}
+                  onStar={() => toggleDayStar(day, ex.id)}
                   onOpen={() => onOpenExercise(ex)}
                   onRemove={() => {
                     const orderBefore = dayIds(day);

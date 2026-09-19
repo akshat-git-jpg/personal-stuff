@@ -20,6 +20,8 @@ export interface PlanRow {
   day: number;
   exerciseId: string;
   position: number;
+  /** Favourite for THIS day only. The same exercise can be starred elsewhere. */
+  starred: boolean;
 }
 
 export interface Exercise {
@@ -38,8 +40,6 @@ export interface Exercise {
   tab: string;
   /** Zero-based position within the tab (drives drag-reorder). */
   order: number;
-  /** Favourite. Highlights the row wherever the exercise appears. */
-  starred: boolean;
 }
 
 /** A logged set from the Workout Log tab. */
@@ -61,7 +61,6 @@ export interface ExerciseInput {
   setsReps?: string;
   notes?: string;
   muscleGroup?: string;
-  starred?: boolean;
 }
 
 export interface LogInput {

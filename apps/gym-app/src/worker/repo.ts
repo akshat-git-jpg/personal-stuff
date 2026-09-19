@@ -25,7 +25,6 @@ interface ExRow {
   muscle_group: string | null;
   position: number;
   gym: Gym;
-  starred: number;
 }
 
 function toExercise(r: ExRow): Exercise {
@@ -38,7 +37,6 @@ function toExercise(r: ExRow): Exercise {
     tab: r.tab,
     order: r.position,
     gym: r.gym,
-    starred: !!r.starred,
   };
   // muscleGroup stays undefined for single-group tabs — the client relies on it.
   if (isMixed(r.tab)) ex.muscleGroup = r.muscle_group ?? "";
@@ -83,7 +81,7 @@ export async function bootstrap(env: Env): Promise<Bootstrap> {
     env.DB.prepare("SELECT name, is_mixed FROM tab ORDER BY position, name"),
     env.DB.prepare("SELECT * FROM exercise ORDER BY tab, position"),
     env.DB.prepare("SELECT * FROM log WHERE ts >= ? ORDER BY ts DESC").bind(cutoff),
-    env.DB.prepare("SELECT day, exercise_id, position FROM plan ORDER BY day, position"),
+    env.DB.prepare("SELECT day, exercise_id, position, starred FROM plan ORDER BY day, position"),
   ]);
 
   const exercises: Record<string, Exercise[]> = {};
@@ -98,13 +96,27 @@ export async function bootstrap(env: Env): Promise<Bootstrap> {
   for (const g of groups) g.count = (exercises[g.tab] ?? []).length;
 
   return {
-    plan: (planRows.results as { day: number; exercise_id: string; position: number }[]).map((r) => ({ day: r.day, exerciseId: r.exercise_id, position: r.position })),
+    plan: (planRows.results as PlanRowSql[]).map(toPlanRow),
     groups,
     exercises,
     log: (logs.results as LogRow[]).map(toLogEntry),
     logCutoff: cutoff,
   };
 }
+
+interface PlanRowSql {
+  day: number;
+  exercise_id: string;
+  position: number;
+  starred: number;
+}
+
+const toPlanRow = (r: PlanRowSql): PlanRow => ({
+  day: r.day,
+  exerciseId: r.exercise_id,
+  position: r.position,
+  starred: !!r.starred,
+});
 
 // ---- Library ---------------------------------------------------------------
 
@@ -156,7 +168,6 @@ export async function addExercise(
     tab,
     order: list.length,
     gym: MIXED_TABS.get(tab) ?? "main",
-    starred: false,
   };
   await env.DB.prepare(
     "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym)" +
@@ -196,12 +207,11 @@ export async function updateExercise(
   if (isMixed(tab) && input.muscleGroup !== undefined) {
     ex.muscleGroup = input.muscleGroup.trim();
   }
-  if (input.starred !== undefined) ex.starred = !!input.starred;
   await env.DB.prepare(
-    "UPDATE exercise SET name = ?, setting = ?, sets_reps = ?, notes = ?, muscle_group = ?," +
-      " starred = ? WHERE id = ? AND tab = ?",
+    "UPDATE exercise SET name = ?, setting = ?, sets_reps = ?, notes = ?, muscle_group = ?" +
+      " WHERE id = ? AND tab = ?",
   )
-    .bind(ex.name, ex.setting, ex.setsReps, ex.notes, ex.muscleGroup ?? null, ex.starred ? 1 : 0, id, tab)
+    .bind(ex.name, ex.setting, ex.setsReps, ex.notes, ex.muscleGroup ?? null, id, tab)
     .run();
   return ex;
 }
@@ -214,16 +224,17 @@ export async function deleteExercise(env: Env, tab: string, id: string): Promise
 }
 
 /** Put a just-deleted exercise back under its ORIGINAL id, at its old slot,
- *  with the plan rows the delete cascaded away. Powers the Undo toast. */
+ *  with the plan rows the delete cascaded away — their stars included, since
+ *  the star lives on the plan row. Powers the Undo toast. */
 export async function restoreExercise(
   env: Env,
   tab: string,
   ex: Exercise,
-  planDays: number[],
+  planRows: { day: number; starred?: boolean }[],
 ): Promise<Exercise> {
   await env.DB.prepare(
-    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym, starred)" +
-      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING",
+    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING",
   )
     .bind(
       ex.id,
@@ -235,13 +246,15 @@ export async function restoreExercise(
       isMixed(tab) ? ex.muscleGroup ?? "" : null,
       ex.order ?? 0,
       ex.gym ?? MIXED_TABS.get(tab) ?? "main",
-      ex.starred ? 1 : 0,
     )
     .run();
   const others = (await readExercises(env, tab)).filter((e) => e.id !== ex.id).map((e) => e.id);
   const at = Math.min(Math.max(ex.order ?? others.length, 0), others.length);
   await reindex(env, tab, [...others.slice(0, at), ex.id, ...others.slice(at)]);
-  for (const day of planDays) await addPlanRow(env, day, ex.id);
+  for (const r of planRows) {
+    await addPlanRow(env, r.day, ex.id);
+    if (r.starred) await setPlanStar(env, r.day, ex.id, true);
+  }
   return ex;
 }
 
@@ -353,12 +366,25 @@ export async function addPlanRow(env: Env, day: number, exerciseId: string): Pro
     .bind(day, exerciseId, position)
     .run();
   const row = await env.DB.prepare(
-    "SELECT day, exercise_id, position FROM plan WHERE day = ? AND exercise_id = ?",
+    "SELECT day, exercise_id, position, starred FROM plan WHERE day = ? AND exercise_id = ?",
   )
     .bind(day, exerciseId)
-    .first<{ day: number; exercise_id: string; position: number }>();
+    .first<PlanRowSql>();
   if (!row) throw new Error(`plan row ${day}/${exerciseId} not found after insert`);
-  return { day: row.day, exerciseId: row.exercise_id, position: row.position };
+  return toPlanRow(row);
+}
+
+/** Star or unstar ONE (day, exercise) pair. The same exercise on another day
+ *  is untouched — that separation is the whole point of the column. */
+export async function setPlanStar(
+  env: Env,
+  day: number,
+  exerciseId: string,
+  starred: boolean,
+): Promise<void> {
+  await env.DB.prepare("UPDATE plan SET starred = ? WHERE day = ? AND exercise_id = ?")
+    .bind(starred ? 1 : 0, day, exerciseId)
+    .run();
 }
 
 export async function deletePlanRow(env: Env, day: number, exerciseId: string): Promise<void> {
@@ -376,10 +402,10 @@ export async function reorderPlanDay(
   orderedIds: string[],
 ): Promise<PlanRow[]> {
   const { results } = await env.DB.prepare(
-    "SELECT exercise_id FROM plan WHERE day = ? ORDER BY position",
+    "SELECT exercise_id, starred FROM plan WHERE day = ? ORDER BY position",
   )
     .bind(day)
-    .all<{ exercise_id: string }>();
+    .all<{ exercise_id: string; starred: number }>();
   const known = new Set(results.map((r) => r.exercise_id));
   const next = orderedIds.filter((id) => known.has(id));
   const seen = new Set(next);
@@ -395,7 +421,13 @@ export async function reorderPlanDay(
       ),
     );
   }
-  return next.map((exerciseId, position) => ({ day, exerciseId, position }));
+  const stars = new Map(results.map((r) => [r.exercise_id, !!r.starred]));
+  return next.map((exerciseId, position) => ({
+    day,
+    exerciseId,
+    position,
+    starred: stars.get(exerciseId) ?? false,
+  }));
 }
 
 async function reindexDay(env: Env, day: number): Promise<void> {

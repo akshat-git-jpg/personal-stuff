@@ -1469,7 +1469,8 @@ textarea {
 }
 
 /* ============ Starred exercises ============ */
-/* Week-plan rows only — the catalogue list deliberately shows no star. */
+/* Week-plan rows only, and the star belongs to the (day, exercise) pair — the
+   same exercise can be starred on one day and plain on another. */
 .exrow.starred {
   background: var(--surface-2);
   border-color: rgba(204, 255, 0, 0.45);
@@ -1510,12 +1511,4 @@ textarea {
 .exrow .rowstar:active {
   color: var(--lime);
   background: rgba(204, 255, 0, 0.26);
-}
-
-/* Same toggle in the exercise page topbar. */
-.starbtn {
-  color: var(--text-faint);
-}
-.starbtn.on {
-  color: var(--lime);
 }
