@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS exercise (
   position     INTEGER NOT NULL DEFAULT 0,
   -- Which gym an exercise belongs to. Previously inferred from the tab NAME and
   -- the ID prefix in two different client helpers; now stated by the data.
-  gym          TEXT NOT NULL DEFAULT 'main'
+  gym          TEXT NOT NULL DEFAULT 'main',
+  -- Favourite flag. Starred exercises render highlighted in every list.
+  starred      INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_exercise_tab_pos ON exercise(tab, position);
 

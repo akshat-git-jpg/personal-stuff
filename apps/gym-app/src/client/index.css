@@ -1467,3 +1467,56 @@ textarea {
 .picker-row.added .picker-add {
   color: var(--text-faint);
 }
+
+/* ============ Starred exercises ============ */
+/* The row itself carries the highlight, so it reads the same in the catalogue
+   and in a day plan. */
+.exrow.starred {
+  background: var(--surface-2);
+  border-color: rgba(204, 255, 0, 0.45);
+}
+/* The bar lives on the foreground layer, which paints over .exrow. */
+.exrow.starred .exrow-fg {
+  background: var(--surface-2);
+  box-shadow: inset 3px 0 0 var(--lime);
+}
+.exrow.starred .name {
+  color: var(--lime);
+}
+
+/* Star toggle. Sits beside .rowdel and borrows its geometry. */
+.exrow .rowstar {
+  flex: none;
+  width: 42px;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--line-soft);
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.exrow .rowstar.on {
+  color: var(--lime);
+}
+.exrow .rowstar:hover,
+.exrow .rowstar:focus-visible {
+  color: var(--lime);
+  background: var(--lime-glow);
+  outline: none;
+}
+.exrow .rowstar:active {
+  color: var(--lime);
+  background: rgba(204, 255, 0, 0.26);
+}
+
+/* Same toggle in the exercise page topbar. */
+.starbtn {
+  color: var(--text-faint);
+}
+.starbtn.on {
+  color: var(--lime);
+}

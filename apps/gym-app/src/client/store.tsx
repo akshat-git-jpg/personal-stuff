@@ -63,6 +63,8 @@ interface Gym {
   loadFullLog: () => Promise<void>;
   addExercise: (tab: string, input: ExerciseInput) => Promise<Exercise | null>;
   updateExercise: (tab: string, id: string, patch: ExerciseInput) => void;
+  /** Flip the favourite flag. Optimistic, same as every other write here. */
+  toggleStar: (ex: Exercise) => void;
   /** Resolves to an undo callback, or null when nothing was deleted. */
   deleteExercise: (tab: string, id: string) => Promise<(() => void) | null>;
   reorder: (tab: string, orderedIds: string[]) => void;
@@ -256,6 +258,27 @@ export function GymProvider({ children }: { children: ReactNode }) {
     [toast],
   );
 
+  const toggleStar = useCallback(
+    (ex: Exercise) => {
+      const next = !ex.starred;
+      const before = snapRef.current.byTab[ex.tab] ?? [];
+      setSnap((s) => ({
+        ...s,
+        byTab: {
+          ...s.byTab,
+          [ex.tab]: (s.byTab[ex.tab] ?? []).map((e) =>
+            e.id === ex.id ? { ...e, starred: next } : e,
+          ),
+        },
+      }));
+      api.updateExercise(ex.tab, ex.id, { name: ex.name, starred: next }).catch((e) => {
+        toast(String((e as Error).message), true);
+        setSnap((s) => ({ ...s, byTab: { ...s.byTab, [ex.tab]: before } }));
+      });
+    },
+    [toast],
+  );
+
   const deleteExercise = useCallback(
     async (tab: string, id: string): Promise<(() => void) | null> => {
       const before = snapRef.current.byTab[tab] ?? [];
@@ -381,6 +404,7 @@ export function GymProvider({ children }: { children: ReactNode }) {
     loadFullLog,
     addExercise,
     updateExercise,
+    toggleStar,
     deleteExercise,
     reorder,
     addLog,
