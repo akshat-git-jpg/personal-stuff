@@ -25,6 +25,7 @@ interface ExRow {
   muscle_group: string | null;
   position: number;
   gym: Gym;
+  starred: number;
 }
 
 function toExercise(r: ExRow): Exercise {
@@ -37,6 +38,7 @@ function toExercise(r: ExRow): Exercise {
     tab: r.tab,
     order: r.position,
     gym: r.gym,
+    starred: !!r.starred,
   };
   // muscleGroup stays undefined for single-group tabs — the client relies on it.
   if (isMixed(r.tab)) ex.muscleGroup = r.muscle_group ?? "";
@@ -154,6 +156,7 @@ export async function addExercise(
     tab,
     order: list.length,
     gym: MIXED_TABS.get(tab) ?? "main",
+    starred: false,
   };
   await env.DB.prepare(
     "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym)" +
@@ -193,11 +196,12 @@ export async function updateExercise(
   if (isMixed(tab) && input.muscleGroup !== undefined) {
     ex.muscleGroup = input.muscleGroup.trim();
   }
+  if (input.starred !== undefined) ex.starred = !!input.starred;
   await env.DB.prepare(
-    "UPDATE exercise SET name = ?, setting = ?, sets_reps = ?, notes = ?, muscle_group = ?" +
-      " WHERE id = ? AND tab = ?",
+    "UPDATE exercise SET name = ?, setting = ?, sets_reps = ?, notes = ?, muscle_group = ?," +
+      " starred = ? WHERE id = ? AND tab = ?",
   )
-    .bind(ex.name, ex.setting, ex.setsReps, ex.notes, ex.muscleGroup ?? null, id, tab)
+    .bind(ex.name, ex.setting, ex.setsReps, ex.notes, ex.muscleGroup ?? null, ex.starred ? 1 : 0, id, tab)
     .run();
   return ex;
 }
@@ -218,8 +222,8 @@ export async function restoreExercise(
   planDays: number[],
 ): Promise<Exercise> {
   await env.DB.prepare(
-    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym)" +
-      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING",
+    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym, starred)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING",
   )
     .bind(
       ex.id,
@@ -231,6 +235,7 @@ export async function restoreExercise(
       isMixed(tab) ? ex.muscleGroup ?? "" : null,
       ex.order ?? 0,
       ex.gym ?? MIXED_TABS.get(tab) ?? "main",
+      ex.starred ? 1 : 0,
     )
     .run();
   const others = (await readExercises(env, tab)).filter((e) => e.id !== ex.id).map((e) => e.id);

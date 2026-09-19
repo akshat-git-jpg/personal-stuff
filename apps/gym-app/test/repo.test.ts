@@ -288,4 +288,25 @@ describe('repo', () => {
     const res = await env.DB.prepare("SELECT COUNT(*) as c FROM exercise WHERE id = 'C01'").first();
     expect(res.c).toBe(1);
   });
+  it('updateExercise with starred true flips the flag; a later patch without starred leaves it on', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name) VALUES ('C01', 'Chest', 0, 'c1');");
+    expect((await repo.updateExercise(env, 'Chest', 'C01', { starred: true } as any)).starred).toBe(true);
+    expect((await repo.updateExercise(env, 'Chest', 'C01', { setsReps: '3x10' } as any)).starred).toBe(true);
+    expect((await repo.updateExercise(env, 'Chest', 'C01', { starred: false } as any)).starred).toBe(false);
+  });
+
+  it('a new exercise starts unstarred, and bootstrap reports starred as a boolean', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest');");
+    expect((await repo.addExercise(env, 'Chest', { name: 'ex1' } as any)).starred).toBe(false);
+    await repo.updateExercise(env, 'Chest', 'C01', { starred: true } as any);
+    expect((await repo.bootstrap(env)).exercises['Chest'][0].starred).toBe(true);
+  });
+
+  it('restoreExercise keeps the star on an undone delete', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name, starred) VALUES ('C01', 'Chest', 0, 'c1', 1);");
+    const before = (await repo.bootstrap(env)).exercises['Chest'][0];
+    await repo.deleteExercise(env, 'Chest', 'C01');
+    await repo.restoreExercise(env, 'Chest', before, []);
+    expect((await repo.bootstrap(env)).exercises['Chest'][0].starred).toBe(true);
+  });
 });

@@ -22,7 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../shared";
-import { accentFor, IconBack, IconGrip, IconMinusCircle, IconPlus, useToast } from "./ui";
+import { accentFor, IconBack, IconGrip, IconMinusCircle, IconPlus, IconStar, useToast } from "./ui";
 import { useGym } from "./store";
 import { gymBadge } from "./gym";
 import { ExercisePicker } from "./ExercisePicker";
@@ -43,12 +43,14 @@ function Row({
   doneToday,
   onSetsReps,
   onOpen,
+  onStar,
   onRemove,
 }: {
   ex: Exercise;
   doneToday: number;
   onSetsReps: (value: string) => void;
   onOpen: () => void;
+  onStar: () => void;
   onRemove: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -88,7 +90,7 @@ function Row({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`exrow${isDragging ? " dragging" : ""}`}
+      className={`exrow${isDragging ? " dragging" : ""}${ex.starred ? " starred" : ""}`}
     >
       {dx !== 0 && (
         <div className="swipe-del" onClick={onRemove}>
@@ -154,6 +156,15 @@ function Row({
             )}
           </div>
         </div>
+        <button
+          className={`rowstar${ex.starred ? " on" : ""}`}
+          onClick={onStar}
+          title={ex.starred ? `Unstar ${ex.name}` : `Star ${ex.name}`}
+          aria-label={ex.starred ? `Unstar ${ex.name}` : `Star ${ex.name}`}
+          aria-pressed={ex.starred}
+        >
+          <IconStar size={18} on={ex.starred} />
+        </button>
         {/* Mouse-reachable twin of the swipe gesture — Macs cannot swipe. */}
         <button
           className="rowdel"
@@ -177,7 +188,7 @@ export function DayPlan({
   onBack: () => void;
   onOpenExercise: (ex: Exercise) => void;
 }) {
-  const { exerciseById, updateExercise, setsTodayFor } = useGym();
+  const { exerciseById, updateExercise, setsTodayFor, toggleStar } = useGym();
   usePlan(); // re-render on every plan change
   const ids = dayIds(day);
   const items = ids
@@ -258,6 +269,7 @@ export function DayPlan({
                     updateExercise(ex.tab, ex.id, { name: ex.name, setsReps: value });
                     toast("Sets/reps updated everywhere");
                   }}
+                  onStar={() => toggleStar(ex)}
                   onOpen={() => onOpenExercise(ex)}
                   onRemove={() => {
                     const orderBefore = dayIds(day);

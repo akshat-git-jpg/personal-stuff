@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Exercise, LogEntry } from "../shared";
-import { accentFor, IconBack, IconCheck, IconHistory, IconRepeat, useToast } from "./ui";
+import { accentFor, IconBack, IconCheck, IconHistory, IconRepeat, IconStar, useToast } from "./ui";
 import { useGym } from "./store";
 import { LogEditSheet, Stepper } from "./LogEditSheet";
 import { DAY_SHORT, daysFor, usePlan, type DayIdx } from "./plan";
@@ -95,7 +95,7 @@ export function ExerciseDetail({
   onBack: () => void;
   onOpenPlanDay: (day: DayIdx) => void;
 }) {
-  const { exercisesFor, logFor, updateExercise, addLog, updateLog, deleteLog, loadFullLog } =
+  const { exercisesFor, logFor, updateExercise, addLog, updateLog, deleteLog, loadFullLog, toggleStar } =
     useGym();
   const ex: Exercise | undefined = exercisesFor(tab).find((e) => e.id === id);
   const log = logFor(id).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -164,6 +164,15 @@ export function ExerciseDetail({
             {ex.muscleGroup || ex.tab} · {ex.id}
           </div>
         </div>
+        <button
+          className={`iconbtn starbtn${ex.starred ? " on" : ""}`}
+          onClick={() => toggleStar(ex!)}
+          title={ex.starred ? "Unstar" : "Star"}
+          aria-label={ex.starred ? "Unstar" : "Star"}
+          aria-pressed={ex.starred}
+        >
+          <IconStar size={22} on={ex.starred} />
+        </button>
       </div>
 
       {planDays.length > 0 && (
