@@ -21,6 +21,7 @@ let mutators: {
   add: (day: number, id: string) => Promise<void>;
   remove: (day: number, id: string) => void;
   reorder: (day: number, ids: string[]) => void;
+  star: (day: number, id: string, starred: boolean) => void;
 } | null = null;
 
 /** Called once by GymProvider on every render with the live plan + mutators. */
@@ -45,6 +46,13 @@ export const removeFromDay = (day: DayIdx, exerciseId: string): void =>
   mutators?.remove(day, exerciseId);
 export const setDayOrder = (day: DayIdx, orderedIds: string[]): void =>
   mutators?.reorder(day, orderedIds);
+
+/** Is this exercise starred ON THIS DAY? Another day answers independently. */
+export const isDayStarred = (day: DayIdx, exerciseId: string): boolean =>
+  current.some((r) => r.day === day && r.exerciseId === exerciseId && r.starred);
+
+export const toggleDayStar = (day: DayIdx, exerciseId: string): void =>
+  mutators?.star(day, exerciseId, !isDayStarred(day, exerciseId));
 
 export const todayIdx = (): DayIdx => new Date().getDay() as DayIdx;
 

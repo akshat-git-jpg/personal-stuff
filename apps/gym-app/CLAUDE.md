@@ -6,11 +6,12 @@ Mobile gym PWA. Vite + React + Hono on a Cloudflare Worker. Full detail: `README
 
 - The plan lives in the `plan` table, `gym` is a column on `exercise`, and Sets/Reps is deliberately shared with the catalogue.
 
-- **`starred` is a column on `exercise`, and the star button belongs to the WEEK PLAN
-  only.** Owner's call: the catalogue list stays clean, so no star button and no starred
-  highlight there. The exercise page keeps a topbar toggle; both write the same row.
-  `migrations/212-starred-column.sql` must be run on the remote DB before a deploy
-  carrying it, or every read fails with "no such column".
+- **`starred` is a column on `plan`, NOT on `exercise`.** A star belongs to one
+  (day, exercise) pair: Bench can be starred on Monday and plain on Thursday. It shows
+  only in the week plan — no star button in the catalogue list or on the exercise page,
+  both by the owner's call. `migrations/213-plan-starred-column.sql` moves the column
+  and must be run on the remote DB before a deploy carrying it, or every read fails with
+  "no such column". (`212` put it on `exercise`; `213` supersedes it.)
 
 - **Every row action needs a clickable twin.** The swipe gesture is touch-only, so a
   desktop browser cannot reach it — each row also carries a `.rowdel` button (trash in

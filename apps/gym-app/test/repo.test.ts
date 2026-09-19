@@ -234,9 +234,9 @@ describe('repo', () => {
     await repo.addPlanRow(env, 4, 'B01');
     const res = await repo.reorderPlanDay(env, 4, ['B01']);
     expect(res).toEqual([
-      { day: 4, exerciseId: 'B01', position: 0 },
-      { day: 4, exerciseId: 'C01', position: 1 },
-      { day: 4, exerciseId: 'C02', position: 2 }
+      { day: 4, exerciseId: 'B01', position: 0, starred: false },
+      { day: 4, exerciseId: 'C01', position: 1, starred: false },
+      { day: 4, exerciseId: 'C02', position: 2, starred: false }
     ]);
   });
 
@@ -247,9 +247,9 @@ describe('repo', () => {
     await repo.addPlanRow(env, 0, 'B01');
     const data = await repo.bootstrap(env);
     expect(data.plan).toEqual([
-      { day: 0, exerciseId: 'B01', position: 0 },
-      { day: 1, exerciseId: 'C02', position: 0 },
-      { day: 1, exerciseId: 'C01', position: 1 }
+      { day: 0, exerciseId: 'B01', position: 0, starred: false },
+      { day: 1, exerciseId: 'C02', position: 0, starred: false },
+      { day: 1, exerciseId: 'C01', position: 1, starred: false }
     ]);
     const anuTab = data.exercises['Anu Gym'] || [];
     const mainEx = data.exercises['Chest']?.find(e => e.id === 'C01');
@@ -271,7 +271,7 @@ describe('repo', () => {
     const before = (await repo.bootstrap(env)).exercises['Chest'].find(e => e.id === 'C02');
 
     await repo.deleteExercise(env, 'Chest', 'C02');
-    await repo.restoreExercise(env, 'Chest', before, [5, 2]);
+    await repo.restoreExercise(env, 'Chest', before, [{ day: 5 }, { day: 2 }]);
 
     const data = await repo.bootstrap(env);
     expect(data.exercises['Chest'].map(e => e.id)).toEqual(['C01', 'C02', 'C03']);
@@ -288,25 +288,49 @@ describe('repo', () => {
     const res = await env.DB.prepare("SELECT COUNT(*) as c FROM exercise WHERE id = 'C01'").first();
     expect(res.c).toBe(1);
   });
-  it('updateExercise with starred true flips the flag; a later patch without starred leaves it on', async () => {
+  it('setPlanStar stars one day only - the same exercise on another day stays plain', async () => {
     db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name) VALUES ('C01', 'Chest', 0, 'c1');");
-    expect((await repo.updateExercise(env, 'Chest', 'C01', { starred: true } as any)).starred).toBe(true);
-    expect((await repo.updateExercise(env, 'Chest', 'C01', { setsReps: '3x10' } as any)).starred).toBe(true);
-    expect((await repo.updateExercise(env, 'Chest', 'C01', { starred: false } as any)).starred).toBe(false);
+    await repo.addPlanRow(env, 1, 'C01');
+    await repo.addPlanRow(env, 4, 'C01');
+
+    await repo.setPlanStar(env, 1, 'C01', true);
+
+    const plan = (await repo.bootstrap(env)).plan;
+    expect(plan.find(r => r.day === 1 && r.exerciseId === 'C01').starred).toBe(true);
+    expect(plan.find(r => r.day === 4 && r.exerciseId === 'C01').starred).toBe(false);
   });
 
-  it('a new exercise starts unstarred, and bootstrap reports starred as a boolean', async () => {
-    db.exec("INSERT INTO tab (name) VALUES ('Chest');");
-    expect((await repo.addExercise(env, 'Chest', { name: 'ex1' } as any)).starred).toBe(false);
-    await repo.updateExercise(env, 'Chest', 'C01', { starred: true } as any);
-    expect((await repo.bootstrap(env)).exercises['Chest'][0].starred).toBe(true);
+  it('a new plan row starts unstarred and setPlanStar false clears it again', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name) VALUES ('C01', 'Chest', 0, 'c1');");
+    expect((await repo.addPlanRow(env, 2, 'C01')).starred).toBe(false);
+    await repo.setPlanStar(env, 2, 'C01', true);
+    await repo.setPlanStar(env, 2, 'C01', false);
+    expect((await repo.bootstrap(env)).plan[0].starred).toBe(false);
   });
 
-  it('restoreExercise keeps the star on an undone delete', async () => {
-    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name, starred) VALUES ('C01', 'Chest', 0, 'c1', 1);");
-    const before = (await repo.bootstrap(env)).exercises['Chest'][0];
+  it('reorderPlanDay keeps each row with its own star', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name) VALUES ('C01', 'Chest', 0, 'c1'), ('C02', 'Chest', 1, 'c2'), ('C03', 'Chest', 2, 'c3');");
+    for (const id of ['C01', 'C02', 'C03']) await repo.addPlanRow(env, 3, id);
+    await repo.setPlanStar(env, 3, 'C02', true);
+
+    const rows = await repo.reorderPlanDay(env, 3, ['C03', 'C02', 'C01']);
+
+    expect(rows.map(r => r.exerciseId)).toEqual(['C03', 'C02', 'C01']);
+    expect(rows.map(r => r.starred)).toEqual([false, true, false]);
+  });
+
+  it('restoreExercise puts each day back with the star it had', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name) VALUES ('C01', 'Chest', 0, 'c1');");
+    await repo.addPlanRow(env, 1, 'C01');
+    await repo.addPlanRow(env, 5, 'C01');
+    await repo.setPlanStar(env, 5, 'C01', true);
+    const ex = (await repo.bootstrap(env)).exercises['Chest'][0];
+
     await repo.deleteExercise(env, 'Chest', 'C01');
-    await repo.restoreExercise(env, 'Chest', before, []);
-    expect((await repo.bootstrap(env)).exercises['Chest'][0].starred).toBe(true);
+    await repo.restoreExercise(env, 'Chest', ex, [{ day: 1, starred: false }, { day: 5, starred: true }]);
+
+    const plan = (await repo.bootstrap(env)).plan;
+    expect(plan.find(r => r.day === 1).starred).toBe(false);
+    expect(plan.find(r => r.day === 5).starred).toBe(true);
   });
 });

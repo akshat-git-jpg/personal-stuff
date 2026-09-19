@@ -28,9 +28,7 @@ CREATE TABLE IF NOT EXISTS exercise (
   position     INTEGER NOT NULL DEFAULT 0,
   -- Which gym an exercise belongs to. Previously inferred from the tab NAME and
   -- the ID prefix in two different client helpers; now stated by the data.
-  gym          TEXT NOT NULL DEFAULT 'main',
-  -- Favourite flag. Starred exercises render highlighted in every list.
-  starred      INTEGER NOT NULL DEFAULT 0
+  gym          TEXT NOT NULL DEFAULT 'main'
 );
 CREATE INDEX IF NOT EXISTS idx_exercise_tab_pos ON exercise(tab, position);
 
@@ -58,6 +56,9 @@ CREATE TABLE IF NOT EXISTS plan (
   day         INTEGER NOT NULL CHECK (day BETWEEN 0 AND 6),
   exercise_id TEXT NOT NULL REFERENCES exercise(id) ON DELETE CASCADE,
   position    INTEGER NOT NULL DEFAULT 0,
+  -- Favourite flag, per DAY: the same exercise can be starred on Monday and
+  -- plain on Thursday. It lives here and never on `exercise`.
+  starred     INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (day, exercise_id)
 );
 CREATE INDEX IF NOT EXISTS idx_plan_day_pos ON plan(day, position);
