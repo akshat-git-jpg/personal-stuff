@@ -17,7 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../shared";
-import { accentFor, IconBack, IconGrip, IconPlus, IconStar, IconTrash, useToast } from "./ui";
+import { accentFor, IconBack, IconGrip, IconPlus, IconTrash, useToast } from "./ui";
 import { useGym } from "./store";
 import { gymLabel, rebuildSliceOrder, specGym, type GroupSpec } from "./gym";
 
@@ -34,7 +34,6 @@ function Row({
   doneToday,
   sortable,
   onOpen,
-  onStar,
   onDelete,
 }: {
   ex: Exercise;
@@ -42,7 +41,6 @@ function Row({
   /** False in A-Z view: the order is computed, so dragging it means nothing. */
   sortable: boolean;
   onOpen: () => void;
-  onStar: () => void;
   onDelete: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -72,7 +70,7 @@ function Row({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`exrow${isDragging ? " dragging" : ""}${ex.starred ? " starred" : ""}`}
+      className={`exrow${isDragging ? " dragging" : ""}`}
     >
       {dx !== 0 && (
         <div className="swipe-del" onClick={onDelete}>
@@ -111,15 +109,6 @@ function Row({
           </div>
           <div className="meta">{summarise(ex)}</div>
         </div>
-        <button
-          className={`rowstar${ex.starred ? " on" : ""}`}
-          onClick={onStar}
-          title={ex.starred ? `Unstar ${ex.name}` : `Star ${ex.name}`}
-          aria-label={ex.starred ? `Unstar ${ex.name}` : `Star ${ex.name}`}
-          aria-pressed={ex.starred}
-        >
-          <IconStar size={18} on={ex.starred} />
-        </button>
         {/* Mouse-reachable twin of the swipe gesture — Macs cannot swipe. */}
         <button className="rowdel" onClick={onDelete} title={`Delete ${ex.name}`} aria-label={`Delete ${ex.name}`}>
           <IconTrash size={18} />
@@ -138,7 +127,7 @@ export function GroupView({
   onBack: () => void;
   onOpenExercise: (id: string) => void;
 }) {
-  const { exercisesFor, reorder, deleteExercise, addExercise, setsTodayFor, toggleStar } = useGym();
+  const { exercisesFor, reorder, deleteExercise, addExercise, setsTodayFor } = useGym();
   const all = exercisesFor(spec.tab);
   const items = spec.muscle
     ? all.filter((e) => (e.muscleGroup || "Other") === spec.muscle)
@@ -224,7 +213,6 @@ export function GroupView({
                   doneToday={setsTodayFor(ex.id)}
                   sortable={!alpha}
                   onOpen={() => onOpenExercise(ex.id)}
-                  onStar={() => toggleStar(ex)}
                   onDelete={() =>
                     deleteExercise(spec.tab, ex.id).then((undo) => {
                       if (undo) toast(`Deleted ${ex.name}`, false, { label: "Undo", onClick: undo });

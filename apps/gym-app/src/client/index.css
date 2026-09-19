@@ -1469,8 +1469,7 @@ textarea {
 }
 
 /* ============ Starred exercises ============ */
-/* The row itself carries the highlight, so it reads the same in the catalogue
-   and in a day plan. */
+/* Week-plan rows only — the catalogue list deliberately shows no star. */
 .exrow.starred {
   background: var(--surface-2);
   border-color: rgba(204, 255, 0, 0.45);
