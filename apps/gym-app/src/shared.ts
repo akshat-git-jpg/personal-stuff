@@ -16,6 +16,9 @@ export interface Group {
 /** A single exercise row from a muscle-group tab. */
 export type Gym = "main" | "anu" | "home";
 
+/** Weight unit. Purely a label — the app never converts between the two. */
+export type WeightUnit = "kg" | "lbs";
+
 export interface PlanRow {
   day: number;
   exerciseId: string;
@@ -44,6 +47,8 @@ export interface Exercise {
   tab: string;
   /** Zero-based position within the tab (drives drag-reorder). */
   order: number;
+  /** Unit new sets are logged in. Flipping it never rewrites past numbers. */
+  unit: WeightUnit;
 }
 
 /** A logged set from the Workout Log tab. */
@@ -56,6 +61,8 @@ export interface LogEntry {
   weight: number;
   reps: number;
   notes: string;
+  /** Unit at the time this set was logged. */
+  unit: WeightUnit;
 }
 
 /** Payload to create/update an exercise. */
@@ -65,6 +72,7 @@ export interface ExerciseInput {
   setsReps?: string;
   notes?: string;
   muscleGroup?: string;
+  unit?: WeightUnit;
 }
 
 export interface LogInput {
@@ -77,6 +85,7 @@ export interface LogInput {
   weight: number;
   reps: number;
   notes?: string;
+  unit?: WeightUnit;
 }
 
 /** Editable fields of a logged set. */

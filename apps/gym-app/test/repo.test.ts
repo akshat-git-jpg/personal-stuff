@@ -351,4 +351,30 @@ describe('repo', () => {
     expect(data.plan.filter(r => r.day === 2)).toEqual([]);
     expect(data.dayNotes['2']).toBe('rest and mobility');
   });
+  it('a new exercise is kg, updateExercise flips it to lbs, and a later patch without unit keeps it', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest');");
+    expect((await repo.addExercise(env, 'Chest', { name: 'ex1' } as any)).unit).toBe('kg');
+    expect((await repo.updateExercise(env, 'Chest', 'C01', { unit: 'lbs' } as any)).unit).toBe('lbs');
+    expect((await repo.updateExercise(env, 'Chest', 'C01', { setsReps: '3x10' } as any)).unit).toBe('lbs');
+  });
+
+  it('appendLog stamps the set with the unit it was sent, and never converts the number', async () => {
+    await repo.appendLog(env, { exerciseId: 'C01', exercise: 'c1', muscleGroup: 'Chest', setNo: 1, weight: 35, reps: 8, unit: 'kg' } as any, '2026-09-20T10:00:00.000Z');
+    await repo.appendLog(env, { exerciseId: 'C01', exercise: 'c1', muscleGroup: 'Chest', setNo: 2, weight: 180, reps: 8, unit: 'lbs' } as any, '2026-09-20T10:05:00.000Z');
+    const log = await repo.readLog(env, 'C01');
+    expect(log.map(l => [l.weight, l.unit])).toEqual([[180, 'lbs'], [35, 'kg']]);
+  });
+
+  it('an unknown or missing unit reads back as kg, never as a third value', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name, unit) VALUES ('C01', 'Chest', 0, 'c1', 'stones');");
+    expect((await repo.readExercises(env, 'Chest'))[0].unit).toBe('kg');
+  });
+
+  it('restoreExercise puts the unit back', async () => {
+    db.exec("INSERT INTO tab (name) VALUES ('Chest'); INSERT INTO exercise (id, tab, position, name, unit) VALUES ('C01', 'Chest', 0, 'c1', 'lbs');");
+    const ex = (await repo.bootstrap(env)).exercises['Chest'][0];
+    await repo.deleteExercise(env, 'Chest', 'C01');
+    await repo.restoreExercise(env, 'Chest', ex, []);
+    expect((await repo.bootstrap(env)).exercises['Chest'][0].unit).toBe('lbs');
+  });
 });

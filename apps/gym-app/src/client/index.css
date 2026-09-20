@@ -823,6 +823,27 @@ textarea {
   color: var(--text-dim);
   font-weight: 600;
 }
+/* Tap target that flips kg <-> lbs. Dotted underline so it reads as pressable
+   next to the plain unit label the edit sheet shows. */
+.sunit-btn {
+  margin-left: 3px;
+  padding: 0 0 1px;
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--text-faint);
+  border-radius: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.sunit-btn:hover,
+.sunit-btn:focus-visible {
+  color: var(--lime);
+  border-bottom-color: var(--lime);
+  outline: none;
+}
 
 .repeat-chip {
   display: inline-flex;

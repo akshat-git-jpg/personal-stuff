@@ -28,6 +28,14 @@ Mobile gym PWA. Vite + React + Hono on a Cloudflare Worker. Full detail: `README
   while holding no exercises, which a column on `plan` could not express. It is a NEW
   table, so `npm run db:remote` creates it — no hand-run migration.
 
+- **kg/lbs is a LABEL, never a conversion.** `exercise.unit` picks what new sets are
+  logged in; `log.unit` stamps each set with the unit it was recorded in, so history
+  stays readable after a switch. Flipping the unit never rewrites a number — the owner
+  re-enters the weight by hand, and that is his explicit call. Nothing in the app
+  converts between the two, so the progression chart can mix units if an exercise
+  switches. `migrations/214-weight-unit.sql` must be run on the remote DB before a
+  deploy carrying it.
+
 - **Writes hit a Cloudflare D1 database** (`gym-db`). The original Google Sheet is now a frozen rollback copy, plus `Mirror: *` tabs updated weekly by a cron. Use `DB` binding, `schema.sql`, and `npm run db:local`/`npm run seed:local` to test locally.
 - **No auth** — single user, security is just the obscure URL. Don't add a login flow without asking.
 - The client store (`src/client/store.tsx`) is the session source of truth: hydrate from localStorage, one batched `GET /api/bootstrap`, optimistic writes. **Don't add per-navigation refetch** — it breaks the snappy/consistent model on purpose.

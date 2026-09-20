@@ -132,7 +132,7 @@ export function SessionView({
                   <button key={s.date} className="sx-set num" onClick={() => setEditing(s)}>
                     <span className="sx-setno">{s.setNo}</span>
                     <b>{s.weight}</b>
-                    <span className="sx-unit">kg</span>
+                    <span className="sx-unit">{s.unit}</span>
                     <span className="sx-x">×</span>
                     {s.reps}
                   </button>
