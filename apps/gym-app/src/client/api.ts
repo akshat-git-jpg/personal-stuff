@@ -1,7 +1,8 @@
-import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, LogPatch, PlanRow } from "../shared";
+import type { DayNotes, Exercise, ExerciseInput, Group, LogEntry, LogInput, LogPatch, PlanRow } from "../shared";
 
 export interface BootstrapData {
   plan: PlanRow[];
+  dayNotes: DayNotes;
   groups: Group[];
   exercises: Record<string, Exercise[]>;
   log: LogEntry[];
@@ -69,6 +70,8 @@ export const api = {
     req<Exercise[]>("POST", `/groups/${E(tab)}/reorder`, { orderedIds }),
   addPlanRow: (day: number, exerciseId: string) =>
     req<PlanRow>("POST", `/plan/${day}`, { exerciseId }),
+  setDayNote: (day: number, note: string) =>
+    req<{ ok: true }>("PUT", `/plan/${day}/note`, { note }),
   setPlanStar: (day: number, exerciseId: string, starred: boolean) =>
     req<{ ok: true }>("PUT", `/plan/${day}/${E(exerciseId)}/star`, { starred }),
   deletePlanRow: (day: number, exerciseId: string) =>

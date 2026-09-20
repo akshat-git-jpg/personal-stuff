@@ -12,6 +12,7 @@ import {
   readLog,
   reorderExercises,
   restoreExercise,
+  setDayNote,
   setPlanStar,
   updateExercise,
   updateLog,
@@ -92,6 +93,14 @@ app.post("/api/plan/:day/reorder", async (c) => {
   if (!Number.isInteger(day) || day < 0 || day > 6) return c.json({ error: "bad day" }, 400);
   const { orderedIds } = await c.req.json<{ orderedIds: string[] }>();
   return c.json(await reorderPlanDay(c.env, day, orderedIds));
+});
+
+app.put("/api/plan/:day/note", async (c) => {
+  const day = Number(c.req.param("day"));
+  if (!Number.isInteger(day) || day < 0 || day > 6) return c.json({ error: "bad day" }, 400);
+  const { note } = await c.req.json<{ note?: string }>();
+  await setDayNote(c.env, day, note ?? "");
+  return c.json({ ok: true });
 });
 
 app.put("/api/plan/:day/:exerciseId/star", async (c) => {

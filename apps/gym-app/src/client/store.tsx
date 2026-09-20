@@ -9,12 +9,12 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "./api";
-import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, LogPatch, PlanRow } from "../shared";
+import type { DayNotes, Exercise, ExerciseInput, Group, LogEntry, LogInput, LogPatch, PlanRow } from "../shared";
 import { RECENT_LOG_DAYS } from "../shared";
 import { useToast } from "./ui";
 import { publishPlan } from "./plan";
 
-const CACHE_KEY = "gym.cache.v4";
+const CACHE_KEY = "gym.cache.v5";
 
 
 
@@ -27,12 +27,13 @@ interface Meta {
 }
 interface Snapshot {
   plan: PlanRow[];
+  dayNotes: DayNotes;
   meta: Meta[];
   byTab: Record<string, Exercise[]>;
   log: LogEntry[];
 }
 
-const EMPTY: Snapshot = { plan: [], meta: [], byTab: {}, log: [] };
+const EMPTY: Snapshot = { plan: [], dayNotes: {}, meta: [], byTab: {}, log: [] };
 
 function loadCache(): Snapshot | null {
   try {
@@ -50,6 +51,9 @@ interface Gym {
   reorderPlanDay: (day: number, orderedIds: string[]) => void;
   /** Star/unstar ONE (day, exercise) pair. Optimistic, like every write here. */
   setPlanStar: (day: number, exerciseId: string, starred: boolean) => void;
+  /** One free-text line per weekday. An empty string clears it. */
+  dayNotes: DayNotes;
+  setDayNote: (day: number, note: string) => void;
   ready: boolean;
   syncing: boolean;
   logComplete: boolean;
@@ -112,6 +116,7 @@ export function GymProvider({ children }: { children: ReactNode }) {
         const older = s.log.filter((l) => l.date < data.logCutoff);
         return {
           plan: data.plan,
+          dayNotes: data.dayNotes ?? {},
           meta: data.groups.map((g) => ({ tab: g.tab, label: g.label, isMixed: g.isMixed })),
           byTab: data.exercises,
           log: [...data.log, ...older].sort((a, b) => (a.date < b.date ? 1 : -1)),
@@ -225,6 +230,22 @@ export function GymProvider({ children }: { children: ReactNode }) {
   );
 
 
+
+  const setDayNote = useCallback(
+    (day: number, note: string) => {
+      const before = snapRef.current.dayNotes;
+      const text = note.trim();
+      const next = { ...before };
+      if (text) next[String(day)] = text;
+      else delete next[String(day)];
+      setSnap((s) => ({ ...s, dayNotes: next }));
+      api.setDayNote(day, text).catch((e) => {
+        toast(String((e as Error).message), true);
+        setSnap((s) => ({ ...s, dayNotes: before }));
+      });
+    },
+    [toast],
+  );
 
   const setPlanStar = useCallback(
     (day: number, exerciseId: string, starred: boolean) => {
@@ -393,6 +414,8 @@ export function GymProvider({ children }: { children: ReactNode }) {
     deletePlanRow: removeFromPlan,
     reorderPlanDay,
     setPlanStar,
+    dayNotes: snap.dayNotes,
+    setDayNote,
 
     ready,
     syncing,

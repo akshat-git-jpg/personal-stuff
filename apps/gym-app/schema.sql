@@ -62,3 +62,10 @@ CREATE TABLE IF NOT EXISTS plan (
   PRIMARY KEY (day, exercise_id)
 );
 CREATE INDEX IF NOT EXISTS idx_plan_day_pos ON plan(day, position);
+
+-- One free-text line per weekday, e.g. "all weak points". Its own table rather
+-- than a column on `plan`, so a day can carry a note while holding no exercises.
+CREATE TABLE IF NOT EXISTS day_note (
+  day  INTEGER PRIMARY KEY CHECK (day BETWEEN 0 AND 6),
+  note TEXT NOT NULL DEFAULT ''
+);

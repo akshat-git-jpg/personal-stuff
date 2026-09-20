@@ -24,6 +24,10 @@ export interface PlanRow {
   starred: boolean;
 }
 
+/** Free-text one-liner under a weekday heading, keyed by day 0-6. Days with no
+ *  note are simply absent. */
+export type DayNotes = Record<string, string>;
+
 export interface Exercise {
   gym: Gym;
   id: string;

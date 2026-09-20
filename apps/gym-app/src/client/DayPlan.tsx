@@ -184,6 +184,50 @@ function Row({
   );
 }
 
+/** The day's one-liner, e.g. "all weak points". Click to edit, blank to clear. */
+function DayNote({ day }: { day: DayIdx }) {
+  const { dayNotes, setDayNote } = useGym();
+  const note = dayNotes[String(day)] ?? "";
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(note);
+
+  function commit() {
+    setEditing(false);
+    if (draft.trim() !== note) setDayNote(day, draft);
+  }
+
+  if (editing) {
+    return (
+      <input
+        className="input day-note-input"
+        autoFocus
+        value={draft}
+        placeholder="What's this day for?"
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") {
+            setDraft(note);
+            setEditing(false);
+          }
+        }}
+      />
+    );
+  }
+  return (
+    <button
+      className={`day-note${note ? "" : " unset"}`}
+      onClick={() => {
+        setDraft(note);
+        setEditing(true);
+      }}
+    >
+      {note || "+ Add a note"}
+    </button>
+  );
+}
+
 export function DayPlan({
   day,
   onBack,
@@ -238,6 +282,8 @@ export function DayPlan({
           <h1 className="h1">{DAY_LONG[day]}</h1>
         </div>
       </div>
+
+      <DayNote day={day} />
 
       {muscles.length > 0 && (
         <div className="day-muscles">
