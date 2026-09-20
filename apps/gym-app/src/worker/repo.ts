@@ -5,7 +5,7 @@
 // remains the zero-based position inside a tab.
 
 import type { Env } from "./google";
-import type { Exercise, ExerciseInput, Group, LogEntry, LogInput, Gym, PlanRow } from "../shared";
+import type { DayNotes, Exercise, ExerciseInput, Group, LogEntry, LogInput, Gym, PlanRow } from "../shared";
 import { RECENT_LOG_DAYS } from "../shared";
 
 /** Tabs that carry a per-row Muscle Group column (one tab, many muscle groups). */
@@ -69,6 +69,7 @@ const toLogEntry = (r: LogRow): LogEntry => ({
 
 export interface Bootstrap {
   plan: PlanRow[];
+  dayNotes: DayNotes;
   groups: Group[];
   exercises: Record<string, Exercise[]>;
   log: LogEntry[];
@@ -77,11 +78,12 @@ export interface Bootstrap {
 
 export async function bootstrap(env: Env): Promise<Bootstrap> {
   const cutoff = new Date(Date.now() - RECENT_LOG_DAYS * 86400000).toISOString();
-  const [tabs, exs, logs, planRows] = await env.DB.batch<any>([
+  const [tabs, exs, logs, planRows, notes] = await env.DB.batch<any>([
     env.DB.prepare("SELECT name, is_mixed FROM tab ORDER BY position, name"),
     env.DB.prepare("SELECT * FROM exercise ORDER BY tab, position"),
     env.DB.prepare("SELECT * FROM log WHERE ts >= ? ORDER BY ts DESC").bind(cutoff),
     env.DB.prepare("SELECT day, exercise_id, position, starred FROM plan ORDER BY day, position"),
+    env.DB.prepare("SELECT day, note FROM day_note"),
   ]);
 
   const exercises: Record<string, Exercise[]> = {};
@@ -97,6 +99,11 @@ export async function bootstrap(env: Env): Promise<Bootstrap> {
 
   return {
     plan: (planRows.results as PlanRowSql[]).map(toPlanRow),
+    dayNotes: Object.fromEntries(
+      (notes.results as { day: number; note: string }[])
+        .filter((r) => r.note)
+        .map((r) => [String(r.day), r.note]),
+    ),
     groups,
     exercises,
     log: (logs.results as LogRow[]).map(toLogEntry),
@@ -281,6 +288,21 @@ export async function reorderExercises(
   for (const e of list) if (!seen.has(e.id)) next.push(e.id);
   await reindex(env, tab, next);
   return readExercises(env, tab);
+}
+
+/** Set (or, with an empty string, clear) a weekday's one-liner. */
+export async function setDayNote(env: Env, day: number, note: string): Promise<void> {
+  const text = note.trim();
+  if (!text) {
+    await env.DB.prepare("DELETE FROM day_note WHERE day = ?").bind(day).run();
+    return;
+  }
+  await env.DB.prepare(
+    "INSERT INTO day_note (day, note) VALUES (?, ?)" +
+      " ON CONFLICT (day) DO UPDATE SET note = excluded.note",
+  )
+    .bind(day, text)
+    .run();
 }
 
 // ---- Workout log -----------------------------------------------------------

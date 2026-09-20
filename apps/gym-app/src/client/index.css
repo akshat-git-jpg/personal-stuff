@@ -1354,6 +1354,36 @@ textarea {
   margin: 2px 2px 16px;
 }
 
+/* The day's one-liner. A button, not a label — the whole line is the tap
+   target, so an empty day still offers somewhere to click. */
+.day-note {
+  display: block;
+  width: 100%;
+  margin: 0 2px 12px;
+  padding: 0;
+  background: none;
+  border: none;
+  text-align: left;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.day-note.unset {
+  color: var(--text-faint);
+}
+.day-note:hover,
+.day-note:focus-visible {
+  color: var(--text);
+  outline: none;
+}
+.day-note-input {
+  margin-bottom: 12px;
+  height: 44px;
+  font-size: 15px;
+}
+
 .inplan {
   display: flex;
   align-items: center;

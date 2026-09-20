@@ -333,4 +333,22 @@ describe('repo', () => {
     expect(plan.find(r => r.day === 1).starred).toBe(false);
     expect(plan.find(r => r.day === 5).starred).toBe(true);
   });
+  it('setDayNote stores one line per day, overwrites it, and an empty string clears it', async () => {
+    await repo.setDayNote(env, 0, '  all weak points  ');
+    await repo.setDayNote(env, 3, 'push day');
+    expect((await repo.bootstrap(env)).dayNotes).toEqual({ '0': 'all weak points', '3': 'push day' });
+
+    await repo.setDayNote(env, 3, 'pull day');
+    expect((await repo.bootstrap(env)).dayNotes['3']).toBe('pull day');
+
+    await repo.setDayNote(env, 3, '   ');
+    expect((await repo.bootstrap(env)).dayNotes).toEqual({ '0': 'all weak points' });
+  });
+
+  it('a day with a note but no exercises keeps the note', async () => {
+    await repo.setDayNote(env, 2, 'rest and mobility');
+    const data = await repo.bootstrap(env);
+    expect(data.plan.filter(r => r.day === 2)).toEqual([]);
+    expect(data.dayNotes['2']).toBe('rest and mobility');
+  });
 });
