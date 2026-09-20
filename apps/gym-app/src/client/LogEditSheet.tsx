@@ -9,6 +9,7 @@ export function Stepper({
   step,
   min,
   onChange,
+  onUnitClick,
 }: {
   label: string;
   unit: string;
@@ -16,6 +17,8 @@ export function Stepper({
   step: number;
   min: number;
   onChange: (v: number) => void;
+  /** Given, the unit becomes a tap target that flips kg <-> lbs. */
+  onUnitClick?: () => void;
 }) {
   function bump(d: number) {
     onChange(Math.max(min, Math.round((value + d) * 100) / 100));
@@ -38,7 +41,17 @@ export function Stepper({
           >
             {value}
           </span>
-          <span className="sunit"> {unit}</span>
+          {onUnitClick ? (
+            <button
+              className="sunit sunit-btn"
+              onClick={onUnitClick}
+              title={`Switch to ${unit === "kg" ? "lbs" : "kg"}`}
+            >
+              {unit}
+            </button>
+          ) : (
+            <span className="sunit"> {unit}</span>
+          )}
         </div>
         <button className="sbtn" onClick={() => bump(step)}>
           +
@@ -76,7 +89,14 @@ export function LogEditSheet({
           {entry.exercise} · {when}
         </div>
         <div className="steppers">
-          <Stepper label="Weight" unit="kg" value={weight} step={2.5} min={0} onChange={setWeight} />
+          <Stepper
+            label="Weight"
+            unit={entry.unit}
+            value={weight}
+            step={entry.unit === "lbs" ? 5 : 2.5}
+            min={0}
+            onChange={setWeight}
+          />
           <Stepper label="Reps" unit="" value={reps} step={1} min={1} onChange={setReps} />
         </div>
         <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => onSave(weight, reps)}>

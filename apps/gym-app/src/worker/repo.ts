@@ -5,7 +5,7 @@
 // remains the zero-based position inside a tab.
 
 import type { Env } from "./google";
-import type { DayNotes, Exercise, ExerciseInput, Group, LogEntry, LogInput, Gym, PlanRow } from "../shared";
+import type { DayNotes, Exercise, ExerciseInput, Group, LogEntry, LogInput, Gym, PlanRow, WeightUnit } from "../shared";
 import { RECENT_LOG_DAYS } from "../shared";
 
 /** Tabs that carry a per-row Muscle Group column (one tab, many muscle groups). */
@@ -14,6 +14,10 @@ const MIXED_TABS = new Map<string, Gym>([["Anu Gym", "anu"], ["Home Gym", "home"
 function isMixed(tab: string): boolean {
   return MIXED_TABS.has(tab);
 }
+
+/** Anything that is not exactly "lbs" reads as kg, so a null or a legacy row
+ *  from before the column existed cannot produce a third unit. */
+const toUnit = (v: unknown): WeightUnit => (v === "lbs" ? "lbs" : "kg");
 
 interface ExRow {
   id: string;
@@ -25,6 +29,7 @@ interface ExRow {
   muscle_group: string | null;
   position: number;
   gym: Gym;
+  unit: WeightUnit;
 }
 
 function toExercise(r: ExRow): Exercise {
@@ -37,6 +42,7 @@ function toExercise(r: ExRow): Exercise {
     tab: r.tab,
     order: r.position,
     gym: r.gym,
+    unit: toUnit(r.unit),
   };
   // muscleGroup stays undefined for single-group tabs — the client relies on it.
   if (isMixed(r.tab)) ex.muscleGroup = r.muscle_group ?? "";
@@ -52,6 +58,7 @@ interface LogRow {
   weight: number;
   reps: number;
   notes: string;
+  unit: string;
 }
 
 const toLogEntry = (r: LogRow): LogEntry => ({
@@ -63,6 +70,7 @@ const toLogEntry = (r: LogRow): LogEntry => ({
   weight: r.weight,
   reps: r.reps,
   notes: r.notes,
+  unit: toUnit(r.unit),
 });
 
 // ---- Bootstrap -------------------------------------------------------------
@@ -175,10 +183,11 @@ export async function addExercise(
     tab,
     order: list.length,
     gym: MIXED_TABS.get(tab) ?? "main",
+    unit: toUnit(input.unit),
   };
   await env.DB.prepare(
-    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym)" +
-      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym, unit)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
   )
     .bind(
       ex.id,
@@ -190,6 +199,7 @@ export async function addExercise(
       ex.muscleGroup ?? null,
       ex.order,
       ex.gym,
+      ex.unit,
     )
     .run();
   return ex;
@@ -214,11 +224,12 @@ export async function updateExercise(
   if (isMixed(tab) && input.muscleGroup !== undefined) {
     ex.muscleGroup = input.muscleGroup.trim();
   }
+  if (input.unit !== undefined) ex.unit = toUnit(input.unit);
   await env.DB.prepare(
-    "UPDATE exercise SET name = ?, setting = ?, sets_reps = ?, notes = ?, muscle_group = ?" +
-      " WHERE id = ? AND tab = ?",
+    "UPDATE exercise SET name = ?, setting = ?, sets_reps = ?, notes = ?, muscle_group = ?," +
+      " unit = ? WHERE id = ? AND tab = ?",
   )
-    .bind(ex.name, ex.setting, ex.setsReps, ex.notes, ex.muscleGroup ?? null, id, tab)
+    .bind(ex.name, ex.setting, ex.setsReps, ex.notes, ex.muscleGroup ?? null, ex.unit, id, tab)
     .run();
   return ex;
 }
@@ -240,8 +251,8 @@ export async function restoreExercise(
   planRows: { day: number; starred?: boolean }[],
 ): Promise<Exercise> {
   await env.DB.prepare(
-    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym)" +
-      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING",
+    "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym, unit)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING",
   )
     .bind(
       ex.id,
@@ -253,6 +264,7 @@ export async function restoreExercise(
       isMixed(tab) ? ex.muscleGroup ?? "" : null,
       ex.order ?? 0,
       ex.gym ?? MIXED_TABS.get(tab) ?? "main",
+      toUnit(ex.unit),
     )
     .run();
   const others = (await readExercises(env, tab)).filter((e) => e.id !== ex.id).map((e) => e.id);
@@ -317,10 +329,11 @@ export async function appendLog(env: Env, input: LogInput, dateIso: string): Pro
     weight: input.weight,
     reps: input.reps,
     notes: input.notes?.trim() ?? "",
+    unit: toUnit(input.unit),
   };
   await env.DB.prepare(
-    "INSERT INTO log (ts, exercise_id, exercise, muscle_group, set_no, weight, reps, notes)" +
-      " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO log (ts, exercise_id, exercise, muscle_group, set_no, weight, reps, notes, unit)" +
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
   )
     .bind(
       entry.date,
@@ -331,6 +344,7 @@ export async function appendLog(env: Env, input: LogInput, dateIso: string): Pro
       entry.weight,
       entry.reps,
       entry.notes,
+      entry.unit,
     )
     .run();
   return entry;

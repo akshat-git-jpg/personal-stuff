@@ -28,7 +28,10 @@ CREATE TABLE IF NOT EXISTS exercise (
   position     INTEGER NOT NULL DEFAULT 0,
   -- Which gym an exercise belongs to. Previously inferred from the tab NAME and
   -- the ID prefix in two different client helpers; now stated by the data.
-  gym          TEXT NOT NULL DEFAULT 'main'
+  gym          TEXT NOT NULL DEFAULT 'main',
+  -- Weight unit this exercise is logged in. A LABEL, not a conversion: flipping
+  -- it never rewrites a number, the owner re-enters the weight by hand.
+  unit         TEXT NOT NULL DEFAULT 'kg'
 );
 CREATE INDEX IF NOT EXISTS idx_exercise_tab_pos ON exercise(tab, position);
 
@@ -43,7 +46,10 @@ CREATE TABLE IF NOT EXISTS log (
   set_no       INTEGER NOT NULL DEFAULT 0,
   weight       REAL NOT NULL DEFAULT 0,
   reps         INTEGER NOT NULL DEFAULT 0,
-  notes        TEXT NOT NULL DEFAULT ''
+  notes        TEXT NOT NULL DEFAULT '',
+  -- The unit this set was logged in, captured at log time so history keeps
+  -- reading correctly after the exercise switches unit.
+  unit         TEXT NOT NULL DEFAULT 'kg'
 );
 CREATE INDEX IF NOT EXISTS idx_log_ts ON log(ts DESC);
 CREATE INDEX IF NOT EXISTS idx_log_exercise ON log(exercise_id, ts DESC);

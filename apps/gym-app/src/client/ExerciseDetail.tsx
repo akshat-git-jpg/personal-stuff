@@ -148,9 +148,10 @@ export function ExerciseDetail({
       setNo: todaySets.length + 1,
       weight,
       reps,
+      unit: ex!.unit,
     });
     if (navigator.vibrate) navigator.vibrate([10, 40, 20]);
-    toast(`Logged ${weight}kg × ${reps}`);
+    toast(`Logged ${weight}${ex!.unit} × ${reps}`);
   }
 
   return (
@@ -186,7 +187,17 @@ export function ExerciseDetail({
 
       <div className="logger">
         <div className="steppers">
-          <Stepper label="Weight" unit="kg" value={weight} step={2.5} min={0} onChange={setWeight} />
+          <Stepper
+            label="Weight"
+            unit={ex.unit}
+            value={weight}
+            step={ex.unit === "lbs" ? 5 : 2.5}
+            min={0}
+            onChange={setWeight}
+            onUnitClick={() =>
+              updateExercise(tab, ex.id, { name: ex.name, unit: ex.unit === "kg" ? "lbs" : "kg" })
+            }
+          />
           <Stepper label="Reps" unit="" value={reps} step={1} min={1} onChange={setReps} />
         </div>
         {log[0] && (
@@ -204,7 +215,7 @@ export function ExerciseDetail({
           <div className="today-sets">
             {todaySets.map((s, i) => (
               <button key={i} className="set-pill num tappable" onClick={() => setEditing(s)}>
-                <b>{s.weight}</b>kg · {s.reps}
+                <b>{s.weight}</b>{s.unit} · {s.reps}
               </button>
             ))}
           </div>
@@ -243,7 +254,8 @@ export function ExerciseDetail({
                 .sort((a, b) => (a[0] < b[0] ? 1 : -1))
                 .slice(0, 12)
                 .map(([day, sets]) => {
-                  const top = Math.max(...sets.map((s) => s.weight));
+                  // Carry the top set's own unit — a day can straddle a switch.
+                  const topSet = sets.reduce((a, b) => (b.weight > a.weight ? b : a));
                   const open = openDay === day;
                   const ordered = sets.slice().sort((a, b) => a.setNo - b.setNo);
                   return (
@@ -254,7 +266,11 @@ export function ExerciseDetail({
                       >
                         <span className="num">
                           <span className="caret">{open ? "▾" : "▸"}</span> {sets.length}{" "}
-                          {sets.length === 1 ? "set" : "sets"} · top <b>{top}kg</b>
+                          {sets.length === 1 ? "set" : "sets"} · top{" "}
+                          <b>
+                            {topSet.weight}
+                            {topSet.unit}
+                          </b>
                         </span>
                         <span className="date">{fmtDay(day)}</span>
                       </button>
@@ -264,7 +280,8 @@ export function ExerciseDetail({
                             <button key={s.date} className="setline num" onClick={() => setEditing(s)}>
                               <span className="setno">SET {s.setNo}</span>
                               <span>
-                                <b>{s.weight}</b>kg × {s.reps}
+                                <b>{s.weight}</b>
+                                {s.unit} × {s.reps}
                               </span>
                               <span className="edit-hint">edit</span>
                             </button>

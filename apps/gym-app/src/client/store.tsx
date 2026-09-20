@@ -364,6 +364,7 @@ export function GymProvider({ children }: { children: ReactNode }) {
         weight: input.weight,
         reps: input.reps,
         notes: input.notes ?? "",
+        unit: input.unit ?? "kg",
       };
       setSnap((s) => ({ ...s, log: [entry, ...s.log] }));
       api.addLog({ ...input, date }).catch((e) => {
