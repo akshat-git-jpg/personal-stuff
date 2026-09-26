@@ -34,11 +34,13 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
 
   // Main tags only; a selected main reveals its sub-tags.
   const mainOf = (r: Row) => (r.status === "needs" ? "needs you" : r.tags[0] ?? "needs you");
+  // Only tags that have rows in the picked dates, plus any already selected.
   const tagCounts = useMemo(() => {
     const c = new Map<string, number>();
-    for (const r of data.rows) c.set(mainOf(r), (c.get(mainOf(r)) ?? 0) + 1);
+    for (const r of data.rows) if (inPick(pick, r.date, anchor)) c.set(mainOf(r), (c.get(mainOf(r)) ?? 0) + 1);
+    for (const t of tags) if (!c.has(t)) c.set(t, 0);
     return [...c.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
-  }, [data]);
+  }, [data, pick, anchor, tags]);
   const subs = useMemo(() => subsByMain(data.rows), [data]);
   const subChips = [...tags].flatMap((m) => (subs[m] ?? []).map((s) => [m, s] as const));
 
