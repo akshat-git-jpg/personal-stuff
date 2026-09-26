@@ -29,6 +29,7 @@ SOURCES = {"sbi": "SBI savings", "sbic": "SBI Card", "neu": "Tata Neu Infinity",
            "icici": "Amazon Pay ICICI"}
 CARD_NAMES = {"sbic": "SBI Card", "neu": "Tata Neu", "icici": "ICICI"}
 MISC_MAX, MISC_BEFORE = 200, "2026-08-01"
+UNIDENTIFIED_UNTIL = "2026-09-27"
 COMMUTE = {"cab", "auto", "metro", "bike taxi", "ride"}
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -361,6 +362,12 @@ def build(data, config, today=None, log=print):
 
     tag_trips(rows, config.get("trips", []))
 
+    # Owner decision 2026-09-27: what was still unknown on that day, the owner could not place.
+    for row in rows:
+        if row["status"] == "needs" and row["kind"] in ("spend", "in") and row["date"] <= UNIDENTIFIED_UNTIL:
+            row.update(tags=["misc"], desc="Unidentified: %s" % row["payee"], status="confirmed",
+                       why="You could not identify this when we went through the list on 27 Sep, so it is misc.")
+
     # Daily rides share a "commute" group; trips stay "travel".
     for row in rows:
         if any(t in COMMUTE for t in row["tags"]) and "commute" not in row["tags"]:
@@ -416,6 +423,11 @@ def build(data, config, today=None, log=print):
         if re.search(r"SBI ?CARDS?", b["text"], re.I):
             b.update(status="proven", desc="SBI Card bill",
                      why="Paid straight to SBI Card. Its statement is not on file, so the amount is not cross-checked.")
+        elif any(b["date"] < min((s["stmt_date"] for s in stmts if s["source"] == src), default="9999")
+                 for src in cards.PARSERS):
+            # Some card's statements start after this payment, so there is nothing to match it to.
+            b.update(status="proven", desc="Card bill via CRED",
+                     why="A CRED card bill payment from before the statements on file start, so it is not cross-checked.")
         else:
             b["status"] = "needs"
             b["why"] = "A CRED payment that matches no card statement total. Which bill was it?"
