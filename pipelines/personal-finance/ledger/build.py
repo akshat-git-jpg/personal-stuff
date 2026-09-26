@@ -211,6 +211,9 @@ STAY = re.compile(r"ibibo|goibibo|makemytrip|airbnb|oyo|hostel|homestay|hotel|mo
 BUS = re.compile(r"redbus|irctc|abhibus|ksrtc|bus", re.I)
 
 
+QUICK_GROCERY = re.compile(r"zepto|blinkit|instamart|flipkart minutes|bigbasket|bbnow", re.I)
+
+
 def tag_trips(rows, trips):
     """Owner decision 2026-09-27: trip spending gets "trip" plus "<trip>-stay/food/bus/auto/misc".
     Trips live in data/config.json: [{"name", "from", "to", "book_from"}]."""
@@ -218,6 +221,8 @@ def tag_trips(rows, trips):
         for r in rows:
             if r["kind"] != "spend" or set(r["tags"]) & NOT_TRIP:
                 continue
+            if QUICK_GROCERY.search("%s %s" % (r["text"], r["desc"] or "")):
+                continue  # owner, 27 Sep: these apps only deliver at home, never on a trip
             during = t["from"] <= r["date"] <= t["to"]
             booking = t.get("book_from", t["from"]) <= r["date"] < t["from"] and "travel" in r["tags"]
             if not (during or booking):
@@ -239,7 +244,7 @@ def tag_trips(rows, trips):
 
 # Owner decision 2026-09-27: every row gets ONE main tag and at most one sub-tag,
 # tags = [main] or [main, sub]. Fine detail (route, person) stays in the description.
-MAINS = ["food", "grocery", "commute", "trip", "travel", "shopping", "subscription", "work", "home", "bills",
+MAINS = ["food", "grocery", "commute", "trip", "travel", "shopping", "subscription", "work", "home", "bills", "education loan",
          "health", "personal care", "fitness", "entertainment", "family", "education", "bank", "income", "misc"]
 
 # old tag -> (main, fixed sub or None = derive the sub from the description)
@@ -247,7 +252,7 @@ MAIN_OF = {
     "taxi": ("commute", "taxi"), "auto": ("commute", "taxi"), "cab": ("commute", "taxi"),
     "bike taxi": ("commute", "taxi"), "ride": ("commute", "taxi"), "metro": ("commute", "metro"),
     "rent": ("home", "rent"), "cook": ("home", "cook"), "home services": ("home", None),
-    "loan": ("bank", "loan"), "card bill": ("bank", "card bill"), "fees": ("bank", "fees"),
+    "loan": ("education loan", "emi"), "card bill": ("bank", "card bill"), "fees": ("bank", "fees"),
     "salary": ("income", "salary"), "interest": ("bank", "interest"), "refund": ("income", "refund"),
     "protein": ("fitness", "protein"), "fitness": ("fitness", "gym"), "work tools": ("work", None),
     "personal care": ("personal care", None), "wallet": ("bank", "wallet"), "fuel": ("travel", "fuel"),

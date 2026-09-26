@@ -12,7 +12,7 @@ export const SOURCES: Record<Source, { label: string; short: string; color: stri
 
 /** The main tags, in the order they are offered. Each row has one, plus at most one sub-tag. */
 export const MAINS = [
-  "food", "grocery", "commute", "trip", "travel", "shopping", "subscription", "work", "home", "bills",
+  "food", "grocery", "commute", "trip", "travel", "shopping", "subscription", "work", "home", "bills", "education loan",
   "health", "personal care", "fitness", "entertainment", "family", "education", "bank", "income", "misc",
 ];
 
@@ -20,13 +20,14 @@ export const MAINS = [
 const LEGACY: Record<string, [string, string | null]> = {
   taxi: ["commute", "taxi"], auto: ["commute", "taxi"], cab: ["commute", "taxi"], "bike taxi": ["commute", "taxi"],
   metro: ["commute", "metro"], rent: ["home", "rent"], cook: ["home", "cook"], movie: ["entertainment", "movie"],
-  protein: ["fitness", "protein"], loan: ["bank", "loan"], "work tools": ["work", null], salary: ["income", "salary"],
+  protein: ["fitness", "protein"], loan: ["education loan", "emi"], "work tools": ["work", null], salary: ["income", "salary"],
 };
 
 /** Always [main] or [main, sub]; fixes owner tags saved in the old free form. */
 export function mainSub(tags: string[]): string[] {
   const t = tags.filter((x) => x !== "commute" || tags[0] === "commute");
   if (!t.length) return [];
+  if (t[0] === "bank" && t[1] === "loan") return ["education loan", "emi"];
   if (MAINS.includes(t[0]) && t[0] !== "misc") return t.slice(0, 2);
   // An old free-form trip tag like "varkala-food" belongs under "trip".
   const trip = t.find((x) => /^[a-z]+-(stay|food|bus|auto|metro)$/.test(x));
