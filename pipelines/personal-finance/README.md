@@ -66,3 +66,33 @@ visible gap — the same rule the income tally follows for untraced money.
 
 Note that `credit_card` is a *bill*, not spending: it settles purchases already made.
 Summing it alongside the other expense rows double-counts.
+
+## The ledger (Kushal Money)
+
+`ledger/` builds every payment from all four sources into one list for
+kushal-income.agrolloo.com: SBI savings, SBI Card, Tata Neu Infinity (HDFC) and
+Amazon Pay ICICI. It runs **on demand only**, never on a schedule:
+
+```bash
+cd pipelines/personal-finance
+python3 -m ledger.run              # fetch new mail, build, publish to the app
+python3 -m ledger.run --no-fetch   # rebuild from files already in data/inbox
+python3 -m ledger.run --no-push    # build data/ledger.json only
+python3 -m unittest discover -s ledger/tests -t .
+```
+
+- **Where the data comes from.** Card statement PDFs and purchase alert emails in
+  Gmail; SBI's monthly e-statement and YONO "email statement" PDFs, plus any PDF in
+  `data/raw/`. Everything lands in `data/inbox/` (gitignored) and is never re-fetched.
+- **Statements are the truth, emails fill the gap.** Rows after a card's last
+  statement come from alerts and show "not final"; the next statement replaces them.
+- **Every statement must add up** (previous + purchases + fees − payments = due) or
+  it is skipped and listed on the Overview. Card bills are matched to the SBI CRED
+  payment that paid them, including one payment for two cards.
+- **Nothing is guessed.** Tags come from `ledger/rules.json`, the bank's row type, or
+  the owner in the app. Anything else is "Needs you".
+- **Nothing sensitive is published.** Phone numbers, UPI IDs and account numbers are
+  masked, and `assert_clean` refuses the whole ledger if one slips through.
+- `data/config.json` also holds the card PDF passwords (`passwords`) and the app's
+  `ingest` url and token. Running from a workspace: set `PF_DATA` to the main
+  checkout's `data/` and `PP_GOOGLE_SHARED` to its `tooling/mcp/google-shared`.

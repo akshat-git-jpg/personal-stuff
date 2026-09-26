@@ -25,7 +25,7 @@ export function Login({ onDone }: { onDone: () => void }) {
       <form className="login-card" onSubmit={submit}>
         <h1 style={{display:"flex",alignItems:"center",gap:10}}>
           <span className="brand-mark" />
-          Kushal Income
+          Kushal Money
         </h1>
         <p className="login-hint">Enter the password.</p>
         <input

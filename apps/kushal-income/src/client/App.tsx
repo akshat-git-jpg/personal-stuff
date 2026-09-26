@@ -1,54 +1,81 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchMoney, logout, UnauthorizedError, type MoneyResponse } from "./api";
+import { fetchLedger, logout, UnauthorizedError, type Ledger } from "./api";
+import { Cards } from "./Cards";
+import { parseHash } from "./lib";
 import { Login } from "./Login";
-import { MoneyView } from "./MoneyView";
+import { Overview } from "./Overview";
+import { Review } from "./Review";
+import { Transactions } from "./Transactions";
+
+const TABS = [
+  ["overview", "Overview"],
+  ["transactions", "Transactions"],
+  ["cards", "Credit cards"],
+  ["review", "Needs you"],
+] as const;
 
 export function App() {
   const [needsAuth, setNeedsAuth] = useState(false);
-  const [checking, setChecking] = useState(true);
-  const [meta, setMeta] = useState<MoneyResponse | null>(null);
+  const [data, setData] = useState<Ledger | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [hash, setHash] = useState(location.hash);
 
-  const check = useCallback(async () => {
-    setChecking(true);
+  const load = useCallback(async () => {
     try {
-      setMeta(await fetchMoney());
+      setData(await fetchLedger());
       setNeedsAuth(false);
+      setErr(null);
     } catch (e) {
       if (e instanceof UnauthorizedError) setNeedsAuth(true);
-    } finally {
-      setChecking(false);
+      else setErr(String(e));
     }
   }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    void check();
-  }, [check]);
+    void load();
+    const on = () => setHash(location.hash);
+    addEventListener("hashchange", on);
+    return () => removeEventListener("hashchange", on);
+  }, [load]);
 
-  if (checking) return <div className="app"><div className="empty">Loading…</div></div>;
-  if (needsAuth) return <Login onDone={() => void check()} />;
+  if (needsAuth) return <Login onDone={() => void load()} />;
+  if (err) return <div className="app"><div className="empty">{err}</div></div>;
+  if (!data) return <div className="app"><div className="empty">Loading…</div></div>;
 
-  // A snapshot, never live. Saying when it was taken is not decoration: a stale
-  // figure and a current one look identical without it.
-  const when = meta?.generated_at
-    ? new Date(meta.generated_at).toLocaleString("en-IN",
-        { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })
+  const { page, params } = parseHash(hash);
+  const needs = data.rows.filter((r) => r.status === "needs" && r.kind !== "payment").length;
+  // The data is a snapshot from the last sync. Saying when is not decoration.
+  const when = data.generated_at
+    ? new Date(data.generated_at).toLocaleString("en-IN",
+        { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })
     : "never";
 
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand"><span className="brand-mark" />Kushal Income</div>
-        <div className="topbar-spacer" />
-        <div className="stamp">
-          {meta?.account ?? "—"}<br />updated {when}
-        </div>
-        <button className="btn-ghost"
-          onClick={async () => { await logout(); setNeedsAuth(true); }}>
+        <div className="brand"><span className="brand-mark" />Kushal Money</div>
+        <nav className="tabs" aria-label="Pages">
+          {TABS.map(([key, label]) => (
+            <a key={key} href={`#/${key}`} className="tab" aria-current={page === key ? "page" : undefined}>
+              {label}
+              {key === "review" && needs > 0 && <span className="badge">{needs}</span>}
+            </a>
+          ))}
+        </nav>
+        <div className="stamp">Last sync {when}</div>
+        <button className="btn-ghost" onClick={async () => { await logout(); setNeedsAuth(true); }}>
           Sign out
         </button>
       </header>
-      <main><MoneyView /></main>
+      {!data.rows.length ? (
+        <div className="empty">
+          Nothing synced yet. Run <code>python3 -m ledger.run</code> in <code>pipelines/personal-finance</code>.
+        </div>
+      ) : page === "transactions" ? <Transactions data={data} params={params} reload={load} />
+        : page === "cards" ? <Cards data={data} />
+        : page === "review" ? <Review data={data} reload={load} />
+        : <Overview data={data} />}
     </div>
   );
 }

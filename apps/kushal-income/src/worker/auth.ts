@@ -16,14 +16,16 @@ import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 
 /**
- * No database and no upstream API keys on purpose. The revenue figures are
- * baked into the bundle at build time, so this Worker never holds a PayPal,
- * impact.com or PartnerStack credential.
+ * No bank credential ever reaches this Worker. The ledger is pushed in by the
+ * owner's on-demand sync (INGEST_TOKEN), already masked; D1 keeps it plus the
+ * owner's tags.
  */
 export type Env = {
   ASSETS: Fetcher;
+  DB: D1Database;
   APP_PASSWORD: string;
   SESSION_SECRET: string;
+  INGEST_TOKEN: string;
 };
 
 const COOKIE = "ytincome_auth";
@@ -64,6 +66,12 @@ function nowSeconds(): number {
 export async function checkPassword(env: Env, password: unknown): Promise<boolean> {
   if (typeof password !== "string" || !env.APP_PASSWORD) return false;
   return safeEqual(password, env.APP_PASSWORD);
+}
+
+/** Bearer check for the sync's POST /api/ingest. */
+export function checkIngest(env: Env, header: string | undefined): boolean {
+  const token = header?.startsWith("Bearer ") ? header.slice(7) : "";
+  return !!env.INGEST_TOKEN && !!token && safeEqual(token, env.INGEST_TOKEN);
 }
 
 export async function makeToken(env: Env): Promise<string> {
