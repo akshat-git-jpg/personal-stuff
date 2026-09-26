@@ -122,7 +122,7 @@ async function login() {
 
 async function group(g) {
   const { groups } = await call("GET", "get_groups");
-  const hits = groups.filter((x) => String(x.id) === String(g) || x.name.toLowerCase() === String(g).toLowerCase());
+  const hits = groups.filter((x) => String(x.id) === String(g) || x.name.trim().toLowerCase() === String(g).trim().toLowerCase());
   if (hits.length !== 1) throw new Error(`No single group "${g}". Groups: ${groups.map((x) => x.name).join(", ")}`);
   return hits[0];
 }
