@@ -199,18 +199,6 @@ def _card_row(src, s, r, occ):
     return row
 
 
-# Owner decision 2026-09-27: tags are a short list of repeatable categories. Any
-# finer detail (route, vehicle, barber, "no receipt") lives in the description.
-CATEGORIES = ["food", "grocery", "taxi", "metro", "travel", "shopping", "subscription", "bills", "rent",
-              "cook", "family", "health", "personal care", "fitness", "protein", "fuel", "entertainment",
-              "home services", "work tools", "education", "loan", "fees", "misc",
-              "salary", "interest", "refund", "card bill", "trip"]
-ALIAS = {"auto": "taxi", "bike taxi": "taxi", "cab": "taxi", "ride": "taxi", "barber": "personal care",
-         "dermatologist": "health", "wallet": "misc"}
-# A category that also belongs to a wider group, so one click shows the group.
-PARENT = {"taxi": "commute", "metro": "commute"}
-
-
 # Everyday money that is not part of a trip even when it falls on trip days.
 TRIP_KINDS = ("stay", "food", "bus", "auto", "metro")
 NOT_TRIP = {"rent", "cook", "family", "loan", "subscription", "bills", "card bill", "work tools", "education",
@@ -245,23 +233,77 @@ def tag_trips(rows, trips):
                 r["why"] = r["why"] + " " + note
 
 
+# Owner decision 2026-09-27: every row gets ONE main tag and at most one sub-tag,
+# tags = [main] or [main, sub]. Fine detail (route, person) stays in the description.
+MAINS = ["food", "grocery", "commute", "trip", "travel", "shopping", "subscription", "work", "home", "bills",
+         "health", "personal care", "fitness", "entertainment", "family", "education", "bank", "income", "misc"]
+
+# old tag -> (main, fixed sub or None = derive the sub from the description)
+MAIN_OF = {
+    "taxi": ("commute", "taxi"), "auto": ("commute", "taxi"), "cab": ("commute", "taxi"),
+    "bike taxi": ("commute", "taxi"), "ride": ("commute", "taxi"), "metro": ("commute", "metro"),
+    "rent": ("home", "rent"), "cook": ("home", "cook"), "home services": ("home", None),
+    "loan": ("bank", "loan"), "card bill": ("bank", "card bill"), "fees": ("bank", "fees"),
+    "salary": ("income", "salary"), "interest": ("income", "interest"), "refund": ("income", "refund"),
+    "protein": ("fitness", "protein"), "fitness": ("fitness", "gym"), "work tools": ("work", None),
+    "personal care": ("personal care", None), "wallet": ("misc", "wallet"), "fuel": ("travel", "fuel"),
+}
+
+# Sub-tag from the description, per main. First keyword hit wins; None = no sub-tag.
+SUBS = {
+    "food": [("swiggy", "swiggy"), ("zomato", "zomato"), ("eatclub", "eatclub"), ("eatsure", "eatsure"),
+             ("swish", "swish"), ("rebel foods", "rebel foods"), ("domino", "dominos"), ("kfc", "kfc"),
+             ("", "eating out")],
+    "grocery": [("instamart", "instamart"), ("zepto", "zepto"), ("blinkit", "blinkit"), ("amazon", "amazon fresh"),
+                ("flipkart", "flipkart minutes"), ("akshayakalpa", "milk"), ("bigbasket", "bigbasket"), ("", "store")],
+    "shopping": [("amazon", "amazon"), ("flipkart", "flipkart"), ("meesho", "meesho"), ("myntra", "myntra"),
+                 ("ajio", "ajio"), ("nykaa", "nykaa"), ("lenskart", "eyewear"), ("decathlon", "sports"),
+                 ("book", "books"), ("jewel", "jewellery"), ("", "clothes")],
+    "health": [("dermat", "dermatologist"), ("physio", "physio"), ("pharmeasy", "pharmacy"), ("apollo", "pharmacy"),
+               ("1mg", "pharmacy"), ("aster", "hospital"), ("", "clinic")],
+    "personal care": [("barber", "barber"), ("mcaffeine", "cosmetics"), ("", None)],
+    "home": [("plumber", "plumber"), ("livpure", "water purifier"), ("urban company", "urban company"), ("", None)],
+    "bills": [("jio", "jio"), ("vi ", "vi"), ("vi recharge", "vi"), ("airtel", "airtel"), ("bescom", "electricity"),
+              ("act ", "internet"), ("cred", "recharge"), ("", None)],
+    "entertainment": [("movie", "movie"), ("bookmyshow", "movie"), ("cineplex", "movie"), ("", None)],
+    "work": [("upwork", "upwork"), ("", None)],
+}
+
+
+def _sub_for(main, desc, fixed):
+    if fixed:
+        return fixed
+    d = re.sub(r"^refund: ", "", (desc or "").lower())
+    if main == "subscription":
+        name = re.sub(r"\s*\(.*?\)", "", d).replace(" premium", "").replace(" autopay", "").strip()
+        return (name + " sub") if name else None
+    if main == "travel":
+        return re.sub(r"\s*\(.*?\)", "", d).strip() or None
+    for key, sub in SUBS.get(main, []):
+        if key in d:
+            return sub
+    return None
+
+
 def normalize_tags(row):
-    out = []
-    for t in row["tags"]:
-        if t == "pattern":
-            row["inferred"] = True
-            continue
-        t = ALIAS.get(t, t)
-        if "→" in t or t == "commute" or t in out:
-            continue
-        if t != "trip" and "-" in t and t.split("-")[0] and t.rsplit("-", 1)[1] in TRIP_KINDS:
-            out.append(t)  # a trip tag like "varkala-stay"
-            continue
-        out.append(t)
-    for t in list(out):
-        if t in PARENT and PARENT[t] not in out:
-            out.append(PARENT[t])
-    row["tags"] = out
+    tags = [t for t in row["tags"] if t not in ("commute", "pattern")]
+    if "pattern" in row["tags"]:
+        row["inferred"] = True
+    if "trip" in tags:
+        trip_sub = next((t for t in tags if "-" in t and t.rsplit("-", 1)[1] in TRIP_KINDS), None)
+        if not trip_sub and "thailand" in (row["desc"] or "").lower():
+            trip_sub = "thailand"
+        trip_sub = trip_sub or row.get("trip")
+        row["tags"] = ["trip"] + ([trip_sub] if trip_sub else [])
+        return
+    if not tags:
+        row["tags"] = []
+        return
+    main, fixed = MAIN_OF.get(tags[0], (tags[0], None))
+    if main not in MAINS:
+        main, fixed = "misc", None
+    sub = _sub_for(main, row["desc"], fixed)
+    row["tags"] = [main] + ([sub] if sub else [])
 
 
 def _slack(due):
@@ -368,10 +410,6 @@ def build(data, config, today=None, log=print):
             row.update(tags=["misc"], desc="Unidentified: %s" % row["payee"], status="confirmed",
                        why="You could not identify this when we went through the list on 27 Sep, so it is misc.")
 
-    # Daily rides share a "commute" group; trips stay "travel".
-    for row in rows:
-        if any(t in COMMUTE for t in row["tags"]) and "commute" not in row["tags"]:
-            row["tags"] = row["tags"] + ["commute"]
 
     # Card bills: match each statement to the SBI payment that settled it
     bills = [r for r in rows if r["source"] == "sbi" and r["kind"] == "bill"]

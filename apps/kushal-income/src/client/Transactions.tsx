@@ -6,7 +6,7 @@
  */
 import { useMemo, useState } from "react";
 import type { Ledger, Row, Source, Status } from "./api";
-import { addDays, dayLabel, isIn, monthOf, rs, SOURCES, todayIso, totals } from "./lib";
+import { addDays, dayLabel, isIn, monthOf, rs, SOURCES, subsByMain, todayIso, totals } from "./lib";
 import { TagEditor } from "./TagEditor";
 
 type Range = "10d" | "month" | "last" | "all" | "custom";
@@ -22,6 +22,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
   const [to, setTo] = useState(pm ? `${pm}-31` : "");
   const [src, setSrc] = useState<Set<Source>>(new Set(params.get("source") ? [params.get("source") as Source] : []));
   const [tags, setTags] = useState<Set<string>>(new Set(params.get("tag") ? [params.get("tag")!] : []));
+  const [subTags, setSubTags] = useState<Set<string>>(new Set());
   const [stat, setStat] = useState<Set<Status>>(new Set());
   const [inferredOnly, setInferredOnly] = useState(false);
   const [hideBills, setHideBills] = useState(true);
@@ -44,28 +45,30 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
     }
   }, [range, from, to, newest, today]);
 
+  // Main tags only; a selected main reveals its sub-tags.
+  const mainOf = (r: Row) => (r.status === "needs" ? "needs you" : r.tags[0] ?? "needs you");
   const tagCounts = useMemo(() => {
     const c = new Map<string, number>();
-    for (const r of data.rows) for (const t of r.status === "needs" ? ["needs you"] : r.tags) c.set(t, (c.get(t) ?? 0) + 1);
+    for (const r of data.rows) c.set(mainOf(r), (c.get(mainOf(r)) ?? 0) + 1);
     return [...c.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
   }, [data]);
+  const subs = useMemo(() => subsByMain(data.rows), [data]);
+  const subChips = [...tags].flatMap((m) => (subs[m] ?? []).map((s) => [m, s] as const));
 
   const qq = q.trim().toLowerCase();
   const rows = data.rows.filter((r) => {
     if (r.date < lo || r.date > hi) return false;
-    if (hideBills && (r.kind === "bill" || r.kind === "payment") && !tags.has("card bill")) return false;
+    if (hideBills && (r.kind === "bill" || r.kind === "payment") && !(tags.has("bank") && subTags.has("bank›card bill"))) return false;
     if (src.size && !src.has(r.source)) return false;
     if (stat.size && !stat.has(r.status)) return false;
     if (inferredOnly && !r.inferred) return false;
-    if (tags.size) {
-      const mine = r.status === "needs" ? ["needs you"] : r.tags;
-      if (!mine.some((t) => tags.has(t))) return false;
-    }
+    if (tags.size && !tags.has(mainOf(r))) return false;
+    if (subTags.size && !(r.tags[1] && subTags.has(`${r.tags[0]}›${r.tags[1]}`))) return false;
     if (qq && !`${r.desc ?? ""} ${r.payee} ${r.text} ${r.tags.join(" ")} ${(r.details ?? []).join(" ")}`.toLowerCase().includes(qq)) return false;
     return true;
   });
   const t = totals(rows);
-  const filtered = !!(qq || src.size || tags.size || stat.size || inferredOnly);
+  const filtered = !!(qq || src.size || tags.size || subTags.size || stat.size || inferredOnly);
   const flip = <T,>(set: Set<T>, v: T, put: (s: Set<T>) => void) => {
     const n = new Set(set);
     if (n.has(v)) n.delete(v); else n.add(v);
@@ -106,9 +109,19 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
         <div className="row">
           <span className="lbl">Tags</span>
           {tagCounts.map((tg) => (
-            <button key={tg} className="chip" aria-pressed={tags.has(tg)} onClick={() => flip(tags, tg, setTags)}>{tg}</button>
+            <button key={tg} className="chip" aria-pressed={tags.has(tg)}
+              onClick={() => { flip(tags, tg, setTags); setSubTags(new Set([...subTags].filter((k) => !k.startsWith(tg + "›")))); }}>{tg}</button>
           ))}
         </div>
+        {subChips.length > 0 && (
+          <div className="row">
+            <span className="lbl">Sub-tags</span>
+            {subChips.map(([m, sb]) => {
+              const k = `${m}›${sb}`;
+              return <button key={k} className="chip sub" aria-pressed={subTags.has(k)} onClick={() => flip(subTags, k, setSubTags)}>{sb}</button>;
+            })}
+          </div>
+        )}
         <div className="row">
           <span className="lbl">Status</span>
           {(Object.keys(STATUS) as Status[]).map((s) => (
@@ -116,7 +129,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           ))}
           <button className="chip" aria-pressed={inferredOnly} onClick={() => setInferredOnly(!inferredOnly)}>From ride pattern</button>
           {filtered && (
-            <button className="linkbtn" onClick={() => { setQ(""); setSrc(new Set()); setTags(new Set()); setStat(new Set()); setInferredOnly(false); }}>
+            <button className="linkbtn" onClick={() => { setQ(""); setSrc(new Set()); setTags(new Set()); setSubTags(new Set()); setStat(new Set()); setInferredOnly(false); }}>
               Clear filters
             </button>
           )}
@@ -161,7 +174,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
                 <button className="btn-ghost" onClick={() => setBulk(true)}>Tag all {open.length} shown</button>
               </div>
             ) : (
-              <TagEditor rowIds={open.map((r) => r.id)} payee="each of these payees" alwaysDefault={false}
+              <TagEditor rowIds={open.map((r) => r.id)} payee="each of these payees" subs={subs} alwaysDefault={false}
                 onSaved={async () => { setBulk(false); await reload(); }} onCancel={() => setBulk(false)} />
             )}
           </section>
@@ -173,7 +186,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           <span>Date</span><span>Paid by</span><span>What it was</span><span>Tags</span><span>Status</span><span className="right">Amount</span>
         </div>
         {rows.slice(0, limit).map((r) => (
-          <RowView key={r.id} r={r} open={open === r.id} editing={editing === r.id}
+          <RowView key={r.id} r={r} subs={subs} open={open === r.id} editing={editing === r.id}
             toggle={() => { setOpen(open === r.id ? null : r.id); setEditing(null); }}
             edit={() => setEditing(r.id)} done={async () => { setEditing(null); await reload(); }} />
         ))}
@@ -186,8 +199,8 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
   );
 }
 
-function RowView({ r, open, editing, toggle, edit, done }: {
-  r: Row; open: boolean; editing: boolean; toggle: () => void; edit: () => void; done: () => Promise<void>;
+function RowView({ r, subs, open, editing, toggle, edit, done }: {
+  r: Row; subs: Record<string, string[]>; open: boolean; editing: boolean; toggle: () => void; edit: () => void; done: () => Promise<void>;
 }) {
   const muted = r.kind === "bill" || r.kind === "payment";
   const amt = r.amount === null ? r.fx ?? "?" : `${r.amount > 0 ? "+" : ""}${rs(r.amount, true)}`;
@@ -200,7 +213,7 @@ function RowView({ r, open, editing, toggle, edit, done }: {
           <span className={`desc ${r.status === "needs" ? "needs" : ""}`}>{r.desc ?? (r.status === "needs" ? `Who is this? ${r.payee}` : r.payee)}</span>
           <span className="raw">{r.text}</span>
         </span>
-        <span className="tags">{r.tags.map((t) => <span key={t} className="pill">{t}</span>)}</span>
+        <span className="tags">{r.tags.map((t, i) => <span key={t} className={`pill ${i ? "sub" : ""}`}>{i ? `› ${t}` : t}</span>)}</span>
         <span className="status">
           <span className={`st ${r.status}`}>{STATUS[r.status]}</span>
           {!r.final && <span className="nf">not final</span>}
@@ -219,7 +232,7 @@ function RowView({ r, open, editing, toggle, edit, done }: {
               <button className="btn-ghost" onClick={edit}>{r.status === "needs" ? "Tag it" : "Change tag"}</button>
             </>
           ) : (
-            <TagEditor rowIds={[r.id]} payee={r.payee} trip={r.trip} initialTags={r.status === "needs" ? [] : r.tags}
+            <TagEditor rowIds={[r.id]} payee={r.payee} trip={r.trip} subs={subs} initialTags={r.status === "needs" ? [] : r.tags}
               initialDesc={r.desc} alwaysDefault={false} onSaved={() => void done()} onCancel={toggle} />
           )}
         </div>

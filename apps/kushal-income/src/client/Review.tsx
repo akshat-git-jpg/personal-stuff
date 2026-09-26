@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import type { Ledger, Row } from "./api";
-import { dayLabel, monthOf, rs, SOURCES } from "./lib";
+import { dayLabel, monthOf, rs, SOURCES, subsByMain } from "./lib";
 import { TagEditor } from "./TagEditor";
 
 export function Review({ data, reload }: { data: Ledger; reload: () => Promise<void> }) {
@@ -60,7 +60,7 @@ export function Review({ data, reload }: { data: Ledger; reload: () => Promise<v
                 <h2>What was it? · {first.payee}</h2>
                 <button className="btn-ghost" onClick={() => setLater(new Set([...later, first.payee_key]))}>Ask me later</button>
               </div>
-              <TagEditor rowIds={g.map((r) => r.id)} payee={first.payee} trip={first.trip} alwaysDefault={first.kind !== "bill" && !first.trip}
+              <TagEditor rowIds={g.map((r) => r.id)} payee={first.payee} trip={first.trip} subs={subsByMain(data.rows)} alwaysDefault={first.kind !== "bill" && !first.trip}
                 onSaved={() => void reload()} />
             </div>
           </section>

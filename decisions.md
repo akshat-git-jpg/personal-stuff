@@ -1445,3 +1445,7 @@ kushal-income became a transaction ledger (Overview, Transactions, Credit cards,
 ## 2026-09-27 — Kushal Money: fixed categories, no masking, ride patterns allowed
 
 The owner narrowed the rules above. Tags are a short list of repeatable categories (`CATEGORIES` in `pipelines/personal-finance/ledger/build.py`); taxi (auto, bike taxi, cab) and metro also carry `commute`. Detail like route, barber or "no receipt" goes in the description. Nothing is masked any more: the full bank text and a `details` list (UPI ID, bank, note, Google Pay payee, Rapido driver) are shown, because identifying a payment matters more than hiding it inside a password-gated app; the data never enters the repo. Payments with no receipt may be tagged from the learned Rapido ride pattern, flagged `inferred` and filterable as "From ride pattern". Small untagged payments before August 2026 are temporary `misc`.
+
+## 2026-09-27 — Kushal Money: one main tag plus one sub-tag
+
+Replaces the flat category list above. Every row is `[main]` or `[main, sub]`: 19 mains (`MAINS` in `ledger/build.py` and `src/client/lib.ts`), sub-tags derived from the description (`SUBS`), e.g. commute › taxi, trip › varkala-bus, subscription › claude sub, home › rent, work › upwork. The Transactions filter shows mains, and a selected main reveals its sub-tags. Owner tags saved in the old free form are mapped on the client (`mainSub`).
