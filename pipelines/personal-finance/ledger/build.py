@@ -262,7 +262,7 @@ SUBS = {
                 ("flipkart", "flipkart minutes"), ("akshayakalpa", "milk"), ("bigbasket", "bigbasket"), ("", "store")],
     "shopping": [("amazon", "amazon"), ("flipkart", "flipkart"), ("meesho", "meesho"), ("myntra", "myntra"),
                  ("ajio", "ajio"), ("nykaa", "nykaa"), ("lenskart", "eyewear"), ("decathlon", "sports"),
-                 ("book", "books"), ("jewel", "jewellery"), ("", "clothes")],
+                 ("book", "books"), ("jewel", "jewellery"), ("iphone", "phone"), ("", "clothes")],
     "health": [("dermat", "dermatologist"), ("physio", "physio"), ("pharmeasy", "pharmacy"), ("apollo", "pharmacy"),
                ("1mg", "pharmacy"), ("aster", "hospital"), ("", "clinic")],
     "personal care": [("barber", "barber"), ("mcaffeine", "cosmetics"), ("", None)],
