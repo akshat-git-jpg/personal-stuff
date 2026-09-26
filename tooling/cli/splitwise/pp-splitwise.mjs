@@ -16,7 +16,7 @@ const USAGE = `pp-splitwise <command>
   login                       open a browser window; log in to Splitwise once
   me | groups | friends       who you are, your groups and their members, your friends
   expenses [--group G] [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--json]
-  add --group G --cost N --desc TEXT [--date YYYY-MM-DD] [--notes TEXT] [--with A,B] [--yes]
+  add --group G --cost N --desc TEXT [--date YYYY-MM-DD] [--notes TEXT] [--with A,B] [--currency INR] [--yes]
                               you paid, split equally with the group (or only --with people).
                               Without --yes it only prints what it would add.
   delete ID --yes             delete one expense (Splitwise keeps it restorable)
@@ -53,7 +53,9 @@ async function open(headless) {
     const b = await chromium.launch({ executablePath: exe, headless: true });
     try { ua = (await (await b.newPage()).evaluate(() => navigator.userAgent)).replace("HeadlessChrome", "Chrome"); } finally { await b.close(); }
   }
-  const ctx = await chromium.launchPersistentContext(PROFILE, { executablePath: exe, headless, viewport: null, userAgent: ua });
+  // Google sign-in refuses a browser that says it is automated.
+  const ctx = await chromium.launchPersistentContext(PROFILE, { executablePath: exe, headless, viewport: null, userAgent: ua,
+    ignoreDefaultArgs: ["--enable-automation"], args: ["--disable-blink-features=AutomationControlled"] });
   if (fs.existsSync(STATE)) {
     const year = Date.now() / 1000 + 365 * 86400;
     const { cookies } = JSON.parse(fs.readFileSync(STATE, "utf8"));
@@ -186,7 +188,7 @@ async function main() {
     const g = await group(flag("--group"));
     const members = flag("--with") ? pickMembers(g.members, flag("--with").split(",")) : g.members.map((m) => m.id);
     const body = expenseBody({ cost: flag("--cost"), desc: flag("--desc"), date, groupId: g.id,
-      currency: user.default_currency || "INR", notes: flag("--notes"), payer: user.id, members });
+      currency: flag("--currency") ?? "INR", notes: flag("--notes"), payer: user.id, members });
     const who = [user.id, ...members.filter((m) => m !== user.id)].map((id) => name(g.members.find((m) => m.id === id) ?? user));
     console.error(`${date ?? "today"}  ${body.currency_code} ${body.cost}  ${body.description}  in ${g.name}, you paid, split equally: ${who.join(", ")}`);
     if (!has("--yes")) return console.error("Not added. Run again with --yes to add it.");
