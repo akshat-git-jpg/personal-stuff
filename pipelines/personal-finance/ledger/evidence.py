@@ -240,3 +240,82 @@ def apply_ride_fallback(rows):
                          "Assumed a ride, as you approved on 27 Sep." % (-r["amount"], RIDE_FARE[0], RIDE_FARE[1]))
             n += 1
     return n
+
+
+# ---------------------------------------------------------------- Uber
+
+UBER_TIP = 15          # the owner rounds a cash fare up (₹65.76 paid as ₹70)
+UBER_LAG = (-10, 60)   # minutes after the ride ends
+
+
+def _uber_parse(t):
+    """Both Uber receipt layouts -> (total, method, day, start, end, vehicle, km, plate, pickup, drop, driver)."""
+    total = re.search(r"Total ₹([\d,]+\.?\d*)", t)
+    plate = re.search(r"License Plate: (\S+)", t)
+    driver = re.search(r"You rode with (.+?) \d\.\d\d", t)
+    # Three layouts seen: "Payments Cash ₹65.76 9/26/26 2:57 pm", "Payments Cash ₹76.02 11/15/25 9:16 PM"
+    # and "Payments Cash 9/10/25 12:55 AM ₹84.10"; trip details with "kilometres," or "kilometers |".
+    hm = r"\d{1,2}:\d\d [apAP][mM]"
+    pay = re.search(r"Payments (.+?) (?:₹[\d,.]+ )?(\d{1,2})/(\d{1,2})/(\d\d) " + hm, t)
+    end = r"(?=\d{1,2}:\d\d [apAP][mM]|You rode with|Report lost item|Contact support)"
+    det = re.search(r"Trip details (.+?) ([\d.]+) kilomet(?:re|er)s, (\d+) minutes(?: License Plate: \S+)? "
+                    r"(" + hm + r") (.+?) (" + hm + r") (.+?) " + end, t)
+    if not det:
+        det = re.search(r"(\w+(?: \w+)?) ([\d.]+) kilometers \| (\d+) minutes (" + hm + r") (.+?) (" + hm + r") (.+?) " + end, t)
+    if not (total and pay and det):
+        return None
+    day = dt.date(2000 + int(pay[4]), int(pay[2]), int(pay[3]))
+    return (float(total[1].replace(",", "")), pay[1].strip(), day, det[4], det[6], det[1], det[2],
+            plate[1] if plate else "", det[5].strip(), det[7].strip(), driver[1].strip() if driver else "")
+
+
+def uber_rides(data, places):
+    import json
+    out = []
+    for f in sorted((data / "inbox" / "uber").glob("*.json")):
+        got = _uber_parse(json.loads(f.read_text())["text"])
+        if not got:
+            continue
+        price, method, day, t0, t1, vehicle, km, plate, pickup, drop, driver = got
+        at = lambda hm: dt.datetime.combine(day, dt.datetime.strptime(hm.upper(), "%I:%M %p").time())
+        start, end = at(t0), at(t1)
+        if end < start:
+            start -= dt.timedelta(days=1)
+        v = vehicle.lower()
+        mode = "auto" if "auto" in v else "bike taxi" if ("bike" in v or "moto" in v) else "cab"
+        out.append({"id": f.stem, "mode": mode, "price": price, "ts": start, "end": end, "method": method,
+                    "pickup": pickup, "drop": drop, "vehicle": plate, "km": km, "driver": driver,
+                    "from": _place(pickup, places), "to": _place(drop, places)})
+    return sorted(out, key=lambda r: r["ts"])
+
+
+def match_uber(rows, rides):
+    n = 0
+    taken = set()
+    for u in rides:
+        route = "%s → %s" % (u["from"], u["to"])
+        facts = ["Uber %s %s–%s, %s km, driver %s, plate %s, paid by %s" % (
+                     u["mode"], u["ts"].strftime("%-d %b %H:%M"), u["end"].strftime("%H:%M"), u["km"],
+                     u["driver"] or "?", u["vehicle"] or "?", u["method"]),
+                 "From: " + u["pickup"], "To: " + u["drop"]]
+        if u["method"].lower() == "cash":
+            cands = [r for r in rows if r["id"] not in taken and r["status"] == "needs" and r.get("_ts")
+                     and r["amount"] is not None and u["price"] - 0.01 <= -r["amount"] <= u["price"] + UBER_TIP
+                     and UBER_LAG[0] <= (r["_ts"] - u["end"]).total_seconds() / 60 <= UBER_LAG[1]]
+            if not cands:
+                continue
+            row = min(cands, key=lambda r: abs((r["_ts"] - u["end"]).total_seconds()))
+            why = "Uber receipt: %s ride, fare ₹%.2f paid in cash; this ₹%.0f UPI to the driver came %d min after the ride ended." % (
+                u["mode"], u["price"], -row["amount"], int((row["_ts"] - u["end"]).total_seconds() / 60))
+        else:
+            cands = [r for r in rows if r["id"] not in taken and r["amount"] is not None and abs(-r["amount"] - u["price"]) < 0.01
+                     and abs((dt.date.fromisoformat(r["date"]) - u["ts"].date()).days) <= 1 and "uber" in r.get("_hay", "").lower()]
+            if not cands:
+                continue
+            row = cands[0]
+            why = "Uber receipt: %s ride, fare ₹%.2f paid by %s." % (u["mode"], u["price"], u["method"])
+        taken.add(row["id"])
+        row.update(tags=[u["mode"], "commute"], desc="Uber %s: %s" % (u["mode"], route), status="proven", why=why)
+        row.setdefault("details", []).extend(facts)
+        n += 1
+    return n

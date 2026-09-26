@@ -14,6 +14,7 @@
     {"match": ["/SATYAM /"], "tags": ["rent"], "desc": "Rent", "by": "owner", "source": ["sbi"]},
     {"match": ["DIRECT DR   0038323373500", "0038323373500"], "tags": ["loan"], "desc": "Education loan EMI", "by": "owner", "source": ["sbi"]},
     {"match": ["8937852298"], "tags": ["education"], "desc": "Education fees", "by": "owner", "source": ["sbi"]},
+    {"match": ["/MOLLYS H", "molly"], "tags": ["travel"], "desc": "Molly's Hostel (Varkala)", "by": "owner"},
     {"match": ["/Ashabul /"], "tags": ["cook"], "desc": "Cook", "by": "owner", "source": ["sbi"]},
     {"match": ["/ABUBAKK A/"], "tags": ["cook"], "desc": "Cook (Abubakk A)", "by": "owner", "source": ["sbi"]},
     {"match": ["/SAGARIKA"], "tags": ["cook"], "desc": "Cook Asha (paid to Sagarika's account)", "by": "owner", "source": ["sbi"]},

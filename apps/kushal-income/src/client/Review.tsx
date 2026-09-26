@@ -60,7 +60,7 @@ export function Review({ data, reload }: { data: Ledger; reload: () => Promise<v
                 <h2>What was it? · {first.payee}</h2>
                 <button className="btn-ghost" onClick={() => setLater(new Set([...later, first.payee_key]))}>Ask me later</button>
               </div>
-              <TagEditor rowIds={g.map((r) => r.id)} payee={first.payee} alwaysDefault={first.kind !== "bill"}
+              <TagEditor rowIds={g.map((r) => r.id)} payee={first.payee} trip={first.trip} alwaysDefault={first.kind !== "bill" && !first.trip}
                 onSaved={() => void reload()} />
             </div>
           </section>

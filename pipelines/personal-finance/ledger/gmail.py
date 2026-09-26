@@ -104,6 +104,17 @@ def fetch(inbox, log=print):
                 (folder / ("%s_%s" % (mid, p["filename"].replace("/", "_")))).write_bytes(base64.urlsafe_b64decode(a["data"]))
                 new += 1
 
+    # Uber receipts: fare, payment method, times, both addresses.
+    folder = inbox / "uber"
+    folder.mkdir(parents=True, exist_ok=True)
+    for mid in _ids(svc, 'from:uber.com subject:"trip with Uber" after:%s' % SINCE):
+        path = folder / (mid + ".json")
+        if path.exists():
+            continue
+        msg = svc.users().messages().get(userId="me", id=mid).execute()
+        path.write_text(json.dumps({"id": mid, "ts": int(msg["internalDate"]), "text": _text(msg["payload"])}))
+        new += 1
+
     folder = inbox / "alerts"
     folder.mkdir(parents=True, exist_ok=True)
     for src, q in ALERTS.items():

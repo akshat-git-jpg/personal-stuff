@@ -1,13 +1,15 @@
 /** Pick tags (and optionally a description) for one or more rows, then save. */
 import { useState } from "react";
 import { tagRows } from "./api";
-import { PARENT, TAG_CHOICES } from "./lib";
+import { PARENT, TAG_CHOICES, tripChoices } from "./lib";
 
 export function TagEditor(props: {
   rowIds: string[];
   payee: string;
   initialTags?: string[];
   initialDesc?: string | null;
+  /** The trip these payments belong to, if any: adds its stay/food/bus/auto buttons. */
+  trip?: string;
   /** Offer "tag every payment to this payee"; defaults it on when true. */
   alwaysDefault?: boolean;
   onSaved: () => void;
@@ -21,13 +23,15 @@ export function TagEditor(props: {
   const [err, setErr] = useState<string | null>(null);
 
   const toggle = (t: string) => setTags((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
-  const all = [...new Set([...TAG_CHOICES, ...tags.filter((t) => t !== "commute")])];
+  const trip = tripChoices(props.trip);
+  const all = [...new Set([...trip, ...TAG_CHOICES, ...tags.filter((t) => t !== "commute" && t !== "trip")])];
   const extra = custom.trim().toLowerCase();
   const ready = tags.length > 0 || !!extra;
 
   const save = async () => {
     const picked = extra && !tags.includes(extra) ? [...tags, extra] : tags;
-    const final = [...picked.filter((t) => t !== "commute"), ...new Set(picked.map((t) => PARENT[t]).filter(Boolean))];
+    const base = picked.filter((t) => t !== "commute" && t !== "trip");
+    const final = [...base, ...(props.trip ? ["trip"] : []), ...new Set(base.map((t) => PARENT[t]).filter(Boolean))];
     setBusy(true);
     setErr(null);
     try {

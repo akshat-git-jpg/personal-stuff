@@ -105,3 +105,9 @@ python3 -m unittest discover -s ledger/tests -t .
   the receipts tag a payment when exactly one route fits its day, hour and fare; a
   small QR payment (₹40–100) to a one-off payee is tagged "ride, route unknown".
   Both carry the `pattern` tag, so they can be filtered and checked.
+- **Uber receipts** are fetched on sync. A "Cash" fare matches the UPI paid to the
+  driver (fare to fare + ₹15, up to an hour after the ride); other fares match the
+  Uber row itself. Three receipt layouts are handled.
+- **Trips** live in `data/config.json` `trips` (`name`, `from`, `to`, `book_from`).
+  Spending in the window gets `trip` plus `<name>-stay/food/bus/auto/metro`; anything
+  unknown stays in Needs you, where the app offers those buttons.
