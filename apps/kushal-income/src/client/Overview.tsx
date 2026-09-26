@@ -152,7 +152,55 @@ export function Overview({ data }: { data: Ledger }) {
           ))}
         </section>
       </div>
+
+      <DataSources />
     </main>
+  );
+}
+
+const YOU = [
+  ["SBI savings (passbook)", "In YONO, email yourself the month's statement. SBI's own monthly email can come days late."],
+  ["Rides (Rapido)", "In the Rapido app, request receipts for the month's rides. The sync picks them up from Gmail."],
+  ["Trips", "Add the bus and stay bookings, with times, on trips.agrolloo.com."],
+  ["Needs you", "After the sync, tag the payments it could not."],
+];
+const SOMETIMES = [
+  ["Flipkart login expired", "Run pp-flipkart login and type the OTP."],
+  ["A bank changes a statement password", "Say the new password in the sync chat."],
+  ["Payment times look wrong", "Add a fresh Google Pay Takeout. Rarely needed."],
+];
+const AUTO = [
+  ["SBI Card, Tata Neu, Amazon Pay ICICI", "Monthly statement PDF from Gmail. This is the truth. Nothing to download."],
+  ["Card purchase alerts", "From Gmail. They fill the days after the last statement, marked not final."],
+  ["SBI monthly e-statement", "From Gmail, when SBI sends it."],
+  ["Flipkart and Flipkart Minutes", "Orders and items, from your Flipkart account."],
+  ["Uber and Rapido receipts", "From Gmail. They prove a payment was a ride and give its route."],
+  ["Trips", "From trips.agrolloo.com: first departure to last arrival."],
+];
+
+function DataSources() {
+  const list = (items: string[][], mark: string, cls: string) => items.map(([name, how]) => (
+    <div key={name} className="srcstat">
+      <span className={`tick ${cls}`} aria-hidden>{mark}</span>
+      <div className="grow"><div className="strong">{name}</div><div className="muted small">{how}</div></div>
+    </div>
+  ));
+  return (
+    <section className="panel">
+      <div className="head"><h2>Where the data comes from</h2><span className="muted">Each month end: do "You do this", then sync</span></div>
+      <div className="grid-2">
+        <div>
+          <h3 className="subhead">You do this</h3>
+          {list(YOU, "→", "wait")}
+          <h3 className="subhead">Only sometimes</h3>
+          {list(SOMETIMES, "·", "")}
+        </div>
+        <div>
+          <h3 className="subhead">The sync gets it by itself</h3>
+          {list(AUTO, "✓", "ok")}
+        </div>
+      </div>
+    </section>
   );
 }
 

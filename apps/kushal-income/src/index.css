@@ -139,6 +139,7 @@ a{color:var(--c1)}
 .sq.big{width:12px;height:12px}
 .srcstat{display:flex;gap:12px;align-items:flex-start;font-size:14px;padding:6px 0}
 .tick{width:20px;flex:none;font-weight:700;text-align:center}
+.subhead{font-size:13px;font-weight:600;color:var(--ink-2);margin:14px 0 4px}
 .tick.ok{color:var(--ok)} .tick.warn{color:var(--alarm)} .tick.wait{color:var(--gold)}
 .pill{background:var(--card-2);color:var(--ink-2);border-radius:99px;padding:2px 9px;font-size:12px;font-weight:500;white-space:nowrap}
 .pill.sub{background:transparent;border:1px solid var(--line);color:var(--ink-3)}
