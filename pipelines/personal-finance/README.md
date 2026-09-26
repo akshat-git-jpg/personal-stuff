@@ -101,3 +101,7 @@ python3 -m unittest discover -s ledger/tests -t .
   (requested in the app, emailed from partner@rapido.bike, fetched on sync) prove a
   payment was a ride and give its route. Place labels (home, office, gym) are the
   owner's, in `data/config.json` `places`; unlabelled places show only their area.
+- **Rides with no receipt** (owner decision 2026-09-27). Route patterns learned from
+  the receipts tag a payment when exactly one route fits its day, hour and fare; a
+  small QR payment (₹40–100) to a one-off payee is tagged "ride, route unknown".
+  Both carry the `pattern` tag, so they can be filtered and checked.

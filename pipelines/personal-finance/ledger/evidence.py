@@ -44,7 +44,7 @@ def gpay_events(data):
             if src and key not in seen:
                 seen.add(key)
                 out.append({"ts": ts, "amount": float(m[2].replace(",", "")), "to": (m[3] or "").strip(),
-                            "source": src})
+                            "source": src, "kind": m[1]})
     return out
 
 
@@ -114,6 +114,7 @@ def attach_times(rows, events):
         if not r["time"]:
             r["time"] = e["ts"].strftime("%H:%M")
         r["_ts"] = e["ts"]
+        r["_gkind"] = e["kind"]
 
 
 def match_rides(rows, rides):
@@ -147,4 +148,86 @@ def match_rides(rows, rides):
                    why="Rapido receipt %s: %s ride at %s, fare ₹%.0f, %s." % (
                        ride["id"][-6:], ride["mode"], ride["ts"].strftime("%-d %b %H:%M"), ride["price"], how))
         n += 1
+    return n
+
+
+# ---------------------------------------------------------------- ride patterns
+#
+# Owner decision 2026-09-27: payments with no receipt may be tagged from the ride
+# pattern the receipts show. Rows tagged this way carry the "pattern" tag and say
+# so in "why", so they can be filtered and checked. A row is tagged only when
+# exactly one route fits; anything ambiguous stays "Needs you".
+
+MIN_RIDES = 5          # a route needs this many receipts before it becomes a pattern
+PAY_LAG_H = 1          # payment lands up to an hour after the ride starts
+MAX_PAYEE_SEEN = 3     # captains rarely repeat; a payee paid more often is someone else
+
+
+def learn_patterns(rides):
+    by = {}
+    for r in rides:
+        by.setdefault((r["from"], r["to"]), []).append(r)
+    out = []
+    for (a, b), rs in by.items():
+        if len(rs) < MIN_RIDES or a == b:
+            continue
+        days = {d for d in range(7) if sum(1 for r in rs if r["ts"].weekday() == d) >= 2}
+        hours = sorted(r["ts"].hour for r in rs)
+        lo, hi = hours[len(hours) // 10], hours[-1 - len(hours) // 10]
+        fares = sorted(r["price"] for r in rs)
+        modes = {}
+        for r in rs:
+            modes[r["mode"]] = modes.get(r["mode"], 0) + 1
+        out.append({"route": "%s → %s" % (a, b), "days": days, "h_lo": lo, "h_hi": hi + PAY_LAG_H,
+                    "f_lo": fares[0], "f_hi": fares[-1], "n": len(rs),
+                    "mode": max(modes, key=modes.get)})
+    return out
+
+
+DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+
+def apply_patterns(rows, patterns):
+    seen = {}
+    for r in rows:
+        seen[r["payee_key"]] = seen.get(r["payee_key"], 0) + 1
+    n = 0
+    for r in rows:
+        if (r["status"] != "needs" or r["source"] not in ("sbi", "neu") or r["amount"] is None
+                or r["amount"] >= 0 or not r.get("_ts") or seen[r["payee_key"]] > MAX_PAYEE_SEEN):
+            continue
+        ts, fare = r["_ts"], -r["amount"]
+        fits = [p for p in patterns if ts.weekday() in p["days"] and p["h_lo"] <= ts.hour <= p["h_hi"]
+                and p["f_lo"] <= fare <= p["f_hi"]]
+        if len(fits) != 1:
+            continue
+        p = fits[0]
+        r.update(tags=[p["mode"], "commute", p["route"], "pattern"], desc="%s: %s (no receipt)" % (p["mode"].capitalize(), p["route"]),
+                 status="confirmed",
+                 why="No receipt. It fits your %s pattern: %s, %02d:00–%02d:59, ₹%.0f–%.0f, learned from %d Rapido receipts. "
+                     "Pattern tagging approved by you on 27 Sep." % (
+                         p["route"], "/".join(DAYS[d] for d in sorted(p["days"])), p["h_lo"], p["h_hi"],
+                         p["f_lo"], p["f_hi"], p["n"]))
+        n += 1
+    return n
+
+
+RIDE_FARE = (40, 100)   # the fare band the receipts show for autos and bike taxis
+
+
+def apply_ride_fallback(rows):
+    """Owner decision 2026-09-27: a small QR payment to a one-off person is a ride,
+    route unknown. Only after the route patterns had their turn."""
+    seen = {}
+    for r in rows:
+        seen[r["payee_key"]] = seen.get(r["payee_key"], 0) + 1
+    n = 0
+    for r in rows:
+        if (r["status"] == "needs" and r["source"] in ("sbi", "neu") and r.get("_gkind") == "Paid"
+                and r["amount"] is not None and RIDE_FARE[0] <= -r["amount"] <= RIDE_FARE[1]
+                and seen[r["payee_key"]] <= 2):
+            r.update(tags=["ride", "commute", "pattern"], desc="Ride, route unknown (no receipt)", status="confirmed",
+                     why="No receipt. ₹%.0f paid by QR to a one-off payee, inside your ₹%d–%d ride fares. "
+                         "Assumed a ride, as you approved on 27 Sep." % (-r["amount"], RIDE_FARE[0], RIDE_FARE[1]))
+            n += 1
     return n
