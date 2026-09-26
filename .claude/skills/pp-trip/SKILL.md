@@ -198,6 +198,10 @@ write it into `trips/<slug>.json` and run `pp-trip deploy <slug>`.
   fixed, unmissable moment; `flag` is a problem that gets an orange box
   and outranks `key` on the timeline dot.
 - `bookings[]` - `{id, emoji, title, kind?, fields?, flag?, files?}`.
+  **Kushal Money reads these.** Give every ticket `Departs` / `Arrives` fields and every
+  stay `Check in` / `Check out`, as `"Thu 10 Sep · 17:15"`, and set `dates` with the year.
+  The ledger's trip window is first departure/check-in to last arrival/check-out, and the
+  trip name is the slug minus `-<mon>-<year>` (`varkala-sep-2026` -> `varkala`).
 - `docsFolderUrl` - the trip's Google Drive folder.
 
 **Document files are Drive links, never uploads.** One folder per trip at

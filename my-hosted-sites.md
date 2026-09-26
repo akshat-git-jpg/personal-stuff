@@ -6,7 +6,7 @@
 - Personal dashboard — https://my-dashboard.agrolloo.com
 - Tutorials tracker — https://tutorials-tracker.agrolloo.com
 - YT Analytics (link click dashboard) — https://yt-analytics.agrolloo.com (password-gated)
-- Kushal Income (personal SBI account: salary in, spending by category) — https://kushal-income.agrolloo.com (password-gated) — snapshot only, refreshed by `pipelines/personal-finance/summarise.py` then `npm run deploy`; the bundled data names real counterparties so it is gitignored, never committed; app at `apps/kushal-income`
+- Kushal Money (personal ledger: SBI savings + SBI Card + Tata Neu + Amazon Pay ICICI, every payment tagged) — https://kushal-income.agrolloo.com (password-gated) — refreshed on demand by the `kushal-money` skill (`python3 -m ledger.run` in `pipelines/personal-finance`), which posts to the Worker's D1 `kushal-money`; the data is never committed; app at `apps/kushal-income`
 - YT Income (revenue by tool, tallied against the bank) — https://yt-income.agrolloo.com (password-gated)
 - Founders tracker (Khushi + Kushal action items) — https://founders.agrolloo.com (password-gated)
 - Lists (categorized personal lists) — https://lists.agrolloo.com (password-gated)

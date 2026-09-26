@@ -91,8 +91,9 @@ python3 -m unittest discover -s ledger/tests -t .
   payment that paid them, including one payment for two cards.
 - **Nothing is guessed.** Tags come from `ledger/rules.json`, the bank's row type, or
   the owner in the app. Anything else is "Needs you".
-- **Nothing sensitive is published.** Phone numbers, UPI IDs and account numbers are
-  masked, and `assert_clean` refuses the whole ledger if one slips through.
+- **Nothing is masked** (owner decision 2026-09-27). UPI IDs, phone numbers and account
+  numbers are shown so each payment can be identified; the data lives only in the
+  gitignored `data/` and the password-gated app.
 - `data/config.json` also holds the card PDF passwords (`passwords`) and the app's
   `ingest` url and token. Running from a workspace: set `PF_DATA` to the main
   checkout's `data/` and `PP_GOOGLE_SHARED` to its `tooling/mcp/google-shared`.
@@ -135,7 +136,12 @@ Card statements, alerts, Uber, Flipkart and trips are fetched by the sync itself
 
 - **Same-day SBI payments.** SBI UPI rows arrive only via statements. Options: YONO email
   statement on demand, or SBI alert emails if they carry UPI debits (not checked yet).
-- **How to trigger a sync** (a command or a button in the app). Sync stays on demand.
-- **Needs you left over:** 14 June to September payees, and the ₹2,728.95 Redbus booking
+- **A sync button in the app.** For now the sync is the `kushal-money` skill ("sync Kushal
+  Money"). It stays on demand.
+- **Needs you left over:** 15 June to September payees, and the ₹2,728.95 Redbus booking
   on 15 Sep (Varkala or not).
 - **kushal-tools hub card:** rename it to "Kushal Money".
+- **Health and travel tags:** keep them (they only show in months that have them) or merge
+  health into personal care and travel into trip. Owner to decide.
+- **Metro to and from the trip bus** (10 Sep 15:20, 16 Sep 08:25) is outside the trip window,
+  so it is commute. Say if it should count as trip.
