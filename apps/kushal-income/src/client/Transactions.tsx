@@ -6,10 +6,9 @@
  */
 import { useMemo, useState } from "react";
 import type { Ledger, Row, Source, Status } from "./api";
-import { addDays, dayLabel, isIn, monthOf, rs, SOURCES, subsByMain, todayIso, totals } from "./lib";
+import { DatePicker, inPick, pickLabel, type Pick } from "./DatePicker";
+import { dayLabel, isIn, monthOf, rs, SOURCES, subsByMain, todayIso, totals } from "./lib";
 import { TagEditor } from "./TagEditor";
-
-type Range = "10d" | "month" | "last" | "all" | "custom";
 
 const STATUS: Record<Status, string> = { proven: "Proven", confirmed: "Confirmed by you", needs: "Needs you" };
 
@@ -17,9 +16,6 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
   const newest = data.rows.reduce((m, r) => (r.date > m ? r.date : m), "");
   const pm = params.get("month");
   const [q, setQ] = useState("");
-  const [range, setRange] = useState<Range>(pm ? "custom" : "month");
-  const [from, setFrom] = useState(pm ? `${pm}-01` : "");
-  const [to, setTo] = useState(pm ? `${pm}-31` : "");
   const [src, setSrc] = useState<Set<Source>>(new Set(params.get("source") ? [params.get("source") as Source] : []));
   const [tags, setTags] = useState<Set<string>>(new Set(params.get("tag") ? [params.get("tag")!] : []));
   const [subTags, setSubTags] = useState<Set<string>>(new Set());
@@ -31,19 +27,10 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
   const [limit, setLimit] = useState(300);
   const [bulk, setBulk] = useState(false);
 
-  const today = todayIso();
-  const [lo, hi] = useMemo<[string, string]>(() => {
-    const cur = monthOf(newest || today);
-    const [y, m] = cur.split("-").map(Number);
-    const last = `${m === 1 ? y - 1 : y}-${String(m === 1 ? 12 : m - 1).padStart(2, "0")}`;
-    switch (range) {
-      case "10d": return [addDays(newest || today, -9), "9999"];
-      case "month": return [`${cur}-01`, `${cur}-31`];
-      case "last": return [`${last}-01`, `${last}-31`];
-      case "custom": return [from || "0000", to || "9999"];
-      default: return ["0000", "9999"];
-    }
-  }, [range, from, to, newest, today]);
+  const anchor = newest || todayIso();
+  const first = data.rows.reduce((m, r) => (r.date < m ? r.date : m), anchor).slice(0, 7);
+  const last = monthOf(anchor);
+  const [pick, setPick] = useState<Pick>({ kind: "months", months: [pm ?? last] });
 
   // Main tags only; a selected main reveals its sub-tags.
   const mainOf = (r: Row) => (r.status === "needs" ? "needs you" : r.tags[0] ?? "needs you");
@@ -57,7 +44,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
 
   const qq = q.trim().toLowerCase();
   const rows = data.rows.filter((r) => {
-    if (r.date < lo || r.date > hi) return false;
+    if (!inPick(pick, r.date, anchor)) return false;
     if (hideBills && (r.kind === "bill" || r.kind === "payment") && !(tags.has("bank") && subTags.has("bank›card bill"))) return false;
     if (src.size && !src.has(r.source)) return false;
     if (stat.size && !stat.has(r.status)) return false;
@@ -74,8 +61,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
     if (n.has(v)) n.delete(v); else n.add(v);
     put(n);
   };
-  const rangeText = range === "10d" ? "Last 10 days" : range === "month" ? "This month" : range === "last" ? "Last month"
-    : range === "all" ? "All time" : `${from ? dayLabel(from) : "start"} – ${to ? dayLabel(to) : "now"}`;
+  const rangeText = pickLabel(pick, first, last);
 
   return (
     <main className="stack">
@@ -84,20 +70,8 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           <label className="sr" htmlFor="q">Search</label>
           <input id="q" className="search" type="search" value={q} onChange={(e) => setQ(e.target.value)}
             placeholder="Search shop, description or tag. Try: swiggy, uber, rent" />
-          <div className="seg">
-            {(["10d", "month", "last", "all", "custom"] as Range[]).map((k) => (
-              <button key={k} className="mbtn" aria-pressed={range === k} onClick={() => setRange(k)}>
-                {{ "10d": "Last 10 days", month: "This month", last: "Last month", all: "All", custom: "Dates…" }[k]}
-              </button>
-            ))}
-          </div>
+          <DatePicker value={pick} onChange={setPick} first={first} last={last} />
         </div>
-        {range === "custom" && (
-          <div className="row">
-            <label className="field"><span>From</span><input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
-            <label className="field"><span>To</span><input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
-          </div>
-        )}
         <div className="row">
           <span className="lbl">Paid by</span>
           {(Object.keys(SOURCES) as Source[]).map((s) => (

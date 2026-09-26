@@ -256,3 +256,33 @@ a{color:var(--c1)}
   .tabs{order:3;flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .tab{white-space:nowrap;padding:8px 12px}
 }
+
+/* date picker: month stepper + popover */
+.dp{position:relative;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dp-bar{display:inline-flex;align-items:stretch;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--card-2);overflow:hidden}
+.dp-arrow{width:44px;border:0;background:none;color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.dp-arrow:disabled{color:var(--line);cursor:default}
+.dp-arrow.sm{width:36px;height:36px;border:1px solid var(--line);border-radius:8px}
+.dp-name{min-width:190px;padding:0 16px;border:0;border-left:1px solid var(--line);border-right:1px solid var(--line);background:none;color:var(--ink);
+  font:600 14.5px "IBM Plex Sans",sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.dp-name.solo{border-left:0}
+.dp-back{font-size:13.5px}
+.dp-pop{position:absolute;top:52px;right:0;z-index:20;width:360px;max-width:calc(100vw - 32px);box-sizing:border-box;background:var(--card-2);
+  border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:12px}
+.dp-yr{display:flex;align-items:center;justify-content:space-between;font-weight:600}
+.dp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.dp-m{min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:500 14px "IBM Plex Sans",sans-serif;cursor:pointer}
+.dp-m[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+.dp-m:disabled{color:var(--ink-3);opacity:.45;background:none;border-color:var(--line-soft);cursor:default}
+.dp-quick{display:flex;gap:8px;flex-wrap:wrap}
+.dp-sep{height:1px;background:var(--line)}
+.dp-dates{display:flex;gap:8px;align-items:flex-end}
+.dp-dates .field{flex:1;min-width:0}
+.dp-dates .field input{width:100%;box-sizing:border-box}
+.dp-dates .btn-ghost{min-height:40px}
+.dp-done{min-height:40px}
+@media (max-width:640px){
+  .dp,.dp-bar{width:100%}
+  .dp-name{flex:1;min-width:0}
+  .dp-pop{left:0;right:auto;width:100%;max-width:none}
+}
