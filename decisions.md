@@ -1453,3 +1453,4 @@ Replaces the flat category list above. Every row is `[main]` or `[main, sub]`: 1
 ## 2026-09-27 — Flipkart order items come from a logged-in browser session
 
 Flipkart sends no order emails and has no public API, so `tooling/cli/flipkart` (`pp-flipkart`) reads the owner's own "My Orders" JSON through a saved login in Playwright's Chromium (managed work Chrome refuses custom profiles). Read-only; owner approved the approach and the risk that a site change breaks it. The ledger sync fetches new orders and matches each to its payment, so Flipkart rows carry item lists and a non-Minutes order is shopping, not grocery.
+- 2026-09-27: Kushal Money reads trips from the trip planner, not config.json. The trip window is first departure/check-in to last arrival/check-out, to the minute when the payment has a time. Owner keeps trips updated there.

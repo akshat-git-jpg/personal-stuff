@@ -108,15 +108,28 @@ python3 -m unittest discover -s ledger/tests -t .
 - **Uber receipts** are fetched on sync. A "Cash" fare matches the UPI paid to the
   driver (fare to fare + ₹15, up to an hour after the ride); other fares match the
   Uber row itself. Three receipt layouts are handled.
-- **Trips** live in `data/config.json` `trips` (`name`, `from`, `to`, `book_from`).
-  Spending in the window gets `trip` plus `<name>-stay/food/bus/auto/metro`; anything
-  unknown stays in Needs you, where the app offers those buttons.
+- **Trips** come from the trip planner (trips.agrolloo.com, `apps/trip-planner`), fetched on
+  sync into `data/inbox/trips.json`. A trip runs from its first "Departs" or "Check in"
+  booking field to its last "Arrives" or "Check out"; a payment with a time must fall inside
+  that, one with no time only on the trip's days. Stay and ticket bookings up to 30 days
+  before count too. Spending in the window gets `trip` plus `<name>-stay/food/bus/auto/metro`
+  (name = slug without `-sep-2026`); anything unknown stays in Needs you. `data/config.json`
+  `trips` still works for a trip the planner does not have.
 - **Flipkart orders** come from `tooling/cli/flipkart` (`pp-flipkart`), fetched on sync
   into `data/inbox/flipkart/orders.json`. An order matches a Flipkart payment of the same
   amount (±₹2) up to a day before or 3 days after it; an order partly paid by Flipkart
   Wallet takes the one smaller Flipkart charge that day. The row gets the item list, and a
   non-Minutes order becomes shopping › flipkart. If the login has lapsed, run
   `tooling/cli/flipkart/pp-flipkart login`.
+
+## Month-end routine
+
+1. YONO: email yourself the month's SBI statement (SBI's own monthly one can come late).
+2. Rapido app: request receipts for the month's rides.
+3. Keep the trip's bookings (bus, stay) on the trip planner.
+4. Run the sync, then tag what is left in Needs you.
+
+Card statements, alerts, Uber, Flipkart and trips are fetched by the sync itself.
 
 ## Parked (owner said later)
 
