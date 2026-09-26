@@ -20,6 +20,7 @@ import argparse
 import json
 import logging
 import os
+import ssl
 import sys
 import urllib.request
 from pathlib import Path
@@ -35,7 +36,12 @@ def push(ledger, ingest, log=print):
         data=json.dumps(ledger).encode(), method="POST",
         headers={"Content-Type": "application/json", "Authorization": "Bearer " + ingest["token"],
                  "User-Agent": "kushal-money-sync"})
-    with urllib.request.urlopen(req, timeout=60) as r:
+    try:  # python.org builds ship without CA certs; certifi comes with the Google libs
+        import certifi
+        ctx = ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        ctx = ssl.create_default_context()
+    with urllib.request.urlopen(req, timeout=60, context=ctx) as r:
         log("published: %s" % r.read().decode()[:200])
 
 

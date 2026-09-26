@@ -14,7 +14,7 @@ not_found_handling = "single-page-application"
 [[d1_databases]]
 binding = "DB"
 database_name = "kushal-money"
-database_id = "REPLACE_AT_DEPLOY"
+database_id = "1e875676-43a7-47f1-8fd3-5e9c28edb465"
 migrations_dir = "migrations"
 
 [[routes]]
