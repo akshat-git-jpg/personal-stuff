@@ -22,6 +22,7 @@ from pathlib import Path
 
 from . import alerts as alerts_mod
 from . import cards, evidence, savings
+from . import trips as trips_mod
 from .pdfs import ParseError, read_text
 
 HERE = Path(__file__).resolve().parent
@@ -216,18 +217,24 @@ QUICK_GROCERY = re.compile(r"zepto|blinkit|instamart|flipkart minutes|bigbasket|
 
 def tag_trips(rows, trips):
     """Owner decision 2026-09-27: trip spending gets "trip" plus "<trip>-stay/food/bus/auto/misc".
-    Trips live in data/config.json: [{"name", "from", "to", "book_from"}]."""
+    Trips come from the trip planner (trips.py); a row with a time must fall between the first
+    departure and the last arrival, a row with no time only on the trip's days."""
     for t in trips:
         for r in rows:
             if r["kind"] != "spend" or set(r["tags"]) & NOT_TRIP:
                 continue
             if QUICK_GROCERY.search("%s %s" % (r["text"], r["desc"] or "")):
                 continue  # owner, 27 Sep: these apps only deliver at home, never on a trip
-            during = t["from"] <= r["date"] <= t["to"]
-            booking = t.get("book_from", t["from"]) <= r["date"] < t["from"] and "travel" in r["tags"]
+            if t.get("start") and r["time"]:
+                during = t["start"] <= "%s %s" % (r["date"], r["time"]) <= t["end"]
+            else:
+                during = t["from"] <= r["date"] <= t["to"]
+            hay = "%s %s %s" % (r.get("_hay", ""), r["text"], r["desc"] or "")
+            # Before the trip only a stay or ticket booking counts, not other travel.
+            booking = (t.get("book_from", t["from"]) <= r["date"] < t["from"] and "travel" in r["tags"]
+                       and (STAY.search(hay) or BUS.search(hay)))
             if not (during or booking):
                 continue
-            hay = "%s %s %s" % (r.get("_hay", ""), r["text"], r["desc"] or "")
             kind = ("stay" if STAY.search(hay) else "bus" if BUS.search(hay) else
                     "auto" if set(r["tags"]) & {"taxi", "auto", "cab", "bike taxi", "ride"} else
                     "metro" if "metro" in r["tags"] else
@@ -420,7 +427,10 @@ def build(data, config, today=None, log=print):
     fk = evidence.flipkart_orders(data)
     log("evidence: %d Flipkart orders, %d matched to payments" % (len(fk), evidence.match_flipkart(rows, fk)))
 
-    tag_trips(rows, config.get("trips", []))
+    trips = trips_mod.load(data / "inbox" / "trips.json", config.get("trips", []))
+    for t in trips:
+        log("trip %s: %s to %s" % (t["name"], t.get("start", t["from"]), t.get("end", t["to"])))
+    tag_trips(rows, trips)
 
     # Owner decision 2026-09-27: what was still unknown on that day, the owner could not place.
     for row in rows:

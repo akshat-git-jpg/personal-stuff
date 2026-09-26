@@ -7,7 +7,7 @@ import unittest
 
 import datetime as dt
 
-from ledger import alerts, build, cards, evidence, savings
+from ledger import alerts, build, cards, evidence, savings, trips
 from ledger.pdfs import ParseError
 
 SBIC = """for Statement Period: 14 Aug 26 to 13 Sep 26
@@ -207,6 +207,26 @@ class AlertClock(unittest.TestCase):
         self.assertEqual(alerts._clock("2026-09-26", "09:06", ist(2026, 9, 26, 21, 7)), "21:06")
         self.assertEqual(alerts._clock("2026-06-07", "01:30", ist(2026, 6, 7, 1, 31)), "01:30")
         self.assertEqual(alerts._clock("2026-06-07", "12:10", ist(2026, 6, 7, 12, 11)), "12:10")
+
+
+class Trips(unittest.TestCase):
+    TRIP = {"slug": "goa-dec-2026", "dates": "30 Dec - 3 Jan 2026", "bookings": [
+        {"fields": [{"label": "Departs", "value": "Wed 30 Dec · 17:15"}, {"label": "Arrives", "value": "Thu 31 Dec · 07:45"}]},
+        {"fields": [{"label": "Check in", "value": "Thu 31 Dec · 14:00-23:30"}, {"label": "Check out", "value": "Sat 2 Jan · before 11:00"}]},
+        {"fields": [{"label": "Departs", "value": "Sat 2 Jan · 15:45"}, {"label": "Arrives", "value": "Sun 3 Jan · 06:25"}]}]}
+
+    def test_window_from_bookings_over_new_year(self):
+        t = trips.parse(self.TRIP)
+        self.assertEqual((t["name"], t["start"], t["end"]), ("goa", "2026-12-30 17:15", "2027-01-03 06:25"))
+        self.assertEqual(t["book_from"], "2026-11-30")
+
+    def test_timed_rows_outside_window_are_not_trip(self):
+        t = trips.parse(self.TRIP)
+        row = lambda d, tm: {"kind": "spend", "tags": ["metro"], "text": "METRO", "desc": "Namma Metro", "date": d,
+                             "time": tm, "status": "confirmed", "why": ""}
+        rows = [row("2027-01-03", "08:25"), row("2027-01-03", "05:00"), row("2027-01-03", None), row("2026-12-30", "15:20")]
+        build.tag_trips(rows, [t])
+        self.assertEqual([r.get("trip") for r in rows], [None, "goa", "goa", None])
 
 
 if __name__ == "__main__":

@@ -28,6 +28,7 @@ import urllib.request
 from pathlib import Path
 
 from . import build as build_mod
+from . import trips as trips_mod
 
 DATA = Path(os.environ.get("PF_DATA") or Path(__file__).resolve().parent.parent / "data")
 
@@ -38,13 +39,30 @@ def push(ledger, ingest, log=print):
         data=json.dumps(ledger).encode(), method="POST",
         headers={"Content-Type": "application/json", "Authorization": "Bearer " + ingest["token"],
                  "User-Agent": "kushal-money-sync"})
+    with urllib.request.urlopen(req, timeout=60, context=_ctx()) as r:
+        log("published: %s" % r.read().decode()[:200])
+
+
+def _ctx():
     try:  # python.org builds ship without CA certs; certifi comes with the Google libs
         import certifi
-        ctx = ssl.create_default_context(cafile=certifi.where())
+        return ssl.create_default_context(cafile=certifi.where())
     except ImportError:
-        ctx = ssl.create_default_context()
-    with urllib.request.urlopen(req, timeout=60, context=ctx) as r:
-        log("published: %s" % r.read().decode()[:200])
+        return ssl.create_default_context()
+
+
+def fetch_trips(inbox, log=print):
+    def get(url):
+        req = urllib.request.Request(url, headers={"User-Agent": "kushal-money-sync"})
+        with urllib.request.urlopen(req, timeout=30, context=_ctx()) as r:
+            return json.loads(r.read())
+    try:
+        got = trips_mod.fetch(get)
+    except Exception as e:  # keep the last saved copy
+        log("trips: skipped (%s)" % e)
+        return
+    (inbox / "trips.json").write_text(json.dumps(got, ensure_ascii=False, indent=1))
+    log("trips: %d from the trip planner" % len(got))
 
 
 def fetch_flipkart(inbox, log=print):
@@ -80,6 +98,7 @@ def main(argv=None):
         from . import gmail
         gmail.fetch(DATA / "inbox")
         fetch_flipkart(DATA / "inbox")
+        fetch_trips(DATA / "inbox")
     ledger = build_mod.build(DATA, config)
     (DATA / "ledger.json").write_text(json.dumps(ledger, ensure_ascii=False, indent=1))
     if not a.no_push:
