@@ -1,0 +1,275 @@
+{
+  "places": {
+    "ChIJ1WAtoyzvBTsR_KDWpC-b72Q": {
+      "address": "Sivagiri Rd, Varkala, Kerala 695141, India",
+      "lat": 8.7388792,
+      "lon": 76.7324107,
+      "name": "Sivagiri Mutt",
+      "placeId": "ChIJ1WAtoyzvBTsR_KDWpC-b72Q",
+      "source": "google",
+      "types": [
+        "place_of_worship",
+        "point_of_interest",
+        "health",
+        "association_or_organization",
+        "establishment"
+      ]
+    },
+    "ChIJ1yZfn5_vBTsRLKjKnkZn28U": {
+      "address": "PMRX+WHP, Varkala, Kerala 695141, India",
+      "lat": 8.7421484,
+      "lon": 76.698956,
+      "name": "North Cliff Pavement",
+      "placeId": "ChIJ1yZfn5_vBTsRLKjKnkZn28U",
+      "source": "google",
+      "types": [
+        "scenic_spot",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJ5anhBODuBTsRj_LOMecC_jg": {
+      "address": "PPJ5+QX6, Varkala, Kerala 695141, India",
+      "lat": 8.731923199999999,
+      "lon": 76.709881,
+      "name": "Varkala Sree Janardhana Swamy Temple",
+      "placeId": "ChIJ5anhBODuBTsRj_LOMecC_jg",
+      "source": "google",
+      "types": [
+        "hindu_temple",
+        "tourist_attraction",
+        "place_of_worship",
+        "point_of_interest",
+        "association_or_organization",
+        "establishment"
+      ]
+    },
+    "ChIJFeFATnvlBTsRGZas5UFWXJg": {
+      "address": "QMMG+27Q, Kappil, Kerala 691319, India",
+      "lat": 8.779597899999999,
+      "lon": 76.6744751,
+      "name": "Kappil Beach",
+      "placeId": "ChIJFeFATnvlBTsRGZas5UFWXJg",
+      "source": "google",
+      "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJH3ndAnvvBTsRDLOKoYwaHWc": {
+      "address": "PPRF+2C7, Varkala Railway Station Rd, Varkala, Kerala 695141, India",
+      "lat": 8.7405756,
+      "lon": 76.7232061,
+      "name": "Varkala Sivagiri Railway Station",
+      "placeId": "ChIJH3ndAnvvBTsRDLOKoYwaHWc",
+      "source": "google",
+      "types": [
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJJ_DaPrLvBTsReRb0TtkE5tk": {
+      "address": "Cliff Beach Hospitality, Sea Breeze Building, North Cliff, Zostel Varkala Rd, PO, Varkala, Kerala 695141, India",
+      "lat": 8.7448742,
+      "lon": 76.69859149999999,
+      "name": "Zostel Varkala",
+      "placeId": "ChIJJ_DaPrLvBTsReRb0TtkE5tk",
+      "source": "google",
+      "types": [
+        "hostel",
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJMwfkzhrvBTsRg2z3mhWkato": {
+      "address": "Black Beach, North End Cliff, Varkala, Kerala 695141, India",
+      "lat": 8.7422895,
+      "lon": 76.6989773,
+      "name": "Trattorias Restaurant",
+      "placeId": "ChIJMwfkzhrvBTsRg2z3mhWkato",
+      "source": "google",
+      "types": [
+        "restaurant",
+        "cafe",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJPzPcTPrvBTsRFhC_Y-un5DI": {
+      "address": "Mad about Coco - Yoga & Beach Retreat, north cliff, Varkala, Kerala 695141, India",
+      "lat": 8.738412199999999,
+      "lon": 76.70169039999999,
+      "name": "The White Rabbit Cafe",
+      "placeId": "ChIJPzPcTPrvBTsRFhC_Y-un5DI",
+      "source": "google",
+      "types": [
+        "cafe",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJW_UBoBvvBTsRz1shGedxcgQ": {
+      "address": "Kurakkanni, Inda Hotel, 1/153a, Varkala, Kerala 695141, India",
+      "lat": 8.7385407,
+      "lon": 76.702021,
+      "name": "InDa Cafe",
+      "placeId": "ChIJW_UBoBvvBTsRz1shGedxcgQ",
+      "source": "google",
+      "types": [
+        "cafe",
+        "pizza_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJZ-DdhgzvBTsRS9OPZlTRR5Q": {
+      "address": "Odayam Beach Varkala, Varkala, Kerala 695141, India",
+      "lat": 8.7492389,
+      "lon": 76.6947708,
+      "name": "Odayam Beach Varkala",
+      "placeId": "ChIJZ-DdhgzvBTsRS9OPZlTRR5Q",
+      "source": "google",
+      "types": [
+        "beach",
+        "natural_feature",
+        "establishment"
+      ]
+    },
+    "ChIJacgxT1nlBTsR1bhl6WiQAVc": {
+      "address": "Kappil Thekkumbhagam Paravur Rd, Kappil, Edava, Kerala 695311, India",
+      "lat": 8.7815184,
+      "lon": 76.67521049999999,
+      "name": "KAPPIL INTERNATIONAL BOAT CLUB",
+      "placeId": "ChIJacgxT1nlBTsR1bhl6WiQAVc",
+      "source": "google",
+      "types": [
+        "water_park",
+        "amusement_park",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJeX5a39_uBTsR-RuezFBYSGw": {
+      "address": "Gouri's Homestay, Temple Road, Junction, near Kilitakkamukku, Varkala, Kerala 695141, India",
+      "lat": 8.7306423,
+      "lon": 76.71058909999999,
+      "name": "Gouri's Homestay",
+      "placeId": "ChIJeX5a39_uBTsR-RuezFBYSGw",
+      "source": "google",
+      "types": [
+        "hotel",
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJf3Yci1rpBTsRzcDgTQqzduI": {
+      "address": "Ponnumthuruthu, Kerala",
+      "lat": 8.6987702,
+      "lon": 76.7471788,
+      "name": "Ponnumthuruthu",
+      "placeId": "ChIJf3Yci1rpBTsRzcDgTQqzduI",
+      "source": "google",
+      "types": [
+        "island",
+        "natural_feature",
+        "establishment"
+      ]
+    },
+    "ChIJkQR2hG3vBTsRX2CofK2uN6Y": {
+      "address": "PPP3+X22, Varkala, Kerala 695141, India",
+      "lat": 8.7373894,
+      "lon": 76.7025197,
+      "name": "Coffee Temple",
+      "placeId": "ChIJkQR2hG3vBTsRX2CofK2uN6Y",
+      "source": "google",
+      "types": [
+        "coffee_shop",
+        "cafe",
+        "food_store",
+        "store",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJkZ4hddnpBTsRP3h3H_POfGI": {
+      "address": "JAS Heights, Varkala Kallambalam Rd, opp. Hotel Dine Castle, near Canara Bank, Kallambalam, Kerala 695605, India",
+      "lat": 8.762100000000002,
+      "lon": 76.7893433,
+      "name": "WingsON Holidays",
+      "placeId": "ChIJkZ4hddnpBTsRP3h3H_POfGI",
+      "source": "google",
+      "types": [
+        "travel_agency",
+        "tourist_attraction",
+        "tourist_information_center",
+        "tour_agency",
+        "transportation_service",
+        "service",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJkbyEf9nvBTsRbHm_g9KyUbU": {
+      "address": "near Perungulam, inside Mare Holidays, Varkala, Kerala 695141, India",
+      "lat": 8.7280844,
+      "lon": 76.71011089999999,
+      "name": "Cafe Sarwaa on the cliff",
+      "placeId": "ChIJkbyEf9nvBTsRbHm_g9KyUbU",
+      "source": "google",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJz7AwpR7vBTsRiLvaiKZSQfE": {
+      "address": "Varkala Helipad Road, Varkala, Kerala 695141, India",
+      "lat": 8.7362608,
+      "lon": 76.7036409,
+      "name": "Hope Hostels, Varkala - North Cliff ( Sea View)",
+      "placeId": "ChIJz7AwpR7vBTsRiLvaiKZSQfE",
+      "source": "google",
+      "types": [
+        "hostel",
+        "bed_and_breakfast",
+        "guest_house",
+        "cafe",
+        "hotel",
+        "lodging",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ]
+    }
+  },
+  "queries": {
+    "arrival — varkala sivagiri railway station area|varkala, kerala, india": "ChIJH3ndAnvvBTsRDLOKoYwaHWc",
+    "cafe sarwaa (on the cliff)|varkala, kerala, india": "ChIJkbyEf9nvBTsRbHm_g9KyUbU",
+    "coffee temple|varkala, kerala, india": "ChIJkQR2hG3vBTsRX2CofK2uN6Y",
+    "departure — kallambalam|varkala, kerala, india": "ChIJkZ4hddnpBTsRP3h3H_POfGI",
+    "gouri's homestay|varkala, kerala, india": "ChIJeX5a39_uBTsR-RuezFBYSGw",
+    "holy rabbit cafe|varkala, kerala, india": "ChIJPzPcTPrvBTsRFhC_Y-un5DI",
+    "hope hostels (helipad)|varkala, kerala, india": "ChIJz7AwpR7vBTsRiLvaiKZSQfE",
+    "inda cafe|varkala, kerala, india": "ChIJW_UBoBvvBTsRz1shGedxcgQ",
+    "janardhana swamy temple|varkala, kerala, india": "ChIJ5anhBODuBTsRj_LOMecC_jg",
+    "kappil beach (backwaters meet sea)|varkala, kerala, india": "ChIJFeFATnvlBTsRGZas5UFWXJg",
+    "kappil boat club (backwaters)|varkala, kerala, india": "ChIJacgxT1nlBTsR1bhl6WiQAVc",
+    "kappil lake (backwater boat)|varkala, kerala, india": "ChIJacgxT1nlBTsR1bhl6WiQAVc",
+    "north cliff (sunset walk)|varkala, kerala, india": "ChIJ1yZfn5_vBTsRLKjKnkZn28U",
+    "odayam beach (quieter)|varkala, kerala, india": "ChIJZ-DdhgzvBTsRS9OPZlTRR5Q",
+    "ponnumthuruthu (golden island)|varkala, kerala, india": "ChIJf3Yci1rpBTsRzcDgTQqzduI",
+    "sivagiri mutt (sree narayana guru samadhi area)|varkala, kerala, india": "ChIJ1WAtoyzvBTsR_KDWpC-b72Q",
+    "trattorias (italian)|varkala, kerala, india": "ChIJMwfkzhrvBTsRg2z3mhWkato",
+    "zostel varkala|varkala, kerala, india": "ChIJJ_DaPrLvBTsReRb0TtkE5tk"
+  }
+}

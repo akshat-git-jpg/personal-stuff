@@ -29,6 +29,7 @@ const APPS: App[] = [
   { name: "Hyperframes Renderer", host: "render2.agrolloo.com", url: "https://render2.agrolloo.com", kind: "infra" },
   { name: "Lists", host: "lists.agrolloo.com", url: "https://lists.agrolloo.com", kind: "app" },
   { name: "Closet", host: "closet.agrolloo.com", url: "https://closet.agrolloo.com", kind: "app" },
+  { name: "Trip Planner", host: "trips.agrolloo.com", url: "https://trips.agrolloo.com", kind: "app" },
 ];
 
 const FAVICON =
