@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0c10">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script src="/lanes.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<title>Dayboard</title>
+<style>
+  :root {
+    --bg:#0b0c10; --surface:#14161d; --surface-2:#101219;
+    --line:#191c24; --line-2:#232733; --hour:#14171e; --hour-strong:#171a22;
+    --text:#eceef2; --dim:#8b92a1; --faint:#5c6371; --ghost:#3d4351;
+    --accent:#f0a32a; --ping:#f08a55;
+    --sans:"Instrument Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono:"Space Grotesk", ui-monospace, SFMono-Regular, monospace;
+    --ppm:0.767;           /* px per minute — mobile */
+    --gutter:42px;
+    --pingw:0px;           /* measured at render: room reserved for ping labels */
+  }
+  @media (min-width:980px) { :root { --ppm:0.633; --gutter:52px; } }
+
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); }
+  body { font-family:var(--sans); color:var(--text); -webkit-font-smoothing:antialiased; overscroll-behavior-y:contain; }
+  [hidden] { display:none !important; }
+  .num { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  button { font:inherit; color:inherit; background:none; border:none; cursor:pointer; touch-action:manipulation; }
+  a { color:var(--accent); text-decoration:none; }
+
+  /* ---------- login ---------- */
+  #login { position:fixed; inset:0; z-index:100; display:grid; place-items:center; background:var(--bg); padding:24px; }
+  #login form { width:100%; max-width:320px; }
+  #login h1 { font-family:var(--mono); font-size:22px; font-weight:600; letter-spacing:-0.03em; margin:0 0 20px; }
+  #login input { width:100%; height:46px; padding:0 14px; border-radius:12px; border:1px solid var(--line-2);
+                 background:var(--surface); color:var(--text); font-size:16px; }
+  #login button { width:100%; height:46px; margin-top:10px; border-radius:12px; background:var(--text); color:var(--bg); font-weight:600; }
+  #login .err { color:#f4517f; font-size:13px; margin-top:10px; min-height:18px; }
+
+  /* ---------- shell ---------- */
+  #app { display:flex; flex-direction:column; min-height:100dvh; }
+  /* Phone running order: what is on now, what is next, then the day itself.
+     Everything else (stats, type legend, calendar list) is reference material and
+     goes last — it was pushing the timeline a full screen below the fold. */
+  #panel { order:0; }
+  #main  { order:1; }
+  #rail  { order:2; }
+  @media (min-width:980px) {
+    #app { display:grid; grid-template-columns:260px minmax(0,1fr) 400px; height:100dvh; overflow:hidden; }
+    /* The phone running order above must NOT survive into the grid, or the rail and
+       the NOW panel swap sides. */
+    #rail { order:0; } #main { order:1; } #panel { order:2; }
+  }
+
+  /* ---------- rail (left on desktop, header on mobile) ---------- */
+  #rail { padding:22px 18px 28px; display:flex; flex-direction:column; gap:20px; }
+  @media (min-width:980px) { #rail { border-right:1px solid var(--line); padding:26px 22px; overflow-y:auto; } }
+
+  .brand { display:flex; align-items:center; gap:8px; }
+  .brand i { width:7px; height:7px; border-radius:2px; background:var(--accent); }
+  .brand span { font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:0.07em; }
+  .brand .sp { flex:1; }
+
+  /* Google Calendar's shape: Today, the two arrows, then the date — one row, instead
+     of a three-line stack with the nav wrapped underneath the weekday. */
+  .dayhead { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  #dayname { font-family:var(--mono); font-size:16px; font-weight:600; letter-spacing:-0.02em;
+             margin-left:5px; white-space:nowrap; }
+  @media (min-width:980px) { #dayname { font-size:17px; } }
+  .navbtn { width:32px; height:32px; border-radius:10px; border:1px solid var(--line-2);
+            display:grid; place-items:center; color:var(--dim); flex:0 0 auto; }
+  .navbtn:hover { color:var(--text); border-color:#39404f; }
+  .navbtn:active { background:var(--surface); }
+  .navbtn.sm { width:26px; height:26px; border:none; border-radius:8px; }
+  .todaybtn { height:32px; padding:0 13px; border-radius:10px; border:1px solid #2c3140;
+              font-size:12.5px; color:#cfd4de; flex:0 0 auto; }
+  .todaybtn:hover { background:var(--surface); }
+
+  /* Mini month — the piece that was actually missing. Reaching a date three weeks out
+     took 21 taps on the arrow. */
+  .mini { border:1px solid var(--line); border-radius:14px; padding:12px 12px 10px; }
+  .minihead { display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
+  .minihead span { font-size:12.5px; font-weight:600; letter-spacing:-0.01em; }
+  .minidow, .minigrid { display:grid; grid-template-columns:repeat(7, 1fr); gap:2px; }
+  .minidow i { font-style:normal; font-size:9.5px; color:var(--faint); text-align:center;
+               padding-bottom:4px; letter-spacing:0.04em; }
+  .minigrid button { font-family:var(--mono); font-size:11.5px; color:#b6bdca;
+                     aspect-ratio:1; border-radius:8px; display:grid; place-items:center;
+                     line-height:1; padding:0; }
+  .minigrid button:hover { background:var(--surface); }
+  .minigrid button.out { color:#3b4150; }
+  .minigrid button.today { box-shadow:inset 0 0 0 1px var(--accent); color:var(--accent); }
+  .minigrid button.sel { background:var(--accent); color:#17130a; font-weight:600; box-shadow:none; }
+
+  .stats { padding:14px 15px; border-radius:14px; background:var(--surface-2); border:1px solid #1c202a; }
+  .stats .hdr { font-size:9.5px; letter-spacing:0.13em; color:var(--faint); margin-bottom:11px; text-transform:uppercase; }
+  .stats .row { display:flex; gap:20px; }
+  .stats b { display:block; font-family:var(--mono); font-size:19px; font-weight:600; letter-spacing:-0.02em; }
+  .stats small { display:block; font-size:10.5px; color:var(--faint); margin-top:2px; }
+  .bar { display:flex; height:5px; border-radius:99px; overflow:hidden; margin-top:14px; gap:1.5px; background:#22262f; }
+
+  .seclabel { font-size:9.5px; letter-spacing:0.13em; color:var(--faint); text-transform:uppercase; }
+  #types { display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:9px; }
+  .type { display:flex; align-items:center; gap:7px; font-size:11.5px; color:#9aa1b0; }
+  .type .dot { width:8px; height:8px; border-radius:3px; flex-shrink:0; }
+  .type .n { font-family:var(--mono); font-size:10.5px; color:var(--faint); }
+
+  #cals { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  @media (min-width:980px) { #cals { display:block; } }
+  .cal { display:flex; align-items:center; gap:8px; font-size:12px; color:#9aa1b0;
+         padding:4px 10px; border-radius:99px; border:1px solid var(--line); }
+  @media (min-width:980px) { .cal { padding:6px 0; border:none; font-size:12.5px; border-radius:0; } }
+  .cal.off { color:#464c59; }
+  .cal { cursor:pointer; }
+  .cal .dot { width:9px; height:9px; border-radius:3px; flex-shrink:0;
+              box-shadow:0 0 0 1px color-mix(in srgb, currentColor 30%, transparent); }
+  .cal.off .dot { background:transparent !important; }
+  .calhint { font-size:10.5px; line-height:1.45; color:var(--faint); margin-top:9px; }
+  .cal.off .dot { background:#2a2f3a !important; }
+
+  /* ---------- now panel (right on desktop, top on mobile) ---------- */
+  #panel { padding:16px 16px 0; display:flex; flex-direction:column; gap:12px; }
+  @media (min-width:980px) { #panel { border-left:1px solid var(--line); padding:26px 24px; overflow-y:auto; gap:16px; } }
+
+  .nowcard { position:relative; border-radius:18px; background:var(--surface); border:1px solid #242834; padding:16px; overflow:hidden; }
+  @media (min-width:980px) { .nowcard { padding:20px; } }
+  .nowcard::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); }
+  .nowcard .top { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .nowcard .pulse { width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 4px rgba(240,163,42,.16); }
+  .nowcard .tag { font-size:10.5px; font-weight:600; letter-spacing:0.13em; color:var(--accent); }
+  .nowcard .sp { flex:1; }
+  .nowcard h2 { font-family:var(--mono); font-size:23px; font-weight:600; letter-spacing:-0.033em; line-height:1.14; margin:0; }
+  @media (min-width:980px) { .nowcard h2 { font-size:28px; } }
+  .nowcard .when { font-size:12.5px; color:var(--dim); margin-top:5px; }
+  .nowcard .prog { display:flex; align-items:center; gap:10px; margin-top:13px; }
+  .nowcard .track { flex:1; height:4px; border-radius:99px; background:#242834; overflow:hidden; }
+  .nowcard .fill { height:4px; border-radius:99px; background:var(--accent); }
+  /* An unclamped description filled a whole phone screen on its own. Full text is
+     always one tap away in the detail sheet. */
+  .nowcard .desc { margin-top:14px; padding-top:13px; border-top:1px solid #212532;
+                   font-size:13px; line-height:1.52; color:#c2c7d2; white-space:pre-line;
+                   overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical;
+                   -webkit-line-clamp:7; }
+  @media (min-width:980px) { .nowcard .desc { -webkit-line-clamp:24; } }
+  .nowcard .inside { display:flex; align-items:center; gap:8px; margin-top:13px; flex-wrap:wrap; }
+  .nowcard .inside .lbl { font-size:10px; letter-spacing:0.11em; color:var(--faint); }
+  .chip { display:inline-flex; align-items:center; gap:7px; padding:3px 10px; border-radius:99px; border:1px dashed #333947; }
+  .chip .dot { width:5px; height:5px; border-radius:50%; }
+  .chip .txt { font-family:var(--mono); font-size:11px; color:#98a0b0; }
+
+  .nextbar { display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:13px;
+             background:var(--surface-2); border:1px solid #1d212b; }
+  .nextbar .tag { font-size:10px; font-weight:600; letter-spacing:0.13em; color:var(--faint); }
+  .nextbar .t { font-family:var(--mono); font-size:12px; }
+  .nextbar .n { font-size:13px; color:#c2c7d2; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nextbar .in { font-family:var(--mono); font-size:11.5px; color:var(--faint); white-space:nowrap; }
+
+  #rest { display:none; }
+  @media (min-width:980px) { #rest { display:block; } }
+  .restrow { display:flex; align-items:center; gap:12px; padding:11px 2px; border-bottom:1px solid #16191f; }
+  .restrow:last-child { border-bottom:none; }
+  .restrow .t { font-family:var(--mono); font-size:11.5px; color:var(--faint); width:64px; flex-shrink:0; }
+  .restrow .dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .restrow .n { font-size:13px; color:#c2c7d2; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .restrow.ghost .n { color:#585f6d; }
+  .restrow .d { font-family:var(--mono); font-size:11.5px; color:#414753; }
+
+  /* ---------- timeline ---------- */
+  #main { display:flex; flex-direction:column; min-width:0; padding:14px 16px 0; }
+  @media (min-width:980px) { #main { padding:26px 26px 0 28px; overflow:hidden; } }
+  .mainhead { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .legend { display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--faint); }
+  .legend i { width:4px; height:4px; border-radius:50%; background:var(--ping); }
+  .legend s { width:11px; height:0; border-top:1px dashed #333947; text-decoration:none; }
+
+  #scroller { flex:1; overflow-y:auto; padding-bottom:40px; -webkit-overflow-scrolling:touch; }
+  #track { position:relative; height:calc(1440 * var(--ppm) * 1px); }
+
+  .hline { position:absolute; left:var(--gutter); right:0; border-top:1px solid var(--hour); }
+  .hline.major { border-top-color:var(--hour-strong); }
+  .hlabel { position:absolute; left:0; font-family:var(--mono); font-size:10.5px; color:#3d4351; }
+  .hlabel.major { color:#4d5462; }
+
+  /* A "context" — an event several others sit inside — is an ordinary block with a
+     dashed edge. Two earlier attempts at special-casing it both LOST information: as a
+     full-width band it buried its own children, and as a 10px spine it shrank
+     "Zluri Work 11am-4pm", the biggest block of the day, into a sliver. Which block
+     contains which is still reported on the NOW card and in the detail sheet, where it
+     costs no space at all. */
+  .blk.ctx { border-style:dashed; background:color-mix(in oklab, var(--c) 15%, #0d0f14); }
+  .blk.narrow .bw { display:none; }
+
+  .gap { position:absolute; left:var(--gutter); right:calc(8px + var(--pingw)); border-radius:12px; border:1px dashed #1e222b;
+         display:grid; place-items:center; }
+  .gap span { font-family:var(--mono); font-size:11px; color:var(--ghost); letter-spacing:0.04em; text-align:center; padding:0 8px; }
+
+  /* Blocks live inside .blocks, which owns the horizontal space left over after the
+     hour gutter and any band spines. Each block's left/width come from its lane, so
+     two events that really do overlap sit SIDE BY SIDE instead of on top of one
+     another. See public/lanes.js. */
+  /* --pingw is measured after every render: exactly the width the widest ping label
+     needs, so a ping is never painted over a block title. Nine were, and one hid the
+     title of "Commute Office" outright. */
+  .blocks { position:absolute; left:var(--gutter); right:calc(8px + var(--pingw)); top:0; bottom:0; }
+  /* Mix in OKLAB, not sRGB: an sRGB mix toward near-black collapses the chroma and
+     every category came out the same dark grey. And 13% was far too little tint —
+     only the 3px bar carried any colour at all. */
+  .blk { position:absolute; border-radius:10px; overflow:hidden; padding:7px 11px;
+         background:color-mix(in oklab, var(--c) 26%, #0d0f14);
+         border:1px solid color-mix(in oklab, var(--c) 40%, transparent);
+         box-shadow:inset 4px 0 0 var(--c); display:block; text-align:left; }
+  .blk:hover { background:color-mix(in oklab, var(--c) 33%, #0d0f14); }
+  .blk.tiny { padding:2px 11px; display:flex; align-items:center; gap:9px; border-radius:7px; }
+  .blk .bt { font-size:12.5px; font-weight:600; letter-spacing:-0.01em;
+             color:color-mix(in oklab, var(--c) 34%, #ffffff);
+             white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* Room for a second line? Use it rather than ellipsising a real title away. */
+  .blk.wrap .head { display:block; }
+  .blk.wrap .bt { white-space:normal; overflow-wrap:anywhere; line-height:1.25;
+                  display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+  .blk.wrap .bw { display:block; margin-top:2px; }
+  .blk .bw { font-family:var(--mono); font-size:10.5px; color:color-mix(in oklab, var(--c) 22%, #9aa2b2); }
+  /* Clamp to whole lines. A description sliced through the middle of a line reads
+     as a rendering bug; the full text is always one tap away in the detail sheet. */
+  .blk .bd { font-size:11px; line-height:1.5; color:color-mix(in oklab, var(--c) 14%, #99a1b0); margin-top:5px; white-space:pre-line;
+             overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; }
+  .blk .head { display:flex; align-items:baseline; gap:9px; }
+  .blk:active { filter:brightness(1.25); }
+
+  .ping { position:absolute; left:var(--gutter); right:0; height:0; z-index:7; }
+  /* Full width, this rule ran straight through every block it crossed and read as
+     strikethrough. It only needs to connect the day to its label. */
+  .ping .ln { position:absolute; right:0; top:0; border-top:1px dashed rgba(240,138,85,.45);
+              width:calc(var(--pingw) + 4px); }
+  /* A pill, not bare text sitting on a block — otherwise a ping reads as part of
+     whatever block happens to be behind it. */
+  .ping .lb { position:absolute; right:0; top:-10px; display:flex; align-items:center; gap:5px;
+              background:var(--bg); padding:3px 9px; max-width:74%; border-radius:99px;
+              border:1px solid rgba(217,139,106,.26); box-shadow:0 2px 10px rgba(4,5,8,.7); }
+  .ping .lb:active { filter:brightness(1.4); }
+  .ping .lb i { width:5px; height:5px; border-radius:50%; background:var(--ping); flex-shrink:0; }
+  .ping .lb span { font-family:var(--mono); font-size:10px; color:#d79a72; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  #nowline { position:absolute; left:calc(var(--gutter) - 8px); right:0; height:0; z-index:9; }
+  #nowline .ln { position:absolute; left:8px; right:0; top:0; border-top:1.5px solid var(--accent); }
+  #nowline .dt { position:absolute; left:0; top:-4px; width:8px; height:8px; border-radius:50%;
+                 background:var(--accent); box-shadow:0 0 0 3.5px rgba(240,163,42,.18); }
+
+  /* ---------- misc ---------- */
+  #allday { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .adchip { display:flex; align-items:center; gap:7px; padding:4px 11px; border-radius:99px;
+            border:1px solid var(--line-2); font-size:11.5px; color:#b9c0cc; }
+  .adchip .dot { width:6px; height:6px; border-radius:50%; }
+
+  #banner { margin:0 16px 10px; padding:12px 14px; border-radius:12px; font-size:12.5px; line-height:1.45;
+            background:rgba(244,81,127,.10); border:1px solid rgba(244,81,127,.28); color:#f4a0bb; }
+  @media (min-width:980px) { #banner { margin:0 0 12px; } }
+  #banner b { color:#ffc7d8; }
+
+  /* ---------- detail sheet ---------- */
+  #backdrop { position:fixed; inset:0; z-index:60; background:rgba(4,5,8,.62); backdrop-filter:blur(2px); }
+  #sheet { position:fixed; z-index:61; left:0; right:0; bottom:0; max-height:82dvh; overflow-y:auto;
+           background:var(--surface); border-top:1px solid var(--line-2);
+           border-radius:20px 20px 0 0; padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+           animation:rise .18s ease-out; }
+  @media (min-width:980px) {
+    #sheet { left:50%; right:auto; bottom:auto; top:50%; transform:translate(-50%,-50%);
+             width:min(520px, 92vw); max-height:80dvh; border-radius:18px;
+             border:1px solid var(--line-2); animation:fade .14s ease-out; }
+  }
+  @keyframes rise { from { transform:translateY(18px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  @keyframes fade { from { opacity:0; } to { opacity:1; } }
+  @media (prefers-reduced-motion:reduce) { #sheet { animation:none; } }
+
+  #sheet .grip { width:36px; height:4px; border-radius:99px; background:#2b303c; margin:-6px auto 14px; }
+  @media (min-width:980px) { #sheet .grip { display:none; } }
+  #sheet .kind { display:inline-flex; align-items:center; gap:7px; padding:3px 10px; border-radius:99px;
+                 font-size:10px; letter-spacing:0.11em; text-transform:uppercase;
+                 background:color-mix(in srgb, var(--c) 15%, transparent);
+                 border:1px solid color-mix(in srgb, var(--c) 30%, transparent);
+                 color:color-mix(in srgb, var(--c) 45%, #ffffff); }
+  #sheet h3 { font-family:var(--mono); font-size:22px; font-weight:600; letter-spacing:-0.03em;
+              line-height:1.2; margin:13px 0 0; }
+  #sheet .meta { font-family:var(--mono); font-size:12.5px; color:var(--dim); margin-top:7px; }
+  #sheet .body { margin-top:16px; padding-top:15px; border-top:1px solid #212532;
+                 font-size:13.5px; line-height:1.58; color:#c2c7d2; white-space:pre-line; word-break:break-word; }
+  #sheet .body a { text-decoration:underline; }
+  #sheet .nodesc { margin-top:16px; padding-top:15px; border-top:1px solid #212532;
+                   font-size:13px; color:var(--faint); font-style:italic; }
+  #sheet .foot { display:flex; gap:9px; margin-top:18px; flex-wrap:wrap; }
+  #sheet .foot a, #sheet .foot button { flex:1; min-width:130px; height:42px; border-radius:12px;
+                 display:flex; align-items:center; justify-content:center; gap:8px; font-size:13.5px; font-weight:500; }
+  #sheet .foot .prim { background:var(--text); color:var(--bg); }
+  #sheet .foot .sec { border:1px solid var(--line-2); color:var(--dim); }
+
+  .empty { font-family:var(--mono); font-size:12px; color:var(--ghost); text-align:center; padding:40px 0; }
+  .spin { display:inline-block; width:12px; height:12px; border-radius:50%; border:1.5px solid #2a2f3a;
+          border-top-color:var(--accent); animation:sp .7s linear infinite; vertical-align:-1px; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce) { .spin { animation:none; } }
+  .synced { font-family:var(--mono); font-size:10.5px; color:#414753; padding:10px 0 18px; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <form id="loginform">
+    <h1>Dayboard</h1>
+    <input id="pw" type="password" placeholder="Password" autocomplete="current-password" required>
+    <button type="submit">Open</button>
+    <div class="err" id="loginerr"></div>
+  </form>
+</div>
+
+<div id="app" hidden>
+
+  <div id="rail">
+    <div class="brand"><i></i><span>DAYBOARD</span><span class="sp"></span>
+      <button class="navbtn" id="refresh" title="Refresh from Google" aria-label="Refresh">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b92a1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><polyline points="21 3 21 9 15 9"/></svg>
+      </button>
+    </div>
+
+    <div class="dayhead">
+      <button class="todaybtn" id="today">Today</button>
+      <button class="navbtn" id="prev" aria-label="Previous day">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="navbtn" id="next" aria-label="Next day">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div id="dayname">&nbsp;</div>
+    </div>
+
+    <div class="mini" id="mini">
+      <div class="minihead">
+        <button class="navbtn sm" id="mprev" aria-label="Previous month">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span id="mtitle"></span>
+        <button class="navbtn sm" id="mnext" aria-label="Next month">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="minidow"><i>S</i><i>M</i><i>T</i><i>W</i><i>T</i><i>F</i><i>S</i></div>
+      <div class="minigrid" id="mgrid"></div>
+    </div>
+
+    <div class="stats" id="stats" hidden>
+      <div class="hdr" id="statshdr">Today</div>
+      <div class="row">
+        <div><b id="statBlocked">—</b><small>scheduled</small></div>
+        <div><b id="statFree" style="color:var(--dim)">—</b><small>open</small></div>
+        <div><b id="statPings" style="color:var(--ping)">—</b><small>pings</small></div>
+      </div>
+      <div class="bar" id="statbar"></div>
+    </div>
+
+    <div>
+      <div class="seclabel">Today’s types</div>
+      <div id="types"></div>
+    </div>
+
+    <div>
+      <div class="seclabel">Calendars</div>
+      <div id="cals"></div>
+      <div class="calhint" id="calhint"></div>
+    </div>
+
+    <div class="synced" id="synced"></div>
+  </div>
+
+  <div id="main">
+    <div class="mainhead">
+      <span class="seclabel">Timeline</span>
+      <span style="flex:1"></span>
+      <span class="legend"><i></i>ping<s style="margin-left:10px"></s>holds other events</span>
+    </div>
+    <div id="banner" hidden></div>
+    <div id="allday"></div>
+    <div id="scroller"><div id="track"></div></div>
+  </div>
+
+  <div id="panel">
+    <div class="nowcard" id="nowcard">
+      <div class="top">
+        <span class="pulse"></span><span class="tag">NOW</span><span class="sp"></span>
+        <span class="num" id="clock" style="font-size:12.5px;color:var(--dim)"></span>
+      </div>
+      <h2 id="nowtitle">Loading<span class="spin" style="margin-left:8px"></span></h2>
+      <div class="when" id="nowwhen"></div>
+      <div class="prog" id="nowprog" hidden>
+        <div class="track"><div class="fill" id="nowfill" style="width:0%"></div></div>
+        <span class="num" id="nowleft" style="font-size:11.5px;color:var(--dim);white-space:nowrap"></span>
+      </div>
+      <div class="desc" id="nowdesc" hidden></div>
+      <div class="inside" id="nowinside" hidden><span class="lbl">INSIDE</span><span id="nowinsidechip"></span></div>
+    </div>
+
+    <div class="nextbar" id="nextbar" hidden>
+      <span class="tag">NEXT</span>
+      <span class="num t" id="nexttime"></span>
+      <span class="n" id="nextname"></span>
+      <span class="num in" id="nextin"></span>
+    </div>
+
+    <div id="rest">
+      <div class="seclabel" style="margin:10px 0 4px">Rest of day</div>
+      <div id="restlist"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="backdrop" hidden></div>
+<div id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+  <div class="grip"></div>
+  <span class="kind" id="sheetKind"></span>
+  <h3 id="sheetTitle"></h3>
+  <div class="meta" id="sheetMeta"></div>
+  <div class="meta" id="sheetInside" hidden></div>
+  <div class="body" id="sheetBody" hidden></div>
+  <div class="nodesc" id="sheetNoDesc" hidden>No description on this event.</div>
+  <div class="foot">
+    <a class="prim" id="sheetOpen" target="_blank" rel="noopener">Open in Google Calendar</a>
+    <button class="sec" id="sheetClose" type="button">Close</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const DAY_MIN = 1440;
+  const CLOCK_TICK_MS = 30_000;   // local only — never calls Google
+  const SCROLL_LEAD_MIN = 90;     // show an hour and a half above "now"
+
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; };
+
+  const state = { date: null, data: null, tz: 'Asia/Kolkata', hidden: new Set(), loading: false, scrolled: false };
+
+  // Which calendars reach the board at all is decided in the Worker
+  // (google.ts -> isBoardCalendar). This is only the viewer's own show/hide on top.
+  try { state.hidden = new Set(JSON.parse(localStorage.getItem('dayboard:hidden') || '[]')); } catch { /* private mode */ }
+  const saveHidden = () => {
+    try { localStorage.setItem('dayboard:hidden', JSON.stringify([...state.hidden])); } catch { /* ignore */ }
+  };
+
+  // ---------- formatting ----------
+  const pad = (n) => String(n).padStart(2, '0');
+  function fmtTime(min, withSuffix = true) {
+    const m = Math.max(0, Math.min(DAY_MIN, Math.round(min)));
+    const h24 = Math.floor(m / 60) % 24, mm = m % 60;
+    const h = h24 % 12 === 0 ? 12 : h24 % 12;
+    return `${h}:${pad(mm)}${withSuffix ? (h24 < 12 ? ' AM' : ' PM') : ''}`;
+  }
+  /** Compact and unambiguous: "6:30am", "11am", "4pm". Never a bare "4". */
+  function fmtClock(min) {
+    const m = Math.round(min), h24 = Math.floor(m / 60) % 24, mm = m % 60;
+    const h = h24 % 12 === 0 ? 12 : h24 % 12;
+    const ap = h24 < 12 ? 'am' : 'pm';
+    return mm === 0 ? `${h}${ap}` : `${h}:${pad(mm)}${ap}`;
+  }
+  const fmtRange = (a, b) => `${fmtClock(a)} – ${fmtClock(b)}`;
+  /** Gutter label: "12a", "5a", "12p", "11p" — never an ambiguous bare digit. */
+  const fmtHour = (h) => `${h % 12 === 0 ? 12 : h % 12}${h < 12 ? 'a' : 'p'}`;
+  function fmtDur(min) {
+    const m = Math.max(0, Math.round(min)), h = Math.floor(m / 60), r = m % 60;
+    if (h === 0) return `${r}m`;
+    return r === 0 ? `${h}h` : `${h}h ${r}m`;
+  }
+  function ymd(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+  function shiftDate(dateStr, days) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+  }
+  function todayInTz(tz) {
+    const p = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+    const g = (t) => p.find((x) => x.type === t).value;
+    return `${g('year')}-${g('month')}-${g('day')}`;
+  }
+  /** Minutes past midnight right now, in the board's timezone. */
+  function nowMinutes(tz) {
+    const p = new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour12: false, hour: '2-digit', minute: '2-digit' }).formatToParts(new Date());
+    const g = (t) => Number(p.find((x) => x.type === t).value);
+    return (g('hour') % 24) * 60 + g('minute');
+  }
+  const isToday = () => state.date === todayInTz(state.tz);
+
+  // ---------- api ----------
+  async function api(path, opts) {
+    const res = await fetch(path, { credentials: 'same-origin', ...opts });
+    if (res.status === 401) { showLogin(); throw new Error('unauthorized'); }
+    return res;
+  }
+
+  async function load(date, fresh = false) {
+    if (state.loading) return;
+    state.loading = true;
+    try {
+      const res = await api(`/api/day?date=${date}${fresh ? '&fresh=1' : ''}`);
+      const json = await res.json();
+      if (!res.ok) { showBanner(json); state.loading = false; return; }
+      state.date = date;
+      state.data = json;
+      state.tz = json.timezone || state.tz;
+      hideBanner();
+      render();
+    } catch (err) {
+      if (String(err.message) !== 'unauthorized') showBanner({ error: 'network' });
+    } finally {
+      state.loading = false;
+    }
+  }
+
+  function showBanner(json) {
+    const b = $('banner');
+    b.innerHTML = '';
+    if (json.error === 'google_auth') {
+      b.append(document.createTextNode('Google turned the connection down. The refresh token needs re-minting — '));
+      b.append(el('b', null, 'the board is stale until then.'));
+    } else if (json.error === 'network') {
+      b.textContent = 'No connection. Showing whatever last loaded.';
+    } else {
+      b.textContent = `Could not read the calendar (${json.error || 'unknown'}).`;
+    }
+    b.hidden = false;
+  }
+  const hideBanner = () => { $('banner').hidden = true; };
+
+  // ---------- render ----------
+  function render() {
+    const d = state.data;
+    if (!d) return;
+
+    const [y, m, dd] = state.date.split('-').map(Number);
+    const dateObj = new Date(Date.UTC(y, m - 1, dd));
+    $('dayname').textContent = dateObj.toLocaleDateString('en-GB',
+      { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+    if (!state.month) state.month = state.date.slice(0, 7);
+    renderMini();
+
+    renderAllDay(d);
+    renderTypes(d);
+    renderCalendars(d);
+    renderTrack(d);
+    renderStats(d);
+    renderNow();
+
+    $('synced').textContent = d.fetchedAt
+      ? `synced ${new Date(d.fetchedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} · read-only`
+      : 'read-only';
+
+    if (!state.scrolled) { state.scrolled = true; scrollToNow(); }
+  }
+
+  /**
+   * The month grid. Always six rows, so the rail does not grow a row taller whenever a
+   * month happens to straddle one more week.
+   */
+  function renderMini() {
+    const [my, mm] = state.month.split('-').map(Number);
+    const first = new Date(Date.UTC(my, mm - 1, 1));
+    $('mtitle').textContent = first.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+    const today = todayInTz(state.tz);
+    const grid = $('mgrid');
+    grid.innerHTML = '';
+
+    const start = new Date(first);
+    start.setUTCDate(1 - first.getUTCDay()); // back up to the Sunday on or before the 1st
+
+    for (let i = 0; i < 42; i++) {
+      const day = new Date(start);
+      day.setUTCDate(start.getUTCDate() + i);
+      const iso = `${day.getUTCFullYear()}-${pad(day.getUTCMonth() + 1)}-${pad(day.getUTCDate())}`;
+      const btn = el('button', null, String(day.getUTCDate()));
+      if (day.getUTCMonth() !== mm - 1) btn.classList.add('out');
+      if (iso === today) btn.classList.add('today');
+      if (iso === state.date) btn.classList.add('sel');
+      btn.setAttribute('aria-label', iso);
+      btn.addEventListener('click', () => { state.scrolled = false; state.month = iso.slice(0, 7); load(iso); });
+      grid.append(btn);
+    }
+  }
+
+  function shiftMonth(delta) {
+    const [my, mm] = state.month.split('-').map(Number);
+    const d = new Date(Date.UTC(my, mm - 1 + delta, 1));
+    state.month = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`;
+    renderMini();
+  }
+
+  function renderAllDay(d) {
+    const wrap = $('allday');
+    wrap.innerHTML = '';
+    for (const a of d.allDay) {
+      const c = el('div', 'adchip');
+      const dot = el('span', 'dot'); dot.style.background = a.color;
+      c.append(dot, el('span', null, a.title));
+      wrap.append(c);
+    }
+  }
+
+  /** Only the categories actually on screen today — a legend of nine is noise. */
+  function renderTypes(d) {
+    const v = shown(d);
+    const counts = new Map();
+    for (const e of [...v.blocks, ...v.contexts]) counts.set(e.category, (counts.get(e.category) || 0) + 1);
+    for (const p of v.pings) counts.set(p.category, (counts.get(p.category) || 0) + p.items.length);
+
+    const wrap = $('types');
+    wrap.innerHTML = '';
+    for (const [cat, n] of [...counts.entries()].sort((a, b) => b[1] - a[1])) {
+      const row = el('div', 'type');
+      const dot = el('span', 'dot');
+      dot.style.background = (d.palette && d.palette[cat]) || 'var(--dim)';
+      row.append(dot, el('span', null, CATEGORY_LABEL[cat] || cat), el('span', 'n', String(n)));
+      wrap.append(row);
+    }
+  }
+
+  function renderCalendars(d) {
+    const shownCount = d.calendars.filter((c) => !state.hidden.has(c.id)).length;
+    $('calhint').textContent = `Showing ${shownCount} of ${d.calendars.length}. Tap one to hide it.`;
+
+    const wrap = $('cals');
+    wrap.innerHTML = '';
+    for (const cal of d.calendars) {
+      const off = state.hidden.has(cal.id);
+      const row = el('button', 'cal' + (off ? ' off' : ''));
+      row.setAttribute('aria-pressed', String(!off));
+      const dot = el('span', 'dot'); dot.style.background = cal.color;
+      row.append(dot, el('span', null, cal.name));
+      row.addEventListener('click', () => {
+        if (off) state.hidden.delete(cal.id); else state.hidden.add(cal.id);
+        saveHidden();
+        render();
+      });
+      wrap.append(row);
+    }
+  }
+
+  function shown(d) {
+    const calName = new Map(d.calendars.map((c) => [c.name, c.id]));
+    const keep = (e) => !state.hidden.has(e.calendarId ?? calName.get(e.calendar) ?? '');
+    return {
+      contexts: d.contexts.filter(keep),
+      blocks: d.blocks.filter(keep),
+      pings: d.pings
+        .map((p) => ({ ...p, items: p.items.filter((i) => !state.hidden.has(calName.get(i.calendar) ?? '')) }))
+        .filter((p) => p.items.length > 0),
+    };
+  }
+
+  function px(min) { const ppm = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ppm')); return min * ppm; }
+
+  function renderTrack(d) {
+    const track = $('track');
+    track.innerHTML = '';
+    const v = shown(d);
+
+
+    // hour rules
+    for (let h = 0; h <= 24; h++) {
+      const y = px(h * 60);
+      const major = h % 6 === 0;
+      const line = el('div', 'hline' + (major ? ' major' : ''));
+      line.style.top = `${y}px`;
+      track.append(line);
+      if (h < 24) {
+        const lab = el('div', 'hlabel' + (major ? ' major' : ''), fmtHour(h));
+        lab.style.top = `${y - 7}px`;
+        track.append(lab);
+      }
+    }
+
+    // unplanned gaps
+    for (const g of gaps(v)) {
+      const box = el('div', 'gap');
+      box.style.top = `${px(g.startMin)}px`;
+      box.style.height = `${px(g.endMin - g.startMin)}px`;
+      box.append(el('span', null, `${fmtDur(g.endMin - g.startMin)} open \u00b7 ${fmtRange(g.startMin, g.endMin)}`));
+      track.append(box);
+    }
+
+    // pings
+    for (const p of v.pings) {
+      const row = el('div', 'ping');
+      row.style.top = `${px(p.startMin)}px`;
+      row.append(el('div', 'ln'));
+      const lb = el('button', 'lb');
+      const names = p.items.map((i) => i.title).join(' ' + '\u00b7' + ' ');
+      const narrowScreen = window.innerWidth < 980;
+      // "6" alone is ambiguous; "6p" is one character longer and is not.
+      const h12 = Math.floor(p.startMin / 60) % 12 === 0 ? 12 : Math.floor(p.startMin / 60) % 12;
+      const short = `${h12}${p.startMin % 60 ? ':' + pad(p.startMin % 60) : ''}${p.startMin < 720 ? 'a' : 'p'}`;
+      lb.append(el('i'), el('span', null, narrowScreen ? short : `${fmtClock(p.startMin)} \u00b7 ${names}`));
+      lb.title = `${fmtClock(p.startMin)} \u00b7 ${names}`;
+      lb.addEventListener('click', () => openSheet(p));
+      row.append(lb);
+      track.append(row);
+    }
+
+    sizePingRail();
+
+    // Every event is drawn, contexts included — see the note on .blk.ctx in the CSS.
+    const wrap = el('div', 'blocks');
+    track.append(wrap);
+    const drawable = [...v.blocks, ...v.contexts.map((c) => ({ ...c, isContext: true }))];
+    const pendingClamp = [];
+    for (const b of assignLanes(drawable)) {
+      const h = px(b.endMin - b.startMin);
+      // Hide the time only when the column is genuinely too narrow for it — lane
+      // COUNT alone hid it on a 1400px screen where each column was still 300px.
+      const colW = (wrap.clientWidth || 600) / b.lanes;
+      // wrap = there is vertical room for a second title line; narrow = the column is
+      // too tight for the time text as well. They are independent questions.
+      const node = el('button', 'blk' + (h < 30 ? ' tiny' : '') + (b.isContext ? ' ctx' : '')
+        + (colW < 150 && h < 46 ? ' narrow' : '') + (h >= 46 && colW < 300 ? ' wrap' : ''));
+      node.style.setProperty('--c', b.color);
+      node.style.top = `${px(b.startMin)}px`;
+      node.style.height = `${h}px`;
+      node.style.left = `${((b.lane / b.lanes) * 100).toFixed(4)}%`;
+      node.style.width = `calc(${(100 / b.lanes).toFixed(4)}% - 5px)`;
+
+      const when = fmtRange(b.startMin, b.endMin);
+      if (h < 30) {
+        node.append(el('span', 'bt', b.title), el('span', 'bw', when));
+      } else {
+        const head = el('div', 'head');
+        head.append(el('span', 'bt', b.title), el('span', 'bw', when));
+        node.append(head);
+        // Description only where WHOLE lines fit, and only in a full-width block —
+        // in a half-width column it degenerates into one word per line.
+        if (b.description && !b.isContext) {
+          const bd = el('div', 'bd', b.description);
+          node.append(bd);
+          pendingClamp.push({ node, bd });
+        }
+      }
+      node.title = `${b.title} \u00b7 ${when}`;
+      node.addEventListener('click', () => openSheet(b));
+      wrap.append(node);
+    }
+
+    // With the blocks in the document, clamp each description to the whole lines that
+    // actually fit under its (possibly wrapped) title. A half-height line of text
+    // reads as a rendering fault; the full text is one tap away in the sheet.
+    for (const item of pendingClamp) {
+      const lineH = parseFloat(getComputedStyle(item.bd).lineHeight) || 17;
+      const spare = item.node.clientHeight - item.bd.offsetTop - 6;
+      const lines = Math.floor(spare / lineH);
+      if (lines < 1) item.bd.remove();
+      else item.bd.style.webkitLineClamp = String(Math.min(lines, 8));
+    }
+
+    // now line
+    if (isToday()) {
+      const nl = el('div', null); nl.id = 'nowline';
+      nl.append(el('div', 'ln'), el('div', 'dt'));
+      nl.style.top = `${px(nowMinutes(state.tz))}px`;
+      track.append(nl);
+    }
+
+    if (!v.blocks.length && !v.contexts.length && !v.pings.length) {
+      const e = el('div', 'empty', 'Nothing on the calendar for this day.');
+      e.style.position = 'absolute'; e.style.top = '40%'; e.style.left = '0'; e.style.right = '0';
+      track.append(e);
+    }
+
+  }
+
+  /**
+   * Reserve exactly as much width as the ping labels need. Measured rather than
+   * guessed: the labels carry event titles, so their width is data — a fixed rail is
+   * either wasteful or too small.
+   */
+  function sizePingRail() {
+    const track = $('track');
+    const pills = [...track.querySelectorAll('.ping .lb')];
+    if (!pills.length) { track.style.setProperty('--pingw', '0px'); return; }
+    const widest = Math.max(...pills.map((x) => x.offsetWidth));
+    const cap = Math.round(track.clientWidth * (window.innerWidth < 980 ? 0.2 : 0.34));
+    track.style.setProperty('--pingw', `${Math.min(widest + 12, cap)}px`);
+  }
+
+  /** Same rule as the Worker's unplannedGaps, applied to what is currently visible. */
+  function gaps(v, minGap = 60) {
+    const busy = [...v.blocks, ...v.contexts].map((e) => ({ s: e.startMin, e: e.endMin })).sort((a, b) => a.s - b.s);
+    if (!busy.length) return [];
+    const from = Math.min(...busy.map((b) => b.s));
+    const to = Math.max(...busy.map((b) => b.e));
+    const out = [];
+    let cur = from;
+    for (const b of busy) {
+      if (b.s > cur) out.push({ startMin: cur, endMin: Math.min(b.s, to) });
+      cur = Math.max(cur, b.e);
+      if (cur >= to) break;
+    }
+    return out.filter((g) => g.endMin - g.startMin >= minGap);
+  }
+
+  /** Total minutes covered by a set of ranges, counting any overlap once. */
+  function coverage(ranges) {
+    const sorted = ranges.map((e) => [e.startMin, e.endMin]).sort((a, b) => a[0] - b[0]);
+    let total = 0, cur = -1, end = -1;
+    for (const [s, e] of sorted) {
+      if (s > end) { total += Math.max(0, end - cur); cur = s; end = e; }
+      else end = Math.max(end, e);
+    }
+    return total + Math.max(0, end - cur);
+  }
+
+  function renderStats(d) {
+    const v = shown(d);
+    const all = [...v.blocks, ...v.contexts];
+    // Sleep is not scheduled work. Counting it made every single day read
+    // "24h blocked / 0m unplanned", which tells you nothing. Measure the waking day.
+    const asleep = coverage(all.filter((e) => e.category === 'sleep'));
+    const awake = Math.max(0, DAY_MIN - asleep);
+    const scheduled = Math.min(awake, coverage(all.filter((e) => e.category !== 'sleep')));
+
+    $('stats').hidden = false;
+    $('statshdr').textContent = d.allDay.length ? d.allDay[0].title : `${fmtDur(awake)} awake`;
+    $('statBlocked').textContent = fmtDur(scheduled);
+    $('statFree').textContent = fmtDur(Math.max(0, awake - scheduled));
+    $('statPings').textContent = String(v.pings.reduce((n, p) => n + p.items.length, 0));
+
+    const bar = $('statbar');
+    bar.innerHTML = '';
+    const byCal = new Map();
+    for (const b of all) {
+      byCal.set(b.color, (byCal.get(b.color) || 0) + (b.endMin - b.startMin));
+    }
+    for (const [color, mins] of [...byCal.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)) {
+      const seg = el('div');
+      seg.style.width = `${Math.max(2, (mins / DAY_MIN) * 100)}%`;
+      seg.style.background = color;
+      bar.append(seg);
+    }
+  }
+
+  function renderNow() {
+    const d = state.data;
+    if (!d) return;
+    const v = shown(d);
+    const live = isToday();
+    const now = live ? nowMinutes(state.tz) : 0;
+
+    $('clock').textContent = live ? fmtTime(now) : '';
+
+    const inBlocks = v.blocks.filter((b) => b.startMin <= now && now < b.endMin)
+      .sort((a, b) => (a.endMin - a.startMin) - (b.endMin - b.startMin));
+    const block = live ? (inBlocks[0] || null) : null;
+    const band = live ? (v.contexts.find((c) => c.startMin <= now && now < c.endMin) || null) : null;
+
+    const title = $('nowtitle'), when = $('nowwhen'), prog = $('nowprog'),
+          desc = $('nowdesc'), inside = $('nowinside');
+
+    // Tapping the NOW card opens the same detail sheet as tapping its block.
+    const card = $('nowcard');
+    card.onclick = (block || band) ? () => openSheet(block || band) : null;
+    card.style.cursor = (block || band) ? 'pointer' : 'default';
+
+    if (!live) {
+      title.textContent = 'Not today';
+      when.textContent = 'The NOW card only runs on today’s board.';
+      prog.hidden = desc.hidden = inside.hidden = true;
+    } else if (block) {
+      title.textContent = block.title;
+      when.textContent = `${fmtRange(block.startMin, block.endMin)} · ${block.calendar}`;
+      prog.hidden = false;
+      const span = block.endMin - block.startMin;
+      $('nowfill').style.width = `${Math.round(((now - block.startMin) / span) * 100)}%`;
+      $('nowleft').textContent = `${fmtDur(block.endMin - now)} left`;
+      desc.hidden = !block.description;
+      desc.textContent = block.description || '';
+      inside.hidden = !band;
+      if (band) {
+        const chip = el('span', 'chip');
+        const dot = el('span', 'dot'); dot.style.background = band.color;
+        chip.append(dot, el('span', 'txt', `${band.title} · ${fmtRange(band.startMin, band.endMin)}`));
+        $('nowinsidechip').replaceChildren(chip);
+      }
+    } else if (band) {
+      title.textContent = band.title;
+      when.textContent = `${fmtRange(band.startMin, band.endMin)} · ${band.calendar}`;
+      prog.hidden = false;
+      const span = band.endMin - band.startMin;
+      $('nowfill').style.width = `${Math.round(((now - band.startMin) / span) * 100)}%`;
+      $('nowleft').textContent = `${fmtDur(band.endMin - now)} left`;
+      desc.hidden = !band.description;
+      desc.textContent = band.description || '';
+      inside.hidden = true;
+    } else {
+      title.textContent = 'Nothing scheduled';
+      when.textContent = 'Open time.';
+      prog.hidden = desc.hidden = inside.hidden = true;
+    }
+
+    // NEXT
+    const upcoming = [
+      ...v.blocks.filter((b) => b.startMin > now).map((b) => ({ at: b.startMin, name: b.title, ping: false })),
+      ...v.pings.filter((p) => p.startMin > now).map((p) => ({ at: p.startMin, name: p.items.map((i) => i.title).join(' · '), ping: true })),
+    ].sort((a, b) => a.at - b.at);
+
+    const nb = $('nextbar');
+    if (live && upcoming.length) {
+      nb.hidden = false;
+      $('nexttime').textContent = fmtClock(upcoming[0].at);
+      $('nexttime').style.color = upcoming[0].ping ? 'var(--ping)' : 'var(--text)';
+      $('nextname').textContent = upcoming[0].name;
+      $('nextin').textContent = `in ${fmtDur(upcoming[0].at - now)}`;
+    } else {
+      nb.hidden = true;
+    }
+
+    // rest of day (desktop only)
+    const list = $('restlist');
+    list.innerHTML = '';
+    const rows = [
+      ...v.blocks.filter((b) => b.endMin > now).map((b) => ({ at: b.startMin > now ? b.startMin : b.endMin,
+        name: b.startMin > now ? b.title : `${b.title} ends`, color: b.color, dur: b.endMin - b.startMin, ghost: false })),
+      ...v.contexts.filter((c) => c.endMin > now).map((c) => ({ at: c.startMin > now ? c.startMin : c.endMin,
+        name: c.startMin > now ? c.title : `${c.title} ends`, color: c.color, dur: c.endMin - c.startMin, ghost: false })),
+      ...gaps(v).filter((g) => g.endMin > now).map((g) => ({ at: g.startMin, name: 'unplanned', color: null,
+        dur: g.endMin - g.startMin, ghost: true })),
+    ].sort((a, b) => a.at - b.at).slice(0, 6);
+
+    for (const r of rows) {
+      const row = el('div', 'restrow' + (r.ghost ? ' ghost' : ''));
+      row.append(el('span', 'num t', fmtClock(r.at)));
+      const dot = el('span', 'dot');
+      if (r.color) dot.style.background = r.color; else dot.style.border = '1px dashed #3a4150';
+      row.append(dot, el('span', 'n', r.name), el('span', 'num d', fmtDur(r.dur)));
+      list.append(row);
+    }
+  }
+
+  // ---------- detail sheet ----------
+  const CATEGORY_LABEL = {
+    sleep:'Sleep', fitness:'Fitness', food:'Food', work:'Work', routine:'Routine',
+    growth:'Growth', family:'Family', buffer:'Buffer', holiday:'Holiday', other:'Other',
+  };
+
+  let sheetOpen = false;
+
+  /** Show the full record for a block, a context band, or a merged ping. */
+  function openSheet(item) {
+    const isPing = item.kind === 'ping';
+    const first = isPing ? item.items[0] : item;
+    const color = item.color || 'var(--dim)';
+
+    $('sheet').style.setProperty('--c', color);
+    $('sheetKind').textContent = (CATEGORY_LABEL[item.category] || 'Event')
+      + (item.kind === 'context' ? ' · context' : isPing ? ' · ping' : '');
+
+    $('sheetTitle').textContent = isPing ? item.items.map((i) => i.title).join('  ·  ') : item.title;
+
+    const meta = [];
+    if (isPing) {
+      meta.push(fmtClock(item.startMin));
+      meta.push([...new Set(item.items.map((i) => i.calendar))].join(' · '));
+    } else {
+      meta.push(fmtRange(item.startMin, item.endMin));
+      meta.push(fmtDur(item.endMin - item.startMin));
+      meta.push(item.calendar);
+      if (item.clippedStart) meta.push('starts the day before');
+      if (item.clippedEnd) meta.push('runs past midnight');
+    }
+    $('sheetMeta').textContent = meta.filter(Boolean).join('  ·  ');
+
+    const insideEl = $('sheetInside');
+    if (!isPing && item.insideTitle) {
+      insideEl.textContent = `inside ${item.insideTitle}`;
+      insideEl.hidden = false;
+    } else { insideEl.hidden = true; }
+
+    const desc = isPing ? item.items.map((i) => i.description).filter(Boolean).join('\n\n') : item.description;
+    const body = $('sheetBody');
+    if (desc) {
+      body.replaceChildren(...linkify(desc));
+      body.hidden = false; $('sheetNoDesc').hidden = true;
+    } else {
+      body.hidden = true; $('sheetNoDesc').hidden = false;
+    }
+
+    const link = first && first.htmlLink;
+    $('sheetOpen').href = link || '#';
+    $('sheetOpen').hidden = !link;
+
+    $('backdrop').hidden = false;
+    $('sheet').hidden = false;
+    sheetOpen = true;
+    $('sheetClose').focus();
+  }
+
+  function closeSheet() {
+    $('backdrop').hidden = true;
+    $('sheet').hidden = true;
+    sheetOpen = false;
+  }
+
+  /**
+   * Descriptions are plain text by the time they reach here (the Worker strips the
+   * markup), but they are full of Notion links — turn bare URLs into real anchors
+   * with createElement, never innerHTML.
+   */
+  function linkify(text) {
+    const out = [];
+    const re = /https?:\/\/[^\s<>"']+/g;
+    let last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) out.push(document.createTextNode(text.slice(last, m.index)));
+      const a = document.createElement('a');
+      a.href = m[0]; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = m[0].length > 46 ? m[0].slice(0, 44) + '…' : m[0];
+      out.push(a);
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) out.push(document.createTextNode(text.slice(last)));
+    return out;
+  }
+
+  $('backdrop').addEventListener('click', closeSheet);
+  $('sheetClose').addEventListener('click', closeSheet);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sheetOpen) closeSheet(); });
+
+  function scrollToNow() {
+    const sc = $('scroller');
+    if (!sc) return;
+    const target = Math.max(0, px(isToday() ? nowMinutes(state.tz) - SCROLL_LEAD_MIN : firstEventMin() - 30));
+    sc.scrollTop = target;
+    // The phone layout has no inner scroll column — the page itself scrolls, so
+    // scrollTop above is a no-op and the board opened at midnight every time.
+    if (sc.scrollTop < 1 && sc.scrollHeight <= sc.clientHeight + 1) {
+      const top = sc.getBoundingClientRect().top + window.scrollY + target;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+    }
+  }
+  function firstEventMin() {
+    const d = state.data; if (!d) return 6 * 60;
+    const all = [...d.blocks, ...d.contexts].map((e) => e.startMin);
+    return all.length ? Math.min(...all) : 6 * 60;
+  }
+
+  // ---------- clock tick (no network) ----------
+  function tick() {
+    if (!state.data || !isToday()) return;
+    const nl = $('nowline');
+    if (nl) nl.style.top = `${px(nowMinutes(state.tz))}px`;
+    renderNow();
+  }
+
+  // ---------- auth ----------
+  function showLogin() { $('login').hidden = false; $('app').hidden = true; }
+  function showApp() { $('login').hidden = true; $('app').hidden = false; }
+
+  $('loginform').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('loginerr').textContent = '';
+    const res = await fetch('/auth/login', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ password: $('pw').value }),
+    });
+    if (!res.ok) { $('loginerr').textContent = 'Wrong password'; return; }
+    $('pw').value = '';
+    showApp();
+    load(state.date || todayInTz(state.tz));
+  });
+
+  // ---------- controls ----------
+  const goTo = (date, fresh) => { state.scrolled = false; state.month = date.slice(0, 7); load(date, fresh); };
+  $('prev').addEventListener('click', () => goTo(shiftDate(state.date, -1)));
+  $('next').addEventListener('click', () => goTo(shiftDate(state.date, 1)));
+  $('today').addEventListener('click', () => goTo(todayInTz(state.tz), true));
+  $('mprev').addEventListener('click', () => shiftMonth(-1));
+  $('mnext').addEventListener('click', () => shiftMonth(1));
+
+  // Google Calendar's own day-view keys, minus the ones that would need a week view.
+  document.addEventListener('keydown', (e) => {
+    if (sheetOpen || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (/^(INPUT|TEXTAREA)$/.test(document.activeElement ? document.activeElement.tagName : '')) return;
+    if (e.key === 'ArrowLeft' || e.key === 'k' || e.key === 'p') goTo(shiftDate(state.date, -1));
+    else if (e.key === 'ArrowRight' || e.key === 'j' || e.key === 'n') goTo(shiftDate(state.date, 1));
+    else if (e.key === 't') goTo(todayInTz(state.tz), true);
+  });
+  $('refresh').addEventListener('click', () => load(state.date, true));
+
+  // The mobile "reload": coming back to the tab. No polling — see README.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.data) load(state.date, true);
+  });
+
+  window.addEventListener('resize', () => { if (state.data) renderTrack(state.data); });
+
+  setInterval(tick, CLOCK_TICK_MS);
+
+  // ---------- boot ----------
+  (async () => {
+    const res = await fetch('/api/me', { credentials: 'same-origin' });
+    const json = await res.json().catch(() => ({ authenticated: false }));
+    if (!json.authenticated) { showLogin(); return; }
+    showApp();
+    await load(todayInTz(state.tz));
+  })();
+})();
+</script>
+</body>
+</html>
