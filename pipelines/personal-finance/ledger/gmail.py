@@ -90,6 +90,20 @@ def fetch(inbox, log=print):
                     (folder / (mid + ".pdf")).write_bytes(base64.urlsafe_b64decode(a["data"]))
                     new += 1
                     break
+    # Rapido receipts, emailed when the owner requests them in the app.
+    folder = inbox / "rapido"
+    folder.mkdir(parents=True, exist_ok=True)
+    for mid in _ids(svc, "from:partner@rapido.bike has:attachment"):
+        if any(folder.glob(mid + "_*")):
+            continue
+        msg = svc.users().messages().get(userId="me", id=mid).execute()
+        for p in _walk(msg["payload"]):
+            if p.get("filename", "").lower().endswith(".pdf"):
+                a = svc.users().messages().attachments().get(
+                    userId="me", messageId=mid, id=p["body"]["attachmentId"]).execute()
+                (folder / ("%s_%s" % (mid, p["filename"].replace("/", "_")))).write_bytes(base64.urlsafe_b64decode(a["data"]))
+                new += 1
+
     folder = inbox / "alerts"
     folder.mkdir(parents=True, exist_ok=True)
     for src, q in ALERTS.items():

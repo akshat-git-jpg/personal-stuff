@@ -20,13 +20,14 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from . import alerts as alerts_mod
-from . import cards, savings
+from . import cards, evidence, savings
 from .pdfs import ParseError, read_text
 
 HERE = Path(__file__).resolve().parent
 SOURCES = {"sbi": "SBI savings", "sbic": "SBI Card", "neu": "Tata Neu Infinity",
            "icici": "Amazon Pay ICICI"}
 CARD_NAMES = {"sbic": "SBI Card", "neu": "Tata Neu", "icici": "ICICI"}
+COMMUTE = {"cab", "auto", "metro", "bike taxi"}
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
@@ -300,6 +301,18 @@ def build(data, config, today=None, log=print):
             row["tags"] = row["tags"] + ["refund"]
             row["desc"] = "Refund: " + (row["desc"] or row["payee"])
 
+    # Google Pay times, then Rapido rides (see evidence.py)
+    events = evidence.gpay_events(data)
+    evidence.attach_times(rows, events)
+    rides = evidence.rapido_rides(data, config.get("places", []))
+    matched = evidence.match_rides(rows, rides)
+    log("evidence: %d Google Pay payments, %d Rapido rides, %d rides matched" % (len(events), len(rides), matched))
+
+    # Daily rides share a "commute" group; trips stay "travel".
+    for row in rows:
+        if any(t in COMMUTE for t in row["tags"]) and "commute" not in row["tags"]:
+            row["tags"] = row["tags"] + ["commute"]
+
     # Card bills: match each statement to the SBI payment that settled it
     bills = [r for r in rows if r["source"] == "sbi" and r["kind"] == "bill"]
     used = set()
@@ -345,7 +358,12 @@ def build(data, config, today=None, log=print):
                            "" if gap < 1 else "; the %s gap is a CRED discount" % rupees(gap)))
             s["paid"] = {"date": hit["date"], "amount": -hit["amount"], "note": "Paid in full", "row": hit["id"]}
     for b in bills:
-        if b["id"] not in used:
+        if b["id"] in used:
+            continue
+        if re.search(r"SBI ?CARDS?", b["text"], re.I):
+            b.update(status="proven", desc="SBI Card bill",
+                     why="Paid straight to SBI Card. Its statement is not on file, so the amount is not cross-checked.")
+        else:
             b["status"] = "needs"
             b["why"] = "A CRED payment that matches no card statement total. Which bill was it?"
 
@@ -369,6 +387,7 @@ def build(data, config, today=None, log=print):
         if not r["final"]:
             r["why"] += " From the purchase email; the next statement confirms it."
         r.pop("_hay", None)
+        r.pop("_ts", None)
 
     rows.sort(key=lambda r: (r["date"], r["time"] or ""), reverse=True)
 

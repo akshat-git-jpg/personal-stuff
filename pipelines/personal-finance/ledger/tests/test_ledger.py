@@ -5,7 +5,9 @@
 
 import unittest
 
-from ledger import alerts, build, cards, savings
+import datetime as dt
+
+from ledger import alerts, build, cards, evidence, savings
 from ledger.pdfs import ParseError
 
 SBIC = """for Statement Period: 14 Aug 26 to 13 Sep 26
@@ -144,6 +146,32 @@ class Masking(unittest.TestCase):
         ledger = {"rows": [{"id": "sbi-9876543210ab", "payee_key": "9876543210", "text": "ok"}],
                   "statements": [], "sources": []}
         build.assert_clean(ledger)
+
+
+class Rides(unittest.TestCase):
+    def _row(self, rid, date, amount, ts=None):
+        r = {"id": rid, "source": "sbi", "date": date, "amount": amount, "status": "needs", "tags": [], "desc": None}
+        if ts:
+            r["_ts"] = ts
+        return r
+
+    def test_timed_match_needs_fare_and_window(self):
+        ride = {"id": "RD1", "mode": "auto", "price": 70.0, "ts": dt.datetime(2026, 9, 23, 11, 12),
+                "from": "home", "to": "office"}
+        early = self._row("a", "2026-09-23", -70.0, dt.datetime(2026, 9, 23, 10, 0))   # before the ride
+        right = self._row("b", "2026-09-23", -70.0, dt.datetime(2026, 9, 23, 11, 20))
+        wrong_fare = self._row("c", "2026-09-23", -80.0, dt.datetime(2026, 9, 23, 11, 20))
+        self.assertEqual(evidence.match_rides([early, right, wrong_fare], [ride]), 1)
+        self.assertEqual(right["status"], "proven")
+        self.assertIn("home → office", right["tags"])
+        self.assertEqual((early["status"], wrong_fare["status"]), ("needs", "needs"))
+
+    def test_untimed_match_only_when_unique(self):
+        ride = {"id": "RD2", "mode": "auto", "price": 60.0, "ts": dt.datetime(2026, 7, 2, 10, 43),
+                "from": "home", "to": "office"}
+        a, b = self._row("a", "2026-07-02", -60.0), self._row("b", "2026-07-02", -60.0)
+        self.assertEqual(evidence.match_rides([a, b], [ride]), 0)
+        self.assertEqual(evidence.match_rides([a], [ride]), 1)
 
 
 if __name__ == "__main__":

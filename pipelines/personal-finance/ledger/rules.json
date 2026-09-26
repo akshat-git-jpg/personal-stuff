@@ -16,6 +16,7 @@
     {"match": ["8937852298"], "tags": ["education"], "desc": "Education fees", "by": "owner", "source": ["sbi"]},
     {"match": ["/Ashabul /"], "tags": ["cook"], "desc": "Cook", "by": "owner", "source": ["sbi"]},
     {"match": ["cred.club@", "credccbp.a"], "tags": ["card bill"], "desc": "Card bill via CRED", "kind": "bill", "by": "merchant", "source": ["sbi"]},
+    {"match": ["UPI to SBI card", "/SBI card/", "/SBI CARDS/"], "tags": ["card bill"], "desc": "SBI Card bill", "kind": "bill", "by": "merchant", "source": ["sbi"]},
     {"match": ["cred.walle"], "tags": ["wallet"], "desc": "CRED wallet top-up", "by": "merchant", "source": ["sbi"]},
 
     {"match": ["instamart"], "tags": ["grocery"], "desc": "Swiggy Instamart", "by": "merchant"},
@@ -53,6 +54,13 @@
     {"match": ["fal features", "falfeatures"], "tags": ["subscription"], "desc": "fal.ai", "by": "merchant"},
     {"match": ["buildloop", "loopstudio"], "tags": ["subscription"], "desc": "Loop Studio", "by": "merchant"},
     {"match": ["amazon india cybs si"], "tags": ["subscription"], "desc": "Amazon autopay", "by": "merchant"},
+
+    {"match": ["rebel ma", "rebelfoods", "faasos", "behrouz"], "tags": ["food"], "desc": "Rebel Foods", "by": "merchant"},
+    {"match": ["dineout"], "tags": ["food"], "desc": "Dineout", "by": "merchant"},
+    {"match": ["airbnb"], "tags": ["travel"], "desc": "Airbnb", "by": "merchant"},
+    {"match": ["urbancla", "urban company"], "tags": ["home services"], "desc": "Urban Company", "by": "merchant"},
+    {"match": ["bigtree", "bookmyshow"], "tags": ["entertainment"], "desc": "BookMyShow", "by": "merchant"},
+    {"match": ["lenskart"], "tags": ["shopping"], "desc": "Lenskart", "by": "merchant"},
 
     {"match": ["upwork"], "tags": ["work tools"], "desc": "Upwork", "by": "merchant"},
 
