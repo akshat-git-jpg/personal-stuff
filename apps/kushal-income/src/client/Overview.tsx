@@ -111,9 +111,10 @@ export function Overview({ data }: { data: Ledger }) {
       <section className="panel">
         <div className="head"><h2>Spend by day</h2><span className="muted">Card bills left out</span></div>
         <div className="days">
-          {days.map((d) => (
+          {days.map((d, i) => (
             <div key={d.day} className="day" title={`${dayLabel(d.day)}: ${rs(d.v)}`}>
-              <i style={{ height: `${Math.max(d.v ? 3 : 0, Math.sqrt(d.v / dmax) * 150)}px` }} className={d.v > dmax * 0.4 ? "big" : ""} />
+              {d.v > dmax * 0.4 && <span className={`daylbl ${i < 3 ? "l" : i > days.length - 4 ? "r" : ""}`}>{d.v >= 1000 ? `₹${Math.round(d.v / 1000)}k` : rs(d.v)}</span>}
+              <i style={{ height: `${Math.max(d.v ? 3 : 0, Math.sqrt(d.v / dmax) * 130)}px` }} />
             </div>
           ))}
         </div>
@@ -143,6 +144,7 @@ export function Overview({ data }: { data: Ledger }) {
               <div className="grow">
                 <div className="strong">{s.name}</div>
                 <div className="muted small">{s.detail}</div>
+                {s.note && <div className="muted small">{s.note}</div>}
                 {s.errors.length > 0 && <div className="warn small">{s.errors.length} file(s) could not be read: {s.errors[0]}</div>}
               </div>
               {s.pending > 0 && <span className="pill gold">{s.pending} newer, not final</span>}

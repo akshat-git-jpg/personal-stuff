@@ -124,6 +124,10 @@ def apply_rule(row, rule, hit):
             row["desc"], hit, ", ".join(rule["tags"]))
 
 
+def _month_span(a, b):
+    return (int(b[:4]) - int(a[:4])) * 12 + int(b[5:7]) - int(a[5:7]) + 1
+
+
 # ---------------------------------------------------------------- loading
 
 def load_savings(data, password, errors):
@@ -557,8 +561,16 @@ def build(data, config, today=None, log=print):
             if last and last[-1]["paid"]:
                 detail += " Bill paid."
             pending = sum(1 for r in rows if r["source"] == src and not r["final"])
+        note = ""
+        if src == "sbi":
+            # A locked copy is harmless when the rows we do have leave no month out.
+            months = sorted({r["date"][:7] for r in rows if r["source"] == "sbi"})
+            locked = [e for e in errs if "no saved password" in e["error"]]
+            if locked and months and len(months) == _month_span(months[0], months[-1]):
+                errs = [e for e in errs if e not in locked]
+                note = "%d older email copies are locked with an old password. Nothing is missing." % len(locked)
         src_status.append({"source": src, "name": name, "ok": bool(sbi_newest if src == "sbi" else stmts) and not errs,
-                           "detail": detail, "pending": pending,
+                           "detail": detail, "pending": pending, "note": note,
                            "errors": ["%s: %s" % (e["file"][:12], e["error"]) for e in errs]})
 
     ledger = {"generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),

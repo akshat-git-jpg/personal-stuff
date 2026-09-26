@@ -127,9 +127,10 @@ a{color:var(--c1)}
 .dot.done{background:var(--ok)} .dot.due{border-color:var(--gold)}
 .when{font-size:12px;width:90px;text-align:right;color:var(--ink-3)} .when.due{color:var(--gold)}
 .days{display:flex;align-items:flex-end;gap:4px;height:160px;border-bottom:1px solid var(--line)}
-.day{flex:1;display:flex;align-items:flex-end;height:160px}
+.day{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:160px}
+.daylbl{font:500 11px "IBM Plex Mono",monospace;color:var(--ink-2);white-space:nowrap}
+.daylbl.l{align-self:flex-start}.daylbl.r{align-self:flex-end}
 .day i{display:block;width:100%;border-radius:3px 3px 0 0;background:var(--out)}
-.day i.big{background:var(--ink)}
 .axis{display:flex;justify-content:space-between;font:11px "IBM Plex Mono",monospace;color:var(--ink-3);margin-top:6px}
 .srcbar{display:flex;height:16px;border-radius:99px;overflow:hidden;margin-bottom:14px;background:var(--card-2)}
 .srclist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 20px;font-size:14px}
