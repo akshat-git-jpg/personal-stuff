@@ -122,6 +122,7 @@ def attach_times(rows, events):
             e["kind"], " to " + e["to"] if e["to"] else "", e["ts"].strftime("%-d %b %H:%M")))
         r["_ts"] = e["ts"]
         r["_gkind"] = e["kind"]
+        r["_gpay_to"] = e["to"]
 
 
 def match_rides(rows, rides):
