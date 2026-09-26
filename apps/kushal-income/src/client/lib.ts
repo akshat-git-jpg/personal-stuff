@@ -13,7 +13,7 @@ export const SOURCES: Record<Source, { label: string; short: string; color: stri
 /** Offered first when tagging. Any other word can be typed. */
 export const TAG_CHOICES = [
   "food", "grocery", "taxi", "metro", "travel", "shopping", "subscription", "bills", "rent", "cook",
-  "family", "health", "personal care", "fitness", "fuel", "entertainment", "home services",
+  "family", "health", "personal care", "fitness", "protein", "fuel", "entertainment", "home services",
   "work tools", "education", "loan", "fees", "misc",
 ];
 

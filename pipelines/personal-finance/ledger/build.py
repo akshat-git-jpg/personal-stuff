@@ -93,10 +93,12 @@ def load_rules():
     return json.loads((HERE / "rules.json").read_text())["rules"]
 
 
-def match_rule(rules, source, hay, amount):
+def match_rule(rules, source, hay, amount, date=None):
     h = hay.casefold()
     for r in rules:
         if r.get("source") and source not in r["source"]:
+            continue
+        if date and (date < r.get("from", "0000") or date > r.get("until", "9999")):
             continue
         if "amount" in r and amount is not None and abs(abs(amount) - r["amount"]) > 0.01:
             continue
@@ -199,7 +201,7 @@ def _card_row(src, s, r, occ):
 # Owner decision 2026-09-27: tags are a short list of repeatable categories. Any
 # finer detail (route, vehicle, barber, "no receipt") lives in the description.
 CATEGORIES = ["food", "grocery", "taxi", "metro", "travel", "shopping", "subscription", "bills", "rent",
-              "cook", "family", "health", "personal care", "fitness", "fuel", "entertainment",
+              "cook", "family", "health", "personal care", "fitness", "protein", "fuel", "entertainment",
               "home services", "work tools", "education", "loan", "fees", "misc",
               "salary", "interest", "refund", "card bill", "trip"]
 ALIAS = {"auto": "taxi", "bike taxi": "taxi", "cab": "taxi", "ride": "taxi", "barber": "personal care",
@@ -318,7 +320,7 @@ def build(data, config, today=None, log=print):
     for row in rows:
         if row["status"] != "needs":
             continue
-        rule, hit = match_rule(rules, row["source"], row["_hay"], row["amount"])
+        rule, hit = match_rule(rules, row["source"], row["_hay"], row["amount"], row["date"])
         if rule:
             apply_rule(row, rule, hit)
         if row["kind"] == "refund" and row["status"] == "needs":
