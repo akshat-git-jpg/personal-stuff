@@ -27,6 +27,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
   const [open, setOpen] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [limit, setLimit] = useState(300);
+  const [bulk, setBulk] = useState(false);
 
   const today = todayIso();
   const [lo, hi] = useMemo<[string, string]>(() => {
@@ -145,6 +146,24 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           <div className="kpi-sub">{t.needsN ? `${t.needsN} of these rows are not tagged yet` : "Every row here is tagged"}</div>
         </div>
       </div>
+
+      {(() => {
+        const open = rows.filter((r) => r.status === "needs" && r.kind !== "payment");
+        if (!open.length || open.length > 500) return null;
+        return (
+          <section className="panel bulk">
+            {!bulk ? (
+              <div className="between">
+                <span><b>{open.length}</b> rows here need you ({rs(open.reduce((a, r) => a - (r.amount ?? 0), 0))}). Filter them down, then tag them all at once.</span>
+                <button className="btn-ghost" onClick={() => setBulk(true)}>Tag all {open.length} shown</button>
+              </div>
+            ) : (
+              <TagEditor rowIds={open.map((r) => r.id)} payee="each of these payees" alwaysDefault={false}
+                onSaved={async () => { setBulk(false); await reload(); }} onCancel={() => setBulk(false)} />
+            )}
+          </section>
+        );
+      })()}
 
       <section className="panel table">
         <div className="trow thead">

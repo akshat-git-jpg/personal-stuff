@@ -96,3 +96,8 @@ python3 -m unittest discover -s ledger/tests -t .
 - `data/config.json` also holds the card PDF passwords (`passwords`) and the app's
   `ingest` url and token. Running from a workspace: set `PF_DATA` to the main
   checkout's `data/` and `PP_GOOGLE_SHARED` to its `tooling/mcp/google-shared`.
+- **Rides and payment times** (`ledger/evidence.py`). A Google Pay Takeout unzipped
+  into `data/raw/gpay/` gives each UPI payment its exact time. Rapido receipts
+  (requested in the app, emailed from partner@rapido.bike, fetched on sync) prove a
+  payment was a ride and give its route. Place labels (home, office, gym) are the
+  owner's, in `data/config.json` `places`; unlabelled places show only their area.
