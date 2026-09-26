@@ -201,5 +201,13 @@ class Flipkart(unittest.TestCase):
         self.assertEqual(r["tags"], ["shopping"])
 
 
+class AlertClock(unittest.TestCase):
+    def test_twelve_hour_time_resolved_from_email_time(self):
+        ist = lambda y, mo, d, h, mi: int((dt.datetime(y, mo, d, h, mi) - dt.timedelta(hours=5, minutes=30)).replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
+        self.assertEqual(alerts._clock("2026-09-26", "09:06", ist(2026, 9, 26, 21, 7)), "21:06")
+        self.assertEqual(alerts._clock("2026-06-07", "01:30", ist(2026, 6, 7, 1, 31)), "01:30")
+        self.assertEqual(alerts._clock("2026-06-07", "12:10", ist(2026, 6, 7, 12, 11)), "12:10")
+
+
 if __name__ == "__main__":
     unittest.main()

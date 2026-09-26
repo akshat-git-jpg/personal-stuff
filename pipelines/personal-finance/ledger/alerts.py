@@ -77,6 +77,17 @@ def parse_icici(text):
 PARSERS = {"sbic": parse_sbic, "neu": parse_neu, "icici": parse_icici}
 
 
+def _clock(date, hhmm, sent_ms):
+    """ICICI writes a 12-hour time with no AM/PM: pick the reading closest before the email was sent."""
+    sent = dt.datetime.utcfromtimestamp(sent_ms / 1000) + dt.timedelta(hours=5, minutes=30)
+    h, m = int(hhmm[:2]) % 12, int(hhmm[3:5])
+    day = dt.datetime.fromisoformat(date)
+    opts = [day.replace(hour=h + add, minute=m) for add in (0, 12)]
+    before = [o for o in opts if o <= sent + dt.timedelta(minutes=5)]
+    best = max(before) if before else min(opts, key=lambda o: abs(o - sent))
+    return best.strftime("%H:%M")
+
+
 def rows_from(messages):
     """messages: [{id, source, ts, text}] -> alert rows per source, deduped as the
     module docstring says. Unparseable mails (offers, OTPs) are skipped."""
@@ -86,6 +97,8 @@ def rows_from(messages):
         if r is None:
             continue
         r["msg_id"] = msg["id"]
+        if r["time"] and msg.get("ts"):
+            r["time"] = _clock(r["date"], r["time"], msg["ts"])
         out.setdefault(msg["source"], []).append(r)
     for src, rows in out.items():
         alerts = [r for r in rows if r["flavor"] == "alert"]
