@@ -403,6 +403,12 @@ def build(data, config, today=None, log=print):
             row.update(tags=["misc"], desc="Small payment (temporary misc)", status="confirmed",
                        why="Untagged small payment before %s, marked temporary misc as you asked on 27 Sep." % _nice(MISC_BEFORE))
 
+    # Owner, 27 Sep: every Flipkart payment is grocery by default (mostly Flipkart Minutes).
+    for row in rows:
+        if row["desc"] == "Flipkart order" and row["amount"] is not None and row["amount"] < 0:
+            row.update(tags=["grocery"], desc="Flipkart Minutes", status="confirmed",
+                       why="Your default: Flipkart payments are groceries. Change it if this was a normal Flipkart order.")
+
     tag_trips(rows, config.get("trips", []))
 
     # Owner decision 2026-09-27: what was still unknown on that day, the owner could not place.
