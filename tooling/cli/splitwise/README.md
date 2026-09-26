@@ -1,16 +1,25 @@
 # pp-splitwise
 
-Splitwise from the command line, through Splitwise's official API (v3.0). No browser, no
-dependencies, Node 18+. Built to put flat expenses from the Kushal Money ledger on Splitwise.
+Splitwise from the command line. Built to put flat expenses from the Kushal Money ledger
+on Splitwise.
+
+**Why a browser session, not an API key:** registering an app for an API key now needs
+Splitwise Pro (paid). The Splitwise website itself calls the same `/api/v3.0/` endpoints
+with its login cookie, so the CLI does that: it opens your saved login headless and makes
+each call from inside the page (with the page's CSRF token). Same approach as
+`tooling/cli/flipkart`. Uses Playwright's own Chromium (managed Chrome on a work Mac
+refuses custom profiles).
 
 ## Log in once
 
-1. Open https://secure.splitwise.com/apps and register an app (any name and URL).
-2. Copy the **API key** shown on the app page.
-3. `tooling/cli/splitwise/pp-splitwise login` and paste it.
+```bash
+tooling/cli/splitwise/pp-splitwise login
+```
 
-The key is saved to `~/.pp-splitwise/key` (mode 600) and never committed.
-`SPLITWISE_API_KEY` overrides it.
+A browser window opens on the Splitwise login page. Log in (email and password is safest;
+Google sign-in may refuse this browser). The window closes by itself once you are in.
+The login is kept in `~/.pp-splitwise/chromium` and `~/.pp-splitwise/login.json` (mode 600),
+never committed. If a call says "Not logged in", run `login` again.
 
 ## Commands
 
