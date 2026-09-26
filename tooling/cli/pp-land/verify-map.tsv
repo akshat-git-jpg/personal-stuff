@@ -28,3 +28,4 @@ tooling/cli/pp-heygen-batch/	bash tooling/cli/pp-heygen-batch/test-pp-heygen-bat
 tooling/cli/coffee/	bash tooling/cli/coffee/test-coffee.sh
 tooling/cli/gh-acct/	bash tooling/cli/gh-acct/test-gh-acct.sh
 tooling/cli/flipkart/	cd tooling/cli/flipkart && npm test
+tooling/cli/splitwise/	cd tooling/cli/splitwise && npm test
