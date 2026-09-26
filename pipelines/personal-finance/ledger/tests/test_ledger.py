@@ -164,5 +164,42 @@ class Rides(unittest.TestCase):
         self.assertEqual(evidence.match_rides([a], [ride]), 1)
 
 
+class Flipkart(unittest.TestCase):
+    @staticmethod
+    def row(i, date, amount, text="Flipkart Bangalore IN"):
+        return {"id": i, "date": date, "amount": amount, "desc": "Flipkart Minutes", "_hay": text,
+                "tags": ["grocery"], "status": "confirmed", "details": []}
+
+    @staticmethod
+    def order(oid, time, amount, pay=("Credit Card",), kind="minutes"):
+        return {"id": oid, "time": time, "amount": amount, "kind": kind, "pay": list(pay),
+                "items": [{"title": "Milk", "size": "1 L", "qty": 2, "price": amount, "status": "Delivered",
+                           "pay": [{"mode": "Credit Card", "amount": amount}]}]}
+
+    def test_exact_amount_within_days_gets_items(self):
+        r = self.row("a", "2026-09-27", -348.0)
+        self.assertEqual(evidence.match_flipkart([r], [self.order("OD1", "2026-09-26 21:06", 348)]), 1)
+        self.assertEqual(r["status"], "proven")
+        self.assertTrue(r["desc"].startswith("Flipkart Minutes: Milk"))
+        self.assertIn("2 × Milk (1 L) · ₹348", r["details"])
+
+    def test_wrong_amount_or_too_late_is_left_alone(self):
+        rows = [self.row("a", "2026-09-26", -300.0), self.row("b", "2026-10-05", -348.0)]
+        self.assertEqual(evidence.match_flipkart(rows, [self.order("OD1", "2026-09-26 21:06", 348)]), 0)
+        self.assertEqual(rows[0]["status"], "confirmed")
+
+    def test_wallet_order_takes_the_one_smaller_charge_that_day(self):
+        o = self.order("OD2", "2026-07-01 16:12", 692, pay=("Flipkart Wallet", "Credit Card"))
+        one = [self.row("a", "2026-07-01", -432.0)]
+        self.assertEqual(evidence.match_flipkart(one, [o]), 1)
+        two = [self.row("a", "2026-07-01", -432.0), self.row("b", "2026-07-01", -300.0)]
+        self.assertEqual(evidence.match_flipkart(two, [o]), 0)
+
+    def test_normal_order_is_shopping(self):
+        r = self.row("a", "2026-04-21", -32391.0)
+        evidence.match_flipkart([r], [self.order("OD3", "2026-04-20 10:00", 32391, kind="flipkart")])
+        self.assertEqual(r["tags"], ["shopping"])
+
+
 if __name__ == "__main__":
     unittest.main()

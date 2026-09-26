@@ -111,14 +111,15 @@ python3 -m unittest discover -s ledger/tests -t .
 - **Trips** live in `data/config.json` `trips` (`name`, `from`, `to`, `book_from`).
   Spending in the window gets `trip` plus `<name>-stay/food/bus/auto/metro`; anything
   unknown stays in Needs you, where the app offers those buttons.
+- **Flipkart orders** come from `tooling/cli/flipkart` (`pp-flipkart`), fetched on sync
+  into `data/inbox/flipkart/orders.json`. An order matches a Flipkart payment of the same
+  amount (±₹2) up to a day before or 3 days after it; an order partly paid by Flipkart
+  Wallet takes the one smaller Flipkart charge that day. The row gets the item list, and a
+  non-Minutes order becomes shopping › flipkart. If the login has lapsed, run
+  `tooling/cli/flipkart/pp-flipkart login`.
 
 ## Parked (owner said later)
 
-- **Flipkart order items** (parked 2026-09-27). Flipkart sends no order emails, so item
-  lists exist only in the account. Plan: a `pp-flipkart` CLI that logs in once in real
-  Chrome (Playwright persistent profile at `~/.pp-flipkart/profile`, OTP by the owner),
-  then reads order history read-only. First check that Flipkart Minutes orders appear on
-  flipkart.com/account/orders at all; stop if they are app-only.
 - **Same-day SBI payments.** SBI UPI rows arrive only via statements. Options: YONO email
   statement on demand, or SBI alert emails if they carry UPI debits (not checked yet).
 - **How to trigger a sync** (a command or a button in the app). Sync stays on demand.

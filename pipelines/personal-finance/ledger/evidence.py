@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import datetime as dt
 import html
+import json
 import logging
 import re
 from pathlib import Path
@@ -347,3 +348,74 @@ def match_tips(rows, within_min=10):
                 n += 1
                 break
     return n
+
+
+# ---------------------------------------------------------------- Flipkart orders
+
+FK_DAYS = (-1, 3)   # a card can post the charge a few days after the order
+FK_SLACK = 2.0      # rupees
+
+
+def flipkart_orders(data):
+    """Orders saved by `pp-flipkart orders --out data/inbox/flipkart/orders.json`."""
+    p = data / "inbox" / "flipkart" / "orders.json"
+    if not p.exists():
+        return []
+    return json.loads(p.read_text()).get("orders", [])
+
+
+def _fk_paid(o):
+    """What left a bank or card: the order total minus SuperCoins and Flipkart Wallet."""
+    paid = sum(pm["amount"] or 0 for i in o["items"] for pm in i.get("pay", [])
+               if pm.get("mode") in ("Credit Card", "UPI", "Debit Card", "Net Banking"))
+    return round(paid, 2) or o["amount"]
+
+
+def _fk_short(title):
+    return title if len(title) <= 30 else title[:28].rstrip() + "…"
+
+
+def match_flipkart(rows, orders):
+    """Put each order's items on the payment it made. Returns the number matched."""
+    taken, n = set(), 0
+    # Exact amounts first, so a wallet order cannot take another order's payment.
+    for o in sorted(orders, key=lambda o: (any(p in ("Flipkart Wallet", "SuperCoins") for p in o["pay"]), o["time"])):
+        if o["amount"] is None:
+            continue
+        day = dt.date.fromisoformat(o["time"][:10])
+        want = {o["amount"], _fk_paid(o)}
+        cands = [r for r in rows if r["id"] not in taken and r["amount"] is not None and r["amount"] < 0
+                 and "flipkart" in ((r["desc"] or "") + " " + r.get("_hay", "")).lower()
+                 and any(abs(-r["amount"] - w) <= FK_SLACK for w in want)
+                 and FK_DAYS[0] <= (dt.date.fromisoformat(r["date"]) - day).days <= FK_DAYS[1]]
+        if not cands and any(p in ("Flipkart Wallet", "SuperCoins") for p in o["pay"]):
+            # Wallet money is not split per item, so the card part is unknown: take the one smaller charge that day.
+            cands = [r for r in rows if r["id"] not in taken and r["amount"] is not None
+                     and 0.3 * o["amount"] <= -r["amount"] < o["amount"]
+                     and "flipkart" in ((r["desc"] or "") + " " + r.get("_hay", "")).lower()
+                     and 0 <= (dt.date.fromisoformat(r["date"]) - day).days <= 1]
+            if len(cands) != 1:
+                continue
+        if not cands:
+            continue
+        row = min(cands, key=lambda r: (abs((dt.date.fromisoformat(r["date"]) - day).days),
+                                        min(abs(-r["amount"] - w) for w in want)))
+        taken.add(row["id"])
+        live = [i for i in o["items"] if i.get("status") != "Cancelled"] or o["items"]
+        names = ", ".join(_fk_short(i["title"]) for i in live[:3]) + (" +%d more" % (len(live) - 3) if len(live) > 3 else "")
+        minutes = o["kind"] == "minutes"
+        row.update(tags=["grocery"] if minutes else ["shopping"],
+                   desc=("Flipkart Minutes: " if minutes else "Flipkart: ") + names, status="proven",
+                   why="Flipkart order %s on %s for ₹%.0f matches this payment." % (o["id"], _fk_day(o["time"]), o["amount"]))
+        row.setdefault("details", []).extend(
+            ["Flipkart order %s, %s, paid by %s" % (o["id"], _fk_day(o["time"]), " + ".join(o["pay"]) or "?")]
+            + ["%d × %s%s · ₹%.0f%s" % (i["qty"], i["title"], " (%s)" % i["size"] if i.get("size") else "", i["price"] or 0,
+                                       "" if i.get("status") in ("Delivered", "", None) else " · " + i["status"])
+               for i in o["items"]])
+        n += 1
+    return n
+
+
+def _fk_day(t):
+    d = dt.datetime.strptime(t, "%Y-%m-%d %H:%M")
+    return d.strftime("%-d %b %Y %H:%M")
