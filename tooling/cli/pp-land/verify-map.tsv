@@ -27,3 +27,4 @@ apps/yt-script-desk/	cd apps/yt-script-desk && PATH="/opt/homebrew/opt/node@22/b
 tooling/cli/pp-heygen-batch/	bash tooling/cli/pp-heygen-batch/test-pp-heygen-batch.sh
 tooling/cli/coffee/	bash tooling/cli/coffee/test-coffee.sh
 tooling/cli/gh-acct/	bash tooling/cli/gh-acct/test-gh-acct.sh
+tooling/cli/flipkart/	cd tooling/cli/flipkart && npm test

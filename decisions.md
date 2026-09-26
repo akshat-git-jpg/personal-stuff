@@ -1449,3 +1449,7 @@ The owner narrowed the rules above. Tags are a short list of repeatable categori
 ## 2026-09-27 — Kushal Money: one main tag plus one sub-tag
 
 Replaces the flat category list above. Every row is `[main]` or `[main, sub]`: 19 mains (`MAINS` in `ledger/build.py` and `src/client/lib.ts`), sub-tags derived from the description (`SUBS`), e.g. commute › taxi, trip › varkala-bus, subscription › claude sub, home › rent, work › upwork. The Transactions filter shows mains, and a selected main reveals its sub-tags. Owner tags saved in the old free form are mapped on the client (`mainSub`).
+
+## 2026-09-27 — Flipkart order items come from a logged-in browser session
+
+Flipkart sends no order emails and has no public API, so `tooling/cli/flipkart` (`pp-flipkart`) reads the owner's own "My Orders" JSON through a saved login in Playwright's Chromium (managed work Chrome refuses custom profiles). Read-only; owner approved the approach and the risk that a site change breaks it. The ledger sync fetches new orders and matches each to its payment, so Flipkart rows carry item lists and a non-Minutes order is shopping, not grocery.

@@ -412,6 +412,8 @@ def build(data, config, today=None, log=print):
         if row["desc"] == "Flipkart order" and row["amount"] is not None and row["amount"] < 0:
             row.update(tags=["grocery"], desc="Flipkart Minutes", status="confirmed",
                        why="Your default: Flipkart payments are groceries. Change it if this was a normal Flipkart order.")
+    fk = evidence.flipkart_orders(data)
+    log("evidence: %d Flipkart orders, %d matched to payments" % (len(fk), evidence.match_flipkart(rows, fk)))
 
     tag_trips(rows, config.get("trips", []))
 

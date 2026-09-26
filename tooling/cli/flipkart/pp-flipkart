@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# pp-flipkart: installs its one dependency on first run, then runs the CLI.
+set -euo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ ! -d "$DIR/node_modules/playwright-core" ]]; then
+  (cd "$DIR" && npm install --silent --no-audit --no-fund --registry https://registry.npmjs.org/ >&2)
+fi
+exec node "$DIR/pp-flipkart.mjs" "$@"
