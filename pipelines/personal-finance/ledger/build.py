@@ -244,7 +244,7 @@ MAIN_OF = {
     "bike taxi": ("commute", "taxi"), "ride": ("commute", "taxi"), "metro": ("commute", "metro"),
     "rent": ("home", "rent"), "cook": ("home", "cook"), "home services": ("home", None),
     "loan": ("bank", "loan"), "card bill": ("bank", "card bill"), "fees": ("bank", "fees"),
-    "salary": ("income", "salary"), "interest": ("income", "interest"), "refund": ("income", "refund"),
+    "salary": ("income", "salary"), "interest": ("bank", "interest"), "refund": ("income", "refund"),
     "protein": ("fitness", "protein"), "fitness": ("fitness", "gym"), "work tools": ("work", None),
     "personal care": ("personal care", None), "wallet": ("bank", "wallet"), "fuel": ("travel", "fuel"),
 }
