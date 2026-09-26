@@ -4,10 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "sync": "node scripts/sync-summary.mjs",
-    "dev": ". ../../scripts/node22-path.sh && npm run sync && vite",
+    "dev": ". ../../scripts/node22-path.sh && vite",
     "dev:api": ". ../../scripts/node22-path.sh && wrangler dev --port ${API_PORT:-8787}",
-    "build": ". ../../scripts/node22-path.sh && npm run sync && tsc -b && vite build",
+    "build": ". ../../scripts/node22-path.sh && tsc -b && vite build",
     "typecheck": ". ../../scripts/node22-path.sh && tsc -b",
     "lint": "eslint .",
     "shoot": "node scripts/shoot.mjs",

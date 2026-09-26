@@ -1,8 +1,8 @@
-// Client-side API wrappers + the shape of the statement snapshot.
+// Client-side API wrappers + the shape of the ledger the Worker serves.
 //
-// Mirrors what pipelines/personal-finance/emit.py writes. The figures are a
-// snapshot from the last time a statement was ingested, never live — the UI must
-// always say when, because a stale zero and a real zero look identical.
+// Mirrors pipelines/personal-finance/ledger/build.py plus the owner's edits the
+// Worker merges in. The data is only as fresh as the last sync, so the UI always
+// says when that was.
 
 export class UnauthorizedError extends Error {
   constructor() {
@@ -11,44 +11,84 @@ export class UnauthorizedError extends Error {
   }
 }
 
-/** What a category does with money. Drives nothing but wording. */
-export type Kind = "income" | "expense" | "unnamed";
+export type Source = "sbi" | "sbic" | "neu" | "icici";
+export type Status = "proven" | "confirmed" | "needs";
+/** spend + refund + in count; bill (SBI -> card) and payment (card side) never do. */
+export type Kind = "spend" | "in" | "refund" | "bill" | "payment";
 
-export interface CategoryInfo {
-  label: string;
+export interface Row {
+  id: string;
+  source: Source;
+  date: string;
+  time: string | null;
+  /** Negative = money out. Null when only a foreign amount is known yet. */
+  amount: number | null;
+  fx: string | null;
   kind: Kind;
-  count: number;
+  /** False = from a purchase email; the next statement confirms it. */
+  final: boolean;
+  text: string;
+  payee: string;
+  payee_key: string;
+  tags: string[];
+  desc: string | null;
+  status: Status;
+  why: string;
+  stmt: string | null;
+  maybe_dup?: boolean;
 }
 
-export interface MonthMoney {
-  /** Everything that came in: salary, interest, and any unruled credit. */
-  in: number;
-  /** Closing balance after the last transaction of the month. */
-  balance: number;
-  /** Spend per category key. Absent keys mean nothing was spent, not zero-ish. */
-  categories: Record<string, number>;
-  /**
-   * Who the unnamed money went to, biggest first, with a trailing "+N more".
-   * This is the list the owner works down to shrink `unnamed` toward zero.
-   */
-  unnamed_payees: [string, number][];
+export interface Check { ok: boolean; wait?: boolean; text: string; sub: string }
+
+export interface Statement {
+  id: string;
+  source: Exclude<Source, "sbi">;
+  period_from: string;
+  period_to: string;
+  stmt_date: string;
+  due_date: string;
+  prev: number;
+  purchases: number;
+  fees: number;
+  payments: number;
+  due: number;
+  paid: { date: string | null; amount: number; note: string; row?: string } | null;
+  rows: number;
+  checks: Check[];
 }
 
-export interface MoneyResponse {
-  /** ISO timestamp of the last ingest, or null if nothing has been ingested. */
+export interface SourceStatus {
+  source: Source;
+  name: string;
+  ok: boolean;
+  detail: string;
+  pending: number;
+  errors: string[];
+}
+
+export interface Ledger {
   generated_at: string | null;
-  account: string | null;
-  period: { from: string | null; to: string | null };
-  months: Record<string, MonthMoney>;
-  categories: Record<string, CategoryInfo>;
-  totals: { in: number; out: number; net: number; balance: number };
+  rows: Row[];
+  statements: Statement[];
+  sources: SourceStatus[];
 }
 
-export async function fetchMoney(): Promise<MoneyResponse> {
-  const res = await fetch("/api/money", { credentials: "same-origin" });
+export async function fetchLedger(): Promise<Ledger> {
+  const res = await fetch("/api/ledger", { credentials: "same-origin" });
   if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error(`Failed to load (${res.status})`);
-  return (await res.json()) as MoneyResponse;
+  return (await res.json()) as Ledger;
+}
+
+export async function tagRows(rowIds: string[], tags: string[], desc: string | null, always: boolean): Promise<void> {
+  const res = await fetch("/api/tag", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ row_ids: rowIds, tags, desc, always }),
+    credentials: "same-origin",
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `Save failed (${res.status})`);
 }
 
 export async function login(password: string): Promise<void> {

@@ -1,0 +1,85 @@
+{
+  "_comment": [
+    "Tag rules for the ledger. First match wins, so order is precedence.",
+    "`match` is a case-insensitive substring of the bank's own text for the row.",
+    "`by: merchant` = the shop's name proves it (status Proven).",
+    "`by: owner` = a rule the owner approved (status Confirmed by you).",
+    "Never add a rule you cannot prove. An unmatched row goes to Needs you.",
+    "Rules the owner makes in the app live in the app's database, not here."
+  ],
+  "rules": [
+    {"match": ["ZLURI TE", "ZLURI TECHNOLOGIES"], "tags": ["salary"], "desc": "Salary", "kind": "in", "by": "owner", "source": ["sbi"]},
+    {"match": ["INTEREST CREDIT"], "tags": ["interest"], "desc": "Bank interest", "kind": "in", "by": "merchant", "source": ["sbi"]},
+    {"match": ["seemabakli", "shreemaya1", "khushibakl"], "tags": ["family"], "desc": "Money to family", "by": "owner", "source": ["sbi"]},
+    {"match": ["/SATYAM /"], "tags": ["rent"], "desc": "Rent", "by": "owner", "source": ["sbi"]},
+    {"match": ["DIRECT DR   0038323373500", "0038323373500"], "tags": ["loan"], "desc": "Education loan EMI", "by": "owner", "source": ["sbi"]},
+    {"match": ["8937852298"], "tags": ["education"], "desc": "Education fees", "by": "owner", "source": ["sbi"]},
+    {"match": ["/Ashabul /"], "tags": ["cook"], "desc": "Cook", "by": "owner", "source": ["sbi"]},
+    {"match": ["cred.club@", "credccbp.a"], "tags": ["card bill"], "desc": "Card bill via CRED", "kind": "bill", "by": "merchant", "source": ["sbi"]},
+    {"match": ["cred.walle"], "tags": ["wallet"], "desc": "CRED wallet top-up", "by": "merchant", "source": ["sbi"]},
+
+    {"match": ["instamart"], "tags": ["grocery"], "desc": "Swiggy Instamart", "by": "merchant"},
+    {"match": ["swiggy"], "tags": ["food"], "desc": "Swiggy", "by": "merchant"},
+    {"match": ["zomato"], "tags": ["food"], "desc": "Zomato", "by": "merchant"},
+    {"match": ["eatclub"], "tags": ["food"], "desc": "EatClub", "by": "merchant"},
+    {"match": ["eatsure"], "tags": ["food"], "desc": "EatSure", "by": "merchant"},
+    {"match": ["dominos"], "tags": ["food"], "desc": "Domino's", "by": "merchant"},
+    {"match": ["kfc"], "tags": ["food"], "desc": "KFC", "by": "merchant"},
+
+    {"match": ["zepto"], "tags": ["grocery"], "desc": "Zepto", "by": "merchant"},
+    {"match": ["blinkit"], "tags": ["grocery"], "desc": "Blinkit", "by": "merchant"},
+    {"match": ["bigbasket"], "tags": ["grocery"], "desc": "BigBasket", "by": "merchant"},
+    {"match": ["flipkart minutes"], "tags": ["grocery"], "desc": "Flipkart Minutes", "by": "merchant"},
+    {"match": ["amazon pay in grocery"], "tags": ["grocery"], "desc": "Amazon Fresh", "by": "merchant"},
+
+    {"match": ["uber"], "tags": ["cab"], "desc": "Uber", "by": "merchant"},
+    {"match": ["olacabs"], "tags": ["cab"], "desc": "Ola", "by": "merchant"},
+    {"match": ["rapido"], "tags": ["cab"], "desc": "Rapido", "by": "merchant"},
+    {"match": ["bmrc", "bangalorem", "englishbmr"], "tags": ["metro"], "desc": "Namma Metro", "by": "merchant"},
+
+    {"match": ["redbus"], "tags": ["travel"], "desc": "Redbus", "by": "merchant"},
+    {"match": ["irctc"], "tags": ["travel"], "desc": "IRCTC", "by": "merchant"},
+    {"match": ["makemytrip"], "tags": ["travel"], "desc": "MakeMyTrip", "by": "merchant"},
+    {"match": ["ibibo"], "tags": ["travel"], "desc": "Goibibo", "by": "merchant"},
+    {"match": ["indigo"], "tags": ["travel"], "desc": "IndiGo", "by": "merchant"},
+
+    {"match": ["netflix"], "tags": ["subscription"], "desc": "Netflix", "by": "merchant"},
+    {"match": ["youtube"], "tags": ["subscription"], "desc": "YouTube Premium", "by": "merchant"},
+    {"match": ["spotify"], "tags": ["subscription"], "desc": "Spotify", "by": "merchant"},
+    {"match": ["openai", "chatgpt"], "tags": ["subscription"], "desc": "ChatGPT", "by": "merchant"},
+    {"match": ["anthropic"], "tags": ["subscription"], "desc": "Claude", "by": "merchant"},
+    {"match": ["heygen"], "tags": ["subscription"], "desc": "HeyGen", "by": "merchant"},
+    {"match": ["hostinger"], "tags": ["subscription"], "desc": "Hostinger", "by": "merchant"},
+    {"match": ["fal features", "falfeatures"], "tags": ["subscription"], "desc": "fal.ai", "by": "merchant"},
+    {"match": ["buildloop", "loopstudio"], "tags": ["subscription"], "desc": "Loop Studio", "by": "merchant"},
+    {"match": ["amazon india cybs si"], "tags": ["subscription"], "desc": "Amazon autopay", "by": "merchant"},
+
+    {"match": ["upwork"], "tags": ["work tools"], "desc": "Upwork", "by": "merchant"},
+
+    {"match": ["pharmeasy"], "tags": ["health"], "desc": "PharmEasy", "by": "merchant"},
+    {"match": ["apollo"], "tags": ["health"], "desc": "Apollo", "by": "merchant"},
+    {"match": ["1mg"], "tags": ["health"], "desc": "Tata 1mg", "by": "merchant"},
+    {"match": ["aster d", "asterdigit"], "tags": ["health"], "desc": "Aster", "by": "merchant"},
+    {"match": ["clinic", "hospital"], "tags": ["health"], "desc": null, "by": "merchant"},
+
+    {"match": ["wtflex"], "tags": ["fitness"], "desc": "WTF gym", "by": "merchant"},
+
+    {"match": ["vodafone"], "tags": ["bills"], "desc": "Vi recharge", "by": "merchant"},
+    {"match": ["airtel"], "tags": ["bills"], "desc": "Airtel", "by": "merchant"},
+    {"match": ["/JIO/", "jio."], "tags": ["bills"], "desc": "Jio", "by": "merchant"},
+    {"match": ["bescom"], "tags": ["bills"], "desc": "BESCOM electricity", "by": "merchant"},
+    {"match": ["actcorp"], "tags": ["bills"], "desc": "ACT internet", "by": "merchant"},
+
+    {"match": ["fuels", "petrol"], "tags": ["fuel"], "desc": "Fuel", "by": "merchant"},
+
+    {"match": ["westside"], "tags": ["shopping"], "desc": "Westside", "by": "merchant"},
+    {"match": ["decathlon"], "tags": ["shopping"], "desc": "Decathlon", "by": "merchant"},
+    {"match": ["myntra"], "tags": ["shopping"], "desc": "Myntra", "by": "merchant"},
+    {"match": ["ajio"], "tags": ["shopping"], "desc": "AJIO", "by": "merchant"},
+    {"match": ["nykaa"], "tags": ["shopping"], "desc": "Nykaa", "by": "merchant"},
+    {"match": ["styledotty"], "tags": ["shopping"], "desc": "StyleDotty", "by": "merchant"},
+    {"match": ["indiejewel"], "tags": ["shopping"], "desc": "IndieJewel", "by": "merchant"},
+    {"match": ["amazon"], "tags": ["shopping"], "desc": "Amazon order", "by": "merchant"},
+    {"match": ["flipkart"], "tags": ["shopping"], "desc": "Flipkart order", "by": "merchant"}
+  ]
+}
