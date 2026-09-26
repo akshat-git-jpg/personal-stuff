@@ -20,6 +20,10 @@ export const TAG_CHOICES = [
 /** Categories that also belong to a wider group, added automatically on save. */
 export const PARENT: Record<string, string> = { taxi: "commute", metro: "commute" };
 
+/** Buttons offered for a payment made during a trip. */
+export const tripChoices = (trip?: string) =>
+  trip ? ["stay", "food", "bus", "auto", "metro"].map((k) => `${trip}-${k}`) : [];
+
 export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export const rs = (n: number, paise = false) =>

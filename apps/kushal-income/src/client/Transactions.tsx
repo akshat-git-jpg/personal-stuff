@@ -219,7 +219,7 @@ function RowView({ r, open, editing, toggle, edit, done }: {
               <button className="btn-ghost" onClick={edit}>{r.status === "needs" ? "Tag it" : "Change tag"}</button>
             </>
           ) : (
-            <TagEditor rowIds={[r.id]} payee={r.payee} initialTags={r.status === "needs" ? [] : r.tags}
+            <TagEditor rowIds={[r.id]} payee={r.payee} trip={r.trip} initialTags={r.status === "needs" ? [] : r.tags}
               initialDesc={r.desc} alwaysDefault={false} onSaved={() => void done()} onCancel={toggle} />
           )}
         </div>

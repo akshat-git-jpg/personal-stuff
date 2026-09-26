@@ -201,11 +201,45 @@ def _card_row(src, s, r, occ):
 CATEGORIES = ["food", "grocery", "taxi", "metro", "travel", "shopping", "subscription", "bills", "rent",
               "cook", "family", "health", "personal care", "fitness", "fuel", "entertainment",
               "home services", "work tools", "education", "loan", "fees", "misc",
-              "salary", "interest", "refund", "card bill"]
+              "salary", "interest", "refund", "card bill", "trip"]
 ALIAS = {"auto": "taxi", "bike taxi": "taxi", "cab": "taxi", "ride": "taxi", "barber": "personal care",
          "dermatologist": "health", "wallet": "misc"}
 # A category that also belongs to a wider group, so one click shows the group.
 PARENT = {"taxi": "commute", "metro": "commute"}
+
+
+# Everyday money that is not part of a trip even when it falls on trip days.
+TRIP_KINDS = ("stay", "food", "bus", "auto", "metro")
+NOT_TRIP = {"rent", "cook", "family", "loan", "subscription", "bills", "card bill", "work tools", "education",
+            "salary", "interest", "fees", "refund"}
+STAY = re.compile(r"ibibo|goibibo|makemytrip|airbnb|oyo|hostel|homestay|hotel|molly", re.I)
+BUS = re.compile(r"redbus|irctc|abhibus|ksrtc|bus", re.I)
+
+
+def tag_trips(rows, trips):
+    """Owner decision 2026-09-27: trip spending gets "trip" plus "<trip>-stay/food/bus/auto/misc".
+    Trips live in data/config.json: [{"name", "from", "to", "book_from"}]."""
+    for t in trips:
+        for r in rows:
+            if r["kind"] != "spend" or set(r["tags"]) & NOT_TRIP:
+                continue
+            during = t["from"] <= r["date"] <= t["to"]
+            booking = t.get("book_from", t["from"]) <= r["date"] < t["from"] and "travel" in r["tags"]
+            if not (during or booking):
+                continue
+            hay = "%s %s %s" % (r.get("_hay", ""), r["text"], r["desc"] or "")
+            kind = ("stay" if STAY.search(hay) else "bus" if BUS.search(hay) else
+                    "auto" if set(r["tags"]) & {"taxi", "auto", "cab", "bike taxi", "ride"} else
+                    "metro" if "metro" in r["tags"] else
+                    "food" if set(r["tags"]) & {"food", "grocery"} else None)
+            note = "Part of your %s trip (%s to %s)." % (t["name"].capitalize(), _nice(t["from"]), _nice(t["to"]))
+            # Unknown trip spending stays "Needs you": the owner picks stay/food/bus/auto.
+            r["tags"] = r["tags"] + ["trip"] + (["%s-%s" % (t["name"], kind)] if kind else [])
+            r["trip"] = t["name"]
+            if r["status"] == "needs":
+                r["why"] = note + " What was it: stay, food, bus or auto?"
+            else:
+                r["why"] = r["why"] + " " + note
 
 
 def normalize_tags(row):
@@ -216,6 +250,9 @@ def normalize_tags(row):
             continue
         t = ALIAS.get(t, t)
         if "→" in t or t == "commute" or t in out:
+            continue
+        if t != "trip" and "-" in t and t.split("-")[0] and t.rsplit("-", 1)[1] in TRIP_KINDS:
+            out.append(t)  # a trip tag like "varkala-stay"
             continue
         out.append(t)
     for t in list(out):
@@ -296,6 +333,9 @@ def build(data, config, today=None, log=print):
     evidence.attach_times(rows, events)
     rides = evidence.rapido_rides(data, config.get("places", []))
     matched = evidence.match_rides(rows, rides)
+    ubers = evidence.uber_rides(data, config.get("places", []))
+    uber_matched = evidence.match_uber(rows, ubers)
+    log("evidence: %d Uber receipts, %d matched" % (len(ubers), uber_matched))
     patterns = evidence.learn_patterns(rides)
     by_pattern = evidence.apply_patterns(rows, patterns)
     by_pattern += evidence.apply_ride_fallback(rows)
@@ -311,6 +351,8 @@ def build(data, config, today=None, log=print):
                 and -MISC_MAX <= row["amount"] < 0 and row["date"] < MISC_BEFORE):
             row.update(tags=["misc"], desc="Small payment (temporary misc)", status="confirmed",
                        why="Untagged small payment before %s, marked temporary misc as you asked on 27 Sep." % _nice(MISC_BEFORE))
+
+    tag_trips(rows, config.get("trips", []))
 
     # Daily rides share a "commute" group; trips stay "travel".
     for row in rows:

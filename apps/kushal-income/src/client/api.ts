@@ -38,6 +38,8 @@ export interface Row {
   maybe_dup?: boolean;
   /** Tagged from the owner-approved ride pattern, not from a receipt. */
   inferred?: boolean;
+  /** Set when the payment falls in a trip (data/config.json "trips"), e.g. "varkala". */
+  trip?: string;
   /** Everything known about the payment: UPI ID, bank, note, Google Pay payee, Rapido ride. */
   details?: string[];
 }
