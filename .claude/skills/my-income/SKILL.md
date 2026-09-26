@@ -1,11 +1,11 @@
 ---
-name: kushal-money
-description: "Sync Kushal Money (kushal-income.agrolloo.com) - the owner's PERSONAL money: SBI savings, SBI Card, HDFC Tata Neu Infinity and Amazon Pay ICICI in one ledger. Fetches statements, alerts, receipts, Flipkart orders and trips, builds, publishes. Not YouTube income (that is `yt-income`). Trigger phrases: `sync Kushal Money`, `sync my money`, `month-end sync`, `update kushal income`, `here's my SBI statement`, `needs you`, `retag`, `personal finance`, `ledger`."
+name: my-income
+description: "Sync Kushal Money (kushal-income.agrolloo.com) - the owner's PERSONAL money: SBI savings, SBI Card, HDFC Tata Neu Infinity and Amazon Pay ICICI in one ledger. Fetches statements, alerts, receipts, Flipkart orders and trips, builds, publishes. Not YouTube income (that is `yt-income`). Trigger phrases: `my-income`, `sync my income`, `sync Kushal Money`, `sync my money`, `month-end sync`, `update kushal income`, `here's my SBI statement`, `needs you`, `retag`, `personal finance`, `ledger`."
 argument-hint: "[path to SBI statement PDF] | status"
 allowed-tools: "Read Bash Edit Write Glob Grep"
 ---
 
-# kushal-money - sync the personal ledger
+# my-income - sync the personal ledger
 
 Full detail: `pipelines/personal-finance/README.md` (section "The ledger (Kushal Money)"
 and "Month-end routine"). Read it before changing code. App code: `apps/kushal-income`.

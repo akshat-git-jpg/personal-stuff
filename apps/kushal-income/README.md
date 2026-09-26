@@ -5,7 +5,7 @@ savings, SBI Card, Tata Neu Infinity and Amazon Pay ICICI, tagged. Password-gate
 
 - The data is built by `pipelines/personal-finance/ledger` and posted to `/api/ingest`.
   How it works, the month-end routine and the rules: `pipelines/personal-finance/README.md`.
-- To sync: the `kushal-money` skill ("sync Kushal Money").
+- To sync: the `my-income` skill ("sync Kushal Money").
 - Worker (Hono) + D1 `kushal-money`; client is Vite + React in `src/client`.
 
 ```bash
