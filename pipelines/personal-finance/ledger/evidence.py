@@ -50,6 +50,8 @@ def gpay_events(data):
 
 def _locality(addr):
     """The area just before 'Bengaluru', e.g. 'Fraser Town'. Never the street address."""
+    if "560300" in addr or "Kempegowda" in addr:
+        return "airport"
     parts = [p.strip() for p in addr.split(",")]
     for i, p in enumerate(parts):
         if p.startswith("Bengaluru") and i > 0:
@@ -258,10 +260,10 @@ def _uber_parse(t):
     hm = r"\d{1,2}:\d\d [apAP][mM]"
     pay = re.search(r"Payments (.+?) (?:₹[\d,.]+ )?(\d{1,2})/(\d{1,2})/(\d\d) " + hm, t)
     end = r"(?=\d{1,2}:\d\d [apAP][mM]|You rode with|Report lost item|Contact support)"
-    det = re.search(r"Trip details (.+?) ([\d.]+) kilomet(?:re|er)s, (\d+) minutes(?: License Plate: \S+)? "
+    det = re.search(r"Trip details (.+?) ([\d.]+) kilomet(?:re|er)s, ((?:\d+ hours? )?\d+) minutes(?: License Plate: \S+)? "
                     r"(" + hm + r") (.+?) (" + hm + r") (.+?) " + end, t)
     if not det:
-        det = re.search(r"(\w+(?: \w+)?) ([\d.]+) kilometers \| (\d+) minutes (" + hm + r") (.+?) (" + hm + r") (.+?) " + end, t)
+        det = re.search(r"(\w+(?: \w+)?) ([\d.]+) kilometers \| ((?:\d+ hours? )?\d+) minutes (" + hm + r") (.+?) (" + hm + r") (.+?) " + end, t)
     if not (total and pay and det):
         return None
     day = dt.date(2000 + int(pay[4]), int(pay[2]), int(pay[3]))
@@ -302,11 +304,20 @@ def match_uber(rows, rides):
             cands = [r for r in rows if r["id"] not in taken and r["status"] == "needs" and r.get("_ts")
                      and r["amount"] is not None and u["price"] - 0.01 <= -r["amount"] <= u["price"] + UBER_TIP
                      and UBER_LAG[0] <= (r["_ts"] - u["end"]).total_seconds() / 60 <= UBER_LAG[1]]
-            if not cands:
-                continue
-            row = min(cands, key=lambda r: abs((r["_ts"] - u["end"]).total_seconds()))
-            why = "Uber receipt: %s ride, fare ₹%.2f paid in cash; this ₹%.0f UPI to the driver came %d min after the ride ended." % (
-                u["mode"], u["price"], -row["amount"], int((row["_ts"] - u["end"]).total_seconds() / 60))
+            if cands:
+                row = min(cands, key=lambda r: abs((r["_ts"] - u["end"]).total_seconds()))
+                why = "Uber receipt: %s ride, fare ₹%.2f paid in cash; this ₹%.0f UPI to the driver came %d min after the ride ended." % (
+                    u["mode"], u["price"], -row["amount"], int((row["_ts"] - u["end"]).total_seconds() / 60))
+            else:
+                # No payment time known: accept only the one payment that day in the fare range.
+                day = [r for r in rows if r["id"] not in taken and r["status"] == "needs" and not r.get("_ts")
+                       and r["source"] in ("sbi", "neu") and r["date"] == u["end"].date().isoformat()
+                       and r["amount"] is not None and u["price"] - 0.01 <= -r["amount"] <= u["price"] + UBER_TIP]
+                if len(day) != 1:
+                    continue
+                row = day[0]
+                why = "Uber receipt: %s ride, fare ₹%.2f paid in cash; this ₹%.0f UPI is the only payment that day in that range." % (
+                    u["mode"], u["price"], -row["amount"])
         else:
             cands = [r for r in rows if r["id"] not in taken and r["amount"] is not None and abs(-r["amount"] - u["price"]) < 0.01
                      and abs((dt.date.fromisoformat(r["date"]) - u["ts"].date()).days) <= 1 and "uber" in r.get("_hay", "").lower()]
