@@ -9,6 +9,10 @@
 # Nothing here asserts on source text — that would pass for code that never runs.
 set -u
 
+# Unset git environment variables that might be inherited from git hooks (e.g. post-commit)
+# or the test runner, as they would override the gitconfig routing we are trying to test.
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GA="$HERE/gh-acct"
 
