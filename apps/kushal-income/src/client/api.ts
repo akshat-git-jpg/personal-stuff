@@ -70,6 +70,7 @@ export interface SourceStatus {
   detail: string;
   pending: number;
   errors: string[];
+  note?: string;
 }
 
 export interface Ledger {
