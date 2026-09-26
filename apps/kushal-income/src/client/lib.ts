@@ -12,10 +12,13 @@ export const SOURCES: Record<Source, { label: string; short: string; color: stri
 
 /** Offered first when tagging. Any other word can be typed. */
 export const TAG_CHOICES = [
-  "food", "grocery", "auto", "cab", "metro", "travel", "shopping", "subscription", "health",
-  "fitness", "bills", "fuel", "rent", "cook", "family", "friends", "gifts", "work tools",
-  "education", "loan", "personal care", "other",
+  "food", "grocery", "taxi", "metro", "travel", "shopping", "subscription", "bills", "rent", "cook",
+  "family", "health", "personal care", "fitness", "fuel", "entertainment", "home services",
+  "work tools", "education", "loan", "fees", "misc",
 ];
+
+/** Categories that also belong to a wider group, added automatically on save. */
+export const PARENT: Record<string, string> = { taxi: "commute", metro: "commute" };
 
 export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 

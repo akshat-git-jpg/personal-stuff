@@ -23,6 +23,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
   const [src, setSrc] = useState<Set<Source>>(new Set(params.get("source") ? [params.get("source") as Source] : []));
   const [tags, setTags] = useState<Set<string>>(new Set(params.get("tag") ? [params.get("tag")!] : []));
   const [stat, setStat] = useState<Set<Status>>(new Set());
+  const [inferredOnly, setInferredOnly] = useState(false);
   const [hideBills, setHideBills] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
@@ -55,15 +56,16 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
     if (hideBills && (r.kind === "bill" || r.kind === "payment") && !tags.has("card bill")) return false;
     if (src.size && !src.has(r.source)) return false;
     if (stat.size && !stat.has(r.status)) return false;
+    if (inferredOnly && !r.inferred) return false;
     if (tags.size) {
       const mine = r.status === "needs" ? ["needs you"] : r.tags;
       if (!mine.some((t) => tags.has(t))) return false;
     }
-    if (qq && !`${r.desc ?? ""} ${r.payee} ${r.text} ${r.tags.join(" ")}`.toLowerCase().includes(qq)) return false;
+    if (qq && !`${r.desc ?? ""} ${r.payee} ${r.text} ${r.tags.join(" ")} ${(r.details ?? []).join(" ")}`.toLowerCase().includes(qq)) return false;
     return true;
   });
   const t = totals(rows);
-  const filtered = !!(qq || src.size || tags.size || stat.size);
+  const filtered = !!(qq || src.size || tags.size || stat.size || inferredOnly);
   const flip = <T,>(set: Set<T>, v: T, put: (s: Set<T>) => void) => {
     const n = new Set(set);
     if (n.has(v)) n.delete(v); else n.add(v);
@@ -112,8 +114,9 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           {(Object.keys(STATUS) as Status[]).map((s) => (
             <button key={s} className="chip" aria-pressed={stat.has(s)} onClick={() => flip(stat, s, setStat)}>{STATUS[s]}</button>
           ))}
+          <button className="chip" aria-pressed={inferredOnly} onClick={() => setInferredOnly(!inferredOnly)}>From ride pattern</button>
           {filtered && (
-            <button className="linkbtn" onClick={() => { setQ(""); setSrc(new Set()); setTags(new Set()); setStat(new Set()); }}>
+            <button className="linkbtn" onClick={() => { setQ(""); setSrc(new Set()); setTags(new Set()); setStat(new Set()); setInferredOnly(false); }}>
               Clear filters
             </button>
           )}
@@ -201,6 +204,7 @@ function RowView({ r, open, editing, toggle, edit, done }: {
         <span className="status">
           <span className={`st ${r.status}`}>{STATUS[r.status]}</span>
           {!r.final && <span className="nf">not final</span>}
+          {r.inferred && <span className="nf">from pattern</span>}
         </span>
         <span className={`right mono amt ${r.amount !== null && isIn(r) ? "in" : muted ? "dim" : ""}`}>{amt}</span>
       </button>
@@ -208,7 +212,10 @@ function RowView({ r, open, editing, toggle, edit, done }: {
         <div className="why">
           {!editing ? (
             <>
-              <span className="grow"><b>Why:</b> {r.why}</span>
+              <div className="grow">
+                <div><b>Why:</b> {r.why}</div>
+                {!!r.details?.length && <ul className="details">{r.details.map((d) => <li key={d}>{d}</li>)}</ul>}
+              </div>
               <button className="btn-ghost" onClick={edit}>{r.status === "needs" ? "Tag it" : "Change tag"}</button>
             </>
           ) : (

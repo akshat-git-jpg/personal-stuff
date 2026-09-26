@@ -2,12 +2,13 @@
 
 The two rules this file exists to hold:
 
-1. **Nothing is guessed.** A row gets tags only from a rule (`rules.json`), the
-   bank's own row type (fee, refund, bill payment), or later the owner. Every
-   other row is `needs`, and says why.
-2. **Nothing sensitive leaves.** Raw SBI remarks carry phone numbers, UPI IDs
-   and account numbers. Rows carry a masked `text` and a hashed `payee_key`;
-   `assert_clean` refuses the whole ledger if anything slips through.
+1. **Nothing is guessed silently.** A row gets tags only from a rule (`rules.json`),
+   the bank's own row type (fee, refund, bill payment), receipts, patterns the owner
+   approved (tagged `pattern`), or the owner. Every other row is `needs`, and says why.
+2. **Nothing is hidden from the owner.** Rows carry the bank's full text plus a
+   `details` list (UPI ID, bank, note, Google Pay payee, Rapido driver) so each
+   payment can be identified. Owner decision 2026-09-27; the data stays in the
+   gitignored data/ folder and the password-gated app.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ HERE = Path(__file__).resolve().parent
 SOURCES = {"sbi": "SBI savings", "sbic": "SBI Card", "neu": "Tata Neu Infinity",
            "icici": "Amazon Pay ICICI"}
 CARD_NAMES = {"sbic": "SBI Card", "neu": "Tata Neu", "icici": "ICICI"}
+MISC_MAX, MISC_BEFORE = 200, "2026-08-01"
 COMMUTE = {"cab", "auto", "metro", "bike taxi", "ride"}
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -51,78 +53,38 @@ _JUNK_NOTES = {"upi", "upiin", "upiint", "pay", "paym", "payme", "payment", "pay
 
 
 def sbi_view(remarks):
-    """(payee, masked text, payee identity) for an SBI savings remark."""
-    r = re.sub(r"^(WDL TFR|DEP TFR|TFR)\s+", "", remarks.strip())
+    """(payee, full text, payee identity, details) for an SBI savings remark.
+
+    Owner decision 2026-09-27: nothing is masked. The data lives only in the
+    gitignored data/ folder and the password-gated app, and the full remark is
+    what identifies a payment."""
+    raw = re.sub(r"\s+", " ", remarks).strip()
+    r = re.sub(r"^(WDL TFR|DEP TFR|TFR)\s+", "", raw)
     r = re.sub(r"\s+\d{10,}\s+AT\s+\d+\s+.*$", "", r)
-    m = re.match(r"UPI/(DR|CR)/[^/]*/([^/]*)/([^/]*)/([^/]*)/?(.*)$", r)
+    m = re.match(r"UPI/(DR|CR)/([^/]*)/([^/]*)/([^/]*)/([^/]*)/?(.*)$", r)
     if m:
-        name = re.sub(r"\s+", " ", m[2]).strip() or "unknown"
-        bank = m[3].replace(" ", "")
-        vpa = m[4].strip()
-        note = m[5].strip()
+        name = m[3].strip() or "unknown"
+        bank, vpa, note = m[4].replace(" ", ""), m[5].strip(), m[6].strip()
         if re.fullmatch(r"[\d#]+", vpa) or not vpa:
             ident = "name:%s|%s" % (name.upper(), bank.upper())
         else:
             ident = "vpa:" + vpa.lower().replace(" ", "")
-        arrow = "to" if m[1] == "DR" else "from"
-        text = "UPI %s %s · %s" % (arrow, name, bank)
+        details = ["UPI %s %s" % ("to" if m[1] == "DR" else "from", name), "Bank: " + bank]
+        if vpa:
+            details.append("UPI ID (as the bank prints it): " + vpa)
         if note and note.casefold() not in _JUNK_NOTES:
-            text += " · note: " + re.sub(r"\d{6,}", "••••", note)
-        return name, text, ident
-    text = re.sub(r"\d{6,}", lambda x: "••" + x[0][-4:], r)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text[:40], text, "text:" + re.sub(r"[^A-Z]", "", r.upper())[:40]
-
-
-def _vpa_mask(m):
-    local, handle = m[1], m[2]
-    kind = "shop QR" if re.match(r"(q\d+|paytmqr|bharatpe|gpay-\d)", local, re.I) else "UPI ID"
-    return "%s ••••@%s" % (kind, handle)
+            details.append("Note: " + note)
+        details.append("UPI ref: " + m[2].strip())
+        return name, r, ident, details
+    return r[:40], r, "text:" + re.sub(r"[^A-Z]", "", r.upper())[:40], []
 
 
 def card_view(text):
     raw = re.sub(r"\s+", " ", text).strip()
-    # Emails and statements spell a shop differently ("CTRLXTECHNOLOGIESP" vs
-    # "CTRLX TECHNOLOGIES P Hyderabad IN"), so key on the first 14 letters of the name.
-    name = re.sub(r"^(UPI-|EMI UPI-|RAZ\*|PTM\*|ING\*|CAS\*|WWW )", "", raw, flags=re.I)
-    ident = "card:" + (raw.lower() if "@" in raw else re.sub(r"[^A-Z]", "", name.upper())[:14])
-    t = re.sub(r"(\S+)@(\S+)", _vpa_mask, raw)
-    payee = re.sub(r"^(UPI-|EMI UPI-|RAZ\*|PTM\*|ING\*|CAS\*|UPI to )", "", t).strip()
-    return payee, t, ident
-
-
-FORBIDDEN = [
-    (re.compile(r"\b37841171272\b"), "SBI account number"),
-    (re.compile(r"UPI/(DR|CR)/"), "raw UPI remark"),
-    (re.compile(r"\bWDL TFR\b"), "raw remark"),
-    (re.compile(r"[A-Za-z0-9._-]+@(ybl|okaxis|oksbi|okicici|okhdfcbank|paytm|upi|axl|ibl|apl)\b"), "UPI ID"),
-    (re.compile(r"(?<![\d.])[6-9]\d{9}(?![\d.])"), "phone number"),
-]
-
-
-_HASHED = ("id", "payee_key", "stmt", "row")
-
-
-def assert_clean(ledger):
-    # Hashed ids are hex and can look like a phone number; they carry nothing.
-    scan = dict(ledger, rows=[{k: v for k, v in r.items() if k not in _HASHED} for r in ledger["rows"]],
-                statements=[dict(s, id=None, paid=s["paid"] and {k: v for k, v in s["paid"].items() if k != "row"})
-                            for s in ledger["statements"]])
-    ledger = scan
-    blob = json.dumps(scan, ensure_ascii=False)
-    for rx, what in FORBIDDEN:
-        if not rx.search(blob):
-            continue
-        where = "statements/sources"
-        for r in ledger["rows"]:
-            for k, v in r.items():
-                if isinstance(v, str) and rx.search(v):
-                    where = "row %s %s field %r" % (r["source"], r["date"], k)
-                    break
-            else:
-                continue
-            break
-        raise ParseError("refusing to publish: ledger contains a %s in %s" % (what, where))
+    ident = "card:" + (raw.lower() if "@" in raw else re.sub(r"[^A-Z]", "", re.sub(
+        r"^(UPI-|EMI UPI-|RAZ\*|PTM\*|ING\*|CAS\*|WWW )", "", raw, flags=re.I).upper())[:14])
+    payee = re.sub(r"^(UPI-|EMI UPI-|RAZ\*|PTM\*|ING\*|CAS\*|UPI to )", "", raw).strip()
+    return payee, raw, ident, []
 
 
 # ---------------------------------------------------------------- rules
@@ -214,14 +176,14 @@ def load_alerts(data):
 # ---------------------------------------------------------------- build
 
 def _card_row(src, s, r, occ):
-    payee, text, ident = card_view(r["text"])
+    payee, text, ident, details = card_view(r["text"])
     signed = -r["amount"] if r["dc"] == "D" else r["amount"]
     row = {"id": "%s-%s" % (src, _h(src, r["date"], r["amount"], r["dc"], occ)),
            "source": src, "date": r["date"], "time": r["time"], "amount": signed, "fx": r["fx"],
            "kind": "spend" if r["dc"] == "D" else "refund", "final": True,
            "text": text, "payee": payee, "payee_key": _h(ident, n=12),
            "tags": [], "desc": None, "status": "needs", "why": "", "stmt": s["id"] if s else None,
-           "_hay": r["text"]}
+           "details": details + (["Foreign amount: " + r["fx"]] if r.get("fx") else []), "_hay": r["text"]}
     if r.get("fee"):
         kind = ("Annual fee" if "ANNUAL" in text.upper() else "Foreign-currency markup" if "MARKUP" in text.upper()
                 else "GST on fees" if "GST" in text.upper() else "Card fee")
@@ -232,6 +194,34 @@ def _card_row(src, s, r, occ):
                    why="The card statement shows this as your bill payment. Hidden from spending: "
                        "the purchases it paid for are already rows.")
     return row
+
+
+# Owner decision 2026-09-27: tags are a short list of repeatable categories. Any
+# finer detail (route, vehicle, barber, "no receipt") lives in the description.
+CATEGORIES = ["food", "grocery", "taxi", "metro", "travel", "shopping", "subscription", "bills", "rent",
+              "cook", "family", "health", "personal care", "fitness", "fuel", "entertainment",
+              "home services", "work tools", "education", "loan", "fees", "misc",
+              "salary", "interest", "refund", "card bill"]
+ALIAS = {"auto": "taxi", "bike taxi": "taxi", "cab": "taxi", "ride": "taxi", "barber": "personal care",
+         "dermatologist": "health", "wallet": "misc"}
+# A category that also belongs to a wider group, so one click shows the group.
+PARENT = {"taxi": "commute", "metro": "commute"}
+
+
+def normalize_tags(row):
+    out = []
+    for t in row["tags"]:
+        if t == "pattern":
+            row["inferred"] = True
+            continue
+        t = ALIAS.get(t, t)
+        if "→" in t or t == "commute" or t in out:
+            continue
+        out.append(t)
+    for t in list(out):
+        if t in PARENT and PARENT[t] not in out:
+            out.append(PARENT[t])
+    row["tags"] = out
 
 
 def _slack(due):
@@ -253,12 +243,12 @@ def build(data, config, today=None, log=print):
     rows = []
     # SBI savings
     for rid, r in sb.items():
-        payee, text, ident = sbi_view(r["text"])
+        payee, text, ident, details = sbi_view(r["text"])
         amt = round(r["credit"] - r["debit"], 2)
         rows.append({"id": rid, "source": "sbi", "date": r["date"], "time": None, "amount": amt,
                      "fx": None, "kind": "in" if amt > 0 else "spend", "final": True, "text": text,
                      "payee": payee, "payee_key": _h(ident, n=12), "tags": [], "desc": None,
-                     "status": "needs", "why": "", "stmt": None, "_hay": r["text"]})
+                     "status": "needs", "why": "", "stmt": None, "details": details, "_hay": r["text"]})
 
     # Card statements
     last_to = {}
@@ -314,6 +304,13 @@ def build(data, config, today=None, log=print):
     for p in patterns:
         log("  pattern %s: %s %02d-%02dh ₹%.0f-%.0f (%d rides)" % (
             p["route"], "/".join(evidence.DAYS[d] for d in sorted(p["days"])), p["h_lo"], p["h_hi"], p["f_lo"], p["f_hi"], p["n"]))
+
+    # Owner decision 2026-09-27: small untagged payments before August are "misc" for now.
+    for row in rows:
+        if (row["status"] == "needs" and row["kind"] == "spend" and row["amount"] is not None
+                and -MISC_MAX <= row["amount"] < 0 and row["date"] < MISC_BEFORE):
+            row.update(tags=["misc"], desc="Small payment (temporary misc)", status="confirmed",
+                       why="Untagged small payment before %s, marked temporary misc as you asked on 27 Sep." % _nice(MISC_BEFORE))
 
     # Daily rides share a "commute" group; trips stay "travel".
     for row in rows:
@@ -397,6 +394,8 @@ def build(data, config, today=None, log=print):
         r.pop("_ts", None)
         r.pop("_gkind", None)
 
+    for r in rows:
+        normalize_tags(r)
     rows.sort(key=lambda r: (r["date"], r["time"] or ""), reverse=True)
 
     # Statement checks for the Cards page
@@ -457,7 +456,6 @@ def build(data, config, today=None, log=print):
 
     ledger = {"generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
               "rows": rows, "statements": out_stmts, "sources": src_status}
-    assert_clean(ledger)
     log("ledger: %d rows, %d statements, %d needs you, %d file error(s)"
         % (len(rows), len(out_stmts), sum(1 for r in rows if r["status"] == "needs"), len(errors)))
     for e in errors:

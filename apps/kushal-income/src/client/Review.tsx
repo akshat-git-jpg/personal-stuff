@@ -47,6 +47,7 @@ export function Review({ data, reload }: { data: Ledger; reload: () => Promise<v
                 {" · "}{SOURCES[first.source].short}</span>
               <span className="raw">{first.text}</span>
               <span className="hint">{first.why}</span>
+              {!!first.details?.length && <ul className="details">{first.details.map((d) => <li key={d}>{d}</li>)}</ul>}
               {g.length > 1 && (
                 <ul className="dates">
                   {g.slice(0, 6).map((r) => <li key={r.id}>{dayLabel(r.date)}{r.time ? ` ${r.time}` : ""} · {r.amount === null ? r.fx : rs(r.amount, true)}</li>)}

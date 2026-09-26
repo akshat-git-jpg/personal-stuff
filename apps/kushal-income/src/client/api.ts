@@ -36,6 +36,10 @@ export interface Row {
   why: string;
   stmt: string | null;
   maybe_dup?: boolean;
+  /** Tagged from the owner-approved ride pattern, not from a receipt. */
+  inferred?: boolean;
+  /** Everything known about the payment: UPI ID, bank, note, Google Pay payee, Rapido ride. */
+  details?: string[];
 }
 
 export interface Check { ok: boolean; wait?: boolean; text: string; sub: string }
