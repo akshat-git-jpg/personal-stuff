@@ -316,6 +316,13 @@ def build(data, config, today=None, log=print):
             row["maybe_dup"] = a["maybe_dup"]
             rows.append(row)
 
+    # Google Pay first: its payee name ("Paid to LEON GRILL") is evidence the rules can read.
+    events = evidence.gpay_events(data)
+    evidence.attach_times(rows, events)
+    for row in rows:
+        if row.get("_gpay_to"):
+            row["_hay"] += " | gpay:%s;" % row["_gpay_to"]
+
     # Rules
     for row in rows:
         if row["status"] != "needs":
@@ -330,9 +337,7 @@ def build(data, config, today=None, log=print):
             row["tags"] = row["tags"] + ["refund"]
             row["desc"] = "Refund: " + (row["desc"] or row["payee"])
 
-    # Google Pay times, then Rapido rides (see evidence.py)
-    events = evidence.gpay_events(data)
-    evidence.attach_times(rows, events)
+    # Rapido rides (see evidence.py)
     rides = evidence.rapido_rides(data, config.get("places", []))
     matched = evidence.match_rides(rows, rides)
     ubers = evidence.uber_rides(data, config.get("places", []))
@@ -437,6 +442,7 @@ def build(data, config, today=None, log=print):
         r.pop("_hay", None)
         r.pop("_ts", None)
         r.pop("_gkind", None)
+        r.pop("_gpay_to", None)
 
     for r in rows:
         normalize_tags(r)
