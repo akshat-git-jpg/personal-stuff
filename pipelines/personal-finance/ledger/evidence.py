@@ -331,3 +331,19 @@ def match_uber(rows, rides):
         row.setdefault("details", []).extend(facts)
         n += 1
     return n
+
+
+def match_tips(rows, within_min=10):
+    """A small extra UPI to the same driver right after a proven ride is a tip."""
+    rides = [r for r in rows if r["status"] == "proven" and r.get("_ts") and (r["desc"] or "").startswith(("Uber", "Rapido"))]
+    n = 0
+    for r in rows:
+        if r["status"] != "needs" or not r.get("_ts") or r["amount"] is None or -r["amount"] > 50:
+            continue
+        for ride in rides:
+            if ride["payee_key"] == r["payee_key"] and 0 <= (r["_ts"] - ride["_ts"]).total_seconds() / 60 <= within_min:
+                r.update(tags=["taxi"], desc="Tip: " + ride["desc"], status="proven",
+                         why="Paid to the same driver %d min after the ride payment." % int((r["_ts"] - ride["_ts"]).total_seconds() / 60))
+                n += 1
+                break
+    return n
