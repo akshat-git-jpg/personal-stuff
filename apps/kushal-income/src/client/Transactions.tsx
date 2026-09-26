@@ -107,21 +107,21 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           ))}
         </div>
         <div className="row">
-          <span className="lbl">Tags</span>
+          <span className="lbl">Main tag</span>
           {tagCounts.map((tg) => (
             <button key={tg} className="chip" aria-pressed={tags.has(tg)}
               onClick={() => { flip(tags, tg, setTags); setSubTags(new Set([...subTags].filter((k) => !k.startsWith(tg + "›")))); }}>{tg}</button>
           ))}
         </div>
-        {subChips.length > 0 && (
-          <div className="row">
-            <span className="lbl">Sub-tags</span>
-            {subChips.map(([m, sb]) => {
-              const k = `${m}›${sb}`;
-              return <button key={k} className="chip sub" aria-pressed={subTags.has(k)} onClick={() => flip(subTags, k, setSubTags)}>{sb}</button>;
-            })}
-          </div>
-        )}
+        <div className="row">
+          <span className="lbl">Sub-tag</span>
+          {!tags.size && <span className="muted small">Pick a main tag above to see its sub-tags.</span>}
+          {tags.size > 0 && !subChips.length && <span className="muted small">No sub-tags under {[...tags].join(", ")}.</span>}
+          {subChips.map(([m, sb]) => {
+            const k = `${m}›${sb}`;
+            return <button key={k} className="chip sub" aria-pressed={subTags.has(k)} onClick={() => flip(subTags, k, setSubTags)}>{tags.size > 1 ? `${m} › ${sb}` : sb}</button>;
+          })}
+        </div>
         <div className="row">
           <span className="lbl">Status</span>
           {(Object.keys(STATUS) as Status[]).map((s) => (
