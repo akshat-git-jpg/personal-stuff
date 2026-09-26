@@ -28,8 +28,8 @@ HERE = Path(__file__).resolve().parent
 SOURCES = {"sbi": "SBI savings", "sbic": "SBI Card", "neu": "Tata Neu Infinity",
            "icici": "Amazon Pay ICICI"}
 CARD_NAMES = {"sbic": "SBI Card", "neu": "Tata Neu", "icici": "ICICI"}
-MISC_MAX, MISC_BEFORE = 200, "2026-08-01"
-UNIDENTIFIED_UNTIL = "2026-09-27"
+MISC_MAX, MISC_BEFORE = 200, "2026-06-01"
+UNIDENTIFIED_UNTIL = "2026-05-31"  # owner: no misc for recent payments; newer unknowns stay "Needs you"
 COMMUTE = {"cab", "auto", "metro", "bike taxi", "ride"}
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -246,12 +246,12 @@ MAIN_OF = {
     "loan": ("bank", "loan"), "card bill": ("bank", "card bill"), "fees": ("bank", "fees"),
     "salary": ("income", "salary"), "interest": ("income", "interest"), "refund": ("income", "refund"),
     "protein": ("fitness", "protein"), "fitness": ("fitness", "gym"), "work tools": ("work", None),
-    "personal care": ("personal care", None), "wallet": ("misc", "wallet"), "fuel": ("travel", "fuel"),
+    "personal care": ("personal care", None), "wallet": ("bank", "wallet"), "fuel": ("travel", "fuel"),
 }
 
 # Sub-tag from the description, per main. First keyword hit wins; None = no sub-tag.
 SUBS = {
-    "food": [("swiggy", "swiggy"), ("zomato", "zomato"), ("eatclub", "eatclub"), ("eatsure", "eatsure"),
+    "food": [("ownly", "ownly"), ("swiggy", "swiggy"), ("zomato", "zomato"), ("eatclub", "eatclub"), ("eatsure", "eatsure"),
              ("swish", "swish"), ("rebel foods", "rebel foods"), ("domino", "dominos"), ("kfc", "kfc"),
              ("", "eating out")],
     "grocery": [("instamart", "instamart"), ("zepto", "zepto"), ("blinkit", "blinkit"), ("amazon", "amazon fresh"),
@@ -266,7 +266,7 @@ SUBS = {
     "bills": [("jio", "jio"), ("vi ", "vi"), ("vi recharge", "vi"), ("airtel", "airtel"), ("bescom", "electricity"),
               ("act ", "internet"), ("cred", "recharge"), ("", None)],
     "entertainment": [("movie", "movie"), ("bookmyshow", "movie"), ("cineplex", "movie"), ("", None)],
-    "work": [("upwork", "upwork"), ("", None)],
+    "work": [("upwork", "upwork"), ("meta ads", "ads"), ("", None)],
 }
 
 
@@ -386,6 +386,7 @@ def build(data, config, today=None, log=print):
     ubers = evidence.uber_rides(data, config.get("places", []))
     uber_matched = evidence.match_uber(rows, ubers)
     log("evidence: %d Uber receipts, %d matched" % (len(ubers), uber_matched))
+    tips = evidence.match_tips(rows)
     patterns = evidence.learn_patterns(rides)
     by_pattern = evidence.apply_patterns(rows, patterns)
     by_pattern += evidence.apply_ride_fallback(rows)

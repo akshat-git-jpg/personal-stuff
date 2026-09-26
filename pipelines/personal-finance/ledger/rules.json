@@ -151,6 +151,16 @@
     {"match": ["CEMTEX DEP"], "tags": ["refund"], "desc": "Failed UPI refunded by the bank", "by": "merchant", "source": ["sbi"]},
     {"match": ["API Bank/Payout"], "tags": ["refund"], "desc": "Bank account check (₹1 test credit)", "by": "merchant", "source": ["sbi"]},
 
+    {"match": ["ctrlx"], "tags": ["food"], "desc": "Ownly (food delivery)", "by": "merchant"},
+    {"match": ["ASSPL"], "tags": ["shopping"], "desc": "Amazon order", "by": "merchant"},
+    {"match": ["gwalia"], "tags": ["food"], "desc": "Gwalia Sweets", "by": "merchant"},
+    {"match": ["C395-KA", "belgian waffle"], "tags": ["food"], "desc": "The Belgian Waffle Co", "by": "merchant"},
+    {"match": ["VEDA PAAV"], "tags": ["food"], "desc": "Veda Paav", "by": "merchant"},
+    {"match": ["sarwaa"], "tags": ["food"], "desc": "Sarwaa (Varkala cafe)", "by": "merchant"},
+    {"match": ["gpay:k mart;"], "tags": ["grocery"], "desc": "K Mart", "by": "merchant"},
+    {"match": ["facebookad", "/META/"], "tags": ["work tools"], "desc": "Meta ads", "by": "merchant"},
+    {"match": ["google cloud"], "tags": ["subscription"], "desc": "Google Cloud", "by": "merchant"},
+    {"match": ["lulu"], "tags": ["shopping"], "desc": "Lulu Mall", "by": "merchant"},
     {"match": ["fuels", "petrol"], "tags": ["fuel"], "desc": "Fuel", "by": "merchant"},
 
     {"match": ["westside"], "tags": ["shopping"], "desc": "Westside", "by": "merchant"},

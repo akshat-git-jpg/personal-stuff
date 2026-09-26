@@ -27,7 +27,11 @@ const LEGACY: Record<string, [string, string | null]> = {
 export function mainSub(tags: string[]): string[] {
   const t = tags.filter((x) => x !== "commute" || tags[0] === "commute");
   if (!t.length) return [];
-  if (MAINS.includes(t[0])) return t.slice(0, 2);
+  if (MAINS.includes(t[0]) && t[0] !== "misc") return t.slice(0, 2);
+  // An old free-form trip tag like "varkala-food" belongs under "trip".
+  const trip = t.find((x) => /^[a-z]+-(stay|food|bus|auto|metro)$/.test(x));
+  if (trip) return ["trip", trip];
+  if (t[0] === "misc") return t.slice(0, 2);
   const hit = LEGACY[t[0]];
   if (hit) return hit[1] ? [hit[0], hit[1]] : [hit[0], ...t.slice(1, 2)];
   return ["misc", t[0]];
