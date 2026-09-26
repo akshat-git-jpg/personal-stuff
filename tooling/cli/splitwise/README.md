@@ -34,7 +34,7 @@ pp-splitwise missing --payments pays.json --group Flat   # which payments are no
 pp-splitwise delete 1234567 --yes
 ```
 
-- `add` records that **you** paid and splits equally across the group (or you plus `--with`).
+- `add` records that **you** paid and splits equally across the group (or you plus `--with`). Currency is INR unless `--currency` (the account default is USD, so it is never used).
   Shares add up to the paisa. Without `--yes` it only prints what it would add.
 - `missing` takes `[{date, amount, desc}]` and treats a payment as already on Splitwise
   when an expense in that group has the same cost (±₹1) within 3 days (`--days`). Each
