@@ -10,6 +10,7 @@ Each tool lives in its own folder with the executable and (mostly) a README.
 - `hostinger/` — Hostinger VPS and hosting API.
 - `rapidapi/` — RapidAPI calls.
 - `flights/` — `pp-flights`, flight search with live prices via Skyscanner's public web API. No key, no browser, no login.
+- `bus/` — `pp-bus`, local bus timetables (Indore ↔ Badnagar) from printed timetables stored as JSON. Offline, no key.
 - `yt-claude/` — userscript + localhost relay that opens a Claude session per YouTube thumbnail.
 - `ccusage-dashboard/` — Claude Code usage dashboard.
 - `cf-email/` — sets up Cloudflare Email Routing (catch-all → hub inbox) for a niche domain in one command.

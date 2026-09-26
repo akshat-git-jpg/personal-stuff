@@ -1,0 +1,45 @@
+{
+  "id": "indore-badnagar",
+  "places": {
+    "indore": ["indore", "indoor", "indo", "idr", "indb"],
+    "badnagar": ["badnagar", "barnagar", "bandagar", "barnager", "bng"]
+  },
+  "distance_km": 72,
+  "source": "Printed timetable at Badnagar, photographed and shared by the owner 2026-08. Image: sources/badnagar-indore-2026-08.jpg",
+  "as_of": "2026-08",
+  "notes": [
+    "Indore has two bus stands for this route: Sarwate and Jinsi. Both are central, about 20-30 min from the airport.",
+    "Shakeel buses are the fastest (about 2h). Most others take 3-4h.",
+    "Printed times, not live. Confirm at the stand before relying on the last bus."
+  ],
+  "trips": {
+    "badnagar>indore": [
+      {"bus": "Hina", "depart": "07:35", "arrive": "12:30"},
+      {"bus": "City", "depart": "08:00", "arrive": "11:25"},
+      {"bus": "Ekta", "depart": "08:30", "arrive": "12:30"},
+      {"bus": "City", "depart": "09:00", "arrive": "12:00"},
+      {"bus": "Shakeel", "depart": "10:40", "arrive": "12:45"},
+      {"bus": "Siyaram", "depart": "12:30", "arrive": "15:40"},
+      {"bus": "Shakeel", "depart": "12:35", "arrive": "14:30"},
+      {"bus": "Desh Sevak", "depart": "14:15", "arrive": "17:15"},
+      {"bus": "Ekta", "depart": "14:35", "arrive": "17:30"},
+      {"bus": "Shakeel", "depart": "15:40", "arrive": "17:40"},
+      {"bus": "City", "depart": "16:20", "arrive": "19:00"},
+      {"bus": "City", "depart": "17:30", "arrive": "20:00"}
+    ],
+    "indore>badnagar": [
+      {"bus": "Shakeel", "stand": "Sarwate", "depart": "07:25", "arrive": "09:20"},
+      {"bus": "Siyaram", "stand": "Jinsi", "depart": "07:45", "arrive": "11:00"},
+      {"bus": "Desh Sevak", "stand": "Jinsi", "depart": "10:30", "arrive": "13:30"},
+      {"bus": "Ekta", "stand": "Jinsi", "depart": "10:40", "arrive": "14:00"},
+      {"bus": "City", "stand": "Jinsi", "depart": "12:30", "arrive": "16:00"},
+      {"bus": "City", "stand": "Sarwate", "depart": "13:15", "arrive": "17:00"},
+      {"bus": "Hina", "stand": "Jinsi", "depart": "14:00", "arrive": "18:00"},
+      {"bus": "Ekta", "stand": "Jinsi", "depart": "15:30", "arrive": "18:15"},
+      {"bus": "Shakeel", "stand": "Sarwate", "depart": "16:00", "arrive": "17:55"},
+      {"bus": "Shakeel", "stand": "Sarwate", "depart": "18:20", "arrive": "20:20"},
+      {"bus": "City", "stand": "Jinsi", "depart": "19:30", "arrive": "22:00"},
+      {"bus": "City", "stand": "Sarwate", "depart": "21:00", "arrive": "23:15"}
+    ]
+  }
+}
