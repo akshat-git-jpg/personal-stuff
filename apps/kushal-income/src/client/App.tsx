@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchLedger, logout, UnauthorizedError, type Ledger } from "./api";
 import { Cards } from "./Cards";
-import { parseHash } from "./lib";
+import { mainSub, parseHash } from "./lib";
 import { Login } from "./Login";
 import { Overview } from "./Overview";
 import { Review } from "./Review";
@@ -22,7 +22,8 @@ export function App() {
 
   const load = useCallback(async () => {
     try {
-      setData(await fetchLedger());
+      const d = await fetchLedger();
+      setData({ ...d, rows: d.rows.map((r) => ({ ...r, tags: mainSub(r.tags) })) });
       setNeedsAuth(false);
       setErr(null);
     } catch (e) {

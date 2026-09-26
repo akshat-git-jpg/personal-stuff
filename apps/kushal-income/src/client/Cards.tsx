@@ -121,7 +121,7 @@ function MiniRow({ r }: { r: Row }) {
         <span className={`desc ${r.status === "needs" ? "needs" : ""}`}>{r.desc ?? (r.status === "needs" ? `Who is this? ${r.payee}` : r.payee)}</span>
         <span className="raw">{r.text}</span>
       </span>
-      <span className="tags">{r.tags.map((t) => <span key={t} className="pill">{t}</span>)}</span>
+      <span className="tags">{r.tags.map((t, i) => <span key={t} className={`pill ${i ? "sub" : ""}`}>{i ? `› ${t}` : t}</span>)}</span>
       <span className={`right mono amt ${r.amount !== null && r.amount > 0 ? "in" : ""}`}>
         {r.amount === null ? r.fx : `${r.amount > 0 ? "+" : ""}${rs(r.amount, true)}`}
       </span>

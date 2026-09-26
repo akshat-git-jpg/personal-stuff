@@ -140,6 +140,9 @@ a{color:var(--c1)}
 .tick{width:20px;flex:none;font-weight:700;text-align:center}
 .tick.ok{color:var(--ok)} .tick.warn{color:var(--alarm)} .tick.wait{color:var(--gold)}
 .pill{background:var(--card-2);color:var(--ink-2);border-radius:99px;padding:2px 9px;font-size:12px;font-weight:500;white-space:nowrap}
+.pill.sub{background:transparent;border:1px solid var(--line);color:var(--ink-3)}
+.chip.sub{min-height:32px;font-size:12.5px;border-style:dashed}
+.chip.sub[aria-pressed="true"]{border-style:solid}
 .pill.gold{color:var(--gold);background:var(--gold-bg)}
 
 /* filters */
