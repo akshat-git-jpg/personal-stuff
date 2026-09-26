@@ -27,7 +27,7 @@ HERE = Path(__file__).resolve().parent
 SOURCES = {"sbi": "SBI savings", "sbic": "SBI Card", "neu": "Tata Neu Infinity",
            "icici": "Amazon Pay ICICI"}
 CARD_NAMES = {"sbic": "SBI Card", "neu": "Tata Neu", "icici": "ICICI"}
-COMMUTE = {"cab", "auto", "metro", "bike taxi"}
+COMMUTE = {"cab", "auto", "metro", "bike taxi", "ride"}
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
@@ -306,7 +306,14 @@ def build(data, config, today=None, log=print):
     evidence.attach_times(rows, events)
     rides = evidence.rapido_rides(data, config.get("places", []))
     matched = evidence.match_rides(rows, rides)
-    log("evidence: %d Google Pay payments, %d Rapido rides, %d rides matched" % (len(events), len(rides), matched))
+    patterns = evidence.learn_patterns(rides)
+    by_pattern = evidence.apply_patterns(rows, patterns)
+    by_pattern += evidence.apply_ride_fallback(rows)
+    log("evidence: %d Google Pay payments, %d Rapido rides, %d rides matched, %d tagged by %d ride patterns"
+        % (len(events), len(rides), matched, by_pattern, len(patterns)))
+    for p in patterns:
+        log("  pattern %s: %s %02d-%02dh ₹%.0f-%.0f (%d rides)" % (
+            p["route"], "/".join(evidence.DAYS[d] for d in sorted(p["days"])), p["h_lo"], p["h_hi"], p["f_lo"], p["f_hi"], p["n"]))
 
     # Daily rides share a "commute" group; trips stay "travel".
     for row in rows:
@@ -388,6 +395,7 @@ def build(data, config, today=None, log=print):
             r["why"] += " From the purchase email; the next statement confirms it."
         r.pop("_hay", None)
         r.pop("_ts", None)
+        r.pop("_gkind", None)
 
     rows.sort(key=lambda r: (r["date"], r["time"] or ""), reverse=True)
 
