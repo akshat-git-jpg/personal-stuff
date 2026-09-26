@@ -1,7 +1,7 @@
 /** Pick tags (and optionally a description) for one or more rows, then save. */
 import { useState } from "react";
 import { tagRows } from "./api";
-import { TAG_CHOICES } from "./lib";
+import { PARENT, TAG_CHOICES } from "./lib";
 
 export function TagEditor(props: {
   rowIds: string[];
@@ -21,12 +21,13 @@ export function TagEditor(props: {
   const [err, setErr] = useState<string | null>(null);
 
   const toggle = (t: string) => setTags((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
-  const all = [...new Set([...TAG_CHOICES, ...tags])];
+  const all = [...new Set([...TAG_CHOICES, ...tags.filter((t) => t !== "commute")])];
   const extra = custom.trim().toLowerCase();
   const ready = tags.length > 0 || !!extra;
 
   const save = async () => {
-    const final = extra && !tags.includes(extra) ? [...tags, extra] : tags;
+    const picked = extra && !tags.includes(extra) ? [...tags, extra] : tags;
+    const final = [...picked.filter((t) => t !== "commute"), ...new Set(picked.map((t) => PARENT[t]).filter(Boolean))];
     setBusy(true);
     setErr(null);
     try {
@@ -48,11 +49,11 @@ export function TagEditor(props: {
       <div className="editor-row">
         <label className="field">
           <span>Other tag</span>
-          <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="e.g. gym, gift, maid" />
+          <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="only if none above fits" />
         </label>
         <label className="field grow">
           <span>Description (optional)</span>
-          <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Auto: office to gym" />
+          <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Auto: office to gym, barber, dermatologist" />
         </label>
       </div>
       <div className="editor-row">

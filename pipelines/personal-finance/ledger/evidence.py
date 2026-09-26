@@ -78,6 +78,7 @@ def rapido_rides(data, places):
         if not (rid and tm and price) or rid[1] in rides:
             continue
         lines = t.splitlines()
+        head = [l.strip() for l in lines[:lines.index("Booking History")]] if "Booking History" in lines else []
         i = next(k for k, l in enumerate(lines) if l.strip().startswith("₹"))
         body = " ".join(lines[i + 1:])
         body = re.sub(r"This document is issued.*?purposes\.", "|", body)
@@ -90,7 +91,9 @@ def rapido_rides(data, places):
         # The receipt prints the drop address first, then the pickup.
         rides[rid[1]] = {"id": rid[1], "mode": mode, "price": float(price[1].replace(",", "")),
                          "ts": dt.datetime.strptime("%s %s %s %s" % tm.groups(), "%b %d %Y %I:%M %p"),
-                         "to": _place(parts[0], places), "from": _place(parts[1], places)}
+                         "to": _place(parts[0], places), "from": _place(parts[1], places),
+                         "driver": head[2] if len(head) > 2 else "", "vehicle": head[3] if len(head) > 3 else "",
+                         "drop": parts[0], "pickup": parts[1]}
     return sorted(rides.values(), key=lambda r: r["ts"])
 
 
@@ -113,6 +116,8 @@ def attach_times(rows, events):
         used.add(id(e))
         if not r["time"]:
             r["time"] = e["ts"].strftime("%H:%M")
+        r.setdefault("details", []).append("Google Pay: %s%s at %s" % (
+            e["kind"], " to " + e["to"] if e["to"] else "", e["ts"].strftime("%-d %b %H:%M")))
         r["_ts"] = e["ts"]
         r["_gkind"] = e["kind"]
 
@@ -143,6 +148,10 @@ def match_rides(rows, rides):
             continue
         taken.add(row["id"])
         route = "%s → %s" % (ride["from"], ride["to"])
+        row.setdefault("details", []).extend([
+            "Rapido ride %s at %s, driver %s, vehicle %s" % (ride["id"], ride["ts"].strftime("%-d %b %H:%M"),
+                                                            ride.get("driver") or "?", ride.get("vehicle") or "?"),
+            "From: " + ride.get("pickup", ride["from"]), "To: " + ride.get("drop", ride["to"])])
         row.update(tags=[ride["mode"], "commute", route], desc="Rapido %s: %s" % (ride["mode"], route),
                    status="proven",
                    why="Rapido receipt %s: %s ride at %s, fare ₹%.0f, %s." % (

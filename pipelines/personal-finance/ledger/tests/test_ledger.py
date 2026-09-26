@@ -127,25 +127,15 @@ class Alerts(unittest.TestCase):
         self.assertIsNone(usd["amount"])
 
 
-class Masking(unittest.TestCase):
-    def test_sbi_remark_hides_vpa_ref_and_account(self):
-        payee, text, ident = build.sbi_view(
-            "WDL TFR UPI/DR/645723315933/REDBUS/H DFC/redbus32.r/redbus 0097692162094 AT 18231 HOPE FARM CIRCLE")
-        self.assertEqual(payee, "REDBUS")
-        self.assertNotIn("645723315933", text)
-        self.assertNotIn("redbus32.r", text)
-        self.assertNotIn("0097692162094", text)
-
-    def test_guard_refuses_a_phone_number(self):
-        ledger = {"rows": [{"id": "x", "source": "sbi", "date": "2026-01-01", "text": "call 9876543210"}],
-                  "statements": [], "sources": []}
-        with self.assertRaises(ParseError):
-            build.assert_clean(ledger)
-
-    def test_guard_ignores_hex_ids(self):
-        ledger = {"rows": [{"id": "sbi-9876543210ab", "payee_key": "9876543210", "text": "ok"}],
-                  "statements": [], "sources": []}
-        build.assert_clean(ledger)
+class Remarks(unittest.TestCase):
+    def test_sbi_remark_keeps_everything_and_lists_details(self):
+        payee, text, ident, details = build.sbi_view(
+            "WDL TFR UPI/DR/645723315933/SAGARIKA /FDRL/7091362239/asha 0097692162094 AT 18231 HOPE FARM CIRCLE")
+        self.assertEqual(payee, "SAGARIKA")
+        self.assertIn("7091362239", text)          # owner asked for nothing masked
+        self.assertIn("Note: asha", details)
+        self.assertIn("UPI ref: 645723315933", details)
+        self.assertEqual(ident, "name:SAGARIKA|FDRL")  # a phone-number UPI ID keys on name + bank
 
 
 class Rides(unittest.TestCase):

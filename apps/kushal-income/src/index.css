@@ -181,6 +181,7 @@ a{color:var(--c1)}
 .why{margin:0 16px 12px;padding:12px 14px;background:var(--card-2);border-radius:10px;display:flex;gap:14px;
   align-items:center;font-size:13.5px;color:var(--ink-2);flex-wrap:wrap}
 .why b{color:var(--ink)}
+.details{margin:6px 0 0;padding-left:18px;font:12px/1.6 "IBM Plex Mono",monospace;color:var(--ink-2);word-break:break-word}
 
 /* tag editor */
 .editor{display:flex;flex-direction:column;gap:12px;width:100%}
