@@ -64,9 +64,9 @@ describe("submit note is not demanded where nobody would read it", () => {
     expect(t!.requiresNote).toBeFalsy();
   });
 
-  it("Resume editing does not require a note", () => {
+  it("Resume work does not require a note", () => {
     const t = doerMoves("Need Changes").find((x) => x.to === "In Progress");
-    expect(t!.label).toBe("Resume editing");
+    expect(t!.label).toBe("Resume work");
     expect(t!.requiresNote).toBeFalsy();
   });
 
