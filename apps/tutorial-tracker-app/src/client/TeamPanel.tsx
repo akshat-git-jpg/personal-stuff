@@ -19,6 +19,7 @@ import {
   HoldsLiveWorkError, type Holding, type TeamMember, type PipelineSummary,
 } from "./api";
 import { AssignmentDefaults } from "./AssignmentDefaults";
+import { rolesForSystem } from "../shared/engine/registry";
 import { HandoverPanel, type HandoverAction } from "./HandoverPanel";
 import { CheckCircle2, Loader2, Lock, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,7 +36,13 @@ interface TeamPanelProps {
 interface Draft { name: string; email: string; roles: string[]; }
 const EMPTY: Draft = { name: "", email: "", roles: [] };
 
-const rolesIn = (m: TeamMember, sys: string): string[] => m.memberships?.[sys] ?? [];
+/** Roles in the system's own order (stage order, Reviewer last), not the order they were clicked. */
+const inRoleOrder = (sys: string, roles: string[]): string[] => {
+  const order = rolesForSystem(sys);
+  const rank = (r: string) => (order.indexOf(r) < 0 ? order.length : order.indexOf(r));
+  return [...roles].sort((a, b) => rank(a) - rank(b));
+};
+const rolesIn = (m: TeamMember, sys: string): string[] => inRoleOrder(sys, m.memberships?.[sys] ?? []);
 const systemCount = (m: TeamMember): number => Object.keys(m.memberships ?? {}).filter((k) => k !== "*").length;
 const isAdminMember = (m: TeamMember): boolean => (m.memberships?.["*"] ?? []).includes("Admin");
 
@@ -144,7 +151,7 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
     // Merge: keep this person's roles in OTHER systems, set their roles here.
     const existing = members.find((m) => m.email === email);
     const next: Record<string, string[]> = { ...(existing?.memberships ?? {}) };
-    next[activeSystem] = draft.roles;
+    next[activeSystem] = inRoleOrder(activeSystem, draft.roles);
     const dropped = (existing?.memberships?.[activeSystem] ?? []).filter((r) => !draft.roles.includes(r));
     const name = draft.name.trim();
     const sys = systemName(activeSystem);
@@ -346,7 +353,7 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
               {isAdminMember(m) && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">Admin · all systems</span>}
               {systemsOf(m).map((sys) => (
                 <span key={sys} className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/80">
-                  {systemName(sys)}: {(m.memberships?.[sys] ?? []).join(", ")}
+                  {systemName(sys)}: {rolesIn(m, sys).join(", ")}
                 </span>
               ))}
             </div>

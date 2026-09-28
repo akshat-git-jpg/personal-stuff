@@ -155,3 +155,11 @@ test("a person's systems are listed in tab order, not the order they were added"
   await expect(page.getByTestId(`team-row-${PERSONAS.tara}`))
     .toContainText("Standard: Thumbnail Maker · Tut 2: Thumbnail Maker");
 });
+
+test("a person's roles are listed in stage order, not the order they were ticked", async ({ page }) => {
+  await loginAs(page, PERSONAS.sean);
+  await page.getByRole("button", { name: "Team", exact: true }).click();
+  // John's Tut 2 roles are stored as Video Editor, Processor. Processing comes first in the flow.
+  await expect(page.getByTestId(`team-row-${PERSONAS.john}`))
+    .toContainText("Standard: Video Editor, Thumbnail Maker · Tut 2: Processor, Video Editor");
+});
