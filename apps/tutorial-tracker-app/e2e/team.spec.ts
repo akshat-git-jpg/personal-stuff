@@ -147,3 +147,11 @@ test("assignment defaults are one set per system, saved on pick", async ({ page 
   await expect(page.getByTestId("assignment-defaults")
     .getByTestId("default-row-script_writer_email").locator("select")).toHaveValue("");
 });
+
+test("a person's systems are listed in tab order, not the order they were added", async ({ page }) => {
+  await loginAs(page, PERSONAS.sean);
+  await page.getByRole("button", { name: "Team", exact: true }).click();
+  // Tara joined Tut 2 before Standard in the seed.
+  await expect(page.getByTestId(`team-row-${PERSONAS.tara}`))
+    .toContainText("Standard: Thumbnail Maker · Tut 2: Thumbnail Maker");
+});

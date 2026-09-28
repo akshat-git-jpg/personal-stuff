@@ -51,7 +51,8 @@ const EMPLOYEES: { email: string; name: string; memberships: Record<string, stri
   { email: JOHN, name: "John", memberships: { "standard": ["Video Editor", "Thumbnail Maker"], "tut-2": ["Processor", "Video Editor"] } },
   { email: SAM, name: "Sam", memberships: { "standard": ["Script Recorder"] } },
   { email: ANUSHA, name: "Anusha", memberships: { "standard": ["Processor"] } },
-  { email: TARA, name: "Tara", memberships: { "standard": ["Thumbnail Maker"], "tut-2": ["Thumbnail Maker"] } },
+  // Tut 2 stored first on purpose: e2e/team.spec.ts checks the Team tab still lists Standard first.
+  { email: TARA, name: "Tara", memberships: { "tut-2": ["Thumbnail Maker"], "standard": ["Thumbnail Maker"] } },
   { email: UMA, name: "Uma", memberships: { "standard": ["Uploader"], "tut-2": ["Uploader"] } },
   { email: RIYA, name: "Riya", memberships: { "standard": ["Reviewer"], "tut-2": ["Reviewer"] } },
   { email: NINA, name: "Nina", memberships: { "tut-2": ["Scriptwriter", "Tutorial Maker"] } },
