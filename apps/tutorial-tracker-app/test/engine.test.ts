@@ -14,7 +14,7 @@ describe("pipeline definitions", () => {
   it("derive both pipelines + the full role roster", () => {
     expect(pipelineIds().sort()).toEqual(["coupon-code", "standard", "tut-2"]);
     expect(allRoles()).toEqual(expect.arrayContaining([
-      "Admin", "Reviewer", "Scriptwriter", "Recorder", "Video Editor", "Thumbnail Maker", "Uploader",
+      "Admin", "Reviewer", "Scriptwriter", "Script Recorder", "Processor", "Video Editor", "Thumbnail Maker", "Uploader",
     ]));
   });
 });
@@ -109,8 +109,21 @@ describe("tut-2 normalizes cleanly", () => {
   });
 });
 
+describe("standard processing stage", () => {
+  it("sits between Recording and Editing, owned by the Processor", () => {
+    const P = getPipeline("standard");
+    expect(P.stages.map((s) => s.id)).toEqual(["topic", "script", "recording", "processing", "editing", "thumbnail", "upload"]);
+    const proc = P.stages.find((s) => s.id === "processing")!;
+    expect(proc.role).toBe("Processor");
+    expect(proc.gate).toBe("recording");
+    expect(P.stages.find((s) => s.id === "editing")!.gate).toBe("processing");
+    expect(P.stages.find((s) => s.id === "script")!.role).toBe("Script Recorder");
+    expect(P.stages.find((s) => s.id === "recording")!.role).toBe("Script Recorder");
+  });
+});
+
 describe("system-scoped memberships", () => {
-  const samStd = { standard: ["Scriptwriter", "Recorder"] };          // standard-only doer
+  const samStd = { standard: ["Script Recorder"] };          // standard-only doer
   const ninaTut2 = { "tut-2": ["Scriptwriter"] };                     // tut-2-only doer
   const reviewerBoth = { standard: ["Reviewer"], "tut-2": ["Reviewer"] }; // cross-system reviewer
   const admin = { "*": ["Admin"], standard: ["Reviewer"] };           // founder
@@ -124,14 +137,15 @@ describe("system-scoped memberships", () => {
 
   it("rolesForSystem = that system's doer roles + Reviewer, never Admin", () => {
     const r = rolesForSystem("standard");
-    expect(r).toContain("Scriptwriter");
+    expect(r).toContain("Script Recorder");
+    expect(r).toContain("Processor");
     expect(r).toContain("Reviewer");
     expect(r).not.toContain("Admin");
   });
 
   it("holdsRoleInSystem scopes the assignment dropdowns", () => {
-    expect(holdsRoleInSystem(samStd, "standard", "Scriptwriter")).toBe(true);
-    expect(holdsRoleInSystem(samStd, "tut-2", "Scriptwriter")).toBe(false);     // Sam never offered on a tut-2 card
+    expect(holdsRoleInSystem(samStd, "standard", "Script Recorder")).toBe(true);
+    expect(holdsRoleInSystem(samStd, "tut-2", "Script Recorder")).toBe(false);     // Sam never offered on a tut-2 card
     expect(holdsRoleInSystem(reviewerBoth, "tut-2", "Reviewer")).toBe(true);
   });
 
@@ -172,11 +186,12 @@ describe("up next / upcoming work visibility", () => {
       script_status: "In Progress", script_writer_email: "sam@x.com",
       tutorial_status: "To Do", tutorial_maker_email: "sam@x.com",
     };
-    const roles = ["Scriptwriter", "Recorder"];
+    const roles = ["Script Recorder"];
     expect(cardStagesForUser(roles, "sam@x.com", row)).toEqual(["script_status"]);
     expect(upcomingStagesForUser(roles, "sam@x.com", row)).toEqual(["tutorial_status"]);
-    // A pure Recorder can see the row even though their gate is closed.
-    expect(canSeeRow(["Recorder"], "sam@x.com", row)).toBe(true);
+    // A Processor assigned downstream can see the row even though their gate is closed.
+    const withProc = { ...row, processing_assignee: "pat@x.com" };
+    expect(canSeeRow(["Processor"], "pat@x.com", withProc)).toBe(true);
   });
 });
 
@@ -211,6 +226,7 @@ describe("the control grid never shows a column RBAC withholds", () => {
       expect(shown, status).toContain("video_title");
       expect(shown, status).toContain("video_notes");
       expect(shown, status).toContain("tutorial_link");          // the recording it edits
+      expect(shown, status).toContain("processing_work_link");   // the processor's editor inputs
       expect(shown, status).toContain("video_editor_instruction");
       expect(shown, status).toContain("video_editor_eta");
       expect(shown, status).toContain("video_editor_link");
@@ -221,7 +237,7 @@ describe("the control grid never shows a column RBAC withholds", () => {
     // Recording's link is upstream context FOR Editing. Someone holding both
     // roles must keep edit rights on the recording they produce.
     const P = getPipeline("standard");
-    expect(canEditForRoles(["Recorder", "Video Editor"], P, "tutorial_link")).toBe(true);
+    expect(canEditForRoles(["Script Recorder", "Video Editor"], P, "tutorial_link")).toBe(true);
     expect(canEditForRoles(["Video Editor"], P, "tutorial_link")).toBe(false);
     expect(visibleColsForRoles(["Video Editor"], P)).toContain("tutorial_link");
   });

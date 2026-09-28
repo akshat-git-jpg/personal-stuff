@@ -3,9 +3,9 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, ChevronDown } from "lucide-react";
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/engine/rbac";
-import { canEditForRoles, isAdminRoles } from "../shared/engine/rbac";
+import { canEditForRoles, isAdminRoles, visibleColsForRoles } from "../shared/engine/rbac";
 import { PROTECTED_ADMIN_EMAIL } from "../shared/engine/registry";
-import { holdsRoleInSystem } from "../shared/engine/memberships";
+import { holdsRoleInSystem, effectiveRoles } from "../shared/engine/memberships";
 import { pipeOf, stageByIdIn, statusOf, showColumns, editColumns, requiredToApprove, requiredToSubmitFrom, missingColumns, colOf, isReviewable, feedbackColOf, isBrief, isStageComplete, isGateOpen, holderOf, sinceOf, type RoleKind } from "./stages";
 import { applyTransition, updateCell, displayName, personLabel, getCardEvents, getCachedChannels, type BoardRow, type CardEvent } from "./api";
 import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl } from "./labels";
@@ -39,9 +39,12 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
   const locks = row._locks ?? {};
   const actionGroups = row._actions ?? [];
   const isAdmin = isAdminRoles(roles);
-  const colSet = new Set<string>(columns);
-
   const pipeline = pipeOf(row as Record<string, unknown>);
+  // Board columns are a union across systems, and stage keys repeat (processing_status is in Standard AND Tut 2).
+  const viewerM = viewerEmail ? memberships[viewerEmail.toLowerCase()] : undefined;
+  const cardCols = viewerM && !isAdmin ? new Set(visibleColsForRoles(effectiveRoles(viewerM, pipeline.id), pipeline)) : null;
+  const colSet = new Set<string>(columns.filter((c) => !cardCols || cardCols.has(c)));
+
   const { sections: SECTIONS } = sectionsForPipeline(pipeline.stages);
 
   const contextStage = stageByIdIn(pipeline, contextStageId ?? "") ?? pipeline.stages[0];
