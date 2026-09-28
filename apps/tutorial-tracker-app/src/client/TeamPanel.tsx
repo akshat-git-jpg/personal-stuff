@@ -89,6 +89,12 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
   }
 
   const systemName = (id: string) => systems.find((s) => s.id === id)?.name ?? id;
+  // A person's systems, in tab order (storage returns them in the order they were added).
+  const systemsOf = (m: TeamMember): string[] => Object.keys(m.memberships ?? {}).filter((k) => k !== "*")
+    .sort((a, b) => {
+      const ia = systems.findIndex((s) => s.id === a), ib = systems.findIndex((s) => s.id === b);
+      return (ia < 0 ? Infinity : ia) - (ib < 0 ? Infinity : ib);
+    });
 
   async function load() {
     setLoading(true); setError(null);
@@ -303,9 +309,8 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
                   {isAdmin ? (
                     "Has full access across all systems. This membership cannot be edited here."
                   ) : (
-                    Object.entries(m.memberships ?? {})
-                      .filter(([sys]) => sys !== "*")
-                      .map(([sys, roles]) => `${systemName(sys)}: ${roles.join(", ")}`)
+                    systemsOf(m)
+                      .map((sys) => `${systemName(sys)}: ${rolesIn(m, sys).join(", ")}`)
                       .join(" · ")
                   )}
                 </div>
@@ -339,7 +344,7 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
             <div key={m.email} className="flex flex-wrap items-center gap-2 text-sm">
               <span className="font-medium text-foreground">{m.name}</span>
               {isAdminMember(m) && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">Admin · all systems</span>}
-              {Object.keys(m.memberships ?? {}).filter((k) => k !== "*").map((sys) => (
+              {systemsOf(m).map((sys) => (
                 <span key={sys} className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/80">
                   {systemName(sys)}: {(m.memberships?.[sys] ?? []).join(", ")}
                 </span>

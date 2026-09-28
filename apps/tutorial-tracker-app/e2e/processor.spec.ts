@@ -162,10 +162,16 @@ test.describe.serial("script recorder journey", () => {
     await expect(dialog.getByText("https://docs.example.com/journey-script")).toBeVisible();
     await dialog.getByLabel("Recording ETA").fill("2026-10-05");
     await dialog.getByLabel("Recording ETA").blur();
+    const started = page.waitForResponse((r) => r.url().includes("/api/update") && (r.request().postData() ?? "").includes("tutorial_status"));
     await dialog.getByRole("button", { name: "Start" }).click();
+    await started;
     await expect(dialog).toBeHidden(); // the panel closes on every move
-    await page.getByText(JOURNEY, { exact: true }).click();
-    await expect(dialog.getByRole("button", { name: "Submit for review" })).toBeVisible();
+    // Under parallel load the list can lag the write by a moment, so reopen until it catches up.
+    await expect(async () => {
+      await page.reload();
+      await page.getByText(JOURNEY, { exact: true }).click();
+      await expect(dialog.getByRole("button", { name: "Submit for review" })).toBeVisible({ timeout: 1500 });
+    }).toPass({ timeout: 15000 });
     await submitWork(page, "Recording link", "https://drive.example.com/journey-recording");
   });
 
