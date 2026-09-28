@@ -5,6 +5,7 @@ import { parseArgs } from "node:util";
 import { loadEnv } from "./env.mjs";
 import { scanFlags } from "./flags.mjs";
 import { deriveSpoken } from "./spoken.mjs";
+import { loadRespell } from "./respell.mjs";
 
 // Section id -> wav name. Keeps the take identifiable without a DB.
 export function takeName(section) {
@@ -134,13 +135,7 @@ if (isMain) {
     process.exit(1);
   }
 
-  const respellPath = path.join(root, "videos", slug, "respell.json");
-  let respell = {};
-  try {
-    respell = JSON.parse(await fs.readFile(respellPath, "utf8"));
-  } catch {
-    /* optional */
-  }
+  const respell = loadRespell(path.join(root, "videos", slug, "respell.json"));
 
   try {
     const { script: next, written, skipped } = await synthScript(

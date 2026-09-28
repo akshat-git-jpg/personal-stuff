@@ -122,6 +122,7 @@ ElevenLabs is the quality benchmark but is **recurring per-generation** → reje
 ## Pronunciation control
 Brand names / acronyms get fixed in text (phonetic respelling) or via the chosen TTS's
 pronunciation/lexicon support. This is the main lever for "no pronunciation mistakes."
+Recurring words live in `respell.json` in this folder; every caller in `lib/` applies it.
 
 ## Emotion / expressiveness
 OmniVoice **cannot add emotion via `instruct`** — its `instruct` vocabulary is ONLY voice
@@ -214,7 +215,9 @@ anything voice-related and a consuming pipeline must not own the engine.
 | `vo-synth.mjs` | CLI + client for the Modal `synth_section` endpoint. `node lib/vo-synth.mjs <slug> --root <dir> [--only sNN] [--force]` |
 | `vo-lock.mjs` | CLI + `lockScript`. `node lib/vo-lock.mjs <slug> --root <dir> [--only sNN]` |
 | `vo-state.mjs` | `lockSection` — the lock preconditions (no flags, non-empty `spoken_text`, a take on disk) |
-| `spoken.mjs` | `deriveSpoken(display_text, respellMap)` — applies `respell.json` |
+| `vo-say.mjs` | CLI for text with no `script.json`: `node lib/vo-say.mjs (--text t \| --file f) --out x.mp3`. Chunks, applies respell, joins |
+| `respell.mjs` | `loadRespell(videoPath)` — shared `respell.json` here, merged under the video's own map |
+| `spoken.mjs` | `deriveSpoken(display_text, respellMap)` — applies the respell map |
 | `flags.mjs` | `scanFlags` / `stripFlags` over `[VERIFY: …]` / `[FILL: …]` |
 | `env.mjs` | `loadEnv(rootDir)` — reads `<rootDir>/../../.env`, i.e. `pipelines/.env` |
 
