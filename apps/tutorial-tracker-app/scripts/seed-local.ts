@@ -48,7 +48,8 @@ const EMPLOYEES: { email: string; name: string; memberships: Record<string, stri
   // John mirrors the real owner setup: ONE person owning two stages of the same
   // video (Editing then Thumbnail) — the case that used to render each video
   // twice in My work, once live and once title-only under "Up next".
-  { email: JOHN, name: "John", memberships: { "standard": ["Video Editor", "Thumbnail Maker"], "tut-2": ["Processor", "Video Editor"] } },
+  // Tut 2 roles stored out of stage order on purpose: e2e/team.spec.ts checks they display in order.
+  { email: JOHN, name: "John", memberships: { "standard": ["Video Editor", "Thumbnail Maker"], "tut-2": ["Video Editor", "Processor"] } },
   { email: SAM, name: "Sam", memberships: { "standard": ["Script Recorder"] } },
   { email: ANUSHA, name: "Anusha", memberships: { "standard": ["Processor"] } },
   // Tut 2 stored first on purpose: e2e/team.spec.ts checks the Team tab still lists Standard first.
