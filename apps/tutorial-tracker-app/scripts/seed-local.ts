@@ -105,6 +105,15 @@ const CARDS: CardSpec[] = [
     notes: "Match shots across two cameras before grading.",
     stages: { topic: D(SEAN), script: D(SAM), recording: D(SAM), processing: D(ANUSHA), editing: { status: "In Review", assignee: JOHN, reviewer: SEAN, link: "https://drive.example.com/final-multicam" } } },
 
+  // Script Recorder journey: e2e/processor.spec.ts walks Script -> Recording -> Processing.
+  { pipeline: "standard", title: "Script recorder journey demo", daysAgo: 1,
+    notes: "One person writes the script, then records it.",
+    stages: {
+      topic: D(SEAN),
+      script: { status: "In Progress", assignee: SAM, reviewer: RIYA },
+      recording: { status: "To Do", assignee: SAM, reviewer: RIYA },
+      processing: { status: "To Do", assignee: ANUSHA, reviewer: RIYA },
+    } },
   // Processor hand-off: e2e/processor.spec.ts walks this Processor -> Reviewer -> Editor.
   { pipeline: "standard", title: "Processor hand-off demo", daysAgo: 1,
     notes: "Voiceover from the approved script, then pack everything for the editor.",

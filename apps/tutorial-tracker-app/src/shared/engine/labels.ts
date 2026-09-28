@@ -11,7 +11,9 @@ import { columnLabel } from "../columns";
 const MAP: Record<string, string> = {};
 for (const p of Object.values(PIPELINES)) for (const s of p.stages) {
   MAP[colOf(s, "status")] ??= `${s.label} status`;
-  MAP[colOf(s, "assignee")] ??= s.role;
+  // One role owning several stages (Standard's Script Recorder) is named per stage.
+  const shared = p.stages.filter((x) => x.role === s.role).length > 1;
+  MAP[colOf(s, "assignee")] ??= shared ? `${s.role} (${s.label})` : s.role;
   if (stageHasReviewerSlot(s)) MAP[colOf(s, "reviewer")] ??= `${s.label} reviewer`;
   if (stageHasInstruction(s)) MAP[colOf(s, "instruction")] ??= `${s.label} instructions`;
   if (stageHasEta(s)) MAP[colOf(s, "eta")] ??= `${s.label} ETA`;

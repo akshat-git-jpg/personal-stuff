@@ -110,3 +110,85 @@ test("the processor's board fits a phone", async ({ page }) => {
   );
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+// One person, two stages: the Script Recorder writes, gets it approved, then records.
+const JOURNEY = "Script recorder journey demo";
+
+async function submitWork(page: import("@playwright/test").Page, linkLabel: string, url: string) {
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel(linkLabel).fill(url);
+  await dialog.getByLabel(linkLabel).blur();
+  await dialog.getByTestId("submit-note-input").fill("Ready.");
+  await dialog.getByTestId("submit-note-send").click();
+  await expect(dialog).toBeHidden();
+}
+
+async function approveWith(page: import("@playwright/test").Page, instrLabel: string) {
+  await page.getByText(JOURNEY, { exact: true }).first().click();
+  const dialog = page.getByRole("dialog");
+  const approve = dialog.getByRole("button", { name: "Approve" });
+  await expect(approve).toBeDisabled();
+  await dialog.getByLabel(instrLabel).fill("Go ahead.");
+  await dialog.getByLabel(instrLabel).blur();
+  await approve.click();
+  await expect(dialog).toBeHidden();
+}
+
+test.describe.serial("script recorder journey", () => {
+  test("recording is not open while the script is unapproved", async ({ page }) => {
+    await loginAs(page, PERSONAS.sam);
+    await page.getByText(JOURNEY, { exact: true }).click();
+    const yourPart = page.getByRole("dialog").getByTestId("card-detail-your-part");
+    await expect(yourPart.getByText("Script", { exact: true })).toBeVisible();
+    await expect(yourPart.getByText("Recording", { exact: true })).toBeVisible();
+    await expect(page.getByRole("dialog").getByRole("button", { name: "Submit for review" })).toBeVisible();
+  });
+
+  test("the script recorder submits the script", async ({ page }) => {
+    await loginAs(page, PERSONAS.sam);
+    await page.getByText(JOURNEY, { exact: true }).click();
+    await submitWork(page, "Script link", "https://docs.example.com/journey-script");
+  });
+
+  test("the reviewer approves the script after briefing the recording", async ({ page }) => {
+    await loginAs(page, PERSONAS.riya);
+    await approveWith(page, "Recording instructions");
+  });
+
+  test("the same person now records it", async ({ page }) => {
+    await loginAs(page, PERSONAS.sam);
+    await page.getByText(JOURNEY, { exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("https://docs.example.com/journey-script")).toBeVisible();
+    await dialog.getByLabel("Recording ETA").fill("2026-10-05");
+    await dialog.getByLabel("Recording ETA").blur();
+    await dialog.getByRole("button", { name: "Start" }).click();
+    await expect(dialog).toBeHidden(); // the panel closes on every move
+    await page.getByText(JOURNEY, { exact: true }).click();
+    await expect(dialog.getByRole("button", { name: "Submit for review" })).toBeVisible();
+    await submitWork(page, "Recording link", "https://drive.example.com/journey-recording");
+  });
+
+  test("approving the recording hands it to the processor", async ({ page }) => {
+    await loginAs(page, PERSONAS.riya);
+    await approveWith(page, "Processing instructions");
+    await loginAs(page, PERSONAS.anusha);
+    const mine = page.locator("section", { hasText: "Your turn" }).first();
+    await expect(mine.getByText(JOURNEY, { exact: true })).toBeVisible();
+  });
+});
+
+test("new video: script and recording pickers are named apart, and one fills the other", async ({ page }) => {
+  await loginAs(page, PERSONAS.sean);
+  await page.getByRole("button", { name: "New video" }).click();
+  const dialog = page.getByRole("dialog");
+  const script = dialog.getByLabel("Script Recorder (Script) (doer)");
+  const recording = dialog.getByLabel("Script Recorder (Recording) (doer)");
+  await expect(script).toBeVisible();
+  await expect(recording).toBeVisible();
+
+  await script.selectOption("");
+  await recording.selectOption("");
+  await script.selectOption(PERSONAS.sam);
+  await expect(recording).toHaveValue(PERSONAS.sam);
+});

@@ -49,7 +49,7 @@ test("New video setup guard", async ({ page }) => {
   
   // 2. Assert people selects are pre-filled (at least one non-empty)
   // There are selects for each doer role and reviewer.
-  const scriptwriterSelect = page.getByLabel(/Script Recorder \(doer\)/).first();
+  const scriptwriterSelect = page.getByLabel("Script Recorder (Script) (doer)");
   const val = await scriptwriterSelect.inputValue();
   expect(val).not.toBe(""); // should be pre-filled from defaults
 
@@ -61,7 +61,7 @@ test("New video setup guard", async ({ page }) => {
   
   // The footer should name the missing role
   await expect(page.locator("text=left:")).toBeVisible();
-  await expect(page.locator(".text-destructive")).toContainText("Script Recorder");
+  await expect(page.locator(".text-destructive")).toContainText("Script Recorder (Script)");
 
   // 4. Fill everything -> assert button enables, click it, dialog closes.
   // Re-fill the doer we cleared

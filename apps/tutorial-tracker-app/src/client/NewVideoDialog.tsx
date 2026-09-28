@@ -12,6 +12,7 @@ import {
 import { holdsRoleInSystem } from "../shared/engine/memberships";
 import { colOf, stageHasReviewerSlot, requiredToCreate, stageKind } from "../shared/engine/types";
 import { slugify } from "../shared/slug";
+import { fieldLabelOf } from "../shared/engine/labels";
 import { cn } from "@/lib/utils";
 
 export interface NewVideoDialogProps {
@@ -103,8 +104,7 @@ export function NewVideoDialog({
   const fieldLabel = (col: string) => {
     const f = nvFields.find(x => x.col === col);
     if (f) return f.label;
-    for (const s of pDef.stages) if (colOf(s, "assignee") === col) return s.role;
-    return col;
+    return fieldLabelOf(col);
   };
   
   const missingLabels = missingCols.map(fieldLabel);
@@ -129,6 +129,12 @@ export function NewVideoDialog({
   const set = (col: string, val: string) => {
     setNv(prev => {
       const next = { ...prev, [col]: val };
+      // Same role on another stage (Script + Recording): fill its empty slot too.
+      const owner = pDef.stages.find((s) => colOf(s, "assignee") === col);
+      if (owner && val) for (const s of pDef.stages) {
+        const c = colOf(s, "assignee");
+        if (s !== owner && s.role === owner.role && !(next[c] ?? "").trim()) next[c] = val;
+      }
       if (col === "video_title" && !slugTouched) {
         next.slug = slugify(val);
       }
@@ -226,7 +232,7 @@ export function NewVideoDialog({
                 return (
                   <div key={stage.id} className="space-y-3 pb-4 mb-4 border-b last:border-0 last:mb-0 last:pb-0 border-border/50">
                     <div className="space-y-1.5">
-                      <label htmlFor={`nv-${aCol}`} className="text-xs font-medium text-foreground/80">{stage.role} (doer) <span className="text-primary">*</span></label>
+                      <label htmlFor={`nv-${aCol}`} className="text-xs font-medium text-foreground/80">{fieldLabel(aCol)} (doer) <span className="text-primary">*</span></label>
                       <select id={`nv-${aCol}`} value={nv[aCol] ?? ""} onChange={e => set(aCol, e.target.value)}
                         className={cn("flex h-9 w-full rounded-md border bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2", 
                           aMissing ? "border-primary/70 ring-2 ring-primary/20" : "border-input")}

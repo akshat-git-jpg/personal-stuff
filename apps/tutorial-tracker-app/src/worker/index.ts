@@ -57,6 +57,7 @@ import { mintSlug } from "../shared/slug";
 import { derive, statusOf } from "../shared/engine/derive";
 import { colOf, stageHasReviewerSlot, createFieldsOf, requiredToCreate } from "../shared/engine/types";
 import { lifecycle, eventTypeFor } from "../shared/engine/lifecycle";
+import { fieldLabelOf } from "../shared/engine/labels";
 import { liveHoldingsFor, rolesRemoved } from "../shared/engine/holdings";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
@@ -729,7 +730,7 @@ app.post("/api/update", async (c) => {
       // Assignment → notify the newly-assigned person.
       const assigneeRole = ASSIGNEE_COL_ROLE[typedCol];
       if (assigneeRole && isAdminRoles(roles) && value.trim() !== "" && value.trim().toLowerCase() !== oldValue) {
-        await sendNotification(c.env, "assigned", value.trim(), { title: videoTitle, appUrl, stageLabel: assigneeRole });
+        await sendNotification(c.env, "assigned", value.trim(), { title: videoTitle, appUrl, stageLabel: fieldLabelOf(typedCol) });
       }
     } catch (e) { console.warn("[notify] update notifications failed:", e); }
   })());

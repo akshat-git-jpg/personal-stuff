@@ -7,6 +7,7 @@ import {
 } from "./stages";
 import { displayName, getCachedChannels } from "./api";
 import { daysSince } from "./pipeline";
+import { fieldLabelOf } from "../shared/engine/labels";
 import { statusMeta, toneBadge, toneDot } from "./status";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -214,7 +215,7 @@ export function Card({
             <InlineField
               icon={<Link2 className="size-3.5" />}
               type="url"
-              placeholder={`Paste the ${(stage?.label ?? "work").toLowerCase()} link`}
+              placeholder={`Paste the ${fieldLabelOf(linkCol)} link`}
               value={linkValue}
               locked={locks?.[linkCol]}
               attention={missing.includes(linkCol)}
