@@ -25,7 +25,7 @@ export interface LifecycleTransition {
   kind: TransitionKind;
   by: By;
   label: string;
-  gate?: GateKind;          // omitted = no required-field gate (e.g. "Resume editing")
+  gate?: GateKind;          // omitted = no required-field gate (e.g. "Resume work")
   needsFeedback?: boolean;  // a send-back note is required to perform it
   needsNote?: boolean;      // a submit note is required to perform it
 }
@@ -46,7 +46,7 @@ const REVIEW: Lifecycle = {
   transitions: [
     { from: "To Do",        to: "In Progress",  kind: "start",   by: "doer",     label: "Start", gate: "start" },
     { from: "In Progress",  to: "In Review",    kind: "submit",  by: "doer",     label: "Submit for review", gate: "submit", needsNote: true },
-    { from: "Need Changes", to: "In Progress",  kind: "start",   by: "doer",     label: "Resume editing" },
+    { from: "Need Changes", to: "In Progress",  kind: "start",   by: "doer",     label: "Resume work" },
     { from: "Need Changes", to: "In Review",    kind: "submit",  by: "doer",     label: "Resubmit for review", gate: "submit", needsNote: true },
     { from: "In Review",    to: "Done",         kind: "approve", by: "reviewer", label: "Approve", gate: "approve" },
     { from: "In Review",    to: "Need Changes", kind: "reject",  by: "reviewer", label: "Request changes", needsFeedback: true },
