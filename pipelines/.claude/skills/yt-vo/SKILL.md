@@ -1,7 +1,7 @@
 ---
 name: yt-vo
 description: >-
-  Generate, review and lock TTS voiceover for any video pipeline in this repo, using IndexTTS-2 on Modal GPU. Verbs: setup, synth, respell, review, lock, batch, status. Use for "make the voiceover", "generate VO for <slug>", "re-roll section s03", "the voice mispronounces <word>", "lock the takes", "voiceover for <video>", "yt-vo". Also use when a pipeline step needs narration wavs, or when a VO run fails with 401/404/timeout against the Modal endpoint.
+  Generate, review and lock TTS voiceover for any video pipeline in this repo, using IndexTTS-2 on Modal GPU. Verbs: setup, synth, say, respell, review, lock, batch, status. Use for "make the voiceover", "make a VO from this doc", "generate VO for <slug>", "re-roll section s03", "the voice mispronounces <word>", "lock the takes", "voiceover for <video>", "yt-vo". Also use when a pipeline step needs narration wavs, or when a VO run fails with 401/404/timeout against the Modal endpoint.
 user-invocable: true
 metadata:
   author: kbtg
@@ -31,6 +31,20 @@ returns `audio/wav`.
 `[{id, text}]`. This is the older talk-over/dub path in `pipelines/video/tts/pipeline/`.
 
 Both hit the same model and the same reference voice, so takes are interchangeable.
+
+**Never `curl` the endpoint with raw text.** That skips the respell map, which is how
+the 2026-09-08 VO said "did" for D-ID. For text with no `script.json` (a Google Doc, a
+pasted line), use `say` below.
+
+## say — text with no script.json (a doc, a one-line test)
+
+    cd pipelines/video/tts
+    node lib/vo-say.mjs --text "One line to test." --out ~/Desktop/test.mp3
+    node lib/vo-say.mjs --file doc.txt --out ~/kb-scratch/video/tts/_adhoc/<name>.mp3
+
+Paragraphs split on blank lines, long ones cut to ~22s at sentence ends, one request
+each, joined with a 0.35s gap. It applies the shared `respell.json` and prints every
+word it respelled. `--respell extra.json` adds a map for this run only.
 
 ## setup (one time per machine, and after any engine change)
 
@@ -71,7 +85,11 @@ script still has flags, that is step 040's job — do not work around it here.
 
 TTS gets brand names and acronyms wrong. Fix the **text**, never the audio.
 
-Put a map in `videos/<slug>/respell.json`:
+Two maps, merged at synth time. **`pipelines/video/tts/respell.json` is shared** by
+every voiceover (`vo-synth` and `vo-say`): a word that recurs across videos (brand
+names like D-ID) goes there, once. A video's own map wins on a clash.
+
+For words only this video needs, put a map in `videos/<slug>/respell.json`:
 
     { "Asana": "Ah-sah-nah", "n8n": "N eight N" }
 
