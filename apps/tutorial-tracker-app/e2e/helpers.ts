@@ -9,6 +9,7 @@ export const PERSONAS = {
   tara: "tara@dev.local",             // Thumbnail Maker
   uma: "uma@dev.local",               // Uploader
   riya: "riya@dev.local",             // Reviewer
+  hana: "hana@dev.local",             // Thumbnail Maker, for the handover spec only
 } as const;
 
 /** Sign in via the dev-login backdoor (no Google / password) and land on the board. */
