@@ -87,7 +87,8 @@ TTS gets brand names and acronyms wrong. Fix the **text**, never the audio.
 
 Two maps, merged at synth time. **`pipelines/video/tts/respell.json` is shared** by
 every voiceover (`vo-synth` and `vo-say`): a word that recurs across videos (brand
-names like D-ID) goes there, once. A video's own map wins on a clash.
+names like D-ID) goes there, once. A video's own map wins on a clash. Spelled-out
+acronyms are hyphenated capitals (`D-I-D`); `dee eye dee` pauses between letters.
 
 For words only this video needs, put a map in `videos/<slug>/respell.json`:
 

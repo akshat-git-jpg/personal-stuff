@@ -26,5 +26,5 @@ test("loadRespell tolerates a missing per-video file", () => {
 
 test("the shipped global map says D-ID letter by letter", () => {
   const map = loadRespell(null, GLOBAL_RESPELL_PATH);
-  assert.strictEqual(deriveSpoken("Next is D-ID. D-ID's pricing.", map), "Next is dee eye dee. dee eye dee's pricing.");
+  assert.strictEqual(deriveSpoken("Next is D-ID. D-ID's pricing.", map), "Next is D-I-D. D-I-D's pricing.");
 });
