@@ -60,3 +60,16 @@ test("activity thread records sendback", async ({ page }) => {
   await expect(activityFeed.getByText("requested changes")).toBeVisible();
   await expect(activityFeed.getByText("Please add more color grading tips.")).toBeVisible();
 });
+
+test("admin top bar and tabs fit a small phone", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await loginAs(page, PERSONAS.sean);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+  // Icon-only on a phone, but still named for screen readers and tests.
+  await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "New video" })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "View as team member" })).toBeVisible();
+});

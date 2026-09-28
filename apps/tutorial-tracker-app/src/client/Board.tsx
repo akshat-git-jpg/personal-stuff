@@ -202,15 +202,15 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
             <button key={t.key} type="button"
               onClick={() => setTab(t.key)} aria-pressed={activeTab === t.key}
               className={cn(
-                "-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors",
+                "-mb-px shrink-0 whitespace-nowrap border-b-2 px-2.5 py-2 text-sm font-medium transition-colors sm:px-3",
                 activeTab === t.key
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground",
               )}>{t.label}</button>
           ))}
           {isAdmin && (
-            <Button size="sm" className="mb-1.5 ml-auto h-8" onClick={() => { setShowNewVideo(true); }}>
-              <Plus className="size-4" /> New video
+            <Button size="sm" className="mb-1.5 ml-auto h-8 shrink-0" aria-label="New video" onClick={() => { setShowNewVideo(true); }}>
+              <Plus className="size-4" /> <span className="hidden sm:inline">New video</span>
             </Button>
           )}
         </div>

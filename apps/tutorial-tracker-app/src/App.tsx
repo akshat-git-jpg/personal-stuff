@@ -6,6 +6,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { ThemeToggle } from "./client/ThemeToggle";
+import { LogOut } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Dev preview personas — linked by email. Kept in sync with the local seed
 // (scripts/seed-local.ts), so clicking a persona lands on a populated board.
@@ -140,23 +142,26 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 flex h-[var(--app-header-h)] items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">T</div>
-        <h1 className="text-base font-semibold tracking-tight">Tutorials Tracker</h1>
-        <div className="flex-1" />
+      <header className="sticky top-0 z-30 flex h-[var(--app-header-h)] items-center gap-2 border-b border-border bg-background/95 px-3 backdrop-blur sm:gap-3 sm:px-4 supports-[backdrop-filter]:bg-background/80">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground" aria-hidden="true">T</div>
+        {/* Phone + admin: the logo stands in for the name, so the view-as control fits. */}
+        <h1 className={isAdmin || viewing ? "sr-only text-base font-semibold tracking-tight sm:not-sr-only sm:whitespace-nowrap" : "truncate text-base font-semibold tracking-tight"}>Tutorials Tracker</h1>
+        <div className="min-w-0 flex-1" />
         {(isAdmin || viewing) && (
           <Select value={viewAsEmail || "__me__"} onValueChange={(v) => handleViewAsChange(v === "__me__" ? "" : v)}>
-            <SelectTrigger className="h-8 w-[230px] text-xs" aria-label="View as team member"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-auto min-w-0 max-w-[45vw] text-xs sm:w-[230px] sm:max-w-none [&>span]:truncate" aria-label="View as team member"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__me__">Me (full access)</SelectItem>
               {team.map((m) => <SelectItem key={m.email} value={m.email}>{m.name} — {(m.roles ?? [m.role]).join(", ")}</SelectItem>)}
             </SelectContent>
           </Select>
         )}
-        {myName && <span className="text-sm text-muted-foreground">{myName}</span>}
+        {myName && <span className={cn("text-sm text-muted-foreground", (isAdmin || viewing) && "hidden sm:inline")}>{myName}</span>}
         {roleBadge && <span className="hidden rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground/70 sm:inline">{roleBadge}</span>}
         <ThemeToggle />
-        <Button variant="outline" size="sm" onClick={() => void handleLogout()}>Sign out</Button>
+        <Button variant="outline" size="sm" className="shrink-0" onClick={() => void handleLogout()} aria-label="Sign out">
+          <LogOut className="size-4 sm:hidden" aria-hidden="true" /><span className="hidden sm:inline">Sign out</span>
+        </Button>
       </header>
 
       {previewBanner && <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">{previewBanner}</div>}
