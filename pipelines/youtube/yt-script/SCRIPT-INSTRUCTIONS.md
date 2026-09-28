@@ -363,6 +363,12 @@ Rules for the map:
   numbers that are read as digits vs. words, and any non-English word.
 - **Respell phonetically in plain letters with hyphens.** No IPA, no
   engine-specific phoneme codes.
+- **Spelled-out acronyms are capitals joined by hyphens** (`"D-ID": "D-I-D"`,
+  `"API": "A-P-I"`). Never `dee eye dee`: the engine pauses between the words
+  and it sounds robotic (owner-picked by ear, 2026-09-28).
+- **Check `pipelines/video/tts/respell.json` first.** That shared map applies to
+  every video. Do not repeat its words here: a key in this file overrides it.
+  A word that will recur across videos goes in the shared map instead.
 - Matching is whole-word and case-sensitive, longest key first.
 - `script.md` carries **no** lexicon table. It used to, and that meant the
   respelling existed in two places. One source only (plan 252, 2026-08-26).

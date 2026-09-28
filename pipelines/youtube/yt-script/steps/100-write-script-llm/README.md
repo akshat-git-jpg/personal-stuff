@@ -34,7 +34,8 @@ import('./lib/build-script-json.mjs').then(async (m) => {
 
 Then write `videos/<key>/respell.json` — every word an engine is likely to get
 wrong, mapped to a plain-letters respelling. `script.md` keeps normal spelling;
-the map is applied at synth time, never written into the script.
+the map is applied at synth time, never written into the script. Skip words already
+in the shared `pipelines/video/tts/respell.json`; a repeat here overrides it.
 
 If the builder reports `BEAT_TOO_SHORT`, do not pad the beat to clear it. Raise
 it to the owner — a beat under 8 words is an editorial call, and the maker wrote
