@@ -36,6 +36,7 @@ const TARA = "tara@dev.local";
 const UMA = "uma@dev.local";
 const RIYA = "riya@dev.local";
 const NINA = "nina@dev.local";
+const HANA = "hana@dev.local";
 
 // System-scoped memberships: systemId (or "*" cross-system Admin) → roles there.
 // Demonstrates the model: Riya is a CROSS-SYSTEM reviewer (standard + tut-2);
@@ -54,6 +55,8 @@ const EMPLOYEES: { email: string; name: string; memberships: Record<string, stri
   { email: UMA, name: "Uma", memberships: { "standard": ["Uploader"], "tut-2": ["Uploader"] } },
   { email: RIYA, name: "Riya", memberships: { "standard": ["Reviewer"], "tut-2": ["Reviewer"] } },
   { email: NINA, name: "Nina", memberships: { "tut-2": ["Scriptwriter", "Tutorial Maker"] } },
+  // Hana exists only for e2e/team.spec.ts, which hands her work over and removes her.
+  { email: HANA, name: "Hana", memberships: { "standard": ["Thumbnail Maker"] } },
 ];
 
 // ── Card spec DSL — keyed by stage id; columns resolved via the engine. ──────
@@ -105,6 +108,9 @@ const CARDS: CardSpec[] = [
     notes: "Match shots across two cameras before grading.",
     stages: { topic: D(SEAN), script: D(SAM), recording: D(SAM), processing: D(ANUSHA), editing: { status: "In Review", assignee: JOHN, reviewer: SEAN, link: "https://drive.example.com/final-multicam" } } },
 
+  // Hana's one job: e2e/team.spec.ts hands it to Tara, then removes Hana.
+  { pipeline: "standard", title: "Handover demo", daysAgo: 1,
+    stages: { topic: D(SEAN), thumbnail: { status: "To Do", assignee: HANA } } },
   // Script Recorder journey: e2e/processor.spec.ts walks Script -> Recording -> Processing.
   { pipeline: "standard", title: "Script recorder journey demo", daysAgo: 1,
     notes: "One person writes the script, then records it.",

@@ -7,49 +7,68 @@ import { loginAs, PERSONAS } from "./helpers";
 // the work is offered for handover. These assert the refusal WITHOUT completing a
 // handover, so they never move a card another spec depends on.
 test.describe("removing someone who still holds work", () => {
-  test("is refused, and the work is listed inline", async ({ page }) => {
+  test("asks first on the page, then lists the work by role", async ({ page }) => {
     await loginAs(page, PERSONAS.sean);
-    page.on("dialog", (d) => void d.accept());   // the "Remove …?" confirm
-
     await page.getByRole("button", { name: "Team", exact: true }).click();
     // Tara is Thumbnail Maker in Standard and still holds live thumbnail stages.
     const taraRow = page.getByTestId(`team-row-${PERSONAS.tara}`);
-    await expect(taraRow).toBeVisible();
     await taraRow.getByRole("button", { name: "Remove" }).click();
 
+    // No browser popup: the confirm sits on the row, with a way back.
+    const confirm = taraRow.getByTestId("remove-confirm");
+    await expect(confirm).toContainText("Remove Tara from Standard?");
+    await confirm.getByRole("button", { name: "Remove" }).click();
+
     const panel = page.getByTestId("handover-panel");
-    await expect(panel).toBeVisible();
-    // No apostrophe in the match — the heading renders a curly one (&rsquo;).
-    await expect(panel.getByText(/remove Tara yet/)).toBeVisible();
-    await expect(panel.getByTestId("handover-job").first()).toBeVisible();
-    // Each row names the video, the stage, its status and the system.
+    await expect(panel.getByRole("heading", { name: "Before you remove Tara from Standard" })).toBeVisible();
+    await expect(panel.getByTestId("handover-group").first()).toContainText("Thumbnail Maker");
     await expect(panel.getByText(/Thumbnail · to do · Standard/).first()).toBeVisible();
+    // Nothing is picked yet, so nothing can be sent.
+    await expect(panel.getByTestId("handover-confirm")).toBeDisabled();
 
     // Refused means refused: she is still on the team.
     await expect(page.getByTestId(`team-row-${PERSONAS.tara}`)).toBeVisible();
   });
 
-  test("offers a real person for each stranded job", async ({ page }) => {
+  test("offers only people who hold the role, and one pick for the whole group", async ({ page }) => {
     await loginAs(page, PERSONAS.sean);
-    page.on("dialog", (d) => void d.accept());
-
     await page.getByRole("button", { name: "Team", exact: true }).click();
     const taraRow = page.getByTestId(`team-row-${PERSONAS.tara}`);
-    await expect(taraRow).toBeVisible();
     await taraRow.getByRole("button", { name: "Remove" }).click();
+    await taraRow.getByTestId("remove-confirm").getByRole("button", { name: "Remove" }).click();
 
     const panel = page.getByTestId("handover-panel");
-    await expect(panel).toBeVisible();
     const job = panel.getByTestId("handover-job").first();
-    await expect(job).toBeVisible();
-
-    // toHaveCount retries; a bare count() does not, and races the render.
-    // "Hand to…" plus every person who holds Thumbnail Maker in Standard.
-    await expect(job.locator("select option")).not.toHaveCount(0);
     await expect(job.locator("select option", { hasText: "John" })).toHaveCount(1);
+    // The admin is not offered: the server would refuse someone without the role.
+    await expect(job.locator("select option", { hasText: "Sean" })).toHaveCount(0);
 
-    // And the one-click path for handing the whole lot to a single person.
-    await expect(panel.getByTestId("handover-all")).toBeVisible();
+    // One pick fills every row in the group, and nothing is saved yet.
+    await panel.getByTestId("handover-group-pick").selectOption({ label: "John" });
+    for (const sel of await panel.getByTestId("handover-job").locator("select").all()) {
+      await expect(sel).toHaveValue(PERSONAS.john);
+    }
+    await expect(panel.getByTestId("handover-confirm")).toBeEnabled();
+
+    // Cancel is a real way out: the panel closes and Tara keeps her work.
+    await panel.getByRole("button", { name: "Cancel" }).click();
+    await expect(panel).toHaveCount(0);
+    await expect(page.getByTestId(`team-row-${PERSONAS.tara}`)).toBeVisible();
+  });
+
+  test("taking one role away names the role, not a removal", async ({ page }) => {
+    await loginAs(page, PERSONAS.sean);
+    await page.getByRole("button", { name: "Team", exact: true }).click();
+    await page.getByTestId(`team-row-${PERSONAS.tara}`).getByRole("button", { name: "Edit" }).click();
+    await page.getByRole("button", { name: "Thumbnail Maker", exact: true }).click();
+    await page.getByRole("button", { name: "Uploader", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+
+    const panel = page.getByTestId("handover-panel");
+    await expect(panel.getByRole("heading", { name: "Before you take Thumbnail Maker away from Tara" })).toBeVisible();
+    await expect(panel.getByTestId("handover-confirm")).toContainText("save the roles");
+    // Only one Save on screen: the form's own Save waits for the handover.
+    await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
   });
 
   test("the server refuses it too, not just the button", async ({ page }) => {
@@ -65,6 +84,27 @@ test.describe("removing someone who still holds work", () => {
     expect(body.holdings[0]).toHaveProperty("stageLabel");
     expect(body.holdings[0]).toHaveProperty("role");
   });
+});
+
+// Hana is a throwaway fixture: this test really moves her job and removes her.
+test("a full handover moves the work, then removes the person, and says so", async ({ page }) => {
+  await loginAs(page, PERSONAS.sean);
+  await page.getByRole("button", { name: "Team", exact: true }).click();
+  const hanaRow = page.getByTestId(`team-row-${PERSONAS.hana}`);
+  await hanaRow.getByRole("button", { name: "Remove" }).click();
+  await hanaRow.getByTestId("remove-confirm").getByRole("button", { name: "Remove" }).click();
+
+  const panel = page.getByTestId("handover-panel");
+  await panel.getByTestId("handover-job").locator("select").selectOption({ label: "Tara" });
+  await expect(panel.getByText("1 of 1 picked")).toBeVisible();
+  await panel.getByTestId("handover-confirm").click();
+
+  await expect(page.getByTestId("team-notice")).toHaveText("Handed 1 job to Tara. Hana is removed from Standard.");
+  await expect(page.getByTestId(`team-row-${PERSONAS.hana}`)).toHaveCount(0);
+
+  const board = await (await page.request.get("/api/board")).json();
+  const card = board.rows.find((r: Record<string, string>) => r.video_title === "Handover demo");
+  expect(card.thumbnail_maker_email).toBe(PERSONAS.tara);
 });
 
 test("team panel lists the roster", async ({ page }) => {
