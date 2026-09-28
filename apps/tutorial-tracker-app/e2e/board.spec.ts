@@ -3,7 +3,7 @@ import { loginAs, PERSONAS } from "./helpers";
 
 // Smoke checks against the seeded local data. Run `npm run seed:local` first.
 
-test("scriptwriter board shows seeded cards", async ({ page }) => {
+test("script recorder board shows seeded cards", async ({ page }) => {
   await loginAs(page, PERSONAS.sam);
   await expect(page.getByText("Your turn")).toBeVisible();
   await expect(page.getByText("How to color grade in DaVinci Resolve")).toBeVisible();
@@ -11,7 +11,7 @@ test("scriptwriter board shows seeded cards", async ({ page }) => {
   await expect(page.getByText(/Needs changes:/)).toBeVisible();
   // Waiting-on-review items show who has it and how long (plan 019).
   await expect(page.getByText("Waiting on reviewer")).toBeVisible();
-  await expect(page.getByText(/With .+ · \d+d/)).toBeVisible();
+  await expect(page.getByText(/With .+ · \d+d/).first()).toBeVisible();
 });
 
 test("reviewer has a populated review queue", async ({ page }) => {

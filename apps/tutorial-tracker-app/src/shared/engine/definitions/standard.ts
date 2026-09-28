@@ -1,13 +1,16 @@
 // ===========================================================================
-// `standard` — the existing 6-stage pipeline, reproduced as a definition.
+// `standard` — the original pipeline, reproduced as a definition.
 //
 // This is the ONE verbose def: it pins legacy flat-Row column keys (`cols`) and
 // the historical feedback-column name (`editor_feedback`) so existing cards and
 // every flat-Row consumer stay byte-identical after the engine migration.
 // New pipelines (see tut-2.ts) omit all of this and are a few lines each.
 //
-//   Topic(Admin) → Script(Scriptwriter) → Recording(Recorder)
-//     → Editing(Video Editor) → Thumbnail(Thumbnail Maker) → Upload(Uploader)
+//   Topic(Admin) → Script(Script Recorder) → Recording(Script Recorder)
+//     → Processing(Processor) → Editing(Video Editor)
+//     → Thumbnail(Thumbnail Maker) → Upload(Uploader)
+//
+// Processing was added 2026-09-28 with default `processing_*` keys (no legacy cols).
 // ===========================================================================
 import type { PipelineDef } from "../types";
 
@@ -21,7 +24,7 @@ export const standard: PipelineDef = {
       briefFields: ["video_title", "video_notes", "video_description", "topic_date"],
     },
     {
-      id: "script", label: "Script", role: "Scriptwriter", lifecycle: "review", gate: "topic",
+      id: "script", label: "Script", role: "Script Recorder", lifecycle: "review", gate: "topic",
       contextFields: ["video_title", "video_notes"],
       work: { id: "script_link", label: "Script", type: "url", slot: "work_link", required: "submit" },
       cols: {
@@ -30,7 +33,7 @@ export const standard: PipelineDef = {
       },
     },
     {
-      id: "recording", label: "Recording", role: "Recorder", lifecycle: "review", gate: "script",
+      id: "recording", label: "Recording", role: "Script Recorder", lifecycle: "review", gate: "script",
       work: { id: "tutorial_link", label: "Recording", type: "url", slot: "work_link", required: "submit" },
       cols: {
         status: "tutorial_status", assignee: "tutorial_maker_email", reviewer: "tutorial_reviewer_email",
@@ -38,7 +41,13 @@ export const standard: PipelineDef = {
       },
     },
     {
-      id: "editing", label: "Editing", role: "Video Editor", lifecycle: "review", gate: "recording",
+      id: "processing", label: "Processing", role: "Processor", lifecycle: "review", gate: "recording",
+      needs: ["script", "recording"], // voiceover is made from the approved script + the recording
+      work: { id: "inputs_link", label: "Editor inputs (Drive)", type: "url", slot: "work_link", required: "submit" },
+    },
+    {
+      id: "editing", label: "Editing", role: "Video Editor", lifecycle: "review", gate: "processing",
+      needs: ["recording", "processing"], // raw recording + the processor's editor inputs
       work: { id: "video_editor_link", label: "Final video", type: "url", slot: "work_link", required: "submit" },
       cols: {
         status: "video_editor_status", assignee: "video_editor_email", reviewer: "video_editor_reviewer_email",

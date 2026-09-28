@@ -3,8 +3,8 @@ import type { Page } from "@playwright/test";
 // Dev personas — must match scripts/seed-local.ts + DEV_PERSONAS in src/App.tsx.
 export const PERSONAS = {
   sean: "seankerman25@gmail.com",     // Admin, Reviewer
-  sam: "kushalbakliwal25@gmail.com",  // Scriptwriter, Recorder
-  anusha: "khushibakliwal125@gmail.com", // Recorder
+  sam: "kushalbakliwal25@gmail.com",  // Script Recorder
+  anusha: "khushibakliwal125@gmail.com", // Processor
   john: "akshatpatidar17@gmail.com",  // Video Editor
   tara: "tara@dev.local",             // Thumbnail Maker
   uma: "uma@dev.local",               // Uploader

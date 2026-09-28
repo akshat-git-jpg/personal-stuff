@@ -48,8 +48,8 @@ const EMPLOYEES: { email: string; name: string; memberships: Record<string, stri
   // video (Editing then Thumbnail) — the case that used to render each video
   // twice in My work, once live and once title-only under "Up next".
   { email: JOHN, name: "John", memberships: { "standard": ["Video Editor", "Thumbnail Maker"], "tut-2": ["Processor", "Video Editor"] } },
-  { email: SAM, name: "Sam", memberships: { "standard": ["Scriptwriter", "Recorder"] } },
-  { email: ANUSHA, name: "Anusha", memberships: { "standard": ["Recorder"] } },
+  { email: SAM, name: "Sam", memberships: { "standard": ["Script Recorder"] } },
+  { email: ANUSHA, name: "Anusha", memberships: { "standard": ["Processor"] } },
   { email: TARA, name: "Tara", memberships: { "standard": ["Thumbnail Maker"], "tut-2": ["Thumbnail Maker"] } },
   { email: UMA, name: "Uma", memberships: { "standard": ["Uploader"], "tut-2": ["Uploader"] } },
   { email: RIYA, name: "Riya", memberships: { "standard": ["Reviewer"], "tut-2": ["Reviewer"] } },
@@ -103,7 +103,18 @@ const CARDS: CardSpec[] = [
     stages: { topic: D(SEAN), script: { status: "To Do", assignee: SAM } } },
   { pipeline: "standard", title: "Color matching multi-cam footage", daysAgo: 0,
     notes: "Match shots across two cameras before grading.",
-    stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: { status: "In Review", assignee: JOHN, reviewer: SEAN, link: "https://drive.example.com/final-multicam" } } },
+    stages: { topic: D(SEAN), script: D(SAM), recording: D(SAM), processing: D(ANUSHA), editing: { status: "In Review", assignee: JOHN, reviewer: SEAN, link: "https://drive.example.com/final-multicam" } } },
+
+  // Processor hand-off: e2e/processor.spec.ts walks this Processor -> Reviewer -> Editor.
+  { pipeline: "standard", title: "Processor hand-off demo", daysAgo: 1,
+    notes: "Voiceover from the approved script, then pack everything for the editor.",
+    stages: {
+      topic: D(SEAN),
+      script: { status: "Done", assignee: SAM, link: "https://docs.example.com/script-handoff" },
+      recording: { status: "Done", assignee: SAM, link: "https://drive.example.com/recording-handoff" },
+      processing: { status: "In Progress", assignee: ANUSHA, reviewer: RIYA },
+      editing: { status: "To Do", assignee: JOHN, reviewer: SEAN },
+    } },
 
   // ── Two fixtures for the "same video, two of my stages" case ──────────────
   // A: John owns Editing (live) AND Thumbnail (gated) on one video. This used to
@@ -115,7 +126,8 @@ const CARDS: CardSpec[] = [
     stages: {
       topic: D(SEAN),
       script: { status: "Done", assignee: SAM, link: "https://docs.example.com/script-two-stages" },
-      recording: { status: "Done", assignee: ANUSHA, link: "https://drive.example.com/screen-recording-raw" },
+      recording: { status: "Done", assignee: SAM, link: "https://drive.example.com/screen-recording-raw" },
+      processing: { status: "Done", assignee: ANUSHA, link: "https://drive.example.com/editor-inputs" },
       editing: { status: "Need Changes", assignee: JOHN, reviewer: SEAN, feedback: "audio drifts after 4:10", link: "https://drive.example.com/cut-v1" },
       thumbnail: { status: "To Do", assignee: JOHN, reviewer: SEAN },
     } },
@@ -126,7 +138,8 @@ const CARDS: CardSpec[] = [
     stages: {
       topic: D(SEAN),
       script: { status: "Done", assignee: SAM, link: "https://docs.example.com/script-waiting" },
-      recording: { status: "Done", assignee: ANUSHA, link: "https://drive.example.com/recording-waiting" },
+      recording: { status: "Done", assignee: SAM, link: "https://drive.example.com/recording-waiting" },
+      processing: { status: "Done", assignee: ANUSHA, link: "https://drive.example.com/editor-inputs" },
       editing: { status: "In Progress", assignee: JOHN, reviewer: SEAN },
       thumbnail: { status: "To Do", assignee: TARA, reviewer: SEAN },
     } },
@@ -135,8 +148,8 @@ const CARDS: CardSpec[] = [
 function getAssignee(sys: string, role: string) {
   if (role === "Admin") return SEAN;
   if (sys === "standard") {
-    if (role === "Scriptwriter") return SAM;
-    if (role === "Recorder") return ANUSHA;
+    if (role === "Script Recorder") return SAM;
+    if (role === "Processor") return ANUSHA;
     if (role === "Video Editor") return JOHN;
     if (role === "Thumbnail Maker") return TARA;
     if (role === "Uploader") return UMA;
@@ -209,7 +222,7 @@ function main() {
 );`);
   // One default set per SYSTEM now — the category/subcategory columns remain in
   // the schema (they are part of the legacy PK) but are always blank.
-  out.push(`INSERT INTO assignment_defaults (pipeline_id, category, subcategory, col, email) VALUES ('standard', '', '', 'script_writer_email', 'kushalbakliwal25@gmail.com'), ('standard', '', '', 'tutorial_maker_email', 'khushibakliwal125@gmail.com'), ('standard', '', '', 'video_editor_email', 'akshatpatidar17@gmail.com'), ('standard', '', '', 'thumbnail_maker_email', 'tara@dev.local'), ('standard', '', '', 'uploader_email', 'uma@dev.local');`);
+  out.push(`INSERT INTO assignment_defaults (pipeline_id, category, subcategory, col, email) VALUES ('standard', '', '', 'script_writer_email', 'kushalbakliwal25@gmail.com'), ('standard', '', '', 'tutorial_maker_email', 'kushalbakliwal25@gmail.com'), ('standard', '', '', 'processing_assignee', 'khushibakliwal125@gmail.com'), ('standard', '', '', 'video_editor_email', 'akshatpatidar17@gmail.com'), ('standard', '', '', 'thumbnail_maker_email', 'tara@dev.local'), ('standard', '', '', 'uploader_email', 'uma@dev.local');`);
 
   out.push("DROP TABLE IF EXISTS card_events;");
   out.push(`CREATE TABLE card_events (

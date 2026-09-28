@@ -11,8 +11,8 @@ import { ThemeToggle } from "./client/ThemeToggle";
 // (scripts/seed-local.ts), so clicking a persona lands on a populated board.
 const DEV_PERSONAS: { label: string; email: string }[] = [
   { label: "Sean (Admin)", email: "seankerman25@gmail.com" },
-  { label: "Sam (Script + Recordings)", email: "kushalbakliwal25@gmail.com" },
-  { label: "Anusha (Recordings)", email: "khushibakliwal125@gmail.com" },
+  { label: "Sam (Script Recorder)", email: "kushalbakliwal25@gmail.com" },
+  { label: "Anusha (Processor)", email: "khushibakliwal125@gmail.com" },
   { label: "John (Video Editor)", email: "akshatpatidar17@gmail.com" },
   { label: "Tara (Thumbnails)", email: "tara@dev.local" },
   { label: "Uma (Uploads)", email: "uma@dev.local" },

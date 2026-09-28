@@ -72,7 +72,7 @@ test("team panel lists the roster", async ({ page }) => {
   await page.getByRole("button", { name: "Team", exact: true }).click();
 
   await expect(page.getByText("Sam", { exact: true })).toBeVisible();
-  await expect(page.getByText(/Standard: (Scriptwriter, Recorder|Recorder, Scriptwriter)/)).toBeVisible();
+  await expect(page.getByText("Standard: Script Recorder", { exact: true })).toBeVisible();
 });
 
 // Assignment defaults used to be a list of sets keyed by (category, subcategory).

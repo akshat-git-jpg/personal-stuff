@@ -38,7 +38,7 @@ describe("role roster", () => {
     expect(roles).not.toContain("Ideator");
     expect(roles).not.toContain("Admin");
     expect(roles.slice().sort()).toEqual(
-      ["Recorder", "Reviewer", "Scriptwriter", "Thumbnail Maker", "Uploader", "Video Editor"],
+      ["Processor", "Reviewer", "Script Recorder", "Thumbnail Maker", "Uploader", "Video Editor"],
     );
   });
 });
@@ -65,23 +65,23 @@ describe("gated handoff", () => {
   const open: Row = { row_id: "b", video_title: "B", pipeline: "standard", topic_status: "Done", script_writer_email: "sw@x.com" };
 
   it("a scriptwriter can see a card assigned to them even before Topic is Done", () => {
-    const visible = filterRowsForRoles(["Scriptwriter"], "sw@x.com", [blocked, open]);
+    const visible = filterRowsForRoles(["Script Recorder"], "sw@x.com", [blocked, open]);
     expect(visible.map((r) => r.row_id)).toEqual(["a", "b"]);
   });
 
   it("…but it only enters their working lane once Topic is Done", () => {
-    expect(cardStagesForUser(["Scriptwriter"], "sw@x.com", blocked)).toEqual([]);
-    expect(cardStagesForUser(["Scriptwriter"], "sw@x.com", open)).toEqual(["script_status"]);
+    expect(cardStagesForUser(["Script Recorder"], "sw@x.com", blocked)).toEqual([]);
+    expect(cardStagesForUser(["Script Recorder"], "sw@x.com", open)).toEqual(["script_status"]);
   });
 
   it("and a card assigned to nobody they are stays invisible", () => {
     const someoneElse: Row = { ...open, row_id: "c", script_writer_email: "other@x.com" };
-    expect(filterRowsForRoles(["Scriptwriter"], "sw@x.com", [someoneElse])).toEqual([]);
+    expect(filterRowsForRoles(["Script Recorder"], "sw@x.com", [someoneElse])).toEqual([]);
   });
 });
 
 describe("doer transitions", () => {
-  const roles = ["Scriptwriter"];
+  const roles = ["Script Recorder"];
   const email = "sw@x.com";
   const tos = (status: string) => transitionsForStage(roles, email, SCRIPT, scriptCard(status)).map((t) => t.to);
 
@@ -99,13 +99,13 @@ describe("optional review — no reviewer ⇒ submit completes the stage", () =>
     return r;
   };
   it("submitting goes straight to Done (skips In Review)", () => {
-    const ts = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, noReviewer());
+    const ts = transitionsForStage(["Script Recorder"], "sw@x.com", SCRIPT, noReviewer());
     expect(ts.map((t) => t.to)).toEqual(["Done"]);
     expect(ts[0].label).toMatch(/complete/i);
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "Done", noReviewer()).ok).toBe(true);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_status", "Done", noReviewer()).ok).toBe(true);
   });
   it("with a reviewer assigned, it still goes through In Review", () => {
-    const ts = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, { ...scriptCard("In Progress"), script_link: "https://x.com/s" });
+    const ts = transitionsForStage(["Script Recorder"], "sw@x.com", SCRIPT, { ...scriptCard("In Progress"), script_link: "https://x.com/s" });
     expect(ts.map((t) => t.to)).toEqual(["In Review"]);
   });
 });
@@ -117,8 +117,8 @@ describe("reviewer transitions + can't-review-own-work", () => {
   });
   it("a reviewer who is also the submitter cannot review their own work", () => {
     const row = { ...scriptCard("In Review"), script_reviewer_email: "sw@x.com" };
-    expect(canReview(["Reviewer", "Scriptwriter"], "sw@x.com", SCRIPT, row)).toBe(false);
-    expect(transitionsForStage(["Reviewer", "Scriptwriter"], "sw@x.com", SCRIPT, row)).toEqual([]);
+    expect(canReview(["Reviewer", "Script Recorder"], "sw@x.com", SCRIPT, row)).toBe(false);
+    expect(transitionsForStage(["Reviewer", "Script Recorder"], "sw@x.com", SCRIPT, row)).toEqual([]);
   });
   it("tags transitions by doer/reviewer so each context shows only its own (the My-work-vs-queue fix)", () => {
     // Sean is admin (owns Topic) AND the topic's reviewer — the exact multi-role case.
@@ -141,7 +141,7 @@ describe("reviewer transitions + can't-review-own-work", () => {
     expect(canReview(["Admin", "Reviewer"], "sean@x.com", TOPIC, topicRow)).toBe(true);
     // …but on a producing stage, owner == reviewer is still blocked.
     const ownRow = { ...scriptCard("In Review"), script_reviewer_email: "sw@x.com" };
-    expect(canReview(["Reviewer", "Scriptwriter"], "sw@x.com", SCRIPT, ownRow)).toBe(false);
+    expect(canReview(["Reviewer", "Script Recorder"], "sw@x.com", SCRIPT, ownRow)).toBe(false);
   });
 
   it("Admin is NOT a default reviewer — it needs the Reviewer role + assignment", () => {
@@ -157,29 +157,29 @@ describe("reviewer transitions + can't-review-own-work", () => {
 describe("required fields gate submit/advance", () => {
   it("a scriptwriter can't submit without a script link, and the transition says why", () => {
     const noLink = scriptCard("In Progress"); // script_link empty
-    const ts = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, noLink);
+    const ts = transitionsForStage(["Script Recorder"], "sw@x.com", SCRIPT, noLink);
     const submit = ts.find((t) => t.kind === "submit")!;
     expect(submit.disabledReason).toMatch(/script/i); // label for script_link is "Script"
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Review", noLink).ok).toBe(false);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_status", "In Review", noLink).ok).toBe(false);
   });
   it("…and can once the link is filled", () => {
     const withLink = { ...scriptCard("In Progress"), script_link: "https://x.com/s" };
-    const submit = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, withLink).find((t) => t.kind === "submit")!;
+    const submit = transitionsForStage(["Script Recorder"], "sw@x.com", SCRIPT, withLink).find((t) => t.kind === "submit")!;
     expect(submit.disabledReason).toBeUndefined();
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Review", withLink).ok).toBe(true);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_status", "In Review", withLink).ok).toBe(true);
   });
 });
 
 describe("ETA gate — Start requires the stage's ETA", () => {
   it("a scriptwriter can't Start until the ETA is set, and the transition says why", () => {
     const noEta = scriptCard("To Do"); // script_eta empty
-    const start = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, noEta).find((t) => t.kind === "start")!;
+    const start = transitionsForStage(["Script Recorder"], "sw@x.com", SCRIPT, noEta).find((t) => t.kind === "start")!;
     expect(start.disabledReason).toMatch(/ETA/i);
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Progress", noEta).ok).toBe(false);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_status", "In Progress", noEta).ok).toBe(false);
   });
   it("…and can once the ETA is filled", () => {
     const withEta = { ...scriptCard("To Do"), script_eta: "2026-07-01" };
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Progress", withEta).ok).toBe(true);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_status", "In Progress", withEta).ok).toBe(true);
   });
 });
 
@@ -199,8 +199,8 @@ describe("thumbnail stage", () => {
     // The engine has no `order`/`reviewable` fields: position IS the order, and
     // reviewability comes from the stage's lifecycle.
     const ids = STD.stages.map((s) => s.id);
-    expect(ids.indexOf("thumbnail")).toBe(4);
-    expect(ids.indexOf("upload")).toBe(5);
+    expect(ids.indexOf("thumbnail")).toBe(5);
+    expect(ids.indexOf("upload")).toBe(6);
     const thumb = stageById(STD, "thumbnail")!;
     expect(lifecycle(thumb.lifecycle).reviewed).toBe(true);
     expect(stageById(STD, "upload")!.gate).toBe("thumbnail");
@@ -209,36 +209,36 @@ describe("thumbnail stage", () => {
 
 describe("authorizeWrite (single enforcement point)", () => {
   it("a doer cannot set Done or Need Changes (approver-only)", () => {
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "Done", scriptCard("In Review")).ok).toBe(false);
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "Need Changes", scriptCard("In Progress")).ok).toBe(false);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_status", "Done", scriptCard("In Review")).ok).toBe(false);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_status", "Need Changes", scriptCard("In Progress")).ok).toBe(false);
   });
   it("a doer can submit for review (once the required link is filled)", () => {
     const ready = { ...scriptCard("In Progress"), script_link: "https://x.com/s" };
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Review", ready).ok).toBe(true);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_status", "In Review", ready).ok).toBe(true);
   });
   it("the assigned reviewer can approve (once the next worker's instruction is written)", () => {
     const ready = { ...scriptCard("In Review"), tutorial_instruction: "Record at 1080p" };
     expect(authorizeWrite(["Reviewer"], "rv@x.com", "script_status", "Done", ready).ok).toBe(true);
   });
   it("content fields lock once submitted / approved", () => {
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_link", "x", scriptCard("In Progress")).ok).toBe(true);
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_link", "x", scriptCard("In Review")).ok).toBe(false);
-    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_link", "x", scriptCard("Done")).ok).toBe(false);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_link", "x", scriptCard("In Progress")).ok).toBe(true);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_link", "x", scriptCard("In Review")).ok).toBe(false);
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_link", "x", scriptCard("Done")).ok).toBe(false);
   });
   it("admin bypasses content locks", () => {
     expect(authorizeWrite(["Admin"], "boss@x.com", "script_link", "x", scriptCard("Done")).ok).toBe(true);
   });
   it("fieldLockReason explains why a locked field is locked", () => {
-    expect(fieldLockReason(["Scriptwriter"], "sw@x.com", "script_link", scriptCard("In Review"))).toMatch(/review/i);
-    expect(fieldLockReason(["Scriptwriter"], "sw@x.com", "script_link", scriptCard("In Progress"))).toBeNull();
+    expect(fieldLockReason(["Script Recorder"], "sw@x.com", "script_link", scriptCard("In Review"))).toMatch(/review/i);
+    expect(fieldLockReason(["Script Recorder"], "sw@x.com", "script_link", scriptCard("In Progress"))).toBeNull();
   });
 });
 
 describe("board membership + review queue", () => {
   it("a card belongs to the doer's stage lane only when assigned + gate open", () => {
-    expect(cardStagesForUser(["Scriptwriter"], "sw@x.com", scriptCard("To Do"))).toEqual(["script_status"]);
+    expect(cardStagesForUser(["Script Recorder"], "sw@x.com", scriptCard("To Do"))).toEqual(["script_status"]);
     const notMine = { ...scriptCard("To Do"), script_writer_email: "other@x.com" };
-    expect(cardStagesForUser(["Scriptwriter"], "sw@x.com", notMine)).toEqual([]);
+    expect(cardStagesForUser(["Script Recorder"], "sw@x.com", notMine)).toEqual([]);
   });
   it("the review queue shows In-Review cards assigned to that reviewer", () => {
     const q = reviewQueueForUser(["Reviewer"], "rv@x.com", [scriptCard("In Review"), scriptCard("In Progress")]);
@@ -250,6 +250,6 @@ describe("board membership + review queue", () => {
 
 describe("parseRoles validates against the roster", () => {
   it("keeps valid roles, drops unknown", () => {
-    expect(parseRoles("Scriptwriter, Nope, Recorder")).toEqual(["Scriptwriter", "Recorder"]);
+    expect(parseRoles("Script Recorder, Nope, Processor")).toEqual(["Script Recorder", "Processor"]);
   });
 });

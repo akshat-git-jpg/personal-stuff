@@ -20,11 +20,11 @@ const editing = std.stages.find((s) => s.id === "editing")!;
 const DOER = ["Video Editor"];
 const ED = "ed@x.com";
 
-/** A card that cleared Recording and sits at Editing, assigned to ED. */
+/** A card that cleared Processing and sits at Editing, assigned to ED. */
 function editingCard(status: string, reviewer: string | undefined = "rv@x.com"): Row {
   return {
     row_id: "r1", video_title: "T", pipeline: "standard",
-    topic_status: "Done", script_status: "Done", tutorial_status: "Done",
+    topic_status: "Done", script_status: "Done", tutorial_status: "Done", processing_status: "Done",
     video_editor_status: status,
     video_editor_email: ED,
     video_editor_reviewer_email: reviewer,
