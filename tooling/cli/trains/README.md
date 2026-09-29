@@ -29,7 +29,7 @@ live TRAIN [--started today|yesterday|N]
 
 ./pp-trains --table route 09079
 ./pp-trains --table train 12961
-./pp-trains --table pnr 8154379047
+./pp-trains --table pnr 1234567890
 ./pp-trains --table live 12951 --started yesterday
 ```
 
