@@ -1,0 +1,211 @@
+{
+  "slug": "mumbai-barnagar-oct-2026",
+  "name": "Mumbai → Barnagar (Diwali)",
+  "dates": "30 Oct - 2 Nov 2026",
+  "viewbox": "72.75,23.60,75.60,18.85",
+  "locationHint": "India",
+  "pins": [
+    {
+      "id": "air-blr",
+      "name": "Bengaluru Airport (BLR)",
+      "emoji": "✈️",
+      "category": "transport",
+      "lat": 13.199125,
+      "lon": 77.709028,
+      "note": "SpiceJet SG115 departs Fri 30 Oct 07:30.\nPNR PD4TQM.",
+      "source": "osm"
+    },
+    {
+      "id": "air-bom",
+      "name": "Mumbai Airport (BOM)",
+      "emoji": "✈️",
+      "category": "transport",
+      "lat": 19.102928,
+      "lon": 72.866582,
+      "note": "SG115 lands Fri 30 Oct 09:30.\nTerminal is not on the ticket: check it at web check-in.\nMetro Line 3 has a station at T1 and at T2.",
+      "source": "osm"
+    },
+    {
+      "id": "metro-mumbai-central",
+      "name": "Metro: Mumbai Central station",
+      "emoji": "🚇",
+      "category": "transport",
+      "lat": 18.9707,
+      "lon": 72.8197,
+      "note": "Metro Line 3 (Aqua). Get off here from the airport.\nLocation is approximate, next to Mumbai Central railway station.",
+      "source": "owner"
+    },
+    {
+      "id": "train-mmct",
+      "name": "Mumbai Central (MMCT)",
+      "emoji": "🚆",
+      "category": "transport",
+      "lat": 18.969586,
+      "lon": 72.819315,
+      "note": "Train 09079 departs Sun 1 Nov 23:20.\nCoach B4, berth 15 (side lower). PF 3 (tentative).",
+      "source": "osm"
+    },
+    {
+      "id": "train-rtm",
+      "name": "Ratlam Junction (RTM)",
+      "emoji": "🚆",
+      "category": "transport",
+      "lat": 23.340708,
+      "lon": 75.050993,
+      "note": "09079 arrives Mon 2 Nov 08:45.\nDEMU 79314 to Barnagar departs 10:05.",
+      "source": "osm"
+    },
+    {
+      "id": "train-bng",
+      "name": "Barnagar (BNG)",
+      "emoji": "🚆",
+      "category": "transport",
+      "lat": 23.060305,
+      "lon": 75.376897,
+      "note": "DEMU 79314 arrives Mon 2 Nov 10:57.",
+      "source": "osm"
+    }
+  ],
+  "updatedAt": "2026-09-29T05:49:15.197368Z",
+  "days": [
+    {
+      "date": "Fri 30 Oct",
+      "label": "Fly to Mumbai",
+      "items": [
+        {
+          "time": "07:30",
+          "what": "Flight SpiceJet SG115, BLR → BOM",
+          "where": "Bengaluru Airport · bags: check-in 15 kg, cabin 7 kg",
+          "pinId": "air-blr",
+          "tag": "PD4TQM",
+          "key": true
+        },
+        {
+          "time": "09:30",
+          "what": "Land at Mumbai Airport (BOM)",
+          "where": "Terminal: check at web check-in",
+          "pinId": "air-bom",
+          "key": true
+        },
+        {
+          "time": "10:00",
+          "what": "Metro Line 3 (Aqua) → Mumbai Central",
+          "where": "Board at the airport metro station (CSMIA T1 or T2), toward Cuffe Parade · ~40 min · ~₹50-60",
+          "pinId": "metro-mumbai-central",
+          "tag": "METRO"
+        }
+      ]
+    },
+    {
+      "date": "Sun 1 Nov",
+      "label": "Night train",
+      "items": [
+        {
+          "time": "23:20",
+          "what": "Train 09079, Mumbai Central → Ratlam",
+          "where": "3A · coach B4, berth 15 (side lower) · PF 3 (tentative)",
+          "pinId": "train-mmct",
+          "tag": "CNF B4/15",
+          "key": true
+        }
+      ]
+    },
+    {
+      "date": "Mon 2 Nov",
+      "label": "Reach Barnagar",
+      "items": [
+        {
+          "time": "08:45",
+          "what": "Arrive Ratlam Junction",
+          "where": "Train 09079",
+          "pinId": "train-rtm"
+        },
+        {
+          "time": "10:05",
+          "what": "DEMU 79314, Ratlam → Barnagar",
+          "where": "Unreserved: buy the ticket at the counter or on the UTS app · backup 17606 at 10:50 → 11:38",
+          "pinId": "train-rtm",
+          "tag": "BUY ON THE DAY",
+          "key": true
+        },
+        {
+          "time": "10:57",
+          "what": "Arrive Barnagar",
+          "where": "DEMU 79314",
+          "pinId": "train-bng",
+          "key": true
+        }
+      ]
+    }
+  ],
+  "bookings": [
+    {
+      "id": "flight-sg115",
+      "emoji": "✈️",
+      "title": "Bengaluru → Mumbai",
+      "kind": "Flight · SpiceJet SG115",
+      "fields": [
+        {
+          "label": "PNR",
+          "value": "PD4TQM"
+        },
+        {
+          "label": "Cleartrip Trip ID",
+          "value": "260929991870"
+        },
+        {
+          "label": "Departs",
+          "value": "Fri 30 Oct · 07:30 · BLR"
+        },
+        {
+          "label": "Arrives",
+          "value": "Fri 30 Oct · 09:30 · BOM"
+        },
+        {
+          "label": "Traveller",
+          "value": "Kushal Bakliwal"
+        },
+        {
+          "label": "Bags",
+          "value": "Check-in 15 kg (1) · cabin 7 kg (1)"
+        },
+        {
+          "label": "Paid",
+          "value": "₹6,231"
+        }
+      ]
+    },
+    {
+      "id": "train-09079",
+      "emoji": "🚆",
+      "title": "Mumbai Central → Ratlam",
+      "kind": "Train 09079 · 3A",
+      "fields": [
+        {
+          "label": "PNR",
+          "value": "8154379047"
+        },
+        {
+          "label": "Status",
+          "value": "CNF"
+        },
+        {
+          "label": "Departs",
+          "value": "Sun 1 Nov · 23:20 · MMCT"
+        },
+        {
+          "label": "Arrives",
+          "value": "Mon 2 Nov · 08:45 · RTM"
+        },
+        {
+          "label": "Coach / berth",
+          "value": "B4 / 15 (side lower)"
+        },
+        {
+          "label": "Paid",
+          "value": "₹1,383.60"
+        }
+      ]
+    }
+  ]
+}
