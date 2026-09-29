@@ -7,33 +7,35 @@
   "pins": [
     {
       "id": "air-blr",
-      "name": "Bengaluru Airport (BLR)",
+      "name": "Bengaluru Airport T1",
       "emoji": "✈️",
       "category": "transport",
       "lat": 13.199125,
       "lon": 77.709028,
-      "note": "SpiceJet SG115 departs Fri 30 Oct 07:30.\nPNR PD4TQM.",
+      "note": "SpiceJet SG115 departs Fri 30 Oct 07:30 from Terminal 1.\nPNR PD4TQM.",
       "source": "osm"
     },
     {
       "id": "air-bom",
-      "name": "Mumbai Airport (BOM)",
+      "name": "Mumbai Airport T1",
       "emoji": "✈️",
       "category": "transport",
-      "lat": 19.102928,
-      "lon": 72.866582,
-      "note": "SG115 lands Fri 30 Oct 09:30.\nTerminal is not on the ticket: check it at web check-in.\nMetro Line 3 has a station at T1 and at T2.",
-      "source": "osm"
+      "lat": 19.092817399999998,
+      "lon": 72.8570866,
+      "placeId": "ChIJpZaPPVLI5zsR3mNztqOmWvE",
+      "source": "google",
+      "note": "SG115 lands Fri 30 Oct 09:30 at Terminal 1. Metro Line 3 station CSMIA T1 is here."
     },
     {
-      "id": "metro-mumbai-central",
-      "name": "Metro: Mumbai Central station",
+      "id": "metro-csmia-t1",
+      "name": "Metro: CSMIA T1",
       "emoji": "🚇",
       "category": "transport",
-      "lat": 18.9707,
-      "lon": 72.8197,
-      "note": "Metro Line 3 (Aqua). Get off here from the airport.\nLocation is approximate, next to Mumbai Central railway station.",
-      "source": "owner"
+      "lat": 19.0946011,
+      "lon": 72.8536486,
+      "placeId": "ChIJp3WuyJvJ5zsRCAJkpytFRxQ",
+      "source": "google",
+      "note": "Metro Line 3 (Aqua). Board here toward Cuffe Parade. ~40 min to Mumbai Central, ~₹50-60."
     },
     {
       "id": "train-mmct",
@@ -66,7 +68,7 @@
       "source": "osm"
     }
   ],
-  "updatedAt": "2026-09-29T05:49:15.197368Z",
+  "updatedAt": "2026-09-29T05:56:26.928292Z",
   "days": [
     {
       "date": "Fri 30 Oct",
@@ -75,23 +77,23 @@
         {
           "time": "07:30",
           "what": "Flight SpiceJet SG115, BLR → BOM",
-          "where": "Bengaluru Airport · bags: check-in 15 kg, cabin 7 kg",
+          "where": "Bengaluru Airport T1 · bags: check-in 15 kg, cabin 7 kg",
           "pinId": "air-blr",
           "tag": "PD4TQM",
           "key": true
         },
         {
           "time": "09:30",
-          "what": "Land at Mumbai Airport (BOM)",
-          "where": "Terminal: check at web check-in",
+          "what": "Land at Mumbai Airport T1",
+          "where": "Terminal 1 (on the SpiceJet e-ticket)",
           "pinId": "air-bom",
           "key": true
         },
         {
           "time": "10:00",
           "what": "Metro Line 3 (Aqua) → Mumbai Central",
-          "where": "Board at the airport metro station (CSMIA T1 or T2), toward Cuffe Parade · ~40 min · ~₹50-60",
-          "pinId": "metro-mumbai-central",
+          "where": "Board at CSMIA T1 metro station, toward Cuffe Parade · get off at Mumbai Central · ~40 min · ~₹50-60",
+          "pinId": "metro-csmia-t1",
           "tag": "METRO"
         }
       ]
@@ -155,11 +157,11 @@
         },
         {
           "label": "Departs",
-          "value": "Fri 30 Oct · 07:30 · BLR"
+          "value": "Fri 30 Oct · 07:30 · BLR T1"
         },
         {
           "label": "Arrives",
-          "value": "Fri 30 Oct · 09:30 · BOM"
+          "value": "Fri 30 Oct · 09:30 · BOM T1"
         },
         {
           "label": "Traveller",
@@ -173,13 +175,27 @@
           "label": "Paid",
           "value": "₹6,231"
         }
+      ],
+      "files": [
+        {
+          "name": "spicejet e-ticket.pdf",
+          "url": "https://drive.google.com/file/d/1IKUoT4emYydpoMDUbJn4zAxdab4mcHx8/view"
+        },
+        {
+          "name": "cleartrip e-ticket.pdf",
+          "url": "https://drive.google.com/file/d/1ElQt24ouaLA6AUPXvrdM-_7i0wKBD7Y0/view"
+        },
+        {
+          "name": "cleartrip receipt.pdf",
+          "url": "https://drive.google.com/file/d/1n-uMJwphY8RpnO7lZ50LzekyykbUlPS4/view"
+        }
       ]
     },
     {
       "id": "train-09079",
       "emoji": "🚆",
       "title": "Mumbai Central → Ratlam",
-      "kind": "Train 09079 · 3A",
+      "kind": "Train 09079 MMCT INDB SF SPL · 3A",
       "fields": [
         {
           "label": "PNR",
@@ -205,7 +221,14 @@
           "label": "Paid",
           "value": "₹1,383.60"
         }
+      ],
+      "files": [
+        {
+          "name": "irctc booking.pdf",
+          "url": "https://drive.google.com/file/d/1B6qFd3TJarXA_Z0Pi1liYzhHSVileWF1/view"
+        }
       ]
     }
-  ]
+  ],
+  "docsFolderUrl": "https://drive.google.com/drive/folders/1P7q_bAtBxNWR1an7rBuCdFczOAncBRjw"
 }

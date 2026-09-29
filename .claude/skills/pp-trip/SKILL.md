@@ -1,6 +1,6 @@
 ---
 name: pp-trip
-description: Manage trip pins for apps/trip-planner (trips.agrolloo.com) - create a trip, add or remove pins, list, deploy. Use when the owner says "add X to my Varkala trip", "make a new trip for Bali", "research top places in Kyoto and pin them", "deploy my trip", "remove that pin", or names/edits any place on the trip map. Triggers on "pp-trip", "trip planner", "trip map", "add to trip", "trip pins".
+description: Manage trips on apps/trip-planner (trips.agrolloo.com, the "trip UI") - create a trip, pins, the day plan, booking cards and the trip's Google Drive folder of tickets, then deploy. Use when the owner says "add X to my Varkala trip", "make a new trip for Bali", "add this booking/ticket/flight/train/hotel to my trip", "put it in my trip UI", "research top places in Kyoto and pin them", "deploy my trip", "remove that pin", or names/edits any place on the trip map. Triggers on "pp-trip", "trip planner", "trip UI", "trip map", "add to trip", "trip pins", itinerary, booking, ticket, stay, hotel.
 ---
 
 # pp-trip - trip pin management
@@ -10,6 +10,26 @@ description: Manage trip pins for apps/trip-planner (trips.agrolloo.com) - creat
 The `pp-trip` CLI at `tooling/cli/pp-trip/pp-trip`. It manages
 `apps/trip-planner/trips/<slug>.json` and pushes updates to
 `trips.agrolloo.com` via the Worker's write API.
+
+## New trip checklist (all of it, every time)
+
+A trip with bookings is not done until every line is true. On 2026-09-29 a trip
+shipped with only lines 1-3 and the owner had to ask for the rest.
+
+1. `pp-trip new` with `viewbox` and `locationHint`.
+2. Pins through `pp-trip add` only (never guessed coordinates, see below).
+3. `days` and `bookings` written into the JSON.
+4. **Drive folder** `My Drive / Trips / <trip name> - <Mon YYYY>` (the `Trips` folder
+   already exists), made with `tooling/cli/drive/pp-drive ensure-folder`. Upload every
+   ticket, voucher and receipt PDF with `pp-drive upload`, link each in its booking's
+   `files`, and put the folder URL in `docsFolderUrl`. PDFs come from the booking
+   emails (Gmail API attachments); an email with no PDF gets printed to PDF.
+5. `pp-trip deploy <slug>`, then `check-layout.py` for that slug.
+
+In a claimed workspace two gitignored files are missing. Copy
+`infra/secrets/google-places.env` from the main checkout (without it the Google
+rung is silently skipped), and pass `PP_TRIP_TOKEN` to `deploy`, since
+`apps/trip-planner/.dev.vars` is not there.
 
 ## When to invoke it
 
