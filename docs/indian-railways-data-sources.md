@@ -136,6 +136,28 @@ Star count was actively misleading here. The 26-star repo is a remote
 dependency on a stranger, and the 1-star repo had the most useful information in
 it.
 
+## Source C: RailYatri (live running status, no key)
+
+Its public live-status page embeds the whole state as JSON in a
+`__NEXT_DATA__` script tag, under `props.pageProps.ltsData`. The data is
+tagged `data_from: ntes`, so it is Indian Railways' own tracking relayed.
+
+```
+GET https://www.railyatri.in/live-train-status/<train>?start_day=<days ago>
+```
+
+`start_day=0` is the run that started today, `1` yesterday. Useful fields:
+`title`, `new_message`, `delay` (minutes), `current_station_name` (trailing
+`~`), `status_as_of`, `next_station_name`, `platform_number`, and
+`upcoming_stations[]` with per-stop `eta` and `arrival_delay`.
+
+The stop list comes from erail's
+`data.aspx?Action=TRAINROUTE&Password=2012&Data1=<route id>`, where the route
+id is the number right after the train-type field in the
+`getTrains.aspx?TrainNo=` response.
+
+All three sources are wired together in `tooling/cli/trains/` (`pp-trains`).
+
 ## Extending this
 
 The installed MCP covers timetable questions. If fares or availability are ever

@@ -11,6 +11,7 @@ Each tool lives in its own folder with the executable and (mostly) a README.
 - `rapidapi/` — RapidAPI calls.
 - `flights/` — `pp-flights`, flight search with live prices via Skyscanner's public web API. No key, no browser, no login.
 - `bus/` — `pp-bus`, local bus timetables (Indore ↔ Badnagar) from printed timetables stored as JSON. Offline, no key.
+- `trains/` — `pp-trains`, Indian Railways search joined with fares, seats and confirm chance, plus route and live running status. No key.
 - `splitwise/` — `pp-splitwise`, Splitwise through your saved web login (API keys need Pro): groups, expenses, add an equal split, find payments not on Splitwise yet.
 - `flipkart/` — `pp-flipkart`, your own Flipkart order history with items, read-only, through a saved login. Feeds the Kushal Money ledger.
 - `yt-claude/` — userscript + localhost relay that opens a Claude session per YouTube thumbnail.
