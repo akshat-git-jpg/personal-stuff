@@ -193,19 +193,33 @@ def search_table(a, b, date, cls, rows):
 
 # --- route ------------------------------------------------------------------
 
-def route(train):
+def train_info(train):
     meta = get(f"{ERAIL}/rail/getTrains.aspx", {"TrainNo": train, "DataSource": 0,
                "Language": 0, "Cache": "true"}).text
     parts = meta.split("^", 1)
     if len(parts) < 2:
         sys.exit(f"pp-trains: train {train} not found.")
     f = parts[1].split("~")
-    name, days = f[1], f[13]
-    # The route id sits right after the train-type field (e.g. MAIL_EXPRESS~15652).
-    m = re.search(r"~(?:MAIL_EXPRESS|SUPERFAST|ORDINARY|RAJDHANI|SHATABDI|DURONTO|[A-Z_]+)~(\d{3,6})~", parts[1])
-    if not m:
+    # Same field layout as a between-stations record; the route id follows the type.
+    comp = next((x for x in f if x.startswith(",,En:")), "")
+    coaches = [c.split(",")[1] for c in comp.split(":")[1:] if c.count(",") == 2]
+    classes = sorted({c.split(",")[2] for c in comp.split(":")[1:] if c.count(",") == 2} & set(CLASS_ORDER),
+                     key=CLASS_ORDER.index) or sorted(set(re.findall(r"\b(1A|2A|3A|3E|SL|CC|EC|2S):{3}", parts[1])),
+                                                      key=CLASS_ORDER.index)
+    return {"number": f[0], "name": f[1], "origin": f[3], "origin_name": f[2],
+            "destination": f[5], "destination_name": f[4], "depart": hhmm(f[10]), "arrive": hhmm(f[11]),
+            "duration": hhmm(f[12]), "run_days": f[13], "type": f[32] or None,
+            "route_id": f[33] if f[33].isdigit() else None,
+            "distance_km": f[39] or None, "avg_speed_kmh": f[40] or None,
+            "classes": classes, "coaches": coaches}
+
+
+def route(train):
+    info = train_info(train)
+    if not info["route_id"]:
         sys.exit(f"pp-trains: no route id for {train}.")
-    raw = get(f"{ERAIL}/data.aspx", {"Action": "TRAINROUTE", "Password": "2012", "Data1": m.group(1),
+    name, days = info["name"], info["run_days"]
+    raw = get(f"{ERAIL}/data.aspx", {"Action": "TRAINROUTE", "Password": "2012", "Data1": info["route_id"],
               "Data2": 0, "Cache": "true"}).text
     stops = []
     # Stop records start after "~^", except the first, which follows "#^".
@@ -244,6 +258,50 @@ def live(train, start_day):
     return out
 
 
+# --- PNR ----------------------------------------------------------------------
+
+def page_tokens(page):
+    page = re.sub(r"<(script|style)[^>]*>.*?</\1>", "", page, flags=re.S)
+    text = html.unescape(re.sub(r"<[^>]+>", "\n", page))
+    return [t.strip() for t in text.split("\n") if t.strip()]
+
+
+def after(tokens, label, n=1, start=0):
+    i = tokens.index(label, start)
+    return tokens[i + 1:i + 1 + n]
+
+
+def pnr(number):
+    if not re.fullmatch(r"\d{10}", number):
+        sys.exit("pp-trains: a PNR is 10 digits.")
+    tok = page_tokens(get(f"https://www.railyatri.in/pnr-status/{number}").text)
+    if "CHART STATUS" not in tok:
+        sys.exit("pp-trains: PNR not found, or the RailYatri page changed shape.")
+    try:
+        # Station cells read "MUMBAI CENTRAL | MMCT", then the time.
+        frm = after(tok, "FROM", 2)
+        to = after(tok, "TO", 2, tok.index("FROM"))
+        (fname, fcode), (tname, tcode) = [[x.strip() for x in s[0].rsplit("|", 1)] for s in (frm, to)]
+        train = after(tok, "TRAIN NAME :", 2)
+        out = {"pnr": number, "status": after(tok, "CURRENT STATUS")[0],
+               "chart": after(tok, "CHART STATUS")[0],
+               "train": train[0], "train_name": train[1].lstrip("‒- ").strip(),
+               "from": fcode, "from_name": fname, "depart": frm[1],
+               "to": tcode, "to_name": tname, "arrive": to[1],
+               "date": after(tok, "DAY OF BOARDING")[0], "class": after(tok, "CLASS")[0],
+               "platform_tentative": after(tok, "PF# (TENTATIVE)")[0]}
+    except (ValueError, IndexError):
+        sys.exit("pp-trains: couldn't read the PNR page; its layout changed.")
+    # Passenger rows are groups of 4 after the COACH/BERTH header: "1.", booking, current, berth.
+    rows, i = [], tok.index("COACH/BERTH") + 1
+    while i + 3 < len(tok) and re.fullmatch(r"\d+\.", tok[i]):
+        rows.append({"n": int(tok[i][:-1]), "booking": tok[i + 1], "current": tok[i + 2],
+                     "coach_berth": tok[i + 3]})
+        i += 4
+    out["passengers"] = rows
+    return out
+
+
 def main():
     p = argparse.ArgumentParser(prog="pp-trains", description=__doc__.splitlines()[0])
     p.add_argument("--table", action="store_true", help="human table instead of JSON")
@@ -266,7 +324,42 @@ def main():
     lv = sub.add_parser("live", help="live running status")
     lv.add_argument("train")
     lv.add_argument("--started", default="today", help="today, yesterday, or days ago (0, 1, 2)")
+
+    tr = sub.add_parser("train", help="one train: ends, times, days, classes, coach order")
+    tr.add_argument("train")
+
+    pn = sub.add_parser("pnr", help="booking status, coach and berth for a PNR")
+    pn.add_argument("number")
+
     args = p.parse_args()
+
+    if args.cmd == "train":
+        t = train_info(args.train)
+        if args.table:
+            print(f"{t['number']} {t['name']}  ({t['type'] or '?'})")
+            print(f"  {t['origin_name']} ({t['origin']}) {t['depart']} -> {t['destination_name']} "
+                  f"({t['destination']}) {t['arrive']}  {t['duration']}h, {t['distance_km']} km")
+            print(f"  runs {days_text(t['run_days'])}   classes {' '.join(t['classes']) or '?'}")
+            if t["coaches"]:
+                print(f"  coach order (engine first): {' '.join(t['coaches'])}")
+            else:
+                print("  coach order: not published for this train")
+        else:
+            print(json.dumps(t, indent=2, ensure_ascii=False))
+        return
+
+    if args.cmd == "pnr":
+        d = pnr(args.number)
+        if args.table:
+            print(f"PNR {d['pnr']}  {d['status']}  chart {d['chart'].lower()}")
+            print(f"  {d['train']} {d['train_name']}  {d['date']}  {d['class']}")
+            print(f"  {d['from_name']} ({d['from']}) {d['depart']} -> {d['to_name']} ({d['to']}) {d['arrive']}"
+                  f"  PF {d['platform_tentative']} (tentative)")
+            for r in d["passengers"]:
+                print(f"  {r['n']}. {r['current']:<12} {r['coach_berth']:<10} (booked: {r['booking']})")
+        else:
+            print(json.dumps(d, indent=2, ensure_ascii=False))
+        return
 
     if args.cmd == "stations":
         hits = suggest(args.query)

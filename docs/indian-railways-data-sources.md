@@ -156,6 +156,16 @@ The stop list comes from erail's
 id is the number right after the train-type field in the
 `getTrains.aspx?TrainNo=` response.
 
+PNR status comes from `https://www.railyatri.in/pnr-status/<pnr>`, plain
+HTML. Station cells read `NAME | CODE`; passenger rows are groups of four
+(`1.`, booking, current, coach/berth) after the `COACH/BERTH` header.
+
+The coach order is in erail's train record: the field starting `,,En:`, a
+`:`-separated list of `type,label,class`, engine first.
+
+erail's `station-live/<code>` page is a stale snapshot, so do not use it as a
+live board.
+
 All three sources are wired together in `tooling/cli/trains/` (`pp-trains`).
 
 ## Extending this
