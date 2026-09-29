@@ -113,6 +113,19 @@
         "establishment"
       ]
     },
+    "ChIJU1qrFD_J5zsRFv9zZNSParU": {
+      "address": "1, Rup Nagar, Goregaon East, Mumbai, Maharashtra 400093, India",
+      "lat": 19.1257536,
+      "lon": 72.873437,
+      "name": "SEEPZ Metro Station,LINE 3",
+      "placeId": "ChIJU1qrFD_J5zsRFv9zZNSParU",
+      "source": "google",
+      "types": [
+        "transportation_service",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
     "ChIJW_UBoBvvBTsRz1shGedxcgQ": {
       "address": "Kurakkanni, Inda Hotel, 1/153a, Varkala, Kerala 695141, India",
       "lat": 8.7385407,
@@ -232,6 +245,45 @@
         "establishment"
       ]
     },
+    "ChIJp3WuyJvJ5zsRCAJkpytFRxQ": {
+      "address": "Chhatrapati Shivaji International Airport Area, Unnamed Road, Navpada, Vile Parle, Mumbai, Maharashtra 400099, India",
+      "lat": 19.0946011,
+      "lon": 72.8536486,
+      "name": "CSMIA T1 Metro Sation",
+      "placeId": "ChIJp3WuyJvJ5zsRCAJkpytFRxQ",
+      "source": "google",
+      "types": [
+        "point_of_interest",
+        "establishment"
+      ]
+    },
+    "ChIJpZaPPVLI5zsR3mNztqOmWvE": {
+      "address": "T1, Navpada, Vile Parle East, Vile Parle, Mumbai, Maharashtra 400099, India",
+      "lat": 19.092817399999998,
+      "lon": 72.8570866,
+      "name": "Terminal 1",
+      "placeId": "ChIJpZaPPVLI5zsR3mNztqOmWvE",
+      "source": "google",
+      "types": [
+        "premise",
+        "street_address"
+      ]
+    },
+    "ChIJvWUwiW7O5zsRUhbzPs3reZg": {
+      "address": "Nathani Heights Commercial,B'Wing,Shop no 57 Ground Floor, Mumbai Central, Mumbai, Maharashtra 400008, India",
+      "lat": 18.969625399999998,
+      "lon": 72.81930799999999,
+      "name": "Mumbai Central",
+      "placeId": "ChIJvWUwiW7O5zsRUhbzPs3reZg",
+      "source": "google",
+      "types": [
+        "train_station",
+        "transit_station",
+        "transportation_service",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
     "ChIJz7AwpR7vBTsRiLvaiKZSQfE": {
       "address": "Varkala Helipad Road, Varkala, Kerala 695141, India",
       "lat": 8.7362608,
@@ -255,7 +307,9 @@
   "queries": {
     "arrival — varkala sivagiri railway station area|varkala, kerala, india": "ChIJH3ndAnvvBTsRDLOKoYwaHWc",
     "cafe sarwaa (on the cliff)|varkala, kerala, india": "ChIJkbyEf9nvBTsRbHm_g9KyUbU",
+    "chhatrapati shivaji maharaj international airport terminal 1 santacruz|india": "ChIJpZaPPVLI5zsR3mNztqOmWvE",
     "coffee temple|varkala, kerala, india": "ChIJkQR2hG3vBTsRX2CofK2uN6Y",
+    "csmia t1 metro station line 3|india": "ChIJp3WuyJvJ5zsRCAJkpytFRxQ",
     "departure — kallambalam|varkala, kerala, india": "ChIJkZ4hddnpBTsRP3h3H_POfGI",
     "gouri's homestay|varkala, kerala, india": "ChIJeX5a39_uBTsR-RuezFBYSGw",
     "holy rabbit cafe|varkala, kerala, india": "ChIJPzPcTPrvBTsRFhC_Y-un5DI",
@@ -265,6 +319,9 @@
     "kappil beach (backwaters meet sea)|varkala, kerala, india": "ChIJFeFATnvlBTsRGZas5UFWXJg",
     "kappil boat club (backwaters)|varkala, kerala, india": "ChIJacgxT1nlBTsR1bhl6WiQAVc",
     "kappil lake (backwater boat)|varkala, kerala, india": "ChIJacgxT1nlBTsR1bhl6WiQAVc",
+    "mumbai central metro aqua line tardeo|india": "ChIJvWUwiW7O5zsRUhbzPs3reZg",
+    "mumbai central metro station line 3 aqua|india": "ChIJU1qrFD_J5zsRFv9zZNSParU",
+    "mumbai central metro station|india": "ChIJvWUwiW7O5zsRUhbzPs3reZg",
     "north cliff (sunset walk)|varkala, kerala, india": "ChIJ1yZfn5_vBTsRLKjKnkZn28U",
     "odayam beach (quieter)|varkala, kerala, india": "ChIJZ-DdhgzvBTsRS9OPZlTRR5Q",
     "ponnumthuruthu (golden island)|varkala, kerala, india": "ChIJf3Yci1rpBTsRzcDgTQqzduI",
