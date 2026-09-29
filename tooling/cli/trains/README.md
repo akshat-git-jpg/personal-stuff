@@ -1,8 +1,8 @@
 # pp-trains
 
 Indian Railways from the command line: every train between two stations,
-joined with fares, seats and confirm chance, plus the stop list and live
-running status. No key, no login. It cannot book.
+joined with fares, seats and confirm chance, plus the stop list, coach order,
+PNR status and live running status. No key, no login. It cannot book.
 
 Run `./pp-trains <cmd>`. JSON by default, `--table` for a human table.
 
@@ -12,6 +12,8 @@ Run `./pp-trains <cmd>`. JSON by default, `--table` for a human table.
 search ORIGIN DEST [DATE] [--class 3A] [--available] [--after HH:MM]
 stations QUERY            station codes by name
 route TRAIN               every stop, with times, km and day
+train TRAIN               ends, times, days, classes, coach order
+pnr PNR                   booking status, coach, berth, chart, platform
 live TRAIN [--started today|yesterday|N]
 ```
 
@@ -26,6 +28,8 @@ live TRAIN [--started today|yesterday|N]
 ./pp-trains --table search indore barnagar "1 nov"
 
 ./pp-trains --table route 09079
+./pp-trains --table train 12961
+./pp-trains --table pnr 8154379047
 ./pp-trains --table live 12951 --started yesterday
 ```
 
@@ -41,6 +45,8 @@ anything else is looked up by name.
 | `search DATE` | erail + ConfirmTkt, joined on train number | Adds fare, seat status and confirm chance per class |
 | `stations` | ConfirmTkt autosuggest | Name to code |
 | `route` | erail | The stop list |
+| `train` | erail | Train summary and coach order, engine first (not published for every special) |
+| `pnr` | RailYatri PNR page (HTML) | Status, coach/berth, chart status, tentative platform |
 | `live` | RailYatri page JSON, relayed from NTES | Delay, current station, platform, upcoming ETAs |
 
 Endpoints and field positions are in
@@ -62,5 +68,9 @@ All three sources are unofficial and public. They break the day a site
 changes shape, not on billing. RailYatri says its live data can lag or be
 crowd-sourced, so recheck at the station on the day.
 
-No PNR command yet: the only no-key PNR path is scraping a ConfirmTkt page,
-and it could not be verified without a real PNR.
+`pnr` sends the PNR to RailYatri. It parses page HTML, so it is the command
+most likely to break first.
+
+No station board: erail's `station-live` page serves a stale snapshot (checked
+2026-09-29 at 10:30, it still showed the previous night's trains), and
+RailYatri has no equivalent page. Showing old data as live is worse than none.
