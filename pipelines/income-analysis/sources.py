@@ -378,9 +378,9 @@ def fetch_tolt():
         "payouts": [
             {
                 "key": p.get("id"),
-                # Tolt sends an ISO-8601 string, not the epoch millis that
-                # iso_day() takes for the other networks. Slice the day off.
-                "date": (p.get("created_at") or "")[:10] or None,
+                # The day money left (paid_at), not the day the payout was raised:
+                # Jul 2026's was raised 10 Aug and paid 2 Sep. ISO strings, so slice the day.
+                "date": (p.get("paid_at") or p.get("created_at") or "")[:10] or None,
                 "amount": _cents(p.get("amount")),
                 "currency": "USD",
                 "tool": "OpenArt",

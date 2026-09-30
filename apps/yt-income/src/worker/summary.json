@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T13:22:48",
+  "generated_at": "2026-09-30T13:56:18",
   "coverage": {
     "from": "2026-01",
     "to": "2026-09",
@@ -31,7 +31,7 @@
       "label": "PayPal",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-09-30T05:29:59Z"
+      "as_of": "2026-09-30T06:29:59Z"
     },
     {
       "id": "bank",
@@ -50,7 +50,7 @@
       "label": "PartnerStack",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-09-30T13:22:02"
+      "as_of": "2026-09-30T13:55:34"
     },
     {
       "id": "bookbolt",
@@ -58,7 +58,7 @@
       "kind": "cli",
       "note": "Read straight from the Book Bolt affiliate portal by bookbolt-pp-cli. Book Bolt settles over PayPal, so this is a CHECK on the PayPal ledger rather than a source of new money: it is the only independent statement of what Book Bolt believes it paid. Its portal session lasts two hours, so the CLI logs itself in; a rejected password is reported, never retried.",
       "state": "connected",
-      "as_of": "2026-09-30T13:22:27"
+      "as_of": "2026-09-30T13:55:58"
     },
     {
       "id": "tolt",
@@ -66,7 +66,7 @@
       "kind": "cli",
       "note": "Read straight from the partner dashboard by tolt-pp-cli. Uses a browser session that lapses every couple of weeks; when it does, this reads as not connected rather than as zero.",
       "state": "connected",
-      "as_of": "2026-09-30T13:22:03"
+      "as_of": "2026-09-30T13:55:35"
     },
     {
       "id": "mailbox",
@@ -541,6 +541,16 @@
           "confidence": "exact"
         },
         {
+          "tool": "OpenArt",
+          "amount": 16531.38,
+          "route": [
+            "Tolt",
+            "Airwallex"
+          ],
+          "confidence": "matched",
+          "implied_fx": 94.27
+        },
+        {
           "tool": "HeyGen",
           "amount": 8531.07,
           "route": [
@@ -558,34 +568,14 @@
         }
       ],
       "untraced": {
-        "amount": 16531.38,
-        "reasons": [
-          "Airwallex",
-          "source_not_connected"
-        ],
-        "credits": [
-          {
-            "kind": "credit",
-            "date": "02/09/2026",
-            "amount": 16531.38,
-            "rail": "airwallex",
-            "rail_label": "Airwallex",
-            "ref": "624531155091",
-            "leads": [
-              {
-                "source": "PartnerStack",
-                "what": "emailed a payout of USD 32.66",
-                "gap_days": 30,
-                "implied_fx": null
-              }
-            ]
-          }
-        ]
+        "amount": 0.0,
+        "reasons": [],
+        "credits": []
       }
     }
   },
   "paypal_pending": {
-    "as_of": "2026-09-30T05:29:59Z",
+    "as_of": "2026-09-30T06:29:59Z",
     "holdings": [
       {
         "currency": "USD",
