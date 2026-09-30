@@ -211,16 +211,15 @@ export function GymProvider({ children }: { children: ReactNode }) {
   const reorderPlanDay = useCallback(
     (day: number, orderedIds: string[]) => {
       const before = snapRef.current.plan;
-      const currentDay = before.filter((r) => r.day === day).sort((a, b) => a.position - b.position);
-      const otherDays = before.filter((r) => r.day !== day);
-      const byId: any = { };
-      for (const r of currentDay) byId[r.exerciseId] = r;
-      const nextDay = orderedIds.map((id, i) => {
-        const r = byId[id];
-        if (!r) return null;
-        return { ...r, position: i };
-      }).filter(Boolean) as PlanRow[];
-      setSnap((s) => ({ ...s, plan: [...otherDays, ...nextDay] }));
+      // Built from the latest state, so a star or remove queued in the same tick survives.
+      setSnap((s) => {
+        const byId = new Map(s.plan.filter((r) => r.day === day).map((r) => [r.exerciseId, r]));
+        const nextDay = orderedIds.flatMap((id, i) => {
+          const r = byId.get(id);
+          return r ? [{ ...r, position: i }] : [];
+        });
+        return { ...s, plan: [...s.plan.filter((r) => r.day !== day), ...nextDay] };
+      });
       api.reorderPlanDay(day, orderedIds).catch((e) => {
         toast(String((e as Error).message), true);
         setSnap((s) => ({ ...s, plan: before }));
