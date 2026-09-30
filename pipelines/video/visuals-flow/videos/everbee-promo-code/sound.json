@@ -17,16 +17,16 @@
       "gainDb": -14
     },
     {
-      "id": "sfx-2",
-      "at": 32.06,
-      "sample": "blip",
+      "id": "sfx-9",
+      "at": 36.66,
+      "sample": "swipe",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-9",
-      "at": 36.66,
-      "sample": "swipe",
+      "id": "sfx-2",
+      "at": 37.26,
+      "sample": "blip",
       "semi": 0,
       "gainDb": -14
     },
@@ -39,14 +39,14 @@
     },
     {
       "id": "sfx-6",
-      "at": 265.42,
+      "at": 266.58,
       "sample": "blip",
       "semi": 0,
       "gainDb": -14
     },
     {
       "id": "sfx-7",
-      "at": 270.42,
+      "at": 271.52,
       "sample": "success",
       "semi": 0,
       "gainDb": -14

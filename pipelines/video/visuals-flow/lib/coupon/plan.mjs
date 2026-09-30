@@ -96,28 +96,22 @@ export function findCode(words) {
   return best?.code ?? null;
 }
 
-// Nudge [start, start+dur] off avatar cuts and earlier cards. null = drop it.
-function place(trigger, dur, { cuts, taken, total }) {
+// Place a card at or AFTER its trigger, never before: a CTA must not appear before
+// its words are spoken (owner 2026-09-30). Clashes push it later; null = drop it.
+export function place(trigger, dur, { cuts, taken, total }) {
   const { TRANSITION_GUARD: G, CARD_GAP, MAX_SLIP } = COUPON_RULES;
   let s = Math.max(0, trigger);
-  for (let pass = 0; pass < 4; pass++) {
+  for (let pass = 0; pass < 6; pass++) {
     let moved = false;
     for (const b of cuts) {
-      if (s < b + G && s + dur > b - G) {
-        s = trigger < b ? b - G - dur : b + G;
-        moved = true;
-      }
+      if (s < b + G && s + dur > b - G) { s = b + G; moved = true; }
     }
     for (const t of taken) {
-      if (s < t.end + CARD_GAP && s + dur > t.start - CARD_GAP) {
-        s = t.end + CARD_GAP;
-        moved = true;
-      }
+      if (s < t.end + CARD_GAP && s + dur > t.start - CARD_GAP) { s = t.end + CARD_GAP; moved = true; }
     }
-    if (s + dur > total) { s = total - dur - 0.2; moved = true; }
     if (!moved) break;
   }
-  if (s < 0 || Math.abs(s - trigger) > MAX_SLIP) return null;
+  if (s - trigger > MAX_SLIP || s + dur > total) return null;
   const clash = cuts.some((b) => s < b + G && s + dur > b - G)
     || taken.some((t) => s < t.end + CARD_GAP && s + dur > t.start - CARD_GAP);
   return clash ? null : +s.toFixed(2);
@@ -149,12 +143,13 @@ export function markOpenerBreaks(words) {
   return { words: out, marks };
 }
 
-export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR } = {}) {
+export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR, total: audioTotal = null } = {}) {
   const W = indexWords(words);
   const errors = [];
   const notes = [];
   if (W.length === 0) return { errors: ['empty transcript'] };
-  const total = W[W.length - 1].end;
+  // Cards may run to the end of the audio, which outlasts the last word.
+  const total = Math.max(W[W.length - 1].end, audioTotal ?? 0);
 
   let intro = -1;
   for (const o of INTRO_OPENERS) {
@@ -201,13 +196,21 @@ export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR } = {}) 
     if (!w.n.includes('description')) return;
     if (w.start - lastPill < COUPON_RULES.PILL_MIN_GAP) return;
     lastPill = w.start;
-    // Up on the sentence, not the last word, so it can land before an avatar cut.
-    const trigger = Math.max(W[sentenceStart(W, k)].start + 0.3, w.start - 3);
-    candidates.push({ card: 'link-in-description/link-in-description', k, anchorEnd: true, trigger, variables: {} });
+    // Up on the word "link" when the sentence says it before "description", else on "description".
+    let t = k;
+    for (let j = k - 1; j >= Math.max(sentenceStart(W, k), k - 6); j--) if (W[j].n === 'link' || W[j].n === 'links') t = j;
+    candidates.push({ card: 'link-in-description/link-in-description', k, anchorEnd: true, trigger: W[t].start, variables: {} });
   });
 
   const subK = W.findLastIndex((w) => w.n.startsWith('subscribe'));
-  if (subK >= 0) candidates.push({ card: 'like-subscribe/like-subscribe', k: subK, anchorEnd: true, trigger: W[subK].start - 0.5, variables: {} });
+  if (subK >= 0) {
+    // Up where the call to action starts ("don't forget to hit the subscribe"), not before it.
+    let t = subK;
+    for (let j = subK - 1; j >= Math.max(sentenceStart(W, subK), subK - 5); j--) {
+      if (['dont', "don't", 'forget', 'hit', 'smash', 'click', 'press'].includes(W[j].n)) t = j;
+    }
+    candidates.push({ card: 'like-subscribe/like-subscribe', k: subK, anchorEnd: true, trigger: W[t].start, variables: {} });
+  }
   else notes.push('no "subscribe" line, so no subscribe card');
 
   // Earlier triggers win a clash.

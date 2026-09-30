@@ -102,7 +102,8 @@ function transcribe(slug, workdir, tool) {
 }
 
 function plan(slug, workdir, words) {
-  const r = planCoupon(words, { video: slug });
+  const probe = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(workdir, 'vo.mp3')], { encoding: 'utf8' });
+  const r = planCoupon(words, { video: slug, total: parseFloat(probe.stdout) || null });
   if (r.errors.length) {
     for (const e of r.errors) console.error(`COUPON-PLAN: ${e}`);
     throw new Error('this recording does not follow the coupon script shape, so the template cannot place the edit');
