@@ -8,6 +8,7 @@ import { GroupView } from "./GroupView";
 import { ExerciseDetail } from "./ExerciseDetail";
 import { WorkoutHistory, SessionView } from "./History";
 import { DayPlan } from "./DayPlan";
+import { WeekGrid } from "./WeekGrid";
 import type { DayIdx } from "./plan";
 import type { Gym, GroupSpec } from "./gym";
 
@@ -20,6 +21,7 @@ type View =
   | { name: "group"; spec: GroupSpec; gym: Gym }
   | { name: "exercise"; tab: string; id: string; back: ExerciseBack; gym: Gym }
   | { name: "planday"; day: DayIdx; gym: Gym }
+  | { name: "grid" }
   | { name: "history"; gym: Gym }
   | { name: "session"; day: string; gym: Gym; from: "home" | "history" };
 
@@ -36,6 +38,7 @@ function parentOf(view: View): View | null {
         ? { name: "planday", day: view.back.day, gym: view.gym }
         : { name: "group", spec: view.back.spec, gym: view.gym };
     case "planday":
+    case "grid":
       return { name: "home" };
     case "history":
       return { name: "home" };
@@ -56,7 +59,10 @@ const SPRING = "transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1)";
 const DIM_SPRING = "opacity 0.34s cubic-bezier(0.22, 0.61, 0.36, 1)";
 
 function Router() {
-  const [view, setView] = useState<View>({ name: "home" });
+  // /#grid opens the week grid directly (laptop bookmark).
+  const [view, setView] = useState<View>(() =>
+    location.hash === "#grid" ? { name: "grid" } : { name: "home" },
+  );
   // Non-null while a back-swipe (or its release animation) is in flight; holds
   // the parent view that's sliding in underneath the current one.
   const [swiping, setSwiping] = useState<View | null>(null);
@@ -234,8 +240,11 @@ function Router() {
             onOpenHistory={(gym) => setView({ name: "history", gym })}
             onOpenDay={(day, gym) => setView({ name: "session", day, gym, from: "home" })}
             onOpenPlanDay={(day, gym) => setView({ name: "planday", day, gym })}
+            onOpenGrid={() => setView({ name: "grid" })}
           />
         );
+      case "grid":
+        return <WeekGrid onBack={() => setView({ name: "home" })} />;
       case "group":
         return (
           <GroupView

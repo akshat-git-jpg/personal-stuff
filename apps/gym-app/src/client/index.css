@@ -1563,3 +1563,120 @@ textarea {
   color: var(--lime);
   background: rgba(204, 255, 0, 0.26);
 }
+
+/* ============ Week grid (laptop sheet view) ============ */
+#root:has(.grid-screen) {
+  max-width: none;
+}
+.week-gridlink {
+  margin-left: 12px;
+  color: var(--lime);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.grid-screen {
+  padding: 18px 20px 60px;
+}
+.grid-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-align: right;
+}
+.grid-pick b {
+  color: var(--lime);
+  font-size: 15px;
+}
+.wgrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(150px, 1fr));
+  gap: 8px;
+  align-items: start;
+  overflow-x: auto;
+}
+.wcol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  padding: 8px;
+}
+.wcol.today {
+  border-color: var(--lime-dim);
+}
+.wcol-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 2px 4px 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 4px;
+}
+.wcol-day {
+  font-family: "Anton", sans-serif;
+  text-transform: uppercase;
+  font-size: 18px;
+}
+.wcol.today .wcol-day {
+  color: var(--lime);
+}
+.wcol-n {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-weight: 700;
+}
+.wcol-note {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+.wcell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 7px 8px 7px 10px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-left: 3px solid var(--accent);
+  transition: opacity 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.wcell-name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.wcell-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.wcell-meta svg {
+  color: var(--lime);
+}
+.wgrid.focusing .wcell {
+  opacity: 0.28;
+}
+.wgrid.focusing .wcell.on {
+  opacity: 1;
+  background: var(--lime-glow);
+  border-color: var(--lime);
+  border-left-color: var(--accent);
+}
+.wcell.locked {
+  box-shadow: 0 0 0 1px var(--lime), 0 0 18px var(--lime-glow);
+}

@@ -24,11 +24,13 @@ export function Home({
   onOpenHistory,
   onOpenDay,
   onOpenPlanDay,
+  onOpenGrid,
 }: {
   onOpen: (spec: GroupSpec, gym: Gym) => void;
   onOpenHistory: (gym: Gym) => void;
   onOpenDay: (day: string, gym: Gym) => void;
   onOpenPlanDay: (day: DayIdx, gym: Gym) => void;
+  onOpenGrid: () => void;
 }) {
   const { groups, ready, syncing, log, exercisesFor, exerciseById, setsTodayFor } =
     useGym();
@@ -183,7 +185,7 @@ export function Home({
         </button>
       )}
 
-      {ready && <WeekStrip onOpenDay={(d) => onOpenPlanDay(d, gym)} />}
+      {ready && <WeekStrip onOpenDay={(d) => onOpenPlanDay(d, gym)} onOpenGrid={onOpenGrid} />}
 
       {ready && (
         <div className="section-h">Muscle groups</div>

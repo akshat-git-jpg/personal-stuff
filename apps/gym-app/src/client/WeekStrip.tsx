@@ -7,7 +7,13 @@ import { accentFor } from "./ui";
 import { useGym } from "./store";
 import { DAY_SHORT, WEEK, muscleOf, todayIdx, usePlan, type DayIdx } from "./plan";
 
-export function WeekStrip({ onOpenDay }: { onOpenDay: (day: DayIdx) => void }) {
+export function WeekStrip({
+  onOpenDay,
+  onOpenGrid,
+}: {
+  onOpenDay: (day: DayIdx) => void;
+  onOpenGrid: () => void;
+}) {
   const { exerciseById } = useGym();
   const plan = usePlan();
   const today = todayIdx();
@@ -34,6 +40,9 @@ export function WeekStrip({ onOpenDay }: { onOpenDay: (day: DayIdx) => void }) {
         This Week
         <span className="section-sub num">
           {cols.filter((c) => c.count > 0).length}/7 days
+          <button className="week-gridlink" onClick={onOpenGrid}>
+            Grid view
+          </button>
         </span>
       </div>
       <div className="week">
