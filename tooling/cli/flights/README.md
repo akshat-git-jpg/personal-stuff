@@ -1,109 +1,82 @@
 # pp-flights
 
-Flight search with live prices from two sources: Google Flights and
-Skyscanner. No API key, no login, no browser. Run `./pp-flights <cmd>`.
+Flight search with live prices from Skyscanner's website JSON. No API key, no
+login, no browser. Run `./pp-flights <cmd>`.
 
-The wrapper builds its own venv at `~/.cache/pp-flights/venv` on first run
-(from `requirements.txt`), so every checkout and workspace shares one install.
+Skyscanner is the only source, on purpose: it includes travel-agent deals, so
+its prices match what Cleartrip and the other booking sites charge. Google
+Flights was tried as a second source on 2026-09-30 and removed the same day:
+its fallback page showed ₹13,352 for an itinerary that cost ₹7,262.
+
+The wrapper builds a venv at `~/.cache/pp-flights/venv` on first run (from
+`requirements.txt`), shared by every checkout and workspace.
 
 ## Commands
 
 ```
 search ORIGIN DEST DATE [--return DATE] [--direct] [--after HH:MM] [--before HH:MM]
-                        [--sort best|cheapest|fastest] [--max N] [--source S]
-range  ORIGIN DEST START END [--after HH:MM] [--before HH:MM] [--source S]
+                        [--sort best|cheapest|fastest] [--max N]
+range  ORIGIN DEST START END [--after HH:MM] [--before HH:MM]
 places QUERY            airports matching a name, with their entity ids
 ```
 
 Shared flags: `--adults N`, `--cabin economy|premium|business|first`,
-`--fresh` (skip the 15-minute result cache), `--table` for a human table
+`--fresh` (skip the 30-minute result cache), `--table` for a human table
 (JSON is the default).
 
-`range` is the one to use for "which day is cheapest". For every date it runs
-one **all-stops** search and prints both the cheapest itinerary and the cheapest
-direct one, so a 1-stop fare can never be filtered away by accident.
+**Every search fetches all itineraries first; `--direct`, `--after` and
+`--before` only filter what came back.** `range` prints, for each date, the
+cheapest itinerary next to the cheapest direct one, so a 1-stop fare can never
+be filtered away by accident. Its JSON also carries every itinerary (`all`).
 
-`ORIGIN` and `DEST` take an IATA code (resolved offline) or a plain name
-(looked up on Skyscanner and cached). Dates take `2026-08-24`, `24-08-2026`,
+`ORIGIN` and `DEST` take an IATA code or a plain name; lookups are cached in
+`~/.cache/pp-flights/places.json`. Dates take `2026-08-24`, `24-08-2026`,
 `24 aug` or `aug 24`.
 
-## Sources
+## Staying under Skyscanner's limit
 
-| `--source` | What it does |
-|---|---|
-| `auto` (default) | Google Flights. If Google's fast call fails and only its first screen comes back, Skyscanner is added and the two are merged |
-| `google` | Google only |
-| `skyscanner` | Skyscanner only |
-| `both` | Both, merged: one row per itinerary with a GOOGLE and a SKYSCAN price column |
+Skyscanner blocks an IP for about 30 minutes after a short burst (403). On
+2026-09-30 that came after 3 to 6 searches per IP. So:
 
-How they compare (tested 2026-09-30, same routes and dates):
-
-- **Prices agree within about 1-3%.** Skyscanner is often slightly lower,
-  because it also lists travel-agent deals. Google is the airline's own fare.
-- **Google gives flight numbers**; Skyscanner does not.
-- **Google is fast** (under 2 s). Skyscanner takes 10-30 s and re-sends the
-  search while it collects prices.
-- **Both throttle.** Skyscanner answers 403 after a quick burst and stays shut
-  for about 30 minutes. Google's fast call can answer "error 13" for a while
-  after a few searches; its results page keeps working, but only carries the
-  first screen (top ~10), which can miss the cheapest fare. That is why `auto`
-  tops a partial Google answer up from Skyscanner.
-
-## Staying unblocked
-
-- Skyscanner searches are spaced **20 s apart across all processes**
-  (`~/.cache/pp-flights/skyscanner-last`). Run searches through this tool, one
-  after another, and it waits for you.
-- A 403 is recorded (`skyscanner-blocked`) and that route is skipped for 30
-  minutes instead of being hammered.
-- **Second route: the VPS.** When this machine is blocked, the Skyscanner search
-  is sent from the VPS over SSH (`ssh hostinger-vps curl ...`), which has its own
-  IP, pacing and block timer (`*-vps` files). `PP_FLIGHTS_VPS=<ssh host>` changes
-  the host; `PP_FLIGHTS_VPS=` turns it off. On a machine without that SSH alias it
-  simply fails over to nothing.
-- **Trust Skyscanner over Google's page fallback on price.** On 2026-09-30 the
-  page showed ₹13,352 for an itinerary Skyscanner (and the booking sites) had
-  at ₹7,262. The page is good for which flights exist, not for their price.
-- Every answer is cached for 15 minutes under `~/.cache/pp-flights/results/`,
-  so repeating a search costs nothing.
+- **One or two requests per search.** Skyscanner has no cookie-free "are the
+  prices ready" call, so waiting for prices means re-sending the search. The
+  tool sends it once, and once more 10 s later only if prices were still loading.
+- **45 s between searches on one route**, across all processes.
+- **Two routes: this machine and the VPS.** A search goes out on whichever route
+  is free soonest; a 403 rests that route for 30 minutes and the next search uses
+  the other. The VPS route is `ssh hostinger-vps curl ...` (`PP_FLIGHTS_VPS=<ssh
+  host>` changes the host, `PP_FLIGHTS_VPS=` turns it off).
+- **Every answer is cached for 30 minutes** (`~/.cache/pp-flights/results/`).
+- **Run searches one after another, never in parallel.** The tool waits for you.
 
 ## Examples
 
 ```bash
 # Cheapest day in a range, all stops, after-work departures only
-./pp-flights --table range IDR BLR 2026-11-09 2026-11-15 --after 17:00
+./pp-flights --table range IDR BLR 2026-11-10 2026-11-18 --after 17:00
 
-# One date, both sources side by side
-./pp-flights --table search IDR BLR 2026-11-09 --source both
+# One date, nonstop only
+./pp-flights --table search IDR BLR 2026-11-18 --direct
 
-# Nonstop only
-./pp-flights --table search bangalore indore 2026-08-24 --direct
-
-# Round trip: two one-way searches, priced separately
-./pp-flights --table search BLR IDR 2026-11-20 --return 2026-11-25
-```
-
-```
-IDR to BLR  Mon 09 Nov 2026  1 adult(s)  economy  source: google+skyscanner
-
-    PRICE    GOOGLE  SKYSCAN  AIRLINE   FLIGHT         DEPART ARRIVE  TIME   STOPS      TAGS
-   ₹7,164    ₹7,255   ₹7,164  IndiGo    6E6916+6E6783  17:05  20:50   3h45   1 via HYD
-   ₹9,017    ₹9,190   ₹9,017  IndiGo    6E6744         21:45  23:50   2h05   direct
+# Round trip
+./pp-flights --table search DEL BOM "12 sep" --return "16 sep"
 ```
 
 ## What comes back
 
-Each result carries `price`, `price_formatted`, `source`, `prices` (per source,
-when merged), `tags` and one entry in `legs` with `from`, `to`, `depart`,
-`arrive`, `duration_min`, `stops`, `via`, `airlines`, `flights` (flight
-numbers, Google only) and `day_offset`.
+Each result carries `price`, `price_formatted`, Skyscanner's `tags`
+(`cheapest`, `shortest` and runners-up) and one entry in `legs` per direction
+with `from`, `to`, `depart`, `arrive`, `duration_min`, `stops`, `via`,
+`airlines`, `flights` (flight numbers, when Skyscanner includes them) and
+`day_offset`. The top level carries `search_status` (`incomplete` means a few
+fares may still be missing), `route` and `cached`.
 
 ## Caveats
 
-Both sources are unofficial endpoints of public websites, so this is
-personal-scale research. Prices are what the site quoted at that moment; the
-booking page before you pay is the final price. Endpoint details are in
-[API-REFERENCE.md](API-REFERENCE.md).
+This reads an endpoint Skyscanner publishes for its own website, not a partner
+API, so it is personal-scale research and can break when they change it.
+Prices are what Skyscanner quoted at that moment; the booking page before you
+pay is final. Endpoint details are in [API-REFERENCE.md](API-REFERENCE.md).
 
 Skyscanner's *mobile* API sits behind PerimeterX and returns a captcha to
 everything; it was tried and deleted (`decisions.md`, 2026-08-04).

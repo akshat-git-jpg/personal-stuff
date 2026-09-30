@@ -1,5 +1,4 @@
 """Offline tests for pp-flights: no network. Run: python3 test_pp_flights.py"""
-import base64
 import datetime as dt
 import os
 import sys
@@ -11,73 +10,49 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pp_flights as p  # noqa: E402
 
 
-def row(src, price, dep, arr, stops=0, flights=()):
-    return {"price": price, "price_formatted": f"₹{price:,}", "currency": "INR", "tags": [],
-            "source": src, "legs": [{"from": "IDR", "to": "BLR", "depart": f"2026-11-09T{dep}:00",
-                                     "arrive": f"2026-11-09T{arr}:00", "duration_min": 125,
-                                     "stops": stops, "via": [], "airlines": ["IndiGo"],
-                                     "flights": list(flights), "day_offset": 0}]}
-
-
-class Tfs(unittest.TestCase):
-    def test_matches_known_google_url(self):
-        # Built by fast-flights for IDR->BLR 2026-11-09, economy, 1 adult, one-way.
-        leg = (p.pb_len(2, b"2026-11-09") + p.pb_len(13, p.pb_len(2, b"IDR"))
-               + p.pb_len(14, p.pb_len(2, b"BLR")))
-        tfs = p.pb_len(3, leg) + p.pb_len(8, b"\x01") + p.pb_int(9, 1) + p.pb_int(19, 2)
-        self.assertEqual(base64.urlsafe_b64encode(tfs).decode().rstrip("="),
-                         "GhoSCjIwMjYtMTEtMDlqBRIDSURScgUSA0JMUkIBAUgBmAEC")
-
-
-class Merge(unittest.TestCase):
-    def test_same_flight_keeps_both_prices_and_the_lower_one(self):
-        g = [row("google", 9190, "21:45", "23:50", flights=["6E6744"])]
-        s = [row("skyscanner", 9018, "21:45", "23:50")]
-        [m] = p.merge(g, s)
-        self.assertEqual(m["prices"], {"google": 9190, "skyscanner": 9018})
-        self.assertEqual(m["price"], 9018)
-        self.assertEqual(m["legs"][0]["flights"], ["6E6744"])
-        self.assertEqual(m["source"], "google+skyscanner")
-
-    def test_different_times_stay_separate(self):
-        out = p.merge([row("google", 1, "09:40", "11:45")], [row("skyscanner", 2, "21:45", "23:50")])
-        self.assertEqual(len(out), 2)
-
-
-class SkyscannerGate(unittest.TestCase):
-    def setUp(self):
-        self.tmp = tempfile.mkdtemp()
-        p.SKY_BLOCKED = os.path.join(self.tmp, "blocked")
-        p.SKY_LAST = os.path.join(self.tmp, "last")
-
-    def test_refuses_while_blocked(self):
-        p.write_num(p.SKY_BLOCKED, time.time() + 600)
-        with self.assertRaises(p.SourceError):
-            p.sky_gate("local")
-
-    def test_passes_when_idle(self):
-        p.sky_gate("local")
-        self.assertGreater(p.read_num(p.SKY_LAST), 0)
+def row(price, dep, stops=0):
+    return {"price": price, "price_formatted": f"₹{price:,}", "tags": [],
+            "legs": [{"from": "IDR", "to": "BLR", "depart": f"2026-11-09T{dep}:00",
+                      "arrive": f"2026-11-09T{dep}:00", "duration_min": 125, "stops": stops,
+                      "via": [], "airlines": ["IndiGo"], "flights": [], "day_offset": 0}]}
 
 
 class Routes(unittest.TestCase):
-    def test_vps_route_has_its_own_state_files(self):
-        self.assertEqual(p.route_file("/c/skyscanner-blocked", "local"), "/c/skyscanner-blocked")
-        self.assertEqual(p.route_file("/c/skyscanner-blocked", "vps"), "/c/skyscanner-blocked-vps")
+    def setUp(self):
+        tmp = tempfile.mkdtemp()
+        p.SKY_BLOCKED = os.path.join(tmp, "blocked")
+        p.SKY_LAST = os.path.join(tmp, "last")
+        os.environ.pop("PP_FLIGHTS_VPS", None)
+
+    def test_each_route_has_its_own_files(self):
+        self.assertEqual(p.route_file("/c/x", "local"), "/c/x")
+        self.assertEqual(p.route_file("/c/x", "vps"), "/c/x-vps")
 
     def test_empty_env_disables_vps(self):
         os.environ["PP_FLIGHTS_VPS"] = ""
-        try:
-            self.assertEqual(p.sky_routes(), ["local"])
-        finally:
-            del os.environ["PP_FLIGHTS_VPS"]
+        self.assertEqual(p.sky_routes(), ["local"])
+        del os.environ["PP_FLIGHTS_VPS"]
+
+    def test_blocked_route_is_skipped_for_the_other(self):
+        p.write_num(p.route_file(p.SKY_BLOCKED, "local"), time.time() + 600)
+        self.assertEqual(p.pick_route(), "vps")
+
+    def test_all_blocked_raises(self):
+        for r in ("local", "vps"):
+            p.write_num(p.route_file(p.SKY_BLOCKED, r), time.time() + 600)
+        with self.assertRaises(p.SourceError):
+            p.pick_route()
 
 
-class Shape(unittest.TestCase):
-    def test_direct_and_cheapest(self):
-        rows = [row("google", 9, "1", "2"), row("google", 5, "3", "4", stops=1), row("google", 7, "5", "6")]
-        out = p.shape(rows, True, "cheapest", 0)
-        self.assertEqual([r["price"] for r in out], [7, 9])
+class Filters(unittest.TestCase):
+    def test_direct_is_a_filter_after_the_search(self):
+        rows = [row(9, "10:00"), row(5, "11:00", stops=1), row(7, "12:00")]
+        self.assertEqual([r["price"] for r in p.shape(rows, True, "cheapest", 0)], [7, 9])
+        self.assertEqual([r["price"] for r in p.shape(rows, False, "cheapest", 0)], [5, 7, 9])
+
+    def test_time_window(self):
+        self.assertTrue(p.in_window(row(1, "17:05"), "17:00", None))
+        self.assertFalse(p.in_window(row(1, "09:05"), "17:00", None))
 
 
 class Dates(unittest.TestCase):
