@@ -83,16 +83,38 @@ ls -lat ~/Downloads/*.pdf | head -20
 ls ~/Downloads | grep -iE "pnb|stmt|8619|passbook"
 ```
 
-PNB exports look like `PNBONE_STMT_XX8619_30082026.pdf`. **Ask before ingesting
-anything you are unsure about** — an SBI *password-reset form* has been mistaken
-for a passbook before.
+PNB exports look like `PNBONE_STMT_XX8619_30082026.pdf` or `.xls`. **Ask before
+ingesting anything you are unsure about** — an SBI *password-reset form* has been
+mistaken for a passbook before.
+
+**Any date range, any format, any overlap.** A passbook can span a month or a
+year, and PDF and PNB's Excel export both work (the `.xls` is really a locked
+`.xlsx`; it needs `pip3 install msoffcrypto-tool openpyxl`). Keep every earlier
+passbook in `data/raw/`: each run rebuilds from all of them. So only ask the owner
+for the days that are **not** covered yet. Never ask for a fresh 1 January export.
 
 ```bash
-cp "<pdf>" pipelines/income-analysis/data/raw/
+cp "<passbook>" pipelines/income-analysis/data/raw/
 ```
 
-The PDF password is the account number, kept in the gitignored
+How overlaps and holes are handled (`ingest.py` → `merge_passbooks`, `coverage_gaps`):
+
+- **Each day comes from exactly one passbook.** When two cover the same day, the one
+  with more rows that day wins (a statement cut mid-day holds fewer); ties go to
+  the earlier one. Identical rows inside one file are real and are kept (5 Aug 2026
+  has two ₹19,000 debits with the same balance).
+- **Missing days are called out, never guessed.** Any day from 1 Jan 2026 to the
+  last passbook day that no passbook covers prints `!! NO PASSBOOK for …`, lands in
+  `summary.json` → `coverage.gaps`, and shows as a red banner on the dashboard.
+  When you see it, ask the owner for a passbook covering exactly those days.
+
+The password (PDF and Excel alike) is the account number, kept in the gitignored
 `data/config.json`. If missing, ask the owner — never guess, never commit it.
+
+A fresh `pp-work` workspace has an empty `data/` and no secrets. Copy `data/` from
+the last workspace that ran this skill, and symlink `impact.env`, `partnerstack.env`
+and `hostinger-mail.env` from the main checkout's `infra/secrets/`, or those sources
+read as not connected.
 
 ### 2. Ingest, attribute and tally — one command
 
@@ -112,7 +134,7 @@ One run does all of it:
 | Step | What it uses |
 |---|---|
 | Preflight | checks all three CLIs and credentials, names anything missing |
-| Passbook | `data/raw/*.pdf`, parsed with pypdf |
+| Passbook | `data/raw/*.pdf` (pypdf) and `*.xls`/`*.xlsx` (openpyxl), overlaps merged per day |
 | PayPal | `paypal-txns-pp-cli income` + `reporting balances-get` |
 | impact.com | `impact-pp-cli reports run partner_performance_by_program` |
 | PartnerStack | Partner API — payouts, rewards, partnerships |
