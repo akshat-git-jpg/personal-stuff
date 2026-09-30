@@ -287,6 +287,8 @@ export function GymProvider({ children }: { children: ReactNode }) {
   const updateExercise = useCallback(
     (tab: string, id: string, patch: ExerciseInput) => {
       const before = snapRef.current.byTab[tab] ?? [];
+      // Match the server, which stores names in capitals.
+      if (patch.name) patch = { ...patch, name: patch.name.trim().toUpperCase() };
       setSnap((s) => ({
         ...s,
         byTab: {

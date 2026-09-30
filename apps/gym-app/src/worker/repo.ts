@@ -175,7 +175,7 @@ export async function addExercise(
   const list = await readExercises(env, tab);
   const ex: Exercise = {
     id: nextId(tab, list),
-    name: input.name.trim(),
+    name: input.name.trim().toUpperCase(), // names are stored in capitals
     setting: input.setting?.trim() ?? "",
     setsReps: input.setsReps?.trim() ?? "",
     notes: input.notes?.trim() ?? "",
@@ -226,7 +226,7 @@ export async function updateExercise(
   if (!row) throw new Error(`exercise ${id} not found in ${tab}`);
   const ex = toExercise(row);
   // Only provided fields are patched — same as the sheet implementation.
-  ex.name = input.name?.trim() ?? ex.name;
+  ex.name = input.name?.trim().toUpperCase() ?? ex.name;
   ex.setting = input.setting?.trim() ?? ex.setting;
   ex.setsReps = input.setsReps?.trim() ?? ex.setsReps;
   ex.notes = input.notes?.trim() ?? ex.notes;
