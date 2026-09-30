@@ -55,9 +55,11 @@ The table header says which route answered (`via air-scraper`, `via local`,
 Skyscanner blocks an IP for about 30 minutes after a short burst (403). On
 2026-09-30 that came after 3 to 6 searches per IP. So:
 
-- **One or two requests per search.** Skyscanner has no cookie-free "are the
-  prices ready" call, so waiting for prices means re-sending the search. The
-  tool sends it once, and once more 10 s later only if prices were still loading.
+- **Up to four requests per search.** Skyscanner has no cookie-free "are the
+  prices ready" call, so waiting for prices means re-sending the search with the
+  same view id. The tool re-sends at most 3 times, 8 s apart, and stops at
+  `complete`. A flagged IP may never reach `complete` and only get the top 10;
+  the output then warns that fares may be missing.
 - **45 s between searches on one route**, across all processes.
 - **Two routes: this machine and the VPS.** A search goes out on whichever route
   is free soonest; a 403 rests that route for 30 minutes and the next search uses
