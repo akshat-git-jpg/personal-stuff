@@ -34,6 +34,10 @@ SKY_BLOCKED = os.path.join(CACHE_DIR, "skyscanner-blocked")  # blocked-until tim
 SKY_GAP = 45            # seconds between searches on one route, across processes
 SKY_BLOCK_WAIT = 1800   # a 403 blocks that IP for roughly half an hour
 RESULT_TTL = 1800       # reuse a search for 30 minutes
+AIR_HOST = "sky-scrapper.p.rapidapi.com"   # RapidAPI "Air Scraper": Skyscanner data, no IP limit
+AIR_URL = f"https://{AIR_HOST}/api/v2/flights"
+AIR_QUOTA = os.path.join(CACHE_DIR, "air-scraper-quota.json")
+AIR_PER_SEARCH = 2      # searchFlights + one searchIncomplete
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36")
 CABINS = {"economy": "ECONOMY", "premium": "PREMIUM_ECONOMY",
@@ -263,6 +267,103 @@ def sky_post(route, payload, hdrs):
     return code, (json.loads(body) if code == 200 else None)
 
 
+def air_key():
+    """RapidAPI key for Air Scraper: env var, else infra/secrets in this or the main checkout."""
+    if os.environ.get("PP_FLIGHTS_RAPIDAPI_KEY"):
+        return os.environ["PP_FLIGHTS_RAPIDAPI_KEY"]
+    here = os.path.dirname(os.path.abspath(__file__))
+    roots = [os.path.abspath(os.path.join(here, "..", "..", ".."))]
+    try:
+        common = subprocess.run(["git", "-C", here, "rev-parse", "--git-common-dir"],
+                                capture_output=True, text=True, timeout=10).stdout.strip()
+        if common:
+            roots.append(os.path.dirname(os.path.abspath(os.path.join(here, common))))
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    for root in roots:
+        try:
+            with open(os.path.join(root, "infra", "secrets", "rapidapi-air-scraper.env")) as f:
+                for line in f:
+                    if line.startswith("RAPIDAPI_KEY="):
+                        return line.split("=", 1)[1].strip()
+        except OSError:
+            continue
+    return None
+
+
+def air_quota_ok():
+    """Skip Air Scraper once its monthly quota is spent, until the reset time it reported."""
+    try:
+        with open(AIR_QUOTA) as f:
+            q = json.load(f)
+    except (OSError, ValueError):
+        return True
+    return q.get("remaining", 99) >= AIR_PER_SEARCH or time.time() > q.get("reset_at", 0)
+
+
+def air_note_quota(resp):
+    left = resp.headers.get("X-RateLimit-Requests-Remaining")
+    reset = resp.headers.get("X-RateLimit-Requests-Reset")
+    if left is not None:
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        with open(AIR_QUOTA, "w") as f:
+            json.dump({"remaining": int(left), "reset_at": time.time() + int(reset or 0)}, f)
+
+
+def air_search(key, origin, dest, depart, ret, adults, cabin, currency):
+    """Skyscanner results via RapidAPI Air Scraper: a search, then one searchIncomplete.
+
+    It returns Skyscanner's own itinerary objects, so sky_summarize reads them as-is.
+    """
+    hdrs = {"x-rapidapi-key": key, "x-rapidapi-host": AIR_HOST}
+    loc = {"currency": currency, "market": "en-IN", "countryCode": "IN"}
+    params = dict(loc, originSkyId=origin["iata"], destinationSkyId=dest["iata"],
+                  originEntityId=origin["entity_id"], destinationEntityId=dest["entity_id"],
+                  date=depart.isoformat(), cabinClass=cabin.lower(), adults=str(adults),
+                  sortBy="price_low")
+    if ret:
+        params["returnDate"] = ret.isoformat()
+    try:
+        r = requests.get(f"{AIR_URL}/searchFlights", params=params, headers=hdrs, timeout=90)
+        air_note_quota(r)
+        j = r.json() if r.status_code == 200 else {}
+        data = j.get("data") or {}
+        ctx = data.get("context") or {}
+        if ctx.get("status") == "incomplete":
+            time.sleep(5)
+            r = requests.get(f"{AIR_URL}/searchIncomplete", params=dict(loc, sessionId=ctx["sessionId"]),
+                             headers=hdrs, timeout=90)
+            air_note_quota(r)
+            j = r.json() if r.status_code == 200 else {}
+            data = j.get("data") or {}
+            ctx = data.get("context") or {}
+    except (requests.RequestException, ValueError) as e:
+        raise SourceError(f"Air Scraper failed: {e}")
+    if not j.get("status") or not data.get("itineraries"):
+        raise SourceError(f"Air Scraper answered HTTP {r.status_code}: {str(j.get('message'))[:120]}")
+    return {"rows": sky_summarize({"itineraries": {"results": data["itineraries"]}}, currency),
+            "status": ctx.get("status"), "route": "air-scraper"}
+
+
+def search(origin, dest, depart, ret, adults, cabin, market, currency, locale):
+    """Air Scraper first (complete data, no IP limit), then Skyscanner directly."""
+    notes = []
+    key = air_key()
+    if key and air_quota_ok():
+        try:
+            return air_search(key, origin, dest, depart, ret, adults, cabin, currency)
+        except SourceError as e:
+            notes.append(str(e))
+    elif key:
+        notes.append("Air Scraper monthly quota used up")
+    try:
+        res = sky_search(origin, dest, depart, ret, adults, cabin, market, currency, locale)
+    except SourceError as e:
+        raise SourceError(" | ".join(notes + [str(e)]))
+    res["notes"] = notes
+    return res
+
+
 def sky_search(origin, dest, depart, ret, adults, cabin, market, currency, locale):
     """One search: a POST, re-sent up to 3 times (8 s apart) until prices are complete.
 
@@ -307,6 +408,15 @@ def sky_search(origin, dest, depart, ret, adults, cabin, market, currency, local
     raise SourceError(" | ".join(why) or "Skyscanner did not answer")
 
 
+IATA = {"IndiGo": "6E", "Air India Express": "IX", "Air India": "AI", "SpiceJet": "SG",
+        "Akasa Air": "QP", "Alliance Air": "9I", "Star Air": "S5", "Fly91": "IC"}
+
+
+def carrier_code(c):
+    """IATA code: Skyscanner's displayCode, else by name (Air Scraper omits displayCode)."""
+    return c.get("displayCode") or IATA.get(c.get("name", "")) or (c.get("name", "") + " ")
+
+
 def sky_summarize(data, currency):
     out = []
     for r in data.get("itineraries", {}).get("results", []):
@@ -317,8 +427,8 @@ def sky_summarize(data, currency):
             stops = [s.get("destination", {}).get("displayCode")
                      for s in lg.get("segments", [])[:-1]]
             # alternateId is Skyscanner's own carrier id (IndiGo = "49"), not the IATA code
-            flights = [f"{s.get('marketingCarrier', {}).get('displayCode') or s.get('marketingCarrier', {}).get('name', '') + ' '}"
-                       f"{s.get('flightNumber', '')}" for s in lg.get("segments", [])]
+            flights = [f"{carrier_code(s.get('marketingCarrier', {}))}{s.get('flightNumber', '')}"
+                       for s in lg.get("segments", [])]
             legs.append({
                 "from": lg.get("origin", {}).get("displayCode"),
                 "to": lg.get("destination", {}).get("displayCode"),
@@ -348,8 +458,8 @@ def search_cached(a, origin, dest, depart, ret):
     if hit is not None:
         hit["cached"] = True
         return hit
-    res = sky_search(origin, dest, depart, ret, a.adults, CABINS[a.cabin],
-                     a.market, a.currency, a.locale)
+    res = search(origin, dest, depart, ret, a.adults, CABINS[a.cabin],
+                 a.market, a.currency, a.locale)
     store_result(key, res)
     return res
 
@@ -525,7 +635,9 @@ def main():
 
     if a.table:
         print(f"{origin['iata']} to {dest['iata']}  {depart:%a %d %b %Y}"
-              f"  {a.adults} adult(s)  {a.cabin}")
+              f"  {a.adults} adult(s)  {a.cabin}  via {res.get('route')}")
+        for n in res.get("notes", []):
+            print(f"note: {n}")
         if res["status"] != "complete":
             print("warning: Skyscanner was still collecting prices, a few fares may be missing")
         print()
@@ -536,7 +648,7 @@ def main():
             "origin": origin, "destination": dest,
             "depart_date": str(depart), "return_date": str(ret) if ret else None,
             "adults": a.adults, "cabin": a.cabin, "currency": a.currency,
-            "search_status": res["status"], "route": res.get("route"),
+            "search_status": res["status"], "route": res.get("route"), "notes": res.get("notes", []),
             "cached": res.get("cached", False), "url": url, "results": rows,
         }, indent=2, ensure_ascii=False))
 

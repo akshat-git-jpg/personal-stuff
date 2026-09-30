@@ -33,6 +33,23 @@ be filtered away by accident. Its JSON also carries every itinerary (`all`).
 `~/.cache/pp-flights/places.json`. Dates take `2026-08-24`, `24-08-2026`,
 `24 aug` or `aug 24`.
 
+## Routes, in order
+
+1. **Air Scraper on RapidAPI** (`sky-scrapper.p.rapidapi.com`). It returns
+   Skyscanner's own itineraries, complete, with no IP limit. Verified 2026-09-30:
+   same prices as the direct route (₹7,262, ₹11,065, ₹10,880). Each search costs
+   2 requests (`searchFlights` + one `searchIncomplete`). The free Basic plan is
+   **20 requests a month, a hard limit** (so about 10 searches); Pro is $9.99 for
+   10,600. Key: `RAPIDAPI_KEY=` in `infra/secrets/rapidapi-air-scraper.env`
+   (gitignored; found from any workspace via the main checkout) or
+   `PP_FLIGHTS_RAPIDAPI_KEY`. The quota from each answer's headers is kept in
+   `~/.cache/pp-flights/air-scraper-quota.json`, and the route is skipped until
+   the reset once fewer than 2 requests are left.
+2. **Skyscanner directly**, from this machine, then the VPS (below).
+
+The table header says which route answered (`via air-scraper`, `via local`,
+`via vps`), and notes say why an earlier route was skipped.
+
 ## Staying under Skyscanner's limit
 
 Skyscanner blocks an IP for about 30 minutes after a short burst (403). On
