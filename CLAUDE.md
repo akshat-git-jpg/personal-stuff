@@ -34,7 +34,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Why the old binary-patch approach to tags was abandoned on 2.1.246 | `tooling/cli/pp-claude-tags/README.md` |
 | Send image-gen prompts to Google Flow from any pipeline (approve-the-look gates) | `tooling/cli/flow-queue/README.md` + the browser extension in `pipelines/video/zapi-flow-ext/` |
 | **Any travel ask** (flight, train, bus, stay, ticket, booking, trip): start here | `travel` skill: routes to the CLIs below and the trip page, and carries the after-booking checklist (trip page + Drive folder) |
-| Flight search with live prices | `tooling/cli/flights/README.md` (`pp-flights`) |
+| Flight search with live prices (Google Flights + Skyscanner, cheapest-day range) | `tooling/cli/flights/README.md` (`pp-flights`) |
 | Bus timings (Indore ↔ Badnagar, more routes as added) | `tooling/cli/bus/README.md` (`pp-bus`) |
 | Trains: search, seats and fares, route, live running status | `tooling/cli/trains/README.md` (`pp-trains`); sources and traps in [`docs/indian-railways-data-sources.md`](docs/indian-railways-data-sources.md) — read before trusting any train result |
 | Phone notifications (Telegram-first) | tooling/cli/notify/README.md |
