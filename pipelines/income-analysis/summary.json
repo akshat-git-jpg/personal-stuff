@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T13:18:15",
+  "generated_at": "2026-09-30T13:22:48",
   "coverage": {
     "from": "2026-01",
     "to": "2026-09",
@@ -50,7 +50,7 @@
       "label": "PartnerStack",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-09-30T13:11:55"
+      "as_of": "2026-09-30T13:22:02"
     },
     {
       "id": "bookbolt",
@@ -58,7 +58,7 @@
       "kind": "cli",
       "note": "Read straight from the Book Bolt affiliate portal by bookbolt-pp-cli. Book Bolt settles over PayPal, so this is a CHECK on the PayPal ledger rather than a source of new money: it is the only independent statement of what Book Bolt believes it paid. Its portal session lasts two hours, so the CLI logs itself in; a rejected password is reported, never retried.",
       "state": "connected",
-      "as_of": "2026-09-30T13:12:18"
+      "as_of": "2026-09-30T13:22:27"
     },
     {
       "id": "tolt",
@@ -66,7 +66,7 @@
       "kind": "cli",
       "note": "Read straight from the partner dashboard by tolt-pp-cli. Uses a browser session that lapses every couple of weeks; when it does, this reads as not connected rather than as zero.",
       "state": "connected",
-      "as_of": "2026-08-31T18:42:03"
+      "as_of": "2026-09-30T13:22:03"
     },
     {
       "id": "mailbox",
