@@ -16,6 +16,19 @@
   ],
   "observability": {
     "enabled": true
+  },
+  // A friend's copy: same code, her own Worker, DB and PIN. No Sheets mirror cron.
+  // Build with CLOUDFLARE_ENV=sparkly (npm run deploy:sparkly).
+  "env": {
+    "sparkly": {
+      "name": "sparkly-poop-gym",
+      "routes": [{ "pattern": "sparkly-poop.agrolloo.com", "custom_domain": true }],
+      "triggers": { "crons": [] },
+      "vars": { "APP_NAME": "Sparkly" },
+      "d1_databases": [
+        { "binding": "DB", "database_name": "sparkly-gym-db", "database_id": "507e50ed-57f7-4530-ae3c-71f8fb2ef26e" }
+      ]
+    }
   }
   // Secrets (set via `wrangler secret put` or .dev.vars for local):
   //   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN,

@@ -2,6 +2,7 @@
 
 - KushalTools (hub / launcher for everything below) — https://kushal-tools.agrolloo.com (password-gated)
 - Gym tracker — https://kushal-gym.agrolloo.com
+- Sparkly Gym (friend's copy of the gym tracker) — https://sparkly-poop.agrolloo.com
 - Kushal Docs (document vault) — https://kushal-docs.agrolloo.com
 - Personal dashboard — https://my-dashboard.agrolloo.com
 - Tutorials tracker — https://tutorials-tracker.agrolloo.com

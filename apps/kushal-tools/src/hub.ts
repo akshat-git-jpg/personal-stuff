@@ -18,6 +18,7 @@ type App = {
 
 const APPS: App[] = [
   { name: "Gym Tracker", host: "kushal-gym.agrolloo.com", url: "https://kushal-gym.agrolloo.com", kind: "app" },
+  { name: "Sparkly Gym", host: "sparkly-poop.agrolloo.com", url: "https://sparkly-poop.agrolloo.com", kind: "app" },
   { name: "Kushal Docs", host: "kushal-docs.agrolloo.com", url: "https://kushal-docs.agrolloo.com", kind: "app" },
   { name: "Personal Dashboard", host: "my-dashboard.agrolloo.com", url: "https://my-dashboard.agrolloo.com", kind: "app" },
   { name: "Tutorials Tracker", host: "tutorials-tracker.agrolloo.com", url: "https://tutorials-tracker.agrolloo.com", kind: "app" },

@@ -47,4 +47,11 @@ npm run dev                 # vite (local UI + Worker in-process) on :5173, or W
 npm run deploy              # build + scripts/patch-routes.mjs + wrangler deploy
 ```
 
+**Two deployments of this one codebase.** `npm run deploy` ships the owner's app
+(`kushal-gym.agrolloo.com`, D1 `gym-db`). `npm run deploy:sparkly` ships a friend's copy
+(`sparkly-poop.agrolloo.com`, wrangler env `sparkly`, D1 `sparkly-gym-db`, `APP_NAME` var on
+the PIN screen, no Sheets cron). Any app change ships with `npm run deploy:all`. Her schema
+changes run with `--env sparkly` against `sparkly-gym-db` (`npm run db:remote:sparkly`).
+Her PIN is the `APP_PASSWORD` secret on that env.
+
 Always deploy via `npm run deploy`, **not** bare `wrangler deploy` — `patch-routes.mjs` re-injects the route config that the build strips. Deploys on the `akshatpatidar17@gmail.com` Cloudflare account. Secrets: `GOOGLE_CLIENT_ID/SECRET`, `GOOGLE_REFRESH_TOKEN` (Sheets scope), `SHEET_ID`.

@@ -91,7 +91,11 @@ export function logout(c: Context<{ Bindings: Env }>): Response {
 
 export async function me(c: Context<{ Bindings: Env }>): Promise<Response> {
   const token = getCookie(c, COOKIE_NAME);
-  return c.json({ authenticated: await verifyToken(c.env.SESSION_SECRET ?? "", token) });
+  return c.json({
+    authenticated: await verifyToken(c.env.SESSION_SECRET ?? "", token),
+    // Owner name on the PIN screen; set per deployment in wrangler.jsonc vars.
+    name: c.env.APP_NAME || "Kushal",
+  });
 }
 
 export async function requireAuth(
