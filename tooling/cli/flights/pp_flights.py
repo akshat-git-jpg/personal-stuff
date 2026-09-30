@@ -264,7 +264,7 @@ def sky_post(route, payload, hdrs):
 
 
 def sky_search(origin, dest, depart, ret, adults, cabin, market, currency, locale):
-    """One search: a POST, plus one re-POST 10 s later if prices were still loading.
+    """One search: a POST, re-sent up to 3 times (8 s apart) until prices are complete.
 
     Skyscanner has no cookie-free poll call, so the only way to wait for more
     prices is to send the search again, and every send counts against the limit.
@@ -278,9 +278,11 @@ def sky_search(origin, dest, depart, ret, adults, cabin, market, currency, local
     for _ in sky_routes():
         route = pick_route()
         data = None
-        for attempt in range(2):
+        # one view id for the whole search: a new one makes Skyscanner start over
+        hdrs = headers(market, currency, locale)
+        for attempt in range(4):
             try:
-                code, body = sky_post(route, payload, headers(market, currency, locale))
+                code, body = sky_post(route, payload, hdrs)
             except (SourceError, requests.RequestException) as e:
                 why.append(str(e))
                 break
@@ -292,9 +294,13 @@ def sky_search(origin, dest, depart, ret, adults, cabin, market, currency, local
                 why.append(f"HTTP {code} on the {route} route")
                 break
             data = body
-            if data.get("context", {}).get("status") == "complete" or attempt == 1:
+            if os.environ.get("PP_FLIGHTS_RAW"):
+                with open(os.environ["PP_FLIGHTS_RAW"], "w") as f:
+                    json.dump(data, f)
+            # an incomplete answer can miss whole itineraries, so wait for complete
+            if data.get("context", {}).get("status") == "complete" or attempt == 3:
                 break
-            time.sleep(10)
+            time.sleep(8)
         if data is not None:
             return {"rows": sky_summarize(data, currency),
                     "status": data.get("context", {}).get("status"), "route": route}
@@ -310,7 +316,8 @@ def sky_summarize(data, currency):
                         lg.get("carriers", {}).get("marketing", [])]
             stops = [s.get("destination", {}).get("displayCode")
                      for s in lg.get("segments", [])[:-1]]
-            flights = [f"{s.get('marketingCarrier', {}).get('alternateId', '')}"
+            # alternateId is Skyscanner's own carrier id (IndiGo = "49"), not the IATA code
+            flights = [f"{s.get('marketingCarrier', {}).get('displayCode') or s.get('marketingCarrier', {}).get('name', '') + ' '}"
                        f"{s.get('flightNumber', '')}" for s in lg.get("segments", [])]
             legs.append({
                 "from": lg.get("origin", {}).get("displayCode"),
