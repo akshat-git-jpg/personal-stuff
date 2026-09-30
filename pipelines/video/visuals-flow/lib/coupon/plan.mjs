@@ -6,7 +6,7 @@ import { normWord } from '../resolve.mjs';
 //   before/after price   -> no card: the screen already shows it (owner removed deal-stamp 2026-09-30)
 //   "hey guys" .. first "description" sentence   -> full-screen avatar (s01)
 //   every "description" mention (20s apart)       -> link-in-description pill
-//   "enter <CODE>"       -> overlay/code-reveal, top
+//   the code itself      -> never on screen: it changes, the description does not (owner 2026-09-30)
 //   "that's it" .. end   -> full-screen avatar (s02)
 //   "subscribe"          -> like-subscribe
 //   everything else      -> screen recording with the avatar bubble
@@ -19,7 +19,6 @@ export const COUPON_RULES = {
   PILL_MIN_GAP: 20,        // s between two link pills
   DUR: {
     'link-in-description/link-in-description': 4,
-    'overlay/code-reveal': 5,
     'like-subscribe/like-subscribe': 5,
   },
 };
@@ -178,7 +177,6 @@ export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR } = {}) 
   if (outro >= 0 && introEnd >= 0 && outro <= introEnd) errors.push('outro opener comes before the intro span ends');
 
   const code = findCode(words);
-  if (!code) errors.push('no coupon code found (an ALL-CAPS token with a digit, like AGR25)');
   if (errors.length) return { errors, notes };
 
   // resolve-shots walks one forward cursor over from/to anchors, same as cues.
@@ -207,14 +205,6 @@ export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR } = {}) 
     const trigger = Math.max(W[sentenceStart(W, k)].start + 0.3, w.start - 3);
     candidates.push({ card: 'link-in-description/link-in-description', k, anchorEnd: true, trigger, variables: {} });
   });
-
-  const codeN = normWord(code);
-  for (let k = 0; k < W.length - 1; k++) {
-    if (W[k].n === 'enter' && W[k + 1].n === codeN) {
-      candidates.push({ card: 'overlay/code-reveal', k, trigger: W[k].start,
-        variables: { eyebrow: 'Your promo code', code, sub: 'Enter it at checkout for the lifetime discount', pos: 'top' } });
-    }
-  }
 
   const subK = W.findLastIndex((w) => w.n.startsWith('subscribe'));
   if (subK >= 0) candidates.push({ card: 'like-subscribe/like-subscribe', k: subK, anchorEnd: true, trigger: W[subK].start - 0.5, variables: {} });

@@ -31,18 +31,17 @@ const SHAPE = [
   'See you in the next video.',
 ];
 
-test('the coupon shape plans two host spans, a code reveal and subscribe, and no price card', () => {
+test('the coupon shape plans two host spans, link pills and subscribe, and never shows the code', () => {
   const words = markOpenerBreaks(script(SHAPE)).words;
   const r = planCoupon(words, { video: 'v' });
   assert.deepEqual(r.errors, []);
   assert.equal(r.code, 'AGR25');
   const cards = r.cues.cues.map((c) => c.card);
   assert.ok(!cards.includes('overlay/deal-stamp'), 'owner removed the price card');
-  assert.ok(cards.includes('overlay/code-reveal'));
+  assert.ok(!cards.includes('overlay/code-reveal'), 'owner: the code is never on screen');
+  assert.ok(!JSON.stringify(r.cues).includes('AGR25'), 'no card variable carries the code');
   assert.equal(cards.at(-1), 'like-subscribe/like-subscribe');
   assert.ok(cards.filter((c) => c.startsWith('link-in-description')).length >= 2);
-  const reveal = r.cues.cues.find((c) => c.card === 'overlay/code-reveal').variables;
-  assert.equal(reveal.code, 'AGR25');
   assert.equal(r.shots.engineMode, 'test');
   assert.equal(r.avatarPlan.character, 'girl-1');
   assert.equal(r.avatarPlan.model, 'heygen3');
@@ -84,7 +83,6 @@ test('no card sits on an avatar cut', () => {
 test('a recording without the script shape is refused with a reason', () => {
   const r = planCoupon(script(['This is a normal tutorial about something.', 'Nothing else to see here.']), { video: 'v' });
   assert.ok(r.errors.some((e) => /intro opener/.test(e)));
-  assert.ok(r.errors.some((e) => /coupon code/.test(e)));
 });
 
 test('the run-on outro gets a sentence break before "and that\'s it"', () => {

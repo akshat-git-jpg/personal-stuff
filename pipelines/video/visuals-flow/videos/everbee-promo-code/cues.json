@@ -5,25 +5,6 @@
   "cues": [
     {
       "id": "c01",
-      "card": "overlay/deal-stamp",
-      "anchor": "After applying the",
-      "lead": -0.3,
-      "hold": 5,
-      "register": "dark",
-      "variables": {
-        "eyebrow": "Promo code applied",
-        "original": "$39",
-        "price": "$29.25",
-        "period": "/mo",
-        "save": "SAVE $10",
-        "code": "AGR25",
-        "pos": "top-right"
-      },
-      "beats": [],
-      "flagged": false
-    },
-    {
-      "id": "c02",
       "card": "link-in-description/link-in-description",
       "anchor": "in the description.",
       "lead": 3.96,
@@ -34,7 +15,7 @@
       "flagged": false
     },
     {
-      "id": "c03",
+      "id": "c02",
       "card": "link-in-description/link-in-description",
       "anchor": "the video description",
       "lead": 2.28,
@@ -45,23 +26,7 @@
       "flagged": false
     },
     {
-      "id": "c04",
-      "card": "overlay/code-reveal",
-      "anchor": "enter AGR25 in",
-      "lead": 0,
-      "hold": 5,
-      "register": "dark",
-      "variables": {
-        "eyebrow": "Your promo code",
-        "code": "AGR25",
-        "sub": "Enter it at checkout for the lifetime discount",
-        "pos": "top"
-      },
-      "beats": [],
-      "flagged": false
-    },
-    {
-      "id": "c05",
+      "id": "c03",
       "card": "link-in-description/link-in-description",
       "anchor": "the video description",
       "lead": 1.2,
@@ -72,23 +37,7 @@
       "flagged": false
     },
     {
-      "id": "c06",
-      "card": "overlay/code-reveal",
-      "anchor": "enter AGR25 in",
-      "lead": 0,
-      "hold": 5,
-      "register": "dark",
-      "variables": {
-        "eyebrow": "Your promo code",
-        "code": "AGR25",
-        "sub": "Enter it at checkout for the lifetime discount",
-        "pos": "top"
-      },
-      "beats": [],
-      "flagged": false
-    },
-    {
-      "id": "c07",
+      "id": "c04",
       "card": "link-in-description/link-in-description",
       "anchor": "the video description",
       "lead": 2.68,
@@ -99,7 +48,7 @@
       "flagged": false
     },
     {
-      "id": "c08",
+      "id": "c05",
       "card": "like-subscribe/like-subscribe",
       "anchor": "hit the subscribe",
       "lead": 2.04,

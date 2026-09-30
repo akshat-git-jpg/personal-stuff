@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { captionsApply, captionSegKey } from './assemble.mjs';
+import { captionsApply, captionSegKey, maskCaptionWords, COUPON_CODE_RE } from './assemble.mjs';
 import { bubbleGeometry, avatarFocus } from './effects/bubble.mjs';
 import { contribute as captionContribute } from './effects/captions.mjs';
 import { loadRunConfig, isCouponTemplate } from './run-config.mjs';
@@ -61,4 +61,10 @@ test('bubble from: no bubble before it, and the clip stays in sync after it', as
   const r = contribute({ kind: 'screen', start: 10, end: 60 }, [{}], ctx(20));
   const ss = r.inputs[r.inputs.indexOf('-ss') + 1];
   assert.equal(Number(ss), 20, 'slice starts at t=20 of the source clip');
+});
+
+test('coupon captions never show a code', () => {
+  const w = [{ text: 'enter' }, { text: 'AGR25.' }, { text: 'Growth' }, { text: '$29.25,' }, { text: 'SAVE10' }];
+  assert.deepEqual(maskCaptionWords(w, COUPON_CODE_RE).map((x) => x.text), ['enter', 'the code.', 'Growth', '$29.25,', 'the code']);
+  assert.equal(maskCaptionWords(w, null), w);
 });

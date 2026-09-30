@@ -1,20 +1,20 @@
 {
   "video": "everbee-promo-code",
-  "updated": "2026-09-30T09:22:59.067Z",
+  "updated": "2026-09-30T09:59:49.454Z",
   "steps": {
     "020-transcribe-run": {
       "status": "done",
       "started": "2026-09-30T09:06:36.934Z",
-      "ended": "2026-09-30T09:13:42.956Z",
-      "did": "Transcribed the voiceover, fixed the tool name to \"EverBee\" in 0 place(s) and closed 1 run-on sentence(s) before the intro/outro openers, by rule. No LLM clean-up: coupon template.",
+      "ended": "2026-09-30T09:59:49.405Z",
+      "did": "Transcribed the voiceover, fixed the tool name to \"EverBee\" in 0 place(s) and closed 0 run-on sentence(s) before the intro/outro openers, by rule. No LLM clean-up: coupon template.",
       "output": "transcript.json",
       "issues": "none found"
     },
     "210-author-body-cues-llm": {
       "status": "done",
-      "ended": "2026-09-30T09:13:43.014Z",
+      "ended": "2026-09-30T09:59:49.454Z",
       "started": "2026-09-30T09:11:53.472Z",
-      "did": "Placed 8 cards and 2 full-screen avatar spans from the coupon rule table (lib/coupon/plan.mjs), no LLM.",
+      "did": "Placed 5 cards and 2 full-screen avatar spans from the coupon rule table (lib/coupon/plan.mjs), no LLM.",
       "issues": "dropped link-in-description/link-in-description at 36.1s: no clear slot near its line",
       "output": "cues.json + shots.json + avatar-plan.json"
     },
