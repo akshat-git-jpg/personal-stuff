@@ -18,11 +18,11 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow/everbee-promo-code/final.mp4
 
 | at | until | file |
 |---|---|---|
-| 00:32.1 | 00:36.1 | 0032-c01-link-in-description.mov |
-| 02:24.2 | 02:28.2 | 0224-c02-link-in-description.mov |
-| 03:31.4 | 03:35.4 | 0331-c03-link-in-description.mov |
-| 04:11.2 | 04:15.2 | 0411-c04-link-in-description.mov |
-| 04:25.4 | 04:30.4 | 0425-c05-like-subscribe.mov |
+| 00:37.3 | 00:41.3 | 0037-c01-link-in-description.mov |
+| 02:27.2 | 02:31.2 | 0227-c02-link-in-description.mov |
+| 03:32.9 | 03:36.9 | 0332-c03-link-in-description.mov |
+| 04:14.2 | 04:18.2 | 0414-c04-link-in-description.mov |
+| 04:26.6 | 04:31.6 | 0426-c05-like-subscribe.mov |
 
 ## Transitions
 

@@ -6,7 +6,7 @@
       "id": "c01",
       "card": "link-in-description/link-in-description",
       "placement": "overlay",
-      "start": 32.06,
+      "start": 37.26,
       "duration": 4,
       "variables": {
         "register": "dark"
@@ -16,7 +16,7 @@
       "id": "c02",
       "card": "link-in-description/link-in-description",
       "placement": "overlay",
-      "start": 144.17,
+      "start": 147.17,
       "duration": 4,
       "variables": {
         "register": "dark"
@@ -26,7 +26,7 @@
       "id": "c03",
       "card": "link-in-description/link-in-description",
       "placement": "overlay",
-      "start": 211.38,
+      "start": 212.88,
       "duration": 4,
       "variables": {
         "register": "dark"
@@ -36,7 +36,7 @@
       "id": "c04",
       "card": "link-in-description/link-in-description",
       "placement": "overlay",
-      "start": 251.2,
+      "start": 254.2,
       "duration": 4,
       "variables": {
         "register": "dark"
@@ -46,7 +46,7 @@
       "id": "c05",
       "card": "like-subscribe/like-subscribe",
       "placement": "overlay",
-      "start": 265.42,
+      "start": 266.58,
       "duration": 5,
       "variables": {
         "register": "dark"

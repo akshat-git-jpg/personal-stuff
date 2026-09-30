@@ -113,3 +113,28 @@ test('brand fix merges split and misspelt tool names, leaves real words alone', 
   assert.match(text, /my EverBee code, the EverBee code, every day, EverBee works\./);
   assert.equal(toolFromSlug('everbee-promo-code'), 'Everbee');
 });
+
+test('a CTA card never appears before its words are spoken', () => {
+  const words = markOpenerBreaks(script(SHAPE)).words;
+  const r = planCoupon(words, { video: 'v', total: words.at(-1).end + 1.5 });
+  const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
+  let cursor = 0;
+  for (const c of r.cues.cues) {
+    const a = findPhrase(W, c.anchor, cursor);
+    cursor = a.idx + a.len;
+    const start = a.start - c.lead;
+    const lastWord = W[a.idx + a.len - 1];
+    // Pills key on "link"/"description", subscribe on "don't forget to hit": all inside the anchor's sentence.
+    const sentence = W.slice(0, a.idx + a.len).findLastIndex((w, i) => i < a.idx + a.len - 1 && /[.!?]$/.test(w.text));
+    const cueWordStart = c.card.startsWith('link') ? W.slice(sentence + 1, a.idx + a.len).find((w) => w.n === 'link' || w.n.includes('description')).start
+      : W.slice(sentence + 1, a.idx + a.len).find((w) => ['dont', "don't", 'forget', 'hit'].includes(w.n)).start;
+    assert.ok(start >= cueWordStart - 0.01, `${c.id} ${c.card} starts ${start} before its words at ${cueWordStart} (${lastWord.text})`);
+  }
+});
+
+test('place only ever moves a card later', async () => {
+  const { place } = await import('./plan.mjs');
+  assert.equal(place(10, 4, { cuts: [11.5], taken: [], total: 100 }), 12.1);
+  assert.equal(place(10, 4, { cuts: [30], taken: [], total: 100 }), 10);
+  assert.equal(place(98, 4, { cuts: [], taken: [], total: 100 }), null, 'no room before the end -> dropped, not moved earlier');
+});
