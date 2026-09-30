@@ -1726,3 +1726,94 @@ textarea {
   border-color: var(--lime);
   box-shadow: var(--shadow);
 }
+/* Add / remove / star / note in the grid. Actions show on hover; a set star stays visible. */
+.wcell {
+  padding-right: 52px;
+}
+.wcell-acts {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  gap: 2px;
+}
+.wcell-acts button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  color: var(--text-faint);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.wcell:hover .wcell-acts button,
+.wcell-acts button:focus-visible,
+.wcell-star.is-on {
+  opacity: 1;
+}
+.wcell-star.is-on {
+  color: var(--lime);
+}
+.wcell-acts button:hover {
+  background: var(--elevated);
+  color: var(--text);
+}
+.wcell-del:hover {
+  color: var(--heat) !important;
+}
+.wgrid.dragging .wcell-acts {
+  display: none;
+}
+.wcol-note {
+  font-style: normal;
+}
+.wcol-note .day-note {
+  margin: 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-dim);
+}
+.wcol-note .day-note.unset {
+  opacity: 0;
+}
+.wcol:hover .wcol-note .day-note.unset {
+  opacity: 1;
+}
+.wcol-note .day-note-input {
+  margin: 0;
+  height: 30px;
+  font-size: 12px;
+}
+.wcol-tail {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 4px;
+}
+.wcol-add {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  border: 1px dashed var(--line);
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.wcol:hover .wcol-add,
+.wcol-add:focus-visible {
+  opacity: 1;
+}
+.wcol-add:hover {
+  color: var(--lime);
+  border-color: var(--lime-dim);
+}
+.wgrid.dragging .wcol-add {
+  visibility: hidden;
+}

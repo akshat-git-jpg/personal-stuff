@@ -185,7 +185,7 @@ function Row({
 }
 
 /** The day's one-liner, e.g. "all weak points". Click to edit, blank to clear. */
-function DayNote({ day }: { day: DayIdx }) {
+export function DayNote({ day }: { day: DayIdx }) {
   const { dayNotes, setDayNote } = useGym();
   const note = dayNotes[String(day)] ?? "";
   const [editing, setEditing] = useState(false);
