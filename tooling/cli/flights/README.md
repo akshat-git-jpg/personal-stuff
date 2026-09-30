@@ -54,8 +54,16 @@ How they compare (tested 2026-09-30, same routes and dates):
 - Skyscanner searches are spaced **20 s apart across all processes**
   (`~/.cache/pp-flights/skyscanner-last`). Run searches through this tool, one
   after another, and it waits for you.
-- A 403 is recorded (`skyscanner-blocked`) and Skyscanner is skipped for 30
+- A 403 is recorded (`skyscanner-blocked`) and that route is skipped for 30
   minutes instead of being hammered.
+- **Second route: the VPS.** When this machine is blocked, the Skyscanner search
+  is sent from the VPS over SSH (`ssh hostinger-vps curl ...`), which has its own
+  IP, pacing and block timer (`*-vps` files). `PP_FLIGHTS_VPS=<ssh host>` changes
+  the host; `PP_FLIGHTS_VPS=` turns it off. On a machine without that SSH alias it
+  simply fails over to nothing.
+- **Trust Skyscanner over Google's page fallback on price.** On 2026-09-30 the
+  page showed ₹13,352 for an itinerary Skyscanner (and the booking sites) had
+  at ₹7,262. The page is good for which flights exist, not for their price.
 - Every answer is cached for 15 minutes under `~/.cache/pp-flights/results/`,
   so repeating a search costs nothing.
 

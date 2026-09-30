@@ -12,6 +12,8 @@ import hashlib
 import json
 import os
 import re
+import shlex
+import subprocess
 import sys
 import time
 import uuid
@@ -340,16 +342,56 @@ def leg(origin_id, dest_id, date):
     }
 
 
-def sky_gate():
-    """Refuse while blocked; otherwise wait out the gap since the last search."""
-    left = read_num(SKY_BLOCKED) - time.time()
+def sky_routes():
+    """Where a Skyscanner request can leave from: this machine, then the VPS over SSH.
+
+    Each route has its own IP, so its own rate limit, pacing and block timer.
+    PP_FLIGHTS_VPS names the SSH host; empty disables the second route.
+    """
+    routes = ["local"]
+    if os.environ.get("PP_FLIGHTS_VPS", "hostinger-vps"):
+        routes.append("vps")
+    return routes
+
+
+def route_file(path, route):
+    return path if route == "local" else f"{path}-{route}"
+
+
+def sky_gate(route):
+    """Refuse while this route is blocked; otherwise wait out its gap."""
+    left = read_num(route_file(SKY_BLOCKED, route)) - time.time()
     if left > 0:
-        raise SourceError(f"Skyscanner is blocking this machine for ~{int(left // 60) + 1} more min")
-    wait = read_num(SKY_LAST) + SKY_GAP - time.time()
+        raise SourceError(f"Skyscanner is blocking the {route} route for ~{int(left // 60) + 1} more min")
+    last = route_file(SKY_LAST, route)
+    wait = read_num(last) + SKY_GAP - time.time()
     if wait > 0:
         print(f"pp-flights: waiting {wait:.0f}s before the next Skyscanner search", file=sys.stderr)
         time.sleep(wait)
-    write_num(SKY_LAST, time.time())
+    write_num(last, time.time())
+
+
+def sky_post(route, payload, hdrs):
+    """POST the search from this route. Returns (status_code, parsed json or None)."""
+    if route == "local":
+        r = requests.post(SEARCH_URL, json=payload, headers=hdrs, timeout=90)
+        return r.status_code, (r.json() if r.status_code == 200 else None)
+    host = os.environ.get("PP_FLIGHTS_VPS", "hostinger-vps")
+    remote = ["curl", "-s", "-X", "POST", SEARCH_URL, "--data-binary", "@-",
+              "-w", r"\n%{http_code}", "--max-time", "90"]
+    for k, v in hdrs.items():
+        remote += ["-H", f"{k}: {v}"]
+    try:
+        p = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", host,
+                            " ".join(shlex.quote(x) for x in remote)],
+                           input=json.dumps(payload), capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise SourceError(f"VPS route failed: {e}")
+    if p.returncode != 0 or "\n" not in p.stdout:
+        raise SourceError(f"VPS route failed: {p.stderr.strip()[-120:] or 'no output'}")
+    body, code = p.stdout.rsplit("\n", 1)
+    code = int(code) if code.isdigit() else 0
+    return code, (json.loads(body) if code == 200 else None)
 
 
 def sky_search(origin, dest, depart, ret, adults, cabin, market, currency, locale,
@@ -360,24 +402,38 @@ def sky_search(origin, dest, depart, ret, adults, cabin, market, currency, local
         legs.append(leg(d_id, o_id, ret))
     payload = {"cabinClass": cabin, "childAges": [], "adults": adults, "legs": legs}
 
-    sky_gate()
-    data, status = None, None
-    # Skyscanner has no cookie-free poll call (a GET on the session id is a 403),
-    # so "polling" is re-sending the search. Keep it to a few, spaced out.
-    for i in range(attempts):
-        r = requests.post(SEARCH_URL, json=payload,
-                          headers=headers(market, currency, locale), timeout=90)
-        if r.status_code == 403:
-            write_num(SKY_BLOCKED, time.time() + SKY_BLOCK_WAIT)
-            raise SourceError("Skyscanner returned 403 (rate limit); skipping it for 30 min")
-        r.raise_for_status()
-        data = r.json()
-        status = data.get("context", {}).get("status")
-        if status == "complete":
-            break
-        if i < attempts - 1:
-            time.sleep(delay)
-    return sky_summarize(data, currency), None, status
+    why = []
+    for route in sky_routes():
+        try:
+            sky_gate(route)
+        except SourceError as e:
+            why.append(str(e))
+            continue
+        data, status = None, None
+        # Skyscanner has no cookie-free poll call (a GET on the session id is a 403),
+        # so "polling" is re-sending the search. Keep it to a few, spaced out.
+        for i in range(attempts):
+            try:
+                code, body = sky_post(route, payload, headers(market, currency, locale))
+            except (SourceError, requests.RequestException) as e:
+                why.append(str(e))
+                break
+            if code == 403:
+                write_num(route_file(SKY_BLOCKED, route), time.time() + SKY_BLOCK_WAIT)
+                why.append(f"Skyscanner returned 403 on the {route} route; skipping it for 30 min")
+                break
+            if code != 200:
+                why.append(f"Skyscanner returned HTTP {code} on the {route} route")
+                break
+            data = body
+            status = data.get("context", {}).get("status")
+            if status == "complete":
+                break
+            if i < attempts - 1:
+                time.sleep(delay)
+        if data is not None:
+            return sky_summarize(data, currency), None, status
+    raise SourceError(" | ".join(why) or "Skyscanner did not answer")
 
 
 def sky_summarize(data, currency):
