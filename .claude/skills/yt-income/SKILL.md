@@ -499,13 +499,14 @@ EverBee's regular commissions still arrive over PayPal (a "Rewardful commission
 payment" note) and land in PNB as normal. `mailbox.py` still classes the
 commission mails as `accrual`, which can never become a lead. Keep it that way.
 
-### 4. The PartnerStack API key still needs rotating
+### 4. The PartnerStack API key: kept on purpose, do not raise it
 
-Outstanding since 2026-08-30. The owner pasted it into a Claude Code chat to get the
-source wired quickly, so it now sits in that session transcript on disk. Replace it at
-partnerstack.com -> Settings -> API and update `infra/secrets/partnerstack.env`;
-nothing else reads it. **Raise this at the start of a session** rather than waiting for
-it to come up — it has been mentioned several times and is still not done.
+The key (`partner-stack-cli`, read-only, created 2026-08-30) was once pasted into a
+chat, so a copy sits in a local session transcript. On 2026-09-30 the owner weighed
+that and **chose to keep it**: it is read-only and the transcript never leaves this
+Mac. Closed. Do not suggest rotating it again. Revisit only if it stops working or
+the transcript is shared. It lives in `infra/secrets/partnerstack.env`, and
+nothing else reads it.
 
 ### 4. PayKickstart is parked
 

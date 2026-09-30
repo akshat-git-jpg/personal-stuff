@@ -353,3 +353,43 @@ def accrual_totals(events):
         out.setdefault(e.date[:7], {}).setdefault(e.tool, 0.0)
         out[e.date[:7]][e.tool] = round(out[e.date[:7]][e.tool] + e.amount, 2)
     return out
+
+
+def wait_for_code(address, subject, send, timeout=150, accounts_path=ACCOUNTS,
+                  secrets_path=SECRETS):
+    """Call `send()`, then return the code from the first matching mail that arrives after it.
+
+    Only mail newer than what was already there counts: an older code is spent.
+    """
+    import time
+    cfg = json.loads(Path(accounts_path).read_text()).get(address)
+    pw = load_secrets(secrets_path).get((cfg or {}).get("password_env", ""), "")
+    if not cfg or not pw:
+        return None
+    M = imaplib.IMAP4_SSL(cfg.get("host", "imap.hostinger.com"), cfg.get("port", 993))
+    try:
+        M.login(address, pw)
+        before = {}
+        for folder in FOLDERS:
+            if M.select(folder, readonly=True)[0] == "OK":
+                uids = M.uid("SEARCH", None, "ALL")[1][0].split()
+                before[folder] = int(uids[-1]) if uids else 0
+        send()
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            time.sleep(5)
+            for folder, last in before.items():
+                M.select(folder, readonly=True)
+                new = M.uid("SEARCH", None, "UID", "%d:*" % (last + 1),
+                            "SUBJECT", '"%s"' % subject)[1][0].split()
+                for uid in [u for u in new if int(u) > last]:
+                    msg = email.message_from_bytes(M.uid("FETCH", uid, "(BODY.PEEK[])")[1][0][1])
+                    code = re.search(r"code[^:]*:\s*(\d{4,8})\b", _body(msg) or "")
+                    if code:
+                        return code.group(1)
+    finally:
+        try:
+            M.logout()
+        except Exception:
+            pass
+    return None
