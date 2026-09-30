@@ -487,12 +487,17 @@ Consequences, all of them live:
 - Closing this properly needs that second passbook. Ask the owner for it; until
   then say "impact settles to another account" rather than implying zero.
 
-### 3. Lovable and EverBee were earned but never received
+### 3. Lovable and EverBee: the Tipalti backlog went to another account
 
-Rewardful pays them through Tipalti, and Tipalti has blocked the payout on
-identity verification **since Feb 2026** — the thread was still open on 28 Aug.
-`mailbox.py` classes these as `accrual` and they can never become leads. Keep it
-that way: crediting them would invent money that never arrived.
+Rewardful pays them through Tipalti, which blocked the payout on identity
+verification from Feb 2026. It cleared in Sep 2026: Rewardful mailed eCheck
+payments of **USD 225.52 (4 Sep)** and **USD 896.15 (8 Sep)**. The owner confirmed
+on 2026-09-30 that both were one-time payments into his sister's account, so they
+are outside this passbook by design. Do not chase them or look for them in PNB.
+
+EverBee's regular commissions still arrive over PayPal (a "Rewardful commission
+payment" note) and land in PNB as normal. `mailbox.py` still classes the
+commission mails as `accrual`, which can never become a lead. Keep it that way.
 
 ### 4. The PartnerStack API key still needs rotating
 
