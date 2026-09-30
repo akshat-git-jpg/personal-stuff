@@ -21,7 +21,7 @@ None of these tools can book or pay. The owner books; you find, check and record
 
 On 2026-09-30 a hand-written search script kept only `stops == 0 or price < 6000`,
 threw away every 1-stop fare, and the owner was told "direct is cheapest" when a
-1-stop was ₹1,850 cheaper. He found it himself on Skyscanner. So:
+1-stop was ₹1,850 cheaper. The owner found it on Skyscanner. So:
 
 1. **Never write your own search loop or filter.** Use `pp-flights range` for
    "which day is cheapest" and `pp-flights search` for one date. `range` always
@@ -32,14 +32,33 @@ threw away every 1-stop fare, and the owner was told "direct is cheapest" when a
    on a work day means departing after work, so say which window you used.
 4. **Say exactly what was searched**: routes, dates, sources, time window. The
    owner must be able to check the answer against his own screen.
-5. **If a source was partial or blocked, say so** and what that could hide.
+5. **If a date could not be searched, say so** and do not rank it.
+6. **Skyscanner is the only price source.** The owner chose it; Google Flights was
+   removed after it showed ₹13,352 for a ₹7,262 fare. Do not add another source
+   without asking.
+
+## How to present options (one format, every time)
+
+The owner asked for this after several summaries that changed shape and left out
+the flight's day. Always:
+
+- **Show every workable option in the window, not just the best.** One row per
+  option, sorted by date, then price.
+- **Fixed columns, in this order:** date with weekday · days at home (if relevant)
+  · flight numbers · departs → arrives (with the arrival day if it differs) ·
+  travel time · stops · price · leave needed.
+- **Leave needed is computed, not guessed**: from the bus or train that gets the
+  owner to the airport in time (ground time + 90 min before departure), against a
+  09:30-18:30 work day. Name the bus.
+- **The recommendation comes after the table**, one line, naming its row.
+- Keep the same columns in every follow-up so rows can be compared.
 
 ## Traps
 
 - **Run searches through pp-flights one after another, never in parallel.** It
-  paces Skyscanner itself (20 s apart) and caches answers for 15 minutes.
-- **Flight numbers come from Google only.** A Skyscanner-only row has none; get
-  it from the owner's screen or the e-ticket, never invent one.
+  paces Skyscanner itself (45 s apart per route) and caches answers for 30 minutes.
+- **A flight number is shown only when Skyscanner includes it.** Otherwise get it
+  from the owner's screen or the e-ticket, never invent one.
 - **Recheck a price right before the owner books.** Say when it was checked.
 - **Airport and station codes are not cities.** BOM and NMI are both "Mumbai" but
   50 km apart; MMCT and CSMT are different stations. Name the exact one.
