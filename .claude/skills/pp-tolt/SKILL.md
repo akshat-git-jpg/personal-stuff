@@ -35,7 +35,15 @@ likely 100x bug in any consumer.
 Better Auth session cookie, stored at `~/.config/tolt-pp-cli/session.env` (0600,
 outside every repo). It lasts about two weeks.
 
-**When any command returns 401, the session lapsed.** Renew it:
+**It renews itself.** There is no password: the portal logs in with a one-time
+code mailed to `TOLT_LOGIN_EMAIL` (set in the session file), and that inbox is one
+of the Hostinger mailboxes `yt-income` already reads. So when `yt-income` gets a
+401, `sources.renew_tolt_session()` asks for a code, reads it from the mailbox,
+signs in and writes the new token back. Asking for codes a few times in a row
+gets a `429` for a few minutes; that is a rate limit, not a broken login.
+
+**Manual fallback** (a new machine, or the mailbox is unreachable). When a command
+returns 401:
 
 1. Log in at `https://openartinfluencers.tolt.io/payouts`
 2. DevTools → Network → refresh → click any `/api/data/` request

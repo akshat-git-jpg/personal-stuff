@@ -285,6 +285,49 @@ def _cents(value):
         return 0.0
 
 
+def renew_tolt_session():
+    """Log in to the Tolt portal with the one-time code it mails; save and return the token.
+
+    Needs TOLT_LOGIN_EMAIL in the session file and that mailbox in imap-accounts.json.
+    """
+    import mailbox
+    env = load_env(TOLT_SESSION)
+    login, sub = env.get("TOLT_LOGIN_EMAIL"), env.get("TOLT_SUBDOMAIN")
+    name = env.get("TOLT_COOKIE_NAME")
+    if not (login and sub and name):
+        return None
+    site = "https://%s.tolt.io" % sub
+    headers = {"Content-Type": "application/json", "Origin": site,
+               "User-Agent": "Mozilla/5.0 (Macintosh) yt-income/1.0"}
+
+    def post(path, body):
+        req = urllib.request.Request(site + "/api/auth" + path, method="POST",
+                                     data=json.dumps(body).encode(), headers=headers)
+        return urllib.request.urlopen(req, timeout=30, context=ssl_context())
+
+    try:
+        code = mailbox.wait_for_code(
+            login, "Authentication code for OpenArt",
+            lambda: post("/email-otp/send-verification-otp",
+                         {"email": login, "type": "sign-in"}).read())
+        if not code:
+            print("  ! Tolt: login code mail never arrived", file=sys.stderr)
+            return None
+        cookies = post("/sign-in/email-otp", {"email": login, "otp": code}).headers.get_all("Set-Cookie") or []
+    except (urllib.error.URLError, OSError) as exc:
+        print("  ! Tolt: automatic login failed (%s)" % exc, file=sys.stderr)
+        return None
+    token = next((c.split(";", 1)[0].split("=", 1)[1] for c in cookies
+                  if c.startswith(name + "=")), None)
+    if token:
+        text = TOLT_SESSION.read_text()
+        lines = [l for l in text.splitlines() if not l.startswith("TOLT_SESSION_TOKEN=")]
+        TOLT_SESSION.write_text("\n".join(lines + ['TOLT_SESSION_TOKEN="%s"' % token]) + "\n")
+        os.chmod(TOLT_SESSION, 0o600)
+        print("  Tolt: session expired, logged in again with an emailed code")
+    return token
+
+
 def fetch_tolt():
     """OpenArt payouts from the Tolt partner portal. None when not configured.
 
@@ -299,19 +342,26 @@ def fetch_tolt():
     if not token:
         return None
 
-    runenv = dict(os.environ, TOLT_SESSION_COOKIE=token)
+    def run(token):
+        runenv = dict(os.environ, TOLT_SESSION_COOKIE=token)
+        return [subprocess.run(["tolt-pp-cli", "data", cmd, "--json", "--no-cache"],
+                               capture_output=True, text=True, timeout=120,
+                               env=runenv, check=True)
+                for cmd in ("list-payouts", "get-payout-stats")]
+
     try:
-        raw = subprocess.run(
-            ["tolt-pp-cli", "data", "list-payouts", "--json", "--no-cache"],
-            capture_output=True, text=True, timeout=120, env=runenv, check=True)
-        stats_raw = subprocess.run(
-            ["tolt-pp-cli", "data", "get-payout-stats", "--json", "--no-cache"],
-            capture_output=True, text=True, timeout=120, env=runenv, check=True)
+        try:
+            raw, stats_raw = run(token)
+        except subprocess.CalledProcessError as exc:
+            # Exit 4 is a 401: the session lapsed, so log in again once.
+            fresh = exc.returncode == 4 and renew_tolt_session()
+            if not fresh:
+                raise
+            raw, stats_raw = run(fresh)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-        # A 401 here means the browser session lapsed. Say so plainly rather
-        # than letting OpenArt money silently fall back into Untraced.
-        print("  ! Tolt: %s — session may have expired, re-copy the cookie "
-              "into %s" % (exc, TOLT_SESSION), file=sys.stderr)
+        # Say so plainly rather than letting OpenArt money silently fall into Untraced.
+        print("  ! Tolt: %s — session expired and automatic login failed; "
+              "see the pp-tolt skill" % exc, file=sys.stderr)
         return None
 
     try:
