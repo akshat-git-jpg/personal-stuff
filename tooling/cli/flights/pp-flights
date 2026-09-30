@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
-# pp-flights — wrapper that resolves the right Python interpreter, then runs
-# the CLI. Mirrors cli/rapidapi/pp-rapidapi so both Mac and VPS work without
-# per-machine config.
+# pp-flights — wrapper that runs the CLI in its own venv under
+# ~/.cache/pp-flights/venv, built on first run from requirements.txt, so every
+# checkout and workspace shares one install.
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$DIR/../.." && pwd)"
+VENV="${PP_FLIGHTS_VENV:-$HOME/.cache/pp-flights/venv}"
+STAMP="$VENV/.requirements"
 
-if [[ -x "$REPO_ROOT/mcp/.venv/bin/python3" ]]; then
-  PYTHON_BIN="$REPO_ROOT/mcp/.venv/bin/python3"
-else
-  PYTHON_BIN="python3"
+if [[ ! -x "$VENV/bin/python3" ]] || ! cmp -s "$DIR/requirements.txt" "$STAMP"; then
+  echo "pp-flights: setting up $VENV (one time)" >&2
+  python3 -m venv "$VENV"
+  "$VENV/bin/pip" install -q --disable-pip-version-check -r "$DIR/requirements.txt" >&2
+  cp "$DIR/requirements.txt" "$STAMP"
 fi
 
-exec "$PYTHON_BIN" "$DIR/pp_flights.py" "$@"
+exec "$VENV/bin/python3" "$DIR/pp_flights.py" "$@"

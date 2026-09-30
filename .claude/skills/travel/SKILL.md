@@ -17,12 +17,29 @@ description: Entry point for any travel ask - flights, trains, buses, stays/hote
 
 None of these tools can book or pay. The owner books; you find, check and record.
 
+## Rules for any price comparison (the owner makes money decisions on these)
+
+On 2026-09-30 a hand-written search script kept only `stops == 0 or price < 6000`,
+threw away every 1-stop fare, and the owner was told "direct is cheapest" when a
+1-stop was ₹1,850 cheaper. He found it himself on Skyscanner. So:
+
+1. **Never write your own search loop or filter.** Use `pp-flights range` for
+   "which day is cheapest" and `pp-flights search` for one date. `range` always
+   searches all stops and prints cheapest-overall next to cheapest-direct.
+2. **Never drop stops unless the owner said "direct only".** "I prefer direct"
+   means show the direct price next to the cheapest, not hide the cheapest.
+3. **Match the constraint with `--after` / `--before`**, not by eye. "No leave"
+   on a work day means departing after work, so say which window you used.
+4. **Say exactly what was searched**: routes, dates, sources, time window. The
+   owner must be able to check the answer against his own screen.
+5. **If a source was partial or blocked, say so** and what that could hide.
+
 ## Traps
 
-- **pp-flights is Skyscanner and rate-limits with a 403.** Run searches one at a
-  time with a few seconds between them. Never fan them out in parallel.
-- **pp-flights gives no flight number.** Get it from the owner's screen or the
-  e-ticket, never invent one.
+- **Run searches through pp-flights one after another, never in parallel.** It
+  paces Skyscanner itself (20 s apart) and caches answers for 15 minutes.
+- **Flight numbers come from Google only.** A Skyscanner-only row has none; get
+  it from the owner's screen or the e-ticket, never invent one.
 - **Recheck a price right before the owner books.** Say when it was checked.
 - **Airport and station codes are not cities.** BOM and NMI are both "Mumbai" but
   50 km apart; MMCT and CSMT are different stations. Name the exact one.

@@ -9,7 +9,7 @@ Each tool lives in its own folder with the executable and (mostly) a README.
 - `youtube/` — YouTube data and transcripts (`pp-yt-transcript` fetches transcripts free; run it from a residential IP, datacenter IPs are blocked).
 - `hostinger/` — Hostinger VPS and hosting API.
 - `rapidapi/` — RapidAPI calls.
-- `flights/` — `pp-flights`, flight search with live prices via Skyscanner's public web API. No key, no browser, no login.
+- `flights/` — `pp-flights`, flight search with live prices from Google Flights and Skyscanner, plus a cheapest-day range. No key, no browser, no login.
 - `bus/` — `pp-bus`, local bus timetables (Indore ↔ Badnagar) from printed timetables stored as JSON. Offline, no key.
 - `trains/` — `pp-trains`, Indian Railways search joined with fares, seats and confirm chance, plus route and live running status. No key.
 - `splitwise/` — `pp-splitwise`, Splitwise through your saved web login (API keys need Pro): groups, expenses, add an equal split, find payments not on Splitwise yet.
