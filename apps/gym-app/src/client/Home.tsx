@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { accentFor, IconHistory } from "./ui";
+import { accentFor, IconHistory, IconPlus } from "./ui";
 import { useGym } from "./store";
 import { buildSessions, fmtDuration, todayKey } from "./session";
 import {
@@ -219,6 +219,15 @@ export function Home({
               {gym === "main"
                 ? "No exercises."
                 : `Add a ${gymLabel(gym)} exercise to get started.`}
+              {tabOfGym(gym) && (
+                <button
+                  className="btn btn-primary"
+                  style={{ marginTop: 16 }}
+                  onClick={() => onOpen({ tab: tabOfGym(gym)!, label: gymLabel(gym) }, gym)}
+                >
+                  <IconPlus size={20} /> Add exercise
+                </button>
+              )}
             </div>
           )}
         </div>

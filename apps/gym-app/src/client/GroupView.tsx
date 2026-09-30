@@ -234,6 +234,7 @@ export function GroupView({
       {adding && (
         <AddSheet
           presetMuscle={spec.muscle}
+          askMuscle={!spec.muscle && specGym(spec) !== "main"}
           onClose={() => setAdding(false)}
           onAdd={async (input) => {
             const created = await addExercise(spec.tab, input);
@@ -250,10 +251,13 @@ export function GroupView({
 
 function AddSheet({
   presetMuscle,
+  askMuscle,
   onClose,
   onAdd,
 }: {
   presetMuscle?: string;
+  // Mixed gym opened as a whole (e.g. an empty Home gym): ask which muscle.
+  askMuscle?: boolean;
   onClose: () => void;
   onAdd: (input: {
     name: string;
@@ -264,6 +268,7 @@ function AddSheet({
   }) => Promise<void>;
 }) {
   const [name, setName] = useState("");
+  const [muscle, setMuscle] = useState("");
   const [setting, setSetting] = useState("");
   const [setsReps, setSetsReps] = useState("");
   const [notes, setNotes] = useState("");
@@ -284,6 +289,14 @@ function AddSheet({
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
+        {askMuscle && (
+          <input
+            className="input"
+            placeholder="Muscle group (e.g. Chest)"
+            value={muscle}
+            onChange={(e) => setMuscle(e.target.value)}
+          />
+        )}
         {more ? (
           <>
             <input className="input" placeholder="Setting / setup" value={setting} onChange={(e) => setSetting(e.target.value)} />
@@ -300,7 +313,7 @@ function AddSheet({
           disabled={!name.trim() || busy}
           onClick={async () => {
             setBusy(true);
-            await onAdd({ name, muscleGroup: presetMuscle, setting, setsReps, notes });
+            await onAdd({ name, muscleGroup: presetMuscle ?? (muscle.trim() || undefined), setting, setsReps, notes });
             setBusy(false);
           }}
         >

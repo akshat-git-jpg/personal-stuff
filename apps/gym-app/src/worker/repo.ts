@@ -185,6 +185,15 @@ export async function addExercise(
     gym: MIXED_TABS.get(tab) ?? "main",
     unit: toUnit(input.unit),
   };
+  // A mixed gym's tab row may not exist yet (Home Gym), and exercise.tab is a foreign key.
+  if (isMixed(tab)) {
+    await env.DB.prepare(
+      "INSERT OR IGNORE INTO tab (name, position, is_mixed)" +
+        " VALUES (?, (SELECT COALESCE(MAX(position), 0) + 1 FROM tab), 1)",
+    )
+      .bind(tab)
+      .run();
+  }
   await env.DB.prepare(
     "INSERT INTO exercise (id, tab, name, setting, sets_reps, notes, muscle_group, position, gym, unit)" +
       " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",

@@ -267,7 +267,14 @@ export function GymProvider({ children }: { children: ReactNode }) {
     async (tab: string, input: ExerciseInput): Promise<Exercise | null> => {
       try {
         const created = await api.addExercise(tab, input);
-        setSnap((s) => ({ ...s, byTab: { ...s.byTab, [tab]: [...(s.byTab[tab] ?? []), created] } }));
+        setSnap((s) => ({
+          ...s,
+          // First exercise of a new mixed gym (Home) also registers its tab.
+          meta: s.meta.some((m) => m.tab === tab)
+            ? s.meta
+            : [...s.meta, { tab, label: tab, isMixed: created.gym !== "main" }],
+          byTab: { ...s.byTab, [tab]: [...(s.byTab[tab] ?? []), created] },
+        }));
         return created;
       } catch (e) {
         toast(String((e as Error).message), true);

@@ -1,5 +1,6 @@
 // Whole week as a sheet: one column per day. Click an exercise to highlight
-// every day it appears on; drag it to move it to another day or slot.
+// every day it appears on; drag to move it (hold Alt to copy); add, remove,
+// star and edit the day note in place.
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -15,8 +16,10 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import type { Exercise } from "../shared";
-import { accentFor, IconBack, IconStar, useToast } from "./ui";
+import { accentFor, IconBack, IconMinusCircle, IconPlus, IconStar, useToast } from "./ui";
 import { useGym } from "./store";
+import { ExercisePicker } from "./ExercisePicker";
+import { DayNote } from "./DayPlan";
 import {
   DAY_LONG,
   DAY_SHORT,
@@ -40,14 +43,22 @@ type Target = { day: DayIdx; at: number | null };
 const cellKey = (day: DayIdx, id: string) => `cell:${day}:${id}`;
 const colKey = (day: DayIdx) => `col:${day}`;
 
-/** Move (or reorder) one exercise; resolves once the server has the new row. */
-async function moveExercise(from: DayIdx, id: string, to: DayIdx, at: number | null): Promise<void> {
+/** Move, copy or reorder one exercise; resolves once the server has the new row. */
+async function moveExercise(
+  from: DayIdx,
+  id: string,
+  to: DayIdx,
+  at: number | null,
+  copy = false,
+): Promise<void> {
   const starred = isDayStarred(from, id);
   if (from !== to) {
     await addToDay(to, id);
     if (starred) toggleDayStar(to, id);
-    removeFromDay(from, id);
-    setDayOrder(from, dayIds(from));
+    if (!copy) {
+      removeFromDay(from, id);
+      setDayOrder(from, dayIds(from));
+    }
   }
   const rest = dayIds(to).filter((x) => x !== id);
   const idx = at === null ? rest.length : Math.min(at, rest.length);
@@ -56,22 +67,31 @@ async function moveExercise(from: DayIdx, id: string, to: DayIdx, at: number | n
 }
 
 export function WeekGrid({ onBack }: { onBack: () => void }) {
-  const { exerciseById, dayNotes } = useGym();
+  const { exerciseById } = useGym();
   const toast = useToast();
   const plan = usePlan();
   const today = todayIdx();
   const [picked, setPicked] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
+  const [alt, setAlt] = useState(false);
+  const [adding, setAdding] = useState<DayIdx | null>(null);
   const focus = drag ? drag.ex.id : picked ?? hover;
 
   // A 6px move starts a drag, so a plain click still highlights.
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setPicked(null);
+    const onKey = (e: KeyboardEvent) => {
+      setAlt(e.altKey);
+      if (e.type === "keydown" && e.key === "Escape") setPicked(null);
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keyup", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKey);
+    };
   }, []);
 
   const cols = useMemo(
@@ -90,7 +110,10 @@ export function WeekGrid({ onBack }: { onBack: () => void }) {
     ? cols.filter((c) => c.items.some((e) => e.id === picked)).map((c) => DAY_SHORT[c.day])
     : [];
 
-  const onDragStart = (e: DragStartEvent) => setDrag(e.active.data.current as Drag);
+  const onDragStart = (e: DragStartEvent) => {
+    setAlt((e.activatorEvent as PointerEvent).altKey);
+    setDrag(e.active.data.current as Drag);
+  };
 
   const onDragEnd = (e: DragEndEvent) => {
     const d = drag;
@@ -98,6 +121,7 @@ export function WeekGrid({ onBack }: { onBack: () => void }) {
     const t = e.over?.data.current as Target | undefined;
     if (!d || !t) return;
     const id = d.ex.id;
+    const copy = alt;
     const fromIdx = dayIds(d.day).indexOf(id);
     if (t.day === d.day) {
       // Same day: index is in the list WITHOUT the dragged row.
@@ -110,12 +134,29 @@ export function WeekGrid({ onBack }: { onBack: () => void }) {
       toast(`${d.ex.name} is already on ${DAY_LONG[t.day]}`, true);
       return;
     }
-    void moveExercise(d.day, id, t.day, t.at).then(() =>
-      toast(`Moved to ${DAY_LONG[t.day]}`, false, {
+    void moveExercise(d.day, id, t.day, t.at, copy).then(() =>
+      toast(`${copy ? "Copied" : "Moved"} to ${DAY_LONG[t.day]}`, false, {
         label: "Undo",
-        onClick: () => void moveExercise(t.day, id, d.day, fromIdx),
+        onClick: () =>
+          copy ? removeFromDay(t.day, id) : void moveExercise(t.day, id, d.day, fromIdx),
       }),
     );
+  };
+
+  const onRemove = (day: DayIdx, ex: Exercise) => {
+    const orderBefore = dayIds(day);
+    const starred = isDayStarred(day, ex.id);
+    if (picked === ex.id) setPicked(null);
+    removeFromDay(day, ex.id);
+    toast(`Removed from ${DAY_LONG[day]}`, false, {
+      label: "Undo",
+      // Reorder only after the row is back on the server, or the day scrambles.
+      onClick: () =>
+        void addToDay(day, ex.id).then(() => {
+          if (starred) toggleDayStar(day, ex.id);
+          setDayOrder(day, orderBefore);
+        }),
+    });
   };
 
   return (
@@ -137,7 +178,7 @@ export function WeekGrid({ onBack }: { onBack: () => void }) {
               </span>
             </>
           ) : (
-            <span>Click to highlight · drag to move</span>
+            <span>Click to highlight · drag to move · Alt + drag to copy</span>
           )}
         </div>
       </div>
@@ -151,7 +192,13 @@ export function WeekGrid({ onBack }: { onBack: () => void }) {
       >
         <div className={`wgrid${focus ? " focusing" : ""}${drag ? " dragging" : ""}`}>
           {cols.map((c) => (
-            <Column key={c.day} day={c.day} today={c.day === today} note={dayNotes[String(c.day)]} count={c.items.length}>
+            <Column
+              key={c.day}
+              day={c.day}
+              today={c.day === today}
+              count={c.items.length}
+              onAdd={() => setAdding(c.day)}
+            >
               {c.items.map((ex, i) => (
                 <Cell
                   key={ex.id}
@@ -162,6 +209,7 @@ export function WeekGrid({ onBack }: { onBack: () => void }) {
                   locked={picked === ex.id}
                   onPick={() => setPicked((p) => (p === ex.id ? null : ex.id))}
                   onHover={setHover}
+                  onRemove={() => onRemove(c.day, ex)}
                 />
               ))}
             </Column>
@@ -171,11 +219,22 @@ export function WeekGrid({ onBack }: { onBack: () => void }) {
           {drag && (
             <div className="wcell overlay" style={{ ["--accent" as string]: accentFor(muscleOf(drag.ex)) }}>
               <span className="wcell-name">{drag.ex.name}</span>
-              <span className="wcell-meta">{muscleOf(drag.ex)}</span>
+              <span className="wcell-meta">{alt ? "Copy" : muscleOf(drag.ex)}</span>
             </div>
           )}
         </DragOverlay>
       </DndContext>
+
+      {adding !== null && (
+        <ExercisePicker
+          alreadyIn={dayIds(adding)}
+          onPick={(id) => {
+            void addToDay(adding, id);
+            toast(`Added to ${DAY_LONG[adding]}`);
+          }}
+          onClose={() => setAdding(null)}
+        />
+      )}
     </div>
   );
 }
@@ -183,14 +242,14 @@ export function WeekGrid({ onBack }: { onBack: () => void }) {
 function Column({
   day,
   today,
-  note,
   count,
+  onAdd,
   children,
 }: {
   day: DayIdx;
   today: boolean;
-  note?: string;
   count: number;
+  onAdd: () => void;
   children: React.ReactNode;
 }) {
   const target: Target = { day, at: null };
@@ -200,10 +259,22 @@ function Column({
       <header className="wcol-h">
         <span className="wcol-day">{DAY_LONG[day]}</span>
         <span className="wcol-n num">{count || "Rest"}</span>
-        {note && <p className="wcol-note">{note}</p>}
+        <div className="wcol-note" onClick={(e) => e.stopPropagation()}>
+          <DayNote day={day} />
+        </div>
       </header>
       {children}
-      <div ref={setNodeRef} className={`wcol-tail${isOver ? " over" : ""}`} />
+      <div ref={setNodeRef} className={`wcol-tail${isOver ? " over" : ""}`}>
+        <button
+          className="wcol-add"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAdd();
+          }}
+        >
+          <IconPlus size={14} /> Add
+        </button>
+      </div>
     </section>
   );
 }
@@ -216,6 +287,7 @@ function Cell({
   locked,
   onPick,
   onHover,
+  onRemove,
 }: {
   day: DayIdx;
   index: number;
@@ -224,13 +296,15 @@ function Cell({
   locked: boolean;
   onPick: () => void;
   onHover: (id: string | null) => void;
+  onRemove: () => void;
 }) {
   const key = cellKey(day, ex.id);
   const drag = useDraggable({ id: key, data: { day, ex } satisfies Drag });
   const target: Target = { day, at: index };
   const drop = useDroppable({ id: key, data: target });
+  const starred = isDayStarred(day, ex.id);
   return (
-    <button
+    <div
       ref={(n) => {
         drag.setNodeRef(n);
         drop.setNodeRef(n);
@@ -249,10 +323,30 @@ function Cell({
       onMouseLeave={() => onHover(null)}
     >
       <span className="wcell-name">{ex.name}</span>
-      <span className="wcell-meta">
-        {muscleOf(ex)}
-        {isDayStarred(day, ex.id) && <IconStar size={12} on />}
+      <span className="wcell-meta">{muscleOf(ex)}</span>
+      {/* Inner buttons stop pointerdown so they never start a drag. */}
+      <span className="wcell-acts" onPointerDown={(e) => e.stopPropagation()}>
+        <button
+          className={`wcell-star${starred ? " is-on" : ""}`}
+          aria-label={starred ? "Unstar" : "Star"}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleDayStar(day, ex.id);
+          }}
+        >
+          <IconStar size={14} on={starred} />
+        </button>
+        <button
+          className="wcell-del"
+          aria-label="Remove from day"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+        >
+          <IconMinusCircle size={14} />
+        </button>
       </span>
-    </button>
+    </div>
   );
 }
