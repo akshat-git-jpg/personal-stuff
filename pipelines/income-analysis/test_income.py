@@ -14,6 +14,7 @@ import json
 import pathlib
 import sys
 import tempfile
+import collections
 import contextlib
 import unittest
 from unittest import mock
@@ -22,6 +23,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import attribute
+import ingest   # noqa: E402
 import mailbox  # noqa: E402
 import sources    # noqa: E402
 
@@ -957,6 +959,32 @@ class Privacy(unittest.TestCase):
             self.assertEqual(env["BAZ"], "qux")
         finally:
             pathlib.Path(path).unlink()
+
+
+
+class OverlappingPassbooks(unittest.TestCase):
+    def row(self, date, amount, balance, typ="CR"):
+        return {"date": date, "amount": amount, "type": typ, "balance": balance, "remarks": "x"}
+
+    def test_overlap_counts_once(self):
+        seen = collections.Counter()
+        a = [self.row("05/08/2026", 100.0, 500.0), self.row("06/08/2026", 50.0, 550.0)]
+        b = [self.row("06/08/2026", 50.0, 550.0), self.row("02/09/2026", 70.0, 620.0)]
+        self.assertEqual(len(ingest.drop_seen(a, seen)), 2)
+        kept = ingest.drop_seen(b, seen)
+        self.assertEqual([r["date"] for r in kept], ["02/09/2026"])
+
+    def test_same_day_same_amount_both_kept(self):
+        rows = [self.row("05/08/2026", 19000.0, 20000.0),
+                self.row("05/08/2026", 19000.0, 39000.0)]
+        self.assertEqual(len(ingest.drop_seen(rows, collections.Counter())), 2)
+
+    def test_identical_rows_in_one_file_are_real(self):
+        """5 Aug 2026: two 19,000 debits, same day, same balance, both genuine."""
+        rows = [self.row("05/08/2026", 19000.0, 2438.5, "DR")] * 2
+        seen = collections.Counter()
+        self.assertEqual(len(ingest.drop_seen(rows, seen)), 2)
+        self.assertEqual(len(ingest.drop_seen(rows, seen)), 0)
 
 
 if __name__ == "__main__":

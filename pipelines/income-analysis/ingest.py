@@ -175,6 +175,29 @@ def parse_statement(text):
     return txns
 
 
+def row_key(t):
+    return (t["date"], t["type"], round(t["amount"], 2), round(t["balance"], 2),
+            attribute.extract_ref(t["remarks"]))
+
+
+def drop_seen(txns, seen):
+    """Drop rows an earlier passbook already covered, so overlapping periods count once.
+
+    `seen` counts keys from earlier files only: identical rows inside one file are real.
+    """
+    budget = collections.Counter(seen)
+    kept = []
+    for t in txns:
+        k = row_key(t)
+        if budget[k] > 0:
+            budget[k] -= 1
+        else:
+            kept.append(t)
+    for k, n in collections.Counter(row_key(t) for t in txns).items():
+        seen[k] = max(seen[k], n)
+    return kept
+
+
 def classify(remarks, rules):
     up = remarks.upper()
     for rail in rules["income_rails"]:
@@ -374,10 +397,11 @@ def main():
     if not pdfs:
         sys.exit(f"No PDFs in {RAW}. Drop your passbooks there first.")
 
-    statements, all_txns = [], []
+    statements, all_txns, seen = [], [], collections.Counter()
     for pdf in pdfs:
         text = pdf_text(pdf, pw)
-        txns = parse_statement(text)
+        parsed = parse_statement(text)
+        txns = drop_seen(parsed, seen)
         period = PERIOD_RE.search(text)
         for t in txns:
             rail, is_income = classify(t["remarks"], rules)
@@ -390,7 +414,9 @@ def main():
             "period_end": period.group(2) if period else None,
         })
         all_txns.extend(txns)
-        print(f"  {pdf.name}: {len(txns)} transactions")
+        dupes = len(parsed) - len(txns)
+        print(f"  {pdf.name}: {len(txns)} transactions"
+              + (f" ({dupes} already in an earlier passbook, skipped)" if dupes else ""))
 
     rail_ids = [r["id"] for r in rules["income_rails"]]
     bank_months = sorted({month_of(t["date"]) for t in all_txns
