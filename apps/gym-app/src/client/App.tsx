@@ -329,12 +329,17 @@ export default function App() {
   // null = still asking the server. The blank hold is deliberate: flashing the
   // PIN screen at someone who already has a valid cookie looks broken.
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [owner, setOwner] = useState("Kushal");
 
   useEffect(() => {
     let live = true;
     api
       .me()
-      .then((r) => live && setAuthed(r.authenticated))
+      .then((r) => {
+        if (!live) return;
+        if (r.name) setOwner(r.name);
+        setAuthed(r.authenticated);
+      })
       .catch(() => live && setAuthed(false));
     const drop = () => setAuthed(false);
     window.addEventListener("gym:unauthorized", drop);
@@ -345,7 +350,7 @@ export default function App() {
   }, []);
 
   if (authed === null) return <div className="pin-wrap" />;
-  if (!authed) return <Login onSuccess={() => setAuthed(true)} />;
+  if (!authed) return <Login owner={owner} onSuccess={() => setAuthed(true)} />;
 
   return (
     <ToastHost>

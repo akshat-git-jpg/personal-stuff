@@ -11,7 +11,7 @@ import { api } from "./api";
 const PIN_LEN = 4;
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
-export function Login({ onSuccess }: { onSuccess: () => void }) {
+export function Login({ owner, onSuccess }: { owner: string; onSuccess: () => void }) {
   const [pin, setPin] = useState("");
   const [err, setErr] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -57,7 +57,7 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
     <div className="pin-wrap">
       <div className="pin-brand">
         <div className="mark">
-          Kushal
+          {owner}
           <em>Gym</em>
         </div>
         <div className="pin-sub">Enter PIN</div>

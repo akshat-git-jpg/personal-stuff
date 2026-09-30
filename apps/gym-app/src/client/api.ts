@@ -46,7 +46,7 @@ async function authReq<T>(path: string, body?: unknown): Promise<T> {
 const E = encodeURIComponent;
 
 export const api = {
-  me: () => req<{ authenticated: boolean }>("GET", "/me"),
+  me: () => req<{ authenticated: boolean; name?: string }>("GET", "/me"),
   login: (password: string) => authReq<{ ok: true }>("/auth/login", { password }),
   logout: () => authReq<{ ok: true }>("/auth/logout"),
   bootstrap: () => req<BootstrapData>("GET", "/bootstrap"),

@@ -8,10 +8,13 @@
     "typecheck": ". ../../scripts/node22-path.sh && tsc -b",
     "preview": ". ../../scripts/node22-path.sh && vite preview",
     "deploy": ". ../../scripts/node22-path.sh && npm run build && node scripts/patch-routes.mjs && wrangler deploy",
+    "deploy:sparkly": ". ../../scripts/node22-path.sh && tsc -b && CLOUDFLARE_ENV=sparkly vite build && node scripts/patch-routes.mjs sparkly && wrangler deploy",
+    "deploy:all": "npm run deploy && npm run deploy:sparkly",
     "shoot": "node scripts/shoot.mjs",
     "test": ". ../../scripts/node22-path.sh && vitest run",
     "db:local": ". ../../scripts/node22-path.sh && wrangler d1 execute gym-db --local --file=./schema.sql",
     "db:remote": ". ../../scripts/node22-path.sh && wrangler d1 execute gym-db --remote --file=./schema.sql",
+    "db:remote:sparkly": ". ../../scripts/node22-path.sh && wrangler d1 execute sparkly-gym-db --env sparkly --remote --file=./schema.sql",
     "seed:local": ". ../../scripts/node22-path.sh && wrangler d1 execute gym-db --local --file=./seed.sql",
     "seed:remote": ". ../../scripts/node22-path.sh && wrangler d1 execute gym-db --remote --file=./seed.sql",
     "export:sheet": "node scripts/export-sheet-to-sql.mjs"

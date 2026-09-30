@@ -11,6 +11,7 @@ export interface Env {
   SHEET_ID: string;
   APP_PASSWORD: string;
   SESSION_SECRET: string;
+  APP_NAME?: string;
 }
 
 const TOKEN_URL = "https://oauth2.googleapis.com/token";

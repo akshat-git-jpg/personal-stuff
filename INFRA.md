@@ -51,6 +51,7 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 - **redirector** — `go.agrolloo.com/*` — URL shortener + click tracking. Bindings: `CLICKS_KV`, `clicks-db` (D1).
 - **kushal-tools** — `kushal-tools.agrolloo.com` — KushalTools hub: card launcher linking every live agrolloo.com site. Shared-password gate (stateless signed cookie, no KV). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. No bindings.
 - **kushal-gym** — `kushal-gym.agrolloo.com` — gym PWA, Google Sheet-backed via OAuth refresh token.
+- **sparkly-poop-gym** — `sparkly-poop.agrolloo.com` — a friend's copy of the gym PWA: same code (`apps/gym-app`, wrangler env `sparkly`), own D1 `sparkly-gym-db`, own PIN, no Sheets mirror cron.
 - **kushal-docs** — `kushal-docs.agrolloo.com` — document-vault PWA, R2-backed (bucket `kushal-docs`), Google sign-in allow-listed to one email.
 - **yt-tutorials-tracker** — `tutorials-tracker.agrolloo.com` — YouTube tutorials Kanban app; also mints go.agrolloo.com short links. Bindings: `SESSIONS` (KV), `CLICKS_KV`, `clicks-db` (D1).
 - **yt-income** — `yt-income.agrolloo.com` — revenue dashboard: affiliate income by month and by tool, every figure tallied against bank credits, with an explicit Untraced row for money that arrived but cannot be attributed. Shared-password gate (stateless signed cookie). **No bindings and no upstream API keys** — the figures are a build-time snapshot of `pipelines/income-analysis/summary.json`, copied in by `scripts/sync-summary.mjs`, so the Worker never holds a PayPal, impact.com or PartnerStack credential. Refreshed by the `yt-income` skill, not on a schedule (half the income only exists in a hand-exported bank passbook). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
@@ -93,7 +94,7 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 - `agrolloo.com` + `www` → `191.101.230.133` (Hostinger shared hosting, proxied) — NOT the VPS, NOT a Worker.
 - `my-dashboard.agrolloo.com` → `72.61.241.170` (VPS, proxied) — personal-dashboard container via Traefik.
 - `render2.agrolloo.com` → `72.61.241.170` (VPS, proxied) — Hyperframes → MP4 renderer behind Traefik (added after the 2026-06-13 audit).
-- `go` / `kushal-gym` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` / `founders` / `timeblock` / `dayboard` / `vo` / `closet` → the 12 routed Workers above (custom domains show as proxied `AAAA 100::`).
+- `go` / `kushal-gym` / `sparkly-poop` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` / `founders` / `timeblock` / `dayboard` / `vo` / `closet` → the 13 routed Workers above (custom domains show as proxied `AAAA 100::`).
 - `ftp.agrolloo.com` → `191.101.230.133` (Hostinger hosting).
 - MX + `autoconfig` / `autodiscover` / DKIM → Hostinger mail.
 - `send.notifications.agrolloo.com` + `resend._domainkey` → Amazon SES / Resend (transactional email sending).
