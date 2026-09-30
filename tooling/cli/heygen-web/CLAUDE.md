@@ -42,6 +42,7 @@ Any `--avatar` / `--template` flag accepts **a slug or a raw id** — `registry.
 - **Stale template fields**: `preview_image_url`/`processed_image_url` inside the payload JSON carry expiring signatures from the original HAR capture. If a render fails or looks wrong, this is the first suspect.
 - **`studio-render` gap**: The `studio-render` operation fires the in-editor *preview*, not the real Generate render (that endpoint was never HAR-captured with Preserve-log on).
 - **Meter semantics**: `usage` tracks credits (must stay flat), the second-pool (`/1200`), priority slots, and AI-image/video/concept pools. The `/1200` second-pool is the **generative / free-credit** meter (Avatar IV + AI generative), **NOT** an Avatar III cap — unlimited-mode Avatar III does not touch it (proven 2026-07-16: `credits +0 seconds +0` on a real render). Run `usage --save` before and `usage --diff` after any create op to prove it stayed free.
+- **Template engine check**: a heygen3 `generate-from-template` renders the template AS SAVED, so it now refuses (`TEMPLATE-NOT-AVATAR-III`) unless every avatar element is `avatar_iii` with unlimited mode on. `template-engine --template <slug>` is the read-only pre-check (exit 3 = not III). visuals-flow runs it before every batch (2026-09-30).
 - **Hard rule**: **Avatar III by default — it is the only free path.** Avatar IV
   (`generate-from-template --engine heygen4`, or `--iv` on the shortcut path) is
   METERED against the `/1200` monthly second-pool and is allowed ONLY when the

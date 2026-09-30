@@ -41,6 +41,16 @@ export const CONSTANTS = {
   AVATAR_FOCUS_Y: 0.389
 };
 
+// Face focus per HeyGen template; the default above is specs-man.
+export const AVATAR_FOCUS_BY_TEMPLATE = {
+  'specs-man': { x: 0.445, y: 0.389 },
+  'girl-1': { x: 0.5, y: 0.37 },
+};
+
+export function avatarFocus(template) {
+  return AVATAR_FOCUS_BY_TEMPLATE[template] ?? { x: CONSTANTS.AVATAR_FOCUS_X, y: CONSTANTS.AVATAR_FOCUS_Y };
+}
+
 function hexToRgb(hex) {
   const s = hex.replace('#', '');
   return [
@@ -52,7 +62,7 @@ function hexToRgb(hex) {
 
 // Geometry of the corner bubble, derived from the canvas height so the look is
 // identical at 720p (draft) and 1080p (final). All values are integers.
-export function bubbleGeometry(w, h) {
+export function bubbleGeometry(w, h, { corner = 'top-right' } = {}) {
   const D = Math.round(h * CONSTANTS.BUBBLE_D_1080 / 1080);
   const R = Math.round(D / 2);
   // Ring/blur widths stay FRACTIONAL. Rounding them to whole pixels inflates
@@ -77,7 +87,7 @@ export function bubbleGeometry(w, h) {
   const DZ = Math.round(D * CONSTANTS.AVATAR_ZOOM / 2) * 2;
   const [rr, gg, bb] = hexToRgb(CONSTANTS.RING_COLOR);
   const [hr, hg, hb] = hexToRgb(CONSTANTS.GLEAM_COLOR);
-  return { D, R, RING, INSET, rr, gg, bb, hr, hg, hb, OX: w - INSET - D, OY: INSET, GW, GSIG, PAD, S, C, CORE, DZ, RIN, ROUT, GIN, GOUT };
+  return { D, R, RING, INSET, rr, gg, bb, hr, hg, hb, OX: w - INSET - D, OY: corner === 'bottom-right' ? h - INSET - D : INSET, GW, GSIG, PAD, S, C, CORE, DZ, RIN, ROUT, GIN, GOUT };
 }
 
 // Slice each overlapping corner chunk to the part of it that overlaps this
@@ -98,7 +108,7 @@ export function bubbleSlices(seg, cornerJobs, ctx) {
     if (overlapDur <= 0.01) continue;
     slices.push({
       file: j.file,
-      sliceStart: +(oStart - j.start).toFixed(3),
+      sliceStart: +(oStart - j.start + (j.trimLead || 0)).toFixed(3),
       overlapDur,
       at: +Math.max(0, oStart - contentStart).toFixed(3),
       until: +(oEnd - contentStart).toFixed(3)
@@ -116,13 +126,18 @@ export function contribute(seg, instances, ctx) {
   const instance = instances[0];
   if (!instance) return null;
 
-  const cornerJobs = (ctx.cornerJobs || []).filter(j => j.file);
+  // bubbleOpts.from: no bubble before this time (coupon: only after the first full-screen host).
+  const from = ctx.bubbleOpts?.from ?? 0;
+  const cornerJobs = (ctx.cornerJobs || []).filter(j => j.file && j.end > from)
+    .map(j => (j.start < from ? { ...j, start: from, trimLead: from - j.start } : j));
   if (cornerJobs.length === 0) return null;
 
   const slices = bubbleSlices(seg, cornerJobs, ctx);
   if (slices.length === 0) return null;
 
-  const { D, R, RING, INSET, rr, gg, bb, hr, hg, hb, OX, OY, GW, GSIG, PAD, S, C, CORE, DZ, RIN, ROUT, GIN, GOUT } = bubbleGeometry(ctx.w, ctx.h);
+  const bopts = ctx.bubbleOpts || {};
+  const { D, R, RING, INSET, rr, gg, bb, hr, hg, hb, OX, OY, GW, GSIG, PAD, S, C, CORE, DZ, RIN, ROUT, GIN, GOUT } = bubbleGeometry(ctx.w, ctx.h, { corner: bopts.corner });
+  const focus = avatarFocus(bopts.template);
 
   const inputs = [];
   for (const s of slices) {
@@ -162,7 +177,7 @@ export function contribute(seg, instances, ctx) {
           // Zoom + focus-point crop: scale the source taller than the circle,
           // then crop the circle out around the face instead of fitting the
           // whole frame height (which framed head + torso, not a portrait).
-          chain += `[${idx}:v]setpts=PTS-STARTPTS,scale=-2:${DZ},crop=${D}:${D}:x='clip(iw*${CONSTANTS.AVATAR_FOCUS_X}-${R},0,iw-${D})':y='clip(ih*${CONSTANTS.AVATAR_FOCUS_Y}-${R},0,ih-${D})',format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='if(lte(hypot(X-${R},Y-${R}),${R}-1),255,0)',pad=${S}:${S}:${PAD}:${PAD}:color=0x00000000[${bub}];`;
+          chain += `[${idx}:v]setpts=PTS-STARTPTS,scale=-2:${DZ},crop=${D}:${D}:x='clip(iw*${focus.x}-${R},0,iw-${D})':y='clip(ih*${focus.y}-${R},0,ih-${D})',format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='if(lte(hypot(X-${R},Y-${R}),${R}-1),255,0)',pad=${S}:${S}:${PAD}:${PAD}:color=0x00000000[${bub}];`;
           // Layer 1 — the hairline. Constant brand colour the whole way round,
           // uniform width, CORE blur for anti-aliasing only and NO halo: the
           // reference ring drops straight to background away from the gleam.

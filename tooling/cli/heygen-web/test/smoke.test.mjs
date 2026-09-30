@@ -59,7 +59,7 @@ test("2. Registry completeness: 25 named keys, valid paths", async () => {
 test("3. Command parity: dispatch table keys", () => {
   const expectedCommands = new Set([
     "auth-check", "list-avatars", "list-looks", "limits", "usage", "generate",
-    "generate-from-audio", "generate-from-template", "batch", "create-photo-avatar",
+    "generate-from-audio", "generate-from-template", "template-engine", "batch", "create-photo-avatar",
     "photo-to-video", "studio-render", "studio-render-status", "list-voices",
     "list-videos", "status", "delete-video", "raw", "download"
   ]);

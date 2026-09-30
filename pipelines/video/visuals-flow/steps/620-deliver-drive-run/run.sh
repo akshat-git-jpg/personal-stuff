@@ -10,7 +10,8 @@ REPO_ROOT="$(cd ../../.. && pwd)"
 PP_DRIVE="$REPO_ROOT/tooling/cli/drive/pp-drive"
 
 # 1. The 120 gate is NEVER waived — delivery only ships an approved final.
-approved=$(node -e "const p='./$workdir/final-cut.json';const fs=require('fs');console.log(fs.existsSync(p)&&require(p).approved===true?'yes':'no')")
+#    Exception: a coupon template video (run-config template=coupon) has no review, by owner rule.
+approved=$(node -e "const fs=require('fs');const p='./$workdir/final-cut.json';const c='./$workdir/run-config.json';const coupon=fs.existsSync(c)&&require(c).template==='coupon';console.log(coupon||(fs.existsSync(p)&&require(p).approved===true)?'yes':'no')")
 if [[ "$approved" != "yes" ]]; then
   echo "refusing to deliver: final-cut.json approved=false — the owner approves the final cut (120) first, in every review mode" >&2
   exit 1

@@ -29,9 +29,9 @@ if [[ $# -eq 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
   exit 2
 fi
 
-# `configure` takes extra flags (--intro/--drive-folder/--drive-account) and
-# `status` takes --track; every other step is exactly two args.
-if [[ $# -lt 2 ]] || { [[ "$2" != "configure" ]] && [[ "$2" != "status" ]] && [[ $# -ne 2 ]]; }; then
+# `configure` takes extra flags (--intro/--drive-folder/--drive-account),
+# `status` takes --track and `coupon` takes --src/--tool; every other step is exactly two args.
+if [[ $# -lt 2 ]] || { [[ "$2" != "configure" ]] && [[ "$2" != "status" ]] && [[ "$2" != "coupon" ]] && [[ $# -ne 2 ]]; }; then
   usage
   exit 2
 fi
@@ -594,6 +594,13 @@ EOF
     dry "record_step 610 -- bash steps/$d/run.sh $slug" && exit 0
     record_step 610 "Exported the layered timeline for DaVinci." \
       "FCPXML timeline" -- bash "steps/$d/run.sh" "$slug"
+    ;;
+
+  coupon)
+    # The one unattended composite. It is allowed only because the owner took coupon
+    # videos out of review (2026-09-30); run-config template=coupon records it.
+    dry "node lib/coupon/run.mjs $slug${*:+ $*}" && exit 0
+    node lib/coupon/run.mjs "$slug" "$@"
     ;;
 
   qc)

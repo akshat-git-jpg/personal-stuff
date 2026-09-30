@@ -23,14 +23,17 @@ export function plan(ctx) {
 import fs from 'node:fs';
 
 export function contribute(seg, instances, ctx) {
-  if (seg.kind !== 'screen') return null;
+  const scope = ctx.captionScope ?? 'screen';
+  if (scope === 'all' ? seg.kind === 'film' : seg.kind !== 'screen') return null;
   const instance = instances[0];
   if (!instance) return null;
   
   const { capDir, capChunks } = ctx;
   if (!capDir || !capChunks || capChunks.length === 0) return null;
 
-  const assFile = `${capDir}/seg-${seg.id}.ass`;
+  // Same key as assemble.mjs captionSegKey: beat subs share an id.
+  const key = seg.sub !== undefined ? `${seg.id}.${seg.sub}` : seg.id;
+  const assFile = `${capDir}/seg-${key}.ass`;
   if (!fs.existsSync(assFile)) return null;
 
   // Separators FIRST, then the colon. A filtergraph treats backslash as an

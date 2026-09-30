@@ -3,7 +3,9 @@ import { authCheck } from "../operations/auth.mjs";
 import { listAvatars, listLooks, createPhotoAvatar } from "../operations/avatars.mjs";
 import { listVoices } from "../operations/voices.mjs";
 import { listVideos, status, deleteVideos, downloadCore, download } from "../operations/videos.mjs";
-import { submitGenerate, submitAudioGenerate, submitFromTemplate, studioRender, studioRenderStatus } from "../operations/render.mjs";
+import { submitGenerate, submitAudioGenerate, submitFromTemplate, studioRender, studioRenderStatus, templateEngine } from "../operations/render.mjs";
+import { resolveTemplate } from "../client/registry.mjs";
+import { arg } from "./args.mjs";
 import { limits, usage } from "../operations/account.mjs";
 import { batch } from "../workflows/batch.mjs";
 import { raw } from "../workflows/raw.mjs";
@@ -27,6 +29,14 @@ export async function run(args) {
     case "generate":     await generate(auth, rest); break;
     case "generate-from-audio": await generateFromAudio(auth, rest); break;
     case "generate-from-template": await generateFromTemplate(auth, rest); break;
+    case "template-engine": {
+      const t = arg(rest, "--template");
+      if (!t) die("template-engine needs --template <slug|id>");
+      const r = await templateEngine(auth, resolveTemplate(t));
+      console.log(JSON.stringify(r, null, 2));
+      if (!r.avatar_iii) process.exit(3);
+      break;
+    }
     case "batch":        await batch(auth, rest); break;
     case "create-photo-avatar": await createPhotoAvatar(auth, rest); break;
     case "photo-to-video": await photoToVideo(auth, rest); break;

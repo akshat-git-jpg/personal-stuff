@@ -4,7 +4,11 @@ export const CONSTANTS = {
   WHIP_SIGMAS: [10, 24],
   WHIP_ZOOM: 0.12,
   FLASH_COLOR: { r: 1.25, g: 1.08, b: 0.85 },
-  FLASH_GAIN: 0.85
+  FLASH_GAIN: 0.85,
+  // Coupon template: a warm light leak into and out of the full-screen host.
+  LEAK_HALF: 0.4,
+  LEAK_COLOR: { r: 1.35, g: 1.05, b: 0.72 },
+  LEAK_GAIN: 0.95
 };
 
 export function plan(ctx) {
@@ -15,12 +19,18 @@ export function plan(ctx) {
   for (let i = 0; i < segments.length - 1; i++) {
     const a = segments[i], b = segments[i + 1];
     const pair = `${a.kind}>${b.kind}`;
+    const isLeak = ctx.transitionStyle === 'leak' && (pair === 'avatar>screen' || pair === 'screen>avatar');
     const isWhip = pair === 'avatar>screen';
     const isFlash = pair === 'screen>graphic' || pair === 'avatar>graphic';
-    if (!isWhip && !isFlash) continue;
+    if (!isWhip && !isFlash && !isLeak) continue;
     if (a.end - a.start < 1.0 || b.end - b.start < 1.0) continue;
     const at = a.end;
-    if (overlays.some((o) => o.start < at + half && o.end > at - half)) continue;
+    const h = isLeak ? CONSTANTS.LEAK_HALF : half;
+    if (overlays.some((o) => o.start < at + h && o.end > at - h)) continue;
+    if (isLeak) {
+      out.push({ id: `whip-${at.toFixed(1)}`, type: TYPE, at, direction: 'right', fromIdx: i, toIdx: i + 1, style: 'leak', half: h, enabled: true });
+      continue;
+    }
     
     out.push({
       id: `whip-${at.toFixed(1)}`,
@@ -58,7 +68,7 @@ export function plan(ctx) {
 export function boundarySegments(instance, ctx) {
   const { segments, avatarJobs, screen, screenOffset, w, h, VF } = ctx;
   const isRegister = instance.style === 'register';
-  const half = isRegister ? 0.2 : CONSTANTS.TRANSITION_DUR / 2;
+  const half = instance.half ?? (isRegister ? 0.2 : CONSTANTS.TRANSITION_DUR / 2);
   const b = instance.at;
   
   const toIdx = segments.findIndex(s => Math.abs(s.start - b) < 0.01);
@@ -134,7 +144,19 @@ export function boundarySegments(instance, ctx) {
   const isFlash = instance.style === 'flash';
 
   let chainOut, chainIn;
-  if (isRegister) {
+  if (instance.style === 'leak') {
+    // Ramp to a warm near-white over `half`, then back down on the other side.
+    const L = CONSTANTS.LEAK_COLOR, LG = CONSTANTS.LEAK_GAIN;
+    const up = `min(t/${half},1)`, down = `max(1-t/${half},0)`;
+    chainOut = `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +
+      `gblur=sigma=18:sigmaV=18:enable='gte(t,${(half * 0.5).toFixed(3)})',` +
+      `colorchannelmixer=rr=${L.r}:gg=${L.g}:bb=${L.b}:enable='gte(t,${(half * 0.2).toFixed(3)})',` +
+      `eq=brightness='${LG}*${up}*${up}':eval=frame,scale=${w}:${h},setsar=1[v]`;
+    chainIn = `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +
+      `gblur=sigma=18:sigmaV=18:enable='lt(t,${(half * 0.5).toFixed(3)})',` +
+      `colorchannelmixer=rr=${L.r}:gg=${L.g}:bb=${L.b}:enable='lt(t,${(half * 0.8).toFixed(3)})',` +
+      `eq=brightness='${LG}*${down}*${down}':eval=frame,scale=${w}:${h},setsar=1[v]`;
+  } else if (isRegister) {
     // 0.4s dip: fade out 0.2s to black (or lift) -> both directions implemented as dip to black for now
     // TODO: implement white-lift for dark->light if feasible, falling back to black dip.
     // tpad matches the whip/flash branches below: assemble asks for an exact

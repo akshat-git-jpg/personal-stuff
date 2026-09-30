@@ -381,3 +381,13 @@
   anyway). This supersedes `intro-kit/KIT.md`'s "do not add an 8th card without
   an owner decision recorded in decisions.md" — the kit itself is gone.
   Plans 228, 229.
+
+- **2026-09-30**: Coupon template (`lib/coupon/`, verb `coupon`). Rules live in
+  `COUPON_RULES` in `lib/coupon/plan.mjs`; feedback on a coupon cut changes the
+  rules, never one video's cues. Assemble reads `template: "coupon"` to turn on
+  captions on every segment, the bottom-right bubble (only after the first
+  full-screen host), the `leak` transition style (0.4s half, both directions
+  around the host) and caption clearing under the subscribe bar. Also fixed for
+  every video: the segment cache now hashes caption file content (edited
+  captions used to hit a stale segment), and effects-plan applies the same
+  trailing freeze as assemble (a tail whip got an id assemble never planned).

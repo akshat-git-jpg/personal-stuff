@@ -14,6 +14,7 @@ import { SHOT_CONSTANTS, jobPurpose } from './shot-constants.mjs';
 import { readFinalCut } from './final-cut.mjs';
 import { introSpan, introMode } from './intro-modes.mjs';
 import { requireIntroApproved } from './intro-film/approve.mjs';
+import { isCouponTemplate } from './run-config.mjs';
 import { pathToFileURL } from 'node:url';
 
 import * as whipMod from './effects/whip.mjs';
@@ -38,6 +39,11 @@ function jobKey(args) {
     if (fs.existsSync(a) && fs.statSync(a).isFile()) {
       const st = fs.statSync(a);
       h.update(`${st.size}:${Math.floor(st.mtimeMs)}`);
+    }
+    // Caption files hide inside the filter string, so hash their content too, or new captions hit a stale segment.
+    for (const m of a.matchAll(/subtitles=filename='((?:[^'\\]|\\.)+)'/g)) {
+      const p = m[1].replace(/\\:/g, ':');
+      if (fs.existsSync(p)) h.update(fs.readFileSync(p));
     }
   }
   return h.digest('hex');
@@ -366,6 +372,16 @@ export const splitAvatarSegments = (segments, words, opts = {}) => {
   return beatsMod.transformSegments(segments, instances, { words, resolved: dummyResolved });
 };
 
+// Which base segments carry burned captions, and the .ass file key per segment.
+// Beat punch-ins split one avatar span into subs that share an id, so the key includes sub.
+export function captionSegKey(seg) {
+  return seg.sub !== undefined ? `${seg.id}.${seg.sub}` : seg.id;
+}
+export function captionsApply(seg, scope = 'screen') {
+  if (scope === 'all') return seg.kind !== 'film';
+  return seg.kind === 'screen';
+}
+
 export function encoderArgs({ encoder, draft }) {
   if (encoder === 'videotoolbox') {
     return ['-c:v', 'h264_videotoolbox', '-b:v', draft ? '4M' : '12M', '-pix_fmt', 'yuv420p'];
@@ -435,7 +451,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', effects: 'on', bubble: 'off', jobs: 3, noCache: false, bare: false };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', effects: 'on', bubble: null, captionScope: null, bubbleCorner: null, jobs: 3, noCache: false, bare: false };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -474,6 +490,16 @@ function parseArgs(argv) {
       if (b !== 'on' && b !== 'off') throw new Error('--bubble must be on or off');
       opts.bubble = b;
     }
+    else if (a === '--caption-scope') {
+      const c = rest.shift();
+      if (c !== 'screen' && c !== 'all') throw new Error('--caption-scope must be screen or all');
+      opts.captionScope = c;
+    }
+    else if (a === '--bubble-corner') {
+      const c = rest.shift();
+      if (c !== 'top-right' && c !== 'bottom-right') throw new Error('--bubble-corner must be top-right or bottom-right');
+      opts.bubbleCorner = c;
+    }
     else if (a === '--keep-temp') opts.keepTemp = true;
     else if (a === '--force') opts.force = true;
     else if (a === '--jobs') opts.jobs = parseInt(rest.shift(), 10);
@@ -491,7 +517,7 @@ function parseArgs(argv) {
   return opts;
 }
 
-export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], sideJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'off', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, catalog, filmSpan }) {
+export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], sideJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'off', captionScope = 'screen', bubbleOpts = {}, transitionStyle = null, captionClearCards = [], words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, catalog, filmSpan }) {
   const videoManifest = loadVideoManifest(workdir);
   let segments = planSegments({ resolved, avatarJobs, total, filmSpan });
   segments = absorbSlivers(segments);
@@ -548,7 +574,7 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
   // transitions it wrote into effects.json look "unknown" here and get dropped.
   const conceptSpans = loadConceptSpans(workdir, words);
 
-  let ctx = { segments, overlays, words, resolved, avatarJobs, cornerJobs, total, w, h, VF, screen, conceptSpans, workdir };
+  let ctx = { segments, overlays, words, resolved, avatarJobs, cornerJobs, total, w, h, VF, screen, conceptSpans, workdir, captionScope, bubbleOpts, transitionStyle };
   
   for (const mod of EFFECT_MODULES) {
     if (mod.plan) {
@@ -590,9 +616,11 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
   const capInstances = enabledInstances.filter(i => i.type === 'captions');
   if (capInstances.length > 0) {
     const inst = capInstances[0];
-    capChunks = planCaptions(words);
-    const screenChunks = capChunks.filter(c => 
-      segments.some(seg => seg.kind === 'screen' && c.start < seg.end && c.end > seg.start)
+    // Captions step aside for cards that sit on the caption line (coupon: the subscribe bar).
+    const clear = resolved.filter((c) => captionClearCards.includes(c.card));
+    capChunks = planCaptions(words).filter((c) => !clear.some((k) => c.start < k.start + k.duration && c.end > k.start));
+    const screenChunks = capChunks.filter(c =>
+      segments.some(seg => captionsApply(seg, captionScope) && c.start < seg.end && c.end > seg.start)
     );
     if (screenChunks.length > 0) {
       capDir = path.join(tmpDir, 'captions');
@@ -605,9 +633,9 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
       const whipInstancesTmp = enabledInstances.filter(i => i.type === 'whip');
       
       for (const seg of segments) {
-        if (seg.kind !== 'screen') continue;
+        if (!captionsApply(seg, captionScope)) continue;
         const tIn = whipInstancesTmp.find(t => Math.abs(t.at - seg.start) < 0.01);
-        const startTrim = tIn ? TRANSITION_DUR / 2 : 0;
+        const startTrim = tIn ? (tIn.half ?? TRANSITION_DUR / 2) : 0;
         
         let assBody = '';
         for (const c of capChunks) {
@@ -634,7 +662,7 @@ Style: Cap,Helvetica,${capFontPx},&H00FFFFFF,&H00000000,&H00000000,1,${outline},
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 `;
-          fs.writeFileSync(path.join(capDir, `seg-${seg.id}.ass`), assHead + assBody);
+          fs.writeFileSync(path.join(capDir, `seg-${captionSegKey(seg)}.ass`), assHead + assBody);
         }
       }
     }
@@ -682,8 +710,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       ? undefined
       : whipInstances.find(t => Math.abs(t.at - seg.start) < 0.01);
 
-    if (tOut) endTrim = TRANSITION_DUR / 2;
-    if (tIn) startTrim = TRANSITION_DUR / 2;
+    if (tOut) endTrim = tOut.half ?? TRANSITION_DUR / 2;
+    if (tIn) startTrim = tIn.half ?? TRANSITION_DUR / 2;
 
     // Frame-exact piece length, with the sub-frame remainder CARRIED — see
     // framesUntil for why this is not simply (end - start).
@@ -1203,9 +1231,11 @@ export async function loadAssemblyInputs(opts) {
   // Derived from the shared helper, not privately: this was computed inline
   // here, which meant lint-shots could not see it and E8 kept demanding a host
   // inside the span the film owns. One derivation, every surface.
-  const filmSpan = introSpan(workdir);
+  const coupon = isCouponTemplate(workdir);
+  // Coupon template videos have no intro film (owner, 2026-09-30).
+  const filmSpan = coupon ? null : introSpan(workdir);
   const introFile = path.join(workdir, 'intro-film', 'out', 'intro.mp4');
-  if (!fs.existsSync(introFile)) {
+  if (!coupon && !fs.existsSync(introFile)) {
     // Both intro flows deliver to this SAME path (plan 220) — only the verb
     // that produces it differs per mode. See intro-modes.mjs / approve.mjs.
     const renderVerb = introMode(workdir) === 'simple' ? 'intro-simple-render' : 'intro-render';
@@ -1215,7 +1245,7 @@ export async function loadAssemblyInputs(opts) {
   // on intro-render, which both deadlocked the review and left this path —
   // the one that puts the film in front of an audience — completely
   // unguarded. requireIntroApproved() is itself mode-aware (approve.mjs).
-  requireIntroApproved(workdir);
+  if (!coupon) requireIntroApproved(workdir);
 
   const voPath = path.join(workdir, 'vo.mp3');
   const screen = opts.screen ?? path.join(workdir, 'screen.mp4');
@@ -1251,13 +1281,14 @@ export async function loadAssemblyInputs(opts) {
     console.warn('warning: screen source duration + offset is more than 2s short of the last screen segment end');
   }
   
-  return { workdir, video, resolved, avatarJobs, panelJobs, sideJobs, cornerJobs, words, total, screen, catalog, filmSpan };
+  const avatarTemplate = fs.existsSync(avatarJobsPath) ? JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8')).template : null;
+  return { workdir, video, resolved, avatarJobs, panelJobs, sideJobs, cornerJobs, words, total, screen, catalog, filmSpan, coupon, avatarTemplate };
 }
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off] [--bubble on|off] [--effects on|off]');
+    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off] [--caption-scope screen|all] [--bubble on|off] [--bubble-corner top-right|bottom-right] [--effects on|off]');
     process.exit(1);
   }
 
@@ -1274,7 +1305,8 @@ async function main() {
   const brandObj = loadBrand(root, { brand: inputs.brand || 'default' });
   const kbWorkdir = path.join(ASSEMBLE_MEDIA_ROOT, inputs.video);
 
-  if (!opts.draft && !opts.force) {
+  // Coupon template videos skip the final-cut review; the owner reviews the delivered file.
+  if (!opts.draft && !opts.force && !inputs.coupon) {
     const fc = readFinalCut(inputs.workdir);
     if (!fc.approved) {
       console.error('refusing to build the full-resolution final: final-cut.json approved=false — review the Final Cut tab (node lib/board.mjs <slug>) or pass --force. Use --draft for a review copy.');
@@ -1283,7 +1315,12 @@ async function main() {
   }
 
   const out = opts.out ?? path.join(kbWorkdir, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble: opts.bubble, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj, catalog: inputs.catalog });
+  const bubble = opts.bubble ?? (inputs.coupon ? 'on' : 'off');
+  const captionScope = opts.captionScope ?? (inputs.coupon ? 'all' : 'screen');
+  const firstFull = inputs.avatarJobs.map((j) => j.end).sort((a, b) => a - b)[0];
+  const bubbleOpts = { corner: opts.bubbleCorner ?? (inputs.coupon ? 'bottom-right' : 'top-right'), template: inputs.avatarTemplate,
+    from: inputs.coupon && firstFull !== undefined ? firstFull : 0 };
+  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble, captionScope, bubbleOpts, transitionStyle: inputs.coupon ? 'leak' : null, captionClearCards: inputs.coupon ? ['like-subscribe/like-subscribe'] : [], jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj, catalog: inputs.catalog });
 
   const usedPlaceholders = inputs.avatarJobs.some((j) => j.placeholder);
   const entry = registerVersion(kbWorkdir, out, { draft: opts.draft, placeholder: usedPlaceholders });

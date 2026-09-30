@@ -342,3 +342,63 @@ test('retry run flushes skipped jobs after the last submit (s03-retry incident)'
   assert.ok(after.jobs.every((j) => j.video_id), 'every job keeps a video_id');
   assert.strictEqual(after.jobs.find((j) => j.id === 's02').video_id, 'pre-existing-id');
 });
+
+// Credit guard: baseline before submit, verdict after the last download.
+function meterFixture(t) {
+  const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), 'avatar-render-meter-'));
+  const workdir = path.join(tmpdir, 'videos', 'vid');
+  const mediaRoot = path.join(tmpdir, 'media');
+  t.after(() => fs.rmSync(tmpdir, { recursive: true, force: true }));
+  fs.mkdirSync(workdir, { recursive: true });
+  fs.mkdirSync(mediaRoot, { recursive: true });
+  const words = Array.from({ length: 6 }, (_, i) => ({ start: i * 5, end: i * 5 + 5, text: i === 5 ? `w${i}.` : `w${i}` }));
+  fs.writeFileSync(path.join(workdir, 'transcript.json'), JSON.stringify(words));
+  fs.writeFileSync(path.join(workdir, 'resolved.json'), JSON.stringify({ video: 'vid', resolved: [] }));
+  fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify({
+    video: 'vid', approved: true, engineMode: 'test',
+    spans: [{ id: 's01', purpose: 'avatar-full', mode: 'full', from_anchor: 'w0 w1 w2', to_anchor: 'w3 w4 w5' }],
+  }));
+  spawnSync('ffmpeg', ['-f', 'lavfi', '-i', 'anullsrc', '-t', '31', '-q:a', '9', path.join(workdir, 'vo.mp3')]);
+  const rs = spawnSync(process.execPath, [path.resolve(import.meta.dirname, 'resolve-shots.mjs'), workdir], { encoding: 'utf8' });
+  if (rs.status !== 0) throw new Error(rs.stderr);
+  fs.writeFileSync(path.join(workdir, 'avatar-plan.json'), JSON.stringify({ character: 'girl-1', model: 'heygen3', approved: true }));
+  const run = (args, env = {}) => spawnSync(process.execPath, [path.resolve(import.meta.dirname, 'avatar-render.mjs'), workdir, ...args], {
+    cwd: workdir, encoding: 'utf8',
+    env: { ...process.env, HEYGEN_WEB_BIN: `node ${path.resolve(import.meta.dirname, 'fixtures', 'heygen-web-stub.mjs')}`, AVATAR_RENDER_NO_PACING: '1', AVATAR_MEDIA_ROOT: mediaRoot, ...env },
+  });
+  const usage = (o) => fs.writeFileSync(path.join(workdir, 'stub-usage.json'), JSON.stringify({ credits: 100, seconds_consumed: 0, seconds_limit: 1200, ai_image_credits: 5, ai_video_credits: 5, ai_concept_credits: 5, ...o }));
+  const meter = () => JSON.parse(fs.readFileSync(path.join(workdir, 'heygen-meter.json'), 'utf8'));
+  return { workdir, run, usage, meter };
+}
+
+test('credit guard: flat meters after download -> verified-free', (t) => {
+  const f = meterFixture(t);
+  f.usage({});
+  const sub = f.run(['--submit', '--spans-only']);
+  assert.strictEqual(sub.status, 0, sub.stderr);
+  assert.strictEqual(f.meter().status, 'open');
+  const dl = f.run(['--download']);
+  assert.strictEqual(dl.status, 0, dl.stderr);
+  assert.strictEqual(f.meter().status, 'verified-free');
+  assert.match(dl.stderr, /no credits used/);
+});
+
+test('credit guard: seconds moved on an Avatar III batch -> SPENT, exit 2', (t) => {
+  const f = meterFixture(t);
+  f.usage({});
+  assert.strictEqual(f.run(['--submit', '--spans-only']).status, 0);
+  f.usage({ seconds_consumed: 30 });
+  const dl = f.run(['--download']);
+  assert.strictEqual(dl.status, 2, dl.stderr);
+  assert.match(dl.stderr, /HEYGEN-CREDITS-SPENT/);
+  assert.strictEqual(f.meter().status, 'SPENT');
+  assert.strictEqual(f.meter().delta.seconds_consumed, 30);
+});
+
+test('credit guard: template not Avatar III -> refuses before any submit', (t) => {
+  const f = meterFixture(t);
+  const sub = f.run(['--submit', '--spans-only'], { STUB_TEMPLATE_IV: '1' });
+  assert.strictEqual(sub.status, 1);
+  assert.match(sub.stderr, /TEMPLATE-NOT-AVATAR-III/);
+  assert.ok(!fs.existsSync(path.join(f.workdir, 'stub-counter.txt')), 'nothing was submitted');
+});
