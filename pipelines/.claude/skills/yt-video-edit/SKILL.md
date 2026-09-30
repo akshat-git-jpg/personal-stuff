@@ -254,12 +254,12 @@ review gate and run end to end in one command. The owner reviews only the
 delivered file. Do not add a board step, a cue pass or an LLM pass to it.
 
 - Shape it expects: before/after price → "Hey guys…" → sign-up and checkout
-  demo → "enter <CODE>" → "…and that's it" outro → "subscribe". A recording
-  that lacks the opener, the outro or the code is refused with `COUPON-PLAN:`.
+  demo → "…and that's it" outro → "subscribe". A recording
+  that lacks the opener or the outro is refused with `COUPON-PLAN:`.
 - Edit it produces: raw recording as-is (no zoom/crop, fitted 16:9); girl-1
   full screen from the greeting to the first "description" line and from
   "that's it" to the end, with a warm light-leak cut each way; girl-1 bubble
-  bottom-right in between; captions on the whole video; link-in-description, code-reveal and like-subscribe cards by rule
+  bottom-right in between; captions on the whole video; link-in-description and like-subscribe cards by rule. The coupon code is NEVER on screen (no card, and captions say "the code"): codes change, and only the description can be edited after upload
   (`lib/coupon/plan.mjs`, `COUPON_RULES`).
 - Avatar: girl-1 on **heygen3 only** (Avatar III, free). Never production mode
   for a coupon video. The 6a credit check must end `verified-free`.

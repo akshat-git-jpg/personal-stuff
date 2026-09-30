@@ -377,6 +377,16 @@ export const splitAvatarSegments = (segments, words, opts = {}) => {
 export function captionSegKey(seg) {
   return seg.sub !== undefined ? `${seg.id}.${seg.sub}` : seg.id;
 }
+// Coupon videos never show the code (it changes; the description is where it lives).
+export const COUPON_CODE_RE = /^[A-Z]{2,}[A-Z0-9]*\d[A-Z0-9]*$/;
+export function maskCaptionWords(words, re) {
+  if (!re) return words;
+  return words.map((w) => {
+    const m = /^([^A-Za-z0-9]*)([A-Za-z0-9]+)([^A-Za-z0-9]*)$/.exec(w.text);
+    return m && re.test(m[2]) ? { ...w, text: `${m[1]}the code${m[3]}` } : w;
+  });
+}
+
 export function captionsApply(seg, scope = 'screen') {
   if (scope === 'all') return seg.kind !== 'film';
   return seg.kind === 'screen';
@@ -517,7 +527,7 @@ function parseArgs(argv) {
   return opts;
 }
 
-export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], sideJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'off', captionScope = 'screen', bubbleOpts = {}, transitionStyle = null, captionClearCards = [], words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, catalog, filmSpan }) {
+export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], sideJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'off', captionScope = 'screen', bubbleOpts = {}, transitionStyle = null, captionClearCards = [], captionMask = null, words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, catalog, filmSpan }) {
   const videoManifest = loadVideoManifest(workdir);
   let segments = planSegments({ resolved, avatarJobs, total, filmSpan });
   segments = absorbSlivers(segments);
@@ -618,7 +628,7 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
     const inst = capInstances[0];
     // Captions step aside for cards that sit on the caption line (coupon: the subscribe bar).
     const clear = resolved.filter((c) => captionClearCards.includes(c.card));
-    capChunks = planCaptions(words).filter((c) => !clear.some((k) => c.start < k.start + k.duration && c.end > k.start));
+    capChunks = planCaptions(maskCaptionWords(words, captionMask)).filter((c) => !clear.some((k) => c.start < k.start + k.duration && c.end > k.start));
     const screenChunks = capChunks.filter(c =>
       segments.some(seg => captionsApply(seg, captionScope) && c.start < seg.end && c.end > seg.start)
     );
@@ -1320,7 +1330,7 @@ async function main() {
   const firstFull = inputs.avatarJobs.map((j) => j.end).sort((a, b) => a - b)[0];
   const bubbleOpts = { corner: opts.bubbleCorner ?? (inputs.coupon ? 'bottom-right' : 'top-right'), template: inputs.avatarTemplate,
     from: inputs.coupon && firstFull !== undefined ? firstFull : 0 };
-  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble, captionScope, bubbleOpts, transitionStyle: inputs.coupon ? 'leak' : null, captionClearCards: inputs.coupon ? ['like-subscribe/like-subscribe'] : [], jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj, catalog: inputs.catalog });
+  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble, captionScope, bubbleOpts, transitionStyle: inputs.coupon ? 'leak' : null, captionClearCards: inputs.coupon ? ['like-subscribe/like-subscribe'] : [], captionMask: inputs.coupon ? COUPON_CODE_RE : null, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj, catalog: inputs.catalog });
 
   const usedPlaceholders = inputs.avatarJobs.some((j) => j.placeholder);
   const entry = registerVersion(kbWorkdir, out, { draft: opts.draft, placeholder: usedPlaceholders });
