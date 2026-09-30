@@ -1,0 +1,101 @@
+{
+  "video": "everbee-promo-code",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "c01",
+      "card": "overlay/deal-stamp",
+      "placement": "overlay",
+      "start": 7.34,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Promo code applied",
+        "original": "$39",
+        "price": "$29.25",
+        "period": "/mo",
+        "save": "SAVE $10",
+        "code": "AGR25",
+        "pos": "top-right",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c02",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 32.06,
+      "duration": 4,
+      "variables": {
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c03",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 144.17,
+      "duration": 4,
+      "variables": {
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c04",
+      "card": "overlay/code-reveal",
+      "placement": "overlay",
+      "start": 160.33,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Your promo code",
+        "code": "AGR25",
+        "sub": "Enter it at checkout for the lifetime discount",
+        "pos": "top",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 211.38,
+      "duration": 4,
+      "variables": {
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c06",
+      "card": "overlay/code-reveal",
+      "placement": "overlay",
+      "start": 224.72,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Your promo code",
+        "code": "AGR25",
+        "sub": "Enter it at checkout for the lifetime discount",
+        "pos": "top",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c07",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 251.2,
+      "duration": 4,
+      "variables": {
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c08",
+      "card": "like-subscribe/like-subscribe",
+      "placement": "overlay",
+      "start": 265.42,
+      "duration": 5,
+      "variables": {
+        "register": "dark"
+      }
+    }
+  ]
+}

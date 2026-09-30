@@ -1,0 +1,27 @@
+{
+  "video": "everbee-promo-code",
+  "approved": true,
+  "engineMode": "test",
+  "approvedNote": "coupon template: Avatar III only (owner rule 2026-09-30)",
+  "intro_host_waived": "coupon template: the before/after price opens the video and the host enters at the greeting (owner rule 2026-09-30)",
+  "spans": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Hey guys, in",
+      "to_anchor": "in the description.",
+      "note": "coupon template: intro, from the greeting to the first link-in-description line",
+      "flagged": false
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "And that's it",
+      "to_anchor": "the next video.",
+      "note": "coupon template: outro, from \"that's it\" to the end",
+      "flagged": false
+    }
+  ]
+}
