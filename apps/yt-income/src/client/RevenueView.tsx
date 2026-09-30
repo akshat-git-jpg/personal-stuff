@@ -29,6 +29,7 @@ const compact = (n: number) =>
 
 const key = (y: number, m: number) => `${y}-${String(m + 1).padStart(2, "0")}`;
 const label = (k: string) => `${MONTHS[+k.slice(5) - 1]} ${k.slice(0, 4)}`;
+const dayLabel = (iso: string) => `${+iso.slice(8)} ${MONTHS[+iso.slice(5, 7) - 1]} ${iso.slice(0, 4)}`;
 
 type Tip = {
   x: number; y: number; title: string;
@@ -95,6 +96,14 @@ export function RevenueView() {
   return (
     <div className="rev" onMouseLeave={() => setTip(null)}>
       <SnapshotBar data={data} />
+      {coverage.gaps && coverage.gaps.length > 0 && (
+        <div className="banner-error">
+          <strong>No passbook covers </strong>
+          {coverage.gaps.map((g, i) => (
+            <span key={g.from}>{i > 0 && ", "}{dayLabel(g.from)} – {dayLabel(g.to)}</span>
+          ))}. Income on those days is missing, not zero.
+        </div>
+      )}
       <Picker
         year={year} setYear={setYear} sel={sel} setSel={setSel}
         coverage={coverage} have={data.months}
@@ -146,7 +155,9 @@ function SnapshotBar({ data }: { data: RevenueResponse }) {
       </span>
       <span className="snap-sub">
         Refreshed by <code>yt-income</code>
-        {st?.period_start && <> · statement covers {st.period_start} – {st.period_end}</>}
+        {data.coverage.days_from && data.coverage.days_to
+          ? <> · passbooks cover {dayLabel(data.coverage.days_from)} – {dayLabel(data.coverage.days_to)}</>
+          : st?.period_start && <> · statement covers {st.period_start} – {st.period_end}</>}
         {pending && pending.total_any_currency > 0 && (
           <> · <strong className="snap-pending">
             USD {pending.total_any_currency.toFixed(2)} still in PayPal

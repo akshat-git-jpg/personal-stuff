@@ -97,11 +97,20 @@ export interface Statement {
   period_end: string | null;
 }
 
+export interface Coverage {
+  from: string | null;
+  to: string | null;
+  /** ISO days the passbooks span, and any days inside that no passbook covers. */
+  days_from?: string;
+  days_to?: string;
+  gaps?: { from: string; to: string }[];
+}
+
 export interface RevenueResponse {
   /** ISO timestamp of the last ingest, or null if nothing has been ingested. */
   generated_at: string | null;
   /** The months we can answer for. The date picker must not go past `to`. */
-  coverage: { from: string | null; to: string | null };
+  coverage: Coverage;
   statements: Statement[];
   rails: Record<string, string>;
   sources: SourceInfo[];

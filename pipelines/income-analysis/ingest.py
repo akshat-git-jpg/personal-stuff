@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Turn bank passbooks + PayPal into one committed summary of real income.
 
-Drop passbook PDFs into data/raw/, then:
+Drop passbooks (PDF or PNB's Excel export, any date range) into data/raw/, then:
 
     python3 ingest.py                # bank only
     python3 ingest.py --with-paypal  # also refresh the PayPal side
 
-Reads   data/raw/*.pdf   (password-protected PNB statements)
+Reads   data/raw/*.pdf|xls|xlsx   (password-protected PNB statements; overlaps count once)
 Writes  data/parsed/*.json   transaction level, has PII, never committed
 Writes  summary.json         aggregated numbers only, safe to commit
 
@@ -16,12 +16,14 @@ The PDF password lives in data/config.json (gitignored) or $PASSBOOK_PASSWORD.
 import argparse
 import collections
 import datetime as dt
+import io
 import json
 import os
 import pathlib
 import re
 import subprocess
 import sys
+import warnings
 
 HERE = pathlib.Path(__file__).resolve().parent
 DATA = HERE / "data"
@@ -114,7 +116,12 @@ def source_states(ps, im, pending, checks=None, mail_events=None, tolt=None,
 TXN_RE = re.compile(
     r"^\s*(\d{2}/\d{2}/\d{4})\s+([\d,]+\.?\d*)\s+(CR|DR)\s+([\d,]+\.?\d*)\s*(.*)$"
 )
-PERIOD_RE = re.compile(r"For Period:\s*(\d{2}-\d{2}-\d{4})\s*to\s*(\d{2}-\d{2}-\d{4})")
+# PDF says "For Period:", the Excel export says "Statement Period:".
+PERIOD_RE = re.compile(
+    r"(?:For|Statement) Period:\s*(\d{2}-\d{2}-\d{4})\s*to\s*(\d{2}-\d{2}-\d{4})")
+PASSBOOK_SUFFIXES = (".pdf", ".xls", ".xlsx")
+# The dashboard's window starts here by the owner's decision; missing days before it don't matter.
+WINDOW_START = dt.date(2026, 1, 1)
 # Header/footer lines that must never be glued onto a previous txn's remarks.
 NOISE = (
     "Branch", "Customer", "City:", "Pin:", "IFSC", "MICR", "Statement", "CKYC", "Date ",
@@ -175,27 +182,106 @@ def parse_statement(text):
     return txns
 
 
-def row_key(t):
-    return (t["date"], t["type"], round(t["amount"], 2), round(t["balance"], 2),
-            attribute.extract_ref(t["remarks"]))
+def sheet_rows(path, pw):
+    """Every row of a PNB Excel export. PNB names it .xls but it is password-locked .xlsx."""
+    try:
+        import msoffcrypto
+        import openpyxl
+    except ImportError:
+        sys.exit("Excel passbooks need: pip3 install msoffcrypto-tool openpyxl")
+    raw = path.read_bytes()
+    if raw[:4] == b"\xd0\xcf\x11\xe0":  # OLE container: an encrypted workbook
+        f = msoffcrypto.OfficeFile(io.BytesIO(raw))
+        if f.is_encrypted():
+            out = io.BytesIO()
+            try:
+                f.load_key(password=pw)
+                f.decrypt(out)
+            except Exception:
+                sys.exit(f"Wrong password for {path.name}")
+            raw = out.getvalue()
+    if raw[:2] != b"PK":
+        sys.exit(f"{path.name}: old binary .xls is not supported. Export it as PDF instead.")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # PNB's workbook has no default style
+        wb = openpyxl.load_workbook(io.BytesIO(raw), read_only=True, data_only=True)
+        return [r for ws in wb.worksheets for r in ws.iter_rows(values_only=True)]
 
 
-def drop_seen(txns, seen):
-    """Drop rows an earlier passbook already covered, so overlapping periods count once.
+def money(v):
+    """'1,234.50' / 1234.5 / '179905.28 Cr.' -> float; a Dr. balance is negative."""
+    if v is None or str(v).strip() in ("", "-"):
+        return None
+    txt = str(v).strip()
+    m = re.search(r"\d[\d,]*(?:\.\d+)?", txt)
+    n = float(m.group().replace(",", "")) if m else 0.0
+    return -n if txt.upper().endswith(("DR", "DR.")) else n
 
-    `seen` counts keys from earlier files only: identical rows inside one file are real.
+
+def parse_sheet(rows):
+    """Transactions plus the "Statement Period" text from a PNB Excel export.
+
+    Returns the same row shape as parse_statement, so everything downstream is format-blind.
     """
-    budget = collections.Counter(seen)
-    kept = []
-    for t in txns:
-        k = row_key(t)
-        if budget[k] > 0:
-            budget[k] -= 1
-        else:
-            kept.append(t)
-    for k, n in collections.Counter(row_key(t) for t in txns).items():
-        seen[k] = max(seen[k], n)
-    return kept
+    text = "\n".join(" ".join(str(c) for c in r if c is not None) for r in rows)
+    col, txns = None, []
+    for r in rows:
+        cells = [str(c).strip().lower() if c is not None else "" for c in r]
+        if col is None:
+            if "txn date" in cells and "cr amount" in cells:
+                col = {name: cells.index(name) for name in
+                       ("txn date", "description", "dr amount", "cr amount", "balance")}
+            continue
+        date = str(r[col["txn date"]] or "").strip()
+        if not re.fullmatch(r"\d{2}/\d{2}/\d{4}", date):
+            continue
+        cr, dr = money(r[col["cr amount"]]), money(r[col["dr amount"]])
+        txns.append({
+            "date": date,
+            "amount": cr if cr else (dr or 0.0),
+            "type": "CR" if cr else "DR",
+            "balance": money(r[col["balance"]]) or 0.0,
+            "remarks": re.sub(r"\s+", " ", str(r[col["description"]] or "")).strip(),
+        })
+    return txns, text
+
+
+def read_passbook(path, pw):
+    """(transactions, text) for one passbook, whatever its format."""
+    if path.suffix.lower() == ".pdf":
+        text = pdf_text(path, pw)
+        return parse_statement(text), text
+    return parse_sheet(sheet_rows(path, pw))
+
+
+def day(ddmmyyyy):
+    return dt.datetime.strptime(ddmmyyyy.replace("-", "/"), "%d/%m/%Y").date()
+
+
+def merge_passbooks(books):
+    """Keep every day from exactly one passbook, so any overlap counts once.
+
+    `books` is a list of {"txns", "start", "end"}. When several cover a day, the one
+    with the most rows that day wins: a statement cut mid-day holds fewer. Ties go
+    to the earlier book. Returns one kept-rows list per book.
+    """
+    rows_on = collections.defaultdict(collections.Counter)  # date -> book -> rows
+    for i, b in enumerate(books):
+        for t in b["txns"]:
+            rows_on[t["date"]][i] += 1
+    owner = {d: max(c, key=lambda i: (c[i], -i)) for d, c in rows_on.items()}
+    return [[t for t in b["txns"] if owner[t["date"]] == i] for i, b in enumerate(books)]
+
+
+def coverage_gaps(books, start=WINDOW_START):
+    """Date ranges from `start` to the last passbook day that no passbook covers."""
+    spans = sorted((max(b["start"], start), b["end"]) for b in books if b["end"] >= start)
+    gaps, cursor = [], start
+    for lo, hi in spans:
+        if lo > cursor:
+            gaps.append((cursor, lo - dt.timedelta(days=1)))
+        cursor = max(cursor, hi + dt.timedelta(days=1))
+    return gaps
 
 
 def classify(remarks, rules):
@@ -393,30 +479,53 @@ def main():
     pw = password()
     PARSED.mkdir(parents=True, exist_ok=True)
 
-    pdfs = sorted(RAW.glob("*.pdf"))
-    if not pdfs:
-        sys.exit(f"No PDFs in {RAW}. Drop your passbooks there first.")
+    files = sorted(p for p in RAW.iterdir() if p.suffix.lower() in PASSBOOK_SUFFIXES)
+    if not files:
+        sys.exit(f"No passbooks in {RAW}. Drop your PDF or Excel statements there first.")
 
-    statements, all_txns, seen = [], [], collections.Counter()
-    for pdf in pdfs:
-        text = pdf_text(pdf, pw)
-        parsed = parse_statement(text)
-        txns = drop_seen(parsed, seen)
+    books = []
+    for f in files:
+        txns, text = read_passbook(f, pw)
         period = PERIOD_RE.search(text)
-        for t in txns:
+        dates = [day(t["date"]) for t in txns]
+        start = day(period.group(1)) if period else min(dates, default=None)
+        end = day(period.group(2)) if period else max(dates, default=None)
+        if start is None:
+            print(f"  ! {f.name}: no transactions and no period, skipped", file=sys.stderr)
+            continue
+        books.append({"path": f, "txns": txns, "start": start, "end": end,
+                      "period": period.groups() if period else (None, None)})
+    books.sort(key=lambda b: (b["start"], b["end"]))
+
+    # Parsed files are rebuilt from scratch, so a removed passbook can't linger.
+    for old in PARSED.glob("*.json"):
+        old.unlink()
+    statements, all_txns = [], []
+    for b, kept in zip(books, merge_passbooks(books)):
+        f = b["path"]
+        for t in kept:
             rail, is_income = classify(t["remarks"], rules)
             t["rail"], t["is_income"] = rail, is_income
-        (PARSED / f"{pdf.stem}.json").write_text(json.dumps(txns, indent=1))
+        stem = f.stem if f.suffix.lower() == ".pdf" else f.name
+        (PARSED / f"{stem}.json").write_text(json.dumps(kept, indent=1))
         statements.append({
-            "file": redact_filename(pdf.name),
-            "transactions": len(txns),
-            "period_start": period.group(1) if period else None,
-            "period_end": period.group(2) if period else None,
+            "file": redact_filename(f.name),
+            "transactions": len(kept),
+            "period_start": b["period"][0],
+            "period_end": b["period"][1],
         })
-        all_txns.extend(txns)
-        dupes = len(parsed) - len(txns)
-        print(f"  {pdf.name}: {len(txns)} transactions"
-              + (f" ({dupes} already in an earlier passbook, skipped)" if dupes else ""))
+        all_txns.extend(kept)
+        dupes = len(b["txns"]) - len(kept)
+        print(f"  {f.name}: {b['start']:%d/%m/%Y} to {b['end']:%d/%m/%Y}, "
+              f"{len(kept)} transactions"
+              + (f" ({dupes} already in another passbook, skipped)" if dupes else ""))
+
+    covered_to = max(b["end"] for b in books)
+    gaps = coverage_gaps(books)
+    print(f"  passbooks cover {WINDOW_START:%d/%m/%Y} to {covered_to:%d/%m/%Y}")
+    for lo, hi in gaps:
+        print(f"  !! NO PASSBOOK for {lo:%d/%m/%Y} to {hi:%d/%m/%Y}: "
+              "income on those days is MISSING, not zero", file=sys.stderr)
 
     rail_ids = [r["id"] for r in rules["income_rails"]]
     bank_months = sorted({month_of(t["date"]) for t in all_txns
@@ -530,7 +639,11 @@ def main():
     summary = {
         "generated_at": dt.datetime.now().isoformat(timespec="seconds"),
         "coverage": {"from": bank_months[0] if bank_months else None,
-                     "to": bank_months[-1] if bank_months else None},
+                     "to": bank_months[-1] if bank_months else None,
+                     "days_from": max(min(b["start"] for b in books), WINDOW_START).isoformat(),
+                     "days_to": covered_to.isoformat(),
+                     "gaps": [{"from": lo.isoformat(), "to": hi.isoformat()}
+                              for lo, hi in gaps]},
         "statements": statements,
         "rails": {r["id"]: r["label"] for r in rules["income_rails"]},
         "sources": source_states(ps_data, im_data, pending, checks, mail_events,
@@ -545,6 +658,8 @@ def main():
     print(f"\n  wrote {out.relative_to(HERE.parent.parent)}")
 
     print_tally(months, notes, paypal_months, bb_data)
+    for lo, hi in gaps:
+        print(f"  !! Missing passbook days: {lo:%d/%m/%Y} to {hi:%d/%m/%Y}")
 
 
 if __name__ == "__main__":

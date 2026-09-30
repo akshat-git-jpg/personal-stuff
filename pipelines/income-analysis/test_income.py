@@ -962,29 +962,70 @@ class Privacy(unittest.TestCase):
 
 
 
-class OverlappingPassbooks(unittest.TestCase):
+class Passbooks(unittest.TestCase):
     def row(self, date, amount, balance, typ="CR"):
         return {"date": date, "amount": amount, "type": typ, "balance": balance, "remarks": "x"}
 
-    def test_overlap_counts_once(self):
-        seen = collections.Counter()
-        a = [self.row("05/08/2026", 100.0, 500.0), self.row("06/08/2026", 50.0, 550.0)]
-        b = [self.row("06/08/2026", 50.0, 550.0), self.row("02/09/2026", 70.0, 620.0)]
-        self.assertEqual(len(ingest.drop_seen(a, seen)), 2)
-        kept = ingest.drop_seen(b, seen)
-        self.assertEqual([r["date"] for r in kept], ["02/09/2026"])
+    def book(self, start, end, rows):
+        return {"txns": rows, "start": ingest.day(start), "end": ingest.day(end)}
 
-    def test_same_day_same_amount_both_kept(self):
-        rows = [self.row("05/08/2026", 19000.0, 20000.0),
-                self.row("05/08/2026", 19000.0, 39000.0)]
-        self.assertEqual(len(ingest.drop_seen(rows, collections.Counter())), 2)
+    def test_overlap_counts_once(self):
+        a = self.book("01/01/2026", "30/08/2026",
+                      [self.row("05/08/2026", 100.0, 500.0), self.row("06/08/2026", 50.0, 550.0)])
+        b = self.book("02/07/2026", "30/09/2026",
+                      [self.row("06/08/2026", 50.0, 550.0), self.row("02/09/2026", 70.0, 620.0)])
+        ka, kb = ingest.merge_passbooks([a, b])
+        self.assertEqual(len(ka) + len(kb), 3)
+        self.assertEqual([r["date"] for r in kb], ["02/09/2026"])
 
     def test_identical_rows_in_one_file_are_real(self):
         """5 Aug 2026: two 19,000 debits, same day, same balance, both genuine."""
         rows = [self.row("05/08/2026", 19000.0, 2438.5, "DR")] * 2
-        seen = collections.Counter()
-        self.assertEqual(len(ingest.drop_seen(rows, seen)), 2)
-        self.assertEqual(len(ingest.drop_seen(rows, seen)), 0)
+        (kept,) = ingest.merge_passbooks([self.book("01/08/2026", "31/08/2026", rows)])
+        self.assertEqual(len(kept), 2)
+
+    def test_day_cut_short_loses_to_the_fuller_book(self):
+        """A statement downloaded mid-day holds only part of its last day."""
+        a = self.book("01/08/2026", "30/08/2026", [self.row("30/08/2026", 10.0, 10.0)])
+        b = self.book("30/08/2026", "30/09/2026",
+                      [self.row("30/08/2026", 10.0, 10.0), self.row("30/08/2026", 5.0, 15.0)])
+        ka, kb = ingest.merge_passbooks([a, b])
+        self.assertEqual((len(ka), len(kb)), (0, 2))
+
+    def test_gaps_are_named(self):
+        books = [self.book("01/01/2026", "30/06/2026", []),
+                 self.book("15/07/2026", "31/07/2026", []),
+                 self.book("01/08/2026", "30/09/2026", [])]
+        self.assertEqual(ingest.coverage_gaps(books),
+                         [(dt.date(2026, 7, 1), dt.date(2026, 7, 14))])
+
+    def test_gap_at_window_start(self):
+        self.assertEqual(ingest.coverage_gaps([self.book("10/01/2026", "31/01/2026", [])]),
+                         [(dt.date(2026, 1, 1), dt.date(2026, 1, 9))])
+
+    def test_no_gaps_when_books_overlap(self):
+        books = [self.book("01/01/2026", "30/08/2026", []),
+                 self.book("02/07/2026", "30/09/2026", [])]
+        self.assertEqual(ingest.coverage_gaps(books), [])
+
+    def test_excel_export_parses_like_the_pdf(self):
+        rows = [("Statement Period:     02-07-2026    to     30-09-2026",),
+                ("Txn No.", "Txn Date", "Description", None, "Branch Name", "Cheque No.",
+                 "Dr Amount", "Cr Amount", "Balance"),
+                ("S1", "30/09/2026", "UPI/DR/1/SHOP", None, "-", "", "1281.0", "", "179905.28 Cr."),
+                ("U2", "24/09/2026", "NEFT_IN:X/PAYPAL PAYMENTS PVT L PA", None, "-", "", "",
+                 "147,460.35", "181186.28 Cr.")]
+        txns, text = ingest.parse_sheet(rows)
+        self.assertEqual(ingest.PERIOD_RE.search(text).groups(), ("02-07-2026", "30-09-2026"))
+        self.assertEqual(txns[0]["type"], "DR")
+        self.assertEqual(txns[0]["amount"], 1281.0)
+        self.assertEqual(txns[1], {"date": "24/09/2026", "amount": 147460.35, "type": "CR",
+                                   "balance": 181186.28,
+                                   "remarks": "NEFT_IN:X/PAYPAL PAYMENTS PVT L PA"})
+
+    def test_debit_balance_is_negative(self):
+        self.assertEqual(ingest.money("12.50 Dr."), -12.5)
+        self.assertIsNone(ingest.money(""))
 
 
 if __name__ == "__main__":
