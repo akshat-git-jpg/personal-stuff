@@ -53,11 +53,24 @@ class SkyscannerGate(unittest.TestCase):
     def test_refuses_while_blocked(self):
         p.write_num(p.SKY_BLOCKED, time.time() + 600)
         with self.assertRaises(p.SourceError):
-            p.sky_gate()
+            p.sky_gate("local")
 
     def test_passes_when_idle(self):
-        p.sky_gate()
+        p.sky_gate("local")
         self.assertGreater(p.read_num(p.SKY_LAST), 0)
+
+
+class Routes(unittest.TestCase):
+    def test_vps_route_has_its_own_state_files(self):
+        self.assertEqual(p.route_file("/c/skyscanner-blocked", "local"), "/c/skyscanner-blocked")
+        self.assertEqual(p.route_file("/c/skyscanner-blocked", "vps"), "/c/skyscanner-blocked-vps")
+
+    def test_empty_env_disables_vps(self):
+        os.environ["PP_FLIGHTS_VPS"] = ""
+        try:
+            self.assertEqual(p.sky_routes(), ["local"])
+        finally:
+            del os.environ["PP_FLIGHTS_VPS"]
 
 
 class Shape(unittest.TestCase):
