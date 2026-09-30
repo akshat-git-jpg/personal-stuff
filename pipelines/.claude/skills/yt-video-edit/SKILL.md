@@ -86,6 +86,18 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    Before any heygen4 batch: `heygen-web limits` must cover the total span
    seconds, and note IV bills at render COMPLETION (submit-time meter always
    reads UNLIMITED). Never flip to production yourself.
+6a. **Every avatar batch is credit-checked, before AND after** (owner rule
+   2026-09-30, after a "heygen3" batch once burned Avatar IV credit).
+   `lib/avatar-render.mjs` does this itself; never submit around it (no raw
+   `heygen-web generate-*` calls for pipeline clips):
+   - before submit: `heygen-web template-engine` must confirm the template is
+     Avatar III (unlimited mode), else `TEMPLATE-NOT-AVATAR-III` and nothing is
+     sent; then a meter baseline is saved to `videos/<slug>/heygen-meter.json`.
+   - after the LAST clip downloads (IV bills at completion, not submit): the
+     meters are re-read. `✓ HeyGen credits verified` = free. `HEYGEN-CREDITS-SPENT`
+     (exit 2) = stop everything, tell the owner the delta, submit nothing more.
+   - Report the verdict to the owner in plain words every time avatars render.
+     A batch whose `heygen-meter.json` is not `verified-free` is not done.
 7. **Snapshot before owner edits**: after a cue/shot pass converges, copy the
    final LLM output to `cues.llm.json` / `shots.llm.json` (committed, immutable).
 7a. **The intro has two flows. Check which one before touching an intro step.**
@@ -233,3 +245,28 @@ Between the gates the session runs unattended: render → avatar renders → cut
 | "fold the feedback", "feedback is done", "I'm done reviewing" | **invoke the `yt-video-edit-feedback` skill** (it wraps `bash run.sh <slug> fold`) | **130 fold** |
 | "queue the previews", "send the prompts to flow" | `bash run.sh <slug> previews` | pushes the 110 intro-idea and 240 new-card look prompts to the `flow-queue` relay; the ZAPI FLOW extension loads them into Google Flow by itself |
 | "analyze reference <url>" | `bash scripts/analyze-reference.sh <url>` | |
+| "edit this coupon video", "coupon code video", "promo code video" | `bash run.sh <slug> coupon --src <file\|drive-id> --tool <Name> [--drive-account <email>]` | **No gates** — see Coupon template below |
+
+## Coupon template (owner rule 2026-09-30)
+
+Coupon/promo-code videos all follow one script shape, so they skip every
+review gate and run end to end in one command. The owner reviews only the
+delivered file. Do not add a board step, a cue pass or an LLM pass to it.
+
+- Shape it expects: before/after price → "Hey guys…" → sign-up and checkout
+  demo → "enter <CODE>" → "…and that's it" outro → "subscribe". A recording
+  that lacks the opener, the outro or the code is refused with `COUPON-PLAN:`.
+- Edit it produces: raw recording as-is (no zoom/crop, fitted 16:9); girl-1
+  full screen from the greeting to the first "description" line and from
+  "that's it" to the end, with a warm light-leak cut each way; girl-1 bubble
+  bottom-right in between; captions on the whole video; deal-stamp,
+  link-in-description, code-reveal and like-subscribe cards by rule
+  (`lib/coupon/plan.mjs`, `COUPON_RULES`).
+- Avatar: girl-1 on **heygen3 only** (Avatar III, free). Never production mode
+  for a coupon video. The 6a credit check must end `verified-free`.
+- `run-config.json` `template: "coupon"` is the only thing that waives the
+  intro, storyboard, avatar and final-cut gates. Never set it on another video.
+- Needs Node 22+. Final lands at `~/Downloads/<slug>-final.mp4`, and in the
+  Drive `Output/` folder when `drive_folder` is set.
+- Owner feedback on a coupon cut changes the RULES (`lib/coupon/`), so every
+  later coupon video gets the fix; not a one-off edit to that video's cues.

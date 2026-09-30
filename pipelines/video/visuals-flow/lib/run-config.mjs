@@ -28,6 +28,13 @@ import { pathToFileURL } from 'node:url';
 export const INTRO_MODES = ['simple', 'complex'];
 export const DEFAULT_INTRO_MODE = 'simple';
 
+// A template video runs one fixed, unattended recipe (lib/coupon/). The owner set
+// coupon videos to skip every review gate (2026-09-30); only this key grants that.
+export const TEMPLATES = ['coupon'];
+export function isCouponTemplate(workdir) {
+  return loadRunConfig(workdir).template === 'coupon';
+}
+
 const DEFAULTS = { introMode: DEFAULT_INTRO_MODE };
 
 export function loadRunConfig(workdir) {
@@ -45,6 +52,9 @@ export function loadRunConfig(workdir) {
       `run-config.json has introMode "${cfg.introMode}" — must be one of: ${INTRO_MODES.join(' | ')}`
     );
   }
+  if (cfg.template !== undefined && !TEMPLATES.includes(cfg.template)) {
+    throw new Error(`run-config.json has template "${cfg.template}" — must be one of: ${TEMPLATES.join(' | ')}`);
+  }
   return cfg;
 }
 
@@ -52,7 +62,7 @@ export function loadRunConfig(workdir) {
 function main() {
   const [arg, ...rest] = process.argv.slice(2);
   if (!arg) {
-    console.error('usage: node lib/run-config.mjs <slug> [--intro simple|complex] [--drive-folder <id>] [--drive-account <email>]');
+    console.error('usage: node lib/run-config.mjs <slug> [--intro simple|complex] [--template coupon] [--drive-folder <id>] [--drive-account <email>]');
     process.exit(1);
   }
   const workdir = resolveWorkdir(arg);
@@ -77,6 +87,11 @@ function main() {
         process.exit(1);
       }
       cfg.introMode = v;
+    }
+    else if (a === '--template') {
+      const v = rest.shift();
+      if (!TEMPLATES.includes(v)) { console.error(`--template must be one of: ${TEMPLATES.join(' | ')} (got "${v}")`); process.exit(1); }
+      cfg.template = v;
     }
     else if (a === '--drive-folder') cfg.drive_folder = rest.shift();
     else if (a === '--drive-account') cfg.drive_account = rest.shift();

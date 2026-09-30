@@ -13,10 +13,21 @@
 // render-film.mjs still had the bug months after review-film was fixed — the
 // 140 run ledger for best-no-code-automation-tool recorded exactly that. Shared
 // module so the next caller inherits the fix instead of rediscovering it.
+import os from 'node:os';
+
 export const NPX_NEEDS_SHELL = process.platform === 'win32';
 
 export const npxArgs = (args) =>
   (NPX_NEEDS_SHELL ? args.map((a) => (/\s/.test(String(a)) ? `"${a}"` : a)) : args);
 
 // Options every npx spawn needs. Callers merge their own cwd/stdio/encoding on top.
-export const npxSpawnOpts = (extra = {}) => ({ shell: NPX_NEEDS_SHELL, ...extra });
+export const npxSpawnOpts = (extra = {}) => ({
+  shell: NPX_NEEDS_SHELL,
+  ...extra,
+  env: {
+    ...process.env,
+    ...(extra.env || {}),
+    // Bypass any expired token in the user's ~/.npmrc (which causes E401 for public packages)
+    npm_config_userconfig: os.devNull,
+  }
+});

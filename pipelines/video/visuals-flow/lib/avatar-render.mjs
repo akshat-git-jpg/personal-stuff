@@ -9,6 +9,7 @@ import { lintShots } from './lint-shots.mjs';
 import { introSpan } from './intro-modes.mjs';
 import { mmss } from './render.mjs';
 import { resolveWorkdir } from './workdir.mjs';
+import { readUsage, loadMeter, saveMeter, meterVerdict } from './heygen-meter.mjs';
 import { pathToFileURL } from 'node:url';
 
 export const CORNER_CHUNK = 300;
@@ -247,6 +248,34 @@ async function main() {
       }
     }
 
+    const engineFor = (job) => opts.engine
+      ?? ((engineMode === 'production' && jobPurpose(job) !== 'corner') ? 'heygen4' : 'heygen3');
+    const toSubmit = jobs.filter((job) => !jobsState.find((j) => j.id === job.id && j.video_id));
+    const engines = [...new Set(toSubmit.map(engineFor))];
+
+    if (toSubmit.length > 0) {
+      // A heygen3 submit renders the template as saved, so the template itself must be Avatar III.
+      if (engines.includes('heygen3')) {
+        const te = spawnSync(bin, [...pre, 'template-engine', '--template', opts.template], { encoding: 'utf8', cwd: workdir });
+        if (te.status !== 0) {
+          console.error(`TEMPLATE-NOT-AVATAR-III: "${opts.template}" did not pass the Avatar III check, refusing to submit.\n${(te.stdout || '').trim()}\n${(te.stderr || '').trim()}`.trim());
+          process.exit(1);
+        }
+        console.error(`template "${opts.template}" verified Avatar III (unlimited mode)`);
+      }
+      // Credit baseline BEFORE the first submit; an open baseline from an unverified batch is kept.
+      const prior = loadMeter(workdir);
+      if (!prior || prior.status !== 'open') {
+        let before;
+        try { before = readUsage(bin, pre, { cwd: workdir }); }
+        catch (e) { console.error(`HEYGEN-METER-UNREADABLE: ${e.message} — refusing to submit without a credit baseline`); process.exit(1); }
+        saveMeter(workdir, { status: 'open', metered: engines.includes('heygen4'), engines, template: opts.template, before, opened_at: new Date().toISOString() });
+        console.error(`credit baseline saved: credits=${before.credits} seconds=${before.seconds_consumed}/${before.seconds_limit}`);
+      } else if (engines.includes('heygen4') && !prior.metered) {
+        saveMeter(workdir, { ...prior, metered: true, engines: [...new Set([...(prior.engines || []), ...engines])] });
+      }
+    }
+
     const outJobs = [];
     let submittedAny = false;
     let submitsInRun = 0;
@@ -267,8 +296,7 @@ async function main() {
 
       const title = `${shotsResolved.video}__${job.id}`;
       const audioPath = path.join('slices-avatar', `${job.id}.mp3`);
-      const jobEngine = opts.engine
-        ?? ((engineMode === 'production' && jobPurpose(job) !== 'corner') ? 'heygen4' : 'heygen3');
+      const jobEngine = engineFor(job);
       const cmdArgs = [...pre, 'generate-from-template', '--template', opts.template, '--audio', audioPath, '--title', title, '--engine', jobEngine];
       const res = spawnSync(bin, cmdArgs, { encoding: 'utf8', cwd: workdir });
       let video_id = null;
@@ -384,6 +412,31 @@ async function main() {
     }
 
     fs.writeFileSync(jobsPath, JSON.stringify(jobsData, null, 2));
+
+    // Credit check once every submitted clip is in: HeyGen bills IV at completion.
+    const meter = loadMeter(workdir);
+    const pending = jobs.filter((j) => j.video_id && !j.file);
+    if (meter && meter.status === 'open' && pending.length === 0) {
+      let after = null;
+      try { after = readUsage(bin, pre, { cwd: workdir }); }
+      catch (e) { console.error(`HEYGEN-METER-UNREADABLE: ${e.message} — credits NOT verified, re-run the download to retry`); exitCode = 1; }
+      if (after) {
+        const v = meterVerdict(meter, after);
+        saveMeter(workdir, { ...meter, status: v.status, after, delta: v.delta, closed_at: new Date().toISOString() });
+        const d = v.delta;
+        const line = `credits ${d.credits >= 0 ? '+' : ''}${d.credits}, seconds ${d.seconds_consumed >= 0 ? '+' : ''}${d.seconds_consumed}`;
+        if (v.status === 'SPENT') {
+          console.error(`⚠️  HEYGEN-CREDITS-SPENT: this Avatar III batch moved the meter (${line}). Stop and check HeyGen before any more renders.`);
+          exitCode = 2;
+        } else if (v.status === 'verified-free') {
+          console.error(`✓ HeyGen credits verified: no credits used (${line})`);
+        } else {
+          console.error(`metered batch (Avatar IV) cost: ${line}`);
+        }
+      }
+    } else if (meter && meter.status === 'open') {
+      console.error(`credit check waits for ${pending.length} pending clip(s)`);
+    }
 
     const shotsResolved = JSON.parse(fs.readFileSync(shotsResolvedPath, 'utf8'));
     const manifestStr = avatarManifestMd(jobsData.video, jobs, shotsResolved.offset || 0);

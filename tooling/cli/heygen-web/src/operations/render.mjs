@@ -103,8 +103,40 @@ function patchDraftToAvatarIV(textDraft) {
   if (!patched) die("--engine heygen4: no avatar element with an engine field found in the template draft");
 }
 
+// Engine fields of every avatar element in a template draft.
+export function draftEngineReport(textDraft) {
+  const out = [];
+  for (const [id, el] of Object.entries(textDraft?.visual?.elements ?? {})) {
+    const c = el.content;
+    if (!c || c.engine === undefined) continue;
+    out.push({ id, engine: c.engine, use_avatar_iv_model: c.use_avatar_iv_model, use_unlimited_mode: c.use_unlimited_mode });
+  }
+  return out;
+}
+
+// A heygen3 submit sends the template as saved, so a template saved as Avatar IV
+// would render (and bill) IV. Refuse before anything is uploaded.
+export function assertDraftAvatarIII(textDraft) {
+  const els = draftEngineReport(textDraft);
+  if (els.length === 0) throw new Error("TEMPLATE-ENGINE-UNKNOWN: no avatar element with an engine field in the template draft");
+  const bad = els.filter((e) => e.engine !== "avatar_iii" || e.use_avatar_iv_model === true || e.use_unlimited_mode === false);
+  if (bad.length) throw new Error(`TEMPLATE-NOT-AVATAR-III: ${JSON.stringify(bad)} — a heygen3 submit would be metered`);
+  return els;
+}
+
+export async function templateEngine(auth, templateId) {
+  const tmpl = await getTemplate(auth, templateId);
+  const elements = draftEngineReport(tmpl.text_draft);
+  let avatar_iii = true;
+  try { assertDraftAvatarIII(tmpl.text_draft); } catch { avatar_iii = false; }
+  return { template: templateId, avatar_iii, elements };
+}
+
 export async function submitFromTemplate(auth, { templateId, audioPath, title, iv = false }) {
   const tmpl = await getTemplate(auth, templateId);
+  if (!iv) {
+    try { assertDraftAvatarIII(tmpl.text_draft); } catch (e) { die(e.message); }
+  }
   const audio = await uploadAudio(auth, audioPath);
 
   const create = await call(auth, endpoints.textDraftCreate, {}, {

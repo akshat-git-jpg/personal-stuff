@@ -17,6 +17,7 @@ export function printHelp() {
            renders a TEMPLATE (pre-composed background + avatar bubble, e.g. "Girl 1"/"girl 2")
            over your audio; visual composition untouched, only the audio swaps in.
            HAR-verified 2026-07-09 — see API-REFERENCE.md "Create from template".
+  template-engine --template <slug|id>   read-only: is the template Avatar III? exit 3 if not
   batch --file <items.txt|items.json> [--avatar id] [--voice id]
            [--orientation portrait|landscape] [--res 720p|1080p]
            [--out-dir DIR] [--delay 1500] [--download] [--iv]

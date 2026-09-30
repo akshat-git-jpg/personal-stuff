@@ -38,7 +38,10 @@ export async function frameGate(resolved, cardLibraryRoot, { only } = {}) {
       const times = probeTimesForCue(cue);
       const res = await probe.probeCardVariant(cardDir, vars.variant ?? 'a', vars, times);
       if (res.broken) {
-        res.offenders = res.offenders.filter(o => o !== '#spotlight');
+        // Decorative layers drawn over text on purpose: deal-stamp's strike line, code-reveal's shine.
+        const DECORATIVE = ['#strike', '#flash'];
+        res.offenders = res.offenders.filter(o => o !== '#spotlight'
+          && !DECORATIVE.some((d) => new RegExp(`sits on ${d}( |$)`).test(o)));
         if (res.offenders.length === 0) continue;
 
         errors.push(

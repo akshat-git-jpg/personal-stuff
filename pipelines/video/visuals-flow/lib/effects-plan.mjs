@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { planSegments, absorbSlivers, fillGapsWithFreeze, CANVAS } from './assemble.mjs';
+import { planSegments, absorbSlivers, fillGapsWithFreeze, freezeTrailingGap, CANVAS } from './assemble.mjs';
+import { isCouponTemplate } from './run-config.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { jobPurpose } from './shot-constants.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
@@ -50,6 +51,8 @@ function main() {
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);
   segments = fillGapsWithFreeze(segments, { base: manifest.base });
+  // Same tail freeze assemble applies, or a whip into the tail gets an id assemble never plans.
+  segments = freezeTrailingGap(segments);
 
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
@@ -63,7 +66,7 @@ function main() {
   
   const conceptSpans = loadConceptSpans(workdir, words);
 
-  let ctx = { segments, overlays, words, resolved, total, w, h, VF, conceptSpans, workdir };
+  let ctx = { segments, overlays, words, resolved, total, w, h, VF, conceptSpans, workdir, transitionStyle: isCouponTemplate(workdir) ? 'leak' : null };
   
   for (const mod of EFFECT_MODULES) {
     if (mod.plan) {

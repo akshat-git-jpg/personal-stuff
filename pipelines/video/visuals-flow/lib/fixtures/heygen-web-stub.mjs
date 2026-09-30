@@ -9,6 +9,21 @@ function main() {
     process.exit(0);
   }
   
+  // Meters come from stub-usage.json in cwd so a test can move them mid-batch.
+  if (cmd === 'usage') {
+    const f = path.join(process.cwd(), 'stub-usage.json');
+    const snap = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8'))
+      : { credits: 100, seconds_consumed: 0, seconds_limit: 1200, ai_image_credits: 5, ai_video_credits: 5, ai_concept_credits: 5 };
+    console.log(JSON.stringify({ ts: new Date().toISOString(), ...snap }));
+    process.exit(0);
+  }
+
+  if (cmd === 'template-engine') {
+    const iv = process.env.STUB_TEMPLATE_IV === '1';
+    console.log(JSON.stringify({ template: args[2], avatar_iii: !iv }));
+    process.exit(iv ? 3 : 0);
+  }
+
   if (cmd === 'generate-from-template') {
     const counterFile = path.join(process.cwd(), 'stub-counter.txt');
     let n = 1;
