@@ -1,0 +1,43 @@
+{
+  "video": "everbee-promo-code",
+  "template": "girl-1",
+  "engineMode": "test",
+  "jobs": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "start": 17.82,
+      "end": 36.66,
+      "duration": 18.84,
+      "audio": "slices-avatar/s01.mp3",
+      "video_id": "2277050831c44efea6c492594d5a18b6",
+      "status": "submitted",
+      "submitted_at": "2026-09-30T10:26:31.253Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/everbee-promo-code/s01.mp4"
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "start": 244.78,
+      "end": 270.79,
+      "duration": 26.01,
+      "audio": "slices-avatar/s02.mp3",
+      "video_id": "2b13e8be0c0a4d22889981f4c1a2685b",
+      "status": "submitted",
+      "submitted_at": "2026-09-30T10:27:58.275Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/everbee-promo-code/s02.mp4"
+    },
+    {
+      "id": "corner-01",
+      "purpose": "corner",
+      "start": 0,
+      "end": 270.62,
+      "duration": 270.62,
+      "audio": "slices-avatar/corner-01.mp3",
+      "video_id": "e51b6a51b6284e909b892fff784e4f3f",
+      "status": "submitted",
+      "submitted_at": "2026-09-30T10:30:05.456Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/everbee-promo-code/corner-01.mp4"
+    }
+  ]
+}

@@ -232,3 +232,6 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/lovable-vs-claude-code-s08-hg4--321eec378f984166ae38f326f50f4900) | 1584748ec3d84d79a5e0c187037c226d | s08.mp3 | `321eec378f984166ae38f326f50f4900` |
 | [heygen link](https://app.heygen.com/videos/lovable-vs-claude-code-s09-hg4--e7817804028b44e3986f4c335657c5ed) | 1584748ec3d84d79a5e0c187037c226d | s09.mp3 | `e7817804028b44e3986f4c335657c5ed` |
 | [heygen link](https://app.heygen.com/videos/lovable-vs-claude-code-corner-s07-hg4--54cb9deea12b45fbb477afdba0bed076) | 1584748ec3d84d79a5e0c187037c226d | corner-s07.mp3 | `54cb9deea12b45fbb477afdba0bed076` |
+| [heygen link](https://app.heygen.com/videos/everbee-promo-code-s01--2277050831c44efea6c492594d5a18b6) | 07e87448546549cd883754e435f1dae5 | s01.mp3 | `2277050831c44efea6c492594d5a18b6` |
+| [heygen link](https://app.heygen.com/videos/everbee-promo-code-s02--2b13e8be0c0a4d22889981f4c1a2685b) | 07e87448546549cd883754e435f1dae5 | s02.mp3 | `2b13e8be0c0a4d22889981f4c1a2685b` |
+| [heygen link](https://app.heygen.com/videos/everbee-promo-code-corner-01--e51b6a51b6284e909b892fff784e4f3f) | 07e87448546549cd883754e435f1dae5 | corner-01.mp3 | `e51b6a51b6284e909b892fff784e4f3f` |
