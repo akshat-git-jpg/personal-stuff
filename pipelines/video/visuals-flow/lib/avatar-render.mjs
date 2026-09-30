@@ -3,6 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { resolveShots } from './resolve-shots.mjs';
+import { probeVoSpeech, lastSpeechEnd } from './vo-speech.mjs';
 import { jobPurpose } from './shot-constants.mjs';
 import { requireAvatarPlanApproved } from './avatar-plan.mjs';
 import { lintShots } from './lint-shots.mjs';
@@ -142,7 +143,10 @@ async function main() {
       process.exit(1);
     }
 
-    const recomputed = resolveShots(shotsFile, words);
+    // Same audio-end snap resolve-shots uses, or a span ending at the video's end always reads as stale.
+    const voFile = path.join(workdir, 'vo.mp3');
+    const voSpeechEnd = fs.existsSync(voFile) ? lastSpeechEnd(probeVoSpeech(voFile)) : null;
+    const recomputed = resolveShots(shotsFile, words, { voSpeechEnd });
     if (recomputed.errors.length > 0 || JSON.stringify(recomputed.spans) !== JSON.stringify(shotsResolved.spans)) {
       if (!opts.force) {
         console.error('re-run node lib/resolve-shots.mjs <slug>');

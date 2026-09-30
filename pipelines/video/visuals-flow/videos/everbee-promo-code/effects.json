@@ -1,0 +1,51 @@
+{
+  "video": "everbee-promo-code",
+  "approved": true,
+  "instances": [
+    {
+      "id": "whip-17.8",
+      "type": "whip",
+      "at": 17.82,
+      "direction": "right",
+      "fromIdx": 0,
+      "toIdx": 1,
+      "style": "leak",
+      "half": 0.4,
+      "enabled": true
+    },
+    {
+      "id": "whip-36.7",
+      "type": "whip",
+      "at": 36.66,
+      "direction": "right",
+      "fromIdx": 1,
+      "toIdx": 2,
+      "style": "leak",
+      "half": 0.4,
+      "enabled": true
+    },
+    {
+      "id": "whip-244.8",
+      "type": "whip",
+      "at": 244.78,
+      "direction": "right",
+      "fromIdx": 2,
+      "toIdx": 3,
+      "style": "leak",
+      "half": 0.4,
+      "enabled": true
+    },
+    {
+      "id": "captions",
+      "type": "captions",
+      "enabled": true,
+      "fontPx": 44,
+      "yFrac": 0.87
+    },
+    {
+      "id": "bubble",
+      "type": "bubble",
+      "enabled": true
+    }
+  ]
+}

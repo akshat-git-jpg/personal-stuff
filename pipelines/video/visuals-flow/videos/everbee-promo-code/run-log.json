@@ -1,18 +1,18 @@
 {
   "video": "everbee-promo-code",
-  "updated": "2026-09-30T09:59:49.454Z",
+  "updated": "2026-09-30T10:37:22.379Z",
   "steps": {
     "020-transcribe-run": {
       "status": "done",
       "started": "2026-09-30T09:06:36.934Z",
-      "ended": "2026-09-30T09:59:49.405Z",
+      "ended": "2026-09-30T10:26:05.390Z",
       "did": "Transcribed the voiceover, fixed the tool name to \"EverBee\" in 0 place(s) and closed 0 run-on sentence(s) before the intro/outro openers, by rule. No LLM clean-up: coupon template.",
       "output": "transcript.json",
       "issues": "none found"
     },
     "210-author-body-cues-llm": {
       "status": "done",
-      "ended": "2026-09-30T09:59:49.454Z",
+      "ended": "2026-09-30T10:26:05.444Z",
       "started": "2026-09-30T09:11:53.472Z",
       "did": "Placed 5 cards and 2 full-screen avatar spans from the coupon rule table (lib/coupon/plan.mjs), no LLM.",
       "issues": "dropped link-in-description/link-in-description at 36.1s: no clear slot near its line",
@@ -20,11 +20,43 @@
     },
     "410-render-graphics-run": {
       "status": "done",
-      "started": "2026-09-30T09:22:09.102Z",
+      "started": "2026-09-30T10:35:32.180Z",
       "issues": "warning: leaving missing files out of manifest: c01, c02, c03, c04, c05, c06, c07, c08",
-      "ended": "2026-09-30T09:22:59.067Z",
-      "did": "Rendered every approved cue to a clip and wrote the editor manifest.",
-      "output": "renders/ + manifest.md"
+      "did": "Rendered the coupon cards.",
+      "output": "renders/",
+      "ended": "2026-09-30T10:36:01.445Z"
+    },
+    "310-sync-graphics-run": {
+      "status": "done",
+      "started": "2026-09-30T10:26:05.499Z",
+      "did": "Resolved the coupon cards and avatar spans to times.",
+      "output": "resolved.json + shots.resolved.json",
+      "issues": "none found",
+      "ended": "2026-09-30T10:26:08.715Z"
+    },
+    "430-render-avatar-run": {
+      "status": "done",
+      "started": "2026-09-30T10:26:08.770Z",
+      "ended": "2026-09-30T10:35:32.126Z",
+      "did": "Rendered girl-1 on Avatar III for both full-screen spans and the whole-video bubble, then re-read the HeyGen meters: no credits used.",
+      "output": "avatar-jobs.json + heygen-meter.json (verified-free)",
+      "issues": "none found"
+    },
+    "460-mix-audio-run": {
+      "status": "done",
+      "ended": "2026-09-30T10:36:13.385Z",
+      "started": "2026-09-30T10:36:13.385Z",
+      "did": "Planned sound effects and mixed the master.",
+      "output": "master.wav",
+      "issues": "none found"
+    },
+    "510-assemble-video-run": {
+      "status": "done",
+      "started": "2026-09-30T10:36:13.429Z",
+      "ended": "2026-09-30T10:37:22.379Z",
+      "did": "Assembled the coupon final: screen, full-screen avatar intro and outro with light-leak cuts, bubble, cards, captions everywhere.",
+      "output": "final.mp4",
+      "issues": "none found"
     }
   }
 }
