@@ -196,6 +196,21 @@
         "establishment"
       ]
     },
+    "ChIJh6bRRS3_YjkRLRx0itemDz0": {
+      "address": "Indore, Madhya Pradesh 452005, India",
+      "lat": 22.7280036,
+      "lon": 75.804099,
+      "name": "Devi Ahilyabai Holkar International Airport, Indore",
+      "placeId": "ChIJh6bRRS3_YjkRLRx0itemDz0",
+      "source": "google",
+      "types": [
+        "international_airport",
+        "airport",
+        "transportation_service",
+        "point_of_interest",
+        "establishment"
+      ]
+    },
     "ChIJkQR2hG3vBTsRX2CofK2uN6Y": {
       "address": "PPP3+X22, Varkala, Kerala 695141, India",
       "lat": 8.7373894,
@@ -311,6 +326,8 @@
     "coffee temple|varkala, kerala, india": "ChIJkQR2hG3vBTsRX2CofK2uN6Y",
     "csmia t1 metro station line 3|india": "ChIJp3WuyJvJ5zsRCAJkpytFRxQ",
     "departure — kallambalam|varkala, kerala, india": "ChIJkZ4hddnpBTsRP3h3H_POfGI",
+    "devi ahilya bai holkar airport indore|india": "ChIJh6bRRS3_YjkRLRx0itemDz0",
+    "devi ahilyabai holkar international airport terminal|india": "ChIJh6bRRS3_YjkRLRx0itemDz0",
     "gouri's homestay|varkala, kerala, india": "ChIJeX5a39_uBTsR-RuezFBYSGw",
     "holy rabbit cafe|varkala, kerala, india": "ChIJPzPcTPrvBTsRFhC_Y-un5DI",
     "hope hostels (helipad)|varkala, kerala, india": "ChIJz7AwpR7vBTsRiLvaiKZSQfE",
