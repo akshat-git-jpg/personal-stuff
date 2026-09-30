@@ -1,8 +1,11 @@
 {
-  "generated_at": "2026-08-31T18:44:36",
+  "generated_at": "2026-09-30T13:18:15",
   "coverage": {
     "from": "2026-01",
-    "to": "2026-08"
+    "to": "2026-09",
+    "days_from": "2026-01-01",
+    "days_to": "2026-09-30",
+    "gaps": []
   },
   "statements": [
     {
@@ -10,6 +13,12 @@
       "transactions": 203,
       "period_start": "01-01-2026",
       "period_end": "30-08-2026"
+    },
+    {
+      "file": "PNBONE_STMT_XX****_30092026.xls",
+      "transactions": 25,
+      "period_start": "02-07-2026",
+      "period_end": "30-09-2026"
     }
   ],
   "rails": {
@@ -22,7 +31,7 @@
       "label": "PayPal",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-31T10:59:59Z"
+      "as_of": "2026-09-30T05:29:59Z"
     },
     {
       "id": "bank",
@@ -41,7 +50,7 @@
       "label": "PartnerStack",
       "kind": "api",
       "state": "connected",
-      "as_of": "2026-08-31T18:42:02"
+      "as_of": "2026-09-30T13:11:55"
     },
     {
       "id": "bookbolt",
@@ -49,7 +58,7 @@
       "kind": "cli",
       "note": "Read straight from the Book Bolt affiliate portal by bookbolt-pp-cli. Book Bolt settles over PayPal, so this is a CHECK on the PayPal ledger rather than a source of new money: it is the only independent statement of what Book Bolt believes it paid. Its portal session lasts two hours, so the CLI logs itself in; a rejected password is reported, never retried.",
       "state": "connected",
-      "as_of": "2026-08-31T18:43:24"
+      "as_of": "2026-09-30T13:12:18"
     },
     {
       "id": "tolt",
@@ -65,7 +74,7 @@
       "kind": "imap",
       "note": "Both agrolloo.com inboxes. The only source that sees programs with no API at all, so it supplies leads on untraced money.",
       "state": "connected",
-      "as_of": "2026-08-28"
+      "as_of": "2026-09-29"
     },
     {
       "id": "paykickstart",
@@ -515,18 +524,76 @@
         "reasons": [],
         "credits": []
       }
+    },
+    "2026-09": {
+      "bank_total": 175840.3,
+      "rails": {
+        "airwallex": 16531.38,
+        "paypal": 159308.92
+      },
+      "tools": [
+        {
+          "tool": "Submagic",
+          "amount": 147460.35,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "HeyGen",
+          "amount": 8531.07,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        },
+        {
+          "tool": "EverBee",
+          "amount": 3317.5,
+          "route": [
+            "PayPal"
+          ],
+          "confidence": "exact"
+        }
+      ],
+      "untraced": {
+        "amount": 16531.38,
+        "reasons": [
+          "Airwallex",
+          "source_not_connected"
+        ],
+        "credits": [
+          {
+            "kind": "credit",
+            "date": "02/09/2026",
+            "amount": 16531.38,
+            "rail": "airwallex",
+            "rail_label": "Airwallex",
+            "ref": "624531155091",
+            "leads": [
+              {
+                "source": "PartnerStack",
+                "what": "emailed a payout of USD 32.66",
+                "gap_days": 30,
+                "implied_fx": null
+              }
+            ]
+          }
+        ]
+      }
     }
   },
   "paypal_pending": {
-    "as_of": "2026-08-31T10:59:59Z",
+    "as_of": "2026-09-30T05:29:59Z",
     "holdings": [
       {
         "currency": "USD",
-        "total": "0.00",
+        "total": "1348.57",
         "available": "0.00",
-        "withheld": "0.00"
+        "withheld": "1348.57"
       }
     ],
-    "total_any_currency": 0.0
+    "total_any_currency": 1348.57
   }
 }
