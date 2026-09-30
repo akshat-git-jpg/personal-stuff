@@ -1,7 +1,7 @@
 {
   "slug": "mumbai-barnagar-oct-2026",
-  "name": "Mumbai → Barnagar (Diwali)",
-  "dates": "30 Oct - 2 Nov 2026",
+  "name": "Diwali: Mumbai → Barnagar → Bangalore",
+  "dates": "30 Oct - 18 Nov 2026",
   "viewbox": "72.75,23.60,75.60,18.85",
   "locationHint": "India",
   "pins": [
@@ -12,7 +12,7 @@
       "category": "transport",
       "lat": 13.199125,
       "lon": 77.709028,
-      "note": "SpiceJet SG115 departs Fri 30 Oct 07:30 from Terminal 1.\nPNR PD4TQM.",
+      "note": "SpiceJet SG115 departs Fri 30 Oct 07:30 from Terminal 1.\nPNR PD4TQM.\nReturn: 6E6564 lands Wed 18 Nov 03:20 at T1.\nReturn: 6E6564 lands Wed 18 Nov 03:20 at T1.",
       "source": "osm"
     },
     {
@@ -66,9 +66,20 @@
       "lon": 75.376897,
       "note": "DEMU 79314 arrives Mon 2 Nov 10:57.",
       "source": "osm"
+    },
+    {
+      "id": "air-idr",
+      "name": "Indore Airport (IDR)",
+      "emoji": "✈️",
+      "category": "transport",
+      "lat": 22.7280036,
+      "lon": 75.804099,
+      "placeId": "ChIJh6bRRS3_YjkRLRx0itemDz0",
+      "source": "google",
+      "note": "6E147 departs Tue 17 Nov 22:25. Bag drop closes 21:25. PNR RFZ4VD."
     }
   ],
-  "updatedAt": "2026-09-29T05:56:26.928292Z",
+  "updatedAt": "2026-09-30T15:41:39.895723Z",
   "days": [
     {
       "date": "Fri 30 Oct",
@@ -135,6 +146,47 @@
           "what": "Arrive Barnagar",
           "where": "DEMU 79314",
           "pinId": "train-bng",
+          "key": true
+        }
+      ]
+    },
+    {
+      "date": "Tue 17 Nov",
+      "label": "Fly back to Bangalore",
+      "items": [
+        {
+          "time": "21:25",
+          "what": "Bag drop closes at Indore Airport",
+          "where": "Be at the airport by 21:00",
+          "pinId": "air-idr",
+          "key": true
+        },
+        {
+          "time": "22:25",
+          "what": "Flight IndiGo 6E147, Indore → Pune",
+          "where": "Lands Pune 23:40 · then 2 h 05 min transit · bags: check-in 15 kg, cabin 7 kg",
+          "pinId": "air-idr",
+          "tag": "RFZ4VD",
+          "key": true
+        }
+      ]
+    },
+    {
+      "date": "Wed 18 Nov",
+      "label": "Land in Bangalore",
+      "items": [
+        {
+          "time": "01:45",
+          "what": "Flight IndiGo 6E6564, Pune → Bangalore",
+          "where": "Same booking, bag goes through",
+          "tag": "RFZ4VD",
+          "key": true
+        },
+        {
+          "time": "03:20",
+          "what": "Land at Bangalore Airport T1",
+          "where": "Terminal 1",
+          "pinId": "air-blr",
           "key": true
         }
       ]
@@ -226,6 +278,52 @@
         {
           "name": "irctc booking.pdf",
           "url": "https://drive.google.com/file/d/1B6qFd3TJarXA_Z0Pi1liYzhHSVileWF1/view"
+        }
+      ]
+    },
+    {
+      "id": "flight-return",
+      "emoji": "✈️",
+      "title": "Indore → Bangalore",
+      "kind": "Flight · IndiGo 6E147 + 6E6564 via Pune · Saver",
+      "fields": [
+        {
+          "label": "PNR",
+          "value": "RFZ4VD"
+        },
+        {
+          "label": "Status",
+          "value": "Confirmed"
+        },
+        {
+          "label": "Departs",
+          "value": "Tue 17 Nov · 22:25 · IDR"
+        },
+        {
+          "label": "Arrives",
+          "value": "Wed 18 Nov · 03:20 · BLR T1"
+        },
+        {
+          "label": "Connection",
+          "value": "Pune: lands 23:40, leaves 01:45"
+        },
+        {
+          "label": "Traveller",
+          "value": "Kushal Bakliwal"
+        },
+        {
+          "label": "Bags",
+          "value": "Check-in 15 kg (1) · cabin 7 kg (1)"
+        },
+        {
+          "label": "Paid",
+          "value": "₹7,406 (fare ₹7,288 + ₹100 convenience fee + ₹18 GST)"
+        }
+      ],
+      "files": [
+        {
+          "name": "indigo itinerary.pdf",
+          "url": "https://drive.google.com/file/d/1l7A1kWwFPWjENha2yULjjloGVPHp2NW_/view"
         }
       ]
     }
