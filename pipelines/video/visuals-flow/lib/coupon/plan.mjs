@@ -3,7 +3,7 @@ import { normWord } from '../resolve.mjs';
 // Coupon-code videos follow one fixed script shape, so the edit is a rule table
 // over the transcript: no LLM, no review. Same words in, same plan out.
 //
-//   before/after price   -> overlay/deal-stamp, top right
+//   before/after price   -> no card: the screen already shows it (owner removed deal-stamp 2026-09-30)
 //   "hey guys" .. first "description" sentence   -> full-screen avatar (s01)
 //   every "description" mention (20s apart)       -> link-in-description pill
 //   "enter <CODE>"       -> overlay/code-reveal, top
@@ -18,7 +18,6 @@ export const COUPON_RULES = {
   MAX_SLIP: 2.5,           // s a card may move off its trigger before it is dropped
   PILL_MIN_GAP: 20,        // s between two link pills
   DUR: {
-    'overlay/deal-stamp': 5,
     'link-in-description/link-in-description': 4,
     'overlay/code-reveal': 5,
     'like-subscribe/like-subscribe': 5,
@@ -96,30 +95,6 @@ export function findCode(words) {
   let best = null;
   for (const [code, n] of counts) if (!best || n > best.n) best = { code, n };
   return best?.code ?? null;
-}
-
-// "$29.25" style amounts inside a word range.
-function dollarsIn(W, from, to) {
-  const out = [];
-  for (let i = from; i <= to && i < W.length; i++) {
-    const m = /\$\d[\d,]*(\.\d+)?/.exec(W[i].text);
-    if (m) out.push(m[0]);
-  }
-  return out;
-}
-
-// The opening "Before applying... $X. After applying... $Y, saving you $Z every month."
-export function parseBeforeAfter(W, introIdx) {
-  const before = findSeq(W, ['before', 'applying'], 0, introIdx);
-  const after = findSeq(W, ['after', 'applying'], 0, introIdx);
-  if (before < 0 || after < 0) return null;
-  const orig = dollarsIn(W, before, sentenceEnd(W, before))[0];
-  const afterEnd = sentenceEnd(W, after);
-  const [price, save] = dollarsIn(W, after, afterEnd);
-  if (!orig || !price) return null;
-  const tail = W.slice(after, afterEnd + 1).map((w) => w.n);
-  const period = tail.includes('year') || tail.includes('yearly') || tail.includes('annually') ? '/yr' : '/mo';
-  return { orig, price, save: save ?? null, period, afterIdx: after };
 }
 
 // Nudge [start, start+dur] off avatar cuts and earlier cards. null = drop it.
@@ -223,13 +198,6 @@ export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR } = {}) 
   const cuts = [s01.start, s01.end, s02.start].filter((t) => t > 0.5);
 
   const candidates = [];
-  const ba = parseBeforeAfter(W, intro);
-  if (ba) {
-    candidates.push({ card: 'overlay/deal-stamp', k: ba.afterIdx, trigger: W[ba.afterIdx].start + 0.3,
-      variables: { eyebrow: 'Promo code applied', original: ba.orig, price: ba.price, period: ba.period,
-        save: ba.save ? `SAVE ${ba.save}` : 'SAVE', code, pos: 'top-right' } });
-  } else notes.push('no before/after price sentences found, so no deal-stamp card');
-
   let lastPill = -Infinity;
   W.forEach((w, k) => {
     if (!w.n.includes('description')) return;

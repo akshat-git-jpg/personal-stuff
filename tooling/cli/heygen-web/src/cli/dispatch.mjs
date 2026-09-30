@@ -12,6 +12,7 @@ import { raw } from "../workflows/raw.mjs";
 import { generate, generateFromAudio, generateFromTemplate } from "../workflows/generate.mjs";
 import { photoToVideo } from "../workflows/photo-to-video.mjs";
 import { printHelp } from "./help.mjs";
+import { loginFromBrowser } from "../workflows/login-from-browser.mjs";
 
 export async function run(args) {
   const [cmd, ...rest] = args;
@@ -19,6 +20,8 @@ export async function run(args) {
     printHelp();
     process.exit(0);
   }
+  // Runs before loadAuth: it is how an expired auth file gets replaced.
+  if (cmd === "login-from-browser") { await loginFromBrowser(rest); return; }
   const auth = loadAuth();
   switch (cmd) {
     case "auth-check":   await authCheck(auth); break;

@@ -2,6 +2,7 @@ import { CURLS } from "../client/http.mjs";
 
 export function printHelp() {
   console.log(`heygen-web — UNLIMITED Avatar III via the web session (api2.heygen.com)\n
+  login-from-browser [--browser arc|chrome]   copy the logged-in browser session into the auth file (macOS)
   auth-check
   limits                      monthly seconds used / remaining
   usage [--save] [--diff]     credits + seconds + priority snapshot (prove unlimited = no delta)

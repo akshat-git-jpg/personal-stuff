@@ -259,8 +259,7 @@ delivered file. Do not add a board step, a cue pass or an LLM pass to it.
 - Edit it produces: raw recording as-is (no zoom/crop, fitted 16:9); girl-1
   full screen from the greeting to the first "description" line and from
   "that's it" to the end, with a warm light-leak cut each way; girl-1 bubble
-  bottom-right in between; captions on the whole video; deal-stamp,
-  link-in-description, code-reveal and like-subscribe cards by rule
+  bottom-right in between; captions on the whole video; link-in-description, code-reveal and like-subscribe cards by rule
   (`lib/coupon/plan.mjs`, `COUPON_RULES`).
 - Avatar: girl-1 on **heygen3 only** (Avatar III, free). Never production mode
   for a coupon video. The 6a credit check must end `verified-free`.

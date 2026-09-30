@@ -31,18 +31,18 @@ const SHAPE = [
   'See you in the next video.',
 ];
 
-test('the coupon shape plans two host spans, a deal stamp, a code reveal and subscribe', () => {
+test('the coupon shape plans two host spans, a code reveal and subscribe, and no price card', () => {
   const words = markOpenerBreaks(script(SHAPE)).words;
   const r = planCoupon(words, { video: 'v' });
   assert.deepEqual(r.errors, []);
   assert.equal(r.code, 'AGR25');
   const cards = r.cues.cues.map((c) => c.card);
-  assert.equal(cards[0], 'overlay/deal-stamp');
+  assert.ok(!cards.includes('overlay/deal-stamp'), 'owner removed the price card');
   assert.ok(cards.includes('overlay/code-reveal'));
   assert.equal(cards.at(-1), 'like-subscribe/like-subscribe');
   assert.ok(cards.filter((c) => c.startsWith('link-in-description')).length >= 2);
-  const deal = r.cues.cues[0].variables;
-  assert.deepEqual([deal.original, deal.price, deal.save, deal.period, deal.code], ['$39', '$29.25', 'SAVE $10', '/mo', 'AGR25']);
+  const reveal = r.cues.cues.find((c) => c.card === 'overlay/code-reveal').variables;
+  assert.equal(reveal.code, 'AGR25');
   assert.equal(r.shots.engineMode, 'test');
   assert.equal(r.avatarPlan.character, 'girl-1');
   assert.equal(r.avatarPlan.model, 'heygen3');
