@@ -249,6 +249,13 @@ class Trips(unittest.TestCase):
         self.assertIsNone(other.get("trip"))
         build.normalize_tags(flight)
         self.assertEqual(flight["tags"], ["trip", "goa", "goa-flight"])
+        self.assertEqual(flight["path"], "trip/goa/flight")
+
+    def test_path_of(self):
+        self.assertEqual(build.path_of(["food", "swiggy"]), "food/swiggy")
+        self.assertEqual(build.path_of(["trip", "varkala", "varkala-food"], "varkala"), "trip/varkala/food")
+        self.assertEqual(build.path_of(["trip", "thailand"]), "trip/thailand")
+        self.assertIsNone(build.path_of([]))
 
     def test_label_from_planner_name(self):
         self.assertEqual(trips.trip_label({"name": "Diwali: Mumbai → Barnagar → Bangalore"}), "diwali")

@@ -40,8 +40,12 @@ export interface Row {
   inferred?: boolean;
   /** Set when the payment falls in a trip (data/config.json "trips"), e.g. "varkala". */
   trip?: string;
-  /** The whole-trip sub-tag, e.g. "varkala" or "diwali". */
+  /** The trip's name as a tag, e.g. "varkala" or "diwali". */
   trip_label?: string;
+  /** The row's tag in the tree (null = not tagged). */
+  tag_id?: string | null;
+  /** The tag path the sync chose, e.g. "trip/varkala/food". */
+  path?: string | null;
   /** Everything known about the payment: UPI ID, bank, note, Google Pay payee, Rapido ride. */
   details?: string[];
 }
@@ -75,8 +79,12 @@ export interface SourceStatus {
   note?: string;
 }
 
+/** One tag of the tree. `key` is the sync path it was made for; tags made in the app have none. */
+export interface TagNode { id: string; parent_id: string | null; name: string; key: string | null }
+
 export interface Ledger {
   generated_at: string | null;
+  tags: TagNode[];
   rows: Row[];
   statements: Statement[];
   sources: SourceStatus[];
@@ -89,15 +97,33 @@ export async function fetchLedger(): Promise<Ledger> {
   return (await res.json()) as Ledger;
 }
 
-export async function tagRows(rowIds: string[], tags: string[], desc: string | null, always: boolean): Promise<void> {
-  const res = await fetch("/api/tag", {
-    method: "POST",
+async function send(url: string, method: string, body?: unknown) {
+  const res = await fetch(url, {
+    method,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ row_ids: rowIds, tags, desc, always }),
+    body: body === undefined ? undefined : JSON.stringify(body),
     credentials: "same-origin",
   });
   if (res.status === 401) throw new UnauthorizedError();
-  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `Save failed (${res.status})`);
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(out.error ?? `Save failed (${res.status})`);
+  return out;
+}
+
+export async function tagRows(rowIds: string[], tagId: string, desc: string | null, always: boolean): Promise<void> {
+  await send("/api/tag", "POST", { row_ids: rowIds, tag_id: tagId, desc, always });
+}
+
+export async function createTag(parentId: string | null, name: string): Promise<TagNode> {
+  return (await send("/api/tags", "POST", { parent_id: parentId, name })).tag as TagNode;
+}
+
+export async function updateTag(id: string, change: { name?: string; parent_id?: string | null }): Promise<void> {
+  await send(`/api/tags/${encodeURIComponent(id)}`, "POST", change);
+}
+
+export async function deleteTag(id: string): Promise<void> {
+  await send(`/api/tags/${encodeURIComponent(id)}`, "DELETE");
 }
 
 export async function login(password: string): Promise<void> {

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchLedger, logout, UnauthorizedError, type Ledger } from "./api";
 import { Cards } from "./Cards";
-import { mainSub, parseHash } from "./lib";
+import { makeTree, namesOf, parseHash } from "./lib";
 import { Login } from "./Login";
 import { Overview } from "./Overview";
 import { Review } from "./Review";
+import { Tags } from "./Tags";
 import { Transactions } from "./Transactions";
 
 const TABS = [
@@ -12,6 +13,7 @@ const TABS = [
   ["transactions", "Transactions"],
   ["cards", "Credit cards"],
   ["review", "Needs you"],
+  ["tags", "Tags"],
 ] as const;
 
 export function App() {
@@ -23,7 +25,9 @@ export function App() {
   const load = useCallback(async () => {
     try {
       const d = await fetchLedger();
-      setData({ ...d, rows: d.rows.map((r) => ({ ...r, tags: mainSub(r.tags, r.trip_label) })) });
+      // A row's tags are its place in the tree, top first: ["trip", "varkala", "food"].
+      const tree = makeTree(d.tags);
+      setData({ ...d, rows: d.rows.map((r) => ({ ...r, tags: r.tag_id ? namesOf(tree, r.tag_id) : r.path ? r.path.split("/") : [] })) });
       setNeedsAuth(false);
       setErr(null);
     } catch (e) {
@@ -76,6 +80,7 @@ export function App() {
       ) : page === "transactions" ? <Transactions data={data} params={params} reload={load} />
         : page === "cards" ? <Cards data={data} />
         : page === "review" ? <Review data={data} reload={load} />
+        : page === "tags" ? <Tags data={data} reload={load} />
         : <Overview data={data} />}
     </div>
   );

@@ -4,21 +4,27 @@
  * The totals strip is computed from exactly the rows shown, so a filter can never
  * show one number in the table and another on top.
  */
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import type { Ledger, Row, Source, Status } from "./api";
 import { DatePicker, inPick, pickLabel, type Pick } from "./DatePicker";
-import { dayLabel, isIn, monthOf, rs, SOURCES, subsByMain, todayIso, totals } from "./lib";
+import { chain, dayLabel, isIn, makeTree, monthOf, namesOf, rs, SOURCES, todayIso, totals, tripTag, within } from "./lib";
 import { TagEditor } from "./TagEditor";
 
 const STATUS: Record<Status, string> = { proven: "Proven", confirmed: "Confirmed by you", needs: "Needs you" };
+const NEEDS = "\u0000needs";
 
 export function Transactions({ data, params, reload }: { data: Ledger; params: URLSearchParams; reload: () => Promise<void> }) {
   const newest = data.rows.reduce((m, r) => (r.date > m ? r.date : m), "");
   const pm = params.get("month");
   const [q, setQ] = useState("");
   const [src, setSrc] = useState<Set<Source>>(new Set(params.get("source") ? [params.get("source") as Source] : []));
-  const [tags, setTags] = useState<Set<string>>(new Set(params.get("tag") ? [params.get("tag")!] : []));
-  const [subTags, setSubTags] = useState<Set<string>>(new Set());
+  const tree = useMemo(() => makeTree(data.tags), [data]);
+  // Where you are in the tag tree: null = all, "needs" = not tagged yet. "?tag=food" opens a top tag.
+  const [at, setAt] = useState<string | null>(() => {
+    const p = params.get("tag");
+    if (p === "needs you") return NEEDS;
+    return (tree.kids.get(null) ?? []).find((t) => t.name === p)?.id ?? null;
+  });
   const [stat, setStat] = useState<Set<Status>>(new Set());
   const [inferredOnly, setInferredOnly] = useState(false);
   const [hideBills, setHideBills] = useState(true);
@@ -32,35 +38,38 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
   const last = monthOf(anchor);
   const [pick, setPick] = useState<Pick>({ kind: "months", months: [pm ?? last] });
 
-  // Main tags only; a selected main reveals its sub-tags.
-  const mainOf = (r: Row) => (r.status === "needs" ? "needs you" : r.tags[0] ?? "needs you");
-  const subs = useMemo(() => subsByMain(data.rows), [data]);
+  const nodeOf = (r: Row) => (r.status === "needs" ? null : r.tag_id ?? null);
+  const atPath = at && at !== NEEDS ? namesOf(tree, at).join("/") : "";
 
   const qq = q.trim().toLowerCase();
   // Every filter except the tag ones, so each chip's total is what clicking it would show.
   const base = data.rows.filter((r) => {
     if (!inPick(pick, r.date, anchor)) return false;
-    if (hideBills && (r.kind === "bill" || r.kind === "payment") && !(tags.has("bank") && subTags.has("bank›card bill"))) return false;
+    if (hideBills && (r.kind === "bill" || r.kind === "payment") && atPath !== "bank/card bill") return false;
     if (src.size && !src.has(r.source)) return false;
     if (stat.size && !stat.has(r.status)) return false;
     if (inferredOnly && !r.inferred) return false;
     if (qq && !`${r.desc ?? ""} ${r.payee} ${r.text} ${r.tags.join(" ")} ${(r.details ?? []).join(" ")}`.toLowerCase().includes(qq)) return false;
     return true;
   });
-  const mainSums = sumBy(base, mainOf);
-  for (const tg of tags) if (!mainSums.has(tg)) mainSums.set(tg, { amt: 0, isIn: false });
-  const mainChips = [...mainSums.entries()].sort((a, b) => b[1].amt - a[1].amt);
-  const subSums = sumBy(base.filter((r) => tags.has(mainOf(r))), (r) => r.tags.slice(1).map((s) => `${r.tags[0]}›${s}`));
-  const subChips = [...tags].flatMap((m) => (subs[m] ?? []).map((s) => [m, s] as const))
-    .sort((a, b) => (subSums.get(`${b[0]}›${b[1]}`)?.amt ?? 0) - (subSums.get(`${a[0]}›${a[1]}`)?.amt ?? 0));
+  // A tag's total includes every tag below it.
+  const sums = sumBy(base, (r) => {
+    const n = nodeOf(r);
+    return n ? chain(tree, n).map((x) => x.id) : [NEEDS];
+  });
+  const direct = at && at !== NEEDS ? sumBy(base.filter((r) => nodeOf(r) === at), () => "x").get("x") : undefined;
+  const levelChips = at === NEEDS ? [] : [...(tree.kids.get(at) ?? []).filter((k) => sums.has(k.id)).map((k) => [k.id, k.name] as const),
+    ...(at === null && sums.has(NEEDS) ? [[NEEDS, "needs you"] as const] : [])]
+    .sort((a, b) => (sums.get(b[0])?.amt ?? 0) - (sums.get(a[0])?.amt ?? 0));
+  const inside = at && at !== NEEDS ? within(tree, at) : null;
 
   const rows = base.filter((r) => {
-    if (tags.size && !tags.has(mainOf(r))) return false;
-    if (subTags.size && !r.tags.slice(1).some((s) => subTags.has(`${r.tags[0]}›${s}`))) return false;
+    if (at === NEEDS) return nodeOf(r) === null;
+    if (inside) { const n = nodeOf(r); return !!n && inside.has(n); }
     return true;
   });
   const t = totals(rows);
-  const filtered = !!(qq || src.size || tags.size || subTags.size || stat.size || inferredOnly);
+  const filtered = !!(qq || src.size || at || stat.size || inferredOnly);
   const flip = <T,>(set: Set<T>, v: T, put: (s: Set<T>) => void) => {
     const n = new Set(set);
     if (n.has(v)) n.delete(v); else n.add(v);
@@ -86,27 +95,32 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           ))}
         </div>
         <div className="row">
-          <span className="lbl">Main tag</span>
-          {mainChips.map(([tg, sum]) => (
-            <button key={tg} className="chip" aria-pressed={tags.has(tg)}
-              onClick={() => { flip(tags, tg, setTags); setSubTags(new Set([...subTags].filter((k) => !k.startsWith(tg + "›")))); }}>
-              {tg}<ChipAmt sum={sum} />
-            </button>
-          ))}
+          <span className="lbl">Tag</span>
+          <nav className="trail" aria-label="Where you are in the tags">
+            <button className="crumb" aria-current={at === null} onClick={() => setAt(null)}>All</button>
+            {at === NEEDS ? <><span className="sep">›</span><span className="crumb" aria-current>needs you</span></>
+              : chain(tree, at).map((x) => (
+                <Fragment key={x.id}>
+                  <span className="sep">›</span>
+                  <button className="crumb" aria-current={x.id === at} onClick={() => setAt(x.id)}>{x.name}</button>
+                </Fragment>
+              ))}
+            {at && <ChipAmt sum={sums.get(at)} />}
+          </nav>
         </div>
-        <div className="row">
-          <span className="lbl">Sub-tag</span>
-          {!tags.size && <span className="muted small">Pick a main tag above to see its sub-tags.</span>}
-          {tags.size > 0 && !subChips.length && <span className="muted small">No sub-tags under {[...tags].join(", ")}.</span>}
-          {subChips.map(([m, sb]) => {
-            const k = `${m}›${sb}`;
-            return (
-              <button key={k} className="chip sub" aria-pressed={subTags.has(k)} onClick={() => flip(subTags, k, setSubTags)}>
-                {tags.size > 1 ? `${m} › ${sb}` : sb}<ChipAmt sum={subSums.get(k)} />
+        {(levelChips.length > 0 || (direct && direct.amt >= 1)) && (
+          <div className="row">
+            <span className="lbl" aria-hidden />
+            {levelChips.map(([id, name]) => (
+              <button key={id} className="chip" onClick={() => setAt(id)}>
+                {name}<ChipAmt sum={sums.get(id)} />{id !== NEEDS && tree.kids.has(id) && <span className="more" aria-hidden>›</span>}
               </button>
-            );
-          })}
-        </div>
+            ))}
+            {direct && direct.amt >= 1 && levelChips.length > 0 && (
+              <span className="muted small">{rs(direct.amt)} is tagged {namesOf(tree, at).slice(-1)[0]} itself</span>
+            )}
+          </div>
+        )}
         <div className="row">
           <span className="lbl">Status</span>
           {(Object.keys(STATUS) as Status[]).map((s) => (
@@ -114,7 +128,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           ))}
           <button className="chip" aria-pressed={inferredOnly} onClick={() => setInferredOnly(!inferredOnly)}>From ride pattern</button>
           {filtered && (
-            <button className="linkbtn" onClick={() => { setQ(""); setSrc(new Set()); setTags(new Set()); setSubTags(new Set()); setStat(new Set()); setInferredOnly(false); }}>
+            <button className="linkbtn" onClick={() => { setQ(""); setSrc(new Set()); setAt(null); setStat(new Set()); setInferredOnly(false); }}>
               Clear filters
             </button>
           )}
@@ -159,7 +173,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
                 <button className="btn-ghost" onClick={() => setBulk(true)}>Tag all {open.length} shown</button>
               </div>
             ) : (
-              <TagEditor rowIds={open.map((r) => r.id)} payee="each of these payees" subs={subs} alwaysDefault={false}
+              <TagEditor rowIds={open.map((r) => r.id)} payee="each of these payees" tags={data.tags} alwaysDefault={false}
                 onSaved={async () => { setBulk(false); await reload(); }} onCancel={() => setBulk(false)} />
             )}
           </section>
@@ -171,7 +185,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           <span>Date</span><span>Paid by</span><span>What it was</span><span>Tags</span><span>Status</span><span className="right">Amount</span>
         </div>
         {rows.slice(0, limit).map((r) => (
-          <RowView key={r.id} r={r} subs={subs} open={open === r.id} editing={editing === r.id}
+          <RowView key={r.id} r={r} tags={data.tags} open={open === r.id} editing={editing === r.id}
             toggle={() => { setOpen(open === r.id ? null : r.id); setEditing(null); }}
             edit={() => setEditing(r.id)} done={async () => { setEditing(null); await reload(); }} />
         ))}
@@ -201,8 +215,8 @@ function ChipAmt({ sum }: { sum?: Sum }) {
   return <span className={`chip-amt ${sum.isIn ? "in" : ""}`}>{sum.isIn ? "+" : ""}{rs(sum.amt)}</span>;
 }
 
-function RowView({ r, subs, open, editing, toggle, edit, done }: {
-  r: Row; subs: Record<string, string[]>; open: boolean; editing: boolean; toggle: () => void; edit: () => void; done: () => Promise<void>;
+function RowView({ r, tags, open, editing, toggle, edit, done }: {
+  r: Row; tags: Ledger["tags"]; open: boolean; editing: boolean; toggle: () => void; edit: () => void; done: () => Promise<void>;
 }) {
   const muted = r.kind === "bill" || r.kind === "payment";
   const amt = r.amount === null ? r.fx ?? "?" : `${r.amount > 0 ? "+" : ""}${rs(r.amount, true)}`;
@@ -215,7 +229,7 @@ function RowView({ r, subs, open, editing, toggle, edit, done }: {
           <span className={`desc ${r.status === "needs" ? "needs" : ""}`}>{r.desc ?? (r.status === "needs" ? `Who is this? ${r.payee}` : r.payee)}</span>
           <span className="raw">{r.text}</span>
         </span>
-        <span className="tags">{r.tags.map((t, i) => <span key={t} className={`pill ${i ? "sub" : ""}`}>{i ? `› ${t}` : t}</span>)}</span>
+        <span className="tags">{r.tags.map((t, i) => <span key={i} className={`pill ${i ? "sub" : ""}`}>{i ? `› ${t}` : t}</span>)}</span>
         <span className="status">
           <span className={`st ${r.status}`}>{STATUS[r.status]}</span>
           {!r.final && <span className="nf">not final</span>}
@@ -234,7 +248,8 @@ function RowView({ r, subs, open, editing, toggle, edit, done }: {
               <button className="btn-ghost" onClick={edit}>{r.status === "needs" ? "Tag it" : "Change tag"}</button>
             </>
           ) : (
-            <TagEditor rowIds={[r.id]} payee={r.payee} trip={r.trip_label ?? r.trip} subs={subs} initialTags={r.status === "needs" ? [] : r.tags}
+            <TagEditor rowIds={[r.id]} payee={r.payee} tags={tags} startAt={tripTag(tags, r.trip_label)}
+              initialTagId={r.status === "needs" ? null : r.tag_id}
               initialDesc={r.desc} alwaysDefault={false} onSaved={() => void done()} onCancel={toggle} />
           )}
         </div>

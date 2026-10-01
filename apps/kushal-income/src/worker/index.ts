@@ -6,7 +6,8 @@
  *   POST /api/login    → check shared password, set signed cookie
  *   POST /api/logout   → clear cookie
  *   GET  /api/ledger   → every payment, statement and source status (auth-gated)
- *   POST /api/tag      → the owner tags rows, optionally as a rule for their payee (auth-gated)
+ *   POST /api/tag      → the owner puts rows on a tag, optionally as a rule for their payee (auth-gated)
+ *   POST /api/tags     → make a tag; POST /api/tags/:id renames or moves it; DELETE removes an empty one
  *   POST /api/ingest   → the on-demand sync publishes a new ledger (INGEST_TOKEN)
  *   GET  *             → serve the SPA via the ASSETS binding
  *
@@ -25,6 +26,7 @@ import {
   setAuthCookie,
 } from "./auth";
 import { ingest, read, tag, type TagBody } from "./ledger";
+import { createTag, deleteTag, updateTag } from "./tags";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -61,6 +63,34 @@ app.post("/api/tag", requireAuth, async (c) => {
   } catch (e) {
     return c.json({ error: String((e as Error).message) }, 400);
   }
+});
+
+/** Run a tag-tree change; a bad request comes back as a 400 with a plain reason. */
+async function tagOp(c: { req: { json: () => Promise<unknown> } }, op: (b: Record<string, unknown>) => Promise<unknown>) {
+  let body: Record<string, unknown> = {};
+  try {
+    body = (await c.req.json()) as Record<string, unknown>;
+  } catch {
+    /* DELETE has no body */
+  }
+  try {
+    return { status: 200 as const, body: { ok: true, tag: await op(body) } };
+  } catch (e) {
+    return { status: 400 as const, body: { error: String((e as Error).message) } };
+  }
+}
+
+app.post("/api/tags", requireAuth, async (c) => {
+  const r = await tagOp(c, (b) => createTag(c.env, b));
+  return c.json(r.body, r.status);
+});
+app.post("/api/tags/:id", requireAuth, async (c) => {
+  const r = await tagOp(c, (b) => updateTag(c.env, c.req.param("id") ?? "", b));
+  return c.json(r.body, r.status);
+});
+app.delete("/api/tags/:id", requireAuth, async (c) => {
+  const r = await tagOp(c, () => deleteTag(c.env, c.req.param("id") ?? ""));
+  return c.json(r.body, r.status);
 });
 
 app.post("/api/ingest", async (c) => {

@@ -20,11 +20,14 @@ is `yt-income` -> yt-income.agrolloo.com.
   "no, what are you doing, pls confirm first".
 - **No masking.** Data stays in gitignored `pipelines/personal-finance/data/` and the
   password-gated app.
-- **Tags:** one main tag plus any number of sub-tags (owner, 2026-10-01). A trip row is
-  `["trip","<trip>","<trip>-<kind>"]`, e.g. `["trip","diwali","diwali-flight"]`: the bare
-  `<trip>` sub-tag gives the whole trip's total in one click. `<trip>` is the planner name
-  before ":" without "Trip" (`trips.py` `trip_label`). Nothing is guessed; unknown stays
-  "Needs you".
+- **Tags are a tree** (owner, 2026-10-01), any depth. Every payment sits on exactly ONE
+  tag, and a tag's total includes everything below it. The tree lives in D1 `tags`
+  (`id`, `parent_id`, `name`, `key`); the owner renames, moves, adds and deletes tags on
+  the app's Tags page. The sync sends a path per row (`build.py` `path_of`, e.g.
+  `food/swiggy`, `trip/varkala/food`); the Worker finds the tag whose `key` is that path,
+  or makes it. A renamed or moved tag keeps its `key`, so the sync still lands there.
+  Trip rows are `trip/<trip>/<kind>`; `<trip>` is the planner name before ":" without
+  "Trip" (`trips.py` `trip_label`). Nothing is guessed; unknown stays "Needs you".
 - Commits: one line, from a `pp-work` workspace, never in main.
 - Don't ask about scraping Rapido's private API again.
 
@@ -85,9 +88,8 @@ ask "did you check X?". For each row, in this order:
 4. The trip planner, `data/inbox/trips.json` (fetched from trips.agrolloo.com every sync).
    Read it for ANY travel-looking row (flight, train, bus, stay, Cleartrip, IRCTC, airline),
    whatever the date: each booking carries PNR / refs, times and a `Paid` amount. A booking
-   made weeks before a trip is still that trip's money. Use the planner's trip name for the
-   sub-tags: `["trip","<trip>","<trip>-flight|train|bus|stay|food|auto|metro"]`, and never
-   `travel` for a planned trip (2026-10-01: the 30 Oct flight was
+   made weeks before a trip is still that trip's money. Put it on the trip's tag,
+   `trip/<trip>/flight|train|bus|stay|food|auto|metro`, never on `travel` (2026-10-01: the 30 Oct flight was
    tagged by hand without reading the planner, and its train + return flight stayed
    `travel`).
 5. Flipkart orders, already joined by the sync.
@@ -95,16 +97,17 @@ ask "did you check X?". For each row, in this order:
 Tag only what a document proves, then show him one table (row, proof, tag) and ask about
 the rest with every detail you found (day, time, card, VPA, UPI ref, where he was).
 
-**Saving tags.** Write to D1 `overrides` with the MCP (local `wrangler` needs Node 22 and
-fails on the default Node 20). Shape: `tags` = JSON `["<main>","<sub>",...]`, main from
-`MAINS`, at most 5 sub-tags; the Worker's `/api/tag` rejects anything else. The app adds
-a trip row's whole-trip sub-tag by itself (from the row's `trip_label`). Re-select after the write to
-confirm. Row ids are `src + date + amount + occurrence`, so a tag on a "not final" alert
-row survives when the statement replaces it.
+**Saving tags.** Write to D1 `overrides` with the MCP (or `wrangler` after sourcing
+`scripts/node22-path.sh`; plain Node 20 fails). Look the tag up first: its id is the sync
+key for tags the sync made (`food/swiggy`), a UUID for tags made in the app. `tags` stays
+`'[]'`; `tag_id` is what counts. Re-select after the write to confirm. Row ids are
+`src + date + amount + occurrence`, so a tag on a "not final" alert row survives when the
+statement replaces it.
 
 ```sql
-INSERT OR REPLACE INTO overrides (row_id, tags, descr, updated_at)
-VALUES ('<row id>', '["bills","jio"]', 'Jio recharge', '<ISO now>')
+SELECT id, name, key FROM tags WHERE name = 'jio';      -- find the tag
+INSERT OR REPLACE INTO overrides (row_id, tags, descr, updated_at, tag_id)
+VALUES ('<row id>', '[]', 'Jio recharge', '<ISO now>', '<tag id>')
 ```
 
 Then report: rows, any statement that did not add up, what you tagged and why, what is
