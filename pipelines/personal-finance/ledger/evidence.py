@@ -7,7 +7,8 @@
 
 A ride proves a payment only when the fare matches and the payment follows the
 ride start within the window below, or, with no time known, when it is the only
-payment of that fare on that day. Nothing is matched on a hunch.
+payment of that fare on that day once the timed matches are taken. Nothing is
+matched on a hunch.
 """
 
 from __future__ import annotations
@@ -131,26 +132,29 @@ def match_rides(rows, rides):
     n = 0
     open_rows = [r for r in rows if r["status"] == "needs" and r["amount"] is not None and r["amount"] < 0
                  and r["source"] in ("sbi", "neu")]
-    taken = set()
+    taken, done, pairs = set(), set(), []
+    # Timed matches first, so the untimed pass only sees what they left over.
     for ride in rides:
         timed = [r for r in open_rows if r["id"] not in taken and r.get("_ts") and abs(-r["amount"] - ride["price"]) < 0.01
                  and AFTER_MIN <= (r["_ts"] - ride["ts"]).total_seconds() / 60 <= AFTER_MAX]
-        how = None
         if timed:
             row = min(timed, key=lambda r: abs((r["_ts"] - ride["ts"]).total_seconds()))
-            mins = int((row["_ts"] - ride["ts"]).total_seconds() / 60)
-            how = "paid %d min after the ride started" % mins
-        else:
-            day = ride["ts"].date().isoformat()
-            same = [r for r in open_rows if r["id"] not in taken and r["date"] == day
-                    and abs(-r["amount"] - ride["price"]) < 0.01]
-            rides_same = [x for x in rides if x["ts"].date() == ride["ts"].date() and x["price"] == ride["price"]]
-            if len(same) == 1 and len(rides_same) == 1:
-                row = same[0]
-                how = "the only ₹%.0f payment that day" % ride["price"]
-        if not how:
+            taken.add(row["id"])
+            done.add(ride["id"])
+            pairs.append((ride, row, "paid %d min after the ride started" % int((row["_ts"] - ride["ts"]).total_seconds() / 60)))
+    for ride in rides:
+        if ride["id"] in done:
             continue
-        taken.add(row["id"])
+        day = ride["ts"].date().isoformat()
+        same = [r for r in open_rows if r["id"] not in taken and r["date"] == day
+                and abs(-r["amount"] - ride["price"]) < 0.01]
+        rides_same = [x for x in rides if x["id"] not in done and x["ts"].date() == ride["ts"].date()
+                      and x["price"] == ride["price"]]
+        if len(same) == 1 and len(rides_same) == 1:
+            taken.add(same[0]["id"])
+            done.add(ride["id"])
+            pairs.append((ride, same[0], "the only ₹%.0f payment that day left after the timed matches" % ride["price"]))
+    for ride, row, how in pairs:
         route = "%s → %s" % (ride["from"], ride["to"])
         row.setdefault("details", []).extend([
             "Rapido ride %s at %s, driver %s, vehicle %s" % (ride["id"], ride["ts"].strftime("%-d %b %H:%M"),

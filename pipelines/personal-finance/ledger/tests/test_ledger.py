@@ -163,6 +163,15 @@ class Rides(unittest.TestCase):
         self.assertEqual(evidence.match_rides([a, b], [ride]), 0)
         self.assertEqual(evidence.match_rides([a], [ride]), 1)
 
+    def test_untimed_match_after_timed_takes_its_pair(self):
+        r1 = {"id": "RD3", "mode": "auto", "price": 70.0, "ts": dt.datetime(2026, 9, 29, 15, 23), "from": "a", "to": "b"}
+        r2 = {"id": "RD4", "mode": "auto", "price": 70.0, "ts": dt.datetime(2026, 9, 29, 15, 46), "from": "b", "to": "a"}
+        timed = self._row("t", "2026-09-29", -70.0, dt.datetime(2026, 9, 29, 15, 30))
+        untimed = self._row("u", "2026-09-29", -70.0)
+        self.assertEqual(evidence.match_rides([timed, untimed], [r1, r2]), 2)
+        self.assertIn("a → b", timed["tags"])
+        self.assertIn("b → a", untimed["tags"])
+
 
 class Flipkart(unittest.TestCase):
     @staticmethod

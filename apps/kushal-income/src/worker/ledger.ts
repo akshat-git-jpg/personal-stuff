@@ -43,6 +43,12 @@ interface Ledger {
 
 const CHUNK = 250;
 
+// Keep in step with MAINS in src/client/lib.ts.
+const MAINS = [
+  "food", "grocery", "commute", "trip", "travel", "shopping", "subscription", "work", "home", "bills", "education loan",
+  "health", "personal care", "fitness", "entertainment", "family", "education", "bank", "income", "misc",
+];
+
 function valid(body: unknown): body is Ledger {
   const b = body as Ledger;
   return !!b && typeof b.generated_at === "string" && Array.isArray(b.rows)
@@ -124,8 +130,9 @@ export async function tag(env: Env, b: TagBody): Promise<number> {
       || !Array.isArray(b.tags) || !b.tags.every((t) => typeof t === "string")) {
     throw new Error("row_ids[] and tags[] required");
   }
-  const tags = (b.tags as string[]).map((t) => t.trim().toLowerCase()).filter(Boolean).slice(0, 6);
+  const tags = (b.tags as string[]).map((t) => t.trim().toLowerCase()).filter(Boolean);
   if (!tags.length) throw new Error("at least one tag");
+  if (tags.length > 2 || !MAINS.includes(tags[0])) throw new Error("tags must be one main tag plus at most one sub-tag");
   const desc = typeof b.desc === "string" && b.desc.trim() ? b.desc.trim().slice(0, 120) : null;
   const now = new Date().toISOString();
   const found = await env.DB.prepare(

@@ -38,24 +38,71 @@ Then you run, from a workspace:
 cd pipelines/personal-finance
 export PF_DATA=/Users/kbtg/codebase/personal-stuff/pipelines/personal-finance/data
 export PP_GOOGLE_SHARED=/Users/kbtg/codebase/personal-stuff/tooling/mcp/google-shared
-cp ~/Downloads/AccountStatement_*.pdf "$PF_DATA/raw/"   # only if he gave a downloaded SBI PDF
+ls -t ~/Downloads/AccountStatement_*.pdf | head; ls -t "$PF_DATA/raw/" | head   # ALWAYS, even if he gave no path
+cp ~/Downloads/AccountStatement_<new>.pdf "$PF_DATA/raw/"   # each Downloads PDF not yet in raw/
 python3 -m ledger.run                                    # fetch + build + publish
 python3 -m unittest discover -s ledger/tests -t .
 ```
+
+Check Downloads every time, before the first run. A YONO download lands there and the
+owner often forgets to mention it; a missed PDF means a second full sync.
 
 `ledger.run` fetches by itself: all 3 card statement PDFs (Gmail, the truth - the owner
 never downloads these), card alerts (fill days after the last statement, "not final"),
 SBI e-statements, Rapido + Uber receipts (Gmail), Flipkart orders (`pp-flipkart`), trips
 (trips.agrolloo.com -> `data/inbox/trips.json`).
 
-Then report to the owner: rows, any statement that did not add up, the Needs-you count,
-and anything the log says "skipped". Ask him to tag Needs you in the app.
+## After the sync: count from the app, then find proof yourself
+
+**The real Needs-you list lives in the app's D1, not in `data/ledger.json`.** The local
+file is the sync's view only; the owner's tags (`overrides`, per row) and payee rules
+(`rules`) live in D1 database `kushal-money` (id `1e875676-43a7-47f1-8fd3-5e9c28edb465`)
+and win on read. Counting from the local file reported 24 when the app said 14, and asked
+about rows he had already tagged (2026-10-01). Query D1 with `mcp__cloudflare__d1_query`:
+
+```sql
+SELECT id, date, json_extract(data,'$.amount') amt, json_extract(data,'$.payee') payee
+FROM rows WHERE json_extract(data,'$.status')='needs' AND json_extract(data,'$.kind')!='payment'
+  AND id NOT IN (SELECT row_id FROM overrides) AND payee_key NOT IN (SELECT payee_key FROM rules)
+ORDER BY date DESC
+```
+
+The app's badge counts rows; "All time (N)" on Needs you counts payees. They differ when
+one payee has two rows. "This month" there means the newest month with any row, so on the
+1st of a month it can hide the month just synced: point him at "All time".
+
+**Before handing him the list, dig for proof on every new row.** He should never have to
+ask "did you check X?". For each row, in this order:
+1. `data/inbox/alerts/*.json`: the card alert has the exact payee VPA and send time.
+2. Gmail (`pp-gmail --account kushalbakliwal25@gmail.com search 'after:<epoch> before:<epoch>'`)
+   in a window around that time: recharge mails (Jio, Vi), booking mails (Cleartrip,
+   IRCTC, airlines), shop receipts.
+3. Rapido receipts (`data/inbox/rapido/*.pdf`, `pdftotext -layout`): same fare, same day.
+   Also use the day's rides to say where he was ("between home→office 11:39 and office→home 19:05").
+4. Flipkart orders and trips, already joined by the sync.
+
+Tag only what a document proves, then show him one table (row, proof, tag) and ask about
+the rest with every detail you found (day, time, card, VPA, UPI ref, where he was).
+
+**Saving tags.** Write to D1 `overrides` with the MCP (local `wrangler` needs Node 22 and
+fails on the default Node 20). Shape: `tags` = JSON `["<main>","<sub>"]`, main from
+`MAINS`; the Worker's `/api/tag` now rejects anything else. Re-select after the write to
+confirm. Row ids are `src + date + amount + occurrence`, so a tag on a "not final" alert
+row survives when the statement replaces it.
+
+```sql
+INSERT OR REPLACE INTO overrides (row_id, tags, descr, updated_at)
+VALUES ('<row id>', '["bills","jio"]', 'Jio recharge', '<ISO now>')
+```
+
+Then report: rows, any statement that did not add up, what you tagged and why, what is
+left (from D1), any card bill due soon, and anything the log says "skipped".
 
 ## When something breaks
 
 | Log says | Do |
 |---|---|
-| `flipkart: skipped (Not logged in...)` | owner runs `tooling/cli/flipkart/pp-flipkart login` (OTP) |
+| `flipkart: skipped (Not logged in...)` | run `tooling/cli/flipkart/pp-flipkart login` yourself, in the background. Tell him first: it opens a SEPARATE Playwright browser (his Chrome login does not count), he logs in there with phone + OTP or, if it already shows logged in, opens My Orders; he must NOT close it, it closes itself once orders load and the login is saved. "Something's not right" on the orders page = half-dead session: My Account → Logout, log in again. Re-run the sync after `Logged in.` |
 | `no saved password opens X.pdf` for a NEW statement | ask the owner for the new password -> `data/config.json` `passwords` |
 | 8 old SBI copies locked | known, harmless: old email copies, no month gap |
 | a statement does not add up | it is skipped and shown on Overview; do not force it |

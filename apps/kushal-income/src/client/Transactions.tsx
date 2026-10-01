@@ -34,26 +34,29 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
 
   // Main tags only; a selected main reveals its sub-tags.
   const mainOf = (r: Row) => (r.status === "needs" ? "needs you" : r.tags[0] ?? "needs you");
-  // Only tags that have rows in the picked dates, plus any already selected.
-  const tagCounts = useMemo(() => {
-    const c = new Map<string, number>();
-    for (const r of data.rows) if (inPick(pick, r.date, anchor)) c.set(mainOf(r), (c.get(mainOf(r)) ?? 0) + 1);
-    for (const t of tags) if (!c.has(t)) c.set(t, 0);
-    return [...c.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
-  }, [data, pick, anchor, tags]);
   const subs = useMemo(() => subsByMain(data.rows), [data]);
-  const subChips = [...tags].flatMap((m) => (subs[m] ?? []).map((s) => [m, s] as const));
 
   const qq = q.trim().toLowerCase();
-  const rows = data.rows.filter((r) => {
+  // Every filter except the tag ones, so each chip's total is what clicking it would show.
+  const base = data.rows.filter((r) => {
     if (!inPick(pick, r.date, anchor)) return false;
     if (hideBills && (r.kind === "bill" || r.kind === "payment") && !(tags.has("bank") && subTags.has("bank›card bill"))) return false;
     if (src.size && !src.has(r.source)) return false;
     if (stat.size && !stat.has(r.status)) return false;
     if (inferredOnly && !r.inferred) return false;
+    if (qq && !`${r.desc ?? ""} ${r.payee} ${r.text} ${r.tags.join(" ")} ${(r.details ?? []).join(" ")}`.toLowerCase().includes(qq)) return false;
+    return true;
+  });
+  const mainSums = sumBy(base, mainOf);
+  for (const tg of tags) if (!mainSums.has(tg)) mainSums.set(tg, { amt: 0, isIn: false });
+  const mainChips = [...mainSums.entries()].sort((a, b) => b[1].amt - a[1].amt);
+  const subSums = sumBy(base.filter((r) => tags.has(mainOf(r)) && r.tags[1]), (r) => `${r.tags[0]}›${r.tags[1]}`);
+  const subChips = [...tags].flatMap((m) => (subs[m] ?? []).map((s) => [m, s] as const))
+    .sort((a, b) => (subSums.get(`${b[0]}›${b[1]}`)?.amt ?? 0) - (subSums.get(`${a[0]}›${a[1]}`)?.amt ?? 0));
+
+  const rows = base.filter((r) => {
     if (tags.size && !tags.has(mainOf(r))) return false;
     if (subTags.size && !(r.tags[1] && subTags.has(`${r.tags[0]}›${r.tags[1]}`))) return false;
-    if (qq && !`${r.desc ?? ""} ${r.payee} ${r.text} ${r.tags.join(" ")} ${(r.details ?? []).join(" ")}`.toLowerCase().includes(qq)) return false;
     return true;
   });
   const t = totals(rows);
@@ -84,9 +87,11 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
         </div>
         <div className="row">
           <span className="lbl">Main tag</span>
-          {tagCounts.map((tg) => (
+          {mainChips.map(([tg, sum]) => (
             <button key={tg} className="chip" aria-pressed={tags.has(tg)}
-              onClick={() => { flip(tags, tg, setTags); setSubTags(new Set([...subTags].filter((k) => !k.startsWith(tg + "›")))); }}>{tg}</button>
+              onClick={() => { flip(tags, tg, setTags); setSubTags(new Set([...subTags].filter((k) => !k.startsWith(tg + "›")))); }}>
+              {tg}<ChipAmt sum={sum} />
+            </button>
           ))}
         </div>
         <div className="row">
@@ -95,7 +100,11 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           {tags.size > 0 && !subChips.length && <span className="muted small">No sub-tags under {[...tags].join(", ")}.</span>}
           {subChips.map(([m, sb]) => {
             const k = `${m}›${sb}`;
-            return <button key={k} className="chip sub" aria-pressed={subTags.has(k)} onClick={() => flip(subTags, k, setSubTags)}>{tags.size > 1 ? `${m} › ${sb}` : sb}</button>;
+            return (
+              <button key={k} className="chip sub" aria-pressed={subTags.has(k)} onClick={() => flip(subTags, k, setSubTags)}>
+                {tags.size > 1 ? `${m} › ${sb}` : sb}<ChipAmt sum={subSums.get(k)} />
+              </button>
+            );
           })}
         </div>
         <div className="row">
@@ -173,6 +182,23 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
       </section>
     </main>
   );
+}
+
+type Sum = { amt: number; isIn: boolean };
+
+/** Spend per group; a group with no spend (salary, interest) shows its money in instead. */
+function sumBy(rows: Row[], key: (r: Row) => string): Map<string, Sum> {
+  const g = new Map<string, Row[]>();
+  for (const r of rows) g.set(key(r), [...(g.get(key(r)) ?? []), r]);
+  return new Map([...g].map(([k, rs]) => {
+    const t = totals(rs);
+    return [k, t.spent > 0 ? { amt: t.spent, isIn: false } : { amt: t.inn, isIn: t.inn > 0 }];
+  }));
+}
+
+function ChipAmt({ sum }: { sum?: Sum }) {
+  if (!sum || sum.amt < 1) return null;
+  return <span className={`chip-amt ${sum.isIn ? "in" : ""}`}>{sum.isIn ? "+" : ""}{rs(sum.amt)}</span>;
 }
 
 function RowView({ r, subs, open, editing, toggle, edit, done }: {
