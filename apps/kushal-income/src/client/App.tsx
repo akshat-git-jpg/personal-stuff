@@ -23,7 +23,7 @@ export function App() {
   const load = useCallback(async () => {
     try {
       const d = await fetchLedger();
-      setData({ ...d, rows: d.rows.map((r) => ({ ...r, tags: mainSub(r.tags) })) });
+      setData({ ...d, rows: d.rows.map((r) => ({ ...r, tags: mainSub(r.tags, r.trip_label) })) });
       setNeedsAuth(false);
       setErr(null);
     } catch (e) {

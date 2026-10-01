@@ -10,7 +10,7 @@ export const SOURCES: Record<Source, { label: string; short: string; color: stri
   icici: { label: "Amazon Pay ICICI", short: "Amazon ICICI", color: "var(--src-icici)" },
 };
 
-/** The main tags, in the order they are offered. Each row has one, plus at most one sub-tag. */
+/** The main tags, in the order they are offered. Each row has one, plus any number of sub-tags. */
 export const MAINS = [
   "food", "grocery", "commute", "trip", "travel", "shopping", "subscription", "work", "home", "bills", "education loan",
   "health", "personal care", "fitness", "entertainment", "family", "education", "bank", "income", "misc",
@@ -23,15 +23,21 @@ const LEGACY: Record<string, [string, string | null]> = {
   protein: ["fitness", "protein"], loan: ["education loan", "emi"], "work tools": ["work", null], salary: ["income", "salary"],
 };
 
-/** Always [main] or [main, sub]; fixes owner tags saved in the old free form. */
-export function mainSub(tags: string[]): string[] {
-  const t = tags.filter((x) => x !== "commute" || tags[0] === "commute");
+/** Always [main, ...subs]; fixes owner tags saved in the old free form. A trip row also gets its whole-trip sub-tag. */
+export function mainSub(tags: string[], tripLabel?: string): string[] {
+  const out = rawMainSub(tags);
+  if (out[0] === "trip" && tripLabel) return [...new Set(["trip", tripLabel, ...out.slice(1)])];
+  return out;
+}
+
+function rawMainSub(tags: string[]): string[] {
+  const t = [...new Set(tags.filter((x) => x !== "commute" || tags[0] === "commute"))];
   if (!t.length) return [];
   if (t[0] === "bank" && t[1] === "loan") return ["education loan", "emi"];
-  if (MAINS.includes(t[0]) && t[0] !== "misc") return t.slice(0, 2);
+  if (MAINS.includes(t[0]) && t[0] !== "misc") return t;
   // An old free-form trip tag like "varkala-food" belongs under "trip".
-  const trip = t.find((x) => /^[a-z-]+-(stay|food|bus|auto|metro|flight|train)$/.test(x));
-  if (trip) return ["trip", trip];
+  const trip = t.filter((x) => /^[a-z-]+-(stay|food|bus|auto|metro|flight|train)$/.test(x));
+  if (trip.length) return ["trip", ...trip];
   if (t[0] === "misc") return t.slice(0, 2);
   const hit = LEGACY[t[0]];
   if (hit) return hit[1] ? [hit[0], hit[1]] : [hit[0], ...t.slice(1, 2)];
@@ -42,9 +48,8 @@ export function mainSub(tags: string[]): string[] {
 export function subsByMain(rows: Row[]): Record<string, string[]> {
   const c: Record<string, Map<string, number>> = {};
   for (const r of rows) {
-    if (r.tags.length < 2) continue;
     const m = (c[r.tags[0]] ??= new Map());
-    m.set(r.tags[1], (m.get(r.tags[1]) ?? 0) + 1);
+    for (const s of r.tags.slice(1)) m.set(s, (m.get(s) ?? 0) + 1);
   }
   return Object.fromEntries(Object.entries(c).map(([k, m]) => [k, [...m.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => s)]));
 }

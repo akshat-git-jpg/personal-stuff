@@ -20,7 +20,10 @@ is `yt-income` -> yt-income.agrolloo.com.
   "no, what are you doing, pls confirm first".
 - **No masking.** Data stays in gitignored `pipelines/personal-finance/data/` and the
   password-gated app.
-- **Tags:** one main tag plus at most one sub-tag. Nothing is guessed; unknown stays
+- **Tags:** one main tag plus any number of sub-tags (owner, 2026-10-01). A trip row is
+  `["trip","<trip>","<trip>-<kind>"]`, e.g. `["trip","diwali","diwali-flight"]`: the bare
+  `<trip>` sub-tag gives the whole trip's total in one click. `<trip>` is the planner name
+  before ":" without "Trip" (`trips.py` `trip_label`). Nothing is guessed; unknown stays
   "Needs you".
 - Commits: one line, from a `pp-work` workspace, never in main.
 - Don't ask about scraping Rapido's private API again.
@@ -83,8 +86,8 @@ ask "did you check X?". For each row, in this order:
    Read it for ANY travel-looking row (flight, train, bus, stay, Cleartrip, IRCTC, airline),
    whatever the date: each booking carries PNR / refs, times and a `Paid` amount. A booking
    made weeks before a trip is still that trip's money. Use the planner's trip name for the
-   sub-tag: `["trip","<trip>-flight|train|bus|stay|food|auto|metro"]`, never a bare
-   `<trip>` sub and never `travel` for a planned trip (2026-10-01: the 30 Oct flight was
+   sub-tags: `["trip","<trip>","<trip>-flight|train|bus|stay|food|auto|metro"]`, and never
+   `travel` for a planned trip (2026-10-01: the 30 Oct flight was
    tagged by hand without reading the planner, and its train + return flight stayed
    `travel`).
 5. Flipkart orders, already joined by the sync.
@@ -93,8 +96,9 @@ Tag only what a document proves, then show him one table (row, proof, tag) and a
 the rest with every detail you found (day, time, card, VPA, UPI ref, where he was).
 
 **Saving tags.** Write to D1 `overrides` with the MCP (local `wrangler` needs Node 22 and
-fails on the default Node 20). Shape: `tags` = JSON `["<main>","<sub>"]`, main from
-`MAINS`; the Worker's `/api/tag` now rejects anything else. Re-select after the write to
+fails on the default Node 20). Shape: `tags` = JSON `["<main>","<sub>",...]`, main from
+`MAINS`, at most 5 sub-tags; the Worker's `/api/tag` rejects anything else. The app adds
+a trip row's whole-trip sub-tag by itself (from the row's `trip_label`). Re-select after the write to
 confirm. Row ids are `src + date + amount + occurrence`, so a tag on a "not final" alert
 row survives when the statement replaces it.
 

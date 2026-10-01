@@ -40,6 +40,8 @@ export interface Row {
   inferred?: boolean;
   /** Set when the payment falls in a trip (data/config.json "trips"), e.g. "varkala". */
   trip?: string;
+  /** The whole-trip sub-tag, e.g. "varkala" or "diwali". */
+  trip_label?: string;
   /** Everything known about the payment: UPI ID, bank, note, Google Pay payee, Rapido ride. */
   details?: string[];
 }

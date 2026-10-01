@@ -1,4 +1,4 @@
-/** Pick one main tag, an optional sub-tag and a description for one or more rows, then save. */
+/** Pick one main tag, any sub-tags and a description for one or more rows, then save. */
 import { useState } from "react";
 import { tagRows } from "./api";
 import { MAINS } from "./lib";
@@ -19,22 +19,24 @@ export function TagEditor(props: {
 }) {
   const init = props.initialTags ?? [];
   const [main, setMain] = useState<string | null>(init[0] ?? (props.trip ? "trip" : null));
-  const [sub, setSub] = useState<string>(init[1] ?? "");
+  const [picked, setPicked] = useState<string[]>(init.slice(1));
+  const [extra, setExtra] = useState("");
   const [desc, setDesc] = useState(props.initialDesc ?? "");
   const [always, setAlways] = useState(!!props.alwaysDefault);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const tripSubs = props.trip ? ["stay", "food", "bus", "auto", "metro", "flight", "train"].map((k) => `${props.trip}-${k}`) : [];
-  const subChoices = main ? [...new Set([...(main === "trip" ? tripSubs : []), ...(props.subs[main] ?? [])])].slice(0, 16) : [];
+  const subChoices = main ? [...new Set([...picked, ...(main === "trip" ? tripSubs : []), ...(props.subs[main] ?? [])])].slice(0, 20) : [];
+  const toggle = (t: string) => setPicked(picked.includes(t) ? picked.filter((x) => x !== t) : [...picked, t]);
 
   const save = async () => {
     if (!main) return;
-    const s = sub.trim().toLowerCase();
+    const typed = extra.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
     setBusy(true);
     setErr(null);
     try {
-      await tagRows(props.rowIds, s ? [main, s] : [main], desc.trim() || null, always);
+      await tagRows(props.rowIds, [main, ...new Set([...picked, ...typed])], desc.trim() || null, always);
       props.onSaved();
     } catch (e) {
       setErr(String((e as Error).message));
@@ -48,23 +50,23 @@ export function TagEditor(props: {
       <div className="chips" role="group" aria-label="Main tag">
         {MAINS.map((t) => (
           <button key={t} type="button" className="chip" aria-pressed={main === t}
-            onClick={() => { setMain(t); if (t !== main) setSub(""); }}>{t}</button>
+            onClick={() => { setMain(t); if (t !== main) setPicked([]); }}>{t}</button>
         ))}
       </div>
       {main && (
         <>
-          <div className="small muted">Sub-tag under {main} (optional)</div>
+          <div className="small muted">Sub-tags under {main} (optional, pick any)</div>
           <div className="chips" role="group" aria-label="Sub-tag">
             {subChoices.map((t) => (
-              <button key={t} type="button" className="chip sub" aria-pressed={sub === t} onClick={() => setSub(sub === t ? "" : t)}>{t}</button>
+              <button key={t} type="button" className="chip sub" aria-pressed={picked.includes(t)} onClick={() => toggle(t)}>{t}</button>
             ))}
           </div>
         </>
       )}
       <div className="editor-row">
         <label className="field">
-          <span>New sub-tag</span>
-          <input value={subChoices.includes(sub) ? "" : sub} onChange={(e) => setSub(e.target.value)} placeholder="e.g. claude sub, goa-stay" />
+          <span>New sub-tags (comma between them)</span>
+          <input value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="e.g. goa, goa-stay" />
         </label>
         <label className="field grow">
           <span>Description (optional)</span>
