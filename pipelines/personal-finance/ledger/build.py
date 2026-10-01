@@ -322,7 +322,27 @@ def _sub_for(main, desc, fixed):
     return None
 
 
+TRIP_KIND_RE = re.compile(r"^(.+)-(%s)$" % "|".join(TRIP_KINDS))
+
+
+def path_of(tags, trip_label=None):
+    """The row's place in the tag tree, e.g. "trip/varkala/food" or "food/swiggy". Keep in step with
+    apps/kushal-income/src/shared/tagpath.ts."""
+    if not tags:
+        return None
+    if tags[0] != "trip":
+        return "/".join(tags[:2])
+    m = next((TRIP_KIND_RE.match(t) for t in tags[1:] if TRIP_KIND_RE.match(t)), None)
+    label = trip_label or (m[1] if m else None) or next((t for t in tags[1:] if not TRIP_KIND_RE.match(t)), None)
+    return "/".join(x for x in ("trip", label, m[2] if m else None) if x)
+
+
 def normalize_tags(row):
+    _normalize_tags(row)
+    row["path"] = path_of(row["tags"], row.get("trip_label"))
+
+
+def _normalize_tags(row):
     tags = [t for t in row["tags"] if t not in ("commute", "pattern")]
     if "pattern" in row["tags"]:
         row["inferred"] = True

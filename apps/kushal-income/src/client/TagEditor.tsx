@@ -1,42 +1,60 @@
-/** Pick one main tag, any sub-tags and a description for one or more rows, then save. */
-import { useState } from "react";
-import { tagRows } from "./api";
-import { MAINS } from "./lib";
+/** Put one or more rows on one tag of the tree: search for it, or click down to it, or make a new one there. */
+import { Fragment, useMemo, useState } from "react";
+import { createTag, tagRows, type TagNode } from "./api";
+import { chain, makeTree, namesOf } from "./lib";
 
 export function TagEditor(props: {
   rowIds: string[];
   payee: string;
-  initialTags?: string[];
+  tags: TagNode[];
+  /** Where browsing starts, e.g. the row's trip. */
+  startAt?: string | null;
+  initialTagId?: string | null;
   initialDesc?: string | null;
-  /** The trip these payments belong to, if any: starts on "trip" with its sub-tags. */
-  trip?: string;
-  /** Sub-tags already in use under each main tag, offered as buttons. */
-  subs: Record<string, string[]>;
   /** Offer "tag every payment to this payee"; defaults it on when true. */
   alwaysDefault?: boolean;
   onSaved: () => void;
   onCancel?: () => void;
 }) {
-  const init = props.initialTags ?? [];
-  const [main, setMain] = useState<string | null>(init[0] ?? (props.trip ? "trip" : null));
-  const [picked, setPicked] = useState<string[]>(init.slice(1));
-  const [extra, setExtra] = useState("");
+  const [made, setMade] = useState<TagNode[]>([]);
+  const tree = useMemo(() => makeTree([...props.tags, ...made]), [props.tags, made]);
+  const [at, setAt] = useState<string | null>(props.initialTagId ?? props.startAt ?? null);
+  const [picked, setPicked] = useState<string | null>(props.initialTagId ?? null);
+  const [q, setQ] = useState("");
+  const [newName, setNewName] = useState("");
   const [desc, setDesc] = useState(props.initialDesc ?? "");
   const [always, setAlways] = useState(!!props.alwaysDefault);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const tripSubs = props.trip ? ["stay", "food", "bus", "auto", "metro", "flight", "train"].map((k) => `${props.trip}-${k}`) : [];
-  const subChoices = main ? [...new Set([...picked, ...(main === "trip" ? tripSubs : []), ...(props.subs[main] ?? [])])].slice(0, 20) : [];
-  const toggle = (t: string) => setPicked(picked.includes(t) ? picked.filter((x) => x !== t) : [...picked, t]);
+  const go = (id: string | null) => { setAt(id); setPicked(id); setQ(""); };
+  const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const hits = words.length
+    ? [...tree.byId.keys()].map((id) => ({ id, path: namesOf(tree, id) }))
+        .filter((h) => words.every((w) => h.path.join(" ").includes(w)))
+        .sort((a, b) => a.path.length - b.path.length).slice(0, 8)
+    : [];
+  const kids = tree.kids.get(at) ?? [];
+
+  const add = async () => {
+    if (!newName.trim()) return;
+    setErr(null);
+    try {
+      const t = await createTag(at, newName);
+      setMade([...made, t]);
+      setNewName("");
+      go(t.id);
+    } catch (e) {
+      setErr(String((e as Error).message));
+    }
+  };
 
   const save = async () => {
-    if (!main) return;
-    const typed = extra.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+    if (!picked) return;
     setBusy(true);
     setErr(null);
     try {
-      await tagRows(props.rowIds, [main, ...new Set([...picked, ...typed])], desc.trim() || null, always);
+      await tagRows(props.rowIds, picked, desc.trim() || null, always);
       props.onSaved();
     } catch (e) {
       setErr(String((e as Error).message));
@@ -46,28 +64,44 @@ export function TagEditor(props: {
 
   return (
     <div className="editor">
-      <div className="small muted">Main tag</div>
-      <div className="chips" role="group" aria-label="Main tag">
-        {MAINS.map((t) => (
-          <button key={t} type="button" className="chip" aria-pressed={main === t}
-            onClick={() => { setMain(t); if (t !== main) setPicked([]); }}>{t}</button>
-        ))}
-      </div>
-      {main && (
-        <>
-          <div className="small muted">Sub-tags under {main} (optional, pick any)</div>
-          <div className="chips" role="group" aria-label="Sub-tag">
-            {subChoices.map((t) => (
-              <button key={t} type="button" className="chip sub" aria-pressed={picked.includes(t)} onClick={() => toggle(t)}>{t}</button>
-            ))}
-          </div>
-        </>
+      <input className="search small-search" type="search" value={q} onChange={(e) => setQ(e.target.value)}
+        placeholder="Find a tag: try auto, rent, varkala" aria-label="Find a tag" />
+      {words.length > 0 && (
+        <div className="hits" role="listbox" aria-label="Matching tags">
+          {hits.map((h) => (
+            <button key={h.id} type="button" className="hit" onClick={() => go(h.id)}>{h.path.join(" › ")}</button>
+          ))}
+          {!hits.length && <span className="muted small">No tag matches. Click down below and add it.</span>}
+        </div>
       )}
+
+      <nav className="trail" aria-label="Where you are">
+        <button type="button" className="crumb" aria-current={at === null} onClick={() => go(null)}>All tags</button>
+        {chain(tree, at).map((t) => (
+          <Fragment key={t.id}>
+            <span className="sep">›</span>
+            <button type="button" className="crumb" aria-current={t.id === at} onClick={() => go(t.id)}>{t.name}</button>
+          </Fragment>
+        ))}
+      </nav>
+      <div className="chips" role="group" aria-label="Tags inside">
+        {kids.map((t) => (
+          <button key={t.id} type="button" className="chip" onClick={() => go(t.id)}>
+            {t.name}{tree.kids.has(t.id) && <span className="more" aria-hidden>›</span>}
+          </button>
+        ))}
+        <span className="addtag">
+          <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder={at ? "new tag inside" : "new top tag"}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void add(); } }} aria-label="New tag name" />
+          <button type="button" className="btn-ghost" disabled={!newName.trim()} onClick={() => void add()}>+ Add</button>
+        </span>
+      </div>
+
+      <div className="picked">
+        {picked ? <>Tag: <b>{namesOf(tree, picked).join(" › ")}</b></> : <span className="muted">Pick a tag above</span>}
+      </div>
+
       <div className="editor-row">
-        <label className="field">
-          <span>New sub-tags (comma between them)</span>
-          <input value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="e.g. goa, goa-stay" />
-        </label>
         <label className="field grow">
           <span>Description (optional)</span>
           <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Auto: office to gym, Dr Priya" />
@@ -79,7 +113,7 @@ export function TagEditor(props: {
           <span>Tag every payment to <b>{props.payee}</b> this way, now and in future syncs</span>
         </label>
         {props.onCancel && <button type="button" className="btn-ghost" onClick={props.onCancel}>Cancel</button>}
-        <button type="button" className="btn-primary" disabled={!main || busy} onClick={() => void save()}>
+        <button type="button" className="btn-primary" disabled={!picked || busy} onClick={() => void save()}>
           {busy ? "Saving…" : props.rowIds.length > 1 ? `Save for ${props.rowIds.length} payments` : "Save tag"}
         </button>
       </div>

@@ -1,7 +1,7 @@
 // Shared money maths and labels. One place decides what "spent" means, so the
 // Overview, Transactions and Cards pages can never disagree about a total.
 
-import type { Row, Source } from "./api";
+import type { Row, Source, TagNode } from "./api";
 
 export const SOURCES: Record<Source, { label: string; short: string; color: string }> = {
   sbi: { label: "SBI savings", short: "SBI savings", color: "var(--src-sbi)" },
@@ -10,49 +10,44 @@ export const SOURCES: Record<Source, { label: string; short: string; color: stri
   icici: { label: "Amazon Pay ICICI", short: "Amazon ICICI", color: "var(--src-icici)" },
 };
 
-/** The main tags, in the order they are offered. Each row has one, plus any number of sub-tags. */
-export const MAINS = [
-  "food", "grocery", "commute", "trip", "travel", "shopping", "subscription", "work", "home", "bills", "education loan",
-  "health", "personal care", "fitness", "entertainment", "family", "education", "bank", "income", "misc",
-];
+/** The tag tree, indexed both ways. Children are sorted by name. */
+export interface Tree { byId: Map<string, TagNode>; kids: Map<string | null, TagNode[]> }
 
-/** Tags saved before the main/sub split, mapped to [main, sub]. */
-const LEGACY: Record<string, [string, string | null]> = {
-  taxi: ["commute", "taxi"], auto: ["commute", "taxi"], cab: ["commute", "taxi"], "bike taxi": ["commute", "taxi"],
-  metro: ["commute", "metro"], rent: ["home", "rent"], cook: ["home", "cook"], movie: ["entertainment", "movie"],
-  protein: ["fitness", "protein"], loan: ["education loan", "emi"], "work tools": ["work", null], salary: ["income", "salary"],
-};
+export function makeTree(tags: TagNode[]): Tree {
+  const byId = new Map(tags.map((t) => [t.id, t]));
+  const kids = new Map<string | null, TagNode[]>();
+  for (const t of tags) {
+    const p = t.parent_id && byId.has(t.parent_id) ? t.parent_id : null;
+    kids.set(p, [...(kids.get(p) ?? []), t]);
+  }
+  for (const l of kids.values()) l.sort((a, b) => a.name.localeCompare(b.name));
+  return { byId, kids };
+}
 
-/** Always [main, ...subs]; fixes owner tags saved in the old free form. A trip row also gets its whole-trip sub-tag. */
-export function mainSub(tags: string[], tripLabel?: string): string[] {
-  const out = rawMainSub(tags);
-  if (out[0] === "trip" && tripLabel) return [...new Set(["trip", tripLabel, ...out.slice(1)])];
+/** The tags from the top down to `id`. */
+export function chain(tree: Tree, id: string | null | undefined): TagNode[] {
+  const out: TagNode[] = [];
+  for (let t = id ? tree.byId.get(id) : undefined; t && out.length < 50; t = t.parent_id ? tree.byId.get(t.parent_id) : undefined) out.unshift(t);
   return out;
 }
 
-function rawMainSub(tags: string[]): string[] {
-  const t = [...new Set(tags.filter((x) => x !== "commute" || tags[0] === "commute"))];
-  if (!t.length) return [];
-  if (t[0] === "bank" && t[1] === "loan") return ["education loan", "emi"];
-  if (MAINS.includes(t[0]) && t[0] !== "misc") return t;
-  // An old free-form trip tag like "varkala-food" belongs under "trip".
-  const trip = t.filter((x) => /^[a-z-]+-(stay|food|bus|auto|metro|flight|train)$/.test(x));
-  if (trip.length) return ["trip", ...trip];
-  if (t[0] === "misc") return t.slice(0, 2);
-  const hit = LEGACY[t[0]];
-  if (hit) return hit[1] ? [hit[0], hit[1]] : [hit[0], ...t.slice(1, 2)];
-  return ["misc", t[0]];
+export const namesOf = (tree: Tree, id: string | null | undefined) => chain(tree, id).map((t) => t.name);
+
+/** `id` and every tag below it. */
+export function within(tree: Tree, id: string): Set<string> {
+  const out = new Set<string>();
+  const stack = [id];
+  while (stack.length) {
+    const x = stack.pop()!;
+    if (out.has(x)) continue;
+    out.add(x);
+    for (const k of tree.kids.get(x) ?? []) stack.push(k.id);
+  }
+  return out;
 }
 
-/** Sub-tags already used under each main, most used first. */
-export function subsByMain(rows: Row[]): Record<string, string[]> {
-  const c: Record<string, Map<string, number>> = {};
-  for (const r of rows) {
-    const m = (c[r.tags[0]] ??= new Map());
-    for (const s of r.tags.slice(1)) m.set(s, (m.get(s) ?? 0) + 1);
-  }
-  return Object.fromEntries(Object.entries(c).map(([k, m]) => [k, [...m.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => s)]));
-}
+/** Where tagging a trip payment should start: that trip's tag. */
+export const tripTag = (tags: TagNode[], label?: string) => (label ? tags.find((t) => t.key === `trip/${label}`)?.id ?? null : null);
 
 export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
