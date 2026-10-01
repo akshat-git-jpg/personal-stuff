@@ -97,6 +97,7 @@ def rows_from(messages):
         if r is None:
             continue
         r["msg_id"] = msg["id"]
+        r["sent_ms"] = msg.get("ts")
         if r["time"] and msg.get("ts"):
             r["time"] = _clock(r["date"], r["time"], msg["ts"])
         out.setdefault(msg["source"], []).append(r)

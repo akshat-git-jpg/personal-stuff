@@ -373,6 +373,10 @@ def build(data, config, today=None, log=print):
             if a["amount"] is None:
                 row["amount"] = None
             row["maybe_dup"] = a["maybe_dup"]
+            if src == "neu" and a.get("sent_ms") and not row["time"]:
+                # HDFC's UPI alert lands within seconds of the payment, so its send time is the payment time.
+                row["_ts"] = dt.datetime.utcfromtimestamp(a["sent_ms"] / 1000) + dt.timedelta(hours=5, minutes=30)
+                row["time"] = row["_ts"].strftime("%H:%M")
             rows.append(row)
 
     # Google Pay first: its payee name ("Paid to LEON GRILL") is evidence the rules can read.
