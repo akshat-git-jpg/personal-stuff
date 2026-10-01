@@ -237,6 +237,17 @@ class Trips(unittest.TestCase):
         build.tag_trips(rows, [t])
         self.assertEqual([r.get("trip") for r in rows], [None, "goa", "goa", None])
 
+    def test_planner_paid_booking_is_trip_even_months_before(self):
+        trip = dict(self.TRIP, bookings=self.TRIP["bookings"] + [{"title": "Bengaluru → Goa", "kind": "Flight · X1",
+                    "fields": [{"label": "PNR", "value": "AB12CD"}, {"label": "Paid", "value": "₹6,231"}]}])
+        t = trips.parse(trip)
+        flight = {"kind": "spend", "tags": [], "text": "UPI to paytm-1@x", "desc": None, "date": "2026-10-29",
+                  "time": None, "amount": -6201.0, "status": "needs", "why": ""}
+        other = dict(flight, amount=-900.0)
+        build.tag_trips([flight, other], [t])
+        self.assertEqual((flight["trip"], flight["status"], flight["tags"]), ("goa", "proven", ["trip", "goa-flight"]))
+        self.assertIsNone(other.get("trip"))
+
 
 if __name__ == "__main__":
     unittest.main()

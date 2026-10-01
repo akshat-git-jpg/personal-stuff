@@ -79,7 +79,15 @@ ask "did you check X?". For each row, in this order:
    IRCTC, airlines), shop receipts.
 3. Rapido receipts (`data/inbox/rapido/*.pdf`, `pdftotext -layout`): same fare, same day.
    Also use the day's rides to say where he was ("between home→office 11:39 and office→home 19:05").
-4. Flipkart orders and trips, already joined by the sync.
+4. The trip planner, `data/inbox/trips.json` (fetched from trips.agrolloo.com every sync).
+   Read it for ANY travel-looking row (flight, train, bus, stay, Cleartrip, IRCTC, airline),
+   whatever the date: each booking carries PNR / refs, times and a `Paid` amount. A booking
+   made weeks before a trip is still that trip's money. Use the planner's trip name for the
+   sub-tag: `["trip","<trip>-flight|train|bus|stay|food|auto|metro"]`, never a bare
+   `<trip>` sub and never `travel` for a planned trip (2026-10-01: the 30 Oct flight was
+   tagged by hand without reading the planner, and its train + return flight stayed
+   `travel`).
+5. Flipkart orders, already joined by the sync.
 
 Tag only what a document proves, then show him one table (row, proof, tag) and ask about
 the rest with every detail you found (day, time, card, VPA, UPI ref, where he was).
@@ -114,7 +122,10 @@ left (from D1), any card bill due soon, and anything the log says "skipped".
 - Main/sub tag mapping: `ledger/build.py` `MAIN_OF`, `MAINS`, `SUBS`; client `src/client/lib.ts` `MAINS`.
 - Trips: `ledger/trips.py`. Window = first Departs/Check in -> last Arrives/Check out
   booking field. Timed payments must be inside it; stay/ticket bookings up to 30 days before
-  count. Quick-delivery apps (Zepto, Blinkit, Instamart, Flipkart Minutes) are never trip.
+  count. A planner booking with a `Paid` field proves the payment of that amount (within
+  ₹50) up to 120 days before the trip (`build.py` `match_bookings`), so ask the owner to
+  fill `Paid` on every booking. Quick-delivery apps (Zepto, Blinkit, Instamart, Flipkart
+  Minutes) are never trip.
 - Flipkart matching: `ledger/evidence.py` `match_flipkart`.
 - App changes: `cd apps/kushal-income && npm run typecheck && npm run build && npm run deploy`.
   Lint is broken (typescript-eslint missing). Verify UI by rendering `dist/` with Playwright

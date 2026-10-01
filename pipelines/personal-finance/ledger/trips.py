@@ -14,6 +14,28 @@ URL = "https://trips.agrolloo.com/api/trips"
 BOOK_DAYS = 30  # travel bookings this many days before the trip count as the trip
 MONTHS = {m: i + 1 for i, m in enumerate("jan feb mar apr may jun jul aug sep oct nov dec".split())}
 STARTS, ENDS = ("departs", "check in"), ("arrives", "check out")
+REF_LABELS = ("pnr", "ref", "booking id", "cleartrip trip id", "trip id")
+
+
+def _kind(booking):
+    k = "%s %s" % (booking.get("kind", ""), booking.get("title", ""))
+    for word, kind in (("flight", "flight"), ("train", "train"), ("bus", "bus"), ("stay", "stay"), ("hostel", "stay")):
+        if word in k.lower():
+            return kind
+    return None
+
+
+def _bookings(trip):
+    """Planner bookings with a "Paid" field: [{title, kind, paid, refs}]. Paid is the first rupee amount."""
+    out = []
+    for b in trip.get("bookings") or []:
+        f = {x.get("label", "").strip().lower(): x.get("value", "") for x in b.get("fields") or []}
+        m = re.search(r"₹\s*([\d,]+(?:\.\d+)?)", f.get("paid", ""))
+        if not m:
+            continue
+        out.append({"title": b.get("title", ""), "kind": _kind(b), "paid": float(m[1].replace(",", "")),
+                    "refs": [f[k] for k in REF_LABELS if f.get(k)]})
+    return out
 
 
 def _when(value, year, first_month):
@@ -60,7 +82,8 @@ def parse(trip):
     name = re.sub(r"-(%s)[a-z]*-\d{4}$" % "|".join(MONTHS), "", trip.get("slug") or "").strip("-")
     return {"name": name or trip.get("slug"), "from": start.date().isoformat(), "to": end.date().isoformat(),
             "start": start.strftime("%Y-%m-%d %H:%M"), "end": end.strftime("%Y-%m-%d %H:%M"),
-            "book_from": (start.date() - dt.timedelta(days=BOOK_DAYS)).isoformat()}
+            "book_from": (start.date() - dt.timedelta(days=BOOK_DAYS)).isoformat(),
+            "bookings": _bookings(trip)}
 
 
 def fetch(get):
