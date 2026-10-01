@@ -25,6 +25,12 @@ def _kind(booking):
     return None
 
 
+def trip_label(trip):
+    """The whole-trip sub-tag from the planner's name: "Diwali: Mumbai → ..." -> "diwali", "Varkala Trip" -> "varkala"."""
+    n = re.sub(r"\btrip\b", "", (trip.get("name") or "").split(":")[0], flags=re.I)
+    return re.sub(r"[^a-z0-9]+", "-", n.lower()).strip("-") or None
+
+
 def _bookings(trip):
     """Planner bookings with a "Paid" field: [{title, kind, paid, refs}]. Paid is the first rupee amount."""
     out = []
@@ -80,7 +86,7 @@ def parse(trip):
         ends = [dt.datetime(year, m2, int(d[3]), 23, 59)]
     start, end = min(starts), max(ends)
     name = re.sub(r"-(%s)[a-z]*-\d{4}$" % "|".join(MONTHS), "", trip.get("slug") or "").strip("-")
-    return {"name": name or trip.get("slug"), "from": start.date().isoformat(), "to": end.date().isoformat(),
+    return {"name": name or trip.get("slug"), "label": trip_label(trip) or name, "from": start.date().isoformat(), "to": end.date().isoformat(),
             "start": start.strftime("%Y-%m-%d %H:%M"), "end": end.strftime("%Y-%m-%d %H:%M"),
             "book_from": (start.date() - dt.timedelta(days=BOOK_DAYS)).isoformat(),
             "bookings": _bookings(trip)}

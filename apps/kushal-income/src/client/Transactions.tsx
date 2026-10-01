@@ -50,13 +50,13 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
   const mainSums = sumBy(base, mainOf);
   for (const tg of tags) if (!mainSums.has(tg)) mainSums.set(tg, { amt: 0, isIn: false });
   const mainChips = [...mainSums.entries()].sort((a, b) => b[1].amt - a[1].amt);
-  const subSums = sumBy(base.filter((r) => tags.has(mainOf(r)) && r.tags[1]), (r) => `${r.tags[0]}›${r.tags[1]}`);
+  const subSums = sumBy(base.filter((r) => tags.has(mainOf(r))), (r) => r.tags.slice(1).map((s) => `${r.tags[0]}›${s}`));
   const subChips = [...tags].flatMap((m) => (subs[m] ?? []).map((s) => [m, s] as const))
     .sort((a, b) => (subSums.get(`${b[0]}›${b[1]}`)?.amt ?? 0) - (subSums.get(`${a[0]}›${a[1]}`)?.amt ?? 0));
 
   const rows = base.filter((r) => {
     if (tags.size && !tags.has(mainOf(r))) return false;
-    if (subTags.size && !(r.tags[1] && subTags.has(`${r.tags[0]}›${r.tags[1]}`))) return false;
+    if (subTags.size && !r.tags.slice(1).some((s) => subTags.has(`${r.tags[0]}›${s}`))) return false;
     return true;
   });
   const t = totals(rows);
@@ -186,10 +186,10 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
 
 type Sum = { amt: number; isIn: boolean };
 
-/** Spend per group; a group with no spend (salary, interest) shows its money in instead. */
-function sumBy(rows: Row[], key: (r: Row) => string): Map<string, Sum> {
+/** Spend per group; a group with no spend (salary, interest) shows its money in instead. A row with several keys counts in each. */
+function sumBy(rows: Row[], key: (r: Row) => string | string[]): Map<string, Sum> {
   const g = new Map<string, Row[]>();
-  for (const r of rows) g.set(key(r), [...(g.get(key(r)) ?? []), r]);
+  for (const r of rows) for (const k of [key(r)].flat()) g.set(k, [...(g.get(k) ?? []), r]);
   return new Map([...g].map(([k, rs]) => {
     const t = totals(rs);
     return [k, t.spent > 0 ? { amt: t.spent, isIn: false } : { amt: t.inn, isIn: t.inn > 0 }];
@@ -234,7 +234,7 @@ function RowView({ r, subs, open, editing, toggle, edit, done }: {
               <button className="btn-ghost" onClick={edit}>{r.status === "needs" ? "Tag it" : "Change tag"}</button>
             </>
           ) : (
-            <TagEditor rowIds={[r.id]} payee={r.payee} trip={r.trip} subs={subs} initialTags={r.status === "needs" ? [] : r.tags}
+            <TagEditor rowIds={[r.id]} payee={r.payee} trip={r.trip_label ?? r.trip} subs={subs} initialTags={r.status === "needs" ? [] : r.tags}
               initialDesc={r.desc} alwaysDefault={false} onSaved={() => void done()} onCancel={toggle} />
           )}
         </div>

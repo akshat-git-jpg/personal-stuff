@@ -247,6 +247,12 @@ class Trips(unittest.TestCase):
         build.tag_trips([flight, other], [t])
         self.assertEqual((flight["trip"], flight["status"], flight["tags"]), ("goa", "proven", ["trip", "goa-flight"]))
         self.assertIsNone(other.get("trip"))
+        build.normalize_tags(flight)
+        self.assertEqual(flight["tags"], ["trip", "goa", "goa-flight"])
+
+    def test_label_from_planner_name(self):
+        self.assertEqual(trips.trip_label({"name": "Diwali: Mumbai → Barnagar → Bangalore"}), "diwali")
+        self.assertEqual(trips.trip_label({"name": "Varkala Trip"}), "varkala")
 
 
 if __name__ == "__main__":

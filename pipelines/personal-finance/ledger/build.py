@@ -226,8 +226,9 @@ def match_bookings(rows, trip):
         if not cands:
             continue
         r = min(cands, key=lambda r: abs(-r["amount"] - b["paid"]))
-        r.update(tags=["trip"] + (["%s-%s" % (trip["name"], b["kind"])] if b["kind"] else []), trip=trip["name"],
-                 status="proven", desc="%s (%s trip)" % (b["title"], trip["name"].capitalize()),
+        r.update(tags=["trip"] + (["%s-%s" % (trip.get("label") or trip["name"], b["kind"])] if b["kind"] else []), trip=trip["name"],
+                 trip_label=trip.get("label") or trip["name"],
+                 status="proven", desc="%s (%s trip)" % (b["title"], (trip.get("label") or trip["name"]).capitalize()),
                  why="Booking \"%s\" on your trip planner says paid %s%s; this payment is %s." % (
                      b["title"], rupees(b["paid"]), (" (%s)" % ", ".join(b["refs"])) if b["refs"] else "", rupees(-r["amount"])))
 
@@ -260,8 +261,9 @@ def tag_trips(rows, trips):
                     "food" if set(r["tags"]) & {"food", "grocery"} else None)
             note = "Part of your %s trip (%s to %s)." % (t["name"].capitalize(), _nice(t["from"]), _nice(t["to"]))
             # Unknown trip spending stays "Needs you": the owner picks stay/food/bus/auto.
-            r["tags"] = r["tags"] + ["trip"] + (["%s-%s" % (t["name"], kind)] if kind else [])
+            r["tags"] = r["tags"] + ["trip"] + (["%s-%s" % (t.get("label") or t["name"], kind)] if kind else [])
             r["trip"] = t["name"]
+            r["trip_label"] = t.get("label") or t["name"]
             if r["status"] == "needs":
                 r["why"] = note + " What was it: stay, food, bus or auto?"
             else:
@@ -329,7 +331,9 @@ def normalize_tags(row):
         if not trip_sub and "thailand" in (row["desc"] or "").lower():
             trip_sub = "thailand"
         trip_sub = trip_sub or row.get("trip")
-        row["tags"] = ["trip"] + ([trip_sub] if trip_sub else [])
+        whole = row.get("trip_label")
+        # Owner, 2026-10-01: a trip row also carries the whole-trip sub-tag, so one click gives the trip total.
+        row["tags"] = ["trip"] + [t for t in dict.fromkeys([whole, trip_sub]) if t]
         return
     if not tags:
         row["tags"] = []
