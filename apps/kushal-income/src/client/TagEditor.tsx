@@ -25,7 +25,7 @@ export function TagEditor(props: {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const tripSubs = props.trip ? ["stay", "food", "bus", "auto", "metro"].map((k) => `${props.trip}-${k}`) : [];
+  const tripSubs = props.trip ? ["stay", "food", "bus", "auto", "metro", "flight", "train"].map((k) => `${props.trip}-${k}`) : [];
   const subChoices = main ? [...new Set([...(main === "trip" ? tripSubs : []), ...(props.subs[main] ?? [])])].slice(0, 16) : [];
 
   const save = async () => {

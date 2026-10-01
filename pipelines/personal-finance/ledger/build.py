@@ -205,7 +205,9 @@ def _card_row(src, s, r, occ):
 
 
 # Everyday money that is not part of a trip even when it falls on trip days.
-TRIP_KINDS = ("stay", "food", "bus", "auto", "metro")
+TRIP_KINDS = ("stay", "food", "bus", "auto", "metro", "flight", "train")
+PAID_SLACK = 50.0       # the planner's "Paid" can include a fee the card charge does not
+PAID_DAYS = 120         # a planner booking can be paid this many days before the trip
 NOT_TRIP = {"rent", "cook", "family", "loan", "subscription", "bills", "card bill", "work tools", "education",
             "salary", "interest", "fees", "refund"}
 STAY = re.compile(r"ibibo|goibibo|makemytrip|airbnb|oyo|hostel|homestay|hotel|molly", re.I)
@@ -215,13 +217,30 @@ BUS = re.compile(r"redbus|irctc|abhibus|ksrtc|bus", re.I)
 QUICK_GROCERY = re.compile(r"zepto|blinkit|instamart|flipkart minutes|bigbasket|bbnow", re.I)
 
 
+def match_bookings(rows, trip):
+    """A planner booking with "Paid" proves the payment of that amount made before the trip."""
+    for b in trip.get("bookings") or []:
+        cands = [r for r in rows if r["kind"] == "spend" and r["amount"] is not None and not r.get("trip")
+                 and abs(-r["amount"] - b["paid"]) <= PAID_SLACK and r["date"] <= trip["from"]
+                 and (dt.date.fromisoformat(trip["from"]) - dt.date.fromisoformat(r["date"])).days <= PAID_DAYS]
+        if not cands:
+            continue
+        r = min(cands, key=lambda r: abs(-r["amount"] - b["paid"]))
+        r.update(tags=["trip"] + (["%s-%s" % (trip["name"], b["kind"])] if b["kind"] else []), trip=trip["name"],
+                 status="proven", desc="%s (%s trip)" % (b["title"], trip["name"].capitalize()),
+                 why="Booking \"%s\" on your trip planner says paid %s%s; this payment is %s." % (
+                     b["title"], rupees(b["paid"]), (" (%s)" % ", ".join(b["refs"])) if b["refs"] else "", rupees(-r["amount"])))
+
+
 def tag_trips(rows, trips):
     """Owner decision 2026-09-27: trip spending gets "trip" plus "<trip>-stay/food/bus/auto/misc".
     Trips come from the trip planner (trips.py); a row with a time must fall between the first
     departure and the last arrival, a row with no time only on the trip's days."""
     for t in trips:
+        match_bookings(rows, t)
+    for t in trips:
         for r in rows:
-            if r["kind"] != "spend" or set(r["tags"]) & NOT_TRIP:
+            if r["kind"] != "spend" or set(r["tags"]) & NOT_TRIP or r.get("trip"):
                 continue
             if QUICK_GROCERY.search("%s %s" % (r["text"], r["desc"] or "")):
                 continue  # owner, 27 Sep: these apps only deliver at home, never on a trip

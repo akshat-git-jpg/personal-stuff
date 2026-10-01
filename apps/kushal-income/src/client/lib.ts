@@ -30,7 +30,7 @@ export function mainSub(tags: string[]): string[] {
   if (t[0] === "bank" && t[1] === "loan") return ["education loan", "emi"];
   if (MAINS.includes(t[0]) && t[0] !== "misc") return t.slice(0, 2);
   // An old free-form trip tag like "varkala-food" belongs under "trip".
-  const trip = t.find((x) => /^[a-z]+-(stay|food|bus|auto|metro)$/.test(x));
+  const trip = t.find((x) => /^[a-z-]+-(stay|food|bus|auto|metro|flight|train)$/.test(x));
   if (trip) return ["trip", trip];
   if (t[0] === "misc") return t.slice(0, 2);
   const hit = LEGACY[t[0]];
