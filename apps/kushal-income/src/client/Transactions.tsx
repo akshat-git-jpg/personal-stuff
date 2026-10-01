@@ -4,8 +4,8 @@
  * The totals strip is computed from exactly the rows shown, so a filter can never
  * show one number in the table and another on top.
  */
-import { Fragment, useMemo, useState } from "react";
-import type { Ledger, Row, Source, Status } from "./api";
+import { useMemo, useState } from "react";
+import type { Ledger, Row, Source, Status, TagNode } from "./api";
 import { DatePicker, inPick, pickLabel, type Pick } from "./DatePicker";
 import { chain, dayLabel, isIn, makeTree, monthOf, namesOf, rs, SOURCES, todayIso, totals, tripTag, within } from "./lib";
 import { TagEditor } from "./TagEditor";
@@ -58,9 +58,19 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
     return n ? chain(tree, n).map((x) => x.id) : [NEEDS];
   });
   const direct = at && at !== NEEDS ? sumBy(base.filter((r) => nodeOf(r) === at), () => "x").get("x") : undefined;
-  const levelChips = at === NEEDS ? [] : [...(tree.kids.get(at) ?? []).filter((k) => sums.has(k.id)).map((k) => [k.id, k.name] as const),
-    ...(at === null && sums.has(NEEDS) ? [[NEEDS, "needs you"] as const] : [])]
+  // The top tags always show; each picked tag opens a row of its own children below.
+  const path = at && at !== NEEDS ? chain(tree, at) : [];
+  const onPath = new Set(path.map((x) => x.id));
+  const chipsOf = (parent: string | null) => (tree.kids.get(parent) ?? []).filter((k) => sums.has(k.id) || onPath.has(k.id))
+    .map((k) => [k.id, k.name] as const)
     .sort((a, b) => (sums.get(b[0])?.amt ?? 0) - (sums.get(a[0])?.amt ?? 0));
+  const levels = [
+    { parent: null as TagNode | null, chips: [...chipsOf(null), ...(sums.has(NEEDS) || at === NEEDS ? [[NEEDS, "needs you"] as const] : [])] },
+    ...path.map((x) => ({ parent: x, chips: chipsOf(x.id) })).filter((l) => l.chips.length),
+  ];
+  // Clicking the picked tag again closes it and goes back to its parent.
+  const pickTag = (id: string) => setAt(id === at ? (id === NEEDS ? null : tree.byId.get(id)?.parent_id ?? null)
+    : id);
   const inside = at && at !== NEEDS ? within(tree, at) : null;
 
   const rows = base.filter((r) => {
@@ -94,33 +104,20 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
             </button>
           ))}
         </div>
-        <div className="row">
-          <span className="lbl">Tag</span>
-          <nav className="trail" aria-label="Where you are in the tags">
-            <button className="crumb" aria-current={at === null} onClick={() => setAt(null)}>All</button>
-            {at === NEEDS ? <><span className="sep">›</span><span className="crumb" aria-current>needs you</span></>
-              : chain(tree, at).map((x) => (
-                <Fragment key={x.id}>
-                  <span className="sep">›</span>
-                  <button className="crumb" aria-current={x.id === at} onClick={() => setAt(x.id)}>{x.name}</button>
-                </Fragment>
-              ))}
-            {at && <ChipAmt sum={sums.get(at)} />}
-          </nav>
-        </div>
-        {(levelChips.length > 0 || (direct && direct.amt >= 1)) && (
-          <div className="row">
-            <span className="lbl" aria-hidden />
-            {levelChips.map(([id, name]) => (
-              <button key={id} className="chip" onClick={() => setAt(id)}>
-                {name}<ChipAmt sum={sums.get(id)} />{id !== NEEDS && tree.kids.has(id) && <span className="more" aria-hidden>›</span>}
+        {levels.map((l, i) => (
+          <div key={l.parent?.id ?? "top"} className={`row ${i ? "taglevel" : ""}`}>
+            <span className="lbl">{i ? "" : "Tag"}</span>
+            {i > 0 && <span className="lvlname">{l.parent!.name} ›</span>}
+            {l.chips.map(([id, name]) => (
+              <button key={id} className={`chip ${i ? "sub" : ""}`} aria-pressed={id === at || onPath.has(id)} onClick={() => pickTag(id)}>
+                {name}<ChipAmt sum={sums.get(id)} />
               </button>
             ))}
-            {direct && direct.amt >= 1 && levelChips.length > 0 && (
-              <span className="muted small">{rs(direct.amt)} is tagged {namesOf(tree, at).slice(-1)[0]} itself</span>
+            {i === levels.length - 1 && i > 0 && direct && direct.amt >= 1 && (
+              <span className="muted small">{rs(direct.amt)} is on {path[path.length - 1].name} itself</span>
             )}
           </div>
-        )}
+        ))}
         <div className="row">
           <span className="lbl">Status</span>
           {(Object.keys(STATUS) as Status[]).map((s) => (
