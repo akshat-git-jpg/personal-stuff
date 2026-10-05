@@ -64,7 +64,7 @@ One-time, on the phone:
 
 After that a new area needs nothing: `notify send --topic <new-area> "..."` creates the topic.
 
-Topics: `boss` (PR landed, parked, failed), `infra` (vps-watchdog, site-probe, cred-probe, d1-backup, repo-sync, and every VPS cron failure), `links` (tracker link guard), `amul` (stock alerts), `gmail` (6 AM Gmail summary), `reminders` (routine-ringer, plus its Bark alarm). All buzz. Still on the old DM: route-audit (weekly repo audit, undecided). Off: my-planner.
+Topics: `boss` (PR landed, parked, failed), `infra` (vps-watchdog, site-probe, cred-probe, d1-backup, repo-sync, and every VPS cron failure), `links` (tracker link guard), `amul` (stock alerts), `gmail` (6 AM Gmail summary), `reminders` (routine-ringer, plus its Bark alarm). All buzz. Off: my-planner, route-audit (2026-10-05).
 
 ## Files
 
