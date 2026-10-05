@@ -344,7 +344,9 @@ try {
 
     domByHash[hash] = domOut;
 
-    const injectedHtml = domOut.replace(/<link[^>]+rel="stylesheet"[^>]+>/, `<style>${cssContent}</style>`);
+    const injectedHtml = domOut
+      .replace(/<link[^>]+rel="stylesheet"[^>]+>/, `<style>${cssContent}</style>`)
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
     const staticHtmlPath = path.resolve(process.cwd(), tmpDir, `shot-${hash ? hash.slice(1) : 'run'}.html`);
     fs.writeFileSync(staticHtmlPath, injectedHtml);
 
@@ -355,7 +357,7 @@ try {
         if (child) child.kill('SIGKILL');
         fs.rmSync(profileDir, { recursive: true, force: true });
         reject(new Error(`Chrome screenshot timeout on static ${hash}`));
-      }, 10000);
+      }, 300000);
       child = spawn(CHROME, [
         '--headless=new', '--no-sandbox', `--user-data-dir=${profileDir}`,
         '--disable-gpu', '--hide-scrollbars', `--window-size=1400,1000`,
