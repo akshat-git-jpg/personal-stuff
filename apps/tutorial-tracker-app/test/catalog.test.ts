@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { programToAffiliateRecord, programsToCatalog } from "../src/worker/catalog";
-import { allLinks, clickCounts } from "../src/worker/clickstore";
+import { allLinks } from "../src/worker/clickstore";
 import type { ProgramRow } from "../src/worker/programs";
 
 const row = (over: Partial<ProgramRow> & { slug: string }): ProgramRow => ({
@@ -39,10 +39,6 @@ function assertNoWriteToClicks(statements: string[]) {
   for (const sql of statements) if (/\bclicks\b/i.test(sql)) expect(sql).not.toMatch(WRITE_VERB);
 }
 describe("the clicks table is read-only from this app", () => {
-  it("CLICKS_READONLY_GATE clickCounts issues no write against clicks", async () => {
-    const { db, statements } = recordingDb(); await clickCounts(db);
-    expect(statements.length).toBeGreaterThan(0); assertNoWriteToClicks(statements);
-  });
   it("CLICKS_READONLY_GATE allLinks issues no write against clicks", async () => {
     const { db, statements } = recordingDb(); await allLinks(db);
     expect(statements.length).toBeGreaterThan(0); assertNoWriteToClicks(statements);

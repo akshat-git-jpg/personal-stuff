@@ -51,6 +51,8 @@ export type Env = {
   LINK_DOMAIN: string;
   AFFILIATE_PROGRAMS_SHEET_URL: string;
   TELEGRAM_BOT_TOKEN?: string;
+  /** YouTube Data API key; reads published descriptions for the link guard. */
+  YT_API_KEY?: string;
   TELEGRAM_CHAT_ID?: string;
 };
 

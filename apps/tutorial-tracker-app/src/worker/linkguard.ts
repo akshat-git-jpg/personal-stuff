@@ -5,8 +5,10 @@ import type { ProgramRow } from "./programs";
 export type IssueCode = "bad_url" | "own_redirect_layer" | "points_at_dashboard"
   | "no_credit_marker" | "approved_no_link" | "duplicate_target"
   | "kv_d1_mismatch" | "link_without_program" | "unclassified_kind" | "changed_destination"
-  | "unmapped_video";
-export interface GuardIssue { code: IssueCode; slug: string; detail: string; }
+  | "unmapped_video"
+  | "desc_unknown_link" | "desc_wrong_video" | "desc_missing_link" | "desc_raw_link" | "desc_check_unavailable";
+/** `url` is where to fix it, when that is not a programme (e.g. YouTube Studio). */
+export interface GuardIssue { code: IssueCode; slug: string; detail: string; url?: string; }
 export interface GuardInput {
   programs: ProgramRow[];
   links: { slug: string; tool: string; target_url: string; kind: string | null }[];
@@ -91,7 +93,7 @@ export function buildReport(issues: GuardIssue[], unverifiable: number, total: n
     if (unverifiable) lines.push(`${unverifiable} could not be checked (the site blocks robots)`);
   } else {
     lines.push(`<b>Link guard</b> — ${issues.length} need you`);
-    const money = issues.filter((issue) => ["no_credit_marker", "points_at_dashboard", "bad_url", "kv_d1_mismatch"].includes(issue.code));
+    const money = issues.filter((issue) => ["no_credit_marker", "points_at_dashboard", "bad_url", "kv_d1_mismatch", "desc_unknown_link"].includes(issue.code));
     const other = issues.filter((issue) => !money.includes(issue));
     if (money.length) { lines.push("", "<b>Earning nothing</b>"); for (const issue of money.slice(0, 10)) lines.push(`• ${issue.slug} — ${issue.detail}`); }
     if (other.length) { lines.push("", "<b>Worth a look</b>"); for (const issue of other.slice(0, 10)) lines.push(`• ${issue.slug} — ${issue.detail}`); }

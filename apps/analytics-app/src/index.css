@@ -484,6 +484,26 @@ a.vcard-title:hover {
   border-top: 1px solid var(--line);
   padding-top: 4px;
 }
+.vcard-more {
+  margin-top: 8px;
+}
+.vcard-more > summary {
+  cursor: pointer;
+  width: fit-content;
+  font-size: 13px;
+  color: var(--muted);
+}
+.vcard-more > summary:hover {
+  color: var(--accent-soft);
+}
+.list-foot {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.list-foot a {
+  color: var(--accent-soft);
+}
 .vcard-nolinks {
   margin-top: 10px;
   font-size: 13px;

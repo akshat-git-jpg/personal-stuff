@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { ProgramRow } from "../worker/programs";
 
-type Issue = { code: string; slug: string; detail: string };
+type Issue = { code: string; slug: string; detail: string; url?: string };
 type Latest = { ran_at: number; checked: number; unverifiable: number; issues_json: string };
 type State = "loading" | "ready" | "forbidden" | "error";
 
 /** Costs commission right now. */
-const MONEY = new Set(["no_credit_marker", "points_at_dashboard", "bad_url", "kv_d1_mismatch"]);
+const MONEY = new Set(["no_credit_marker", "points_at_dashboard", "bad_url", "kv_d1_mismatch", "desc_unknown_link"]);
 /** Records that drifted: real, but nothing is bleeding while you read it. */
 const CHANGED = new Set(["changed_destination", "duplicate_target", "approved_no_link", "link_without_program", "unclassified_kind"]);
+/** The live YouTube description does not match what was minted. */
+const isDesc = (code: string) => code.startsWith("desc_") && !MONEY.has(code);
 
 export function LinkHealth({ onFix }: { onFix: (program: ProgramRow) => void }) {
   const [state, setState] = useState<State>("loading");
@@ -55,20 +57,22 @@ export function LinkHealth({ onFix }: { onFix: (program: ProgramRow) => void }) 
   // later shows up here on its own instead of disappearing.
   const moneyIssues = issues.filter((issue) => MONEY.has(issue.code));
   const changedIssues = issues.filter((issue) => CHANGED.has(issue.code));
-  const otherIssues = issues.filter((issue) => !MONEY.has(issue.code) && !CHANGED.has(issue.code));
+  const descIssues = issues.filter((issue) => isDesc(issue.code));
+  const otherIssues = issues.filter((issue) => !MONEY.has(issue.code) && !CHANGED.has(issue.code) && !isDesc(issue.code));
 
   const programFor = (slug: string) => programs.find((program) => program.slug === slug);
 
   const renderGroup = (title: string, selected: Issue[]) => selected.length ? (
     <section className="space-y-2">
       <h3 className="font-medium">{title} <span className="text-muted-foreground tabular-nums">({selected.length})</span></h3>
-      {selected.map((issue) => {
+      {selected.map((issue, i) => {
         const program = programFor(issue.slug);
         return (
-          <div className="rounded-lg border border-border p-3" key={`${issue.code}:${issue.slug}`}>
+          <div className="rounded-lg border border-border p-3" key={`${issue.code}:${issue.slug}:${i}`}>
             <p className="font-medium">{issue.slug}</p>
             <p className="mt-1 text-sm text-muted-foreground">{issue.detail}</p>
             {program && <Button size="xs" className="mt-2" variant="outline" onClick={() => onFix(program)}>Fix programme</Button>}
+            {issue.url && <Button size="xs" className="mt-2" variant="outline" asChild><a href={issue.url} target="_blank" rel="noreferrer">Fix in YouTube Studio</a></Button>}
           </div>
         );
       })}
@@ -94,6 +98,7 @@ export function LinkHealth({ onFix }: { onFix: (program: ProgramRow) => void }) 
                   {issues.length > 0 && <>
                     <span className="tabular-nums">{moneyIssues.length}</span> costing money
                     {" · "}<span className="tabular-nums">{changedIssues.length}</span> changed
+                    {descIssues.length > 0 && <>{" · "}<span className="tabular-nums">{descIssues.length}</span> in descriptions</>}
                     {otherIssues.length > 0 && <>{" · "}<span className="tabular-nums">{otherIssues.length}</span> other</>}
                     {" · "}<span className="tabular-nums">{latest.checked - issues.length}</span> fine of <span className="tabular-nums">{latest.checked}</span>
                     {" · "}
@@ -108,6 +113,7 @@ export function LinkHealth({ onFix }: { onFix: (program: ProgramRow) => void }) 
 
         {renderGroup("Costing you money now", moneyIssues)}
         {renderGroup("Changed since last week", changedIssues)}
+        {renderGroup("YouTube description does not match", descIssues)}
         {renderGroup("Also worth fixing", otherIssues)}
 
         <div className="rounded-lg border border-dashed border-border p-3 text-sm">
@@ -119,12 +125,13 @@ export function LinkHealth({ onFix }: { onFix: (program: ProgramRow) => void }) 
         <div className="rounded-lg border border-border p-4">
           <h3 className="font-medium">What runs, and when</h3>
           <p className="mt-2 text-sm text-muted-foreground">One 06:00 IST run every day checks our records. On Sundays the same run also follows destinations once, kept weekly so networks do not see automated traffic every day. On the first of each month it also lists robot-blocked links.</p>
+          <p className="mt-2 text-sm text-muted-foreground">The daily run also reads every published video's YouTube description and checks it holds exactly the short links minted for that video.</p>
         </div>
         <div className="rounded-lg border border-border p-4">
           <h3 className="font-medium">What Telegram sends you</h3>
           <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{issues.length ? `${issues.length} link issues need attention.` : "A Sunday heartbeat confirms the guard is healthy."}</p>
         </div>
-        <div className="rounded-lg border border-border p-4 text-sm text-muted-foreground">No AI is involved. These are deterministic checks of stored links and weekly destinations.</div>
+        <div className="rounded-lg border border-border p-4 text-sm text-muted-foreground">No AI is involved. These are deterministic checks of stored links, YouTube descriptions and weekly destinations.</div>
       </aside>
     </section>
   );
