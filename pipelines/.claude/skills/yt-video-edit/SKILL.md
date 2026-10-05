@@ -269,3 +269,17 @@ delivered file. Do not add a board step, a cue pass or an LLM pass to it.
   Drive `Output/` folder when `drive_folder` is set.
 - Owner feedback on a coupon cut changes the RULES (`lib/coupon/`), so every
   later coupon video gets the fix; not a one-off edit to that video's cues.
+- girl-1 = HeyGen template `bfc04309…` (room with shelves, owner pick
+  2026-10-05; `pipelines/video/heygen/registry.json`). Always pass `--tool`
+  with the brand's real casing (`--tool EverBee`), or captions fall back to
+  the slug's casing. The silent tail after the last word is black by design.
+- A submit `403 / Cloudflare` with a live `auth-check` is transient: re-run
+  the same command; it sends only the missing clips, the credit baseline stays open.
+- Deliver (owner flow 2026-10-05): find the video's card in the tutorial
+  tracker (`tracker-db`, pipeline `coupon-code`, stage `video`). Its
+  instruction holds the raw-footage Drive folder; upload the final into that
+  folder's `output/` (`tooling/cli/drive/pp-drive upload … --parent <id>`),
+  then set the `video` stage to `In Review` with `work_link` = the Drive file
+  and bust KV `board:rows`. A direct D1 write sends no reviewer email: say so.
+- The owner previews in QuickTime (`open -a "QuickTime Player" <file>`):
+  VS Code's player has no AAC decoder, so the final is silent there.
