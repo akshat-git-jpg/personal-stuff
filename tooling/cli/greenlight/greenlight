@@ -15,7 +15,7 @@ NOTIFY_BIN="$SCRIPT_DIR/../notify/notify"
 # pp-land sets GREENLIGHT_QUIET=1. Nothing else does, so boss keeps its pings.
 notify_send() {
   [ "${GREENLIGHT_QUIET:-0}" = "1" ] && return 0
-  "$NOTIFY_BIN" send "$1" || true
+  "$NOTIFY_BIN" send --topic boss "$@" || true
   return 0
 }
 
@@ -488,4 +488,4 @@ else
 fi
 
 echo "landed" > "$STATE_DIR/state"
-notify_send "greenlight: $BRANCH landed on main (risk $risk_level)"
+notify_send --silent "greenlight: $BRANCH landed on main (risk $risk_level)"

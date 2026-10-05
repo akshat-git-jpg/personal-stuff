@@ -8,11 +8,15 @@
 # anyway. See decisions.md 2026-08-30.
 #
 # Contract:
-#   notify send "<message>"   exit 0 sent, 3 undeliverable (never crashes caller)
+#   notify send [--topic <name>] [--silent] "<message>"
+#                              exit 0 sent, 3 undeliverable (never crashes caller)
 #   notify setup               one-time: derive TELEGRAM_CHAT_ID via getUpdates
+#   notify setup-group         one-time: derive TELEGRAM_GROUP_ID (forum group) via getUpdates
+#   notify topic add <name>    create a forum topic and save its id
+#   notify topics              list saved topics
 #
-# Creds: infra/secrets/telegram.env (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID).
-# Gitignored — see infra/secrets/telegram.env.example for the template.
+# Creds: infra/secrets/telegram.env (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+# TELEGRAM_GROUP_ID, TELEGRAM_TOPIC_<NAME>). Gitignored — see telegram.env.example.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -22,29 +26,100 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 ENV_FILE="${NOTIFY_ENV_FILE:-$REPO_ROOT/infra/secrets/telegram.env}"
 
 function usage() {
-  echo "Usage: notify send \"<message>\"" >&2
+  echo "Usage: notify send [--topic <name>] [--silent] \"<message>\"" >&2
   echo "       notify setup" >&2
+  echo "       notify setup-group" >&2
+  echo "       notify topic add <name>" >&2
+  echo "       notify topics" >&2
   exit 2
 }
 
 function load_env() {
   TELEGRAM_BOT_TOKEN=""
   TELEGRAM_CHAT_ID=""
+  TELEGRAM_GROUP_ID=""
   if [ -f "$ENV_FILE" ]; then
     # shellcheck disable=SC1090
     source "$ENV_FILE"
   fi
 }
 
+function set_env_var() {
+  local key="$1" val="$2"
+  if grep -q "^${key}=" "$ENV_FILE" 2>/dev/null; then
+    sed -i.bak "s/^${key}=.*/${key}=${val}/" "$ENV_FILE"
+    rm -f "$ENV_FILE.bak"
+  else
+    echo "${key}=${val}" >> "$ENV_FILE"
+  fi
+}
+
+# "Amul Watch" -> name "amul-watch", env key TELEGRAM_TOPIC_AMUL_WATCH
+function topic_slug() {
+  echo "$1" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/^-*//; s/-*$//'
+}
+function topic_key() {
+  echo "TELEGRAM_TOPIC_$(topic_slug "$1" | tr 'a-z-' 'A-Z_')"
+}
+
+function tg_post() {
+  local method="$1"; shift
+  curl -fsS --max-time 10 "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${method}" "$@"
+}
+
+# Prints the thread id; creates and saves the topic when it is new.
+function ensure_topic() {
+  local name key id resp
+  name="$(topic_slug "$1")"
+  key="$(topic_key "$1")"
+  id="${!key:-}"
+  if [ -n "$id" ]; then echo "$id"; return 0; fi
+  resp=$(tg_post createForumTopic --data-urlencode "chat_id=${TELEGRAM_GROUP_ID}" \
+    --data-urlencode "name=${name}") || return 1
+  id=$(echo "$resp" | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["message_thread_id"])') || return 1
+  [ -n "$id" ] || return 1
+  set_env_var "$key" "$id"
+  echo "$id"
+}
+
 function cmd_send() {
-  local msg="$1"
+  local topic="" silent="false" msg=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --topic) [ $# -ge 2 ] || usage; topic="$2"; shift 2 ;;
+      --silent) silent="true"; shift ;;
+      --*) usage ;;
+      *) [ -z "$msg" ] || usage; msg="$1"; shift ;;
+    esac
+  done
+  [ -n "$msg" ] || usage
   load_env
 
-  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-    if curl -fsS --max-time 10 \
-        "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-        --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+  if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
+    echo "WARN: notify: message undeliverable: $msg" >&2
+    exit 3
+  fi
+
+  # Topic send into the forum group; any failure falls back to the DM below.
+  if [ -n "$topic" ] && [ -n "${TELEGRAM_GROUP_ID:-}" ]; then
+    local thread
+    if thread=$(ensure_topic "$topic") && tg_post sendMessage \
+        --data-urlencode "chat_id=${TELEGRAM_GROUP_ID}" \
+        --data-urlencode "message_thread_id=${thread}" \
+        --data-urlencode "disable_notification=${silent}" \
         --data-urlencode "text=${msg}" >/dev/null 2>&1; then
+      exit 0
+    fi
+    echo "WARN: notify: topic send failed, falling back to DM" >&2
+  fi
+
+  local text="$msg"
+  [ -z "$topic" ] || text="[$(topic_slug "$topic")] $msg"
+  if [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+    if tg_post sendMessage \
+        --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+        --data-urlencode "disable_notification=${silent}" \
+        --data-urlencode "text=${text}" >/dev/null 2>&1; then
       exit 0
     fi
     echo "WARN: notify: telegram send failed" >&2
@@ -54,52 +129,93 @@ function cmd_send() {
   exit 3
 }
 
-function cmd_setup() {
-  load_env
-
+function require_token() {
   if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
     echo "ERROR: TELEGRAM_BOT_TOKEN not set in $ENV_FILE" >&2
-    echo "Create a bot via @BotFather, paste the token into $ENV_FILE, then re-run 'notify setup'." >&2
+    echo "Create a bot via @BotFather, paste the token into $ENV_FILE, then re-run." >&2
     exit 1
   fi
+}
+
+# Prints the first chat id in getUpdates whose type matches $1 (any | supergroup).
+function find_chat() {
+  local resp
+  if ! resp=$(curl -fsS --max-time 10 "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates"); then
+    echo "ERROR: getUpdates request failed — check the token in $ENV_FILE" >&2
+    exit 1
+  fi
+  echo "$resp" | python3 -c '
+import json, sys
+want = sys.argv[1]
+try:
+    d = json.load(sys.stdin)
+    for u in d.get("result", []):
+        for k in ("message", "channel_post", "my_chat_member"):
+            chat = (u.get(k) or {}).get("chat")
+            if chat and (want == "any" or chat.get("type") == want):
+                print(chat["id"])
+                sys.exit(0)
+except Exception:
+    pass
+' "$1"
+}
+
+function cmd_setup() {
+  load_env
+  require_token
 
   if [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
     echo "TELEGRAM_CHAT_ID already set ($TELEGRAM_CHAT_ID) — leaving it alone."
     exit 0
   fi
 
-  local resp
-  if ! resp=$(curl -fsS --max-time 10 "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates"); then
-    echo "ERROR: getUpdates request failed — check the token in $ENV_FILE" >&2
-    exit 1
-  fi
-
   local chat_id
-  chat_id=$(echo "$resp" | python3 -c '
-import json, sys
-try:
-    d = json.load(sys.stdin)
-    for u in d.get("result", []):
-        msg = u.get("message") or u.get("channel_post")
-        if msg and "chat" in msg:
-            print(msg["chat"]["id"])
-            break
-except Exception:
-    pass
-')
-
+  chat_id=$(find_chat any)
   if [ -z "$chat_id" ]; then
     echo "No chat found yet. Message your bot once on Telegram, then re-run 'notify setup'." >&2
     exit 1
   fi
-
-  if grep -q '^TELEGRAM_CHAT_ID=' "$ENV_FILE" 2>/dev/null; then
-    sed -i.bak "s/^TELEGRAM_CHAT_ID=.*/TELEGRAM_CHAT_ID=$chat_id/" "$ENV_FILE"
-    rm -f "$ENV_FILE.bak"
-  else
-    echo "TELEGRAM_CHAT_ID=$chat_id" >> "$ENV_FILE"
-  fi
+  set_env_var TELEGRAM_CHAT_ID "$chat_id"
   echo "Wrote TELEGRAM_CHAT_ID=$chat_id to $ENV_FILE"
+}
+
+function cmd_setup_group() {
+  load_env
+  require_token
+
+  if [ -n "${TELEGRAM_GROUP_ID:-}" ]; then
+    echo "TELEGRAM_GROUP_ID already set ($TELEGRAM_GROUP_ID) — leaving it alone."
+    exit 0
+  fi
+
+  local group_id
+  group_id=$(find_chat supergroup)
+  if [ -z "$group_id" ]; then
+    echo "No group found yet. Add the bot to the group as admin, send one message there, then re-run 'notify setup-group'." >&2
+    exit 1
+  fi
+  set_env_var TELEGRAM_GROUP_ID "$group_id"
+  echo "Wrote TELEGRAM_GROUP_ID=$group_id to $ENV_FILE"
+}
+
+function cmd_topic_add() {
+  load_env
+  require_token
+  if [ -z "${TELEGRAM_GROUP_ID:-}" ]; then
+    echo "ERROR: TELEGRAM_GROUP_ID not set — run 'notify setup-group' first." >&2
+    exit 1
+  fi
+  local id
+  if ! id=$(ensure_topic "$1"); then
+    echo "ERROR: could not create topic '$1' — is the bot an admin with 'Manage topics'?" >&2
+    exit 1
+  fi
+  echo "$(topic_key "$1")=$id"
+}
+
+function cmd_topics() {
+  load_env
+  grep '^TELEGRAM_TOPIC_' "$ENV_FILE" 2>/dev/null || echo "No topics saved yet."
 }
 
 if [ $# -eq 0 ]; then
@@ -111,12 +227,22 @@ shift
 
 case "$CMD" in
   send)
-    if [ $# -ne 1 ]; then usage; fi
-    cmd_send "$1"
+    cmd_send "$@"
     ;;
   setup)
     if [ $# -ne 0 ]; then usage; fi
     cmd_setup
+    ;;
+  setup-group)
+    if [ $# -ne 0 ]; then usage; fi
+    cmd_setup_group
+    ;;
+  topic)
+    if [ $# -ne 2 ] || [ "$1" != "add" ]; then usage; fi
+    cmd_topic_add "$2"
+    ;;
+  topics)
+    cmd_topics
     ;;
   *)
     usage
