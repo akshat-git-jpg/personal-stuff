@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, SlidersHorizontal } from "lucide-react";
+import { ArrowDown, ArrowUp, ExternalLink, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -172,7 +172,9 @@ export function TrackingLinks() {
         <h2 className="text-lg font-semibold tracking-tight">Tracking links</h2>
         <p className="text-sm text-muted-foreground">
           Is every link set up right? Clicks and views are in{" "}
-          <a className="underline" href="https://yt-analytics.agrolloo.com" target="_blank" rel="noreferrer">YT Analytics</a>.
+          <a className="inline-flex items-center gap-0.5 font-medium text-primary hover:underline" href="https://yt-analytics.agrolloo.com" target="_blank" rel="noopener noreferrer">
+            YT Analytics <ExternalLink className="size-3" />
+          </a>
         </p>
       </div>
       <div className="flex gap-2">
@@ -264,8 +266,8 @@ export function TrackingLinks() {
           <span className="font-medium">{group[0].video_title || "Untitled video"}</span>
           <span className="text-xs text-muted-foreground">{group.length} links</span>
           {group[0].yt_video_id && (
-            <a className="ml-auto text-xs underline text-muted-foreground hover:text-foreground" target="_blank" rel="noreferrer"
-              href={`https://studio.youtube.com/video/${group[0].yt_video_id}/edit`}>Edit description</a>
+            <a className="ml-auto inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:underline" target="_blank" rel="noopener noreferrer"
+              href={`https://studio.youtube.com/video/${group[0].yt_video_id}/edit`}>Edit description <ExternalLink className="size-3" /></a>
           )}
         </div>
         <table className="w-full min-w-[760px] text-sm">
