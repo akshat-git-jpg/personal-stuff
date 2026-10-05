@@ -34,7 +34,7 @@ def _env_file():
 
 
 def _load_creds():
-    token, chat_id = "", ""
+    token, chat_id, thread_id = "", "", ""
     path = _env_file()
     if os.path.exists(path):
         with open(path) as f:
@@ -49,9 +49,19 @@ def _load_creds():
                     token = value
                 elif key == "TELEGRAM_CHAT_ID":
                     chat_id = value
+                elif key == "TELEGRAM_THREAD_ID":
+                    thread_id = value
     if not token or not chat_id:
         raise TelegramError(f"TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID not set in {path}")
-    return {"token": token, "chat_id": chat_id}
+    return {"token": token, "chat_id": chat_id, "thread_id": thread_id}
+
+
+def _target(creds):
+    """chat_id plus the forum topic, when the alerts go to a group topic."""
+    t = {"chat_id": creds["chat_id"]}
+    if creds["thread_id"]:
+        t["message_thread_id"] = int(creds["thread_id"])
+    return t
 
 
 def _curl(url, method="GET", body=None):
@@ -121,7 +131,7 @@ def send_photo_with_buttons(photo_url, caption, token, cart_label="🛒 Add to c
 
     if photo_url:
         body = json.dumps({
-            "chat_id": creds["chat_id"],
+            **_target(creds),
             "photo": photo_url,
             "caption": caption,
             "reply_markup": keyboard,
@@ -131,7 +141,7 @@ def send_photo_with_buttons(photo_url, caption, token, cart_label="🛒 Add to c
             return data["result"]["message_id"]
 
     body2 = json.dumps({
-        "chat_id": creds["chat_id"],
+        **_target(creds),
         "text": caption,
         "reply_markup": keyboard,
     })
@@ -194,7 +204,8 @@ def wait_for_text_reply(timeout_s, offset_file, poll_interval_s=None):
             for update in data.get("result", []):
                 offset = update["update_id"] + 1
                 msg = update.get("message")
-                if msg and "text" in msg:
+                # Only our alerts chat counts; in a group, other topics' messages are not the OTP.
+                if msg and "text" in msg and str(msg.get("chat", {}).get("id")) == str(creds["chat_id"]):
                     _write_offset(offset_file, offset)
                     return msg["text"].strip()
             _write_offset(offset_file, offset)
@@ -240,7 +251,7 @@ def edit_message(message_id, caption):
 def send_text(text):
     """Plain sendMessage, no keyboard — used for the OTP prompt and the re-login nudge."""
     creds = _load_creds()
-    body = json.dumps({"chat_id": creds["chat_id"], "text": text})
+    body = json.dumps({**_target(creds), "text": text})
     status, data = _post(creds["token"], "sendMessage", body)
     if not (status == 200 and data and data.get("ok")):
         raise TelegramError(f"sendMessage failed: status={status}")

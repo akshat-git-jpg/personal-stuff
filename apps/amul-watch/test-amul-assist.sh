@@ -465,7 +465,7 @@ reset_call_logs
 rm -f "$TEMP_DIR/.tg_offset_otp.json"
 python3 -c "
 import json
-json.dump({'result': [{'update_id': 1, 'message': {'text': '12345'}}]},
+json.dump({'result': [{'update_id': 1, 'message': {'chat': {'id': 12345}, 'text': '12345'}}]},
           open('$TEMP_DIR/tg_updates_fixture.json', 'w'))
 "
 (cd "$REPO_ROOT" && python3 -c "
@@ -492,7 +492,7 @@ reset_call_logs
 rm -f "$TEMP_DIR/.tg_offset_login.json" "$TEMP_DIR/amul-session-login.json"
 python3 -c "
 import json
-json.dump({'result': [{'update_id': 1, 'message': {'text': '654321'}}]},
+json.dump({'result': [{'update_id': 1, 'message': {'chat': {'id': 12345}, 'text': '654321'}}]},
           open('$TEMP_DIR/tg_updates_fixture.json', 'w'))
 "
 LOGIN_STDOUT="$TEMP_DIR/login_stdout.txt"
@@ -539,7 +539,7 @@ quiet_state
 rm -f "$TEMP_DIR/.tg_offset.json"
 python3 -c "
 import json
-json.dump({'result': [{'update_id': 1, 'message': {'text': '111222'}}]},
+json.dump({'result': [{'update_id': 1, 'message': {'chat': {'id': 12345}, 'text': '111222'}}]},
           open('$TEMP_DIR/tg_updates_fixture.json', 'w'))
 "
 BEFORE=$(python3 -c "import json; print(json.load(open('$TEMP_DIR/amul-session.json'))['logged_in_at'])")
