@@ -6,27 +6,27 @@
   ],
   "template": "girl-1",
   "before": {
-    "ts": "2026-09-30T10:26:15.166Z",
+    "ts": "2026-10-05T15:43:04.743Z",
     "credits": 200,
     "seconds_consumed": 303,
     "seconds_limit": 1500,
     "seconds_remain": 1197,
     "free_credit_remain": 600,
-    "priority_count": 1,
+    "priority_count": 6,
     "priority_limit": 100,
     "ai_image_credits": 199,
     "ai_video_credits": 26,
     "ai_concept_credits": 132
   },
-  "opened_at": "2026-09-30T10:26:15.179Z",
+  "opened_at": "2026-10-05T15:43:04.750Z",
   "after": {
-    "ts": "2026-09-30T10:35:32.031Z",
+    "ts": "2026-10-05T15:54:10.448Z",
     "credits": 200,
     "seconds_consumed": 303,
     "seconds_limit": 1500,
     "seconds_remain": 1197,
     "free_credit_remain": 600,
-    "priority_count": 4,
+    "priority_count": 8,
     "priority_limit": 100,
     "ai_image_credits": 199,
     "ai_video_credits": 26,
@@ -39,5 +39,5 @@
     "ai_video_credits": 0,
     "ai_concept_credits": 0
   },
-  "closed_at": "2026-09-30T10:35:32.047Z"
+  "closed_at": "2026-10-05T15:54:10.457Z"
 }
