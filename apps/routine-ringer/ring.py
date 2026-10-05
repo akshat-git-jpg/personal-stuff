@@ -20,6 +20,7 @@ Env (.env next to this file):
   CALENDAR_ID           Calendar id (default: primary)
   TELEGRAM_BOT_TOKEN    Optional. If set with chat id, sends label message.
   TELEGRAM_CHAT_ID      Optional.
+  TELEGRAM_THREAD_ID    Optional. Forum topic id when the chat is a group.
 """
 from __future__ import annotations
 
@@ -48,6 +49,7 @@ BARK_SOUND = os.environ.get("BARK_SOUND", "alarm")
 CALENDAR_ID = os.environ.get("CALENDAR_ID", "primary")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+TELEGRAM_THREAD_ID = os.environ.get("TELEGRAM_THREAD_ID", "")
 
 # Fire if event.start is in [now - PAST_WINDOW, now + FUTURE_WINDOW].
 # Cron runs every minute; this 90s window guarantees no event is missed
@@ -138,7 +140,8 @@ def fire_telegram(text: str) -> None:
         return
     requests.post(
         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-        data={"chat_id": TELEGRAM_CHAT_ID, "text": text},
+        data={"chat_id": TELEGRAM_CHAT_ID, "text": text,
+              **({"message_thread_id": TELEGRAM_THREAD_ID} if TELEGRAM_THREAD_ID else {})},
         timeout=10,
     )
 
