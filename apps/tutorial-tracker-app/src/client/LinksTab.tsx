@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { TrackingLinks } from "./TrackingLinks";
 import { MintLinks } from "./MintLinks";
 import { ProgramForm } from "./ProgramForm";
-import { LinkHealth } from "./LinkHealth";
+import { LinkVideos } from "./LinkVideos";
 import { ProgramsView } from "./ProgramsView";
 import { deleteProgram, fetchPrograms } from "./programsApi";
 import type { BoardRow } from "./api";
 import type { Kind, ProgramRow } from "../worker/programs";
 
-type View = "programs" | "tracking-links" | "mint-links" | "health";
-export function LinksTab({ rows, onSaved }: { rows: BoardRow[]; onSaved: () => void }) {
-  const [view, setView] = useState<View>("programs");
+type View = "videos" | "mint-links" | "programs";
+export function LinksTab({ rows, onSaved, initialView = "videos" }: { rows: BoardRow[]; onSaved: () => void; initialView?: View }) {
+  const [view, setView] = useState<View>(initialView);
+  const [focusCode, setFocusCode] = useState<string | null>(null);
   const [programs, setPrograms] = useState<ProgramRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<{ message: string; status?: number } | null>(null);
@@ -24,10 +24,9 @@ export function LinksTab({ rows, onSaved }: { rows: BoardRow[]; onSaved: () => v
   async function importSheet() { try { const res = await fetch("/api/programs/import-from-sheet", { method: "POST", credentials: "same-origin" }); if (!res.ok) throw new Error(`Could not import (${res.status})`); const body = await res.json() as { imported: { affiliate: number; external: number }; issues?: string[] }; setImportResult(`Imported ${body.imported.affiliate} affiliate + ${body.imported.external} external.${body.issues?.length ? ` ${body.issues.join(" ")}` : ""}`); await load(); } catch (e) { setError({ message: e instanceof Error ? e.message : "Could not import" }); } }
   async function remove() { if (!confirm) return; try { await deleteProgram(confirm.slug); setConfirm(null); await load(); onSaved(); } catch (e) { setError({ message: e instanceof Error ? e.message : "Could not delete program" }); } }
   return <div className="max-w-6xl space-y-5 py-4" data-testid="links-tab">
-    <div className="flex gap-1 border-b border-border" role="tablist">{([['programs', `Programs${loading ? "" : ` (${programs.length})`}`], ['tracking-links', 'Tracking links'], ['mint-links', 'Mint links'], ['health', 'Health']] as [View, string][]).map(([key, label]) => <button key={key} role="tab" aria-selected={view === key} onClick={() => setView(key)} className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors ${view === key ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{label}</button>)}</div>
-    {view === "tracking-links" && <TrackingLinks />}
-    {view === "mint-links" && <MintLinks rows={rows} onSaved={onSaved} />}
-    {view === "health" && <LinkHealth onFix={(program) => setForm({ initial: program, kind: program.kind })} />}
+    <div className="flex gap-1 border-b border-border" role="tablist">{([['videos', 'Videos'], ['mint-links', 'Mint links'], ['programs', `Programs${loading ? "" : ` (${programs.length})`}`]] as [View, string][]).map(([key, label]) => <button key={key} role="tab" aria-selected={view === key} onClick={() => setView(key)} className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors ${view === key ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{label}</button>)}</div>
+    {view === "videos" && <LinkVideos focusCode={focusCode} onFixProgram={(program) => setForm({ initial: program, kind: program.kind })} />}
+    {view === "mint-links" && <MintLinks rows={rows} onSaved={onSaved} onOpenVideo={(code) => { setFocusCode(code); setView("videos"); }} />}
     {view === "programs" && <ProgramsView
       programs={programs}
       loading={loading}

@@ -117,15 +117,18 @@ npx wrangler dev --port 8787
 
 ## The Links tab — the money surface (2026-08-28)
 
-Four sub-views under **Links**. This replaced the Google Sheet entirely; the
+Three sub-views under **Links**. This replaced the Google Sheet entirely; the
 sheet is retired and `import-from-sheet` is a one-way legacy path.
 
 | View | Owns | Source of truth |
 |---|---|---|
+| **Videos** (default, `LinkVideos.tsx`) | "Things to fix" (every open guard problem, one plain sentence + one action each), then every video's short links with Copy, Copy description, Open YouTube and "Change where a link goes". Replaced Tracking links + Health on 2026-10-05 because the owner found the columns, six count tiles and Re-check button unreadable. **No click counts here**: clicks belong to yt-analytics | `clicks-db.links` + latest daily and weekly `link_checks` |
+| **Mint links** | Creating new short links for a video; after Publish it keeps the description on screen to copy | writes `links` + `CLICKS_KV` |
 | **Programs** | The affiliate/external catalogue: destination, affiliate code, coupon, approval, dashboard + credentials, notes | `tracker-db.programs` |
-| **Tracking links** | Every live `go.agrolloo.com/<code>/<tool>` grouped by video: destination, type, check state, and whether it is in the video's live YouTube description. **No click counts here**: clicks and views belong to yt-analytics, so the two pages never overlap (2026-10-05) | `clicks-db.links` + latest `link_checks` |
-| **Mint links** | Creating new short links for a video | writes `links` + `CLICKS_KV` |
-| **Health** | What the daily guard found, including YouTube descriptions that do not match the minted links | `tracker-db.link_checks` |
+
+Open problems = the latest daily run plus the latest weekly (Sunday) run. A weekly finding is
+dropped once its programme was edited after that run. Before this, the next daily run hid every
+weekly finding (9 on 2026-10-05).
 
 ### Invariants — breaking these produces silent wrongness, not errors
 
@@ -141,9 +144,9 @@ sheet is retired and `import-from-sheet` is a one-way legacy path.
 - **An `agrolloo.com` destination is rejected on save** (`programs.ts`) and
   warned on by the guard (`own_redirect_layer`). That WordPress Pretty Links hop
   was removed from all but 5 links on 2026-08-28; do not reintroduce it.
-- **Health's issue groups must PARTITION the issue list**, so the headline count
-  equals the cards on screen. The third group is a catch-all by construction —
-  an earlier version filtered against two hardcoded code sets and silently
+- **"Things to fix" shows every issue code**, so the headline count equals the
+  rows on screen. `plainDetail` rewrites known codes and falls back to the guard's
+  own text — an earlier version filtered against hardcoded code sets and silently
   dropped four whole issue classes.
 - **`unmapped_video` requires a recorded click.** Minting happens while a video
   is still being made, so "has links, no YouTube id" also describes every draft.
@@ -154,8 +157,7 @@ The daily structural run also reads every mapped video's live description (`src/
 YouTube `videos.list`, 1 quota unit per 50 videos, secret `YT_API_KEY`). Codes: `desc_unknown_link`
 (a short link that was never minted; counted as costing money), `desc_wrong_video`, `desc_missing_link`,
 `desc_raw_link` (a raw affiliate-tool URL instead of a short link), `desc_check_unavailable`.
-`link_checks.desc_checked_json` lists the video codes actually read, so Tracking links can tell
-"missing" from "not checked". Re-minting an existing link upgrades it from external to affiliate
+`link_checks.desc_checked_json` lists the video codes actually read on that run. Re-minting an existing link upgrades it from external to affiliate
 once its programme is approved; it never downgrades.
 
 ### Affiliate-code detection lives in `src/worker/linkhealth.ts`

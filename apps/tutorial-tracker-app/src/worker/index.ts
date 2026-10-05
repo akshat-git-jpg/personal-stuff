@@ -1286,47 +1286,65 @@ app.post("/api/link-health/recheck", async (c) => {
   return c.json({ ok: true, issues: [...structural, ...chain] });
 });
 
-// GET /api/links -> every minted link, with analytics and last program check.
-// Read-only: clicks is written solely by the redirector Worker.
+// GET /api/links -> every video with its short links, a copyable description, and the open problems.
 app.get("/api/links", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  const [links, rows, programs, dbTitles, videoRows, descRun] = await Promise.all([
+  const [links, rows, programs, dbTitles, videoRows, dailyRun, chainRun] = await Promise.all([
     clickstore.allLinks(c.env.DB),
     cachedReadRows(c.env),
     listPrograms(c.env.TRACKER_DB),
     clickstore.videoTitles(c.env.DB),
-    c.env.DB.prepare("SELECT video_code, yt_video_id FROM videos").all<{ video_code: string; yt_video_id: string | null }>(),
-    c.env.TRACKER_DB.prepare("SELECT issues_json, desc_checked_json FROM link_checks WHERE desc_checked_json IS NOT NULL ORDER BY ran_at DESC LIMIT 1").first<{ issues_json: string; desc_checked_json: string }>(),
+    c.env.DB.prepare("SELECT video_code, yt_video_id, channel_id FROM videos").all<{ video_code: string; yt_video_id: string | null; channel_id: string | null }>(),
+    c.env.TRACKER_DB.prepare("SELECT ran_at, issues_json FROM link_checks WHERE kind IN ('structural', 'manual') ORDER BY ran_at DESC LIMIT 1").first<{ ran_at: number; issues_json: string }>(),
+    c.env.TRACKER_DB.prepare("SELECT ran_at, issues_json FROM link_checks WHERE kind = 'chain' ORDER BY ran_at DESC LIMIT 1").first<{ ran_at: number; issues_json: string }>(),
   ]);
-  const ytByCode = new Map((videoRows.results ?? []).map((v) => [v.video_code, v.yt_video_id]));
-  const descChecked = new Set<string>(descRun ? JSON.parse(descRun.desc_checked_json) : []);
-  const descMissing = new Set<string>(descRun ? (JSON.parse(descRun.issues_json) as GuardIssue[]).filter((i) => i.code === "desc_missing_link").map((i) => i.slug) : []);
-  const inDescription = (slug: string, code: string): "yes" | "missing" | "unpublished" | "unchecked" =>
-    !ytByCode.get(code) ? "unpublished" : !descChecked.has(code) ? "unchecked" : descMissing.has(slug) ? "missing" : "yes";
-  // The videos table is the base layer — it has a title for every code. A tracker
-  // card, when one exists, wins because its title is the one being edited. Only 2
-  // of 76 cards carry a video_code, so without the base layer 85 of 87 groups
-  // rendered as "Untitled video" and looked like deletable test rows.
+  // Daily run = records + descriptions; weekly chain run = destinations. Together they are the open problems.
+  const seen = new Set<string>();
+  // A weekly finding is dropped once its programme was edited after that run, so a fix shows at once.
+  const editedAt = new Map(programs.map((p) => [p.slug, p.updated_at]));
+  const weekly = chainRun ? (JSON.parse(chainRun.issues_json) as GuardIssue[]).filter((i) => (editedAt.get(i.slug) ?? 0) <= chainRun.ran_at) : [];
+  const issues = [...(dailyRun ? JSON.parse(dailyRun.issues_json) as GuardIssue[] : []), ...weekly]
+    .filter((i) => { const key = `${i.code}:${i.slug}`; if (seen.has(key)) return false; seen.add(key); return true; });
+
+  // The videos table has a title for every code; a tracker card's title wins when one exists.
   const titleByCode: Record<string, string> = { ...dbTitles };
+  const cardDescByCode: Record<string, string> = {};
   for (const r of rows as Record<string, unknown>[]) {
     const code = ((r.video_code as string) ?? "").trim();
     const title = ((r.video_title as string) ?? "").trim();
     if (code && title) titleByCode[code] = title;
+    const desc = ((r.video_description as string) ?? "").trim();
+    if (code && desc) cardDescByCode[code] = desc;
   }
-  const bySlug: Record<string, (typeof programs)[number]> = {};
-  for (const p of programs) bySlug[p.slug] = p;
-  return c.json({
-    links: links.map((l) => ({
-      ...l,
-      in_description: inDescription(l.slug, l.video_code),
-      yt_video_id: ytByCode.get(l.video_code) ?? null,
-      video_title: titleByCode[l.video_code] ?? "",
-      last_status: bySlug[l.tool]?.last_status ?? null,
-      last_final_url: bySlug[l.tool]?.last_final_url ?? null,
-      last_checked_at: bySlug[l.tool]?.last_checked_at ?? null,
-    })),
-  });
+  const programBySlug = new Map(programs.map((p) => [p.slug, p]));
+  const videoByCode = new Map((videoRows.results ?? []).map((v) => [v.video_code, v]));
+  const linksByCode = new Map<string, typeof links>();
+  for (const l of links) linksByCode.set(l.video_code, [...(linksByCode.get(l.video_code) ?? []), l]);
+
+  const videos = [...linksByCode.entries()].map(([code, own]) => {
+    const video = videoByCode.get(code);
+    const domain = linkDomainFor(channelIdOf({ channel_id: video?.channel_id }));
+    const title = titleByCode[code] ?? "";
+    const items = own.map((l) => {
+      const program = programBySlug.get(l.tool);
+      return {
+        slug: l.slug, tool: l.tool, name: program?.name ?? l.tool, target_url: l.target_url,
+        short_url: `https://${domain}/${l.slug}`, coupon: program?.coupon_code ?? "",
+      };
+    });
+    // A card saved at mint time is the real description; older videos get one rebuilt from their links.
+    const description = cardDescByCode[code] ?? renderDescription(title || code, items.map((i) => ({
+      slug: i.tool, displayName: i.name, short_url: i.short_url, target_url: i.target_url, status: "affiliate" as const, coupon: i.coupon,
+    })));
+    return {
+      video_code: code, title, yt_video_id: video?.yt_video_id ?? null,
+      created_at: Math.max(...own.map((l) => l.created_at)), description,
+      links: items.map(({ coupon: _coupon, ...rest }) => rest),
+    };
+  }).sort((a, b) => b.created_at - a.created_at);
+
+  return c.json({ videos, issues, checked_at: dailyRun?.ran_at ?? null, programs });
 });
 
 // POST /api/programs/validate -> what the Add/Edit form calls as you type.
