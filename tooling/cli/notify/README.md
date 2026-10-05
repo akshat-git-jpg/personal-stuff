@@ -64,7 +64,7 @@ One-time, on the phone:
 
 After that a new area needs nothing: `notify send --topic <new-area> "..."` creates the topic.
 
-Topics in use: `boss` (greenlight lands are silent; parks and failures buzz).
+Topics: `boss` (PR landed, parked, failed), `infra` (VPS, sites, cron failures, expired logins), `links` (affiliate link guard), `amul` (stock alerts), `digest` (daily planner, Gmail digest, weekly repo audit). All buzz; `--silent` exists but nothing uses it (owner wants a buzz for every alert).
 
 ## Files
 
