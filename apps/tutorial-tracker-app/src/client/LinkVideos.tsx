@@ -74,7 +74,7 @@ export function LinkVideos({ focusCode, onFixProgram }: { focusCode?: string | n
     } catch { setState("error"); }
   }
   useEffect(() => { void load(); }, []);
-  useEffect(() => { if (state === "ready") focusRef.current?.scrollIntoView({ block: "start" }); }, [state]);
+  useEffect(() => { if (state === "ready") focusRef.current?.scrollIntoView?.({ block: "start" }); }, [state]);
 
   async function checkAgain() {
     setChecking(true);
