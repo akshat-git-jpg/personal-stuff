@@ -62,7 +62,11 @@ async function sendTelegram(env, text) {
     await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }),
+      body: JSON.stringify({
+        chat_id: env.TELEGRAM_CHAT_ID,
+        ...(env.TELEGRAM_THREAD_ID ? { message_thread_id: Number(env.TELEGRAM_THREAD_ID) } : {}),
+        text,
+      }),
       signal: AbortSignal.timeout(10000),
     });
   } catch {
