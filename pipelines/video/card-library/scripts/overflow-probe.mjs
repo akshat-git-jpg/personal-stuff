@@ -175,7 +175,8 @@ export async function probeCardVariant(cardSlug, variant, variables, times) {
     await page.evaluateOnNewDocument((vars) => {
       window.__hyperframes = { getVariables: () => vars };
     }, variables);
-    await page.goto(`file://${indexPath}`);
+    // 30s default flakes on a loaded machine; match board-ui-smoke's 120s.
+    await page.goto(`file://${indexPath}`, { timeout: 120000 });
     try {
       await page.waitForFunction('!!window.__timelines && Object.values(window.__timelines).length > 0', { timeout: 4000 });
     } catch (e) {
