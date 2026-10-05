@@ -19,7 +19,7 @@ Last updated: 2026-07-11.
 | VPS code path | `/srv/projects/personal-stuff/` (clone of personal-stuff, read-only deploy key) |
 | VPS cron path | `/srv/crons/` (clone of vps-crons, read-write deploy key) |
 | Canonical crontab | `/srv/crons/crontab.txt` (version-controlled) |
-| Telegram delivery | Each cron has its own `.env` with `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` |
+| Telegram delivery | Each cron has its own `.env` with `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`; jobs moved to the KB Alerts group also set `TELEGRAM_THREAD_ID` (their topic) and `TELEGRAM_ALERT_THREAD_ID` (infra topic, for failures) |
 | Auth model for LLM crons | Personal Claude Pro plan (`kushalbakliwal25@gmail.com`) via `claude -p` |
 
 ## The decision rule (read this first)
