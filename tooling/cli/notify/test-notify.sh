@@ -111,6 +111,69 @@ EOF
 grep -q "^TELEGRAM_CHAT_ID=424242$" "$ENV_FILE" \
   || fail "(d2) expected TELEGRAM_CHAT_ID=424242 written to env file"
 
+# --- (f) topic + group set: sends to the group thread, silent flag passed ---
+cat > "$STUB_DIR/curl" << EOF
+#!/bin/bash
+echo "\$@" >> "$CURL_LOG"
+case "\$*" in
+  *createForumTopic*) echo '{"ok":true,"result":{"message_thread_id":77,"name":"amul-watch"}}' ;;
+esac
+exit 0
+EOF
+chmod +x "$STUB_DIR/curl"
+
+cat > "$ENV_FILE" << 'EOF'
+TELEGRAM_BOT_TOKEN=test-token-123
+TELEGRAM_CHAT_ID=999999
+TELEGRAM_GROUP_ID=-100555
+TELEGRAM_TOPIC_BOSS=12
+EOF
+rm -f "$CURL_LOG"
+"$NOTIFY" send --topic boss --silent "landed" || fail "(f) expected exit 0"
+grep -q "chat_id=-100555" "$CURL_LOG" || fail "(f) group chat_id not used"
+grep -q "message_thread_id=12" "$CURL_LOG" || fail "(f) thread id not passed"
+grep -q "disable_notification=true" "$CURL_LOG" || fail "(f) silent flag not passed"
+grep -q "createForumTopic" "$CURL_LOG" && fail "(f) known topic should not be re-created"
+
+# --- (g) unknown topic is created once and its id saved ---
+rm -f "$CURL_LOG"
+"$NOTIFY" send --topic "Amul Watch" "in stock" || fail "(g) expected exit 0"
+grep -q "createForumTopic" "$CURL_LOG" || fail "(g) createForumTopic not called"
+grep -q "^TELEGRAM_TOPIC_AMUL_WATCH=77$" "$ENV_FILE" || fail "(g) new topic id not saved"
+grep -q "message_thread_id=77" "$CURL_LOG" || fail "(g) new thread id not used"
+grep -q "disable_notification=false" "$CURL_LOG" || fail "(g) loud send should not be silent"
+rm -f "$CURL_LOG"
+"$NOTIFY" send --topic amul-watch "again" || fail "(g) second send failed"
+grep -q "createForumTopic" "$CURL_LOG" && fail "(g) topic created twice"
+
+# --- (h) topic but no group yet: falls back to DM with a [topic] prefix ---
+cat > "$ENV_FILE" << 'EOF'
+TELEGRAM_BOT_TOKEN=test-token-123
+TELEGRAM_CHAT_ID=999999
+EOF
+rm -f "$CURL_LOG"
+"$NOTIFY" send --topic boss "no group" || fail "(h) expected exit 0"
+grep -q "chat_id=999999" "$CURL_LOG" || fail "(h) DM chat_id not used"
+grep -q "text=\[boss\] no group" "$CURL_LOG" || fail "(h) DM text missing [boss] prefix"
+
+# --- (i) setup-group picks the supergroup, not the private chat ---
+cat > "$STUB_DIR/curl" << 'EOF'
+#!/bin/bash
+echo '{"ok":true,"result":[{"message":{"chat":{"id":424242,"type":"private"}}},{"my_chat_member":{"chat":{"id":-100777,"type":"supergroup"}}}]}'
+exit 0
+EOF
+chmod +x "$STUB_DIR/curl"
+"$NOTIFY" setup-group || fail "(i) setup-group should exit 0"
+grep -q "^TELEGRAM_GROUP_ID=-100777$" "$ENV_FILE" || fail "(i) group id not written"
+
+# restore the logging curl stub
+cat > "$STUB_DIR/curl" << EOF
+#!/bin/bash
+echo "\$@" >> "$CURL_LOG"
+exit 0
+EOF
+chmod +x "$STUB_DIR/curl"
+
 # --- (e) the greenlight self-test still passes after the notify wiring ---
 # overnight was the second caller checked here; it was deleted 2026-08-23 (decisions.md).
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"

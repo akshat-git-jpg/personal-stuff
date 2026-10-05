@@ -14,9 +14,17 @@ channel. See decisions.md 2026-08-30.
 ## Contract
 
 ```
-notify send "<message>"   # exit 0 sent, 3 undeliverable, 2 usage error
-notify setup               # one-time: derive TELEGRAM_CHAT_ID
+notify send [--topic <name>] [--silent] "<message>"   # exit 0 sent, 3 undeliverable, 2 usage error
+notify setup               # one-time: derive TELEGRAM_CHAT_ID (your DM with the bot)
+notify setup-group         # one-time: derive TELEGRAM_GROUP_ID (the alerts forum group)
+notify topic add <name>    # create a topic now (send also creates it on first use)
+notify topics              # list saved topics
 ```
+
+- `--topic boss` posts into the **boss** topic of the alerts group. A new name creates
+  the topic on first send and saves its id as `TELEGRAM_TOPIC_<NAME>` in `telegram.env`.
+- `--silent` delivers without a phone buzz. Use it for info; leave it off for real problems.
+- No group set up, or a topic send fails: the message falls back to the DM, prefixed `[boss]`.
 
 `notify send` never crashes the caller: a Telegram failure prints a `WARN` to
 stderr and exits 3 (undeliverable), it does not raise past that.
@@ -42,6 +50,21 @@ stderr and exits 3 (undeliverable), it does not raise past that.
    bot first and re-run.
 
 `notify setup` never overwrites an existing non-empty `TELEGRAM_CHAT_ID`.
+
+## Alerts group (topics)
+
+One Telegram group with **Topics** on, one topic per alert area. Why: one DM for every
+alert type was too cluttered (decisions.md 2026-10-05).
+
+One-time, on the phone:
+1. Create a group, then turn on **Topics** in its settings.
+2. Add the bot, make it **admin** with **Manage topics** on.
+3. Send any message in the group.
+4. Run `tooling/cli/notify/notify setup-group`.
+
+After that a new area needs nothing: `notify send --topic <new-area> "..."` creates the topic.
+
+Topics in use: `boss` (greenlight lands are silent; parks and failures buzz).
 
 ## Files
 
