@@ -42,6 +42,7 @@ describe("LinkVideos", () => {
     mockLinks(); render(<LinkVideos onFixProgram={vi.fn()} />);
     fireEvent.click(await screen.findByText("Wise vs Revolut"));
     expect(screen.getByText("go.agrolloo.com/WOAo/revolut")).toBeTruthy();
+    expect(screen.getByText("→ https://wise.com/?r=1").getAttribute("href")).toBe("https://wise.com/?r=1");
     expect(screen.getAllByText("Minted but not in its YouTube description.").length).toBe(2);
     expect(screen.getByLabelText("Copy description")).toBeTruthy();
     expect(screen.getAllByLabelText("Copy").length).toBe(2);

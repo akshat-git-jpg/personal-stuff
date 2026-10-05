@@ -182,7 +182,11 @@ export function LinkVideos({ focusCode, onFixProgram }: { focusCode?: string | n
                         return (
                           <li className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2" key={link.slug}>
                             <span className="flex-1 text-sm font-medium sm:w-32 sm:flex-none">{link.name}</span>
-                            <code className="order-last basis-full break-all text-xs text-muted-foreground sm:order-none sm:min-w-0 sm:flex-1 sm:basis-auto">{link.short_url.replace(/^https?:\/\//, "")}</code>
+                            <div className="order-last min-w-0 basis-full space-y-0.5 sm:order-none sm:flex-1 sm:basis-auto">
+                              <code className="block break-all text-xs text-foreground/80">{link.short_url.replace(/^https?:\/\//, "")}</code>
+                              <a href={link.target_url} target="_blank" rel="noopener noreferrer" title="Where this link goes"
+                                className="block break-all text-xs text-muted-foreground hover:text-primary hover:underline">→ {link.target_url}</a>
+                            </div>
                             {problems.length > 0 && <AlertTriangle className="size-4 shrink-0 text-amber-500" aria-label="Has a problem" />}
                             <CopyButton text={link.short_url} label="Copy" />
                             {problems.map((p, i) => <p className="order-last basis-full text-xs text-amber-600 dark:text-amber-400" key={i} title={p.detail}>{plainDetail(p)}</p>)}
