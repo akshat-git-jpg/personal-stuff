@@ -488,4 +488,4 @@ else
 fi
 
 echo "landed" > "$STATE_DIR/state"
-notify_send --silent "greenlight: $BRANCH landed on main (risk $risk_level)"
+notify_send "greenlight: $BRANCH landed on main (risk $risk_level)"
