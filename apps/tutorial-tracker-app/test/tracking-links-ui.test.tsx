@@ -5,19 +5,22 @@ import { TrackingLinks } from "../src/client/TrackingLinks";
 import { MintLinks } from "../src/client/MintLinks";
 
 const links = [
-  { slug: "new-video/openart", video_code: "new-video", video_title: "New video", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate", created_at: 2, clicks: 19, last_status: "no_credit", last_final_url: null, last_checked_at: 1 },
-  { slug: "new-video/cursor", video_code: "new-video", video_title: "New video", tool: "cursor", target_url: "https://cursor.com", kind: "external", created_at: 2, clicks: 2, last_status: null, last_final_url: null, last_checked_at: null },
-  { slug: "old/missing", video_code: "old", video_title: "Old video", tool: "missing", target_url: "https://old.example", kind: "affiliate", created_at: 1, clicks: 0, last_status: null, last_final_url: null, last_checked_at: null },
+  { slug: "new-video/openart", video_code: "new-video", video_title: "New video", tool: "openart", target_url: "https://openart.ai/?via=seema", kind: "affiliate", created_at: 2, in_description: "missing", yt_video_id: "abcdefghijk", last_status: "no_credit", last_final_url: null, last_checked_at: 1 },
+  { slug: "new-video/cursor", video_code: "new-video", video_title: "New video", tool: "cursor", target_url: "https://cursor.com", kind: "external", created_at: 2, in_description: "yes", yt_video_id: "abcdefghijk", last_status: null, last_final_url: null, last_checked_at: null },
+  { slug: "old/missing", video_code: "old", video_title: "Old video", tool: "missing", target_url: "https://old.example", kind: "affiliate", created_at: 1, in_description: "unpublished", yt_video_id: null, last_status: null, last_final_url: null, last_checked_at: null },
 ];
 function mockLinks(body: unknown = { links }, status = 200) {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: status >= 200 && status < 300, status, json: async () => body }));
 }
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 describe("TrackingLinks", () => {
-  it("renders a grouped list, video code/title, two rows and unmodified clicks", async () => {
+  it("renders a grouped list with each link's description state", async () => {
     mockLinks(); render(<TrackingLinks />);
     expect(await screen.findByText("New video")).toBeTruthy(); expect(screen.getByText("new-video")).toBeTruthy();
-    expect(screen.getByText("19").className).toContain("text-right"); expect(screen.getByText("/new-video/cursor")).toBeTruthy();
+    expect(screen.getByText("/new-video/cursor")).toBeTruthy();
+    expect(screen.getAllByText("missing").some((n) => n.className.includes("text-destructive"))).toBe(true);
+    expect(screen.getByText("not published")).toBeTruthy();
+    expect(screen.getByText("Edit description").getAttribute("href")).toBe("https://studio.youtube.com/video/abcdefghijk/edit");
   });
   it("tints no_credit and labels an external row", async () => {
     mockLinks(); render(<TrackingLinks />); const lost = await screen.findByText("lost code");
@@ -69,10 +72,10 @@ describe("TrackingLinks", () => {
     await screen.findByText("New video");
     const slugs = () => screen.getAllByText(/^\/new-video\//).map((n) => n.textContent);
     const before = slugs();
-    fireEvent.click(screen.getAllByTitle("Sort by Clicks")[0]);
-    // Clicks starts DESCENDING: openart (19) before cursor (2).
+    fireEvent.click(screen.getAllByTitle("Sort by In description")[0]);
+    // Ascending: openart ("missing") before cursor ("yes").
     expect(slugs()[0]).toBe("/new-video/openart");
-    fireEvent.click(screen.getAllByTitle("Sort by Clicks")[0]);
+    fireEvent.click(screen.getAllByTitle("Sort by In description")[0]);
     expect(slugs()[0]).toBe("/new-video/cursor");
     expect(before.length).toBe(2);
   });
@@ -80,7 +83,7 @@ describe("TrackingLinks", () => {
   it("every sortable heading is a real button", async () => {
     mockLinks(); render(<TrackingLinks />);
     await screen.findByText("New video");
-    for (const label of ["Short link", "Tool", "Type", "Lands on", "Clicks", "Checked"]) {
+    for (const label of ["Short link", "Tool", "Type", "Lands on", "In description", "Checked"]) {
       expect(screen.getAllByTitle(`Sort by ${label}`)[0].tagName).toBe("BUTTON");
     }
   });

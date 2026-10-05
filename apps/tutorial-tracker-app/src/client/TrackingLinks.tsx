@@ -17,17 +17,20 @@ import { linkResync } from "./api";
 
 export interface TrackingLink {
   slug: string; video_code: string; video_title: string; tool: string; target_url: string;
-  kind: string | null; created_at: number; clicks: number; last_status: string | null;
+  kind: string | null; created_at: number; last_status: string | null;
+  in_description: InDescription; yt_video_id: string | null;
   last_final_url: string | null; last_checked_at: number | null;
 }
 
 type LoadState = "loading" | "ready" | "forbidden" | "error";
+type InDescription = "yes" | "missing" | "unpublished" | "unchecked";
+const DESC_LABEL: Record<InDescription, string> = { yes: "yes", missing: "missing", unpublished: "not published", unchecked: "not checked" };
 const bad = new Set(["no_credit", "dead"]);
 
 /** Verbatim from Filters.tsx so every filter panel in the app matches. */
 const selectCls = "h-8 rounded-md border border-input bg-transparent px-2 text-xs shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40";
 
-type SortCol = "slug" | "tool" | "kind" | "lands" | "clicks" | "checked";
+type SortCol = "slug" | "tool" | "kind" | "lands" | "desc" | "checked";
 interface SortState { col: SortCol; dir: "asc" | "desc" }
 type TypeFilter = "all" | "affiliate" | "external" | "unclassified";
 type StateFilter = "all" | "earning" | "lost" | "unverifiable" | "dead" | "unmapped";
@@ -37,7 +40,7 @@ const COLUMNS: { col: SortCol | null; label: string; align?: string }[] = [
   { col: "tool", label: "Tool" },
   { col: "kind", label: "Type" },
   { col: "lands", label: "Lands on" },
-  { col: "clicks", label: "Clicks", align: "text-right" },
+  { col: "desc", label: "In description" },
   { col: "checked", label: "Checked" },
   { col: null, label: "" },
 ];
@@ -83,7 +86,7 @@ export function TrackingLinks() {
   function toggleSort(col: SortCol) {
     setSort((prev) => prev?.col === col
       ? { col, dir: prev.dir === "asc" ? "desc" : "asc" }
-      : { col, dir: col === "clicks" || col === "checked" ? "desc" : "asc" });
+      : { col, dir: col === "checked" ? "desc" : "asc" });
   }
   const caret = (col: SortCol) => sort?.col === col
     ? (sort.dir === "asc" ? <ArrowUp className="inline size-3" /> : <ArrowDown className="inline size-3" />)
@@ -121,7 +124,7 @@ export function TrackingLinks() {
         case "tool":    return dir * (a.tool.localeCompare(b.tool));
         case "kind":    return dir * ((a.kind ?? "").localeCompare(b.kind ?? "") || a.tool.localeCompare(b.tool));
         case "lands":   return dir * (landsOn(a).localeCompare(landsOn(b)) || a.tool.localeCompare(b.tool));
-        case "clicks":  return dir * (a.clicks - b.clicks || a.tool.localeCompare(b.tool));
+        case "desc":    return dir * (a.in_description.localeCompare(b.in_description) || a.tool.localeCompare(b.tool));
         case "checked": return dir * (checkedLabel(a).localeCompare(checkedLabel(b)) || a.tool.localeCompare(b.tool));
         default:        return dir * a.slug.localeCompare(b.slug);
       }
@@ -137,6 +140,7 @@ export function TrackingLinks() {
     external: links.filter((l) => l.kind === "external").length,
     unverifiable: links.filter((l) => l.last_status === "unverifiable").length,
     broken: links.filter((l) => l.last_status === "dead").length,
+    missing: links.filter((l) => l.in_description === "missing").length,
   };
 
   const hasPrecise = typeFilter !== "all" || stateFilter !== "all";
@@ -166,15 +170,18 @@ export function TrackingLinks() {
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h2 className="text-lg font-semibold tracking-tight">Tracking links</h2>
-        <p className="text-sm text-muted-foreground">Every live short link, grouped by video.</p>
+        <p className="text-sm text-muted-foreground">
+          Is every link set up right? Clicks and views are in{" "}
+          <a className="underline" href="https://yt-analytics.agrolloo.com" target="_blank" rel="noreferrer">YT Analytics</a>.
+        </p>
       </div>
       <div className="flex gap-2">
         <Button size="sm" variant="outline" onClick={() => void recheckAll()}>Re-check all now</Button>
       </div>
     </div>
 
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-      {([["Live links", metrics.live], ["Earning", metrics.earning], ["No programme", metrics.external], ["Cannot check", metrics.unverifiable], ["Broken", metrics.broken]] as [string, number][]).map(([label, value]) => (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+      {([["Live links", metrics.live], ["Earning", metrics.earning], ["No programme", metrics.external], ["Cannot check", metrics.unverifiable], ["Broken", metrics.broken], ["Not in description", metrics.missing]] as [string, number][]).map(([label, value]) => (
         <div className="rounded-lg border border-border bg-card px-3 py-2" key={label}>
           <div className="text-xs text-muted-foreground">{label}</div>
           <div className="text-lg font-semibold tabular-nums">{value}</div>
@@ -255,9 +262,11 @@ export function TrackingLinks() {
         <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/30 px-3 py-2">
           <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">{group[0].video_code}</code>
           <span className="font-medium">{group[0].video_title || "Untitled video"}</span>
-          <span className="text-xs text-muted-foreground">
-            {group.length} links · {group.reduce((n, l) => n + l.clicks, 0)} clicks
-          </span>
+          <span className="text-xs text-muted-foreground">{group.length} links</span>
+          {group[0].yt_video_id && (
+            <a className="ml-auto text-xs underline text-muted-foreground hover:text-foreground" target="_blank" rel="noreferrer"
+              href={`https://studio.youtube.com/video/${group[0].yt_video_id}/edit`}>Edit description</a>
+          )}
         </div>
         <table className="w-full min-w-[760px] text-sm">
           <thead className="text-left">
@@ -278,13 +287,13 @@ export function TrackingLinks() {
           <tbody className="divide-y divide-border">
             {group.map((l) => (
               <tr key={l.slug} className={
-                bad.has(l.last_status ?? "") ? "bg-destructive/5"
+                bad.has(l.last_status ?? "") || l.in_description === "missing" ? "bg-destructive/5"
                   : l.last_status === "unverifiable" ? "bg-warning/10" : ""}>
                 <td className="px-3 py-3 font-mono text-xs">/{l.slug}</td>
                 <td className="px-3 py-3">{l.tool}</td>
                 <td className="px-3 py-3 capitalize">{l.kind ?? "—"}</td>
                 <td className="max-w-60 px-3 py-3 break-all text-xs">{landsOn(l)}</td>
-                <td className="px-3 py-3 text-right tabular-nums">{l.clicks}</td>
+                <td className={cn("px-3 py-3 text-xs", l.in_description === "missing" ? "font-medium text-destructive" : "text-muted-foreground")}>{DESC_LABEL[l.in_description]}</td>
                 <td className="px-3 py-3 text-xs text-muted-foreground">{checkedLabel(l)}</td>
                 <td className="px-3 py-3">
                   <Button size="xs" variant="outline"
@@ -301,7 +310,7 @@ export function TrackingLinks() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit destination</DialogTitle>
-          <DialogDescription>Change where /{editing?.slug} redirects. This does not alter its click count.</DialogDescription>
+          <DialogDescription>Change where /{editing?.slug} redirects. Its past clicks are kept.</DialogDescription>
         </DialogHeader>
         {!confirming ? <>
           <input aria-label="New destination" className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"

@@ -63,6 +63,7 @@ import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
 import { sendNotification } from "./notifications";
 import { structuralIssues, buildReport, type GuardIssue } from "./linkguard";
+import { descriptionIssues, fetchDescriptions, type DescVideo } from "./descguard";
 import { probeAll, type ProbeOne } from "./linkprobe";
 import { sendTelegram } from "./notify-telegram";
 import { syncYouTubeId } from "./ytsync";
@@ -196,8 +197,20 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 type CheckKind = "structural" | "chain" | "manual";
 interface CheckRow { ran_at: number; kind: CheckKind; checked: number; ok_count: number; issue_count: number; unverifiable: number; issues_json: string; notified: number; }
-async function recordLinkCheck(env: Env, kind: CheckKind, checked: number, issues: GuardIssue[], unverifiable: number, notified: boolean): Promise<void> {
-  await env.TRACKER_DB.prepare("INSERT INTO link_checks (ran_at, kind, checked, ok_count, issue_count, unverifiable, issues_json, notified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(Math.floor(Date.now() / 1000), kind, checked, Math.max(0, checked - issues.length), issues.length, unverifiable, JSON.stringify(issues), notified ? 1 : 0).run();
+async function recordLinkCheck(env: Env, kind: CheckKind, checked: number, issues: GuardIssue[], unverifiable: number, notified: boolean, descChecked: string[] | null = null): Promise<void> {
+  await env.TRACKER_DB.prepare("INSERT INTO link_checks (ran_at, kind, checked, ok_count, issue_count, unverifiable, issues_json, notified, desc_checked_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(Math.floor(Date.now() / 1000), kind, checked, Math.max(0, checked - issues.length), issues.length, unverifiable, JSON.stringify(issues), notified ? 1 : 0, descChecked ? JSON.stringify(descChecked) : null).run();
+}
+/** Description issues plus the video codes whose description was actually read. */
+async function runDescriptionCheck(env: Env, links: { slug: string; video_code: string; tool: string }[], videoRows: { video_code: string; yt_video_id: string | null }[], programs: { slug: string; kind: string; target_url: string }[]): Promise<{ issues: GuardIssue[]; checked: string[] }> {
+  if (!env.YT_API_KEY) return { issues: [{ code: "desc_check_unavailable", slug: "youtube", detail: "YT_API_KEY is not set, so YouTube descriptions were not checked." }], checked: [] };
+  const mapped = videoRows.filter((v): v is { video_code: string; yt_video_id: string } => !!v.yt_video_id);
+  let fetched: Map<string, { title: string; description: string }>;
+  try { fetched = await fetchDescriptions(mapped.map((v) => v.yt_video_id), env.YT_API_KEY); }
+  catch (err) { return { issues: [{ code: "desc_check_unavailable", slug: "youtube", detail: `YouTube descriptions could not be read (${err instanceof Error ? err.message : "unknown error"}).` }], checked: [] }; }
+  // A private or deleted video is missing from the response; it is skipped, not flagged.
+  const videos: DescVideo[] = mapped.flatMap((v) => { const yt = fetched.get(v.yt_video_id); return yt ? [{ video_code: v.video_code, yt_video_id: v.yt_video_id, ...yt }] : []; });
+  const linkDomains = [...new Set(listChannels().map((ch) => ch.link_domain))];
+  return { issues: descriptionIssues({ videos, links, programs, linkDomains }), checked: videos.map((v) => v.video_code) };
 }
 async function runStructural(env: Env, kind: CheckKind = "structural"): Promise<GuardIssue[]> {
   const [programs, links, videoRows, clickRows] = await Promise.all([
@@ -213,9 +226,10 @@ async function runStructural(env: Env, kind: CheckKind = "structural"): Promise<
   await Promise.all(links.map(async (link) => { const value = await env.CLICKS_KV.get(link.slug); if (value !== null) kv[link.slug] = value; }));
   const videos = Object.fromEntries(videoRows.results.map((row) => [row.video_code, row.yt_video_id]));
   const clicks = Object.fromEntries((clickRows.results ?? []).map((row) => [row.video_code, row.clicks]));
-  const issues = structuralIssues({ programs, links, kv, videos, clicks }); const report = buildReport(issues, 0, programs.length, false);
+  const desc = await runDescriptionCheck(env, links, videoRows.results ?? [], programs);
+  const issues = [...structuralIssues({ programs, links, kv, videos, clicks }), ...desc.issues]; const report = buildReport(issues, 0, programs.length, false);
   const notified = report ? await sendTelegram(env, report) : false;
-  await recordLinkCheck(env, kind, programs.length, issues, 0, notified); return issues;
+  await recordLinkCheck(env, kind, programs.length, issues, 0, notified, desc.checked); return issues;
 }
 async function runChainProbe(env: Env, onlySlug?: string, kind: CheckKind = "chain"): Promise<GuardIssue[]> {
   const programs = await listPrograms(env.TRACKER_DB);
@@ -1277,13 +1291,19 @@ app.post("/api/link-health/recheck", async (c) => {
 app.get("/api/links", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  const [links, counts, rows, programs, dbTitles] = await Promise.all([
+  const [links, rows, programs, dbTitles, videoRows, descRun] = await Promise.all([
     clickstore.allLinks(c.env.DB),
-    clickstore.clickCounts(c.env.DB),
     cachedReadRows(c.env),
     listPrograms(c.env.TRACKER_DB),
     clickstore.videoTitles(c.env.DB),
+    c.env.DB.prepare("SELECT video_code, yt_video_id FROM videos").all<{ video_code: string; yt_video_id: string | null }>(),
+    c.env.TRACKER_DB.prepare("SELECT issues_json, desc_checked_json FROM link_checks WHERE desc_checked_json IS NOT NULL ORDER BY ran_at DESC LIMIT 1").first<{ issues_json: string; desc_checked_json: string }>(),
   ]);
+  const ytByCode = new Map((videoRows.results ?? []).map((v) => [v.video_code, v.yt_video_id]));
+  const descChecked = new Set<string>(descRun ? JSON.parse(descRun.desc_checked_json) : []);
+  const descMissing = new Set<string>(descRun ? (JSON.parse(descRun.issues_json) as GuardIssue[]).filter((i) => i.code === "desc_missing_link").map((i) => i.slug) : []);
+  const inDescription = (slug: string, code: string): "yes" | "missing" | "unpublished" | "unchecked" =>
+    !ytByCode.get(code) ? "unpublished" : !descChecked.has(code) ? "unchecked" : descMissing.has(slug) ? "missing" : "yes";
   // The videos table is the base layer — it has a title for every code. A tracker
   // card, when one exists, wins because its title is the one being edited. Only 2
   // of 76 cards carry a video_code, so without the base layer 85 of 87 groups
@@ -1299,7 +1319,8 @@ app.get("/api/links", async (c) => {
   return c.json({
     links: links.map((l) => ({
       ...l,
-      clicks: counts[l.slug] ?? 0,
+      in_description: inDescription(l.slug, l.video_code),
+      yt_video_id: ytByCode.get(l.video_code) ?? null,
       video_title: titleByCode[l.video_code] ?? "",
       last_status: bySlug[l.tool]?.last_status ?? null,
       last_final_url: bySlug[l.tool]?.last_final_url ?? null,

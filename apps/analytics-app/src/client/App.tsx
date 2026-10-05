@@ -144,7 +144,6 @@ export function App() {
     const list = videos ?? [];
     return {
       videos: list.length,
-      links: list.reduce((n, v) => n + v.links.length, 0),
       views: list.reduce((n, v) => n + (v.views ?? 0), 0),
       clicks30: list.reduce((n, v) => n + v.total_30d, 0),
       clicksAll: list.reduce((n, v) => n + v.total_all, 0),
@@ -243,7 +242,6 @@ export function App() {
           <section className="summary">
             <Stat label="Videos" value={totals.videos} />
             <Stat label="Views" value={totals.views} />
-            <Stat label="Links" value={totals.links} />
             <Stat label="Clicks · 30d" value={totals.clicks30} accent />
             <Stat label="Clicks · all-time" value={totals.clicksAll} accent />
           </section>
@@ -292,6 +290,15 @@ export function App() {
             {shown.map((v) => (
               <VideoCard key={v.yt_video_id} video={v} />
             ))}
+
+            {videos && videos.length > 0 && (
+              <p className="list-foot">
+                To check or fix where a link goes, use{" "}
+                <a href="https://tutorials-tracker.agrolloo.com" target="_blank" rel="noreferrer">
+                  Tutorials Tracker → Links
+                </a>.
+              </p>
+            )}
 
             {unmatched.length > 0 && (
               <section className="unmatched">
@@ -386,8 +393,8 @@ function compact(n: number): string {
   return n.toLocaleString();
 }
 
-// Dense, always-expanded card: title + live views + totals, with every link
-// rendered inline as its own row — no click-to-expand.
+// One row per video: views and click totals. Per-link counts sit behind a toggle;
+// link setup lives in Tutorials Tracker.
 function VideoCard({ video }: { video: VideoStat }) {
   const watchUrl = video.yt_video_id
     ? `https://www.youtube.com/watch?v=${video.yt_video_id}`
@@ -424,11 +431,16 @@ function VideoCard({ video }: { video: VideoStat }) {
             : "No tracker video is mapped to this upload, so any links it has are not counted here."}
         </div>
       ) : (
-        <div className="vcard-links">
-          {video.links.map((l) => (
-            <LinkLine key={l.slug} link={l} />
-          ))}
-        </div>
+        <details className="vcard-more">
+          <summary>
+            {video.links.length} {video.links.length === 1 ? "link" : "links"}
+          </summary>
+          <div className="vcard-links">
+            {video.links.map((l) => (
+              <LinkLine key={l.slug} link={l} />
+            ))}
+          </div>
+        </details>
       )}
     </article>
   );

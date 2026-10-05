@@ -123,9 +123,9 @@ sheet is retired and `import-from-sheet` is a one-way legacy path.
 | View | Owns | Source of truth |
 |---|---|---|
 | **Programs** | The affiliate/external catalogue: destination, affiliate code, coupon, approval, dashboard + credentials, notes | `tracker-db.programs` |
-| **Tracking links** | Every live `go.agrolloo.com/<code>/<tool>` grouped by video, with clicks | `clicks-db.links` + `clicks` |
+| **Tracking links** | Every live `go.agrolloo.com/<code>/<tool>` grouped by video: destination, type, check state, and whether it is in the video's live YouTube description. **No click counts here**: clicks and views belong to yt-analytics, so the two pages never overlap (2026-10-05) | `clicks-db.links` + latest `link_checks` |
 | **Mint links** | Creating new short links for a video | writes `links` + `CLICKS_KV` |
-| **Health** | What the daily guard found | `tracker-db.link_checks` |
+| **Health** | What the daily guard found, including YouTube descriptions that do not match the minted links | `tracker-db.link_checks` |
 
 ### Invariants — breaking these produces silent wrongness, not errors
 
@@ -147,6 +147,16 @@ sheet is retired and `import-from-sheet` is a one-way legacy path.
   dropped four whole issue classes.
 - **`unmapped_video` requires a recorded click.** Minting happens while a video
   is still being made, so "has links, no YouTube id" also describes every draft.
+
+### YouTube description check (2026-10-05)
+
+The daily structural run also reads every mapped video's live description (`src/worker/descguard.ts`,
+YouTube `videos.list`, 1 quota unit per 50 videos, secret `YT_API_KEY`). Codes: `desc_unknown_link`
+(a short link that was never minted; counted as costing money), `desc_wrong_video`, `desc_missing_link`,
+`desc_raw_link` (a raw affiliate-tool URL instead of a short link), `desc_check_unavailable`.
+`link_checks.desc_checked_json` lists the video codes actually read, so Tracking links can tell
+"missing" from "not checked". Re-minting an existing link upgrades it from external to affiliate
+once its programme is approved; it never downgrades.
 
 ### Affiliate-code detection lives in `src/worker/linkhealth.ts`
 
