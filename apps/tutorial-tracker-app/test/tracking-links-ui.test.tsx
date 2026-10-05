@@ -20,7 +20,7 @@ describe("TrackingLinks", () => {
     expect(screen.getByText("/new-video/cursor")).toBeTruthy();
     expect(screen.getAllByText("missing").some((n) => n.className.includes("text-destructive"))).toBe(true);
     expect(screen.getByText("not published")).toBeTruthy();
-    expect(screen.getByText("Edit description").getAttribute("href")).toBe("https://studio.youtube.com/video/abcdefghijk/edit");
+    expect(screen.getByText("Edit description").closest("a")?.getAttribute("href")).toBe("https://studio.youtube.com/video/abcdefghijk/edit");
   });
   it("tints no_credit and labels an external row", async () => {
     mockLinks(); render(<TrackingLinks />); const lost = await screen.findByText("lost code");
