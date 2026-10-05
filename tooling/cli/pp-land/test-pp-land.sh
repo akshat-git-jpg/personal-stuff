@@ -433,4 +433,34 @@ grep -q "^reason=deploy-live-conflict$" "$blocked8" \
 [ -d "$ws8" ] || fail "a conflicting land removed the workspace"
 note "recorded as deploy-live-conflict and left alone"
 
+# ===========================================================================
+echo "9. a land runs only its own suites, not ones for what main gained since"
+# ===========================================================================
+cat > "$SANDBOX/slow.sh" <<SLOW
+#!/usr/bin/env bash
+echo ran >> "$SANDBOX/slow-count"
+SLOW
+: > "$SANDBOX/slow-count"
+printf 'slow/\tbash %s\n' "$SANDBOX/slow.sh" >> "$SANDBOX/verify-map.tsv"
+
+ws9=$(claim own-suites) || fail "pp-work claim failed"
+
+# main gains a slow/ change AFTER the workspace forked.
+git -C "$MAIN" fetch -q origin main >/dev/null 2>&1 || true
+git -C "$MAIN" merge -q --ff-only origin/main >/dev/null 2>&1 || true
+mkdir -p "$MAIN/slow"
+echo "slow" > "$MAIN/slow/a.txt"
+git -C "$MAIN" add -A >/dev/null
+tmo git -C "$MAIN" commit -q -m "main edits slow" || fail "commit on main failed"
+tmo "$PPPUSH" --repo "$MAIN" origin main >/dev/null 2>&1 || fail "pp-push of the slow change failed"
+
+commit_in "$ws9" "src/nine.txt" "nine" "workspace edits src only" >/dev/null 2>&1 || fail "commit failed"
+wait_mutex_appear || fail "the commit never started a land"
+wait_land_done || fail "the land never finished"
+
+origin_has "src/nine.txt" || fail "the src-only land did not reach origin/main"
+[ ! -s "$SANDBOX/slow-count" ] \
+  || fail "a src-only land ran the slow/ suite because main had changed slow/ since the fork"
+note "only the branch's own suite ran"
+
 echo "ALL TESTS PASSED"

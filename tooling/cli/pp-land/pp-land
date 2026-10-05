@@ -210,7 +210,8 @@ provision_landing_tree() {
 matched_verify_cmds() {
   local ref="$1" changed prefix cmd
   [ -f "$VERIFY_MAP" ] || return 0
-  changed=$(git -C "$MAIN" diff --name-only "origin/main..$ref" 2>/dev/null)
+  # Three dots: only the branch's own changes, not what main gained since it forked.
+  changed=$(git -C "$MAIN" diff --name-only "origin/main...$ref" 2>/dev/null)
   [ -n "$changed" ] || return 0
   while IFS="$(printf '\t')" read -r prefix cmd; do
     [ -n "${prefix:-}" ] || continue
