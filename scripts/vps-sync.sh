@@ -12,6 +12,9 @@
 #
 set -euo pipefail
 
+# One pull at a time on the VPS: same-minute pulls race on FETCH_HEAD ("Cannot fast-forward to multiple branches").
+locked() { if command -v flock >/dev/null; then flock -w 60 /tmp/personal-stuff-pull.lock "$@"; else "$@"; fi; }
+
 # Acquire file lock to prevent overlapping cron executions
 exec 9>/tmp/vps-sync.lock
 flock -n 9 || { echo "another run in progress"; exit 0; }
@@ -22,7 +25,7 @@ echo "repo:   $REPO"
 
 # 1) pull latest code (soft-fail: keep working with the existing checkout)
 if [ -d "$REPO/.git" ]; then
-  if git -C "$REPO" pull --quiet; then
+  if locked git -C "$REPO" pull --quiet; then
     echo "git pull: ok"
     rm -f /tmp/vps-sync-pull-failed
   else

@@ -54,6 +54,8 @@ export type Env = {
   /** YouTube Data API key; reads published descriptions for the link guard. */
   YT_API_KEY?: string;
   TELEGRAM_CHAT_ID?: string;
+  /** Forum topic id in the KB Alerts group (links topic). */
+  TELEGRAM_THREAD_ID?: string;
 };
 
 export type Variables = {

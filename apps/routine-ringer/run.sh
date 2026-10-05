@@ -4,10 +4,13 @@
 # key) and the venv lives at ./.venv next to this script.
 set -euo pipefail
 
+# One pull at a time on the VPS: same-minute pulls race on FETCH_HEAD ("Cannot fast-forward to multiple branches").
+locked() { if command -v flock >/dev/null; then flock -w 60 /tmp/personal-stuff-pull.lock "$@"; else "$@"; fi; }
+
 cd "$(dirname "$0")"
 
 # Keep the checkout current so calendar-filter tweaks land without a manual
 # redeploy. Silent on success; noisy on failure so cron mail flags it.
-git -C /srv/projects/personal-stuff pull --quiet --ff-only origin main || true
+locked git -C /srv/projects/personal-stuff pull --quiet --ff-only origin main || true
 
 exec .venv/bin/python ring.py

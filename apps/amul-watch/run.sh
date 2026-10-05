@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# One pull at a time on the VPS: same-minute pulls race on FETCH_HEAD ("Cannot fast-forward to multiple branches").
+locked() { if command -v flock >/dev/null; then flock -w 60 /tmp/personal-stuff-pull.lock "$@"; else "$@"; fi; }
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
@@ -8,6 +11,6 @@ cd "$REPO_ROOT"
 # missed stock check is worse than running one commit behind. Seen in prod
 # 2026-08-18: a duplicated origin/main ref ("cannot lock ref") killed the run
 # under set -e before watch.py ever started.
-git pull --ff-only --quiet || echo "WARN: git pull failed; polling with the code already on disk" >&2
+locked git pull --ff-only --quiet || echo "WARN: git pull failed; polling with the code already on disk" >&2
 
 exec python3 apps/amul-watch/watch.py --once
