@@ -763,9 +763,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         // by whatever that segment's duration was (best-no-code-automation-tool,
         // 2026-08-24: 0-byte tail segment, final video 2.34s short of the
         // audio). -0.5 gives real margin into a decodable frame.
-        // Hold ONE still: playing that 0.5s replayed the avatar's last motion (owner 2026-10-05).
-        const still = path.join(tmpDir, `${seg.id}-last.png`);
-        const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-sseof', '-0.5', '-i', src, '-update', '1', still], { encoding: 'utf8' });
+        // The tail after the last word is plain black: a held avatar frame froze her mid-blink (owner 2026-10-05).
+        const still = path.join(tmpDir, `${seg.id}-black.png`);
+        const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', `color=c=black:s=${CANVAS.w}x${CANVAS.h}`, '-frames:v', '1', still], { encoding: 'utf8' });
         if (r.status === 0 && fs.existsSync(still)) { src = still; seekArgs = []; }
         else seekArgs = ['-sseof', '-0.5'];
       }
