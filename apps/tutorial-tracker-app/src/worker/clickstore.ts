@@ -12,12 +12,21 @@ export async function existingCodes(db: D1Database): Promise<Set<string>> {
   return new Set((results ?? []).map((r) => r.video_code));
 }
 
-export async function existingSlugs(db: D1Database, videoCode: string): Promise<Set<string>> {
+export async function existingLinks(db: D1Database, videoCode: string): Promise<Map<string, { kind: string | null; target_url: string }>> {
   const { results } = await db
-    .prepare("SELECT slug FROM links WHERE video_code = ?")
+    .prepare("SELECT slug, kind, target_url FROM links WHERE video_code = ?")
     .bind(videoCode)
-    .all<{ slug: string }>();
-  return new Set((results ?? []).map((r) => r.slug));
+    .all<{ slug: string; kind: string | null; target_url: string }>();
+  return new Map((results ?? []).map((r) => [r.slug, { kind: r.kind, target_url: r.target_url }]));
+}
+
+/** What a re-mint does to one link: an old non-affiliate link is upgraded once its programme has an affiliate URL. */
+export function mintAction(
+  existing: { kind: string | null } | undefined,
+  status: "affiliate" | "external",
+): "insert" | "upgrade" | "skip" {
+  if (!existing) return "insert";
+  return status === "affiliate" && existing.kind !== "affiliate" ? "upgrade" : "skip";
 }
 
 /**
@@ -51,8 +60,9 @@ export async function linksForVideo(db: D1Database, videoCode: string): Promise<
   return (results ?? []) as { slug: string; tool: string; target_url: string }[];
 }
 
-export async function updateLinkTarget(db: D1Database, slug: string, targetUrl: string): Promise<void> {
-  await db.prepare("UPDATE links SET target_url = ? WHERE slug = ?").bind(targetUrl, slug).run();
+export async function updateLinkTarget(db: D1Database, slug: string, targetUrl: string, kind?: "affiliate" | "external"): Promise<void> {
+  if (kind) await db.prepare("UPDATE links SET target_url = ?, kind = ? WHERE slug = ?").bind(targetUrl, kind, slug).run();
+  else await db.prepare("UPDATE links SET target_url = ? WHERE slug = ?").bind(targetUrl, slug).run();
 }
 
 /** Click totals per slug. READ ONLY: redirector owns writes to clicks. */

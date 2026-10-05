@@ -1200,13 +1200,14 @@ app.post("/api/link-confirm", async (c) => {
   const description = renderDescription(title, finalItems);
   validateDescription(description, finalItems, linkDomain);
 
-  const existing = await clickstore.existingSlugs(db, finalVideoCode);
+  const existing = await clickstore.existingLinks(db, finalVideoCode);
   for (const i of finalItems.filter(x => x.status !== "blocked")) {
     const fullSlug = `${finalVideoCode}/${i.slug}`;
-    if (!existing.has(fullSlug)) {
-      await clickstore.insertLink(db, fullSlug, finalVideoCode, i.slug, i.target_url, i.status === "affiliate" ? "affiliate" : "external");
-      await c.env.CLICKS_KV.put(fullSlug, i.target_url);
-    }
+    const kind = i.status === "affiliate" ? "affiliate" : "external";
+    const action = clickstore.mintAction(existing.get(fullSlug), kind);
+    if (action === "insert") await clickstore.insertLink(db, fullSlug, finalVideoCode, i.slug, i.target_url, kind);
+    else if (action === "upgrade") await clickstore.updateLinkTarget(db, fullSlug, i.target_url, "affiliate");
+    if (action !== "skip") await c.env.CLICKS_KV.put(fullSlug, i.target_url);
   }
 
   const actualItems: [string, string, boolean][] = finalItems
@@ -1448,7 +1449,9 @@ app.post("/api/link-resync", async (c) => {
     return c.json({ error: "conflict", message: "The new destination is not a usable URL." }, 409);
   }
   const url = norm.url;
-  await clickstore.updateLinkTarget(db, slug, url);
+  // Landing on the approved catalogue URL makes the link an affiliate link.
+  const catalogUrl = rec?.isApproved ? normalizeTargetUrl(rec.targetUrl)?.url : undefined;
+  await clickstore.updateLinkTarget(db, slug, url, catalogUrl === url ? "affiliate" : undefined);
   await c.env.CLICKS_KV.put(slug, url);
 
   return c.json({ ok: true, slug, target_url: url, warnings: creditWarnings(url, "affiliate", norm.repaired) });
