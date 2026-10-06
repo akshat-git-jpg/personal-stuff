@@ -154,7 +154,7 @@ has the sequence). What must move by hand:
 3. `~/.ssh/` (hostinger_vps key + GitHub keys) and `~/.zshrc` (claude-work/claude-personal
    functions, git-identity rule, `ccu-dash` alias — see `scripts/README.md` external deps).
 4. `~/.agents/skills/` (the agents-sourced pp-* skills) and `~/go/bin/` (printing-press
-   CLIs — or regenerate via the printing-press-catalog skill).
+   CLIs — or regenerate via `/printing-press-reprint`).
 5. `~/kb-scratch/` (heavy artifacts: whisper models, work dirs) — optional, re-downloadable.
 6. After copying: `./scripts/relink.sh` (symlinks store absolute paths),
    `./scripts/regen-mcp-json.sh`, restart sessions, then `./scripts/skills-status.sh` and
@@ -179,7 +179,7 @@ holds only caches and credentials, never the sole copy of knowledge.
 |---|---|---|---|
 | 1. Repo-operating | how to work in one repo | `<repo>/.claude/skills/`, committed to THAT repo | any account that opens the repo gets them free; survives laptop moves via git. personal-stuff now has 15; apply the same pattern to work repos (commit there — team benefits too) |
 | 2. Cross-repo reusable | humanizer, commit-now, github-router… | `personal-stuff/tooling/claude-skills/` + manifests + `relink.sh` — **keep, but slim it** (scope rule below) | splitting the store would reintroduce the multi-source drift this system was built to kill. Rule: skill bodies carry process + pointers, never Zluri-confidential content (they live in a personal repo). Second rule (2026-08-23): a **personal-finance** skill never goes in this tier — `pp-impact` and `pp-paypal-txns` moved to tier 1, because a manifest entry scopes by ACCOUNT and would load them into every ZluriHQ work session |
-| 3. Generated/vendored | `~/.agents/skills` pp-* CLIs' skills, `~/go/bin` binaries | machine-local; NOT in git | include in the escrow archive + record the regen path (printing-press-catalog). Don't git them — they're regenerable artifacts |
+| 3. Generated/vendored | `~/.agents/skills` pp-* CLIs' skills, `~/go/bin` binaries | machine-local; NOT in git | include in the escrow archive + record the regen path (`/printing-press-reprint`). Don't git them — they're regenerable artifacts |
 | 4. Plugins | superpowers, gsap, etc. | per-account plugin cache | record the install list in the dotfiles repo (below); reinstall on a new machine |
 
 ### The scope decision rule (which tier does a skill belong to?)
