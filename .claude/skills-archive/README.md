@@ -15,6 +15,7 @@ then re-run `scripts/relink.sh`.
 | 2026-08-25 | `valyu-best-practices` | paid search API, never called, no repo code uses it | 0 |
 | 2026-10-06 | `worktree-tracker` | promoted to the private `work-skills` plugin; this copy is the pre-promotion snapshot | n/a |
 | 2026-10-06 | `personal-stuff-repo-map` | merged into `personal-stuff-architecture-contract` (one placement table) | n/a |
+| 2026-10-06 | `printing-press-catalog` | removed upstream 2026-06-29; local copy already `deprecated: true` | n/a |
 
 ## Retired but NOT archived — promoted instead
 

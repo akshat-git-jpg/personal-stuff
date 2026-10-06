@@ -7,7 +7,7 @@ against what the press already generates, and separates the remaining gaps
 into two buckets: fix here (skill-lever, applied as a post-generation patch
 during phase 2 and polish) vs. fix upstream (template-level, needs a change
 in `github.com/mvanhorn/cli-printing-press`; see
-`docs/press-axi-upstream-issue.md`).
+`docs/press-axi-upstream-issue.md` at the personal-stuff repo root).
 
 ## The 10 principles (one line each)
 

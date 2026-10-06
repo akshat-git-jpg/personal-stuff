@@ -1,26 +1,32 @@
-## Phase 1.9: API Reachability Gate
+## 09-api-reachability-gate (Phase 1.9: API Reachability Gate)
 
-**MANDATORY. Do NOT skip this phase. Do NOT proceed to Phase 2 without running this check.**
+**Receipt entry (required):**
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt enter --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "09-api-reachability-gate"
+```
+
+**MANDATORY. Do NOT skip this phase. Do NOT proceed to [Phase 2](10-generate.md) without running this check.**
 
 Before spending tokens on generation, verify the API actually responds to programmatic requests. One real HTTP call. If it fails, STOP.
 
-**Exception for browser-clearance/browser-sniffed website CLIs:** If Phase 1.7 produced a successful browser capture and `$DISCOVERY_DIR/traffic-analysis.json` reports `reachability.mode` as `browser_clearance_http` or `browser_http`, a plain `curl` 403/429 is expected evidence, not a hard stop. In that case the reachability gate passes only if:
+**Exception for browser-clearance/browser-sniffed website CLIs:** If [Phase 1.7](06-browser-sniff-gate.md) produced a successful browser capture and `$DISCOVERY_DIR/traffic-analysis.json` reports `reachability.mode` as `browser_clearance_http` or `browser_http`, a plain `curl` 403/429 is expected evidence, not a hard stop. In that case the reachability gate passes only if:
 - the browser-sniff capture contains useful non-challenge traffic (real API, SSR data, structured HTML, RSS/feed data, or page-context fetch evidence), and
-- Phase 2 will pass `--traffic-analysis "$DISCOVERY_DIR/traffic-analysis.json"` so the generator can emit browser-compatible HTTP transport and, for `browser_clearance_http`, Chrome cookie import.
+- [Phase 2](10-generate.md) will pass `--traffic-analysis "$DISCOVERY_DIR/traffic-analysis.json"` so the generator can emit browser-compatible HTTP transport and, for `browser_clearance_http`, Chrome cookie import.
 
-Do not treat a persistent browser sidecar as a shippable CLI runtime. Browsers are allowed for Printing Press discovery and reusable auth/clearance capture; ordinary printed CLI commands must replay through direct HTTP, Surf/browser-compatible HTTP, or stored reusable auth state. If traffic analysis reports `browser_required`, return to discovery to find a replayable HTTP/HTML/RSS/SSR surface or HOLD the run.
+Do not treat a persistent browser sidecar as a shippable CLI runtime. Browsers are allowed for Printing Press discovery and reusable auth/clearance capture; ordinary printed CLI commands must replay through direct HTTP, Chrome-compatible HTTP, or stored reusable auth state. If traffic analysis reports `browser_required`, return to discovery to find a replayable HTTP/HTML/RSS/SSR surface or HOLD the run.
 
-Useful same-site HTML document pages count as a replayable surface when they return real content, not challenge/login pages. Browser-sniff can promote these into `response_format: html` endpoints so generated commands extract page metadata and filtered links through Surf/direct HTTP instead of keeping a browser sidecar alive.
+Useful same-site HTML document pages count as a replayable surface when they return real content, not challenge/login pages. Browser-sniff can promote these into `response_format: html` endpoints so generated commands extract page metadata and filtered links through Chrome-compatible or direct HTTP instead of keeping a browser sidecar alive.
 
 When hand-authoring a `response_format: html` spec with `html_extract.mode: links`,
 document and choose `link_prefixes` as path-segment prefixes. A prefix `/items`
 matches `/items` and `/items/...`, but not `/items123.html`; use the parent
 directory prefix when the leaf segment has embedded IDs or suffixes. See
-`skills/printing-press/references/spec-format.md` for the exact contract.
+[`../references/spec-format.md`](../references/spec-format.md) for the exact contract.
 
 If the browser capture contained only challenge/login/error pages, this exception does not apply.
 
-**Exception for LAN-only / mDNS-discovered APIs:** If the resolved spec's `base_url` is a localhost or loopback placeholder (`http://localhost:<port>`, `http://127.0.0.1:<port>`, or `http://[::1]:<port>`), or Phase 1 research explicitly identifies the API as LAN-only / SSDP / mDNS-discovered with no stable global origin, do not run the generic curl/WebFetch reachability probe. A probe from the generation host would test the agent's loopback or current network, not the user's appliance, speaker, bridge, or local service.
+**Exception for LAN-only / mDNS-discovered APIs:** If the resolved spec's `base_url` is a localhost or loopback placeholder (`http://localhost:<port>`, `http://127.0.0.1:<port>`, or `http://[::1]:<port>`), or [Phase 1](04-research-brief.md) research explicitly identifies the API as LAN-only / SSDP / mDNS-discovered with no stable global origin, do not run the generic curl/WebFetch reachability probe. A probe from the generation host would test the agent's loopback or current network, not the user's appliance, speaker, bridge, or local service.
 
 For this case, record a Phase 1.9 PASS carve-out in the research brief:
 
@@ -31,7 +37,7 @@ For this case, record a Phase 1.9 PASS carve-out in the research brief:
 - Evidence: <base_url or research line showing localhost, loopback, SSDP, mDNS, or LAN-only discovery>
 ```
 
-Then proceed to Phase 2. Do not write a freeform manual proof for this case, do not call it a missing-API-key skip, and do not use this carve-out for normal public/cloud origins such as `https://api.example.com`; those still run the reachability probe and decision matrix below.
+Then proceed to [Phase 2](10-generate.md). Do not write a freeform manual proof for this case, do not call it a missing-API-key skip, and do not use this carve-out for normal public/cloud origins such as `https://api.example.com`; those still run the reachability probe and decision matrix below.
 
 ### The Check
 
@@ -56,7 +62,7 @@ If `status` is any 4xx, inspect the body before deciding. Search it case-insensi
 grep -Ei 'tier|allowed|permitted|subscription|quota|plan|scope|limit|permission|forbidden|unauthorized|upgrade|trial' "$body_file" | head -20
 ```
 
-When matched lines are present, add them to the Phase 1 research brief under:
+When matched lines are present, add them to the [Phase 1](04-research-brief.md) research brief under:
 
 ```markdown
 ## Reachability Risk
@@ -71,11 +77,13 @@ If one or more probe-safe endpoints are declared and the user provided credentia
 
 ### OAuth2 Grant Probe
 
+For OAuth2 Authorization Code + PKCE CLI implementation/review requirements, read [references/oauth2-pkce-cli-checklist.md](../references/oauth2-pkce-cli-checklist.md).
+
 If the resolved spec declares `auth.type: oauth2` and has an interactive
 authorization URL (`authorizationCode` or `implicit` flow in OpenAPI, or an
 equivalent internal YAML auth field), the generic reachability check is not
 enough. After the base URL check would otherwise pass, verify the OAuth grant
-entry point with the user's real public OAuth input before Phase 2. This probe
+entry point with the user's real public OAuth input before [Phase 2](10-generate.md). This probe
 is read-only: it stops at the provider's consent, login, or error page and does
 not exchange a code, request a token, or ask the user to approve consent.
 
@@ -86,7 +94,7 @@ attempt. The base reachability check plus later mock/live auth verification cove
 that shape.
 
 **Required inputs:** Use the `client_id` env var or public auth-flow input
-already resolved during Phase 0.5 and Pre-Generation Auth Enrichment. If the
+already resolved during [Phase 0.5](03-resolve-and-reuse.md) and Pre-Generation Auth Enrichment. If the
 spec exposes `x-auth-vars`, prefer the entry with `kind: auth_flow_input`,
 `sensitive: false`, and a name or description identifying it as the OAuth
 `client_id`. If the real client id is missing, HOLD before generation and tell
@@ -126,11 +134,11 @@ printf "%s\n" "$PROBE_BODY" | head -c 8000
 printf "\n"
 ```
 
-Interpret the result before Phase 2:
+Interpret the result before [Phase 2](10-generate.md):
 
 | OAuth probe result | Action |
 |--------------------|--------|
-| HTTP status is `2xx` or `3xx`, final URL stays on the provider's authorization/login/consent host, does not include `error=`, and the response body does not contain an OAuth error code (`invalid_request`, `invalid_client`, `unauthorized_client`, etc.) | **PASS** - the grant entry point is reachable; proceed to Phase 2 |
+| HTTP status is `2xx` or `3xx`, final URL stays on the provider's authorization/login/consent host, does not include `error=`, and the response body does not contain an OAuth error code (`invalid_request`, `invalid_client`, `unauthorized_client`, etc.) | **PASS** - the grant entry point is reachable; proceed to [Phase 2](10-generate.md) |
 | Final URL or response body reports `invalid_request`, `invalid_client`, `redirect_uri_mismatch`, `unauthorized_client`, `unsupported_response_type`, or equivalent | **HARD STOP** - OAuth config is misconfigured; surface the provider error and point the user to the mismatched client id, redirect URI, app type, tenant, or required scope |
 | HTTP status is `4xx` or `5xx` without a recognizable OAuth error code | **WARN** - flag provider-specific routing or login-shell behavior for manual review before generation |
 | Final URL lands on a generic non-OAuth error page, marketing page, or unrelated login landing page | **WARN** - flag endpoint ambiguity or provider-specific routing for manual review before generation |
@@ -147,28 +155,34 @@ This OAuth probe is additive to the base reachability gate. Non-OAuth APIs
 (`api_key`, `bearer_token`, `cookie`, `composed`, `session_handshake`, `none`)
 skip it entirely.
 
-**If the check returns 403/429 with bot-protection evidence and `probe-reachability` has not already run for this URL during Phase 1.7's Direct HTTP challenge rule, run it now before consulting the decision matrix:**
+**If the check returns 403/429 with bot-protection evidence and `probe-reachability` has not already run for this URL during [Phase 1.7](06-browser-sniff-gate.md)'s Direct HTTP challenge rule, run it now before consulting the decision matrix:**
 
 ```bash
 cli-printing-press probe-reachability "<base_url>" --json
 ```
 
-The matrix below references `probe-reachability` `mode` for the bot-detection rows. If the probe already ran in Phase 1.7, reuse that result; do not re-probe.
+The matrix below references `probe-reachability` `mode` for the bot-detection rows. If the probe already ran in [Phase 1.7](06-browser-sniff-gate.md), reuse that result; do not re-probe.
 
 ### Decision Matrix
 
 | Result | Browser capture result | Traffic-analysis reachability | Action |
 |--------|------------------------|-------------------------------|--------|
-| 2xx/3xx | Any | Any | **PASS** - proceed to Phase 2 |
+| 2xx/3xx | Any | Any | **PASS** - proceed to [Phase 2](10-generate.md) |
 | 401 (no key provided) | Any | Any | **PASS** - expected when API needs auth and user declined key gate |
-| 403/429 with HTML/bot detection | `probe-reachability` returned `browser_http` | runtime is `browser_http` (Surf) | **PASS** - the printed CLI will ship Surf transport which clears the protection. No clearance cookie capture in the printed CLI, regardless of whether browser-sniff also ran for endpoint discovery |
+| 403/429 with HTML/bot detection | `probe-reachability` returned `browser_http` | runtime is `browser_http` (Chrome TLS) | **PASS** - the printed CLI will ship the Chrome-compatible transport which clears the protection. No clearance cookie capture in the printed CLI, regardless of whether browser-sniff also ran for endpoint discovery |
 | 403/429 with HTML/bot detection | Successful useful capture | `browser_http` or `browser_clearance_http` | **PASS** - proceed with browser-compatible HTTP / clearance strategy |
-| Any | Capture only works through a live page context | `browser_required` | **HOLD** - find a lighter replayable surface before Phase 2 |
+| Any | Capture only works through a live page context | `browser_required` | **HOLD** - find a lighter replayable surface before [Phase 2](10-generate.md) |
 | 403/429 with HTML/bot detection | No browser capture attempted but browser-sniff approved/pre-approved AND `probe-reachability` returned `browser_clearance_http` or `unknown` | Any | **RETURN TO PHASE 1.7** - attempt cleared-browser capture before pivoting scope |
 | 403/429 with HTML/bot detection | Capture contains only challenge/error pages | Any | **HARD STOP** |
 | 403 | No successful useful capture | Research found 403 issues | **HARD STOP** |
 | 403 | No successful useful capture | No 403 research issues | **WARN** - ask user |
 | Timeout/DNS/connection refused | Any | Any | **WARN** - ask user |
+
+On a **RETURN TO PHASE 1.7** verdict, record the discovery-rework handoff so the receipt gate accepts the re-entry into the browser-sniff gate rather than treating it as an out-of-order jump, then re-enter [Phase 1.7](06-browser-sniff-gate.md) instead of following the canonical `Next:` below:
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "09-api-reachability-gate" --next "06-browser-sniff-gate" --note "cleared-browser capture retry: <reason>"
+```
 
 ### On HARD STOP
 
@@ -191,7 +205,15 @@ Present via `AskUserQuestion`:
 
 ### On PASS
 
-Proceed silently to Phase 2.
+Proceed silently to [Phase 2](10-generate.md).
 
 ---
 
+Before following `Next:`, record the successful reachability result in one
+short, credential-free note:
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "09-api-reachability-gate" --note "<reachable surface and status only>"
+```
+
+Next: phases/10-generate.md

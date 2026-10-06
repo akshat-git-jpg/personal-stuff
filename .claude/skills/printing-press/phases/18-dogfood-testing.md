@@ -1,4 +1,10 @@
-## Phase 5: Dogfood Testing
+## 18-dogfood-testing (Phase 5: Dogfood Testing)
+
+**Receipt entry (required):**
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt enter --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "18-dogfood-testing"
+```
 
 **MANDATORY when an API key is available. Do NOT skip or shortcut this phase.**
 
@@ -49,23 +55,58 @@ and acceptance-marker writing are deterministic:
 cli-printing-press dogfood --live \
   --dir "$CLI_WORK_DIR" \
   --level full \
+  --research-dir "$RESEARCH_DIR" \
   --json \
   --write-acceptance "$PROOFS_DIR/phase5-acceptance.json"
 ```
 
 Use `--level quick` only when the user selected Quick Check in Step 1.
 
+**Cookie / composed / session-handshake auth.** The runner executes the binary
+in a sandboxed HOME with no captured browser session, so a CLI whose auth is a
+cookie jar will 401 every command unless you hand it the session. To exercise
+the matrix for real, point the CLI's config-override env var (the
+`<PREFIX>_CONFIG`-style override, e.g. `<API>_CONFIG`) at a `config.toml` that
+carries the captured session, and export it before the `dogfood --live` call:
+
+```bash
+<API>_CONFIG="$SESSION_DIR/config.toml" cli-printing-press dogfood --live \
+  --dir "$CLI_WORK_DIR" --level full --research-dir "$RESEARCH_DIR" --json \
+  --write-acceptance "$PROOFS_DIR/phase5-acceptance.json"
+```
+
+If no captured session is available to the harness, the runner does not count
+the 401s as failures: it records a clean skip verdict
+(`skip-cookie-auth-no-session`) and writes `phase5-skip.json` with
+`skip_reason: "cookie-auth-no-harness-session"` (see Step 4). The promote gate
+accepts that skip marker, so do not hand-author or fabricate a pass marker for a
+cookie-auth CLI you could not exercise.
+
+**OAuth2 refresh-token rotation (`auth.type: oauth2_refresh`).** Pass
+`--auth-env <VAR>` when the refresh token lives in the environment. When that
+variable is refresh-token-shaped (`REFRESH_TOKEN` or `*_REFRESH_TOKEN`), the
+runner copies it into a shared sandbox `credentials.toml` and strips those
+rotating env vars from subprocesses so the first refresh persists for later
+commands. A client-ID `--auth-env` (the oauth2_refresh publish default) is
+left in place and is not written as `refresh_token`. Do not expect a static
+env value to survive rotating identity providers across N subprocesses. If
+`invalid_grant` still appears after a live pass, the runner aborts the matrix
+with that diagnosis instead of recording hundreds of command failures; the
+operator's stored refresh token may have been revoked and needs a fresh login.
+
 The live dogfood runner enumerates the CLI's `agent-context` command tree,
 runs help, happy-path, JSON-fidelity, and error-path checks where applicable,
 captures subprocess exit codes directly without shell pipes, and emits a
-structured report with pass/fail/skipped counts. Save the JSON report to:
+structured report with pass/fail/skipped counts. Before running the matrix, it
+atomically rebuilds a selected binary that is older than the CLI's Go sources;
+binaries at least as new as the sources are reused. Save the JSON report to:
 
 `$PROOFS_DIR/<stamp>-dogfood-results.json`
 
 If the command exits non-zero, inspect the structured failures, fix the CLI, and
 rerun live dogfood. The runner writes `phase5-acceptance.json` on every outcome
 (`status: "pass"` on success, `status: "fail"` with a `failure_summary` block on
-failure), so the Phase 5.6 gate always has a marker to read. Do not hand-edit
+failure), so the [Phase 5.6](20-promote-and-archive.md) gate always has a marker to read. Do not hand-edit
 `phase5-acceptance.json`; it must come from the runner.
 
 **Quick check (auto-selected test subset):**
@@ -77,10 +118,20 @@ failure), so the Phase 5.6 gate always has a marker to read. Do not hand-edit
 6. One transcendence command — produces output that relates to the query (not just non-empty: verify relevance by checking output content contains query tokens or expected shape).
 
 **Full dogfood adds to the matrix:**
-- Every approved feature in the Phase 1.5 manifest gets a sample invocation with domain-realistic args.
+- Every approved feature in the [Phase 1.5](08-ecosystem-absorb-gate.md) manifest gets a sample invocation with domain-realistic args.
 - For every command that takes an arg, one error-path test.
 - For every command that supports `--json`, one JSON parse validation.
 - For write-side commands (when API key + user consent): create test entity with obviously-test data, verify in subsequent list/get, test one mutation, verify change.
+
+### Context budget for long matrices
+
+A full live matrix on a 35+ command CLI can outgrow a single agent's reliable context
+window (~200k tokens). When the testing agent approaches that budget: finish the current
+test row, append a handoff entry to `$PROOFS_DIR` (matrix position, failures found so
+far, fixes applied, acceptance-marker path), and continue in a fresh agent that reads
+only the handoff plus the dogfood results file — not the prior conversation. The
+runner's acceptance-marker workflow is unchanged by a handoff: markers are written by
+the runner on runner outcomes, never authored by an agent.
 
 ### Step 3: Fix issues inline
 
@@ -91,7 +142,7 @@ When a test fails, fix it immediately — do not accumulate failures. Tag each f
 ### Step 4: Report and gate
 
 Write a structured acceptance report and a machine-readable gate marker. The
-JSON marker is **required** — Phase 5.6 and `publish validate` check for it
+JSON marker is **required** — [Phase 5.6](20-promote-and-archive.md) and `publish validate` check for it
 before promoting or publishing.
 
 ```
@@ -116,7 +167,7 @@ quoting the literal value:
 - assignees or collaborators -> "the highest-loaded assignee" / "the project lead"
 - team identifiers such as `ENG` or `T2` are OK when they are structural keys
 
-The Phase 5.6 manuscript scan and publish-skill PII scan are defense in depth;
+The [Phase 5.6](20-promote-and-archive.md) manuscript scan and publish-skill PII scan are defense in depth;
 keep PII out of the acceptance report from the moment you write it.
 
 **Acceptance threshold:**
@@ -125,18 +176,18 @@ keep PII out of the acceptance report from the moment you write it.
 
 **Bugs surfaced in Phase 5 must be fixed now, not deferred.** Do not offer the user a "ship as-is and file for v0.2" option when the fix is a 1-3 file edit. Present a "Fix now" (default), "Fix critical only", "Hold (don't ship)" set. Deferring bugs to a v0.2 backlog is an anti-pattern — context is freshest in-session, and a backlog that may never be revisited ships known-broken CLIs.
 
-**Gate = PASS:** proceed to Phase 5.5 (Polish).
+**Gate = PASS:** proceed to [Phase 5.5](19-polish.md) (Polish).
 
 **Gate = FAIL:** fix issues inline (Step 3) and re-run failing tests, up to
 2 fix loops. If the gate still fails after 2 loops, put the CLI on hold:
 ```bash
-cli-printing-press lock release --cli <api>-pp-cli
+"$PRINTING_PRESS_BIN" lock release --cli <api>-pp-cli
 ```
-The working copy remains in `$CLI_WORK_DIR`. Proceed to Phase 5.6 to archive
+The working copy remains in `$CLI_WORK_DIR`. Proceed to [Phase 5.6](20-promote-and-archive.md) to archive
 manuscripts (archiving still happens on hold). Tag the failure reason in the
 acceptance report so the next run can learn from it.
 
-See [references/dogfood-testing.md](references/dogfood-testing.md) for additional
+See [references/dogfood-testing.md](../references/dogfood-testing.md) for additional
 guidance on common failure patterns and what NOT to test.
 
 Write:
@@ -169,7 +220,7 @@ On `Gate: FAIL` the same path is written with `status: "fail"` and a
 `failure_summary` block grouping failures by category
 (`transport_error` / `http_4xx` / `http_5xx` / `exit_nonzero` /
 `output_mismatch` / `other`) plus the list of contributing commands. The
-Phase 5.6 gate routes this marker to the hold path; do not promote.
+[Phase 5.6](20-promote-and-archive.md) gate routes this marker to the hold path; do not promote.
 
 For `level: "quick"`, `tests_failed` may be `1` only when the Quick Check
 threshold still passed (`matrix_size: 6`, `tests_passed >= 5`) and the miss was
@@ -218,9 +269,45 @@ generation host cannot reach the user's LAN hardware, write:
 }
 ```
 
+If a cookie / composed / session-handshake CLI could not be exercised because
+no captured session was available to the harness (the sandboxed HOME has no
+cookie jar, so every command 401s), the runner writes this skip marker for you
+on a `skip-cookie-auth-no-session` verdict — do not hand-author it:
+
+`$PROOFS_DIR/phase5-skip.json`
+
+```json
+{
+  "schema_version": 1,
+  "api_name": "<api>",
+  "run_id": "<run-id>",
+  "status": "skip",
+  "level": "none",
+  "skip_reason": "cookie-auth-no-harness-session",
+  "auth_context": {
+    "type": "cookie|composed|session_handshake",
+    "browser_session_available": false
+  }
+}
+```
+
+Prefer the inject-session path in Step 2 (pass the captured session via the
+`<API>_CONFIG` override) so the matrix runs for real; the skip is the floor when
+no session is available.
+
 Do **not** write a skip marker for ordinary `auth.type: none` cloud/public APIs.
 No-auth APIs are testable and require `phase5-acceptance.json` unless they match
-the LAN-only carve-out above. Do **not** use missing API key as the skip reason
-for cookie, composed, or session-handshake auth; those require browser session
-proof or a hold decision.
+the LAN-only carve-out above. Do **not** use missing API key
+(`auth_required_no_credential`) as the skip reason for cookie, composed, or
+session-handshake auth; inject the session, or rely on the runner-emitted
+`cookie-auth-no-harness-session` skip when none is available.
 
+Before following `Next:`, record the durable handoff and point `--evidence` at
+the live dogfood acceptance JSON. If dogfood used an allowed skip, record it
+with `--skip --note "<allowed reason>"` and point at the skip marker instead:
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "18-dogfood-testing" --evidence "$PROOFS_DIR/phase5-acceptance.json"
+```
+
+Next: phases/19-polish.md

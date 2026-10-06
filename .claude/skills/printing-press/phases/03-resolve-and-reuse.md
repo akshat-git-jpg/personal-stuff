@@ -1,12 +1,22 @@
-## Phase 0: Resolve And Reuse
+## 03-resolve-and-reuse (Phase 0: Resolve And Reuse)
+
+**Receipt entry (required):**
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt enter --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "03-resolve-and-reuse"
+```
 
 Before new research:
 
 1. Resolve the spec source.
 
+   **Local physical device detection.** If the user's target is a local Bluetooth/BLE-controlled physical device (for example an appliance, toy, light, sensor, exercise machine, lock, or other device controlled from a phone app over Bluetooth), do not route it through browser-sniff as the primary discovery path. Read and apply [references/device-sniff-ble.md](../references/device-sniff-ble.md). Use `device-sniff ble` for normalized BLE evidence and `bluetooth-sniff` as the discoverable alias. Community libraries, docs, Android logs, Wireshark/nRF captures, and manual action journals are evidence inputs; they are not a reason to hardcode a vendor-specific generator path.
+
+   **BLE mapping research gate.** A BLE scan/inspect/read/subscribe pass only discovers identity, services, characteristics, and telemetry candidates; it does not by itself discover what write payloads mean. Before generating callable control commands or running any live `write`, establish a command mapping from at least one concrete source: user-provided mapping, official docs, community protocol/library code, Android/iOS/Bluetooth logs, Wireshark/nRF captures, or an operator action journal that correlates a real user action with observed writes. If no mapping source is found, generate only read/status/capability metadata or stop and ask the user for mapping evidence. Do not invent mutating payloads or brute-force probe a physical device.
+
    **URL Detection** — If the argument contains `://`, it's a URL. Determine whether it's a spec or a website before proceeding.
 
-   **Step 1: Content probe.** Fetch the URL with the raw docs helper from [references/fetch-docs.md](references/fetch-docs.md) and inspect the response status, `Content-Type`, and first few lines of the returned file:
+   **Step 1: Content probe.** Fetch the URL with the raw docs helper from [references/fetch-docs.md](../references/fetch-docs.md) and inspect the response status, `Content-Type`, and first few lines of the returned file:
    - Check the `Content-Type` header and the first few lines of the body.
    - If the fetch fails (timeout, 404, DNS error), record the exact status/error, then skip to Step 2 — treat it as a website.
 
@@ -27,15 +37,16 @@ Before new research:
    The user can also pick the automatic "Other" option to describe what they're after in free text.
 
    **Routing after disambiguation:**
-   - "<SiteName>'s official API" → use `<api>` as the argument, proceed with normal discovery (Phase 1 research, then Phase 1.7 browser-sniff gate evaluates independently as usual)
-   - "The <SiteName> website itself" → use `<api>` as the argument, set `BROWSER_SNIFF_TARGET_URL=<url>`. Proceed to Phase 1 research. When Phase 1.7 is reached, skip the browser-sniff gate decision and go directly to "If user approves browser-sniff" (the user already approved temporary browser discovery in Phase 0 — do not re-ask). Use `BROWSER_SNIFF_TARGET_URL` as the starting URL for browser capture. The printed CLI must still use a replayable runtime surface; do not ship a resident browser transport.
+   - "<SiteName>'s official API" → use `<api>` as the argument, proceed with normal discovery ([Phase 1](04-research-brief.md) research, then [Phase 1.7](06-browser-sniff-gate.md) browser-sniff gate evaluates independently as usual)
+   - "The <SiteName> website itself" → use `<api>` as the argument, set `BROWSER_SNIFF_TARGET_URL=<url>`. Proceed to [Phase 1](04-research-brief.md) research. When [Phase 1.7](06-browser-sniff-gate.md) is reached, skip the browser-sniff gate decision and go directly to "If user approves browser-sniff" (the user already approved temporary browser discovery in Phase 0 — do not re-ask). Use `BROWSER_SNIFF_TARGET_URL` as the starting URL for browser capture. The printed CLI must still use a replayable runtime surface; do not ship a resident browser transport.
    - "Other" → read the user's free-form response and adapt
 
    **End of URL detection.** The remaining spec resolution rules apply when the argument is NOT a URL:
 
-   - If the user passed `--har <path>`, this is a HAR-first run. Run `cli-printing-press browser-sniff --har <path> --name <api> --output "$RESEARCH_DIR/<api>-browser-sniff-spec.yaml" --analysis-output "$DISCOVERY_DIR/traffic-analysis.json"` to generate a spec and traffic analysis from captured traffic. If `$API_RUN_DIR/source-priority.json` exists with two or more sources, add `--preserve-hosts` so combo-CLI captures retain peer API hosts with per-endpoint `base_url` overrides instead of collapsing them into secondary evidence. Use the generated spec as the primary spec source for the rest of the pipeline. Skip the browser-sniff gate in Phase 1.7 (browser-sniff already ran).
+   - If the user passed `--har <path>`, this is a HAR-first run. Before invoking browser-sniff, parse the file as JSON and verify it contains traffic: HAR files must have `.log.entries | length > 0`; enriched capture JSON must have `.entries | length > 0`. If the file is missing, invalid JSON, or has zero entries, do not continue silently. Print `HAR/capture contains no network entries; the export likely recorded no traffic.` and ask via `AskUserQuestion` with exactly these choices: **Capture again (Recommended)** — "Re-export a HAR after recording a real user flow"; **Proceed with docs-only** — "Skip HAR/browser-sniff and continue from docs/spec discovery only"; **HOLD** — "Stop this run until a valid capture is available." Only proceed to browser-sniff when the parsed entry count is non-zero.
+   - For a valid `--har <path>`, run `cli-printing-press browser-sniff --har <path> --name <api> --output "$RESEARCH_DIR/<api>-browser-sniff-spec.yaml" --analysis-output "$DISCOVERY_DIR/traffic-analysis.json"` to generate a spec and traffic analysis from captured traffic. If `$API_RUN_DIR/source-priority.json` exists with two or more sources, add `--preserve-hosts` so combo-CLI captures retain peer API hosts with per-endpoint `base_url` overrides instead of collapsing them into secondary evidence. Immediately inspect `$DISCOVERY_DIR/traffic-analysis.json`: if it contains the `empty_response_shapes` warning, or if every endpoint cluster has `size_class: "empty"` and `response_shape: {}`, use curl/direct HTTP to call each discovered endpoint and capture response structure before writing or trusting the spec. Do not proceed to `generate` with a sniffed spec that has no type information. Use the generated spec as the primary spec source for the rest of the pipeline only after this quality check passes. Skip the browser-sniff gate in [Phase 1.7](06-browser-sniff-gate.md) (browser-sniff already ran).
    - If the user passed `--spec`, use it directly (existing behavior).
-   - Otherwise, proceed with normal discovery (catalog, KnownSpecs, apis-guru, web search).
+   - Otherwise, proceed with normal discovery (KnownSpecs, apis-guru, web search, and researched docs).
 
    #### Directory spec-source guard
 
@@ -86,7 +97,7 @@ Before new research:
    First, check lock status to detect active builds:
 
    ```bash
-   LOCK_STATUS=$(cli-printing-press lock status --cli <api>-pp-cli --json 2>/dev/null)
+   LOCK_STATUS=$("$PRINTING_PRESS_BIN" lock status --cli <api>-pp-cli --json 2>/dev/null)
    LOCK_HELD=$(echo "$LOCK_STATUS" | grep -o '"held"[[:space:]]*:[[:space:]]*[a-z]*' | head -1 | sed 's/.*: *//')
    LOCK_STALE=$(echo "$LOCK_STATUS" | grep -o '"stale"[[:space:]]*:[[:space:]]*[a-z]*' | head -1 | sed 's/.*: *//')
    LOCK_PHASE=$(echo "$LOCK_STATUS" | grep -o '"phase"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"phase"[[:space:]]*:[[:space:]]*"//;s/"//')
@@ -99,6 +110,7 @@ Before new research:
    CLI_DIR="$PRESS_LIBRARY/<api>"
    HAS_LIBRARY=false
    HAS_GOMOD=false
+   CLI_RELEASE_VERSION=""
    PRIOR_STEINBERGER_SCORE=""
    PRIOR_SUB60_REPRINT=false
    if [ -d "$CLI_DIR" ]; then
@@ -115,6 +127,10 @@ Before new research:
        if [ -n "$PRIOR_STEINBERGER_SCORE" ] && awk "BEGIN { exit !($PRIOR_STEINBERGER_SCORE < 60) }"; then
          PRIOR_SUB60_REPRINT=true
        fi
+     fi
+     RELEASE_MANIFEST="$CLI_DIR/.printing-press-release.json"
+     if [ -f "$RELEASE_MANIFEST" ]; then
+       CLI_RELEASE_VERSION=$(jq -r '.version // empty' "$RELEASE_MANIFEST" 2>/dev/null || true)
      fi
      # Get directory modification time as fallback
      CLI_MTIME=$(stat -f "%Sm" -t "%Y-%m-%d" "$CLI_DIR" 2>/dev/null || stat -c "%y" "$CLI_DIR" 2>/dev/null | cut -d' ' -f1)
@@ -135,13 +151,14 @@ Before new research:
 
    **If actively locked (not stale):** Present via `AskUserQuestion` with options to wait, pick a different API, or force-reclaim (`cli-printing-press lock acquire --cli <api>-pp-cli --scope "$PRESS_SCOPE" --force`).
 
-   **If stale lock:** Reclaiming is automatic on `lock acquire` in Phase 2. If user approves, proceed normally — the lock acquire in Phase 2 will auto-reclaim the stale lock.
+   **If stale lock:** Reclaiming is automatic on `lock acquire` in [Phase 2](10-generate.md). If user approves, proceed normally — the lock acquire in [Phase 2](10-generate.md) will auto-reclaim the stale lock.
 
    **If library exists with go.mod and no lock (completed CLI):** Display context and present options using `AskUserQuestion`:
 
    > Found existing `<api>` in library (last modified `<date>`).
 
    If `PRESS_VERSION` is available, append: `Built with printing-press v<version>.`
+   If `CLI_RELEASE_VERSION` is available, append: `Published CLI release: <version>.` This is the public-library per-CLI CalVer release, not the generator version; do not use it for the generator staleness comparison below.
    If `PRIOR_SUB60_REPRINT=true`, append: `Prior Steinberger score: <score>%. Reprint will require all approved transcendence rows to ship unless you explicitly accept partial coverage.`
 
    If prior research was also found (step 2), include the research summary alongside the library info.
@@ -151,18 +168,18 @@ Before new research:
    2. **"Improve existing CLI"** — Keeps all current code, audits for quality gaps, implements top improvements. The Printing Press is not re-run.
    3. **"Review prior research first"** — Show the full research brief and absorb manifest before deciding.
 
-   If the user picks option 1, proceed to Phase 1 (research) and then Phase 2 (generate) as normal.
+   If the user picks option 1, proceed to [Phase 1](04-research-brief.md) (research) and then [Phase 2](10-generate.md) (generate) as normal.
    If the user picks option 2, invoke `/printing-press-polish <api>` to improve the existing CLI.
    If the user picks option 3, display the prior research, then re-present options 1 and 2.
 
-   **MANDATORY when re-using prior research after a binary upgrade.** If the user picks "Generate a fresh CLI" (option 1) AND `PRESS_VERSION` from the manifest differs from the current binary's version (parse both via semver and compare; only fire when the leading minor or major segment changed — patch-level deltas don't trigger this), prompt the user once before kicking off Phase 1 research.
+   **MANDATORY when re-using prior research after a binary upgrade.** If the user picks "Generate a fresh CLI" (option 1) AND `PRESS_VERSION` from the manifest differs from the current binary's version (parse both via semver and compare; only fire when the leading minor or major segment changed — patch-level deltas don't trigger this), prompt the user once before kicking off [Phase 1](04-research-brief.md) research.
 
    Construct the prompt's "what changed" list from these category buckets — the categories are stable across versions; the specific machine deltas inside each category are not. Read `docs/CHANGELOG.md` (or run `git log --oneline v<PRESS_VERSION>..v<CURRENT> -- internal/`) and tag each notable change to one of these buckets:
 
    | Category | Affects prior-brief assumption about... |
    |---|---|
    | **Transport / reachability** | Which sources are reachable, what auth/clearance is needed, which clients (stdlib, Surf, browser-clearance) the brief assumed |
-   | **Scoring rubrics** | What Phase 1.5/scorecard dimensions the brief targets, whether prior "high-priority" features still rank as such |
+   | **Scoring rubrics** | What [Phase 1.5](08-ecosystem-absorb-gate.md)/scorecard dimensions the brief targets, whether prior "high-priority" features still rank as such |
    | **Auth modes** | Whether brief's auth choice (api-key, cookie, composed, oauth) is still the right pick, whether new modes unlock new endpoints |
    | **MCP surface** | Whether brief's MCP shape (endpoint-mirror vs intent vs code-orchestration) matches the latest emit defaults |
    | **Discovery** | Whether browser-sniff / crowd-sniff workflows changed, whether prior gate decisions are still valid |
@@ -172,38 +189,82 @@ Before new research:
    > "The prior `<api>` was generated with printing-press v`<PRESS_VERSION>`. The current binary is v`<CURRENT>`. Categories where the machine has changed since then: `<applicable buckets>`. Each can invalidate prior research assumptions. Re-validate the prior brief against the current machine before reusing it?"
 
    Options:
-   1. **Yes, re-validate the prior research** — fold the validation into Phase 1 (briefly re-probe reachability for previously-blocked sources, confirm scoring still classifies the prior CLI's pattern correctly, etc.) before reusing the brief.
+   1. **Yes, re-validate the prior research** — fold the validation into [Phase 1](04-research-brief.md) (briefly re-probe reachability for previously-blocked sources, confirm scoring still classifies the prior CLI's pattern correctly, etc.) before reusing the brief.
    2. **No, reuse the prior research as-is** — proceed with the brief verbatim, even if the underlying machine assumptions are stale.
 
    The prompt forces the user to acknowledge the version delta and explicitly accept (or refuse) re-validation. Skip it entirely on first generation, on same-version regenerations, or when no prior manifest exists.
 
-   If no CLI exists in the local library and no lock is active, run the **Public-library check** below before proceeding to Phase 1.
+   If no CLI exists in the local library and no lock is active, run the **Public-library check** below before proceeding to [Phase 1](04-research-brief.md).
 
-   #### Public-library check (registry.json)
+   #### Public-library check (registry.json + blocked-apis.json)
 
-   The local library check above only sees CLIs this machine has already printed. A user on a fresh checkout — or one who typed a slightly different name than the published slug (`Slack` vs `slack-bot`, `Cal` vs `cal-com`), or who described what they wanted in their own words (`Hacker News reader`, `Notion clone`, `prediction market`) — will miss CLIs that already exist in the public library. Scan `mvanhorn/printing-press-library/registry.json` to catch those cases before Phase 1 research begins (the expensive 30-60-minute portion of the pipeline).
+   The local library check above only sees CLIs this machine has already printed. A user on a fresh checkout — or one who typed a slightly different name than the published slug (`Slack` vs `slack-bot`, `Cal` vs `cal-com`), or who described what they wanted in their own words (`Hacker News reader`, `Notion clone`, `prediction market`) — will miss CLIs that already exist in the public library. Scan `mvanhorn/printing-press-library/registry.json` to catch those cases before [Phase 1](04-research-brief.md) research begins (the expensive 30-60-minute portion of the pipeline).
+
+   The public library also carries `blocked-apis.json`, a shared journal of APIs that were attempted and put on hold for reachability or buildability reasons. Scan it in the same Phase 0 window so a user does not repeat an already-known dead-end run before the blocking issue is fixed.
 
    **Skip this check entirely when:**
    - The local-library check above already prompted (mutual exclusion — do not double-ask).
    - `BROWSER_SNIFF_TARGET_URL` is set (the user is building a from-website CLI; the registry indexes API CLIs and naming collisions are unlikely and intentional).
    - The user passed `--har <path>` with an explicit `--name <api>` for a private capture.
 
-   **Fetch the registry.** Match the pattern `/printing-press-import` and `/printing-press-reprint` already use:
+   **Fetch the registry and blocked journal.** Match the pattern `/printing-press-import` and `/printing-press-reprint` already use:
 
    ```bash
    REGISTRY=$(mktemp)
    if ! gh api -H "Accept: application/vnd.github.v3.raw" \
         repos/mvanhorn/printing-press-library/contents/registry.json \
         > "$REGISTRY" 2>/dev/null; then
-     echo "Public-library check skipped: registry.json unreachable. Proceeding to Phase 1."
+     echo "Public-library check failed: registry.json is unreachable. Stop here instead of treating the API as unpublished; retry when GitHub/library access is available."
      rm -f "$REGISTRY"
-     REGISTRY=""
+     exit 1
+   fi
+
+   BLOCKED_APIS=$(mktemp)
+   if ! gh api -H "Accept: application/vnd.github.v3.raw" \
+        repos/mvanhorn/printing-press-library/contents/blocked-apis.json \
+        > "$BLOCKED_APIS" 2>/dev/null; then
+     echo "Blocked-API journal check skipped: blocked-apis.json unreachable or absent. Proceeding with the registry check."
+     rm -f "$BLOCKED_APIS"
+     BLOCKED_APIS=""
    fi
    ```
 
-   Do not block on a network failure. After step 4 finishes, clean up the tempfile only if the fetch succeeded: `[ -n "$REGISTRY" ] && rm -f "$REGISTRY"`. The failure branch above already removed it and set `REGISTRY=""`, so an unconditional `rm -f "$REGISTRY"` would run `rm -f ""`.
+   Do not continue past a registry fetch/parse failure: it can hide an already published nested CLI and route a duplicate greenfield build. Network failure or missing `blocked-apis.json` is still non-blocking. After step 4 finishes, clean up tempfiles only if the fetch succeeded: `[ -n "$REGISTRY" ] && rm -f "$REGISTRY"` and `[ -n "$BLOCKED_APIS" ] && rm -f "$BLOCKED_APIS"`. The blocked-journal failure branch above already removed its file and set its variable to empty, so an unconditional `rm -f "$BLOCKED_APIS"` would run `rm -f ""`.
 
-   **Read the registry and reason about matches** — do not gate on string equality alone. The file is small (~88 KB, ~135 entries today); read it directly and use judgment. Each entry has fields `name` (slug), `category`, `api` (brand display), `description`, `path`, `printer`.
+   **Read the blocked journal before reasoning about registry matches.** If `BLOCKED_APIS` is non-empty, read it directly. Expected shape:
+
+   ```json
+   [
+     {
+       "slug": "1001tracklists",
+       "attempted_at": "2026-05-25",
+       "verdict": "hold",
+       "reason": "Cloudflare Turnstile clearance gate; pure-HTTP cannot mint fsuid",
+       "blocking_issue": 2140,
+       "permanent": false
+     }
+   ]
+   ```
+
+   Entries are API-slug records, not printed-CLI registry entries. Match the user's requested API against `slug` using the same slug-normalization judgment as the registry check (`<api>`, `<api>-cli`, `<api>-pp-cli`, punctuation and case variants). Do not use vague category or description matching for the blocked journal. A false positive here stops a potentially valid run; only prompt when the entry appears to be the same API under a slug or brand spelling variant.
+
+   If a blocked entry matches, prompt before reading registry matches:
+
+   > "`<entry.slug>` was attempted on `<entry.attempted_at>` and held — `<entry.reason>`<tracking suffix>. The shared blocked-API journal exists so users do not repeat known unreachable or unbuildable runs before the blocker changes. Proceed anyway?"
+
+   Where `<tracking suffix>` is:
+   - ` (tracking #<entry.blocking_issue>; marked permanent)` when `blocking_issue` is non-null and `permanent` is `true`.
+   - ` (tracking #<entry.blocking_issue>)` when `blocking_issue` is non-null and `permanent` is `false`.
+   - ` (marked permanent)` when `permanent` is `true` and `blocking_issue` is `null`.
+   - empty when neither applies.
+
+   Options:
+   1. **Stop here (recommended)** — end this run. If a tracking issue is present, tell the user to re-attempt only after that issue closes or the journal entry is updated.
+   2. **Proceed anyway** — continue to the registry check and then [Phase 1](04-research-brief.md). Use this only when the user has new evidence that the blocker no longer applies or wants a deliberate fresh attempt.
+
+   If multiple blocked entries somehow match, pick the most recent `attempted_at` value and mention that additional older journal entries exist. If `blocked-apis.json` is malformed, print "Blocked-API journal check skipped: blocked-apis.json is malformed. Proceeding with the registry check." and continue; do not let a bad journal file block fresh prints.
+
+   **Read the registry and reason about matches** — do not gate on string equality alone. The registry uses schema version 2: entries are under the `.entries` key (i.e., `jq '.entries[]'`), not at the top level. Read it directly and use judgment. Each entry has fields `name` (slug), `category`, `api` (brand display), `description`, `search_terms`, `path`, `release`, `printer`.
 
    The user's argument may arrive in many shapes, and only some are catchable by deterministic match:
 
@@ -221,9 +282,9 @@ Before new research:
 
    Resist over-matching on `description` keywords. Most descriptions mention several adjacent concepts; matching liberally on description text produces noise. Use the description to *confirm* a name-or-category candidate, not to *discover* candidates from scratch.
 
-   **Combo CLIs.** When `SOURCE_PRIORITY` is set (from the Multi-Source Priority Gate above), skip the single-source High/Medium/No-match branches below. Classify matches per source, then present a single combined prompt rather than asking N times. For combo runs the existing single-source CLIs are usually *informational* — the user came here to build a combo, so the recommended default is to continue with the combo rather than reprint a component standalone.
+   **Combo CLIs.** When `SOURCE_PRIORITY` is set (from the Multi-Source Priority Gate in [references/run-resolution.md](../references/run-resolution.md)), skip the single-source High/Medium/No-match branches below. Classify matches per source, then present a single combined prompt rather than asking N times. For combo runs the existing single-source CLIs are usually *informational* — the user came here to build a combo, so the recommended default is to continue with the combo rather than reprint a component standalone.
 
-   **Cap displayed reprint options at 2 across all sources combined** so the prompt fits the 4-option `AskUserQuestion` limit (2 reprints + continue + abort). Pick the 2 best candidates by judgment in this order: (1) High over Medium, (2) primary-source over secondary-source (the first entry in `SOURCE_PRIORITY` wins ties), (3) canonical slug over variant. If additional matches exist beyond the displayed 2, append "(plus N other source matches)" to the prompt body so the user knows the list is truncated. Omit sources with no match rather than listing them as empty rows. If no source has any match at High or Medium, print nothing and proceed to Phase 1.
+   **Cap displayed reprint options at 2 across all sources combined** so the prompt fits the 4-option `AskUserQuestion` limit (2 reprints + continue + abort). Pick the 2 best candidates by judgment in this order: (1) High over Medium, (2) primary-source over secondary-source (the first entry in `SOURCE_PRIORITY` wins ties), (3) canonical slug over variant. If additional matches exist beyond the displayed 2, append "(plus N other source matches)" to the prompt body so the user knows the list is truncated. Omit sources with no match rather than listing them as empty rows. If no source has any match at High or Medium, print nothing and proceed to [Phase 1](04-research-brief.md).
 
    > Found matches across the sources you listed:
    >
@@ -233,7 +294,7 @@ Before new research:
    > This is informational — these components already exist as single-source CLIs. Continue building the combo, switch to reprinting one standalone, or abort?
 
    Options:
-   1. **Continue with the combo as planned (recommended)** — the combo itself is the value-add; proceed to Phase 1 with all sources.
+   1. **Continue with the combo as planned (recommended)** — the combo itself is the value-add; proceed to [Phase 1](04-research-brief.md) with all sources.
    2. **Reprint `<entry1.name>` standalone instead** — invoke `/printing-press-reprint <entry1.name>` (abandons the combo for now).
    3. **Reprint `<entry2.name>` standalone instead** — same, for the second candidate.
    4. **Abort** — stop here.
@@ -282,12 +343,12 @@ Before new research:
    > Continue with `<api>` as planned, or reprint one of these instead?
 
    Options:
-   1. **Continue with `<api>` as planned** — proceed to Phase 1.
+   1. **Continue with `<api>` as planned** — proceed to [Phase 1](04-research-brief.md).
    2. **Reprint `<entry1.name>` instead** — invoke `/printing-press-reprint <entry1.name>`.
    3. **Reprint `<entry2.name>` instead** — same, for the second candidate.
    4. **Abort** — stop here.
 
-   **No High or Medium match:** print nothing, proceed to Phase 1.
+   **No High or Medium match:** print nothing, proceed to [Phase 1](04-research-brief.md).
 
 5. **API Key Gate** — Check whether this API requires authentication, then handle accordingly.
 
@@ -297,7 +358,7 @@ Before new research:
 - No env var matching the API name exists AND no known token pattern applies
 - Community docs or npm/PyPI wrappers describe the API as "no auth required"
 
-**If no auth is required**, skip the key gate entirely. Proceed with: "No authentication required for `<API>` — skipping API key gate." Do NOT call it "a public API" unless the service officially publishes one. Many services (ESPN, etc.) have unauthenticated endpoints without having an official API. Live smoke testing in Phase 5 will work without a key.
+**If no auth is required**, skip the key gate entirely. Proceed with: "No authentication required for `<API>` — skipping API key gate." Do NOT call it "a public API" unless the service officially publishes one. Many services (ESPN, etc.) have unauthenticated endpoints without having an official API. Live smoke testing in [Phase 5](18-dogfood-testing.md) will work without a key.
 
 **If the API DOES require auth**, run the key gate:
 
@@ -312,16 +373,25 @@ Token detection order:
 **If a token IS found**, stop and explain:
 > Found `<ENV_VAR>` in your environment. This key will be used **only** for read-only live smoke testing in Phase 5 — listing, fetching, and health checks. It will never be used for write operations (create, update, delete). OK to use it?
 
-- If the user approves → proceed with the key available for Phase 5.
-- If the user declines → proceed without the key and display: "Live smoke testing (Phase 5) will be skipped. The CLI will still be generated and verified against mock responses."
+- If the user approves → proceed with the key available for [Phase 5](18-dogfood-testing.md).
+- If the user declines → proceed without the key and display: "Live smoke testing ([Phase 5](18-dogfood-testing.md)) will be skipped. The CLI will still be generated and verified against mock responses."
 
 **If no token is found**, stop and ask:
 > No API key detected for `<API>`. You can provide one now for read-only live smoke testing in Phase 5, or continue without it.
 >
 > Set it with `export <ENV_VAR>=<your-key>` or paste the key here.
 
-- If the user provides a key → proceed with the key available for Phase 5.
-- If the user declines → proceed without the key and display: "Live smoke testing (Phase 5) will be skipped. The CLI will still be generated and verified against mock responses."
+- If the user provides a key → proceed with the key available for [Phase 5](18-dogfood-testing.md).
+- If the user declines → proceed without the key and display: "Live smoke testing ([Phase 5](18-dogfood-testing.md)) will be skipped. The CLI will still be generated and verified against mock responses."
 
-Resolve the API key gate (or skip it for public APIs) before moving to Phase 1.
+Resolve the API key gate (or skip it for public APIs) before moving to [Phase 1](04-research-brief.md).
 
+Before following `Next:`, record the durable handoff. Add `--evidence
+<existing-path>` for the resolved spec or state artifact and one short `--note`
+when a decision is not otherwise evident:
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "03-resolve-and-reuse"
+```
+
+Next: phases/04-research-brief.md
