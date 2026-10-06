@@ -12,3 +12,4 @@ it again.
 | 2026-09-15 | skills | 3 | 1 (fix only) | check.sh: dup loop off the pipe; reference count now sees peer-skill refs (10 false -> 3 real) |
 | 2026-09-15 | memory | 4 | 2 (fix only) | check.sh: resolve_slug replaces the lossy sed (24 false -> 3 real); empty memory dirs no longer counted as stores |
 | 2026-09-15 | memory | 11 | 11 (all) | dashboard-api store 31 -> 21: 5 landed-work notes archived, 5 preferences promoted to ~/.claude-work/CLAUDE.md, beta-flag note rewritten (its rolling PR had merged), 16 wiki-links repaired |
+| 2026-10-06 | skills | ~120 (95 skills vs Anthropic skill guide) | all A-E | feature-deploy 2072->387, orchestrate/humanizer/ui-testing split, printing-press resynced from upstream, yt-income PII moved to gitignored data, 14 descriptions trimmed, guard hooks added; F open: GUARD_OK, history rewrite, synced allowlist |

@@ -92,7 +92,7 @@ Nothing special is needed any more. A bare `claude` launched inside the repo rea
 | Node | all `apps/*` (per-app `npm install`), Node CLIs in `tooling/cli/` | per-folder install; no root workspace |
 | Python (one venv) | ALL of `pipelines/` | `cd pipelines && python3 -m venv venv && venv/bin/pip install -r requirements.txt` — **never per-subfolder venvs** |
 | Python 3.11 (framework build) | MCP servers | `regen-mcp-json.sh` defaults to `/Library/Frameworks/Python.framework/Versions/3.11/bin/python3`; override with `MCP_PYTHON` |
-| Go (1.26.3+) | printing-press CLIs (`~/go/bin/*-pp-cli`, `cli-printing-press`) | reinstall via the `printing-press-catalog` skill |
+| Go (1.26.3+) | printing-press CLIs (`~/go/bin/*-pp-cli`, `cli-printing-press`) | reinstall via `go install` (see `printing-press/phases/01-preflight.md`) |
 | pipx | `notebooklm` CLI (`~/.local/bin/notebooklm`) | `pipx install` per the `notebooklm` skill |
 
 Wrangler is a per-app devDependency and versions are deliberately mixed (as of 2026-07-12: v3 in founders-tracker (pinned 3.114.17), gym-app, kushal-docs, redirector, timeblock; v4 in analytics-app, kushal-tools, lists-app, tutorial-tracker-app). There is no single repo-wide wrangler — never install or run a global one; always go through each app's own npm scripts.
