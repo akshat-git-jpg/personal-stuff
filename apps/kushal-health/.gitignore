@@ -1,0 +1,9 @@
+node_modules
+dist
+.wrangler
+.dev.vars
+.ingest.env
+*.local
+.DS_Store
+.shots
+node_modules/.tmp
