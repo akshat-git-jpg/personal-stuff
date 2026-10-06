@@ -2,7 +2,7 @@
 name: yt-video-edit-feedback
 description: >-
   Close the loop on owner feedback for a yt-video-edit (visuals-flow) video: ingest,
-  root-cause, discuss, then ONE summary for approval before any fix. Wraps the 130
+  root-cause, discuss, then ONE summary for approval before any fix. Wraps the 630
   feedback-fold step; the five phases are in the skill body. Triggers on "feedback is
   done", "I'm done with feedback", "I've finished reviewing", "fold my feedback",
   "process my feedback", "done with the final cut review", "/yt-video-edit-feedback",
@@ -12,50 +12,59 @@ user-invocable: true
 
 # yt-video-edit-feedback — the feedback conversation
 
-Renamed from `visuals-flow-feedback` on 2026-08-20. The pipeline folder is still
-`pipelines/video/visuals-flow/`.
+Contents: Hard gates · Phase 1 Ingest · Phase 2 Root cause · Phase 3 Discuss ·
+Phase 4 Summary and approval · Phase 5 Execute (mark both files, architectural
+items, verify to pixels, re-cut, gates) · Anti-patterns
 
 Run everything from `pipelines/video/visuals-flow/`.
 
 The owner reviews a cut and leaves comments. This skill turns those comments into
 **durable rule changes plus a new cut**, through a conversation rather than a
-silent batch. The 130 step (`steps/130-learn-from-feedback-opus/README.md`) stays the
+silent batch. The 630 step (`steps/630-learn-from-feedback-opus/README.md`) stays the
 authority on *which surface owns a lesson*; this skill owns the conversation
-around it and calls that procedure as its execution phase. Never restate 130's
+around it and calls that procedure as its execution phase. Never restate 630's
 surface-routing table here — read it at execute time so the two cannot drift.
+
+Copy this checklist and tick it off:
+
+```
+- [ ] Hard gates checked (Opus-class, no mid-run fold)
+- [ ] Phase 1: all six sources read, every item mapped to its target
+- [ ] Phase 2: one line of RCA per item
+- [ ] Phase 3: questions answered, solves discussed
+- [ ] Phase 4: one summary sent, explicit approval received
+- [ ] Phase 5: fixes applied, BOTH status files marked, gates green, new cut landed
+- [ ] Report sent; owner re-reviews at 530
+```
+
+If the owner pushes back on the Phase 4 summary, go back to Phase 3. If a Phase 5
+gate fails, fix and re-run it before reporting.
 
 ## Hard gates (check before anything)
 
-1. **Opus-class only.** 130 is an Opus-class step by owner decision (2026-07-18):
-   folding feedback into durable rules is judgment work. If the current session
-   is not Opus-class, say so and stop.
-2. **Never skip the discussion.** Phases 2–4 are the point of this skill. Do not
-   jump from "feedback is done" to editing files, however obvious a fix looks.
-3. **One approval gate, and it is explicit.** No file changes before the owner
-   approves the Phase 4 summary. "Sounds good" on a single item is not approval
-   of the batch.
-4. **Never edit rule surfaces mid-run of another video.** Rule changes go through
-   this fold, not through an operating session.
+The four gates are shared with `yt-script-feedback`: read
+[references/feedback-loop.md](references/feedback-loop.md#hard-gates-check-before-anything).
+630 is an Opus-class step.
 
-## Phase 1 — Ingest (all five sources, always)
+## Phase 1 — Ingest (all six sources, always)
 
-Never work from the board alone; four of the five sources are silent.
+Never work from the board alone; five of the six sources are silent.
 
 | Source | How to read it | Notes |
 |---|---|---|
-| Board comments | `node lib/feedback-status.mjs` (exit 1 = pending items) | Primary, and it counts EVERY board surface: Final Cut (`t`-keyed), storyboard and card-plan boxes (cue-keyed `c05` / `z03`), and the 037 gate's `card-body:N` / `zone-intro:N` items. Any of them may carry an `image` (an attached screenshot — **open it**, it usually names the card). |
+| Board comments | `node lib/feedback-status.mjs` (exit 1 = pending items) | Primary, and it counts EVERY board surface: Final Cut (`t`-keyed), storyboard and card-plan boxes (cue-keyed `c05` / `z03`), and the 235 card plan's `card-body:N` / `zone-intro:N` items. Any of them may carry an `image` (an attached screenshot — **open it**, it usually names the card). |
 | Template notes | `../card-library/card-notes.json` | The gallery's per-card Notes queue. Only act on notes with `done: false`. |
 | Chat feedback | this conversation | Anything the owner said directly instead of typing on the board. Easy to lose — write it into the Phase 4 summary like any other item. |
-| Implicit edits | `node lib/edit-delta.mjs <slug>` | 130's rule: the SAME kind of hand-edit 3+ times is a feedback item worth folding; one-off edits are instance fixes needing no rule. |
+| Implicit edits | `node lib/edit-delta.mjs <slug>` | 630's rule: the SAME kind of hand-edit 3+ times is a feedback item worth folding; one-off edits are instance fixes needing no rule. |
 | Run ledger | `node lib/run-log.mjs <slug>` | Each step's `issues` field: what the session hit while running, recorded at the time. This is the source nobody thinks to open, and it holds problems the owner never saw a frame of — e.g. opusclip-vs-submagic's 010 entry logged four stray script notes read aloud, each needing an editorial decision rather than a pipeline fix. Triage them like any other item. |
-| Intro film review (027) | `videos/<slug>/feedback.json` → `items` keys prefixed `intro:`; each carries `t` and `context: 'intro@MM:SS'` | The owner's timestamped notes on the intro film, watched in motion. Distinct from `final-*` items: an intro note is about the authored film, not the assembled cut, and it routes to a different rulebook (below). |
+| Intro film review (150) | `videos/<slug>/feedback.json` → `items` keys prefixed `intro:`; each carries `t` and `context: 'intro@MM:SS'` | The owner's timestamped notes on the intro film, watched in motion. Distinct from `final-*` items: an intro note is about the authored film, not the assembled cut, and it routes to a different rulebook (below). |
 
 Then **map every item to what it actually points at**. Which half of this you
 need depends on the key, so check the key first:
 
 - **Cue-keyed** (`c05`, `z03`) and **gate-keyed** (`card-body:2`, `zone-intro:1`)
   items already name their target. They come from the storyboard tiles and the
-  037 card plan. Do NOT put them through the timestamp lookup below — read the
+  235 card plan. Do NOT put them through the timestamp lookup below — read the
   cue straight out of `cues.json`. The gate-keyed ones also carry a `context`
   block with the cue and card they were written against.
 - **Timestamp-keyed** items (`t`, plus the `final-*` keys) come from the Final
@@ -98,7 +107,7 @@ theory:
 
 - **Computed on one surface, never consumed on the next.** Found four times on
   2026-07-25 alone (register transitions dropped at assemble; the audit gate, now
-  050, reading `resolved.cues` when resolve writes `resolved`; `resolvedKind` computed
+  part of 330, reading `resolved.cues` when resolve writes `resolved`; `resolvedKind` computed
   for panel while avatar-render hardcodes `avatar-full`; `register` linted but
   never merged into card variables). If a field exists, grep for its *consumer*.
 - **Generated artifact stale vs its source.** `cue-pass-prompt.md` is generated
@@ -112,43 +121,20 @@ theory:
 
 ## Phase 3 — Discuss
 
-The owner often asks questions inside the feedback ("why did this happen?",
-"what's the long-term fix?", "what's the criteria for showing this?"). **Answer
-them directly** — those questions are part of the deliverable, not noise around it.
-
-Then propose the solve per item and let the owner push back. Bring:
-
-- the root cause in one sentence;
-- the surface you propose to change, and why that one (130's table decides);
-- anything you cannot fix and why;
-- any place two owner instructions conflict — surface it, do not silently pick.
-
-Conflicts are real and must not be resolved unilaterally. On test-01 the owner
-rejected `overlay/callout`, the session built `keyword-pop` as its replacement,
-and the owner then rejected that too with "no need to have this **or
-alternative**" — while the session had meanwhile expanded it from 6 uses to 9.
-Ask; do not infer.
+Follow [references/feedback-loop.md](references/feedback-loop.md#phase-3--discuss).
+For the surface, 630's table decides.
 
 ## Phase 4 — Summary and approval
 
-One message. Every item, in a table:
+Follow [references/feedback-loop.md](references/feedback-loop.md#phase-4--summary-and-approval),
+with this table:
 
 | # | What you said | Root cause | Fix | Surface | Durable? |
 |---|---|---|---|---|---|
 
-Then, separately and plainly:
-
-- **Rule changes** — what future videos will do differently.
-- **Instance fixes** — this video only, no rule.
-- **Routed to a plan** — architectural items (see Phase 5), with the plan number.
-- **Not fixing** — with the reason.
-- **Open questions** — anything still blocking.
-
-End by asking for approval to proceed. Stop. Do not edit files yet.
-
 ## Phase 5 — Execute (only after approval)
 
-Follow `steps/130-learn-from-feedback-opus/README.md` for surface routing. On top of it:
+Follow `steps/630-learn-from-feedback-opus/README.md` for surface routing. On top of it:
 
 ### Mark BOTH files, or the gate lies
 
@@ -168,7 +154,7 @@ comments sat untriaged behind a green-looking board.
 
 **Intro items route to intro-owned rules.** A durable fix for an `intro:*` item
 is written to `TASTE-INTRO.md` (a new numbered `T<N>` rule) or to
-`steps/025-author-intro-film-llm/AUTHORING.md` when it changes the authoring
+`steps/130-author-intro-screenplay-llm/AUTHORING.md` when it changes the authoring
 contract itself. It is **never** written to `lib/cue-rules.mjs`,
 `lib/zone-rules.mjs`, `lib/zone-constants.mjs`, or `../card-library/DESIGN.md`.
 Those govern the body and the shared brand; an intro lesson landing there
@@ -227,9 +213,12 @@ matters.
 
 Finally, report: the new version, what changed, and what you deliberately did not.
 
+That closes one round, not the loop: the owner re-reviews the new cut at 530, and
+any new comments re-enter Phase 1.
+
 ## Anti-patterns
 
-- Reading the board and skipping the other three sources.
+- Reading the board and skipping the other five sources.
 - Mapping a comment against the current `resolved.json` when it was written about
   an older version.
 - Treating a repeated owner rejection as three separate one-off complaints
