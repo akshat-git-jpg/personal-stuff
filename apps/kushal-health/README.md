@@ -23,8 +23,12 @@ numbers to `POST /api/reports` and the PDF to R2.
 
 ## Stack
 
-Worker (Hono) + D1 `kushal-health` + R2 `kushal-health-reports`; Vite + React client in
-`src/client`. Auth: shared-PIN HMAC cookie (copied from `apps/kushal-income`).
+Worker (Hono) + D1 + R2 `kushal-health-reports`; Vite + React client in `src/client`.
+Auth: shared-PIN HMAC cookie (copied from `apps/kushal-income`).
+
+The D1 is **`kushal-money`, shared with kushal-income**: the Cloudflare account is at its
+10-database free limit (2026-10-06). Health owns only `reports`, `markers` and `results`, and
+tracks its migrations in its own `health_migrations` table.
 
 ## Commands
 
@@ -37,15 +41,11 @@ Worker (Hono) + D1 `kushal-health` + R2 `kushal-health-reports`; Vite + React cl
 | Screenshot | `node scripts/shoot.mjs <url> <out.png> --login=<pin>` |
 | Deploy | `npm run deploy` |
 
-## First deploy (one time)
+## Setup (done 2026-10-06)
 
-From this folder:
+R2 bucket created, `npm run db:remote` applied, secrets `APP_PASSWORD` / `SESSION_SECRET` /
+`INGEST_TOKEN` set, deployed. A schema change: add `migrations/000N_*.sql`, then
+`npm run db:remote` before `npm run deploy`.
 
-1. `npx wrangler d1 create kushal-health`, paste the id into `wrangler.toml`.
-2. `npx wrangler r2 bucket create kushal-health-reports`
-3. `npm run db:remote`
-4. `npx wrangler secret put APP_PASSWORD` (type the PIN)
-5. `openssl rand -hex 32 | npx wrangler secret put SESSION_SECRET`
-6. Make an ingest token, set it with `npx wrangler secret put INGEST_TOKEN`, and put the same
-   value in `.ingest.env` (copy `.ingest.env.example`).
-7. `npm run deploy`, then open the URL and log in.
+On a new machine, `.ingest.env` is missing: copy `.ingest.env.example`, then either paste the
+current token or make a new one and set it with `npx wrangler secret put INGEST_TOKEN`.

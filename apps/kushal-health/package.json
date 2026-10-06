@@ -10,8 +10,8 @@
     "build": ". ../../scripts/node22-path.sh && tsc -b && vite build",
     "typecheck": ". ../../scripts/node22-path.sh && tsc -b",
     "test": ". ../../scripts/node22-path.sh && vitest run",
-    "db:local": ". ../../scripts/node22-path.sh && wrangler d1 migrations apply kushal-health --local",
-    "db:remote": ". ../../scripts/node22-path.sh && wrangler d1 migrations apply kushal-health --remote",
+    "db:local": ". ../../scripts/node22-path.sh && wrangler d1 migrations apply DB --local",
+    "db:remote": ". ../../scripts/node22-path.sh && wrangler d1 migrations apply DB --remote",
     "smoke": "bash scripts/smoke.sh",
     "shoot": "node scripts/shoot.mjs",
     "deploy": ". ../../scripts/node22-path.sh && npm run build && wrangler deploy"

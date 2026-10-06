@@ -8,6 +8,7 @@
 - Tutorials tracker — https://tutorials-tracker.agrolloo.com
 - YT Analytics (link click dashboard) — https://yt-analytics.agrolloo.com (password-gated)
 - Kushal Money (personal ledger: SBI savings + SBI Card + Tata Neu + Amazon Pay ICICI, every payment tagged) — https://kushal-income.agrolloo.com (password-gated) — refreshed on demand by the `my-income` skill (`python3 -m ledger.run` in `pipelines/personal-finance`), which posts to the Worker's D1 `kushal-money`; the data is never committed; app at `apps/kushal-income`
+- Kushal Health (blood test reports over time: status per marker, trends, a verdict per report, original PDFs) — https://kushal-health.agrolloo.com (PIN-gated) — reports added on demand by the `kushal-health` skill; health data is never committed; app at `apps/kushal-health`
 - YT Income (revenue by tool, tallied against the bank) — https://yt-income.agrolloo.com (password-gated)
 - Founders tracker (Khushi + Kushal action items) — https://founders.agrolloo.com (password-gated)
 - Lists (categorized personal lists) — https://lists.agrolloo.com (password-gated)

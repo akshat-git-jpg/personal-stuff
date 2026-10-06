@@ -52,7 +52,7 @@ push() {
 printf '%%PDF-1.4\n%%smoke\n' >"$PDF"
 
 # Fresh local database
-npx wrangler d1 migrations apply kushal-health --local --persist-to "$STATE" >"$LOG" 2>&1 \
+npx wrangler d1 migrations apply DB --local --persist-to "$STATE" >"$LOG" 2>&1 \
   || fail "could not apply migrations to the local D1"
 
 # Boot the Worker

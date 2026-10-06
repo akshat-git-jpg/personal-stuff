@@ -9,13 +9,14 @@ directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 
-# Blood test reports, markers and results. Owner creates with
-# `npx wrangler d1 create kushal-health` and pastes the real id here at first deploy.
+# Shares kushal-income's D1 (the account is at the 10-database free limit, 2026-10-06).
+# Health tables: reports, markers, results. Own migrations table, so the apps never mix.
 [[d1_databases]]
 binding = "DB"
-database_name = "kushal-health"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_name = "kushal-money"
+database_id = "1e875676-43a7-47f1-8fd3-5e9c28edb465"
 migrations_dir = "migrations"
+migrations_table = "health_migrations"
 
 # Original report PDFs. Owner creates with `npx wrangler r2 bucket create kushal-health-reports`.
 [[r2_buckets]]
