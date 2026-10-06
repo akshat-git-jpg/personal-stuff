@@ -18,7 +18,7 @@ Reserve `WebFetch` for quick TL;DR reads of blog posts, community articles, or p
 ## Command
 
 ```bash
-skills/printing-press/references/fetch-docs.sh [--ttl=<seconds>] [--force] [--md] <url>
+.claude/skills/printing-press/references/fetch-docs.sh [--ttl=<seconds>] [--force] [--md] <url>
 ```
 
 Default behavior:

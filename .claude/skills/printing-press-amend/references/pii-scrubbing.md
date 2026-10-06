@@ -17,7 +17,7 @@ For each target, copy to `<path>.pre-pii-scrub` BEFORE scrubbing so the user can
 
 ## Layer 1: Credentials (reuse retro patterns)
 
-Run the credential-pattern scan from `skills/printing-press-retro/references/secret-scrubbing.md` — it covers Stripe keys, GitHub PATs/OAuth, bearer tokens, generic API keys, AWS access keys, etc. Point at the same regex set; do not duplicate the patterns here so both skills evolve together.
+Run the credential-pattern scan from [secret-scrubbing.md](../../printing-press-retro/references/secret-scrubbing.md) — it covers Stripe keys, GitHub PATs/OAuth, bearer tokens, generic API keys, AWS access keys, etc. Point at the same regex set; do not duplicate the patterns here so both skills evolve together.
 
 For Phase 5's purposes, the credential scan's redaction tags (`<REDACTED:bearer-token>`, etc.) become the shape-preserving tokens for credential entities. Same surface, same tag.
 

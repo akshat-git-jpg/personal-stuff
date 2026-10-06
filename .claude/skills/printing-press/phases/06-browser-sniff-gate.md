@@ -1,10 +1,16 @@
-## Phase 1.7: Browser-Sniff Gate
+## 06-browser-sniff-gate (Phase 1.7: Browser-Sniff Gate)
 
-After Phase 1 research, evaluate whether browser-sniffing the live site would improve the spec. This phase MUST produce a decision marker file for every source named in the briefing before Phase 1.5 can proceed.
+**Receipt entry (required):**
 
-**Browser discovery is temporary discovery, not a printed-CLI runtime.** Use browser-use, agent-browser, the Claude chrome-MCP (`mcp__claude-in-chrome__*`, when the runtime exposes it), or a manual HAR (optionally augmented with computer-use screenshots for visual guidance, when `mcp__computer-use__*` is exposed) to learn the hidden web contract: URLs, methods, persisted GraphQL hashes, BFF envelopes, response shapes, cookies, CSRF/header construction, HTML/SSR/RSS/JSON-LD surfaces, and whether replay is viable. The final printed CLI must use replayable HTTP, Surf/browser-compatible HTTP, browser-clearance cookie import plus replay, or structured HTML/SSR/RSS extraction. If the only working path requires live page-context execution, HOLD or pivot scope — do not generate a resident browser sidecar transport.
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt enter --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "06-browser-sniff-gate"
+```
 
-**Automatic offer, explicit consent.** The Printing Press decides when browser discovery should be offered, but opening Chrome, attaching to a browser session, installing browser-use/agent-browser, asking the user to solve a challenge, or driving the user's logged-in Chrome via the chrome-MCP requires explicit user approval through the Phase 0 website choice or the Phase 1.7 `AskUserQuestion` prompt. **Approval at Phase 1.7 covers the full fallback set** including chrome-MCP and computer-use when Step 2c.5's recovery menu later offers them — picking chrome-MCP at the recovery menu is a refinement of the Phase 1.7 consent, not a new consent surface. The disclosure language used at the Phase 1.7 prompt MUST enumerate these possibilities so the user understands what they are approving:
+After [Phase 1](04-research-brief.md) research, evaluate whether browser-sniffing the live site would improve the spec. This phase MUST produce a decision marker file for every source named in the briefing before [Phase 1.5](08-ecosystem-absorb-gate.md) can proceed.
+
+**Browser discovery is temporary discovery, not a printed-CLI runtime.** Use browser-use, agent-browser, the Claude chrome-MCP (`mcp__claude-in-chrome__*`, when the runtime exposes it), or a manual HAR (optionally augmented with computer-use screenshots for visual guidance, when `mcp__computer-use__*` is exposed) to learn the hidden web contract: URLs, methods, persisted GraphQL hashes, BFF envelopes, response shapes, cookies, CSRF/header construction, HTML/SSR/RSS/JSON-LD surfaces, and whether replay is viable. The final printed CLI must use replayable HTTP, Chrome-compatible HTTP, browser-clearance cookie import plus replay, or structured HTML/SSR/RSS extraction. If the only working path requires live page-context execution, HOLD or pivot scope — do not generate a resident browser sidecar transport.
+
+**Automatic offer, explicit consent.** The Printing Press decides when browser discovery should be offered, but opening Chrome, attaching to a browser session, installing browser-use/agent-browser, asking the user to solve a challenge, or driving the user's logged-in Chrome via the chrome-MCP requires explicit user approval through the [Phase 0](03-resolve-and-reuse.md) website choice or the Phase 1.7 `AskUserQuestion` prompt. **Approval at Phase 1.7 covers the full fallback set** including chrome-MCP and computer-use when Step 2c.5's recovery menu later offers them — picking chrome-MCP at the recovery menu is a refinement of the Phase 1.7 consent, not a new consent surface. The disclosure language used at the Phase 1.7 prompt MUST enumerate these possibilities so the user understands what they are approving:
 
 > "Approving browser-sniff means the agent may run browser-use, agent-browser, ask you for a manual DevTools HAR export, or — if the default backends get blocked by an anti-bot gate and your runtime exposes them — drive your already-running Chrome via the chrome-MCP browser extension, or take read-only screenshots of your DevTools window via computer-use to guide you through the HAR export. Capture artifacts are written to `$DISCOVERY_DIR/` and credential headers are stripped at write time. The chrome-MCP option uses your real logged-in Chrome session in a fresh capture tab; the agent never navigates your existing tabs."
 
@@ -12,7 +18,7 @@ If chrome-MCP picks up later in Step 2c.5's recovery menu, do NOT re-fire a per-
 
 ### Enforcement: the browser-browser-sniff-gate.json marker file
 
-Phase 1.7 is a hard gate. Phase 1.5 reads a marker file and refuses to proceed without it. The model cannot skip this phase by reasoning around it.
+Phase 1.7 is a hard gate. [Phase 1.5](08-ecosystem-absorb-gate.md) reads a marker file and refuses to proceed without it. The model cannot skip this phase by reasoning around it.
 
 **Marker file location:** `$PRESS_RUNSTATE/runs/$RUN_ID/browser-browser-sniff-gate.json`
 
@@ -37,9 +43,9 @@ Phase 1.7 is a hard gate. Phase 1.5 reads a marker file and refuses to proceed w
 - `approved` — user selected a browser-sniff option via `AskUserQuestion`. Proceed to "If user approves browser-sniff".
 - `declined` — user explicitly declined browser-sniff via `AskUserQuestion`. Proceed to "If user declines browser-sniff".
 - `skip-silent` — gate was silently skipped per the decision matrix (spec complete, `--har` provided, `--spec` provided, or login required with `AUTH_SESSION_AVAILABLE=false`). The `reason` field names which.
-- `pre-approved` — user already chose "The website itself" in Phase 0, where the prompt disclosed temporary Chrome/browser capture during generation, so `BROWSER_SNIFF_TARGET_URL` was set and the question was answered there.
+- `pre-approved` — user already chose "The website itself" in [Phase 0](03-resolve-and-reuse.md), where the prompt disclosed temporary Chrome/browser capture during generation, so `BROWSER_SNIFF_TARGET_URL` was set and the question was answered there.
 
-**Every path through Phase 1.7 MUST write a marker entry** — approve, decline, and every silent-skip case. There is no code path that proceeds to Phase 1.5 without writing the marker.
+**Every path through Phase 1.7 MUST write a marker entry** — approve, decline, and every silent-skip case. There is no code path that proceeds to [Phase 1.5](08-ecosystem-absorb-gate.md) without writing the marker.
 
 **`asked_at` is mandatory.** It must reflect the actual time `AskUserQuestion` was invoked (or the time the silent-skip decision was made). Fabricated timestamps are a plan violation.
 
@@ -55,13 +61,13 @@ The following rationales are NOT valid reasons to skip the browser-sniff gate. I
 - **"Installing browser-use or agent-browser is friction"** — the browser-sniff capture reference already documents the install path. Tooling friction is not a valid skip reason. Ask.
 - **"The documentation looks thorough enough"** — the decision matrix already handles this case explicitly. If research found that competitors or community projects reference more endpoints than the spec covers, that IS a gap and you MUST ask.
 - **"The user said 'let's go' earlier and implicitly approved everything"** — "let's go" at the briefing stage is consent to proceed with research, not standing approval for every future decision. Ask each gate individually.
-- **"The default browser-use / agent-browser path got hard-blocked by a WAF, so the only remaining option is to pivot scope or fall back to RSS/docs"** — this is exactly when the chrome-MCP and computer-use fallback options enter, when the runtime exposes them. Step 1 of `references/browser-sniff-capture.md` detects which fallback MCPs are available; Step 2c.5 composes the recovery menu including those fallbacks; the gate is "ask before giving up," not "auto-pivot when blocked." Do NOT skip the Step 2c.5 menu. Do NOT pivot scope or substitute an alternate target without first asking the user via that menu.
+- **"The default browser-use / agent-browser path got hard-blocked by a WAF, so the only remaining option is to pivot scope or fall back to RSS/docs"** — this is exactly when the chrome-MCP and computer-use fallback options enter, when the runtime exposes them. Step 1 of `../references/browser-sniff-capture.md` detects which fallback MCPs are available; Step 2c.5 composes the recovery menu including those fallbacks; the gate is "ask before giving up," not "auto-pivot when blocked." Do NOT skip the Step 2c.5 menu. Do NOT pivot scope or substitute an alternate target without first asking the user via that menu.
 
 These banned reasons all fired at once in a past combo-CLI run and caused a user-critical source to be silently swapped out. The marker file exists so this cannot happen again. If you find yourself writing a phrase like "skipping browser-sniff because X" where X is one of the above, stop and call `AskUserQuestion`.
 
 ### Combo CLIs: per-source enforcement
 
-When the briefing names multiple sources (e.g., "Google Flights + Kayak + FlightAware"), each named source is evaluated independently. The marker file has one entry per source. All entries must be present before Phase 1.5 can proceed.
+When the briefing names multiple sources (e.g., "Google Flights + Kayak + FlightAware"), each named source is evaluated independently. The marker file has one entry per source. All entries must be present before [Phase 1.5](08-ecosystem-absorb-gate.md) can proceed.
 
 **Source identification rule:** source names come from the briefing, verbatim. Use the user's exact wording as the `source_name` (normalized to kebab-case is fine: "Kayak /direct" → `kayak-direct`, "Google Flights" → `google-flights`, "FlightAware" → `flightaware`). Do not merge sources. Do not drop one in favor of another.
 
@@ -77,21 +83,21 @@ For each named source, run the "When to offer browser-sniff" decision matrix ind
 | `google-flights` | No official spec, but community wrapper exists (`krisukox/google-flights-api`) | Ask via `AskUserQuestion` → record user's answer |
 | `kayak-direct` | No spec, no wrapper, user named this as a key feature | Ask via `AskUserQuestion` → record user's answer |
 
-The marker file for this run would contain three entries. Phase 1.5 would HALT if any were missing.
+The marker file for this run would contain three entries. [Phase 1.5](08-ecosystem-absorb-gate.md) would HALT if any were missing.
 
 **When the user cares about only one source:** you still ask for all sources that trigger the gate. The user can decline the others. Asking is cheap. Skipping silently breaks the contract.
 
 ### Skip this gate entirely when
 
-These are the only cases where Phase 1.7 is bypassed as a whole (not just skipped for one source). Even in these cases, a marker file with a single `skip-silent` entry is written to satisfy Phase 1.5's check:
+These are the only cases where Phase 1.7 is bypassed as a whole (not just skipped for one source). Even in these cases, a marker file with a single `skip-silent` entry is written to satisfy [Phase 1.5](08-ecosystem-absorb-gate.md)'s check:
 
 - User passed `--spec` and the spec is the canonical source for every named source → marker: `{ "source_name": "<api>", "decision": "skip-silent", "reason": "user-provided-spec" }`
 - User passed `--har` → marker: `{ "source_name": "<api>", "decision": "skip-silent", "reason": "user-provided-har" }`
-- `BROWSER_SNIFF_TARGET_URL` is set from Phase 0 (user chose "The website itself") → marker: `{ "source_name": "<api>", "decision": "pre-approved", "reason": "phase-0-website-choice" }`, then go directly to "If user approves browser-sniff"
+- `BROWSER_SNIFF_TARGET_URL` is set from [Phase 0](03-resolve-and-reuse.md) (user chose "The website itself") → marker: `{ "source_name": "<api>", "decision": "pre-approved", "reason": "phase-0-website-choice" }`, then go directly to "If user approves browser-sniff"
 
 ### Direct HTTP challenge rule
 
-If a reachability probe during Phase 1 research returns bot-protection evidence (`403`, `429`, `cf-mitigated: challenge`, `x-vercel-mitigated: challenge`, `x-vercel-challenge-token`, AWS WAF, DataDome, PerimeterX, CAPTCHA, "Just a moment", "access denied"), **run the no-browser reachability probe before announcing any browser escalation**:
+If a reachability probe during [Phase 1](04-research-brief.md) research returns bot-protection evidence (`403`, `429`, `cf-mitigated: challenge`, `x-vercel-mitigated: challenge`, `x-vercel-challenge-token`, AWS WAF, DataDome, PerimeterX, CAPTCHA, "Just a moment", "access denied"), **run the no-browser reachability probe before announcing any browser escalation**:
 
 ```bash
 cli-printing-press probe-reachability "<url>" --json
@@ -101,7 +107,7 @@ This is non-negotiable. **Do not present transport tiers as a peer menu for the 
 
 Escalate consent in the order the agent actually needs it, not bundled up-front:
 
-1. **Runtime probe (silent)** — `probe-reachability` runs without prompting. The user already opted into "the website itself" or equivalent in Phase 0; running an HTTP request needs no further consent.
+1. **Runtime probe (silent)** — `probe-reachability` runs without prompting. The user already opted into "the website itself" or equivalent in [Phase 0](03-resolve-and-reuse.md); running an HTTP request needs no further consent.
 2. **Browser-sniff offer (intent prompt)** — Phase 1.7's normal "Browser-Sniff as enrichment" / "Browser-Sniff as primary" prompts ask whether to do browser-sniff at all. These are intent-level. Show them when the discovery matrix says to.
 3. **Chrome attach (separate consent if escalation happens)** — when the agent actually needs to open or attach to Chrome (because the discovery flow requires a real browser, or because `mode: browser_clearance_http` means the runtime needs cookie capture), surface that as its own moment so the user knows they may need to solve a challenge or sign in. The user-facing prompts at lines below already disclose Chrome attach as a possibility; that is the right place to confirm. Do not pre-announce Chrome attach when the probe has already settled the runtime as `browser_http` and the spec is complete enough to skip discovery — there is no Chrome attach to announce in that path.
 
@@ -113,8 +119,8 @@ Two concerns are decided here, separately:
 The probe runs stdlib HTTP, then Surf with a Chrome TLS fingerprint, and emits one of `standard_http | browser_http | browser_clearance_http | unknown`. Apply `mode` to the **runtime** decision:
 
 - **`mode: standard_http`** — runtime is plain HTTP (the original probe was transient). Continue Phase 1.7 normally; the discovery decision is unchanged.
-- **`mode: browser_http`** — **runtime is settled: ship Surf transport** (`UsesBrowserHTTPTransport` will be set in the generator's traffic-analysis hints). The printed CLI will not include `auth login --chrome` for clearance cookies — Surf alone clears the challenge. Continue Phase 1.7's discovery decision normally; the existing "Browser-Sniff as enrichment" / "Browser-Sniff as primary" prompts (above) are framed around endpoint discovery and are correct as-written. Do **not** add clearance-cookie language to those prompts.
-- **`mode: browser_clearance_http`** — both probes hit protection signals. The runtime needs more than Surf (clearance cookie or live page-context execution; the probe cannot distinguish), so a real browser capture is required to find out. Proceed through Phase 1.7's normal browser-sniff offer (intent-level yes/no). The consent for Chrome attach happens at the moment the agent actually opens/attaches, where the user-facing prompts in `references/browser-sniff-capture.md` already disclose what's about to happen and may ask the user to solve a challenge. Note in the brief that runtime is provisionally `browser_clearance_http` pending capture results.
+- **`mode: browser_http`** — **runtime is settled: ship the Chrome-compatible transport** (the generated Chrome profile plus uTLS; `UsesBrowserHTTPTransport` will be set in the generator's traffic-analysis hints). The printed CLI will not include `auth login --chrome` for clearance cookies — the Chrome TLS fingerprint alone clears the challenge. Continue Phase 1.7's discovery decision normally; the existing "Browser-Sniff as enrichment" / "Browser-Sniff as primary" prompts (above) are framed around endpoint discovery and are correct as-written. Do **not** add clearance-cookie language to those prompts.
+- **`mode: browser_clearance_http`** — both probes hit protection signals. The runtime needs more than Surf (clearance cookie or live page-context execution; the probe cannot distinguish), so a real browser capture is required to find out. Proceed through Phase 1.7's normal browser-sniff offer (intent-level yes/no). The consent for Chrome attach happens at the moment the agent actually opens/attaches, where the user-facing prompts in `../references/browser-sniff-capture.md` already disclose what's about to happen and may ask the user to solve a challenge. Note in the brief that runtime is provisionally `browser_clearance_http` pending capture results.
 - **`mode: unknown`** — probes failed at the transport layer (DNS/timeout/5xx). Fall through to the existing browser-sniff offer; the user decides whether to retry or pivot.
 
 When browser-sniff is approved or pre-approved AND the probe says `browser_clearance_http` or `unknown`:
@@ -122,7 +128,7 @@ When browser-sniff is approved or pre-approved AND the probe says `browser_clear
 - Do **not** write the brief as if browser-sniff is complete after only curl/direct HTTP probes.
 - If browser automation tooling is unavailable, offer the user a manual HAR path before offering any scope pivot.
 
-Only after the browser capture attempt fails by the criteria in `references/browser-sniff-capture.md` may you ask whether to pivot to RSS, official API, docs-only, or a smaller CLI scope.
+Only after the browser capture attempt fails by the criteria in `../references/browser-sniff-capture.md` may you ask whether to pivot to RSS, official API, docs-only, or a smaller CLI scope.
 
 ### Time budget
 
@@ -143,10 +149,10 @@ Do NOT spend time debugging tool integration issues. Browser-sniff is a temporar
 | Yes | No — spec appears complete | Any | Skip silently (write marker with `decision: skip-silent`) |
 | No | Community docs exist (e.g., Public-ESPN-API) | No | **MUST offer browser-sniff OR --docs** — present both options so the user decides |
 | No | No docs found either | No | **MUST offer browser-sniff as primary discovery** |
-| No | N/A | Yes (login) + `AUTH_SESSION_AVAILABLE=true` | **Offer authenticated browser-sniff** — the user confirmed a session in Phase 1.6 |
+| No | N/A | Yes (login) + `AUTH_SESSION_AVAILABLE=true` | **Offer authenticated browser-sniff** — the user confirmed a session in [Phase 1.6](05-pre-browser-sniff-auth-intelligence.md) |
 | No | N/A | Yes (login) + `AUTH_SESSION_AVAILABLE=false` | Skip — fall back to `--docs` (write marker with `decision: skip-silent`, `reason: login-required-no-session`) |
 
-**Gap detection heuristic:** If Phase 1 research found documentation, competitor tools, or community projects that reference significantly more endpoints or features than the resolved spec covers, that's a gap signal. Example: "The Zuplo OpenAPI spec has 42 endpoints, but the Public-ESPN-API docs describe 370+."
+**Gap detection heuristic:** If [Phase 1](04-research-brief.md) research found documentation, competitor tools, or community projects that reference significantly more endpoints or features than the resolved spec covers, that's a gap signal. Example: "The Zuplo OpenAPI spec has 42 endpoints, but the Public-ESPN-API docs describe 370+."
 
 **When the decision matrix says "Offer browser-sniff", you MUST ask the user via `AskUserQuestion`.** Skipping the question and writing a `skip-silent` marker is a contract violation — `skip-silent` is only valid when the matrix says "Skip silently" or one of the Banned Skip Reasons is the only thing holding you back (in which case, you should be asking anyway).
 
@@ -212,7 +218,7 @@ The browser-sniff will walk through this goal as an interactive user flow. Secon
 
 State the goal explicitly before proceeding: "Primary browser-sniff goal: [goal]. I will walk through this as a user flow."
 
-Then read and follow [references/browser-sniff-capture.md](references/browser-sniff-capture.md) for the complete
+Then read and follow [references/browser-sniff-capture.md](../references/browser-sniff-capture.md) for the complete
 browser-sniff implementation: tool detection, installation, session transfer, browser-use/agent-browser/manual HAR
 capture, replayability analysis, and discovery report writing.
 
@@ -235,7 +241,33 @@ Proceed with whatever spec source exists. If no spec was found, fall back to `--
 
 ### Before leaving Phase 1.7
 
-Every source named in the briefing must have exactly one entry in `browser-browser-sniff-gate.json`. Before proceeding to Phase 1.8, re-read the marker file and verify the count matches the number of named sources from the briefing. If a source is missing, return to the decision matrix for that source. Phase 1.5 will HALT if this check fails.
+Every source named in the briefing must have exactly one entry in `browser-browser-sniff-gate.json`. Before proceeding to [Phase 1.8](07-crowd-sniff-gate.md), re-read the marker file and verify the count matches the number of named sources from the briefing. If a source is missing, return to the decision matrix for that source. [Phase 1.5](08-ecosystem-absorb-gate.md) will HALT if this check fails.
 
 ---
 
+Before following `Next:`, record the durable handoff and point `--evidence` at
+the browser-sniff gate marker:
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "06-browser-sniff-gate" --evidence "$API_RUN_DIR/browser-browser-sniff-gate.json"
+```
+
+If you entered this phase from a rework handoff, complete back to the gate that
+sent you, not to `Next:` — replaying the phases in between re-prompts the user to
+re-approve work that already passed. The binary enforces this: it reads the
+rework handoff out of the ledger and rejects a return to the other gate, so use
+the block that matches the gate you came from. Entered from `Next:` rather than a
+rework handoff, this phase has neither block available and completes to `Next:`.
+From [Phase 1.5](08-ecosystem-absorb-gate.md):
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "06-browser-sniff-gate" --next "08-ecosystem-absorb-gate" --note "browser-sniff rework complete for <source>"
+```
+
+From [Phase 1.9](09-api-reachability-gate.md):
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "06-browser-sniff-gate" --next "09-api-reachability-gate" --note "cleared-browser capture retry complete: <outcome>"
+```
+
+Next: phases/07-crowd-sniff-gate.md

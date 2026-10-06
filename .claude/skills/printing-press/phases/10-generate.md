@@ -1,46 +1,44 @@
-## Phase 2: Generate
+## 10-generate (Phase 2: Generate)
+
+**Receipt entry (required):**
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt enter --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "10-generate"
+```
 
 ### Pre-Generation Category Enrichment
 
-Before generating a non-catalog CLI, set the spec's top-level `category` before
-running `generate`. The category must come from the Phase 1 research brief's
-domain judgment, mapped to the public catalog enum documented in
-`docs/CATALOG.md`.
-
-Non-catalog means the run is based on browser-sniffed traffic, HAR capture,
-docs-derived specs, or a hand-authored internal spec rather than
-`cli-printing-press generate <name>` using a built-in catalog entry. For
-internal YAML specs, add:
+Before generating, set the spec's top-level `category` before running
+`generate`. The category must come from the [Phase 1](04-research-brief.md) research brief's domain
+judgment, mapped to the public-library category enum. For internal YAML specs,
+add:
 
 ```yaml
-category: <catalog-category>
+category: <public-library-category>
 ```
 
 If the source is an OpenAPI file and the workflow has an editable overlay or
 derived internal spec, carry the same top-level category into that generated
 spec artifact before the final `generate` invocation. If there is no editable
 spec artifact, such as direct `--docs` generation, pass
-`--category <catalog-category>` on the final `generate` invocation. Do not add
+`--category <public-library-category>` on the final `generate` invocation. Do not add
 the category after generation just to satisfy publish; the generated manifest,
 README, and SKILL install section must all come from the same category-aware
 spec, or `verify-skill canonical-sections` can drift.
-
-Catalog-mode runs skip this step: keep the built-in catalog entry's category
-unchanged, even if Phase 1 research would classify the API differently.
 
 ### Pre-Generation Cache Enrichment
 
 Before generating, decide whether the spec should opt into generator-owned cache
 freshness. The generator already has the freshness helpers and auto-refresh hook,
 but it emits them only when the spec declares `cache.enabled: true` and the CLI
-has a real sync path. Stateful catalog-shaped CLIs otherwise serve local data
+has a real sync path. Stateful CLIs otherwise serve local data
 exactly as it was last synced, which caps the cache freshness score and can leave
 agents reading stale SQLite rows without a warning.
 
 Enable cache freshness only when the resolved spec, profiler output, or absorb
 manifest shows at least one covered read path backed by a syncable resource that
 `sync` can refresh from the upstream API before serving. Do not enable it from
-Phase 1 research notes or scorecard goals alone. Leave it disabled for stateless
+[Phase 1](04-research-brief.md) research notes or scorecard goals alone. Leave it disabled for stateless
 read-through wrappers and for local stores that are primarily per-user working
 state, such as carts, drafts, or other session-owned data where a pre-read
 refresh could replace the user's local state with a different snapshot. Also
@@ -48,10 +46,6 @@ leave it disabled for quota-metered, paid, rate-limited, or expensive bulk
 refresh APIs unless the refresh path is cheap, bounded, and clearly valuable;
 those CLIs should rely on manual `sync` plus the generated `doctor` cache report
 instead of surprising users with pre-read upstream calls.
-
-Catalog-mode runs skip this step: keep the built-in catalog entry's cache
-settings unchanged. Do not pass a flag or patch generated files after the fact;
-cache freshness must come from the spec that drives generation.
 
 For internal YAML specs, add the cache block before the final `generate`
 invocation only when at least one generated syncable resource read command will
@@ -96,19 +90,19 @@ browser-sniffed and crowd-sniffed specs where the mechanical auth detection may 
 - For internal YAML specs: look for `auth:` section with `type:` not equal to `"none"`
 - For OpenAPI specs: look for `components.securitySchemes` or `security` sections
 
-**If auth is missing** (`type: none` or no auth section) AND Phase 1 research found
+| Spec signal | Generator auth path |
+|---|---|
+| Provider-specific OAuth2 server or auth marker identifies a service-account JWT bearer flow | Emit the guarded service-account scaffold. It accepts the provider's credential file or pre-minted bearer override, exchanges service-account JWTs for cached bearer tokens, and preserves generic OAuth2 behavior for other hosts. |
+
+**If auth is missing** (`type: none` or no auth section) AND [Phase 1](04-research-brief.md) research found
 auth signals, enrich the spec before generation:
 
 1. Check the research brief for auth mentions (Bearer, API key, token, cookie, OAuth)
-2. Check Phase 1.5a MCP source code analysis for auth patterns (header names, token formats)
-3. Check Phase 1.6 Pre-Browser-Sniff Auth Intelligence results (if the user confirmed auth)
+2. Check [Phase 1.5a](08-ecosystem-absorb-gate.md) MCP source code analysis for auth patterns (header names, token formats)
+3. Check [Phase 1.6](05-pre-browser-sniff-auth-intelligence.md) Pre-Browser-Sniff Auth Intelligence results (if the user confirmed auth)
 
 If any source identified auth, **edit the spec YAML** to add the auth section before
-running generate. Catalog-mode runs (`cli-printing-press generate <name>` where `<name>`
-is in `catalog/`) can skip the spec edit when the catalog entry declares
-`auth_env_vars` — those canonical names are applied automatically and the
-parser's name-derived default name is retained as a trailing fallback so
-operators on existing setups don't need a rename. For internal YAML specs:
+running generate. For internal YAML specs:
 
 ```yaml
 auth:
@@ -143,7 +137,7 @@ as `apiKey`.
 For OpenAPI specs, prefer `x-auth-env-vars` on the selected security scheme
 when the wrapper slug differs from the underlying API brand.
 
-**If auth IS present** in the spec but Phase 1 evidence shows the slug-derived
+**If auth IS present** in the spec but [Phase 1](04-research-brief.md) evidence shows the slug-derived
 env var will differ from the canonical name users have already set for this
 API, enrich the spec with the canonical name before generation. The
 slug-derivation rule (security-scheme slug uppercased plus `_TOKEN` /
@@ -161,7 +155,7 @@ Walk through:
    slug, uppercased, plus the type-suffix above; HTTP Basic produces a
    `_USERNAME` + `_PASSWORD` pair; OAuth2 `client_credentials` produces a
    `_CLIENT_ID` + `_CLIENT_SECRET` pair).
-2. Check Phase 1 research, Phase 1.5a MCP source code analysis, and community
+2. Check [Phase 1](04-research-brief.md) research, [Phase 1.5a](08-ecosystem-absorb-gate.md) MCP source code analysis, and community
    wrapper READMEs for a canonical env var name documented by the vendor or
    in widespread use.
 3. If they differ and the canonical name is a single-token credential, record
@@ -361,7 +355,7 @@ friendly name.
 
 #### Free/Paid Tier Routing Enrichment
 
-If Phase 1 finds that the headline commands should stay free but secondary
+If [Phase 1](04-research-brief.md) finds that the headline commands should stay free but secondary
 enrichment needs a paid key, declare tier routing in the spec before generation.
 Do this only when research identifies a real split; do not invent tiers for a
 single-auth API.
@@ -438,7 +432,7 @@ Typical unauthenticated endpoints worth tagging:
 - **Auth-flow primitives:** login, registration, password-reset, email-confirm,
   refresh-token, OAuth callback. The user isn't authenticated when calling these —
   they ARE the auth flow.
-- **Public discovery:** store/location finder, menu browse, public catalog,
+- **Public discovery:** store/location finder, menu browse, public listings,
   category listing, public search, public product detail.
 - **Health/metadata:** health checks, version probes, capability flags, sitemap.
 
@@ -489,7 +483,7 @@ resources:
 
 For specs with `auth.type: cookie` or `auth.type: composed` and any
 `response_format: html` endpoint, treat browser fingerprint compatibility as
-the safe default. The generator emits Surf-backed Chrome transport for that
+the safe default. The generator emits Chrome-compatible transport for that
 shape unless the spec explicitly says `http_transport: standard`.
 
 Before setting an explicit standard opt-out, run
@@ -504,7 +498,7 @@ For cookie/composed-auth CLIs, recommend the `press-auth` companion binary —
 it captures cookies once via a controlled Chrome window and serves them to
 generated CLIs on demand, avoiding the on-disk session-cookie blind spot
 that breaks `auth login --chrome` against a daily Chrome profile. See
-[references/auth-companion.md](references/auth-companion.md) for the
+[references/auth-companion.md](../references/auth-companion.md) for the
 recommendation flow, install command, and debug playbook.
 
 ### Pre-Generation MCP Enrichment
@@ -521,36 +515,41 @@ fragments across 4+ files, won't be byte-identical, and the polish skill cannot
 fix it (polish doesn't re-run generation). Enriching the spec means every
 template emits the right surface from the start.
 
-**Count the tool surface.** Two parts:
+**Count the tool surface.** Keep two counts separate:
 
 1. **Typed endpoints** — count `endpoints` across all `resources` (and
    `sub_resources`) in the spec. These become per-endpoint MCP tools at
-   generate-time.
+   generate-time. This is the only count that selects the >50 automatic
+   Cloudflare pattern and the only surface `mcp.orchestration: code` collapses.
 2. **Cobratree-walked tools** — the runtime walker registers user-facing Cobra
    commands as MCP tools. Estimate as: `extra_commands` count + ~13 framework
    tools that ship by default (sql, search, context, sync, stale, doctor,
    reconcile, etc., minus framework-skipped). When novel features are planned,
-   add their estimated command count.
+   add their estimated command count. These tools still register in code
+   orchestration mode so novel commands remain agent-reachable.
 
-The total is what an agent loads at MCP server start.
+The total startup-visible tool count is the visible typed-endpoint tools plus
+cobratree-walked tools and explicit framework tools. Use it to estimate runtime
+context pressure, but do not treat cobratree tools as reducible by
+`mcp.orchestration: code`.
 
 **Decision table:**
 
-| Total tools | Action |
-|-------------|--------|
-| <30 | Skip — default endpoint-mirror surface is fine. |
-| 30–50 | Ask the user. Suggest `mcp.transport: [stdio, http]` for remote reach; suggest `mcp.intents` if there are clear multi-step workflows. |
-| >50 | The generator auto-applies the Cloudflare pattern (transport + code orchestration + hidden endpoint tools) unless `mcp.orchestration` / `x-mcp.orchestration` is explicitly set. |
+| Typed endpoint count | Action |
+|----------------------|--------|
+| <30 | Skip — default endpoint-mirror surface is fine unless the cobratree count is unusually high. |
+| 30–50 | Ask the user. Suggest `mcp.transport: [stdio, http]` for remote reach; suggest `mcp.intents` if there are clear multi-step workflows. If cobratree-walked tools dominate the total, say that code orchestration will not shrink them. |
+| >50 | The generator auto-applies the Cloudflare pattern (transport + code orchestration + hidden endpoint tools) unless `mcp.orchestration` / `x-mcp.orchestration` is explicitly set. This collapses typed endpoint mirrors, not the runtime command mirror. |
 
 **Mandatory >50 endpoint-tools confirmation.** If the pre-generation count
 predicts more than 50 endpoint tools, expect `generate` to print an informational
 line beginning `info: applied Cloudflare MCP pattern`. This is the intended
 default and does not require a blocking question. Before verification, polish,
 dogfood, or publish, confirm the generated MCP surface is the thin
-`<api>_search` + `<api>_execute` pair. If the user explicitly wants raw
-endpoint tools past the threshold, set `mcp.orchestration: endpoint-mirror`
-(internal YAML) or `x-mcp.orchestration: endpoint-mirror` (OpenAPI) before
-regenerating.
+`<api>_search` + `<api>_execute` pair plus any cobratree-walked command tools.
+If the user explicitly wants raw endpoint tools past the threshold, set
+`mcp.orchestration: endpoint-mirror` (internal YAML) or
+`x-mcp.orchestration: endpoint-mirror` (OpenAPI) before regenerating.
 
 **The Cloudflare pattern** (default for large surfaces without explicit
 orchestration) — the generator applies this shape automatically. Add the spec
@@ -584,14 +583,33 @@ mcp:
 
 `mcp.transport: [stdio, http]` adds HTTP streamable transport so cloud-hosted
 agents (Managed Agents, web clients) can connect. `mcp.orchestration: code`
-emits the thin search+execute pair that covers the full surface in ~1K tokens.
+emits the thin search+execute pair that covers the typed-endpoint surface in
+~1K tokens.
 `mcp.endpoint_tools: hidden` removes the raw per-endpoint tools that would
 otherwise still show up alongside the orchestration pair.
+
+**HTTP transport security default - read before enabling `http`.** The emitted
+MCP server binds its HTTP listener to loopback by default
+(`defaultHTTPAddr = "127.0.0.1:7777"`) and does not authenticate reachable
+callers. Any client that can reach a deliberately non-loopback `mcp.addr` or
+`--addr` value can invoke tools with the process's bound API credentials. If the
+CLI needs HTTP transport for local agents, rely on the loopback default. Only
+configure a non-loopback address when the exposure is deliberate; for CLIs whose
+MCP surface is only consumed locally, keep the server stdio-only when HTTP is
+not needed. Decide this before generation; changing it after the PR opens costs
+review cycles.
+
+For command-dominant CLIs where cobratree-walked tools greatly outnumber typed
+endpoints, do not present code orchestration as the context-reduction remedy for
+the command mirror. Keep novel commands reachable by default, and reduce that
+surface only with deliberate per-command `cmd.Annotations["mcp:hidden"] =
+"true"` opt-outs or framework-command classification in
+`internal/mcp/cobratree/classify.go.tmpl`.
 
 For OpenAPI input specs, declare these fields under `x-mcp:` at the document
 root (OpenAPI 3.0 `x-*` vendor extensions). The shape is identical to the
 internal-YAML `mcp:` block above — same field names, just nested under a
-vendor-extension key. See [`docs/SPEC-EXTENSIONS.md`](../../docs/SPEC-EXTENSIONS.md) for the canonical
+vendor-extension key. See [`docs/SPEC-EXTENSIONS.md`](../../../docs/SPEC-EXTENSIONS.md) for the canonical
 schema and `info`-level placement option.
 
 **Smaller-surface variants:**
@@ -614,6 +632,98 @@ three. If polish later reports these dims weak, that's a sign this enrichment
 step was skipped — re-run generation with the enriched spec rather than
 trying to fix it in polish.
 
+### Pre-Generation Learn Enrichment
+
+Before generating, author the spec's `learn:` block. The learn loop (the
+`teach`, `recall`, `learnings`, and `playbook` command families plus their
+local store tables) is emitted by default for every print. The emitted
+`internal/learn` package stays domain-neutral (enforced by
+`scripts/verify-learn-purity.sh`), so the spec's `learn:` block is the only
+place per-CLI domain vocabulary can enter the loop. Vocabulary the block does
+not carry never reaches the printed CLI, and a seedless loop can only
+exact-match taught phrasings.
+
+**This decision is REQUIRED.** Every run leaves this step with exactly one of
+three recorded outcomes: an authored `learn:` block, the no-entities escape,
+or the `learn.disabled: true` opt-out. Do not proceed to Lock and Generate
+without one. Seeds are baked into the generated `learn_init.go` at
+generate-time; polish cannot add them later (polish does not re-run
+generation).
+
+**Author from [Phase 1](04-research-brief.md) research vocabulary.** The research brief already names
+the domain's entities; translate them, do not re-research:
+
+- `entity_lookup_seeds`: keyed by entity kind, one entry per canonical
+  entity. `canonical` must match upstream API responses exactly; `aliases`
+  capture how agents actually type the entity (nicknames, abbreviations,
+  short forms). This is where most authoring time goes. Seed the full set for
+  finite stable domains; seed only the high-frequency cases for open-ended
+  ones.
+- `ticker_patterns`: only when the domain has ticker-like identifiers, i.e.
+  stable regex-matchable IDs, slugs, or codes an agent would paste into a
+  free-text query. Anchor every regex with `^...$`. Do not author a character
+  class that can match ordinary lowercase query words (`^[a-z0-9]{2,12}$`
+  and similar); spec/generate validation rejects patterns that empty
+  QueryFamily for the generator's seeded playbook `query_family_examples`.
+- `synonyms`: only for same-referent phrasing variants users will actually
+  say (spelling variants, equivalent time phrasings). Never pairs that change
+  meaning; keys and values are lowercase, single-hop.
+- `stopwords`: rarely. Only domain filler words beyond the built-in English
+  default set.
+
+```yaml
+learn:
+  entity_lookup_seeds:
+    widget_series:
+      - canonical: Example Widget Series Alpha
+        aliases: [alpha, series a, ews-alpha]
+      - canonical: Example Widget Series Beta
+        aliases: [beta, series b]
+  ticker_patterns:
+    - "^ew-[a-z0-9]+$"        # only when the domain has ID-shaped tokens
+  synonyms:
+    "most recent": "latest"
+  stopwords:
+    - widget
+```
+
+**No-entities escape.** For domains with no entity vocabulary (nothing agents
+would refer to by multiple names), leave `entity_lookup_seeds` empty or omit
+the block and record why in one line at the spec root:
+
+```yaml
+# learn no-entities escape: <one-line reason there is no aliasable entity vocabulary>
+```
+
+The loop still ships and still pays off for exact-recall and playbooks;
+degraded generalization is the expected and accepted trade.
+
+**Opt-out.** Set `learn.disabled: true` only for CLIs where local learning is
+genuinely wrong, such as pure stdin/stdout transforms with no query
+vocabulary and no discovery walk to compress:
+
+```yaml
+learn:
+  disabled: true
+```
+
+`disabled: true` is the authoritative off switch. `enabled: false` is a
+documented no-op once the loop is default-on (it cannot distinguish
+"explicitly off" from "absent"), and the parser rejects `disabled: true`
+combined with an explicit `enabled: true`.
+
+**For OpenAPI input specs**, carry the block as a top-level `x-learn`
+extension on the editable overlay or derived spec artifact before the final
+`generate` invocation, the same carry-over convention Pre-Generation
+Category Enrichment uses. The shape is identical to the internal-YAML
+`learn:` block, nested under the vendor-extension key; see
+[`docs/SPEC-EXTENSIONS.md`](../../../docs/SPEC-EXTENSIONS.md).
+
+For field-by-field sourcing guidance, a worked example, the local validation
+workflow, and common pitfalls, see
+[`docs/SPEC-LEARN-AUTHORING.md`](../../../docs/SPEC-LEARN-AUTHORING.md); point
+there instead of restating it in run artifacts.
+
 ### Lock and Generate
 
 Before running any generate command, acquire the build lock:
@@ -624,9 +734,8 @@ cli-printing-press lock acquire --cli <api>-pp-cli --scope "$PRESS_SCOPE"
 
 If acquire fails (another session holds a fresh lock), present the lock status to the user and let them decide: wait, use a different CLI name, force-reclaim, or pick a different API.
 
-The `--category <catalog-category>` flag shown below is for non-catalog runs
-whose category was not already authored into an editable spec. Omit it for
-catalog-config runs; the built-in catalog category is authoritative there.
+The `--category <public-library-category>` flag shown below is for runs whose
+category was not already authored into an editable spec.
 
 `--lenient` stubs missing local `#/components/schemas/<Name>` refs as
 permissive object schemas with warnings so converted OpenAPI specs can still
@@ -640,7 +749,7 @@ cli-printing-press generate \
   --spec <spec-path-or-url> \
   --output "$CLI_WORK_DIR" \
   --research-dir "$API_RUN_DIR" \
-  --category <catalog-category> \
+  --category <public-library-category> \
   --force --lenient --validate
 ```
 
@@ -653,7 +762,7 @@ cli-printing-press generate \
   --name <api> \
   --output "$CLI_WORK_DIR" \
   --research-dir "$API_RUN_DIR" \
-  --category <catalog-category> \
+  --category <public-library-category> \
   --spec-source browser-sniffed \
   --traffic-analysis "$DISCOVERY_DIR/traffic-analysis.json" \
   --force --lenient --validate
@@ -668,7 +777,7 @@ cli-printing-press generate \
   --spec "$RESEARCH_DIR/<api>-browser-sniff-spec.yaml" \
   --output "$CLI_WORK_DIR" \
   --research-dir "$API_RUN_DIR" \
-  --category <catalog-category> \
+  --category <public-library-category> \
   --spec-source browser-sniffed \
   --traffic-analysis "$DISCOVERY_DIR/traffic-analysis.json" \
   --force --lenient --validate
@@ -685,7 +794,7 @@ cli-printing-press generate \
   --name <api> \
   --output "$CLI_WORK_DIR" \
   --research-dir "$API_RUN_DIR" \
-  --category <catalog-category> \
+  --category <public-library-category> \
   --force --lenient --validate
 ```
 
@@ -696,7 +805,7 @@ cli-printing-press generate \
   --spec "$RESEARCH_DIR/<api>-crowd-spec.yaml" \
   --output "$CLI_WORK_DIR" \
   --research-dir "$API_RUN_DIR" \
-  --category <catalog-category> \
+  --category <public-library-category> \
   --force --lenient --validate
 ```
 
@@ -710,7 +819,7 @@ cli-printing-press generate \
   --name <api> \
   --output "$CLI_WORK_DIR" \
   --research-dir "$API_RUN_DIR" \
-  --category <catalog-category> \
+  --category <public-library-category> \
   --traffic-analysis "$DISCOVERY_DIR/traffic-analysis.json" \
   --force --lenient --validate
 ```
@@ -723,13 +832,13 @@ cli-printing-press generate \
   --name <api> \
   --output "$CLI_WORK_DIR" \
   --research-dir "$API_RUN_DIR" \
-  --category <catalog-category> \
+  --category <public-library-category> \
   --force --validate
 ```
 
 GraphQL-only APIs:
 - Generate scaffolding only in Phase 2
-- Build real commands in Phase 3 using a GraphQL client wrapper
+- Build real commands in [Phase 3](11-build-the-goat.md) using a GraphQL client wrapper
 
 After generation:
 
@@ -756,7 +865,7 @@ regen.
 
 **REQUIRED: Preserve README sections.** The generated README contains 5 standard sections
 that the scorecard checks for: Quick Start, Agent Usage, Health Check, Troubleshooting, and
-Cookbook. When rewriting the README for this API during Phase 3, **preserve all 5 sections**.
+Cookbook. When rewriting the README for this API during [Phase 3](11-build-the-goat.md), **preserve all 5 sections**.
 You may add additional sections that help users of this specific API (e.g., "Rate Limits",
 "Pagination", "Authentication Setup"), but never remove the standard ones.
 
@@ -764,7 +873,7 @@ You may add additional sections that help users of this specific API (e.g., "Rat
 env var support (look for `os.Getenv` calls for API key variables). If the
 pre-generation auth enrichment ran correctly, this should already be present. If not
 (enrichment was missed or the spec was ambiguous), this is the safety net: check the
-Phase 1 research brief for auth requirements and manually add env var support to
+[Phase 1](04-research-brief.md) research brief for auth requirements and manually add env var support to
 `config.go` using the pattern: add `APIKey`/`APIKeySource` fields to the Config struct,
 and `os.Getenv("<API>_API_KEY")` in the Load function.
 
@@ -838,13 +947,13 @@ If generation fails:
 - prefer generator fixes over manual generated-code surgery when the failure is systemic
 - if retries are exhausted, release the lock and stop:
   ```bash
-  cli-printing-press lock release --cli <api>-pp-cli
+  "$PRINTING_PRESS_BIN" lock release --cli <api>-pp-cli
   ```
 
-## AXI alignment (see references/axi-alignment.md)
+## AXI alignment (local patch, see VENDORED.md)
 
 When selecting novel features for this CLI, favor the skill-lever gaps from
-`references/axi-alignment.md` over generic feature ideas:
+[references/axi-alignment.md](../references/axi-alignment.md) over generic feature ideas:
 
 - A **no-args home view command** — bare `<cli>` with no subcommand shows a
   compact live view (auth state + 2-3 headline resources) instead of help
@@ -858,5 +967,13 @@ When selecting novel features for this CLI, favor the skill-lever gaps from
 
 These are additive to whatever novel features research turns up; they must
 not replace domain-specific workflow/insight commands, and they must not
-regress the scorecard (see `references/scorecard-patterns.md`).
+regress the scorecard (see [references/scorecard-patterns.md](../references/scorecard-patterns.md)).
 
+Before following `Next:`, record the durable handoff and point `--evidence` at
+the generated module:
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "10-generate" --evidence "$CLI_WORK_DIR/go.mod"
+```
+
+Next: phases/11-build-the-goat.md

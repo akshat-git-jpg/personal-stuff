@@ -1,4 +1,10 @@
-## Phase 1.5: Ecosystem Absorb Gate
+## 08-ecosystem-absorb-gate (Phase 1.5: Ecosystem Absorb Gate)
+
+**Receipt entry (required):**
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt enter --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "08-ecosystem-absorb-gate"
+```
 
 THIS IS A MANDATORY STOP GATE. Do not generate until this is complete and approved.
 
@@ -20,7 +26,13 @@ Do not proceed until every briefing source has a marker entry.
 
 **Resume leniency:** If the run was started by an older version of the skill that didn't write markers, warn and continue — do not hard-fail on legacy resumes. Distinguish by checking whether `state.json` predates the marker contract (the marker file didn't exist before 2026-04-11). New runs always hard-fail on a missing marker.
 
-**Pre-check (existing):** If no spec or HAR file has been resolved by this point and Phase 1.7 (Browser-Sniff Gate) was not evaluated, STOP. Go back and run the browser-sniff gate decision matrix. The absorb manifest depends on knowing the API surface, which requires a spec.
+**Pre-check (existing):** If no spec or HAR file has been resolved by this point and [Phase 1.7](06-browser-sniff-gate.md) (Browser-Sniff Gate) was not evaluated, STOP. Go back and run the browser-sniff gate decision matrix. The absorb manifest depends on knowing the API surface, which requires a spec.
+
+When any of the stop-gate checks at the top of this phase sends you back to Phase 1.7, record that discovery-rework handoff so the receipt gate accepts the re-entry rather than treating it as an out-of-order jump:
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "08-ecosystem-absorb-gate" --next "06-browser-sniff-gate" --note "browser-sniff decision missing for <source>"
+```
 
 The GOAT CLI doesn't "find gaps." It absorbs EVERY feature from EVERY tool and then transcends with compound use cases nobody thought of. This phase builds the absorb manifest.
 
@@ -33,7 +45,7 @@ Run these searches in parallel:
 3. **WebSearch**: `"<API name>" Claude skill SKILL.md site:github.com`
 4. **WebSearch**: `"<API name>" CLI tool site:github.com` (competing CLIs)
 5. **WebSearch**: `"<API name>" CLI site:npmjs.com` (npm packages)
-6. **Raw fetch**: Check `github.com/anthropics/claude-plugins-official/tree/main/external_plugins` for official plugins with the helper from [references/fetch-docs.md](references/fetch-docs.md), or with `gh api` when it can return the file/listing directly.
+6. **Raw fetch**: Check `github.com/anthropics/claude-plugins-official/tree/main/external_plugins` for official plugins with the helper from [references/fetch-docs.md](../references/fetch-docs.md), or with `gh api` when it can return the file/listing directly.
 7. **WebSearch**: `"<API name>" MCP site:lobehub.com OR site:mcpmarket.com OR site:fastmcp.me`
 8. **WebSearch**: `"<API name>" automation script workflow site:github.com`
 9. **WebSearch**: `"<API name>" SDK wrapper site:npmjs.com`
@@ -47,7 +59,7 @@ If step 1.5a discovered MCP server repos with public source code on GitHub, read
 
 **For the top 1-2 MCP repos found:**
 
-1. **Identify the main source file.** Use `gh api`, raw GitHub URLs, or the helper from [references/fetch-docs.md](references/fetch-docs.md) to inspect the repo tree and source files without a summarization layer. Find the entry point — typically `src/index.ts`, `server.ts`, `server.py`, `main.go`, or a `tools/` directory. MCP servers are usually small (one main file + tool definitions).
+1. **Identify the main source file.** Use `gh api`, raw GitHub URLs, or the helper from [references/fetch-docs.md](../references/fetch-docs.md) to inspect the repo tree and source files without a summarization layer. Find the entry point — typically `src/index.ts`, `server.ts`, `server.py`, `main.go`, or a `tools/` directory. MCP servers are usually small (one main file + tool definitions).
 
 2. **Extract three things:**
    - **API endpoint paths**: Look for HTTP client calls (`fetch(`, `axios.`, `requests.`, `http.Get`, `client.`) and extract the URL paths (e.g., `GET /v1/issues`, `POST /graphql`). These are the endpoints the MCP maintainer proved work.
@@ -56,7 +68,7 @@ If step 1.5a discovered MCP server repos with public source code on GitHub, read
 
 3. **Feed into absorb manifest.** In step 1.5b, endpoints extracted from source get attributed as `<MCP name> (source)` in the "Best Source" column, distinguishing them from README-derived features. Source-extracted endpoints are high-confidence signals — the maintainer verified they work.
 
-4. **Feed auth patterns into research brief.** If the MCP source reveals token format (e.g., `xoxp-` for Slack, `sk_live_` for Stripe), credential setup steps, or required scopes, note them in the Phase 1 brief's auth section. These hints improve the generated CLI's auth onboarding.
+4. **Feed auth patterns into research brief.** If the MCP source reveals token format (e.g., `xoxp-` for Slack, `sk_live_` for Stripe), credential setup steps, or required scopes, note them in the [Phase 1](04-research-brief.md) brief's auth section. These hints improve the generated CLI's auth onboarding.
 
 **Skip this step when:**
 - No MCP repos were found in 1.5a
@@ -65,16 +77,16 @@ If step 1.5a discovered MCP server repos with public source code on GitHub, read
 
 ### Step 1.5a.6: DeepWiki Codebase Analysis (if GitHub repos found)
 
-If Phase 1 or Step 1.5a discovered GitHub repos for the API (SDK repos, server repos, MCP server repos), query DeepWiki for a semantic understanding of how the API works - architecture, auth flows, data models, error handling. This complements crowd-sniff (endpoints) and MCP source reading (auth headers) with "how things actually work" context.
+If [Phase 1](04-research-brief.md) or Step 1.5a discovered GitHub repos for the API (SDK repos, server repos, MCP server repos), query DeepWiki for a semantic understanding of how the API works - architecture, auth flows, data models, error handling. This complements crowd-sniff (endpoints) and MCP source reading (auth headers) with "how things actually work" context.
 
 **Time budget:** 2 minutes max. If DeepWiki is slow or unavailable, skip silently.
 
 **Run in parallel** with Steps 1.5a through 1.5a.5 when possible. DeepWiki queries do not depend on MCP source reading results.
 
-Read and follow [references/deepwiki-research.md](references/deepwiki-research.md) for the query procedure: wiki structure fetch, targeted section extraction (auth, data model, architecture), and synthesis into the research brief and absorb manifest.
+Read and follow [references/deepwiki-research.md](../references/deepwiki-research.md) for the query procedure: wiki structure fetch, targeted section extraction (auth, data model, architecture), and synthesis into the research brief and absorb manifest.
 
 **Skip this step when:**
-- No GitHub repos were discovered during Phase 1 or Step 1.5a
+- No GitHub repos were discovered during [Phase 1](04-research-brief.md) or Step 1.5a
 - The API is trivially simple (1-2 endpoints, no auth)
 
 ### Step 1.5b: Catalog every feature into the absorb manifest
@@ -96,17 +108,17 @@ Every row = a feature we MUST build. No exceptions. If someone else has it, we h
 
 SDK wrapper methods should be treated as features to absorb — each public method/function is a feature the CLI should match.
 
-**Our Implementation must start with a parseable disposition.** Use one of these prefixes so Phase 3 can verify the row mechanically:
+**Our Implementation must start with a parseable disposition.** Use one of these prefixes so [Phase 3](11-build-the-goat.md) can verify the row mechanically:
 - `<api>-pp-cli <clean command path>` for a promoted or hand-built Cobra command path that must resolve via `<binary> <path> --help`.
 - `(generated endpoint) <resource> <endpoint>` for generator-emitted typed endpoint commands that retain the upstream resource shape and are covered by the generated endpoint surface.
 - `(behavior in <api>-pp-cli <command path>) ...` for features implemented as flags, modes, output shapes, or store behavior inside another command. The named command path still must resolve; the prose after the closing parenthesis explains the behavior to verify later.
 - `(stub) ...` only for explicitly approved stubs per the rule below.
 
-Do not leave `Our Implementation` as freeform prose like `FTS5 offline search` or `SQLite-backed sprint query`. If the row maps to a clean user-facing command, put that command path first. If it does not, choose the explicit disposition that explains why Phase 3 should not treat the whole cell as a new command path.
+Do not leave `Our Implementation` as freeform prose like `FTS5 offline search` or `SQLite-backed sprint query`. If the row maps to a clean user-facing command, put that command path first. If it does not, choose the explicit disposition that explains why [Phase 3](11-build-the-goat.md) should not treat the whole cell as a new command path.
 
-**Stubs must be explicit.** If any row in the manifest will ship as a stub (placeholder implementation that emits "not yet wired" / "wip" messaging), start `Our Implementation` with `(stub)` plus a one-line reason why the full implementation is deferred (e.g., "(stub - requires paid API)", "(stub - requires headless Chrome)"). If the manifest also has a `Status` column, set that value to `(stub)` too, but the `Our Implementation` prefix is the Phase 3 gate's source of truth. Do NOT quietly ship stubs for features the user approved as shipping scope.
+**Stubs must be explicit.** If any row in the manifest will ship as a stub (placeholder implementation that emits "not yet wired" / "wip" messaging), start `Our Implementation` with `(stub)` plus a one-line reason why the full implementation is deferred (e.g., "(stub - requires paid API)", "(stub - requires headless Chrome)"). If the manifest also has a `Status` column, set that value to `(stub)` too, but the `Our Implementation` prefix is the [Phase 3](11-build-the-goat.md) gate's source of truth. Do NOT quietly ship stubs for features the user approved as shipping scope.
 
-The Phase Gate 1.5 prose showcase (below) MUST read out stub items separately so the user explicitly approves the stub list. After approval, Phase 3 builds shipping-scope features fully and stubs with honest messaging; no mid-build downgrade from shipping-scope to stub is permitted. If an agent discovers during Phase 3 that a shipping-scope feature cannot be implemented in-session, they must return to Phase 1.5 with a revised manifest — not unilaterally downgrade to a stub.
+The Phase Gate 1.5 prose showcase (below) MUST read out stub items separately so the user explicitly approves the stub list. After approval, [Phase 3](11-build-the-goat.md) builds shipping-scope features fully and stubs with honest messaging; no mid-build downgrade from shipping-scope to stub is permitted. If an agent discovers during [Phase 3](11-build-the-goat.md) that a shipping-scope feature cannot be implemented in-session, they must return to Phase 1.5 with a revised manifest — not unilaterally downgrade to a stub.
 
 ### Step 1.5c: Identify transcendence features
 
@@ -122,10 +134,10 @@ generate transcendence features inline here.
 The transcendence table in the manifest (Step 1.5d) renders rows in this shape,
 which mirrors the subagent's `### Survivors` output. The `Buildability` column
 tags each row `spec-emits` or `hand-code` per
-[references/novel-features-subagent.md](references/novel-features-subagent.md)
+[references/novel-features-subagent.md](../references/novel-features-subagent.md)
 so the Phase Gate 1.5 hand-code count has a source of truth in the manifest.
 The optional `Long Description` column carries agent-facing disambiguation
-text for Phase 3 Cobra `Long` fields; use `none` when no sibling redirect is
+text for [Phase 3](11-build-the-goat.md) Cobra `Long` fields; use `none` when no sibling redirect is
 needed:
 
 ```markdown
@@ -155,7 +167,7 @@ fallback. Specifically, do not:
 - treat disclosure as authorization. Announcing a skip in the gate showcase
   does not make the skip legal.
 
-Read [references/novel-features-subagent.md](references/novel-features-subagent.md)
+Read [references/novel-features-subagent.md](../references/novel-features-subagent.md)
 for the prior-research discovery snippet, input bundle, prompt template, and
 output contract. Run the discovery snippet as written — do not substitute an
 `ls` of the manuscripts directory. The snippet's `none` branch (no prior
@@ -238,11 +250,11 @@ For each tool, fill in what you know from the research. Stars and command_count 
 1. Include all transcendence features from the manifest that scored >= 5/10. Order by score descending.
 2. `description` should be user-benefit language, not implementation detail. Good: "See which team members are overloaded before sprint planning." Bad: "Requires local join across issues + assignees + cycle data."
 3. `rationale` should explain why this is only possible with our approach. Good: "Requires correlating bookings, schedules, and staff data that only exists together in the local store." Bad: "Cal.com Insights is paid-tier only."
-4. `command` must match the actual CLI subcommand that will be built in Phase 3. For subcommands of a resource (e.g., `issues stale`), use the full command path.
+4. `command` must match the actual CLI subcommand that will be built in [Phase 3](11-build-the-goat.md). For subcommands of a resource (e.g., `issues stale`), use the full command path. The first segment must not collide with an active framework cobra command this CLI emits (`recall`, `teach`, `learnings`, `version`, `doctor`, `search`, `sync`, and the rest of the generated root built-ins). The generator skips those root stubs so they cannot shadow the framework command; nest under a non-reserved parent or pick another verb.
 5. `example` is a ready-to-run invocation an agent can copy-paste. Use realistic arguments from the API's domain (e.g. `AAPL`, `customer_42`), not `<placeholder>`. Include the `--agent` flag when the feature benefits from structured output.
 6. `why_it_matters` is a single agent-facing sentence answering "when should I pick this over a generic API call?"
 7. `group` clusters related features under a theme name. Pick 2–5 themes total (e.g. "Local state that compounds", "Agent-native plumbing", "Reachability mitigation"). Use the same `group` string verbatim across features that belong together — exact matches drive README grouping. Leave `group` empty if the CLI has too few novel features to warrant clustering.
-8. If the manifest row has a non-`none` `Long Description`, keep that text with the feature implementation notes and use it as the Cobra `Long` field during Phase 3 hand-code. Do not squeeze redirect prose into `description`; `description` stays one-line user-benefit text.
+8. If the manifest row has a non-`none` `Long Description`, keep that text with the feature implementation notes and use it as the Cobra `Long` field during [Phase 3](11-build-the-goat.md) hand-code. Do not squeeze redirect prose into `description`; `description` stays one-line user-benefit text.
 9. If no transcendence features scored >= 5/10, omit the `novel_features` field entirely.
 10. Do not add a feature to `novel_features` merely to expose it through MCP. Any user-facing Cobra command becomes an MCP tool automatically unless it sets `cmd.Annotations["mcp:hidden"] = "true"`.
 
@@ -256,7 +268,7 @@ For each tool, fill in what you know from the research. Stars and command_count 
 4. `auth_narrative` tells the real auth story for this API (crumb handshake, cookie session, OAuth device flow). Omit for standard API-key auth where the generic branch is fine.
 5. `quickstart` is a 3–6 step flow using REAL arguments (symbols, IDs, resource names an agent can actually pass). Each step's `comment` explains *why* it runs. This replaces the generic "resource list" first-command fallback.
    - Step 1 of `quickstart` should usually be verify-safe: it should exit 0 when `validate-narrative --full-examples` appends `--dry-run` in a no-credentials environment.
-   - Use `<cli> doctor --dry-run` as step 1 (health check, works without auth). Do not use `<cli> auth set-token <token>` as step 1 because it requires a positional token and is not a verify-safe runnable first step. Auth setup instructions belong in `auth_narrative` prose only, not as an executable quickstart command.
+   - Use `<cli> doctor --dry-run` as step 1 (exits 0 without auth or network). `<cli> doctor` without `--dry-run` is the health report. Do not use `<cli> auth set-token` as step 1 because it reads a token from stdin and is not a verify-safe runnable first step. Auth setup instructions belong in `auth_narrative` prose only, not as an executable quickstart command.
 6. `troubleshoots` captures API-specific failure modes (rate-limit mitigation, cookie expiry, paginated quirks). Each `fix` must be actionable — a command or a concrete setting change.
 7. `when_to_use` is SKILL-only narrative. 2–4 sentences describing the kinds of agent tasks this CLI is the right choice for. Not rendered in README.
 8. `anti_triggers` is SKILL-only narrative. List common task boundaries that should make an agent choose another tool, official SDK, web UI, or human workflow instead of this CLI. Write concrete "do not use this CLI for X" cases, not vague limitations. Omit the field only when no honest boundary is known.
@@ -280,7 +292,7 @@ cli-printing-press validate-narrative --strict --framework-only \
 If this reports `sync --entities`, `search --entities`, `search --types`, an
 absolute date for `sync --since`, or another framework-command flag mismatch,
 fix `research.json` now and rerun this check before generation. This is a
-cheap floor, not a replacement for Phase 4 shipcheck: after the CLI exists,
+cheap floor, not a replacement for [Phase 4](12-shipcheck.md) shipcheck: after the CLI exists,
 `shipcheck` still runs `validate-narrative --strict --full-examples` against
 the built binary to catch API-specific command paths, generated endpoint flags,
 and runtime dry-run failures.
@@ -289,7 +301,7 @@ Also write discovery pages if browser-sniff was used. The generator reads these 
 
 ### Priority inversion check (combo CLIs only)
 
-**Only runs when `source-priority.json` exists from the Multi-Source Priority Gate.**
+**Only runs when `source-priority.json` exists from the Multi-Source Priority Gate in [references/run-resolution.md](../references/run-resolution.md).**
 
 Before Phase Gate 1.5, tally the commands/features the manifest attributes to each named source. Compare against the confirmed priority ordering:
 
@@ -306,9 +318,13 @@ When an inversion is detected, HALT before Phase Gate 1.5 and print:
 
 Then ask via `AskUserQuestion`:
 
-1. **Re-run discovery for <Source A>** — loop back to Phase 1.7 browser-sniff or Phase 1.8 crowd-sniff for the primary source specifically.
+1. **Re-run discovery for <Source A>** — loop back to [Phase 1.7](06-browser-sniff-gate.md) browser-sniff or [Phase 1.8](07-crowd-sniff-gate.md) crowd-sniff for the primary source specifically. Record this discovery-rework handoff before re-entering the gate — for the browser-sniff loop use the receipt block after the stop-gate checks at the top of this phase; for the crowd-sniff loop:
 2. **Accept the inversion** — the user explicitly confirms they're fine with the secondary leading. Record this in `source-priority.json` as `inversion_accepted: true`.
 3. **Drop <Source B>** — remove the secondary from the manifest so it can't overshadow the primary.
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "08-ecosystem-absorb-gate" --next "07-crowd-sniff-gate" --note "crowd-sniff rework for <source>"
+```
 
 Do not proceed to the prose showcase until this is resolved.
 
@@ -324,7 +340,7 @@ The showcase exists so the user can decide approve / trim / add ideas without as
 
 1. **Scope** — how many features absorbed across which tools, how many novel on top, how that stacks up against the best existing tool.
 2. **Per-novel-feature readout** — one line each: feature name, what the user gets, and the specific evidence or persona that makes it worth building.
-3. **Hand-code commitment** — of the M novel features, K will require hand-written Go after generate (each ~50-150 LoC plus `root.go` wiring). State the hand-code count and the auto-emitted count, then list the names of the hand-code features. The manifest transcendence table's `Buildability` column (populated from the subagent per [references/novel-features-subagent.md](references/novel-features-subagent.md) "Output contract") is the source of truth: count rows tagged `hand-code`; `spec-emits` rows are excluded from the hand-code total. Approving commits the agent to that scope, so the user must see it explicitly before the AskUserQuestion.
+3. **Hand-code commitment** — of the M novel features, K will require hand-written Go after generate (each ~50-150 LoC plus `root.go` wiring). State the hand-code count and the auto-emitted count, then list the names of the hand-code features. The manifest transcendence table's `Buildability` column (populated from the subagent per [references/novel-features-subagent.md](../references/novel-features-subagent.md) "Output contract") is the source of truth: count rows tagged `hand-code`; `spec-emits` rows are excluded from the hand-code total. Approving commits the agent to that scope, so the user must see it explicitly before the AskUserQuestion.
 4. **Anything else the user should worry about before approving** — stubs, risky dependencies, expensive endpoints, low-confidence ideas.
 
 Show every novel feature that scored ≥5/10. Group by theme if there are more than ~12; never hide features behind "Plus N more" or "see full manifest." If zero qualified, say so plainly: "No novel features scored high enough to recommend. The absorbed features cover the landscape well."
@@ -354,3 +370,11 @@ WAIT for approval. Do NOT generate until approved.
 
 ---
 
+Before following `Next:`, record the durable handoff and point `--evidence` at
+the approved absorb manifest:
+
+```bash
+"$PRINTING_PRESS_BIN" phase-receipt complete --file "$PHASE_RECEIPT_LOG" --run-id "$RUN_ID" --phase "08-ecosystem-absorb-gate" --evidence "$RESEARCH_DIR/<stamp>-feat-<api>-pp-cli-absorb-manifest.md"
+```
+
+Next: phases/09-api-reachability-gate.md
