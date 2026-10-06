@@ -33,10 +33,19 @@ export const STATUS_CLASS: Record<Status, string> = {
 }
 
 export const STATUS_COLOR: Record<Status, string> = {
-  high: '#b42318',
-  low: '#b42318',
-  abnormal: '#b42318',
-  borderline: '#b54708',
-  normal: '#067647',
-  unknown: '#475467',
+  high: '#F87171',
+  low: '#F87171',
+  abnormal: '#F87171',
+  borderline: '#FBBF24',
+  normal: '#34D399',
+  unknown: '#8B95A5',
+}
+
+export const BUCKET_COLOR = { bad: '#F87171', edge: '#FBBF24', ok: '#34D399', none: '#8B95A5' } as const
+
+/** "Jun 24 – Jan 25" span of a list of ISO dates (oldest first). */
+export function fmtSpan(dates: string[]): string {
+  if (dates.length === 0) return ''
+  if (dates.length === 1) return fmtShort(dates[0])
+  return `${fmtShort(dates[0])} – ${fmtShort(dates[dates.length - 1])}`
 }

@@ -10,6 +10,10 @@ Reports are added by the `kushal-health` skill, never through the UI.
   `.ingest.env` and `.dev.vars` are gitignored.
 - **Status and trend come only from `src/shared/status.ts`.** The UI never re-derives them.
   `BORDER_FRACTION` and `STEADY_FRACTION` change only with the owner, with the table tests.
+- **Screens (owner-approved design, 2026-10-06):** home = summary + "Getting worse" + body map
+  filter + test list (`BloodTab.tsx`); `#/m/<key>` = one test's detail (`Detail.tsx`). View
+  logic (worries, body parts, counts) lives in `src/client/derive.ts`. Every chart shows its
+  test dates; points open a date tooltip on hover, focus or tap (`LineChart.tsx`).
 - **PDFs are cookie-only.** `GET /api/reports/:id/pdf` uses `requireAuth`, never
   `requireAuthOrIngest`; a leaked ingest token must not download reports. Tested in
   `test/auth.test.ts` and `scripts/smoke.sh`.
