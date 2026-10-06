@@ -11,9 +11,7 @@ user-invocable: true
 
 # yt-video-edit — operating skill (verb router)
 
-Renamed from `visuals-flow` on 2026-08-20. The **pipeline folder is still**
-`pipelines/video/visuals-flow/` — only the skill was renamed, so every path below
-is unchanged.
+Contents: Guardrails (1-9, incl. 6a credit check, 7a intro flows, 7b previews) · Verb Map (review model, gate table, phrase table) · Coupon template
 
 Run everything from `pipelines/video/visuals-flow/`. This skill routes verbs to
 step procedures; judgment content lives in the step rulebooks and stays there.
@@ -47,28 +45,28 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    that is not recorded did not visibly happen. Two rules, both non-negotiable:
 
    - **Task names are the step folder ids**, verbatim:
-     `030-pick-or-propose-graphics-llm`, never "body cue pass", "cue pass" or
+     `210-author-body-cues-llm`, never "body cue pass", "cue pass" or
      "body graphics LLM". The same step must read identically on every video.
      `node lib/run-log.mjs <slug>` prints the full list.
    - **Every `-llm` / `-opus` step you run gets closed out** the moment it
      finishes, before you move on:
      ```
-     node lib/run-log.mjs <slug> 030 running
-     node lib/run-log.mjs <slug> 030 done \
+     node lib/run-log.mjs <slug> 210 running
+     node lib/run-log.mjs <slug> 210 done \
        --did "Placed 23 body cues from the catalog, proposed 2 cards that do not exist yet." \
        --issues "2 W7 bare-stretch warnings in the 3-4 min talking-head stretch, left as-is." \
-       --output "cues.json — 23 cues, 2 marked NEW for step 038"
+       --output "cues.json — 23 cues, 2 marked NEW for step 240"
      ```
      `did` and `output` are required; a missing one is refused rather than
      written half-empty. Omitted `issues` becomes an explicit "none found", so
      never omit it when there WERE issues. Write plain sentences the owner can
      read cold, not counts.
 
-   The `-run` steps record themselves through `run.sh`. The three `-human` gates
+   The `-run` steps record themselves through `run.sh`. The `-human` gates
    are recorded by the board when the owner approves. You are responsible only
    for the model-run steps.
 
-4. **130 feedback-fold is Opus-class ONLY.** If the current session is not
+4. **630 feedback-fold is Opus-class ONLY.** If the current session is not
    Opus-class, refuse the fold verb and say why.
 5. **Live HeyGen: Avatar III test renders are pre-authorized** (owner rule
    2026-07-24 — Avatar III unlimited mode is free): sessions may submit
@@ -127,7 +125,7 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    Format: `tooling/cli/flow-queue/README.md`. **This removes the copy-paste,
    not the gate — you still WAIT for the owner's verdict.**
 8. Never edit RULEBOOK/prompt/DESIGN/catalog/lint constants mid-run — rule
-   changes go through the 130 fold, not through operating sessions.
+   changes go through the 630 fold, not through operating sessions.
 9. **If the owner says this session owns ONE track, obey the track boundary.**
    After 050 the flow splits into two tracks that share no artifact — `intro`
    and `main` (everything else) — and they are meant to be run by two sessions
@@ -156,17 +154,9 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
 ## Verb Map
 
 **Review model — mode-dependent: FIVE human steps in `simple` mode, SIX in
-`complex` (plan 221; verified against `run.sh` and `steps/` on 2026-08-22).**
-This section used to say "three owner gates" numbered 037 / 080 / 120. All
-three numbers predate the phase renumber, the card-plan gate it called Gate 1
-was deleted by plan 195, and three real gates were missing entirely. The
-owner noticed before the doc did: a session working from this list looks like it
-is asking for the same review over and over, because it cannot name the gate it
-is actually at. The table below IS the contract, and `ls steps/ | grep human` is
-the check that keeps it honest — it now lists SEVEN folders on disk (010, 120,
-125, 150, 340, 420, 530), because 120/150 (`complex`) and 125 (`simple`) both
-exist, but a `step.json`'s `modes` field means only one of the two intro rows
-ever fires for a given video.
+`complex`.** This table IS the contract; `ls steps/ | grep human` is the check
+(seven folders on disk, because a `step.json`'s `modes` field means only one of the
+two intro rows ever fires for a given video).
 
 | Step | What the owner does | Kind | Mode |
 |---|---|---|---|
@@ -178,11 +168,9 @@ ever fires for a given video.
 | `420-propose-avatar-human` | Picks character + model | **spend gate** | both |
 | `530-approve-final-cut-human` | The assembled cut, judged in motion | review | both |
 
-None is skippable. **Express review no longer exists** — `--review full|express`
-was removed by plan 194 (2026-08-07) and `configure` takes `--engine` only. Any
-memory of a mode that waives 340 is stale; 340's own README says MANDATORY GATE,
-never skipped, never waived, because skipping it pushes card-choice errors into
-the final cut where each one costs a full re-render.
+None is skippable, and there is no express mode (`configure` takes `--engine` and
+`--intro` only). 340 is never waived: skipping it pushes card-choice errors into
+the final cut, where each one costs a full re-render.
 
 **The engine choice at 010 authorises the avatar spend.** `heygen3` is free
 (Avatar III unlimited); `heygen4` is METERED. Sessions set shots.json
@@ -213,39 +201,42 @@ check-off. It is not a plan review: plan-class defects should already be gone.
 
 Between the gates the session runs unattended: render → avatar renders → cut.
 
-| Phrase | `run.sh` verb / CLI | Owner Gate / Behavior |
+| Phrase | `run.sh` verb / CLI | Step / gate / behavior |
 |---|---|---|
 | "where are we", "what's the status", "show me the run" | `bash run.sh <slug> status` (or the board's **Run** tab) | reads `run-log.json`; steps with no entry are labelled as inferred |
-| "use heygen 3/4", "set up the run" | `bash run.sh <slug> configure --engine heygen3\|heygen4` | **010 kickoff config** — see Review model above. There is no `--review` flag; express was removed by plan 194 |
+| "use heygen 3/4", "set up the run" | `bash run.sh <slug> configure --engine heygen3\|heygen4` | **010** kickoff config (see Review model above) |
 | "use the simple intro", "use the complex intro" | `bash run.sh <slug> configure --intro simple\|complex` | **010**; default `simple` |
-| "author the intro", "write the cut list" | `bash run.sh <slug> intro-simple` | 115; prints `SIMPLE-PASS.md` (simple mode only) |
+| "transcribe it", "clean the transcript" | `bash run.sh <slug> transcribe` / `clean-transcript` | 020 / 030 |
+| "map the segments", "propose segments" | `bash run.sh <slug> segments` | 040; writes `structure` + `segments`; owner then sets `confirmed: true`. 220 refuses without `structure` |
+| "run graphics", "run the concept pass" | `bash run.sh <slug> concept-pass` | 050 |
+| "propose intro ideas", "author the intro film" | `bash run.sh <slug> intro-idea` / `intro-film` / `intro-review` / `intro-render` | 110 / 130 / 140 / 160 (complex mode only); gates **120** and **150** on the board |
+| "author the intro", "write the cut list" | `bash run.sh <slug> intro-simple` | 115; prints `SIMPLE-PASS.md` (simple mode only); gate **125** on the board |
 | "check the intro pacing" | `bash run.sh <slug> intro-simple-lint` | S1-S7 (`lib/intro-kit/lint-cutlist.mjs`); errors, not warnings |
 | "render the intro" | `bash run.sh <slug> intro-simple-render` | 135 |
-| "re-render the intro with the real avatar" | `bash run.sh <slug> intro-simple-rerender` | 445 |
-| "map the segments", "propose segments" | `bash run.sh <slug> segments` | writes `structure` + `segments`; owner then sets `confirmed: true`. 035 refuses without `structure` |
-| "run graphics", "run the concept pass" | `bash run.sh <slug> concept-pass` | |
-| "run the cue pass" | `bash run.sh <slug> cue-pass` | authors the BODY only |
-| "run the zone pass", "do the intro and outro" | `bash run.sh <slug> zone-pass` | authors the INTRO + CONCLUSION only, own rulebook |
-| "check the cues", "validate the plan" | `bash run.sh <slug> validate` | pre-037; tolerates cards 038 has not built yet |
-| "show me the card plan", "outline the cues" | `bash run.sh <slug> outline` | text view of the 037 plan |
-| "approve the cards", "card plan" | `bash run.sh <slug> card-plan` then `board` | **037 card plan approval** |
-| "build the new cards" | step 038 — see `steps/038-build-cards-llm-and-review-human/README.md` | only when 037 left something NEW |
-| "audit the cues" | `bash run.sh <slug> audit` | |
-| "run the shot pass" | `bash run.sh <slug> shot-pass` | |
-| "open my board", "open my storyboard", "final cut review" | `bash run.sh <slug> board` | **080 storyboard approval** or **120 final cut approval** |
-| "render the graphics" | `bash run.sh <slug> render` | |
-| "make the avatar videos" | `bash run.sh <slug> avatar` | **100 live HeyGen** |
-| "make the cut", "cut the video" | `bash run.sh <slug> cut` | |
-| "make the sound plan" | `bash run.sh <slug> sound` | |
-| "mix the audio" | `bash run.sh <slug> mix` | |
-| "assemble the video" | `bash run.sh <slug> assemble` | Prints board URL for final cut |
-| "export the timeline", "resolve export" | `bash run.sh <slug> export` | **on-request only** |
-| "deliver the final", "upload to drive", "ship it to the output folder" | `bash run.sh <slug> deliver` | **150** — uploads the approved full-res final to the video's Drive `Output/` folder; needs `drive_folder`+`drive_account` in run-config (005); 120 approval re-checked, never waived |
-| "qc the video", "filmstrip qc" | `bash run.sh <slug> qc` | |
-| "fold the feedback", "feedback is done", "I'm done reviewing" | **invoke the `yt-video-edit-feedback` skill** (it wraps `bash run.sh <slug> fold`) | **130 fold** |
-| "queue the previews", "send the prompts to flow" | `bash run.sh <slug> previews` | pushes the 110 intro-idea and 240 new-card look prompts to the `flow-queue` relay; the ZAPI FLOW extension loads them into Google Flow by itself |
+| "run the cue pass" | `bash run.sh <slug> cue-pass` | 210; authors the BODY only |
+| "run the zone pass", "do the intro and outro" | `bash run.sh <slug> zone-pass` | 220; authors the INTRO + CONCLUSION only, own rulebook |
+| "check the cues", "validate the plan" | `bash run.sh <slug> validate` | 230; tolerates cards 240 has not built yet |
+| "show me the card plan", "outline the cues" | `bash run.sh <slug> card-plan` / `outline` | 235; a report, not a gate |
+| "build the new cards" | step 240, see `steps/240-build-cards-llm/README.md` | only when 235 lists something NEW; look-preview first (7b) |
+| "sync the graphics", "resolve the cues" | `bash run.sh <slug> resolve` | 310 |
+| "run the shot pass" | `bash run.sh <slug> shot-pass` | 320 |
+| "audit the cues", "check the storyboard" | `bash run.sh <slug> storyboard-check` | 330; shot lint, stillness and the audit gate |
+| "open my board", "open my storyboard", "final cut review" | `bash run.sh <slug> board` | **340 storyboard approval** or **530 final cut approval** |
+| "render the graphics" | `bash run.sh <slug> render` | 410 |
+| "propose the avatar", "pick the character" | `bash run.sh <slug> avatar-plan` | **420 spend gate** |
+| "make the avatar videos" | `bash run.sh <slug> avatar` then `avatar-download` | 430, **live HeyGen** (guardrails 5-6a) |
+| "re-render the intro with the real avatar" | `bash run.sh <slug> intro-rerender` / `intro-simple-rerender` | 440 (complex) / 445 (simple) |
+| "make the sound plan" | `bash run.sh <slug> sound` | 450 |
+| "mix the audio" | `bash run.sh <slug> mix` | 460 |
+| "make the cut", "cut the video" | `bash run.sh <slug> cut` | composite: render + effects + sound + mix + avatars + assemble |
+| "assemble the video" | `bash run.sh <slug> assemble` | 510; prints board URL for final cut |
+| "qc the video", "filmstrip qc" | `bash run.sh <slug> qc` | 520 |
+| "export the timeline", "resolve export" | `bash run.sh <slug> export` | 610, **on-request only** |
+| "deliver the final", "upload to drive", "ship it to the output folder" | `bash run.sh <slug> deliver` | **620**; uploads the approved full-res final to the video's Drive `Output/` folder; needs `drive_folder`+`drive_account` in run-config (010); 530 approval re-checked, never waived |
+| "fold the feedback", "feedback is done", "I'm done reviewing" | **invoke the `yt-video-edit-feedback` skill** (it wraps `bash run.sh <slug> fold`) | **630 fold** |
+| "queue the previews", "send the prompts to flow" | `bash run.sh <slug> previews` | pushes the 110 intro-idea and 240 new-card look prompts to the `flow-queue` relay |
 | "analyze reference <url>" | `bash scripts/analyze-reference.sh <url>` | |
-| "edit this coupon video", "coupon code video", "promo code video" | `bash run.sh <slug> coupon --src <file\|drive-id> --tool <Name> [--drive-account <email>]` | **No gates** — see Coupon template below |
+| "edit this coupon video", "coupon code video", "promo code video" | `bash run.sh <slug> coupon --src <file\|drive-id> --tool <Name> [--drive-account <email>]` | **No gates**; see Coupon template below |
 
 ## Coupon template (owner rule 2026-09-30)
 

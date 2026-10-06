@@ -11,6 +11,8 @@ metadata:
 
 # impact.com — Partner income CLI (`impact-pp-cli`)
 
+Contents: Output contract (month-wise shape, the loop) · Prerequisites · When to use · Anti-triggers · Income recipes · Other commands · Output notes
+
 ## Output contract — READ THIS FIRST
 
 This section overrides every recipe further down the file. It exists because the reported
@@ -60,24 +62,7 @@ program with clicks is noise in an income answer.
 useful cross-check: your per-month subtotals should match its `Earnings` column. If they do not,
 say so rather than silently picking one.
 
-### Known gap — a real `income` command does not exist yet
-
-`paypal-txns-pp-cli` has an `income` subcommand that does this rollup inside the CLI and prints
-the table with `--table`. `impact-pp-cli` has no equivalent, so the loop and the rendering are
-the caller's job every time — which is exactly how the format drifted before. The durable fix is
-an `income` subcommand on `impact-pp-cli` mirroring the PayPal one. Until that exists, this
-section is the contract.
-
-Also note: the `impact-pp-cli` source in `~/printing-press/library/impact/` is **not** mirrored
-into this repo and not in any git repo. Adding that subcommand should start by mirroring the
-source, the way `tooling/press-clis/paypal-txns/` was.
-
-### Scope
-
-This skill is repo-scoped on purpose: source in `pipelines/.claude/skills/pp-impact/`, symlinked
-into `.claude/skills/`. It is deliberately **not** in `tooling/claude-skills/manifest/*.txt`,
-because those scope by Claude account, not by repo — a manifest entry loads a personal-finance
-skill into every ZluriHQ work session.
+Why the loop is the caller's job (no `income` subcommand yet) and where the CLI source lives: `tooling/press-clis/README.md` → **impact-pp-cli**.
 
 Reads your impact.com affiliate/publisher data: earnings by program and by time period, joined programs, per-conversion commissions, invoices (money paid out), and contracts. Account: **Agrollo** (media-partner `4809503`, currency **INR**).
 

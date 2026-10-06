@@ -14,6 +14,8 @@ metadata:
 
 # PayPal Transaction Search — Printing Press CLI
 
+Contents: Output contract (--table, month-wise shape, credentials) · Prerequisites · When to use · Anti-triggers · Unique capabilities · Command reference · Recipes · Auth setup · Agent mode · Exit codes · Direct use
+
 ## Output contract — READ THIS FIRST
 
 Two rules override every example further down this file. Both exist because they have
@@ -189,83 +191,25 @@ Commands that read from the local store or the API wrap output in a provenance e
 
 Parse `.results` for data and `.meta.source` to know whether it's live or local. A human-readable `N results (live)` summary is printed to stderr only when stdout is a terminal AND no machine-format flag (`--json`, `--csv`, `--compact`, `--quiet`, `--plain`, `--select`) is set — piped/agent consumers and explicit-format runs get pure JSON on stdout.
 
-## Agent Feedback
+## Exit codes
 
-When you (or the agent) notice something off about this CLI, record it:
+`0` success · `2` usage error · `3` not found · `4` auth required (source the creds) ·
+`5` PayPal API error · `7` rate limited (wait, retry) · `10` config error.
 
-```
-paypal-txns-pp-cli feedback "the --since flag is inclusive but docs say exclusive"
-paypal-txns-pp-cli feedback --stdin < notes.txt
-paypal-txns-pp-cli feedback list --json --limit 10
-```
+## Direct use
 
-Entries are stored locally at `~/.local/share/paypal-txns-pp-cli/feedback.jsonl`. They are never POSTed unless `PAYPAL_TXNS_FEEDBACK_ENDPOINT` is set AND either `--send` is passed or `PAYPAL_TXNS_FEEDBACK_AUTO_SEND=true`. Default behavior is local-only.
+Parse `$ARGUMENTS`: empty or `help` → show `paypal-txns-pp-cli --help`; `install` →
+see Prerequisites; anything else → run it as below.
 
-Write what *surprised* you, not a bug report. Short, specific, one line: that is the part that compounds.
-
-## Output Delivery
-
-Every command accepts `--deliver <sink>`. The output goes to the named sink in addition to (or instead of) stdout, so agents can route command results without hand-piping. Three sinks are supported:
-
-| Sink | Effect |
-|------|--------|
-| `stdout` | Default; write to stdout only |
-| `file:<path>` | Atomically write output to `<path>` (tmp + rename) |
-| `webhook:<url>` | POST the output body to the URL (`application/json` or `application/x-ndjson` when `--compact`) |
-
-Unknown schemes are refused with a structured error naming the supported set. Webhook failures return non-zero and log the URL + HTTP status on stderr.
-
-## Named Profiles
-
-A profile is a saved set of flag values, reused across invocations. Use it when a scheduled agent calls the same command every run with the same configuration - HeyGen's "Beacon" pattern.
-
-```
-paypal-txns-pp-cli profile save briefing --json
-paypal-txns-pp-cli --profile briefing reporting balances-get
-paypal-txns-pp-cli profile list --json
-paypal-txns-pp-cli profile show briefing
-paypal-txns-pp-cli profile delete briefing --yes
-```
-
-Explicit flags always win over profile values; profile values win over defaults. `agent-context` lists all available profiles under `available_profiles` so introspecting agents discover them at runtime.
-
-## Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 2 | Usage error (wrong arguments) |
-| 3 | Resource not found |
-| 4 | Authentication required |
-| 5 | API error (upstream issue) |
-| 7 | Rate limited (wait and retry) |
-| 10 | Config error |
-
-## Argument Parsing
-
-Parse `$ARGUMENTS`:
-
-1. **Empty, `help`, or `--help`** → show `paypal-txns-pp-cli --help` output
-2. **Starts with `install`** → ends with `mcp` → MCP installation; otherwise → see Prerequisites above
-3. **Anything else** → Direct Use (execute as CLI command with `--agent`)
-
-## MCP Server Installation
-
-Install the MCP binary from this CLI's published public-library entry or pre-built release, then register it:
-
-```bash
-claude mcp add paypal-txns-pp-mcp -- paypal-txns-pp-mcp
-```
-
-Verify: `claude mcp list`
-
-## Direct Use
-
-1. Check if installed: `which paypal-txns-pp-cli`
-   If not found, offer to install (see Prerequisites at the top of this skill).
-2. Match the user query to the best command from the Unique Capabilities and Command Reference above.
-3. Execute with the `--agent` flag:
+1. Check it is installed: `which paypal-txns-pp-cli`. If not, see Prerequisites.
+2. Source the creds (see Credentials above).
+3. Match the ask to a command from Unique Capabilities or the Command Reference, and
+   run it with `--agent`, **except `income`: use `--table`** (see the Output contract):
    ```bash
    paypal-txns-pp-cli <command> [subcommand] [args] --agent
+   paypal-txns-pp-cli income --since 5mo --table
    ```
-4. If ambiguous, drill into subcommand help: `paypal-txns-pp-cli <command> --help`.
+4. If ambiguous, drill into `paypal-txns-pp-cli <command> --help`.
+
+Something surprising about the CLI? Record one line with
+`paypal-txns-pp-cli feedback "<what surprised you>"` (stored locally only).

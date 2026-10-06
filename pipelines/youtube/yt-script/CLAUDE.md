@@ -1,10 +1,12 @@
 # yt-script — folder guide
 
+Contents: The flow (step folders) · The chain · Files in this folder · Renamed on 2026-08-23 · Other flow changes · Gotchas · Tests
+
 The flow itself lives in the skill: `pipelines/.claude/skills/yt-script/SKILL.md`.
 This file is the folder map. Read the skill first — it owns the step table and
 the gates; this only says where things are.
 
-## The flow is fourteen step folders
+## The flow is thirteen step folders
 
 ```
 steps/
@@ -99,6 +101,24 @@ finally mean what they say.
 
 `lib/beats.mjs`, the desk's local server, the Worker and the tests all read
 `script-plan.md` now.
+
+## Other flow changes, 2026-08-23 to 08-27
+
+All owner decisions. Moved here from the skill, which keeps only the current flow.
+
+- **The local review gate exists.** The old flow published the live freelancer URL
+  *before* any owner review. Publishing is now step 070 and happens only after the
+  owner has seen the real UI at 055.
+- **No HTML or PDF.** `render-outline.mjs` and `render-script.mjs` are dropped from
+  the flow. The script desk replaced the outline PDF as the handoff, and the VO engine
+  reads the per-section `script.json` (`script.vo.txt` was dropped by plan 252). The
+  scripts still exist in the folder; the flow does not call them.
+- **The markdown and the desk are one gate (055).** Added as two gates on 2026-08-23,
+  merged on 2026-08-27 at the owner's request. He keeps `script-plan.md` open in an
+  editor and the local desk in a browser, edits the markdown, and refreshes; the desk
+  re-reads the file on every request. 055's README names the questions each view
+  answers, plus a third that only shows with both open: a malformed lane label, which
+  `lib/beats.mjs` drops to plain prose silently.
 
 ## Gotchas
 

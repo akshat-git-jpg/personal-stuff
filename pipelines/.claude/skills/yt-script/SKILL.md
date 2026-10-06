@@ -1,6 +1,6 @@
 ---
 name: yt-script
-description: Turn owner-supplied knowledge into a YouTube outline, then a script plan of section cards, then a VO-ready final script. Fourteen numbered steps with six owner gates, tabulated in the skill body, each with its own folder under pipelines/youtube/yt-script/steps/. Triggers on "yt-script", "outline for <video>", "write the outline", "write the script plan", "publish to the desk", "here's the completed draft", "finalise the script", "make it VO-ready".
+description: Turn owner-supplied knowledge into a YouTube outline, then a script plan of section cards, then a VO-ready final script. Thirteen numbered steps with five owner gates, tabulated in the skill body, each with its own folder under pipelines/youtube/yt-script/steps/. Triggers on "yt-script", "outline for <video>", "write the outline", "write the script plan", "publish to the desk", "here's the completed draft", "finalise the script", "make it VO-ready".
 user-invocable: true
 metadata:
   author: kbtg
@@ -9,9 +9,11 @@ metadata:
 
 # yt-script — knowledge in, outline, script plan, VO-ready script back
 
+Contents: The steps · Tutorial or comparison · If the desk is down · The files · Ingestion is not research · Hard rules · Changing the flow · Section cards on two levels · The humanizer skill · Not this skill's job
+
 Working folder: `pipelines/youtube/yt-script/`
 
-**The flow is fourteen numbered steps, each a folder under `steps/`.** The table
+**The flow is thirteen numbered steps, each a folder under `steps/`.** The table
 below is the contract. Every step's folder holds a `step.json` (the machine
 record) and a `README.md` (what to actually do). Read the step's README before
 running it — this file deliberately does not repeat them.
@@ -75,39 +77,9 @@ file forks:
 a ranked survey of approaches instead of a walkthrough of one. It reads fine and
 teaches nothing.
 
-## What changed on 2026-08-23 (read this if you remember the old flow)
-
-Three things, all owner decisions:
-
-1. **The outline is now a real outline.** What used to be called `outline.md` was
-   never one — it held verbatim intro and conclusion copy plus 25+ beats with
-   lanes, which is a draft script. It is now `script-plan.md` (step 050), and
-   `outline.md` is a new, earlier, one-page document (step 030) holding sections
-   and a card each. The owner approves *direction* there, when changing it is
-   still cheap.
-2. **The local review gate exists.** The old step 2 published the live freelancer
-   URL *before* any owner review, then said "wait for approval" — approval of a
-   link that already existed. Publishing is now step 070 and happens only after
-   the owner has seen the real UI at 055.
-3. **No HTML or PDF.** `render-outline.mjs` and `render-script.mjs` are dropped
-   from the flow. The script desk replaced the outline PDF as the handoff, and
-   the VO engine reads the per-section `script.json` (`script.vo.txt`, which this
-   note originally named, was dropped by plan 252), so nothing read the script PDF
-   any more. The scripts still exist in the folder; the flow does not call them.
-
-4. **The markdown and the desk are one gate (055).** Added as two separate gates
-   on 2026-08-23, merged on 2026-08-27 at the owner's request: *"merge the two
-   steps"*. He keeps `script-plan.md` open in an editor and the local desk open in
-   a browser at the same time, edits the markdown, and refreshes. The desk
-   re-reads the file on every request, so there is nothing to restart and no
-   session involvement in the loop.
-
-   The two questions the two views answer are still worth knowing, and 055's
-   README names them, along with a third that only appears when both are open: a
-   malformed lane label, which `lib/beats.mjs` drops to plain prose silently and
-   which the markdown therefore cannot show you.
-
 ## If the desk is down
+
+No HTML or PDF: `render-outline.mjs` and `render-script.mjs` are dropped from the flow; the desk is the handoff. Flow history is in the folder's `CLAUDE.md`.
 
 `render-worksheet.mjs` still works and is the documented fallback:
 
@@ -141,7 +113,7 @@ desk.
 | `TASTE.md` | 130 | Your accumulated taste rules, numbered and dated |
 | `FEEDBACK-LOG.md` | 130 | Every reaction, tagged. The repeat-detection index |
 
-Two owner-owned instruction files govern the writing steps and are the only
+Three owner-owned instruction files govern the writing steps and are the only
 authority on their formats:
 
 - `OUTLINE-INSTRUCTIONS.md` → step 030

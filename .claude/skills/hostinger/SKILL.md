@@ -11,7 +11,7 @@ All Hostinger work goes through the `pp-hostinger` CLI — do NOT look for a hos
 CLI: "/Users/kbtg/codebase/personal-stuff/tooling/cli/hostinger/pp-hostinger"
 ```
 
-Auth is automatic (Bearer token from `mcp/hostinger/.env`). The main VPS is `1377177` (srv1377177.hstgr.cloud / hostinger-vps).
+Auth is automatic (Bearer token from `tooling/mcp/hostinger/.env`). The main VPS is `1377177` (srv1377177.hstgr.cloud / hostinger-vps).
 
 **There are TWO Hostinger accounts, and a token only sees its own.** Pass `--account`:
 

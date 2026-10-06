@@ -10,6 +10,19 @@ So the source gets mirrored here.
 
 Not mirrored yet: `impact`, `gumroad`, `skool`, `pinterest`. The same risk applies to all four.
 
+## impact-pp-cli: known gap
+
+`paypal-txns-pp-cli` has an `income` subcommand that does the month-by-program rollup inside
+the CLI and prints it with `--table`. `impact-pp-cli` has no equivalent, so the loop and the
+rendering are the caller's job every time (the `pp-impact` skill holds that contract), which is
+how the format drifted before. The durable fix is an `income` subcommand on `impact-pp-cli`
+mirroring the PayPal one. Start by mirroring its source from `~/printing-press/library/impact/`
+into this folder, the way `paypal-txns/` was; today it is in no git repo.
+
+The `pp-impact` skill is repo-scoped on purpose (source in `pipelines/.claude/skills/pp-impact/`,
+symlinked into `.claude/skills/`), never in an account-scoped manifest, so a personal-finance
+skill never loads into a work session.
+
 ## This is a mirror, not the working copy
 
 Edit the source in `~/printing-press/library/paypal-txns/`, build there, then copy back here. Building from this folder works, but a binary built here drifts from the one on PATH, and then two trees disagree about what the CLI does.

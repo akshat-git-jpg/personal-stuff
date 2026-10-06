@@ -9,6 +9,8 @@ metadata:
 
 # Hyperframes Helper
 
+Contents: What is Hyperframes · Install · The Three Levels (Step 01 passes A-C) · Critical framework rules · Multi-clip cut editing · Studio editing limits · Rendering · Recipes · Files in this kit · References
+
 A practical kit for building motion-graphics videos with Hyperframes — HeyGen's open-source HTML-to-MP4 renderer. Three levels of effort matched to three different goals.
 
 ## What is Hyperframes
@@ -333,7 +335,7 @@ hyperframes-helper/
     ├── recipes.md                    ← copy-paste pattern library (10 recipes)
     ├── silence-cut.sh                ← Step 01 / Pass A: ffmpeg silence trim
     ├── transcribe-whisper.py         ← Step 01 / Pass B: faster-whisper transcript
-    └── cut-retakes.py                ← Step 01 / Pass <your-project-path> last-take-rule retake removal
+    └── cut-retakes.py                ← Step 01 / Pass C: last-take-rule retake removal
 ```
 
 For Level 3's globe motion graphic, you'll also want the [Natural Earth land geometry](https://raw.githubusercontent.com/martynafford/natural-earth-geojson/refs/heads/master/110m/physical/ne_110m_land.json). Download it, wrap as `window.NE_LAND = ...;` in a `.js` file, and drop into your composition's `assets/` folder.

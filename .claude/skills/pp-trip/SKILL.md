@@ -1,9 +1,11 @@
 ---
 name: pp-trip
-description: Manage trips on apps/trip-planner (trips.agrolloo.com, the "trip UI") - create a trip, pins, the day plan, booking cards and the trip's Google Drive folder of tickets, then deploy. Use when the owner says "add X to my Varkala trip", "make a new trip for Bali", "add this booking/ticket/flight/train/hotel to my trip", "put it in my trip UI", "research top places in Kyoto and pin them", "deploy my trip", "remove that pin", or names/edits any place on the trip map. Triggers on "pp-trip", "trip planner", "trip UI", "trip map", "add to trip", "trip pins", itinerary, booking, ticket, stay, hotel.
+description: "Manages trips on apps/trip-planner (trips.agrolloo.com): creates trips, adds or fixes map pins from verified coordinates, writes day plans and booking cards, files tickets in the trip's Drive folder, and deploys. Use when the owner asks to add a place, booking or hotel to a trip, start a trip, pin researched places, fix a pin, or deploy. Triggers: pp-trip, trip planner, trip UI, trip map, add to trip."
 ---
 
 # pp-trip - trip pin management
+
+Contents: What this skill drives · New trip checklist · When to invoke · The one flow · Never guess coordinates · Google Places · audit · Spelling variants · viewbox · locationHint · Categories · The Plan view (days, bookings, Drive) · Tests · Escape hatches · Non-goals
 
 ## What this skill drives
 
@@ -225,9 +227,8 @@ write it into `trips/<slug>.json` and run `pp-trip deploy <slug>`.
 - `docsFolderUrl` - the trip's Google Drive folder.
 
 **Document files are Drive links, never uploads.** One folder per trip at
-`My Drive / Trips / <trip name>` on the personal account. Create it with
-`tooling/mcp/google-shared`-authenticated Drive access, not by hand, and
-put the folder URL in `docsFolderUrl`. A booking with no `files` entry
+`My Drive / Trips / <trip name> - <Mon YYYY>`, made with `pp-drive ensure-folder`
+(New trip checklist, line 4), and its URL goes in `docsFolderUrl`. A booking with no `files` entry
 falls back to the folder link, so never leave a booking with a dead
 button.
 

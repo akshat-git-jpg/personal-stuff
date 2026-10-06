@@ -1,6 +1,6 @@
 ---
 name: ui-craft
-description: "Use for any UI design or implementation work to avoid generic AI-looking interfaces — anti-slop rules, a required discovery phase before coding, and guidance for layout, typography, color, motion, accessibility, dashboards, tables, landing pages, theming, and polish. Engage as soon as work involves a frontend, web app, website, page, or screen — including while DESIGNING, PLANNING, or BRAINSTORMING (before code, so accent/font/layout choices go through Discovery), and when building, editing, or reviewing UI code."
+description: "Applies anti-slop UI rules and a required Discovery phase to frontend work: layout, typography, color, motion, accessibility, dashboards, landing pages, theming, polish. Use when designing, planning, building or reviewing any app, site, page or screen, before code so accent, font and layout choices go through Discovery."
 argument-hint: "[action: build|animate|review|polish|audit] [target]"
 user-invocable: true
 metadata:

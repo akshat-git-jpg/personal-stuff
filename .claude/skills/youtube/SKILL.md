@@ -31,4 +31,4 @@ pp-youtube captions VIDEO --account EMAIL              # track list only; text v
 
 - `search` costs 100 quota units per call — prefer `rss` (free) for "latest uploads of channel X".
 - Transcripts: run pp-yt-transcript from the Mac/residential IP — datacenter IPs are blocked by YouTube.
-- Playlist mutations (create/add/remove) and rate_video were never used and are not in the CLI; if ever needed, the MCP code remains at `mcp/youtube-mcp-server/` for reference.
+- Playlist mutations (create/add/remove) and rate_video were never used and are not in the CLI; if ever needed, the MCP code remains at `tooling/mcp/youtube-mcp-server/` for reference.

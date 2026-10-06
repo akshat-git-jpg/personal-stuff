@@ -1,7 +1,7 @@
 ---
 name: yt-style-copy
 description: >-
-  Clone a competitor YouTube channel's script and/or visual editing style from its style pack. Verbs: fetch-transcripts/build-script-style-dna (script), fetch-video/build-video-style-dna (visual — independent sides), suggest-topics, suggest-titles, write-script. Triggers on "yt-style-copy", "clone <channel>'s style", "build script style dna", "build video style dna", "suggest topics for <channel>", "suggest titles like <channel>", "write a script in <channel>'s style".
+  Clones a competitor YouTube channel's script and/or visual editing style from its style pack. Verbs: fetch-transcripts/build-script-style-dna (script), fetch-video/build-video-style-dna (visual), suggest-topics, suggest-titles, write-script. Triggers on "yt-style-copy", "clone <channel>'s style", "build script style dna", "build video style dna", "suggest topics for <channel>", "suggest titles like <channel>", "write a script in <channel>'s style". For the owner's own videos use yt-script.
 user-invocable: true
 metadata:
   author: kbtg
