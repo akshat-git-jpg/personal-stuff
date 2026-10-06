@@ -236,6 +236,7 @@ bash scripts/relink.sh                     # codex mirror + push gate + memory l
    path over 4 MB and will park the land. `pipelines/.agents/skills/.gitignore` excludes
    `*.mp4|mov|wav|mp3`.
 6. **Restart the session after any skill change.** Discovery is cached at startup.
+   Re-verified 2026-10-06: a skill added mid-session was not found until restart.
    `claude -p "list skills"` lies — it can show a stale or wrong-account list. Trust the
    filesystem.
 7. **A skill is text, so a "test" is a shape assertion.** Assert which file exists where,

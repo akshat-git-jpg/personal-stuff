@@ -130,7 +130,7 @@ single `git -C`, and fail-closes on anything ambiguous. So
 `cd <ws> && git -C <ws> add …` is **refused** — two retargeting constructs that could
 disagree. After `cd <ws>`, use plain `git add` / `git commit` with no `-C`.
 
-**Never use `GUARD_OK=1`.** There are deliberately zero call sites. Since 2026-08-23 the
+**Never use `GUARD_OK=1` on your own.** Only when the owner says so, for that one command. Since 2026-08-23 the
 wall resolves the directory a command targets, so all three forms above are allowed. If one
 is refused, re-read the paragraph above — it is almost always a mixed form, not a wall bug.
 
@@ -253,7 +253,7 @@ pushes. You do nothing and you wait for nothing.
 - About to `git push`, `git push --force`, `git commit --amend`, `git reset --hard`, or open
   a PR — stop. Wrong tool; the lander owns that.
 - About to `git add -A` / `.` / `*` — stop. Stage explicit files.
-- About to use `GUARD_OK=1` — stop. Use one of the three forms in Step 1.
+- About to use `GUARD_OK=1` without the owner's say-so — stop. Use one of the three forms in Step 1.
 - About to rename the branch or create a `feature/` branch — stop. `pp-work` owns the name.
 - About to commit a `.mp4` / `.wav` / `.png` — stop. Generated media is never committed.
 - About to insert "Claude" / "AI" / "Co-Authored-By" anywhere — stop. Strip it.
