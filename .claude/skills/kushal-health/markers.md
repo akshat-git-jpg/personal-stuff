@@ -44,3 +44,52 @@ data already uses. Add a row when a lab prints a test that is not here.
 | testosterone | Hormones | Testosterone Total |
 | crp | Other | CRP, C-Reactive Protein, hs-CRP |
 | hbsag | Other | HBsAg |
+| apo_a1 | Lipid | Apolipoprotein A1, APO-A1 |
+| apo_b | Lipid | Apolipoprotein B, APO-B |
+| lp_a | Lipid | Lipoprotein (a), Lp(a) |
+| bilirubin_direct | Liver | Bilirubin Direct, Conjugated Bilirubin |
+| bilirubin_indirect | Liver | Bilirubin Indirect, Unconjugated Bilirubin |
+| protein_total | Liver | Total Protein, Protein - Total |
+| globulin | Liver | Serum Globulin |
+| calcium | Kidney | Calcium, S. Calcium |
+| hematocrit | CBC | Hematocrit, PCV, Packed Cell Volume |
+| mcv | CBC | Mean Corpuscular Volume, MCV |
+| mch | CBC | Mean Corpuscular Hemoglobin, MCH |
+| mchc | CBC | Mean Corp. Hemo. Conc, MCHC |
+| rdw_sd | CBC | RDW-SD |
+| rdw_cv | CBC | RDW-CV |
+| neutrophils_pct | CBC | Neutrophils, Neutrophils Percentage |
+| lymphocytes_pct | CBC | Lymphocyte, Lymphocytes Percentage |
+| monocytes_pct | CBC | Monocytes, Monocytes Percentage |
+| eosinophils_pct | CBC | Eosinophils, Eosinophils Percentage |
+| basophils_pct | CBC | Basophils, Basophils Percentage |
+| neutrophils_abs | CBC | Neutrophils - Absolute Count |
+| lymphocytes_abs | CBC | Lymphocytes - Absolute Count |
+| monocytes_abs | CBC | Monocytes - Absolute Count |
+| eosinophils_abs | CBC | Eosinophils - Absolute Count |
+| basophils_abs | CBC | Basophils - Absolute Count |
+| mpv | CBC | Mean Platelet Volume, MPV |
+| pdw | CBC | Platelet Distribution Width, PDW |
+| plcr | CBC | Platelet to Large Cell Ratio, PLCR |
+| pct | CBC | Plateletcrit, PCT |
+| tibc | Vitamins | Total Iron Binding Capacity, TIBC |
+| uibc | Vitamins | Unsat. Iron-Binding Capacity, UIBC |
+| transferrin_sat | Vitamins | % Transferrin Saturation |
+| free_testosterone | Hormones | Free Testosterone |
+| shbg | Hormones | Sex Hormone Binding Globulin, SHBG |
+| dht | Hormones | Dihydrotestosterone, DHT |
+| androstenedione | Hormones | Androstenedione, A4 |
+| estradiol | Hormones | Estradiol, Oestrogen, E2 |
+| prolactin | Hormones | Prolactin, PRL |
+| fsh | Hormones | Follicle Stimulating Hormone, FSH |
+| lh | Hormones | Luteinising Hormone, LH |
+| cortisol | Hormones | Cortisol |
+| hgh | Hormones | Human Growth Hormone, HGH |
+| magnesium | Other | Magnesium |
+| phosphorus | Other | Phosphorous, Phosphorus |
+| psa | Other | Prostate Specific Antigen, PSA |
+| psa_free | Other | Free PSA |
+| psa_free_pct | Other | Percent Free PSA |
+
+Every key here needs an entry in `apps/kushal-health/src/shared/guide.ts` (the plain-language
+"what it is / why it matters / what to do" text). A test there fails when one is missing.

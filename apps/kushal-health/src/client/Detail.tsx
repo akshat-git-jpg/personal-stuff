@@ -1,9 +1,57 @@
 import type { BloodData } from '../shared/types'
-import { SEVERITY, statusOf } from '../shared/status'
-import { delta, labsById, latest, outBy } from './derive'
+import { SEVERITY, statusOf, type Status } from '../shared/status'
+import { delta, guideFor, labsById, latest, outBy } from './derive'
 import { fmtDate, fmtSpan } from './format'
 import LineChart from './LineChart'
 import { Chip, RangeBar } from './parts'
+
+/** Plain-language card: what the test is, why the current result matters, what to do. */
+function About({ markerKey, status }: { markerKey: string; status: Status }) {
+  const g = guideFor(markerKey)
+  if (!g) return null
+  const low = status === 'low'
+  const out = SEVERITY[status] === 0
+  const meaning = low ? g.low : g.high
+  const actions = (low ? g.doLow : g.doHigh) ?? []
+  return (
+    <section className="card about" data-testid="about">
+      <h2 className="h3">About this test</h2>
+      <p className="insight-line">
+        <span className="insight-label">What it is</span> {g.what}
+      </p>
+      {out && meaning && (
+        <p className="insight-line">
+          <span className="insight-label">Why it matters</span> {meaning}
+        </p>
+      )}
+      {!out && (g.high || g.low) && (
+        <>
+          {g.high && (
+            <p className="insight-line">
+              <span className="insight-label">If it goes high</span> {g.high}
+            </p>
+          )}
+          {g.low && (
+            <p className="insight-line">
+              <span className="insight-label">If it goes low</span> {g.low}
+            </p>
+          )}
+        </>
+      )}
+      {out && actions.length > 0 && (
+        <div className="insight-actions">
+          <span className="insight-label">What you can do</span>
+          <ul>
+            {actions.map((a) => (
+              <li key={a}>{a}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <p className="muted small">General health information, not medical advice.</p>
+    </section>
+  )
+}
 
 /** One test's full history: big value, range bar, chart with date tooltips, every reading. */
 export default function Detail({ data, markerKey }: { data: BloodData; markerKey: string }) {
@@ -59,6 +107,8 @@ export default function Detail({ data, markerKey }: { data: BloodData; markerKey
           <span>High</span>
         </div>
       </section>
+
+      <About markerKey={m.key} status={s} />
 
       {nums.length > 1 && (
         <div className="tiles">

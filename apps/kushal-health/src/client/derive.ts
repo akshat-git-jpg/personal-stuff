@@ -1,6 +1,7 @@
 // Pure view-model helpers for the Blood tests screens. Status and trend come from shared/status only.
 import type { BloodData, MarkerPoint, MarkerSeries, Panel, ReportRow } from '../shared/types'
 import { SEVERITY, statusOf, trendOf, type Status } from '../shared/status'
+import { GUIDE, PART_INTRO, type Guide } from '../shared/guide'
 
 export const latest = (m: MarkerSeries) => m.points[m.points.length - 1]
 export const previous = (m: MarkerSeries): MarkerPoint | undefined => m.points[m.points.length - 2]
@@ -91,6 +92,71 @@ export function sortedMarkers(data: BloodData, partKey: string | null): MarkerSe
   return data.markers
     .filter((m) => !part || part.panels.includes(m.panel))
     .sort((a, b) => SEVERITY[statusOf(latest(a))] - SEVERITY[statusOf(latest(b))] || a.name.localeCompare(b.name))
+}
+
+export interface InsightItem {
+  m: MarkerSeries
+  status: Status
+  meaning: string
+}
+export interface InsightGroup {
+  key: string
+  name: string
+  intro: string
+  items: InsightItem[]
+  actions: string[]
+}
+
+/** Out-of-range tests grouped by body area, each with plain meaning and merged next steps. */
+export function insights(data: BloodData): InsightGroup[] {
+  const groups = new Map<string, InsightGroup>()
+  for (const m of data.markers) {
+    const p = latest(m)
+    const s = statusOf(p)
+    if (SEVERITY[s] !== 0) continue
+    const part = partOf(m)
+    const key = part?.key ?? 'other'
+    if (!groups.has(key)) {
+      groups.set(key, { key, name: part?.name ?? 'Other tests', intro: PART_INTRO[key] ?? '', items: [], actions: [] })
+    }
+    const g = guideFor(m.key)
+    const low = s === 'low'
+    const meaning = (low ? g?.low : g?.high) ?? (low ? 'Below the normal range.' : 'Outside the normal range.')
+    groups.get(key)!.items.push({ m, status: s, meaning })
+  }
+  const out = [...groups.values()]
+  for (const g of out) {
+    g.items.sort((a, b) => outBy(latest(b.m)) - outBy(latest(a.m)))
+    const seen = new Set<string>()
+    for (const it of g.items) {
+      const gd = guideFor(it.m.key)
+      for (const a of (it.status === 'low' ? gd?.doLow : gd?.doHigh) ?? []) {
+        if (!seen.has(a)) {
+          seen.add(a)
+          g.actions.push(a)
+        }
+      }
+    }
+    g.actions = g.actions.slice(0, 5)
+  }
+  const worst = (g: InsightGroup) => Math.max(...g.items.map((i) => outBy(latest(i.m))))
+  return out.sort((a, b) => worst(b) - worst(a))
+}
+
+export function guideFor(key: string): Guide | undefined {
+  return GUIDE[key]
+}
+
+/** "up from 6.74 in Feb 26" style change against the previous numeric reading. */
+export function changeText(m: MarkerSeries): string {
+  const nums = m.points.filter((x) => x.value_num !== null)
+  if (nums.length < 2) return 'first time tested'
+  const a = nums[nums.length - 2]
+  const b = nums[nums.length - 1]
+  const t = trendOf(a, b)
+  if (t === 'steady') return `about the same as ${a.value_text} before`
+  const dir = (b.value_num as number) > (a.value_num as number) ? 'up' : 'down'
+  return `${dir} from ${a.value_text} (${t})`
 }
 
 /** Every distinct test date, newest first. */
