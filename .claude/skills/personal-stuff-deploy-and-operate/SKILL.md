@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-deploy-and-operate
-description: Use when deploying or operating anything in personal-stuff — shipping a Worker app, rebuilding a VPS Docker container, adding/changing/removing a VPS cron, running the gated deploy-all script, accessing MinIO, or verifying that a deploy actually took. Also use when asked "how do I ship this change to prod".
+description: Deploys and operates personal-stuff's three surfaces — Worker apps via their own npm deploy script, VPS Docker apps, and VPS crons — plus the gated fleet deploy, MinIO access, boss's deploy permission, and the after-deploy checks. Use when shipping a change to prod, adding or changing a cron, rebuilding a container, or verifying a deploy took.
 ---
 
 # Deploy and operate
@@ -61,12 +61,3 @@ Localhost-only on the VPS by choice (no public exposure). Access: SSH tunnel `ss
 - What to run before committing → **personal-stuff-validation-and-qa**
 - Deploy "worked" but the site is broken → **personal-stuff-debugging-playbook**
 - Standing up a brand-new app end-to-end → **personal-stuff-idea-to-shipped**
-
-## Provenance and maintenance
-
-Verified against `scripts/deploy-apps.sh`, `scripts/check-apps.sh`, `scripts/probe-sites.sh`, app package.json deploy scripts, `tooling/boss/README.md` + `bin/boss-deploy.sh`, `decisions.md` (2026-07-11 boss deploy permission, 2026-07-12 asset hubs), `VPS-CRONS.md`, `INFRA.md`, and `infra/secrets/minio-access.md` on 2026-07-12 (VPS SSH unreachable from the verifying network that day — VPS-side facts re-checked against the docs of record only). No verify script on purpose: this skill's real checks (probe-sites curls, cron runs, `wrangler secret list`) need network/SSH, and a script that can't run offline is worse than commands with expected outputs. Re-verify:
-- deploy-apps flags: `sed -n '1,30p' scripts/deploy-apps.sh`
-- Per-app deploy quirks: `grep '"deploy"' apps/*/package.json` (also shows the mixed v3/v4 wrangler pins — see **personal-stuff-build-and-env**)
-- Boss deploy path: `tooling/boss/README.md` + decisions.md 2026-07-11 entry
-- Cron ops: `VPS-CRONS.md` "Common operations"
-- MinIO access: `infra/secrets/minio-access.md`

@@ -59,7 +59,7 @@ working tree and Codex will never be told about it:
 
 So before starting real work in this repo, **list those two directories and read the
 frontmatter `description` of anything that looks relevant** — that is the same
-name-and-description index Claude gets automatically. `.claude/skills/personal-stuff-repo-map/`
+name-and-description index Claude gets automatically. `.claude/skills/personal-stuff-architecture-contract/`
 is the best entry point when you do not know which one you want.
 
 Do NOT solve a problem this repo already has a skill for. Deploying a Worker,

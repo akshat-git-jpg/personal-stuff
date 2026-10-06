@@ -1,13 +1,13 @@
 ---
 name: personal-stuff-docs-and-writing
-description: Use when writing or updating any documentation in personal-stuff — appending to decisions.md, registering a plan, closing a runs ledger, refreshing INFRA.md / VPS-CRONS.md / my-hosted-sites.md, or adding a README or CLAUDE.md to a new folder. Also use when unsure which doc of record a fact belongs in. (Prose for a third party stays with humanizer; prose the owner reads back stays with i-have-adhd.)
+description: Holds the contracts for personal-stuff's docs of record (decisions.md, plans and run ledgers, INFRA.md, VPS-CRONS.md, my-hosted-sites.md, context/, asset-hub manifests), the folder README/CLAUDE.md conventions, and where a given fact belongs. Use when writing or updating any repo doc or unsure which doc owns a fact. Third-party prose goes to humanizer; owner-facing replies to i-have-adhd.
 ---
 
 # Docs and writing
 
 ## Overview
 
-Every fact has exactly ONE home; everything else links to it. A doc that drifts is worse than no doc — this repo's own INFRA.md proves it (see weak spots in **personal-stuff-repo-map**). When you change reality, update the home doc **in the same change**.
+Every fact has exactly ONE home; everything else links to it. A doc that drifts is worse than no doc — this repo's own INFRA.md proves it (see weak points in **personal-stuff-architecture-contract**). When you change reality, update the home doc **in the same change**.
 
 ## The docs of record and their contracts
 
@@ -53,11 +53,3 @@ Excluded from both: code, code comments, commit messages, config files, CLI outp
 - Deciding IF a change needs a decision/plan at all → **personal-stuff-change-control**
 - Writing a new operating skill → `superpowers:writing-skills` + the conventions here
 - The doc you're fixing contradicts reality → verify reality first (**personal-stuff-debugging-playbook**, `probe-sites.sh`), then fix the doc
-
-## Provenance and maintenance
-
-Contracts verified against the docs themselves, `plans/WORKFLOW.md`, `context/CLAUDE.md`, plan 026/028/031 outcomes, and the global humanizer rule on 2026-07-05; re-verified 2026-07-12 (ledger formats, VPS-CRONS three-copy header, context cadence, and the table above against root CLAUDE.md's "Find it fast" — all match; added the asset-hub manifest row per `pipelines/CLAUDE.md` + decisions.md 2026-07-12). Re-verify:
-- Ledger line formats: `sed -n '38,57p' plans/WORKFLOW.md`
-- Three-copy rule: header of `VPS-CRONS.md`
-- context cadence: `context/CLAUDE.md`
-- Asset-hub manifest rule: "Generated media never lives in the repo" bullet in `pipelines/CLAUDE.md`

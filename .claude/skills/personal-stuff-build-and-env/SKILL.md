@@ -1,13 +1,23 @@
 ---
 name: personal-stuff-build-and-env
-description: Use when setting up personal-stuff on a new machine, recovering a broken environment, or wiring a fresh clone — regenerating machine-local runtime (venvs, .mcp.json, symlinked paths), npm installs failing with 401, Go/pipx tool installs, or a dead VPS that needs rebuilding. Also use when anything works on one machine but not another. (Managing which skills/plugins go to which account stays with claude-router.)
+description: Rebuilds personal-stuff runtime on a new or broken machine: the Mac rebuild order, machine-local files (venvs, .mcp.json, CLI links), npm 401s, Go/pipx installs, the Windows second machine, and dead-VPS recovery. Use when setting up a fresh clone, recovering a broken environment, or when something works on one machine but not another. Skill and plugin placement questions go to claude-router.
 ---
 
 # Build and environment (from scratch)
 
+## Contents
+
+- Mac rebuild sequence (incl. Windows second machine)
+- Runtimes and where they're required
+- The npm 401 trap
+- Secrets restoration
+- VPS rebuild
+- After moving/renaming anything
+- When NOT to use this skill
+
 ## Overview
 
-The repo is code-only; every machine adds gitignored runtime (venvs, tokens, .env files, symlinks, .mcp.json). Rebuild = clone + regenerate runtime per this order. **Skill/plugin management itself is owned by the existing `claude-router` skill — use it for manifest edits; this skill covers everything else.**
+The repo is code-only; every machine adds gitignored runtime (venvs, tokens, .env files, symlinks, .mcp.json). Rebuild = clone + regenerate runtime per this order. Skill and plugin placement questions belong to the `claude-router` skill; this skill covers everything else.
 
 ## Mac rebuild sequence
 
@@ -16,7 +26,7 @@ The repo is code-only; every machine adds gitignored runtime (venvs, tokens, .en
 git clone git@github.com:akshat-git-jpg/personal-stuff.git ~/codebase/personal-stuff
 git clone git@github.com:akshat-git-jpg/vps-crons.git ~/codebase/vps-crons   # cron orchestration
 
-# 2. Skill symlinks for BOTH Claude accounts (work + personal)
+# 2. Machine-local links: Codex skill mirror, push gate, shared memory store, work-skills sync
 cd ~/codebase/personal-stuff && ./scripts/relink.sh
 # then RESTART any open Claude session — skill discovery is cached
 
@@ -27,7 +37,7 @@ cd ~/codebase/personal-stuff && ./scripts/relink.sh
 ./scripts/regen-mcp-json.sh        # wires google-drive + cloudflare only; MCP_PYTHON overrides interpreter
 
 # 4. Verify
-./scripts/skills-status.sh          # membership + symlink health table; exit 1 on any problem
+./scripts/skills-status.sh          # where skills load (repo / Codex mirror / plugin); exit 1 on any problem
 ```
 
 Skills need NO setup on a new machine: they are repo-scoped, so cloning the repo is the install. `relink.sh` only covers what the repo cannot carry — the Codex mirror (`.claude/codex-skills.txt`), the push gate, and the shared memory store.
@@ -107,10 +117,6 @@ Symlinks store absolute paths and `.mcp.json` hardcodes them: re-run `./scripts/
 
 ## When NOT to use this skill
 
-- Managing which skills go to which account → existing `claude-router` skill
+- Skill or plugin placement → the `claude-router` skill
 - A single secret/env question → **personal-stuff-config-and-secrets**
 - Something broke that used to work (not a fresh machine) → **personal-stuff-debugging-playbook**
-
-## Provenance and maintenance
-
-Verified against `scripts/relink.sh`, `scripts/link-clis.sh`, `scripts/regen-mcp-json.sh`, `scripts/skills-status.sh`, `pipelines/CLAUDE.md`, app package.json wrangler pins, and `VPS-CRONS.md` on 2026-07-12. Re-verify: run `scripts/verify.sh` in this skill dir (offline checks; exit 0 all-pass, exit 1 names the failing check). The VPS layout check needs the network and is opt-in: `VERIFY_VPS=1 scripts/verify.sh` (or manually `ssh root@72.61.241.170 'ls /srv/crons /srv/projects'`) — SSH was unreachable from the 2026-07-12 verifying network, so VPS facts were re-verified against `VPS-CRONS.md` only.

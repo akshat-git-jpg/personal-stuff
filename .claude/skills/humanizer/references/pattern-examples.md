@@ -1,3 +1,15 @@
+# Humanizer pattern examples
+
+Before/after pairs for the patterns in [patterns.md](patterns.md). Pattern 23 (filler phrases) has its pairs inline in patterns.md.
+
+Contents:
+- Content (1-6): significance, notability, -ing analyses, promotional, vague attributions, challenges sections
+- Language (7-13): AI vocabulary, copula avoidance, negative parallelisms, rule of three, synonym cycling, false ranges, passive voice
+- Style (14-19): em dashes, boldface, inline-header lists, title case, emojis, curly quotes
+- Communication (20-22): chatbot artifacts, cutoff disclaimers, sycophancy
+- Filler (24-29): hedging, generic conclusions, hyphenated pairs, authority tropes, signposting, fragmented headers
+- Rhetorical posture (30-36): binary contrasts, throat-clearing, faux-insight, colon reveals, kickers, fragmentation, metadiscourse
+
 ### 1. Undue Emphasis on Significance, Legacy, and Broader Trends
 **Before:**
 > The Statistical Institute of Catalonia was officially established in 1989, marking a pivotal moment in the evolution of regional statistics in Spain. This initiative was part of a broader movement across Spain to decentralize administrative functions and enhance regional governance.

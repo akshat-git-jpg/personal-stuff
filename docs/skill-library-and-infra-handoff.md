@@ -16,7 +16,7 @@ which stays the home for reusable cross-repo skills).
 
 | Skill | One line |
 |---|---|
-| personal-stuff-repo-map | Orientation: buckets, routing, docs of record, known weak spots |
+| personal-stuff-repo-map | Orientation: buckets, routing, docs of record, known weak spots (merged into personal-stuff-architecture-contract 2026-10-06) |
 | personal-stuff-change-control | Gates + every non-negotiable with its rationale and incident |
 | cloudflare-and-vps-reference | Workers/D1/R2/KV/domains + VPS facts as used here |
 | personal-stuff-deploy-and-operate | Deploy per surface, fleet deploy, cron ops, MinIO |

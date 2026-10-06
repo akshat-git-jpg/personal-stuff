@@ -1,10 +1,18 @@
 ---
 name: personal-stuff-video-automation-campaign
-description: >-
-  Use when working on the multi-channel VO-first video factory — pipelines/youtube/final-workflow/ scale-up: productizing the processor (one-command TTS, script-fix stage, thumbnails), the title/thumbnail CTR loop, final-video QC, topic-selection wiring, analytics feedback, affiliate-link step, or the step-135 motion-graphics rulebook. Also before touching pipelines/video/tts or pipelines/video/heygen flows, or proposing any TTS/sync/avatar/graphics approach for YouTube production.
+description: Runs the campaign to scale the multi-channel VO-first video factory (pipelines/youtube/final-workflow/) over its 7 open problems: processor productization (one-command TTS, script-fix stage, thumbnails), the title/thumbnail CTR loop, final-video QC, topic selection, analytics feedback, the affiliate-link step, the step-135 graphics rulebook. Also defines "beyond SOTA" here. Use before touching pipelines/video/tts or heygen flows or proposing a TTS/sync/avatar/graphics approach.
 ---
 
 # Video-factory campaign — scale the VO-first final workflow
+
+## Contents
+
+- What changed (2026-07-12 rewrite)
+- Success metrics, beyond-SOTA definition, processor-hours baseline protocol
+- Change control (every phase)
+- Phases 1-7 (one per open problem, priority order)
+- Fenced wrong paths
+- When NOT to use this skill
 
 **Attended sessions only.** Phases 1c, 2, 3, and 4 carry OWNER GATE markers — explicit owner decisions recorded in `decisions.md` before their plan is written. If running unattended (cron, boss crew, `claude -p`): execute only up to the next OWNER GATE, then stop and report — never guess the owner's answer to unblock yourself.
 
@@ -29,7 +37,7 @@ The campaign target is now **scaling `pipelines/youtube/final-workflow/`** — t
 
 Cost context (as of 2026-07-12): ~$48/video at 12/mo; reviewer share ($150/mo ÷ volume) is the only pure volume lever; target <$10/video. Full cost table: `pipelines/video/CLAUDE.md` + `pipelines/youtube/final-workflow/final-workflow-notes.md`. If fal-lipsync is ever adopted, subtract ~$3.25/video — but see the fence below.
 
-**Exit horizon (owner-calibrated 2026-07-12):** "beyond state of the art" for this project = autonomy + cost, not raw throughput. After videos/mo unsticks, the promotion path is (a) **autonomy** — widen past the read-only-first unattended policy (decisions.md 2026-07-11) only after ≥4 clean weeks, one class at a time; and (b) **cost** — toward <$10/video, where fal-lipsync un-deferral is the primary lever but remains OWNER-DEFERRED as of 2026-07-12: keep it fenced, do not build it; re-raise it only as a decision for the owner.
+**What "beyond state of the art" means here (owner-confirmed 2026-07-12):** two axes, and only two — (a) **autonomy**, the pipeline running unattended end-to-end, and (b) **cost**, driving toward **<$10/video all-in**. Throughput past 12/mo is the binding LIVE constraint — it blocks everything and gets worked first — but it is **not** itself beyond-SOTA: a workflow at 30/mo that still needs a human in every video at $40+ has scaled, not advanced. Read this campaign's phases as clearing the constraint; autonomy and cost (tracked in **personal-stuff-frontier** Fronts 2 and 4) are the actual frontier. After videos/mo unsticks, the promotion path is: autonomy — widen past the read-only-first unattended policy (decisions.md 2026-07-11) only after ≥4 clean weeks, one class at a time; cost — fal-lipsync un-deferral is the primary lever but remains OWNER-DEFERRED as of 2026-07-12: keep it fenced, do not build it; re-raise it only as a decision for the owner. Every phase that removes a human touch also serves the cost axis.
 
 ### Processor-hours baseline protocol (run at the start of Phase 1)
 
@@ -56,7 +64,7 @@ No phase's build work happens inline in a chat session. Route: `orchestrate` ski
 
 ## Phase 1 — productize the processor (open problem #1, do this first)
 
-**Entry:** always — this is the default starting point; it is why 12/mo is stuck.
+**Entry:** always — this is the default starting point; it is why 12/mo is stuck (every video serializes through one manual admin session; $0 cash cost hid the bottleneck).
 **First:** read `final-workflow-notes.md` problem #1, then start the processor-hours baseline protocol (above) — sub-builds may proceed in parallel with baselining, but no improvement claim until ≥3 videos have baseline rows.
 
 Three sub-builds (each its own plan; independent, any order):
@@ -70,6 +78,8 @@ Three sub-builds (each its own plan; independent, any order):
 **Exit criterion:** each processor step is one command or one rulebook'd session; processor-hours/video re-measured and lower; videos/mo can rise without the processor serializing. If a sub-build stalls on a missing owner decision → STOP, record the question in the plan, don't improvise.
 
 ## Phase 2 — title/thumbnail CTR packaging loop (problem #2, highest-ROI gap)
+
+**Why open:** thumbnail is a processor afterthought with no CTR iteration — on YouTube packaging decides more than production quality.
 
 **Entry:** Phase 1c exists (candidate generation is mechanical).
 **First:** read `pipelines/youtube/yt-analysis/CLAUDE.md` and check what `sync_views.py` / `sync_metadata.py` already pull; CTR/impressions need the YouTube Analytics API on the owner's channels — verify credentials exist before promising the loop (see **personal-stuff-config-and-secrets**).
@@ -88,6 +98,7 @@ Three sub-builds (each its own plan; independent, any order):
 
 **Entry:** processor no longer the bottleneck (else more topics just queue).
 **Assets that already exist, unused by the workflow:** `pipelines/youtube/yt-research/` (niche→knowledge-base, TS), `pipelines/youtube/keyword-research/` (competitor affiliate-opportunity scan), `pipelines/youtube/dossiers/` (per-tool research library — note plans 052/053 fixing dossier-build are still TODO in `plans/README.md`).
+**Why open:** the assets exist but the workflow starts at "write script". Land the 052/053 dossier-build fixes first (**personal-stuff-frontier** Front 3).
 **Deliverable:** a "pick next topics" step at the head of the workflow consuming keyword-research output + dossier coverage (+ Phase 5 data once it exists).
 **OWNER GATE:** the selection criterion (affiliate-revenue-first vs views-first vs per-channel) is a business call — get it on record first.
 
@@ -95,17 +106,18 @@ Three sub-builds (each its own plan; independent, any order):
 
 **Entry:** Phase 4's topic picker exists (feedback needs something to feed).
 **Assets:** `yt-analysis/` sync scripts (views/rankings/clicks → tracker sheet), `apps/analytics-app` (yt-analytics.agrolloo.com click dashboard reading the redirector's D1).
+**First:** decide which metric feeds back (CTR? clicks?) before building anything.
 **Deliverable:** performance-by-topic/channel summary that Phase 4's picker and Phase 2's CTR prompts consume. Design Phases 4+5 in one brainstorm even if built as separate plans — they share the data model.
 
 ## Phase 6 — affiliate links as a workflow step (problem #6)
 
 **Entry:** independent; small; do whenever. For review/comparison channels this is the revenue.
 **Assets:** `apps/tutorial-tracker-app` mints `go.agrolloo.com` links — deterministic, LLM-free link-gen with drift report landed 2026-07-11 (plan 056, PR#13); `apps/redirector` serves them; `sync_clicks.py` counts.
-**Deliverable:** an explicit step in final-workflow-notes.md between script-lock and upload: mint/verify the link in the tracker, place it in the description template. Mostly a workflow-doc + checklist change; verify against the tracker's current link-gen UI before writing it.
+**Deliverable:** an explicit step in final-workflow-notes.md between script-lock and upload: mint/verify the link in the tracker, place it in the description template, then add the stage to the tracker pipeline def. Mostly a workflow-doc + checklist change; verify against the tracker's current link-gen UI before writing it.
 
 ## Phase 7 — step-135 motion-graphics rulebook (problem #7)
 
-**Entry:** independent of 1–6; unblocks the "editor places pre-rendered clips" cost lever.
+**Entry:** independent of 1–6; unblocks the "editor places pre-rendered clips" cost lever. Routing is already decided (Sonnet + hyperframes pre-renders, decisions.md 2026-07-05); only the rulebook is missing.
 **File:** `pipelines/youtube/tutorial-pipeline-2/5-visuals/135-build-graphics-sonnet/rulebook.md` — a 14-line stub (verified 2026-07-12). Ignore the legacy flat `steps/` folder; the stage folders (`5-visuals/`, …) are canonical.
 **How:** author it in a Claude Code session on Sonnet with the pipelines-scoped `hyperframes*` skills loaded (they activate under `pipelines/`), grounded in `pipelines/youtube/competitor-styles/channels/devsplainers/` (design-system breakdown + hyperframes build kit) and `pipelines/video/card-library/` (GSAP card templates; editor-facing rendering at render2.agrolloo.com).
 **Expected output (the stub's own spec):** per cue type — which hyperframes workflow authors it, brand tokens, render settings (full-frame 1920x1080 MP4 / overlay transparent MOV, duration locked to the cue), and a midpoint-frame verify pass before handoff to 162.
@@ -128,19 +140,6 @@ Three sub-builds (each its own plan; independent, any order):
 - Domain theory — voice-cloning, why the sync math works this way, lip-sync/GPU economics → `pipelines/video/CLAUDE.md` (the domain doc; this campaign only executes against those decisions)
 - Hyperframes authoring mechanics → the pipelines-scoped `hyperframes*` skills
 - Script/style generation for a specific channel → `yt-style-copy` + `pipelines/youtube/competitor-styles/`
-- "What's open across the whole repo / what next overall" → **personal-stuff-frontier**
+- "What's open across the whole repo / what next overall", autonomy and cost fronts → **personal-stuff-frontier**
 - De-risking an unproven external service/model → **personal-stuff-research-methodology**
 - Plan/PR mechanics → **personal-stuff-change-control** (never hand-roll the branch; secretary raises boss PRs)
-
-## Provenance and maintenance
-
-Grounded in `pipelines/youtube/final-workflow/final-workflow-notes.md`, `pipelines/video/tts/{CLAUDE.md,SYNC-PROBLEM.md,OUTPUTS.md,REFERENCES.md}`, `pipelines/video/heygen/CLAUDE.md` + `fal-lipsync/README.md`, `decisions.md` (2026-07-12 VO-first + hubs + fal-deferral entries; 2026-07-11 autonomy policy; 2026-07-05/07 routing entries), `tooling/boss/data/rules.md` (executor/model routing), `plans/README.md` (011 DONE + PIPE-01 backlog). All paths, the 135 stub, the `TODO[HNS]` stubs, the OUTPUTS.md columns (header-only, 6 columns), the `jamila-30s` slug, and the cost numbers re-verified 2026-07-12. Most volatile skill in the library — re-verify before each campaign session:
-
-- VO-first still the decision? `grep -n "VO-first" decisions.md | head -3`
-- Open problems / cost table moved? `sed -n '16,52p' pipelines/youtube/final-workflow/final-workflow-notes.md`
-- Processor time log started yet (baseline rows)? `grep -n "Processor time log" pipelines/youtube/final-workflow/final-workflow-notes.md` (no match as of 2026-07-12 — the operator adds it per the Phase-1 protocol)
-- fal-lipsync still deferred? `grep -n "fal-lipsync deferred" decisions.md`
-- Unattended runs still read-only-first? `grep -n "Autonomy policy" decisions.md`
-- 135 rulebook still a stub? `head -3 pipelines/youtube/tutorial-pipeline-2/5-visuals/135-build-graphics-sonnet/rulebook.md`
-- HeyGen still stubbed (PIPE-01)? `grep -n "TODO\[HNS\]" pipelines/youtube/tutorial-pipeline-2/lib/heygen.py`
-- Which phases already have plans? `grep -in "final-workflow\|thumbnail\|qc" plans/README.md`

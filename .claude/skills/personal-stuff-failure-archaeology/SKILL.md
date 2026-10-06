@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-failure-archaeology
-description: Use before proposing a tool, architecture, migration, or cleanup in personal-stuff — to check whether it was already tried, superseded, deferred, or explicitly rejected. Also use when encountering references to Hermes, ty/, TY, workers/, OmniVoice, RVC-flow, captain, gemini CLI, x-twitter CLI, render.agrolloo.com, dub-flow sync work, fal-lipsync, or Sheets-backed tracker code, or when a "great idea" feels suspiciously obvious.
+description: Records the settled battles in personal-stuff — what was tried, superseded, deferred or rejected, with evidence, plus research verdicts and a stale-reference decoder. Use before proposing a tool, architecture, migration or cleanup, when a doc mentions Hermes, ty/, TY, workers/, OmniVoice, RVC-flow, captain, gemini CLI, x-twitter CLI, render.agrolloo.com, dub-flow sync, fal-lipsync or Sheets-backed tracker code, or when a "great idea" feels suspiciously obvious.
 ---
 
 # Failure archaeology — settled battles
@@ -43,15 +43,25 @@ This repo reverses course via explicit decommissions (there are zero `git revert
 | **Automating the monthly escrow run** | Monthly manual gpg run is a documented security decision — the passphrase is typed from the password manager, never stored; cron automation is explicitly the weaker option | plans/README.md rejected list (2026-07-11); `infra/escrow/README.md` | REJECTED — gated on an asymmetric-key upgrade, not on enthusiasm |
 | **my-planner silent-death wrap (BUG-01)** | Plan 025's `alert.sh` failure trap in every cron wrapper already alerts on non-zero exits | plans/README.md rejected list (2026-07-11 re-check) | SUPERSEDED — only missing `requests` timeouts remain (a hang wouldn't alert); too small to plan alone, fold into the next my-planner touch |
 
+## Research verdicts (verified 2026-07-12)
+
+Hunches that went through **personal-stuff-research-methodology**'s lifecycle. Add a row only after its decisions.md entry exists.
+
+| Case | Question asked | Test run | Verdict | Recorded |
+|---|---|---|---|---|
+| fal-lipsync | Can Kling base loop + fal LatentSync replace HeyGen's $1/min avatar? | De-risk lip-sync test on a real pose clip (~$0.30–0.40/min), passed 2026-07-11 | **Validated, DEFERRED** — HeyGen stays; no CLI, no migration until the owner revisits | `pipelines/video/heygen/fal-lipsync/`, decisions.md 2026-07-12 |
+| agy capability sweep | Can Antigravity CLI safely be the headless executor lane? | Subagent-verified flag sweep (`--add-dir`, hidden `--output-format json`, `--print-timeout`); secrets-guard hook live-verified against a real agy attempt | Adopted as lane v2 defaults | decisions.md 2026-07-06 |
+| gemini CLI scout | Is a gemini-headless lane viable? | Captain's first real scout run | DEAD (IneligibleTierError, Google cutoff) — lane + npm package removed the same day they were added; agy replaced it | decisions.md 2026-07-06 |
+| hyperframes-vs-remotion | Which HTML→video approach for this repo? | Side-by-side experiment builds | HyperFrames path became the live tool (`video/card-library/`); experiment archived with a "don't build new work here" pointer | `pipelines/archive/hyperframes-vs-remotion/` |
+| Devsplainers PoC | Can thin-kit + Antigravity produce graphics at quality? | PoC scored on four quality axes | Failed all four → "keep Antigravity out of the graphics path"; later explicitly overridden for one step with mitigation (plan 047, above) | decisions.md 2026-07-05 + 2026-07-07 |
+| yt-dlp 429s | Why is YouTube blocking transcript fetches? | Root-cause hunt until one mechanism explained every observation | Self-update pre-flight + PO-token plugin; proxy named as agreed next escalation | decisions.md 2026-07-06 |
+| kunchenguid stack | Adopt his agentic-workflow binaries? | Studied the working tools **in source** | **Adapt, don't adopt** — native `wt`/`greenlight`/`overnight`/`captain` builds (overnight and captain since deleted, 2026-08-23); exactly one external piece adopted (lavish-axi transport for `/plan-review`) | plans/README.md 033–038 batch note, decisions.md 2026-07-06 |
+
 ## Stale-reference decoder
 
 Seeing these in docs means the doc predates a settled battle — fix the doc, don't follow it: `ty/` or `TY/` paths (→ `pipelines/`, landing pages → `apps/pinterest-landing-pages/`), `workers/redirector` (→ `apps/redirector/`), `render.agrolloo.com` (→ render2), Hermes anything, `personal stuff` with a space (→ `personal-stuff`), `pipelines/ai-video-production/` (→ `pipelines/video/motion-graphics/`), `pipelines/video/voice/` or `tts-flow/` paths (→ `pipelines/video/tts/`; heygen/avatar bits → `pipelines/video/heygen/`; `RVC-flow` → `pipelines/archive/rvc-flow/`; 2026-07-12 hub migration), `tooling/cli/heygen-web/avatars.json` + `renders-log.md` (→ `pipelines/video/heygen/registry.json` + `RENDERS.md`), captain dispatch instructions (`cap-spawn`/lanes → `tooling/boss/`; `tooling/captain/` deleted 2026-08-23), the `gemini` CLI or gemini-headless lane (→ `agy`).
 
 ## When NOT to use this skill
 
-- The idea is genuinely new here → **personal-stuff-idea-to-shipped** (and the `roast`/`scout` skills to pressure-test it)
+- The idea is genuinely new here → **personal-stuff-idea-to-shipped**, de-risked per **personal-stuff-research-methodology**
 - Current failure, not historical → **personal-stuff-debugging-playbook**
-
-## Provenance and maintenance
-
-Compiled from `decisions.md`, git log (no reverts confirmed via `git log --grep=revert -i`), `INFRA.md` cleanup section, plans/README rejected list, and owner-session records on 2026-07-05; the 2026-07-06→07-12 rows added and verified 2026-07-12 against `decisions.md`, `plans/README.md` (table + rejected list), `pipelines/video/tts/SYNC-PROBLEM.md`, `pipelines/archive/rvc-flow/CLAUDE.md`, the `tooling/captain/` DEPRECATED banners (that tree is now deleted; see `docs/archive/captain-references/`), and `pipelines/youtube/final-workflow/final-workflow-notes.md`. On 2026-07-12, every evidence pointer into the per-account memory store (unreadable from a fresh session) was replaced with an in-repo anchor or an embedded dated fact, and spot-checks confirmed the cited anchors exist: commit hashes `86d0894`/`3338361`/`af8f596`/`ce08e57`/`150cf56`/`b7b20e3`/`a823479`/`3da2c69`/`9e0c060` all in `git log --all`, the OmniVoice HISTORICAL markers in `pipelines/video/tts/CLAUDE.md`, and the plan-number-collision note + escrow rejection in `plans/README.md`. Guard against regression: `rtk proxy grep -cE "project[ ]memory" .claude/skills/personal-stuff-*/SKILL.md` (expected: 0 per file). Re-verify a row before citing it: `grep -n "<keyword>" decisions.md` or `git log --oneline --all | grep -i "<keyword>"`. New settled battles: add a row here AND the decisions.md entry that settles it. Status vocabulary: FAILED (tried, didn't work) / SUPERSEDED (replaced by something better) / DEFERRED (validated, deliberately parked) / REJECTED (evaluated, declined) — never blur them.

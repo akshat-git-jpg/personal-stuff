@@ -8,6 +8,8 @@ metadata:
 
 # commit-now (personal-stuff)
 
+Contents: Auto-commit is the default · Hard constraints · Workflow (checklist, Steps 1-5) · The commit does not push, but it does land · Edge cases · Red flags
+
 Runs the repo's quality checks, fixes what it can, writes a conventional-commit message,
 stages the relevant files and commits — **inside a `pp-work` workspace**. It never pushes:
 a `post-commit` hook carries the commit to `main` on its own.
@@ -46,12 +48,6 @@ permission; it does not mean you work silently.
 
 Default to a single commit covering that turn's work. Split into several only when the
 changes are genuinely separate concerns, and give each its own conventional-commit subject.
-
-### What it costs
-
-Every commit starts a land: a rebase onto the newest `main`, the mapped test suite, then a
-merge and push. Measured 2026-08-23: 15s and 54s of background work per land. That is the
-price of the guarantee, and it is paid in background CPU, not in your tokens.
 
 ## Hard constraints — non-negotiable
 
@@ -93,6 +89,19 @@ These override anything else in this skill or the user's general guidance:
    what protects them, which is also why a workspace holding them is never auto-removed.
 
 ## Workflow
+
+Copy this checklist and tick as you go:
+
+```
+[ ] 1 In a pp-work workspace; branch, user.name, user.email gathered
+[ ] 2 Mapped checks run (verify-map.tsv) and auto-fixed; all green
+[ ] 3 Pre-commit summary printed
+[ ] 4 Message proposed (one line, <=72 chars)
+[ ] 5 Explicit files staged, committed, log + status verified, SHA reported
+```
+
+A check fails at any step → go back to step 2. Max 3 times; still red → stop, report the
+failure verbatim, and leave the work uncommitted (see Edge cases).
 
 ### Step 1 — Be in a workspace
 

@@ -1,6 +1,6 @@
 ---
 name: github-router
-description: Pick the correct GitHub account (work / yt / personal) before any git commit, push, branch, or PR action, verifying the repo's author email and gh token match its remote. Triggers on "commit", "push", "open PR", "gh pr create", "create a branch and push", or any intent that writes to a git remote. Also use when a push 403s, a commit landed under the wrong author, or two parallel sessions seem to be fighting over the GitHub account.
+description: Picks the correct GitHub account (work / yt / personal) before any git commit, push, branch, or PR action, verifying the repo's author email and gh token match its remote. Triggers on "commit", "push", "open PR", "gh pr create", "create a branch and push", or any intent that writes to a git remote. Also use when a push 403s, a commit landed under the wrong author, or two parallel sessions seem to be fighting over the GitHub account.
 user-invocable: true
 metadata:
   author: kbtg
@@ -8,6 +8,8 @@ metadata:
 ---
 
 # GitHub Account Router
+
+Contents: The rule that replaced everything · Why two sessions no longer collide · Banned, and blocked by a hook · Procedure (Steps 1-3) · Setting up a new repo · Common symptoms · Notes
 
 Three GitHub accounts, and often two Claude sessions running at once — one in a ZluriHQ work repo, one in `personal-stuff`. Both must be able to commit and push **at the same instant**, as different people, without either one disturbing the other.
 

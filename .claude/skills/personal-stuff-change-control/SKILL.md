@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-change-control
-description: Use before making any non-trivial change in personal-stuff — deciding whether a task needs a plans/ file or can be done inline, raising or dispatching a boss PR (secretary raise, boss:ready, dirty-main, deploy gate), whether a decision goes in decisions.md, where a new folder goes, or when tempted to edit a symlinked skill, create an ad-hoc worktree, switch an executor model, write TDD-first tests, or commit generated media. Also when a proposed approach might contradict a past decision.
+description: Holds the change gates for personal-stuff and the non-negotiable rules behind them, each with its rationale and incident. Covers plan-file vs inline, the orchestrate → secretary → boss PR chain and deploy gate, decisions.md entries, executor-model routing, workspaces, TDD, generated media, skill edits. Use before any non-trivial change, or when an approach might contradict a past decision.
 ---
 
 # personal-stuff change control
@@ -26,66 +26,29 @@ Append (newest at top, format `YYYY-MM-DD — <decision> — <why>`) when you ma
 
 ## Gate 3 — Placement
 
-New folder? Route via the placement rule (apps/ = personal products incl. all deployable Workers; pipelines/ = money-making projects, register in `pipelines/CLAUDE.md`'s map; tooling/ = agent surface). Full lifecycle: **personal-stuff-idea-to-shipped**. Every new folder gets `README.md` + `CLAUDE.md` from day one.
+New folder? Use the placement table in **personal-stuff-architecture-contract**. Full lifecycle: **personal-stuff-idea-to-shipped**. Every new folder gets `README.md` + `CLAUDE.md` from day one.
 
 ## commit-now in this repo
 
-**One source of truth: `.claude/skills/commit-now/SKILL.md`** — a repo-level skill, so it is
-only ever visible inside personal-stuff. Read it before staging anything. It owns the full
-flow: **auto-commit is the default here**, `pp-work` owns branch names, the commit never
-pushes but does land, and merges, conflicts and cleanup all belong to `pp-land`.
+**One source of truth: `.claude/skills/commit-now/SKILL.md`** (auto-commit default, `pp-work` owns
+branch names, the commit lands by itself, the three allowed workspace-command forms, and why a
+`$VAR` path is refused). Read it before staging anything. `commit-now-work` is a separate
+user-level skill for ZluriHQ work repos only (split 2026-08-23).
 
-The user-level skill in both accounts is `commit-now-work` and applies **only** to ZluriHQ
-work repos (split 2026-08-23; before that one shared skill served both and deferred here via
-its "repo-local overrides win" constraint). The two duplicate their common wording on purpose
-so neither drifts the other.
-
-Only one rule lives here rather than there, because it is an override policy, not a commit rule:
-
-**Never use `GUARD_OK=1`.** There are deliberately zero call sites. The main checkout refuses
-history-recording git verbs (`.claude/hooks/no-history-in-main.sh`), and since 2026-08-23 that
-wall resolves the directory a command actually targets, so all three of these work from ANY
-session directory and none needs the override:
-
-```
-cd "$(pp-work claim --kind code --slug <task>)"             # then commit in a later command
-cd "$(pp-work claim --kind code --slug <task>)" && <git …>   # one command
-git -C <workspace-path> <git …>                              # one command, no cd
-```
-
-**`<workspace-path>` means a literal path, not a variable.** The wall reads the command text
-to work out which directory the command targets; it cannot expand a variable without running
-the shell, so it fail-closes. Any path containing `$`, a backtick, `*` or `?` falls back to
-the session cwd and is judged as main. So this is refused, even though it targets a workspace:
-
-```
-WS=/Users/kbtg/kb-scratch/workspaces/.../personal-stuff
-git -C "$WS" commit -m "..."      # BLOCKED — "$WS" is unresolvable
-```
-
-Paste the absolute path into every command instead. `cd "$(pp-work claim ...)"` is the single
-substitution the wall recognises, and it does so by shape rather than by resolving it.
-
-This is correct behaviour, not a bug to route around — do NOT reach for `GUARD_OK=1` when you
-hit it, and do NOT try to teach the wall to expand variables. Emulating shell semantics is
-exactly what it refuses to do, and every extra form it understands is another way to fool it
-(2026-08-23: the block message was extended to say this, because the reason lived only in a
-code comment and the error read like a false positive).
-
-Before that fix every one of those was blocked from a main-cwd session — including the first,
-which the hook's own message printed as the remedy — and three `GUARD_OK=1` uses were forced
-in one afternoon. If you reach for the override now, that is a bug in the wall; fix the wall.
+The one override policy that lives here: **never use `GUARD_OK=1`.** There are deliberately zero
+call sites. If the wall refuses one of commit-now's three forms, that is a bug in the wall: fix
+the wall, do not route around it (three forced uses in one afternoon before the 2026-08-23 fix).
 
 ## The non-negotiables (rule — rationale — incident)
 
 | Rule | Rationale | Incident behind it |
 |---|---|---|
 | **Skills are REPO-SCOPED: edit the real folder under `.claude/skills/`** (or `pipelines/.claude/skills/`). No store, no manifest, no per-account symlink. Never edit a copy under `~/.claude-work/skills/` or `~/.claude-personal/skills/` — nothing of ours should be there any more. | Claude Code reads the repo's own folder, so what loads no longer depends on which account is logged in. Anyone who opens the repo gets the same skills. | Replaced the manifest scheme on 2026-08-25 (decisions.md). Two duplicates survive on purpose: the five person-level skills copied into the private `work-skills` plugin, kept honest by `scripts/sync-shared-skills.sh`. After ANY skill edit, **restart the session** — discovery is cached. |
-| **Worktrees only via `wt` (managed runs).** Agent/executor/parallel runs work in pool worktrees from `tooling/cli/wt`; owner interactive sessions, deploys, VPS/cron ops, and skill edits stay on the main checkout. Never create ad-hoc worktrees by hand. | Parallel agent runs need isolation, but external systems (VPS pulls, symlinks, .mcp.json) and the deploy/skill toolchain key on the one checkout path — the pool bootstraps runtime files and keeps the main checkout canonical. | Rule lifted 2026-07-06 (decisions.md) after the agentic-workflow study; replaces the 2026-07-05 blanket ban. |
-| **One writer per checkout.** At most ONE active session uses the main checkout; any additional concurrent session works in a `wt` worktree on a real named branch (`git switch -c task/<name>` inside it — never commit work-to-land on a detached HEAD). Land a task by MERGING its branch into main; never cherry-pick a subset off a mixed branch. `.claude/hooks/branch-guard.sh` (PreToolUse) enforces the switch half: it blocks `git switch`/`checkout <branch>` in the main checkout while another session's transcript is <5 min fresh (override: `GUARD_OK=1` prefix). Shared registries (plans/README.md, decisions.md, my-hosted-sites.md, INFRA.md) are updated on main at landing time only. | Git has one HEAD per checkout — a switch in session B moves it under session A, so A's commits land on B's branch; the only escape is exclusion-cherry-picking, which mints duplicate SHAs that conflict forever after. | The 054/055 tangle (decisions.md 2026-07-10): timeblock commits interleaved on the heygen branch, 40+ cherry-pick conflicts, two competing squashes of the same app on main vs origin. |
+| **Main is read-only; claim a workspace for any kept edit.** `cd "$(pp-work claim --kind code --slug <task>)"` before changing tracked files; the commit lands on main by itself (`pp-land`). Boss crews and other managed agent runs use pool worktrees from `tooling/cli/wt`. Never create ad-hoc worktrees by hand. | Two sessions share the main checkout, so an edit left there gets swept into someone else's commit or lost. A per-session workspace gives every session its own tree and branch, and landing is automatic. | Enforced by `.claude/hooks/no-history-in-main.sh`, `no-edits-in-main.sh` and `no-writes-in-main.sh` (root `CLAUDE.md`); stray main edits swept into another session's commit 2026-08-22. Replaces the 2026-07-06 "owner sessions stay on main" rule. |
+| **One writer per tree.** Each session works in its own `pp-work` workspace on its own `work/<slug>` or `subject/<slug>` branch (never a detached HEAD). Work reaches main by merging the branch (`pp-land` does it), never by cherry-picking a subset off a mixed branch. Shared registries (plans/README.md, decisions.md, my-hosted-sites.md, INFRA.md) are updated on main at landing time only. | Git has one HEAD per checkout — a switch in session B moves it under session A, so A's commits land on B's branch; the only escape is exclusion-cherry-picking, which mints duplicate SHAs that conflict forever after. | The 054/055 tangle (decisions.md 2026-07-10): timeblock commits interleaved on the heygen branch, 40+ cherry-pick conflicts, two competing squashes of the same app on main vs origin. |
 | **Never dispatch boss work on a dirty main.** `boss-dispatch.sh` refuses (exit 1) if the main checkout has any uncommitted tracked change, printing the offenders; dirty definition single-sourced as `boss_repo_dirty()` in `tooling/boss/bin/boss-lib.sh`. `--force` overrides — only when you know exactly why. | greenlight parks EVERY merge onto a dirty `REPO_ROOT` as "main checkout busy"; the prior control was a passive session-start reminder that got skipped. The guard now bites at the point of action. | Two batches silently parked: the 2026-07-07 explainer batch and 2026-07-08 PR#12 (decisions.md 2026-07-08). |
 | **Boss deploy gate: owner-triggered per item, boss-executed end-to-end (as of 2026-07-11).** Boss has STANDING permission to run the owner-side deploy chain itself — `wrangler secret put`/`deploy`, VPS SSH cron wiring (`timeout`, NOT `gtimeout` — the VPS is Linux), `vps-crons` repo commits, syncing the 3 mirrored `VPS-CRONS.md` copies — but ONLY when the owner explicitly says "deploy" (or equivalent) on that item. The gate itself is unchanged; boss never deploys on its own judgment. Still human-only: interactive browser OAuth consent (`invalid_grant` re-consent via `setup_auth.py`) and destructive acts like deleting a live credential without explicit instruction. | Standing permission removes the hand-the-SSH-steps-back friction, not the gate. Covers plans with empty `deploy:` frontmatter but "Post-merge (owner)" body steps. | First exercised 2026-07-11 deploying 057 (cred-probe cron) + 058 (route-audit pilot) (decisions.md 2026-07-11). |
-| **Never pick the executor model unilaterally.** Executor+model routing comes from `tooling/boss/data/rules.md` at plan-authoring time: `orchestrate` stamps the plan's frontmatter from its per-task-type table (default → claude-p/sonnet; type:refactor (large) → claude-p/opus; type:chore (mechanical) → agy on its own default, Gemini 3.1 Pro (High)); `secretary` and boss only read what was stamped. If a different model seems right for a plan, surface it to the owner — the `boss-dispatch.sh --executor/--model` one-off override and rules.md appends are owner calls, never a silent switch. | Model choice changes cost, quality, and tooling behavior — it's an owner-level knob, not an optimization the orchestrating session gets to make. | During the boss build an orchestrating session unilaterally forced Claude onto agy runs; owner-corrected (recorded 2026-07-12 from owner interview; promotion to this table owner-approved same day). |
+| **Never pick the executor model unilaterally.** Executor+model routing comes from `tooling/boss/data/rules.md` at plan-authoring time: `orchestrate` stamps the plan's frontmatter from its per-task-type table (default → agy since the owner decision of 2026-07-18; claude-p/sonnet or opus, and codex, for the scenarios listed there); `secretary` and boss only read what was stamped. If a different model seems right for a plan, surface it to the owner — the `boss-dispatch.sh --executor/--model` one-off override and rules.md appends are owner calls, never a silent switch. | Model choice changes cost, quality, and tooling behavior — it's an owner-level knob, not an optimization the orchestrating session gets to make. | During the boss build an orchestrating session unilaterally forced Claude onto agy runs; owner-corrected (recorded 2026-07-12 from owner interview; promotion to this table owner-approved same day). |
 | **No TDD.** Write working code first; manual smoke tests. | Single-operator personal repo; test ceremony slows shipping. | Owner-set stance. |
 | **EXCEPTION — guard tests are mandatory for generic/data-driven layers**: any engine that renders from configs/defs must have invariant tests looping over ALL configs, so a new config can't silently break rendering. Mechanics + model: **personal-stuff-validation-and-qa**. | A new pipeline def must not make the owner the test harness. | Tracker-app took **multiple redos** to become intuitive/scalable across systems (owner-confirmed 2026-07-05, plans 014–019 + engine rebuild). |
 | **Media policy:** inputs/reference assets tracked; render outputs gitignored + untracked; heavy artifacts (models, work dirs) live OUTSIDE the repo in `~/kb-scratch/`. Voice/avatar media specifically flows through the asset hubs `pipelines/video/{tts,heygen}`: outputs to `~/kb-scratch/video/{tts,heygen}/<pipeline>/` + a manifest row (`OUTPUTS.md`/`RENDERS.md`); slugs resolve from the hub registry, never copied into pipeline folders (decisions.md 2026-07-12). | Agent searches walk the tree; git stays fast. | The working tree hit **18GB** and every agent search walked it (decisions.md 2026-07-04). |
@@ -101,8 +64,8 @@ New Worker, domain, or hub card ⇒ the triple-update rule (all three inventory 
 ## Red flags — stop and re-read this skill
 
 - "I'll just fix the skill copy in ~/.claude-*/skills quickly"
-- "I'll just git worktree add by hand instead of wt get"
-- "I'll just switch branches quickly — the other session looks idle" (that's how 054/055 tangled; GUARD_OK=1 only when you've VERIFIED it's done)
+- "I'll just git worktree add by hand instead of pp-work claim / wt get"
+- "It's a one-line edit, I'll make it on main" (claim a workspace; main is read-only)
 - "I'll cherry-pick just my commits onto main" (mixed branch = the failure already happened; merge task branches, never subset-pick)
 - "This engine change is too small to run the guard tests"
 - "I'll commit the rendered MP4/PNG just this once"
@@ -116,18 +79,7 @@ New Worker, domain, or hub card ⇒ the triple-update rule (all three inventory 
 
 ## When NOT to use this skill
 
-- Pure orientation (where does X live) → **personal-stuff-repo-map**
-- The invariants themselves (what must stay true, why the repo is designed this way, known-weak points) → **personal-stuff-architecture-contract** — this skill owns the change GATES around them
+- Orientation, placement, and the invariants themselves (what must stay true, why the repo is designed this way, known-weak points) → **personal-stuff-architecture-contract** — this skill owns the change GATES around them
 - Executing a deploy → **personal-stuff-deploy-and-operate**
 - Full idea→shipped lifecycle (scaffold, first deploy, registration) → **personal-stuff-idea-to-shipped**
 - Writing/maintaining the docs of record themselves → **personal-stuff-docs-and-writing**
-
-## Provenance and maintenance
-
-Rules verified against root `CLAUDE.md`, `decisions.md`, `plans/WORKFLOW.md`, `.claude/settings.json`, and owner interview answers on 2026-07-05; boss/secretary path, dirty-main enforcement, deploy standing permission, decisions.md write convention, and the description guard re-verified against `decisions.md`, `tooling/boss/README.md`, `tooling/boss/CLAUDE.md`, `tooling/boss/bin/boss-dispatch.sh`, `.gitattributes`, and `scripts/check-skill-descriptions.sh` on 2026-07-12. Model-routing rule verified against `tooling/boss/data/rules.md` and decisions.md 2026-07-07 ("orchestrate stamps executor+model from rules.md at plan-authoring time; secretary only reads"), and the MCP token figures re-anchored to `docs/skill-library-and-infra-handoff.md`, on 2026-07-12. Re-verify:
-- Boss gates: `grep -n "boss:ready\|deploy" tooling/boss/CLAUDE.md`
-- Dirty-main guard: `grep -n "boss_repo_dirty\|--force" tooling/boss/bin/boss-dispatch.sh`
-- decisions.md convention: `cat .gitattributes` + `grep -n "2026-07-11 — boss\|2026-07-08 — boss" decisions.md`
-- Caps/gates: `grep -n "self-fix\|fix-up\|readiness" decisions.md`
-- Model routing: `head -20 tooling/boss/data/rules.md` (routing table + "orchestrate stamps, secretary reads" preamble)
-- Description budget: `./scripts/check-skill-descriptions.sh`

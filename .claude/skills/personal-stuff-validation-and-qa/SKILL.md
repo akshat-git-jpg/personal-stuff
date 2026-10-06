@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-validation-and-qa
-description: Use before claiming any work in personal-stuff is done, fixed, or shippable — deciding what to run (typecheck, guard tests, smoke test, site probe), whether new code needs tests at all, how to verify a deploy or an executor's diff, or when tempted to skip checks because the change "is tiny". Also use when adding a config/def to a generic engine.
+description: Defines what "verified" means in personal-stuff — the four-level ladder (static, guard tests, smoke, deploy probe), the mandatory guard tests for config-driven engines, and how to check an executor's diff. Use before claiming work done, fixed or shippable, when deciding whether code needs tests, when adding a config to a generic engine, or when tempted to skip checks on a tiny change.
 ---
 
 # Validation and QA
@@ -56,10 +56,3 @@ Use the existing `commit-now` skill (prettier/lint/tsc/build gate + conventional
 - Writing the plan's Verify section → `orchestrate` skill (readiness gate)
 - Deploy mechanics → **personal-stuff-deploy-and-operate**
 - A check fails and you don't know why → **personal-stuff-debugging-playbook**
-
-## Provenance and maintenance
-
-Verified against `scripts/check-apps.sh`, app package.json test scripts, `plans/WORKFLOW.md`, `plans/runs/LESSONS.md`, and decisions.md (2026-07-04 uniform verification; 2026-07-05 orchestrate v2.2 rubric rule) on 2026-07-05; re-verified 2026-07-12 (KNOWN_FAILING still exactly analytics-app:lint + tutorial-tracker-app:lint; tutorial-tracker-app suite grew to ~76 cases; timeblock gained a vitest suite; guard-test rule wording still matches **personal-stuff-change-control**'s — change-control owns the rule, this skill owns the mechanics). Re-verify:
-- Ladder level 1: `sed -n '1,30p' scripts/check-apps.sh`
-- Test suites: `grep '"test"' apps/*/package.json`
-- Executor rules: `grep -n "rubric\|scope check\|self-fix" decisions.md`

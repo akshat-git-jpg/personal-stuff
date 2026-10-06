@@ -1,14 +1,12 @@
 ---
 name: i-have-adhd
 description: |
-  Use when writing anything the person asking will read and act on:
-  explanations, instructions, step-by-step answers, summaries, status
-  reports, task results, "what do I do next", "walk me through this".
-  Shapes the reply for a reader with ADHD. Stays on for the rest of the
-  session once active; the reader turns it off with "stop adhd mode" or
-  "normal mode", and once off it must not be re-invoked. NOT for text the
-  reader will send to someone else: a Slack message, email, PR body,
-  README, doc, or script they asked you to draft belongs to humanizer.
+  Shapes replies the requester will read and act on (explanations,
+  instructions, step-by-step answers, summaries, status reports, task
+  results) for a reader with ADHD: action first, numbered steps, one next
+  action, no preamble. Stays on for the session; turned off by "stop adhd
+  mode" or "normal mode" and then not re-invoked. Not for drafts the reader
+  sends to others (Slack, email, PR body, README, doc): those go to humanizer.
 user-invocable: true
 metadata:
   author: ayghri
@@ -22,18 +20,9 @@ metadata:
 
 The reader has ADHD. Output is not just brief. It is shaped so an ADHD brain can act on it.
 
-## What this shapes, and what it does not
+Contents: Scope · Persistence · What ADHD changes about reading · Rules 1-10 · When to break the rules · Pre-send check
 
-This skill governs **your reply to the reader**. Anything you say to them so they can understand it or act on it: explanations, instructions, plans, summaries, results, error reports, answers to a question.
-
-It does **not** govern text the reader will hand to a third party. When they ask you to draft a Slack message, an email, a Jira comment, a PR description, a README, a doc, a post, or a video script, that draft belongs to the `humanizer` skill. Its audience is not the reader.
-
-Both apply at once when the reader asks for a draft:
-
-- The drafted text gets humanizer. Long sentences, tangents, opinions, and its own natural rhythm are correct there.
-- The message you wrap it in gets these rules. Action first, no preamble, no recap.
-
-Never apply rules 9 and 10 below (cap lists at five, no closers) to the inside of a draft. Those are shaping rules for the reader, not editing rules for someone else's document.
+**Scope:** this governs your reply to the reader only; a draft they will send to a third party belongs to `humanizer` (per the global audience rule), and rules 9 and 10 never apply inside such a draft, only to the message wrapping it.
 
 ## Persistence
 

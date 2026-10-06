@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-idea-to-shipped
-description: Use when taking anything new from idea to live in personal-stuff — evaluating an idea, choosing where a new app/pipeline/tool/skill/cron lives, scaffolding it with the house stack and auth model, shipping it through the orchestrate → secretary → boss chain, first deploy, registering it in the inventories, or decommissioning something cleanly. Also use when an idea arrives mid-session and you need to park it in the right place.
+description: Walks anything new in personal-stuff from idea to live and back out: parking and pressure-testing an idea, placing it, scaffolding with the house stack and auth model, shipping through orchestrate → secretary → boss, first deploy, registering in the inventories, and clean decommissioning. Use when starting something new or when an idea arrives mid-session and needs parking.
 ---
 
 # Idea → shipped (and cleanly retired)
@@ -12,23 +12,13 @@ Everything live in this repo walked the same path: parked idea → pressure-test
 ## Station 1 — park and pressure-test
 
 - Ideas live in `context/ideas.md` (high-potential only; daily tasks belong in `apps/telegram-my-planner/to-do/`, deliberately not in context/).
-- Before building: run the existing `roast` skill (5-persona attack → GO/RESHAPE/KILL) and/or `scout` (evaluates external tools against THIS stack). Check **personal-stuff-failure-archaeology** — the idea may be a settled battle.
+- Before building: check **personal-stuff-failure-archaeology** — the idea may be a settled battle. An external tool or service is evaluated against THIS stack per **personal-stuff-research-methodology**.
 - Idea rides an unproven assumption (new engine, tool, migration)? De-risk it FIRST per **personal-stuff-research-methodology** — cheap falsifiable test on the one unproven assumption, verdict recorded in `decisions.md`, then adopt/defer — before any build plan is written.
 - Becomes a real bet → update `context/bets.md` (its own update-cadence rule).
 
-## Station 2 — placement (decided 2026-07-04)
+## Station 2 — placement
 
-| It is a… | It goes to… | Register in |
-|---|---|---|
-| Personal product (someone uses it) | `apps/<kebab-name>/` | inventories (station 5) |
-| Money-making / business project | `pipelines/<name>/` | `pipelines/CLAUDE.md` folder map |
-| Skill for driving work with Claude | `.claude/skills/` | loads for anyone who opens the repo, on any account; nothing to register |
-| CLI / MCP for driving work with Claude | `tooling/` | **personal-stuff-diagnostics-and-tooling** router |
-| Deployable Worker, even when a pipeline drives it | `apps/` (rule set by the redirector) | inventories |
-| Scheduled job | code in `personal-stuff`, wrapper in `vps-crons` | `VPS-CRONS.md` lifecycle |
-| Voice/avatar reference asset | asset hubs `pipelines/video/tts/` / `pipelines/video/heygen/` (decided 2026-07-12); generated media OUTSIDE the repo in `~/kb-scratch/video/{tts,heygen}/<pipeline>/` | hub manifest (`OUTPUTS.md` / `RENDERS.md`); policy home: **personal-stuff-change-control**; domain knowledge (engines, sync, costs): `pipelines/video/CLAUDE.md` |
-
-Every new folder gets `README.md` + `CLAUDE.md` from day one (**personal-stuff-docs-and-writing**).
+Use the placement table in **personal-stuff-architecture-contract** (it carries the "register in" column too). Every new folder gets `README.md` + `CLAUDE.md` from day one (**personal-stuff-docs-and-writing**).
 
 ## Station 3 — scaffold with the house conventions
 
@@ -53,7 +43,7 @@ Small single-session work you're doing yourself → inline, no plan. Multi-step 
 
 1. **orchestrate** — brainstorms when fuzzy, writes a self-contained plan into `plans/NNN-slug.md` from `_TEMPLATE.md` (frontmatter carries `executor`/`model`/`test_cmd`/`deploy` — boss reads ONLY this block), registers the row in `plans/README.md` on main. Read `plans/runs/LESSONS.md` first — the append-only executor-lesson ledger; recon there instead of re-buying known failure modes, and append after verification.
 2. **secretary raise** — turns the finished plan into a `boss:ready` GitHub PR. Never hand-roll the branch/PR: secretary stages ONLY the plan file, never `plans/README.md` (the registry is boss-owned on main — a branch that edits it collides with every other in-flight branch), and gaps become `gap:*` labels instead of refusals.
-3. **boss dispatch** — a session in `tooling/boss/` leases a `wt` worktree, runs the executor (`claude-p`/sonnet default, `agy` per `tooling/boss/data/rules.md`), verifies via the plan's `test_cmd`, lands via `greenlight`, closes the PR. A dirty main checkout blocks dispatch (enforced 2026-07-08; `--force` overrides).
+3. **boss dispatch** — a session in `tooling/boss/` leases a `wt` worktree, runs the executor stamped in the plan (default `agy`; `claude-p` and `codex` for the scenarios in `tooling/boss/data/rules.md`), verifies via the plan's `test_cmd`, lands via `greenlight`, closes the PR. A dirty main checkout blocks dispatch (enforced 2026-07-08; `--force` overrides).
 4. **deploy** — the one hard per-item gate, always owner-triggered. Since 2026-07-11 boss holds STANDING permission to carry the owner-side deploy chain itself once the owner says "deploy": wrangler secret put/deploy, VPS SSH cron wiring (`timeout`, NOT `gtimeout` — the VPS is Linux), vps-crons repo commits, 3-copy VPS-CRONS.md sync. Exclusions: interactive OAuth consent, destructive credential deletion (decisions.md 2026-07-11).
 
 **captain (`tooling/captain/`) was DELETED 2026-08-23** (deprecated 2026-07-07); boss is the successor and shares no code with it. Do not look for `tooling/captain/` — it is gone.
@@ -79,12 +69,3 @@ Retire steps live in **personal-stuff-hosting-inventory**; the extra discipline:
 - Validating a hunch/PoC before committing to build → **personal-stuff-research-methodology**
 - Pure deploy mechanics → **personal-stuff-deploy-and-operate**
 - Choosing what to build next → **personal-stuff-frontier**
-
-## Provenance and maintenance
-
-Placement rules, the boss chain (Station 4: dirty-main guard + `--force` in `bin/boss-dispatch.sh`, secretary stages only the plan file, greenlight land + boss closes the PR, `data/rules.md` exists, deploy standing-permission), asset-hub row, skill-budget guard, ledger nuance, and all sibling cross-refs (incl. `pipelines/video/CLAUDE.md`) verified against root CLAUDE.md rule 5, `tooling/boss/README.md` + `CLAUDE.md`, `tooling/claude-skills/secretary/SKILL.md`, `plans/README.md`, and decisions.md (2026-07-11 boss deploy permission, 2026-07-12 asset hubs) on 2026-07-12. House-stack/UI-standard reference apps verified 2026-07-12; auth model last verified 2026-07-05. Re-verify:
-- Ship chain still boss-shaped: `head -35 tooling/boss/README.md`; captain gone: `test ! -d tooling/captain`
-- Landed truth vs table: `grep -A20 "## boss-landed" plans/README.md` + `git log --oneline -10`
-- House-stack reference app still current: `ls apps/lists-app/`
-- Placement rules: root `CLAUDE.md` "Where does a new thing go?"
-- UI standard: `grep -in "shadcn" docs/tracker-app-ui-migration-handover.md` (NOT decisions.md — it was never recorded there; the handover doc is the written home, tracker-app the reference implementation)

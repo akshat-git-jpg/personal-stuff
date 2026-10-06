@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-diagnostics-and-tooling
-description: Use when picking the right tool, CLI, or health check for a task in personal-stuff — which command reads Gmail/Sheets/YouTube/Drive, how to check repo health, what rtk does to shell output, which script probes the live sites, how to interpret exit codes, or when a needed CLI doesn't exist yet. A router, not a manual — each tool's own skill/README stays authoritative.
+description: Routes a task in personal-stuff to the right tool, CLI or health check — which command reads Gmail/Sheets/YouTube/Drive, how to check repo health, what rtk does to shell output, which script probes the live sites, how to read exit codes, and what to do when a needed CLI does not exist yet. A router, not a manual: each tool's own skill or README stays authoritative.
 ---
 
 # Diagnostics and tooling router
@@ -20,7 +20,7 @@ Claude drives this repo through CLIs and scripts, each already documented by its
 | Orchestrate run state | `runlog-status.sh` in `.claude/skills/orchestrate/scripts/` (moved from tooling/claude-skills 2026-07-05) | prints one status word (`done` / `blocked <reason>` / `dead <plan>` / `not-started`), **always exit 0** — do not gate on its exit code |
 | Orchestrate run watcher | `watch-run.sh` (same folder) | exit 0=RUN DONE, 2=BLOCKED, 3=stale/dead, 4=never started |
 | Shared-skill drift (repo vs private `work-skills` plugin) | `./scripts/sync-shared-skills.sh --check` | exit 1 if the five person-level skills differ; exit 0 when there is no plugin checkout; wired into `relink.sh` and the hygiene gate |
-| Skill-description budget — `.claude/skills/` | `.claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh` | same thresholds, prints a per-skill table; follows symlinks without double-counting; handles `description: \|` blocks. **NOT wired into relink.sh** (run on demand after any `.claude/skills` description edit; wiring it in is a candidate follow-up, not done) |
+| Skill-description budget — `.claude/skills/` | `.claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh` | same thresholds, prints a per-skill table; follows symlinks without double-counting; handles `description: \|` blocks. WARN over 500 chars, FAIL over 700 (exit 1). Wired into `scripts/relink.sh`, which aborts on a FAIL (`SKIP_DESC_GUARD=1` skips it); also run it after any description edit |
 
 ## rtk (Rust Token Killer)
 
@@ -38,7 +38,7 @@ A hook rewrites shell commands through `rtk` transparently (60–90% token savin
 | Hostinger VPS/DNS/snapshots via API | `hostinger` skill → `pp-hostinger` | |
 | Cloudflare D1/KV/DNS ad hoc | `cloudflare` MCP tools | Python pipelines use `common/cloudflare.py` instead |
 | Push notification to phone | `tooling/cli/notify/` — Telegram only (used by greenlight) | `notify send "<msg>"`: exit 0 sent, 3 undeliverable, 2 usage. The self-hosted ntfy server was retired 2026-08-30 (public `:8888`, read-write to anyone); do not reintroduce a fallback that is open by default. |
-| Isolated worktree for an agent run | `tooling/cli/wt/` (pool manager) | managed runs only — owner sessions, deploys, skill edits stay on the main checkout |
+| Isolated worktree for an agent run | `tooling/cli/wt/` (pool manager) | managed agent runs (boss crews); an interactive session claims a `pp-work` workspace instead — main is read-only |
 | Land a finished branch hands-free | `tooling/cli/greenlight/` | validation pipeline used by boss; parks merges if main is dirty |
 | RapidAPI market research | `tooling/cli/rapidapi/pp-rapidapi search\|gaps\|competition` | unofficial, research only |
 | Email routing for a new domain | `node tooling/cli/cf-email/setup-routing.mjs <domain>` | scoped token can't enable routing (error 10000) — one manual dashboard click, or global key |
@@ -62,14 +62,5 @@ A hook rewrites shell commands through `rtk` transparently (60–90% token savin
 ## When NOT to use this skill
 
 - Tool exists but misbehaves → **personal-stuff-debugging-playbook**
-- Choosing whether to adopt an external tool at all → `personal-stuff-research-methodology`
-  (the `scout` skill was retired 2026-08-25; archived under `.claude/skills-archive/`)
+- Choosing whether to adopt an external tool at all → **personal-stuff-research-methodology**
 - Secrets/creds for a tool → **personal-stuff-config-and-secrets**
-
-## Provenance and maintenance
-
-Router verified against `tooling/cli/*`, `scripts/*`, skill manifests, and owner-session records on 2026-07-05; re-verified 2026-07-12 (added notify/wt/greenlight rows from `ls tooling/cli/`; the overnight row was dropped 2026-08-23 when the tool was deleted; skills-status 43 skills 0 problems; doctor.sh still wraps skills-status + check-apps + opt-in probe-sites; shipped `scripts/check-descriptions.sh`). Re-verify:
-- CLI inventory: `ls tooling/cli/`
-- Skill inventory: `./scripts/skills-status.sh`
-- doctor.sh still matches the scripts it wraps: read both before trusting after script changes
-- Run `scripts/check-descriptions.sh` (this skill's folder) after any skill-description edit. Since 2026-08-25 it covers every skill in the repo — the store and its separate guard are gone — and `relink.sh` runs it before touching anything

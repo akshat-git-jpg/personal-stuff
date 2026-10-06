@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-debugging-playbook
-description: Use when something in personal-stuff is broken, flaky, or behaving impossibly — a UI change not showing, a domain 404ing after deploy, 401s from Claude Remote Control or Google APIs, an unreachable VPS, a cron that didn't fire, npm install 401s, a skill edit not taking effect, or MCP tools missing. Run the discriminating check BEFORE applying any fix.
+description: Lists personal-stuff's real failure modes, each with the cheap check that tells it from its lookalike and the fix — stale UI, domain 404 after deploy, Remote Control or Google 401s, unreachable VPS, silent crons, npm 401s, skill edits not showing, missing MCP tools. Use when something is broken, flaky or behaving impossibly; run the discriminating check before any fix.
 ---
 
 # Debugging playbook
@@ -40,11 +40,3 @@ These are this repo's REAL failure modes, each with the cheap check that discrim
 - Nothing is broken, you're setting up fresh → **personal-stuff-build-and-env**
 - Wondering whether a battle was already fought → **personal-stuff-failure-archaeology**
 - Deploy procedure questions → **personal-stuff-deploy-and-operate**
-
-## Provenance and maintenance
-
-Entries verified against app CLAUDE.mds, `VPS-CRONS.md`, `tooling/cli/*` READMEs, scripts, and recorded incidents on 2026-07-05. On 2026-07-12, rows 3 and 5 stopped pointing at the per-account memory store (unreadable from a fresh session): each row now embeds its incident as the dated record, with in-repo anchors (`VPS-CRONS.md` health checks; `docs/skill-library-and-infra-handoff.md` external deps) for the parts that have one. Guard against regression: `rtk proxy grep -cE "project[ ]memory" .claude/skills/personal-stuff-*/SKILL.md` (expected: 0 per file). Re-verify a row before relying on it if its subsystem changed:
-- Row 2: `grep patch-routes apps/gym-app/package.json apps/kushal-docs/package.json`
-- Row 7: `cat .mcp.json` + `tooling/mcp/README.md` STATUS banner
-- Row 12: `ssh root@72.61.241.170 'crontab -l'`
-- Rows 10/11: the respective README/HANDOVER under `tooling/cli/`
