@@ -11,7 +11,7 @@ All Gmail work goes through the `pp-gmail` CLI — do NOT look for a gmail MCP s
 CLI: "/Users/kbtg/codebase/personal-stuff/tooling/cli/gmail/pp-gmail"
 ```
 
-`--account <full-email>` selects the Google account (default: kushalbakliwal25@gmail.com). Tokens live in `mcp/google-shared/tokens/`.
+`--account <full-email>` selects the Google account (default: kushalbakliwal25@gmail.com). Tokens live in `tooling/mcp/google-shared/tokens/`.
 
 ## Commands
 
@@ -33,4 +33,4 @@ pp-gmail --account EMAIL reply-draft THREAD_ID --body TEXT|@file|- [--reply-all]
 - **Never `send` or `reply` without showing the user the full composed message and getting explicit approval in the same turn.** Drafts don't send but show them too.
 - Read `prefs` before composing anything; apply tone/sign-off/signature.
 - For the email-assistant project flows, follow `apps/telegram-email-assistant/CLAUDE.md`.
-- `invalid_grant` error = that account's token is revoked; fix with `python3 mcp/google-shared/setup_auth.py` (interactive browser).
+- `invalid_grant` error = that account's token is revoked; fix with `python3 tooling/mcp/google-shared/setup_auth.py` (interactive browser).

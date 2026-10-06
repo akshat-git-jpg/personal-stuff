@@ -1,6 +1,6 @@
 ---
 name: pp-tolt
-description: Read the Tolt affiliate partner dashboard (OpenArt Creators) via tolt-pp-cli — payouts, totals earned/paid/pending, and the next payout date. Use when asked about OpenArt income, Tolt payouts, "did OpenArt pay me", or when the yt-income tally needs OpenArt figures. Also read this before adding another per-tool affiliate CLI: it is the template.
+description: 'Reads the Tolt affiliate partner dashboard (OpenArt Creators) via tolt-pp-cli — payouts, totals earned/paid/pending, and the next payout date. Use when asked about OpenArt income, Tolt payouts, "did OpenArt pay me", or when the yt-income tally needs OpenArt figures. Also read this before adding another per-tool affiliate CLI: it is the template.'
 ---
 
 # pp-tolt — the OpenArt / Tolt partner dashboard

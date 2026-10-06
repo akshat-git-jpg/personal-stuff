@@ -19,6 +19,17 @@ metadata:
 
 # Skool — Printing Press CLI
 
+Contents: Before any write · Prerequisites · When to use · Anti-triggers · Unique capabilities · Command reference (read, write) · Recipes · Auth setup · Agent mode · Exit codes · Direct use
+
+## Before any write (posts, comments, approve/reject member)
+
+These act as the owner, in public communities, and cannot be taken back from here.
+
+1. Show the owner the exact post or comment text (or the member being approved or
+   rejected, and the community) and get an explicit yes for that item.
+2. Run the command with `--dry-run` first and show what it would send.
+3. Only then run it for real. One confirmation covers one item, not a batch.
+
 ## Prerequisites: Install the CLI
 
 This skill drives the `skool-pp-cli` binary. **You must verify the CLI is installed before invoking any command from this skill.** If it is missing, install it first:
@@ -102,6 +113,23 @@ These capabilities aren't available in any other tool for this API.
   ```
 
 ## Command Reference
+
+### Read (safe; what the recipes use)
+
+- `skool-pp-cli communities list` — the communities you belong to (and their group UUIDs)
+- `skool-pp-cli communities info <slug>` — members, posts, courses, privacy
+- `skool-pp-cli communities feed <slug> [--sort top]` — a community's feed
+- `skool-pp-cli communities post <id>` — one post with its comment tree
+- `skool-pp-cli communities classroom <slug>` / `communities lessons` — courses and lessons
+- `skool-pp-cli since <window>` — new posts across all communities (default 24h)
+- `skool-pp-cli search "<text>"` — search synced posts and comments
+- `skool-pp-cli unread` — posts with new comment activity
+- `skool-pp-cli events --days N` — merged upcoming events
+- `skool-pp-cli members list|pending|analytics <slug>` — members, pending requests (admin), tier deltas
+- `skool-pp-cli leaderboard show|trends <slug>` — standings and movement
+- `skool-pp-cli sync` — refresh the local SQLite store that `search`, `unread` and the trends read
+
+### Write (confirm first, see "Before any write")
 
 **comments** — Comment on posts (api2; requires comment permission in the group)
 
@@ -189,85 +217,20 @@ Commands that read from the local store or the API wrap output in a provenance e
 
 Parse `.results` for data and `.meta.source` to know whether it's live or local. A human-readable `N results (live)` summary is printed to stderr only when stdout is a terminal AND no machine-format flag (`--json`, `--csv`, `--compact`, `--quiet`, `--plain`, `--select`) is set — piped/agent consumers and explicit-format runs get pure JSON on stdout.
 
-## Agent Feedback
+## Exit codes
 
-When you (or the agent) notice something off about this CLI, record it:
+`0` success · `2` usage error · `3` not found · `4` auth required (re-copy the cookie) ·
+`5` Skool API error · `7` rate limited (wait, retry) · `10` config error.
 
-```
-skool-pp-cli feedback "the --since flag is inclusive but docs say exclusive"
-skool-pp-cli feedback --stdin < notes.txt
-skool-pp-cli feedback list --json --limit 10
-```
+## Direct use
 
-Entries are stored locally at `~/.local/share/skool-pp-cli/feedback.jsonl`. They are never POSTed unless `SKOOL_FEEDBACK_ENDPOINT` is set AND either `--send` is passed or `SKOOL_FEEDBACK_AUTO_SEND=true`. Default behavior is local-only.
+Parse `$ARGUMENTS`: empty or `help` → show `skool-pp-cli --help`; `install` → see
+Prerequisites; anything else → run it as below.
 
-Write what *surprised* you, not a bug report. Short, specific, one line: that is the part that compounds.
+1. Check it is installed: `which skool-pp-cli`. If not, see Prerequisites.
+2. Match the ask to a command from Unique Capabilities or the Command Reference.
+3. Reads: run with `--agent`. Writes: follow "Before any write" at the top.
+4. If ambiguous, drill into `skool-pp-cli <command> --help`.
 
-## Output Delivery
-
-Every command accepts `--deliver <sink>`. The output goes to the named sink in addition to (or instead of) stdout, so agents can route command results without hand-piping. Three sinks are supported:
-
-| Sink | Effect |
-|------|--------|
-| `stdout` | Default; write to stdout only |
-| `file:<path>` | Atomically write output to `<path>` (tmp + rename) |
-| `webhook:<url>` | POST the output body to the URL (`application/json` or `application/x-ndjson` when `--compact`) |
-
-Unknown schemes are refused with a structured error naming the supported set. Webhook failures return non-zero and log the URL + HTTP status on stderr.
-
-## Named Profiles
-
-A profile is a saved set of flag values, reused across invocations. Use it when a scheduled agent calls the same command every run with the same configuration - HeyGen's "Beacon" pattern.
-
-```
-skool-pp-cli profile save briefing --json
-skool-pp-cli --profile briefing comments --post-id 550e8400-e29b-41d4-a716-446655440000
-skool-pp-cli profile list --json
-skool-pp-cli profile show briefing
-skool-pp-cli profile delete briefing --yes
-```
-
-Explicit flags always win over profile values; profile values win over defaults. `agent-context` lists all available profiles under `available_profiles` so introspecting agents discover them at runtime.
-
-## Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 2 | Usage error (wrong arguments) |
-| 3 | Resource not found |
-| 4 | Authentication required |
-| 5 | API error (upstream issue) |
-| 7 | Rate limited (wait and retry) |
-| 10 | Config error |
-
-## Argument Parsing
-
-Parse `$ARGUMENTS`:
-
-1. **Empty, `help`, or `--help`** → show `skool-pp-cli --help` output
-2. **Starts with `install`** → ends with `mcp` → MCP installation; otherwise → see Prerequisites above
-3. **Anything else** → Direct Use (execute as CLI command with `--agent`)
-
-## MCP Server Installation
-
-1. Install the MCP server:
-   ```bash
-   go install github.com/mvanhorn/printing-press-library/library/social-and-messaging/skool/cmd/skool-pp-mcp@latest
-   ```
-2. Register with Claude Code:
-   ```bash
-   claude mcp add skool-pp-mcp -- skool-pp-mcp
-   ```
-3. Verify: `claude mcp list`
-
-## Direct Use
-
-1. Check if installed: `which skool-pp-cli`
-   If not found, offer to install (see Prerequisites at the top of this skill).
-2. Match the user query to the best command from the Unique Capabilities and Command Reference above.
-3. Execute with the `--agent` flag:
-   ```bash
-   skool-pp-cli <command> [subcommand] [args] --agent
-   ```
-4. If ambiguous, drill into subcommand help: `skool-pp-cli <command> --help`.
+Something surprising about the CLI? Record one line with
+`skool-pp-cli feedback "<what surprised you>"` (stored locally only).

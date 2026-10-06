@@ -1,6 +1,6 @@
 ---
 name: pp-bookbolt
-description: Read the Book Bolt affiliate portal via bookbolt-pp-cli — payouts, paid and pending commissions, earnings to date and progress to the next payout. Use when asked about Book Bolt income, "has Book Bolt paid me", the KDP/Book Bolt affiliate program, or when the yt-income tally needs Book Bolt figures. Read it before storing a PASSWORD for any other CLI: this is the first one that holds one.
+description: 'Reads the Book Bolt affiliate portal via bookbolt-pp-cli — payouts, paid and pending commissions, earnings to date and progress to the next payout. Use when asked about Book Bolt income, "has Book Bolt paid me", the KDP/Book Bolt affiliate program, or when the yt-income tally needs Book Bolt figures. Read it before storing a PASSWORD for any other CLI: this is the first one that holds one.'
 ---
 
 # pp-bookbolt — the Book Bolt affiliate portal

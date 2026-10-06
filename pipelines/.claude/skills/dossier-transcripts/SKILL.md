@@ -33,8 +33,9 @@ For each link:
    ```
 
    `title`/`channel`/`published` are best-effort: leave them empty strings if
-   not available from the link alone -- `dossier-build`'s extraction step
-   reads them from the transcript itself and doesn't require them pre-filled.
+   not available from the link alone. `dossier-build` reads them from this
+   `meta.json` into the extraction prompt's header line; empty strings are
+   allowed but give the model less context, so fill them when you can.
 
 4. If the fetch call fails (all 3 transcribe methods failed), record the link as a hard failure with the error message; do not create a `meta.json` for it; move to the next link.
 

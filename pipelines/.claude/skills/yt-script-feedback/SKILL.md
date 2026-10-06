@@ -15,6 +15,10 @@ metadata:
 
 # yt-script-feedback — the feedback conversation
 
+Contents: Files this skill reads and writes · Hard gates · Phase 1 Ingest ·
+Phase 2 Root cause · Phase 3 Discuss · Phase 4 Summary and approval ·
+Phase 5 Execute · Anti-patterns · See also
+
 Run everything from `pipelines/youtube/yt-script/`.
 
 The owner reacts to an outline, a script plan, or a finished script. This skill
@@ -24,6 +28,20 @@ rule** — through a conversation, not a silent batch. The 130 step
 surface owns a lesson*; this skill owns the conversation around it and calls
 that procedure as its execution phase. **Never restate 130's routing table
 here — read it at execute time so the two cannot drift.**
+
+Copy this checklist and tick it off:
+
+```
+- [ ] Hard gates checked
+- [ ] Phase 1: all four sources read
+- [ ] Phase 2: one line of RCA per item
+- [ ] Phase 3-4: discussed; one summary sent; explicit approval received
+- [ ] Phase 5: FEEDBACK-LOG rows written, node --test green, step re-run for <key>
+- [ ] Report sent
+```
+
+If the owner pushes back on the summary, go back to Phase 3. If `node --test`
+fails, fix and re-run before reporting.
 
 ## The files this skill reads and writes
 
@@ -41,16 +59,9 @@ call to approve in Phase 4 like any other.
 
 ## Hard gates (check before anything)
 
-1. **Opus-class only.** Folding feedback into durable rules is judgement work —
-   the sibling skill's owner decision, 2026-07-18, applies here too. If the
-   current session is not Opus-class, say so and stop.
-2. **Never skip the discussion.** Phases 2–4 are the point of this skill. Do not
-   jump from "here's my feedback" to editing files, however obvious a fix looks.
-3. **One approval gate, and it is explicit.** No file changes before the owner
-   approves the Phase 4 summary. "Sounds good" on a single item is not approval
-   of the batch.
-4. **Never fold mid-flow on another video.** Rule surfaces change between
-   videos, never during one.
+Shared with `yt-video-edit-feedback`: read
+[the feedback loop](../yt-video-edit-feedback/references/feedback-loop.md#hard-gates-check-before-anything). Same four gates,
+same Opus-class rule.
 
 ## Phase 1 — Ingest (all four sources, always)
 
@@ -60,7 +71,7 @@ Never work from the loudest source alone; three of the four are silent.
 |---|---|---|
 | Chat feedback | this conversation | The loudest and the easiest to lose. Anything the owner said instead of writing it down. |
 | The owner's own edits | `git diff -- pipelines/youtube/yt-script/videos/<key>/script-plan.md videos/<key>/script.md` | Gate 055 explicitly invites the owner to edit the file himself. The same KIND of hand-edit twice is a feedback item; one is an instance fix. |
-| The desk's edited-line list | printed by `node bin/desk.mjs pull <key>` at step 090 | Every line the maker overrode. Each is a place the plan and reality disagreed. Not owner feedback, but it is evidence about the plan. |
+| The desk's edited-line list | printed by step 090's `desk.mjs pull <key>` (`apps/yt-script-desk/bin/desk.mjs`) | Every line the maker overrode. Each is a place the plan and reality disagreed. Not owner feedback, but it is evidence about the plan. |
 | `FEEDBACK-LOG.md` | read it in full | This is where repeat detection happens. Skipping it is how a third occurrence gets logged as a first. |
 
 ## Phase 2 — Root cause, not symptom
@@ -69,11 +80,6 @@ One line of RCA per item: the owner describes what he READ; the fold needs why
 it came out that way. Then the recurring root-cause shapes in **this**
 pipeline:
 
-- **A `SAY` lane written as finished copy.** A body beat's `SAY` is a draft
-  prompt. Polished prose there collapses the plan into a duplicate of the
-  script — and it is enforced by `BODY_DRAFTS_ARE_INSTRUCTIONS` in
-  `lib/beats.mjs`, so if the owner saw it, check whether the form parsed at
-  all.
 - **An unrecognised lane form falling through silently.** `lib/beats.mjs`
   recognises the exact forms in `SCRIPT-PLAN-INSTRUCTIONS.md`; anything else
   becomes plain prose with no error. "This beat lost its instructions" is
@@ -99,36 +105,22 @@ pipeline:
 
 ## Phase 3 — Discuss
 
-Answer the owner's questions directly — they are part of the deliverable, not
-noise around it. Then per item, bring:
-
-- the root cause in one sentence;
-- the surface you propose (130's table decides);
-- whether it is instance or rule, and **why the threshold says so**;
-- anything you cannot fix and why.
-
-Surface conflicts between two owner instructions; never resolve one
-unilaterally.
+Follow [the feedback loop](../yt-video-edit-feedback/references/feedback-loop.md#phase-3--discuss). For the surface, 130's
+table decides; for instance-vs-rule, say **why the promotion threshold says so**.
 
 ## Phase 4 — Summary and approval
 
-One message, one table:
+Follow [the feedback loop](../yt-video-edit-feedback/references/feedback-loop.md#phase-4--summary-and-approval), with this table:
 
 | # | What you said | `kind` | Root cause | Fix | Surface | Instance or rule? |
 |---|---|---|---|---|---|---|
 
-Then, separately and plainly:
+Two extra lines in this pipeline:
 
 - **Rule promotions** — each citing the two `FEEDBACK-LOG.md` rows that
   triggered it, with the proposed `T<N>` text.
-- **Instance fixes** — this video only, no rule.
 - **New `kind` tags requested** (if any) — its own line, because a new tag
   resets repeat detection.
-- **Routed to a plan** — architectural or code items, via `orchestrate`.
-- **Not fixing** — with reasons.
-- **Open questions** — anything still blocking.
-
-End by asking for approval to proceed. Stop. Do not edit files yet.
 
 ## Phase 5 — Execute (only after approval)
 
@@ -143,6 +135,10 @@ format. On top of it:
 - **Then run the gate**: `cd pipelines/youtube/yt-script && node --test test/*.test.mjs`.
   `test/feedback-surfaces.test.mjs` checks the rule shape and that the
   vocabulary has not drifted.
+- **Re-run the affected step for `<key>`** (the one whose output the fix
+  changes; follow its `steps/<NNN>-*/README.md`, or `bash run.sh <key> vo` for
+  the voiceover), so the current video carries the fix, not just the rule. If
+  `node --test` fails, fix and re-run it before reporting.
 - **Report** what changed, what stayed an instance fix, and what you
   deliberately did not do.
 

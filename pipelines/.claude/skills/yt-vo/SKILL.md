@@ -10,6 +10,8 @@ metadata:
 
 # yt-vo — the voiceover flow
 
+Contents: The two entry points · say · setup · synth · respell · review · lock · batch · status · Sync · When it fails · Related
+
 One VO engine for the whole repo. **The engine, the voice and the reference clip live
 in `pipelines/video/tts/`** — that folder is the hub and the source of truth for
 anything voice-related. This skill is the operating layer over it: which verb to run,
@@ -24,8 +26,8 @@ clip, or an engine choice. If you find yourself copying a `.wav` out of
 There are exactly two ways into the engine. Pick by shape of the input.
 
 **Per-section HTTP** (`synth_section`) — a script split into named sections, each
-needing its own file. This is what tutorial-pipeline-3 uses. One POST per section,
-returns `audio/wav`.
+needing its own file. This is what `tutorial-pipeline-3` and `yt-script` (step 120)
+use. One POST per section, returns `audio/wav`.
 
 **Batch CLI** (`modal run`) — a flat transcript already chunked into
 `[{id, text}]`. This is the older talk-over/dub path in `pipelines/video/tts/pipeline/`.
@@ -67,19 +69,26 @@ Put the printed URL and the token into `pipelines/.env`:
 
 ## synth <slug> [--only sNN] [--force]
 
-tutorial-pipeline-3:
+Every per-section pipeline exposes the same verbs through its own `run.sh`, which
+calls `pipelines/video/tts/lib/vo-synth.mjs` with `--root` set to that pipeline.
+Run from the pipeline's folder:
 
-    cd pipelines/youtube/tutorial-pipeline-3
-    bash run.sh <slug> vo                 # every unlocked section
-    bash run.sh <slug> vo --only s03      # re-roll one
+| Pipeline | Folder | Its VO step |
+|---|---|---|
+| tutorial-pipeline-3 | `pipelines/youtube/tutorial-pipeline-3` | `steps/050-voiceover` |
+| yt-script | `pipelines/youtube/yt-script` (key from the video registry) | `steps/120-voiceover-run` |
+
+    bash run.sh <slug> vo                      # every unlocked section
+    bash run.sh <slug> vo --only s03           # re-roll one
     bash run.sh <slug> vo --force --only s03   # re-roll one that is already locked
 
 Writes `videos/<slug>/audio/<id>.wav` and updates each section's `tts` block
 (`regens_used`, `take`). Locked sections are skipped unless `--force`, so re-running
 the verb is always safe.
 
-Requires stage `polished` or `tts`, and zero open `[VERIFY:` / `[FILL:` flags. If the
-script still has flags, that is step 040's job — do not work around it here.
+`vo-synth` requires `script.json` stage `polished` or `tts`, and zero open `[VERIFY:` /
+`[FILL:` flags. If the script still has flags, fix them in the pipeline's own
+writing step (tp3: step 040; yt-script: step 100); do not work around it here.
 
 ## respell — fixing pronunciation
 
@@ -119,8 +128,12 @@ engine. Fix the sentence.
 
 ## lock <slug> [--only sNN]
 
+From the same pipeline folder:
+
     bash run.sh <slug> vo-lock
-    node lib/set-stage.mjs <slug> locked
+
+When every section is locked, `vo-lock` prints the follow-up. tutorial-pipeline-3
+also tracks the stage: `node lib/set-stage.mjs <slug> locked`.
 
 Locking asserts: no open flags, non-empty `spoken_text`, and a take on disk. **There
 is no unlock** — only a text edit clears a lock, and that resets the take and marks
@@ -148,7 +161,7 @@ Generated audio never goes in the repo. It belongs in
 
 ## status
 
-    cd pipelines/youtube/tutorial-pipeline-3 && bash run.sh <slug> status
+    bash run.sh <slug> status      # from the pipeline's folder (tp3 or yt-script)
 
 For per-section detail read `videos/<slug>/script.json` — `tts.regens_used` is the
 Modal spend counter and `tts.locked` is the approval state.
@@ -157,7 +170,7 @@ Modal spend counter and `tts.locked` is the approval state.
 
 Voiceover length rarely matches the footage. **Never time-stretch speech** to fix it —
 that is what makes output sound artificial. Timing is absorbed in the gaps between
-sections (`lib/concat-plan.mjs` for tp3, `pipeline/assemble.py` for batch).
+sections (`lib/concat-plan.mjs` in tp3, `pipeline/assemble.py` for batch).
 
 Tutorials have no lip-sync constraint, so section-level alignment is enough. Read
 `pipelines/video/tts/SYNC-PROBLEM.md` before touching any timing code — the open
@@ -171,7 +184,8 @@ problem and the rejected approaches are recorded there.
   stale URL from a previous `modal deploy`. Re-deploy and copy the printed URL.
 - **First call is very slow** → cold start pulling ~9.5 GB of weights into the
   container. Expected. Do not lower the timeout.
-- **"unresolved flags"** → the script is not polished. Go back to step 040.
+- **"unresolved flags"** → the script is not polished. Go back to the pipeline's
+  writing step (tp3: 040; yt-script: 100).
 - **"spoken text is empty"** → `display_text` derived to nothing, or `spoken_text` was
   set to `""` by hand. Fix the script, not the synth call.
 
@@ -181,4 +195,5 @@ problem and the rejected approaches are recorded there.
   catalog. Read before proposing an engine change.
 - `pipelines/video/CLAUDE.md` — cost model, engine trade-offs, settled decisions.
   Read before re-litigating VO-first or the fal-lipsync deferral.
-- `pipelines/youtube/tutorial-pipeline-3/steps/050-voiceover/README.md` — the step.
+- `pipelines/youtube/tutorial-pipeline-3/steps/050-voiceover/README.md` and
+  `pipelines/youtube/yt-script/steps/120-voiceover-run/README.md` — the steps.

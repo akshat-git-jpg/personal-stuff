@@ -1,6 +1,6 @@
 ---
 name: transcribe
-description: Fetch a transcript for a YouTube video (or local audio/video file) via a fallback chain -- native captions, then Groq Whisper, then local Whisper -- so callers always get a usable transcript without picking a method by hand. Triggers on "transcribe <link>", "get a transcript for <video>", "fetch transcript".
+description: Fetches a transcript for a YouTube video (id or URL) via a fallback chain -- native captions, then Groq Whisper, then local Whisper -- so callers always get a usable transcript without picking a method by hand. Triggers on "transcribe <link>", "get a transcript for <video>", "fetch transcript".
 user-invocable: true
 metadata:
   author: kbtg

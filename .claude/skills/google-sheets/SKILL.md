@@ -36,5 +36,5 @@ pp-sheets format SPREADSHEET 'Tab!A1:D1' --bold --bg '#FFF2CC' --fg '#000000' --
 
 - `--values` is a JSON 2D array (row-major); use `@file.json` to read from a file for big payloads.
 - `write`/`append` default to USER_ENTERED (formulas/dates parse like the UI); pass `--value-input RAW` to store literally.
-- Auth is shared with `mcp/google-shared/tokens/` — if a token is expired/revoked the error says `invalid_grant`; fix by re-running `python3 mcp/google-shared/setup_auth.py` for that account (interactive browser consent).
+- Auth is shared with `tooling/mcp/google-shared/tokens/` — if a token is expired/revoked the error says `invalid_grant`; fix by re-running `python3 tooling/mcp/google-shared/setup_auth.py` for that account (interactive browser consent).
 - Read big tabs in slices (`'Tab!A1:F50'`), not the whole tab, to keep output small.

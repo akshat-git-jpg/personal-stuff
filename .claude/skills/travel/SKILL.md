@@ -73,9 +73,8 @@ without being asked:
 1. Read the confirmation email (`pp-gmail search`), pull the PNR, times, seat and
    price. Download the PDF attachments. If the booking email has no PDF (IRCTC often
    does not), print the email HTML to PDF with headless Chrome.
-2. Add it to the trip with the `pp-trip` skill. For a new trip that means: pins,
-   `days`, `bookings`, **and** the Drive folder (`My Drive / Trips / <trip name> -
-   <Mon YYYY>`) with every document uploaded and linked in `files`, plus
-   `docsFolderUrl`. Deploy, then run `check-layout.py`.
+2. Add it to the trip with the `pp-trip` skill, and work through its **New trip
+   checklist** (pins, days, bookings, Drive folder, deploy, layout check). That
+   checklist is the single source; do not stop at the booking card.
 3. Add only what is fixed or agreed. No suggested cafes or sights unless the owner
    asked for them.

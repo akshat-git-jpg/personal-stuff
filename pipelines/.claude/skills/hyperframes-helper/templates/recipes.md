@@ -2,6 +2,19 @@
 
 Drop-in snippets you'll reach for often. Each one is battle-tested in a real composition.
 
+Contents
+1. Liquid glass card
+2. Rotating pulse border
+3. White-glow text over video
+4. Curved underline beneath an em highlight
+5. Chroma key via SVG filter
+6. Multi-clip cut-editing pattern
+7. Pulsing-glow ring around a logo
+8. Corner notes
+9. D3 wireframe globe with halftone dots
+10. Pixel-art agent icons
+11. Python module-generator pattern
+
 ---
 
 ## 1 · Liquid glass card (frosted iOS-style)
