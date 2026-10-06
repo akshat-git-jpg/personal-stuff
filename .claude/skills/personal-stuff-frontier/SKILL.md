@@ -1,41 +1,28 @@
 ---
 name: personal-stuff-frontier
-description: Use when deciding what to work on next in personal-stuff, asked "what's the state of X / what's still open", planning the next work session or orchestrate/boss run, evaluating whether a new effort aligns with the owner's active bets, or asked what "beyond state of the art" means for this project (autonomy + cost targets). A snapshot of open fronts, why each is open, and the first concrete steps — dated 2026-07-12 and expected to age.
+description: Snapshots personal-stuff's open fronts (dated 2026-07-12, ages fast): why each is open and its first concrete step — autonomy, cost toward <$10/video, the plans really still open, deferred work, and the bet-alignment test. Use when deciding what to work on next, asked "what's still open", planning a session or boss run, or checking an effort against the active bets.
 ---
 
 # Frontier — where this repo is going (as of 2026-07-12)
+
+> **Dated snapshot.** Written 2026-07-12 and not refreshed since. Dates in it have passed (the autonomy window opened ~2026-08-08). Re-verify every row against `plans/README.md`, `decisions.md` and `gh pr list` before acting on it.
 
 ## Overview
 
 The week 2026-07-05→07-12 closed the old frontier: plan 011 verified DONE, plans 043/044–051/054–060 landed via boss, the VO-first decision retired the dub-sync problem, and the tts/heygen asset hubs + media-board shipped. The frontier moved from "build the pipelines" to **scale the multi-channel final workflow past 12 videos/mo**. The formal queue lives in `plans/README.md` — but its table status cells are advisory and STALE for boss-landed rows (043/051/056–059 say TODO yet landed); the `## boss-landed` section at the bottom + `git log` are the truth.
 
-**What "beyond SOTA" means here (owner-confirmed 2026-07-12):** two axes, and only two —
-(a) **Autonomy** — the pipeline running unattended end-to-end. The path is widening the current read-only cron policy (decisions.md 2026-07-11, autonomy policy v1) one class at a time after the ≥4-clean-weeks gate (~2026-08-08). Front 2.
-(b) **Cost** — driving toward **<$10/video all-in** (currently ~$48 at 12/mo). Front 4.
-Throughput past 12/mo (Front 1) is the binding LIVE constraint — it blocks everything and gets worked first — but it is **not** itself the definition of beyond-SOTA: a workflow at 30/mo that still needs a human in every video at $40+ has scaled, not advanced. Read Fronts 1 and 3 as clearing the constraint; Fronts 2 and 4 as the actual frontier.
+**Beyond SOTA** here means two axes only: **autonomy** (Front 2) and **cost** toward <$10/video (Front 4), owner-confirmed 2026-07-12. The full definition, and why throughput is the constraint rather than the goal, lives in **personal-stuff-video-automation-campaign**.
 
 ## Front 1 — final-workflow scale-up (the binding LIVE constraint)
 
-The #1 open problem and what gets worked first — but per the calibration above, clearing it is table stakes, not beyond-SOTA. Source of truth: `pipelines/youtube/final-workflow/final-workflow-notes.md` "Open problems (prioritized)" (2026-07-12). The executable campaign for exactly this is **personal-stuff-video-automation-campaign** — route there before building; the table below is the why-open/first-step index only.
-
-| # | Problem | Why open | First concrete step |
-|---|---|---|---|
-| 1 | Processor is the throughput bottleneck | Every video serializes through a manual admin Claude session (script fix, TTS, avatar, thumbnail) — this is why 12/mo is stuck; $0 cash hid it | Productize one processor sub-task (TTS one-command run / editor UI per `pipelines/video/tts/CLAUDE.md` target deployment); thumbnail is the only piece with nothing built |
-| 2 | No title/thumbnail packaging loop | Thumbnail is a processor afterthought; no CTR iteration — on YouTube this decides more than production quality. Highest-ROI gap | Brainstorm → plan a packaging stage (title/thumbnail variants + CTR check) via `orchestrate` |
-| 3 | No final-video QC gate | The $150/mo reviewer covers SCRIPT only (confirmed 2026-07-12); a bad edit ships unseen | Define a QC checklist step after the editor; decide human vs Claude-assisted with the owner |
-| 4 | Topic selection unwired | yt-research/keyword-research/dossiers exist but the workflow starts at "write script" | Wire dossier/keyword output into a "pick next topic" step (052/053 land first — see Front 3) |
-| 5 | No analytics feedback loop | yt-analysis + tracker exist; nothing feeds performance back into topic choice | Define what metric feeds back (CTR? clicks?) before building anything |
-| 6 | Affiliate links not a workflow step | tracker-app mints them (056 landed the deterministic link-gen); for review channels that IS the revenue | Add link-minting as an explicit workflow stage in the notes, then the tracker pipeline def |
-| 7 | Motion-graphics quality at $10/editor | Routing decided (Sonnet + hyperframes pre-renders, decisions.md 2026-07-05) but step 135's rulebook is still a 14-line stub | Author the 135 rulebook (Front 3) — the editor then just places pre-rendered clips |
-
-Per-video cost context lives in Front 4 (~$48 at 12/mo; every problem above that removes a human touch also serves the cost axis).
+Videos/mo is stuck at 12 because the processor serializes every video. The 7 open problems (source of truth: `pipelines/youtube/final-workflow/final-workflow-notes.md` "Open problems (prioritized)"), their why-open notes and first steps are the phases of **personal-stuff-video-automation-campaign** — route there before building. Per-video cost context: Front 4.
 
 ## Front 2 — autonomy (beyond-SOTA axis a; pilot landed, the policy gates what's next)
 
 End state (owner-confirmed 2026-07-12): the pipeline running unattended end-to-end. The route there is deliberate, not a leap:
 
 - **What landed:** plan 058 — weekly read-only route-audit cron (VPS `claude -p`, report-only, Telegram; `infra/route-audit/`). The frontier's old priority-2 first steps (policy entry + pilot) are DONE.
-- **The policy (decisions.md 2026-07-11, autonomy policy v1):** scheduled/unattended runs are READ-ONLY — report/alert only, never edit/commit/push/deploy. **Widen only after ≥4 clean weeks, one class at a time** — so nothing new self-triggers before ~2026-08-08.
+- **The policy (decisions.md 2026-07-11, autonomy policy v1):** scheduled/unattended runs are READ-ONLY — report/alert only, never edit/commit/push/deploy. **Widen only after ≥4 clean weeks, one class at a time** — the window opened ~2026-08-08; as of 2026-10-06 `decisions.md` records no next class, so check there before assuming one was added.
 - Separate standing grant (same date, not autonomy): boss may run the owner-side deploy chain end-to-end, but ONLY when the owner explicitly says "deploy". Boss routing defaults live in `tooling/boss/data/rules.md` (orchestrate stamps executor/model at plan time).
 - **First step:** let route-audit accrue clean weeks; when the window passes, propose ONE next read-only class — the COST-06 usage-snapshot cron (below) is the natural candidate. Write classes come after read classes prove out.
 - **You have a result when** a write-class cron completes 4 consecutive weeks with zero incident rows.
@@ -73,12 +60,3 @@ Check `context/bets.md` (5 active bets). Fronts 1 and 3 serve bet 1 (YouTube cha
 - Raising or dispatching a plan → `secretary` / `tooling/boss/` (via **personal-stuff-change-control**)
 - "Is this idea new?" → **personal-stuff-failure-archaeology** first
 - Adding a brand-new idea → `context/ideas.md` via **personal-stuff-idea-to-shipped**
-
-## Provenance and maintenance
-
-Snapshot of 2026-07-12, verified against `final-workflow-notes.md` (incl. the corrected cost table), `decisions.md` (top entries + 2026-07-11 autonomy policy v1), `plans/README.md`, `tooling/boss/data/rules.md`, `context/bets.md`, the live PR queue, and the canonical `5-visuals/135-build-graphics-sonnet/` folder. The beyond-SOTA calibration (autonomy + <$10/video) is owner-confirmed 2026-07-12 via interview. **This skill ages fastest — re-verify at session start:**
-- Landed truth: `grep -A30 "## boss-landed" plans/README.md` (table cells lie for boss-landed rows)
-- Open queue: `gh pr list --state open --label boss:ready`
-- The 7 problems + cost table: read `pipelines/youtube/final-workflow/final-workflow-notes.md`
-- 135 rulebook still a stub? `head -3 pipelines/youtube/tutorial-pipeline-2/5-visuals/135-build-graphics-sonnet/rulebook.md`
-- Autonomy window: decisions.md 2026-07-11 entry (≥4 clean weeks from 2026-07-11 → ~2026-08-08)

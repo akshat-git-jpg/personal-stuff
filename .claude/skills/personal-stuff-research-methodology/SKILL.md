@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-research-methodology
-description: Use when a hunch (new tool, engine, migration, approach) must earn its way into personal-stuff, when tempted to build first and validate later, or when a claim/metric needs proof before it ships. Houses measurement recipes (bake-offs, budget spikes, fixture re-checks) and the evidence bar. Triggers on "should we switch", "de-risk this", "run a PoC", "benchmark this".
+description: Sets how a hunch (new tool, engine, migration, approach) earns its way into personal-stuff: check the record, run a cheap falsifiable test, record the verdict, then adopt, defer or archive. Holds measurement recipes (bake-offs, budget spikes, fixture re-checks) and the evidence bar a claim must clear. Use when tempted to build first and validate later; triggers on "should we switch", "de-risk this", "run a PoC", "benchmark this".
 ---
 
 # Research methodology — from hunch to accepted change
@@ -60,23 +60,15 @@ The evidence bar for any statement that leaves a session — in docs, skills, `d
 - **"Root cause" may only be claimed when one mechanism explains ALL observations, including the negatives** — see "State expectations before running" in the evidence bar above (the yt-dlp 429 hunt is the model).
 - The mechanics of HOW to verify — the verification ladder (build → tests → smoke → live probe), fresh-context review, greenlight's gate — live in **personal-stuff-validation-and-qa**. This subsection sets the bar a claim must clear; that skill supplies the rungs.
 
-## Worked examples (all verified 2026-07-12)
+## Worked examples
 
-| Case | Question asked | Test run | Verdict | Recorded |
-|---|---|---|---|---|
-| fal-lipsync | Can Kling base loop + fal LatentSync replace HeyGen's $1/min avatar? | De-risk lip-sync test on a real pose clip (~$0.30–0.40/min), passed 2026-07-11 | **Validated, DEFERRED** — HeyGen stays; no CLI, no migration until the owner revisits | `pipelines/video/heygen/fal-lipsync/`, decisions.md 2026-07-12 |
-| agy capability sweep | Can Antigravity CLI safely be the headless executor lane? | Subagent-verified flag sweep (`--add-dir`, hidden `--output-format json`, `--print-timeout`); secrets-guard hook live-verified against a real agy attempt | Adopted as lane v2 defaults | decisions.md 2026-07-06 |
-| gemini CLI scout | Is a gemini-headless lane viable? | Captain's first real scout run | DEAD (IneligibleTierError, Google cutoff) — lane + npm package removed the same day they were added; agy replaced it | decisions.md 2026-07-06 |
-| hyperframes-vs-remotion | Which HTML→video approach for this repo? | Side-by-side experiment builds | HyperFrames path became the live tool (`video/card-library/`); experiment archived with a "don't build new work here" pointer | `pipelines/archive/hyperframes-vs-remotion/` |
-| Devsplainers PoC | Can thin-kit + Antigravity produce graphics at quality? | PoC scored on four quality axes | Failed all four → "keep Antigravity out of the graphics path"; later explicitly overridden for one step with mitigation (plan 047, above) | decisions.md 2026-07-05 + 2026-07-07 |
-| yt-dlp 429s | Why is YouTube blocking transcript fetches? | Root-cause hunt until one mechanism explained every observation | Self-update pre-flight + PO-token plugin; proxy named as agreed next escalation | decisions.md 2026-07-06 |
-| kunchenguid stack | Adopt his agentic-workflow binaries? | Studied the working tools **in source** | **Adapt, don't adopt** — native `wt`/`greenlight`/`overnight`/`captain` builds (overnight and captain since deleted, 2026-08-23); exactly one external piece adopted (lavish-axi transport for `/plan-review`) | plans/README.md 033–038 batch note, decisions.md 2026-07-06 |
+The hunch-to-verdict cases (fal-lipsync, agy sweep, gemini CLI, hyperframes-vs-remotion, Devsplainers PoC, yt-dlp 429s, kunchenguid stack) live in **personal-stuff-failure-archaeology** under "Research verdicts". Add a new row there once a hunch completes the lifecycle and its decisions.md entry exists.
 
 ## Where good ideas came from here
 
 - **Studying working external stacks in source** — the whole 033–038 batch came from reading kunchenguid's tools, not their READMEs.
 - **improve/audit runs** — plans/README.md's deferred + rejected findings sections are audit output; the tracker person-centric revamp (plans 014–017) came from a focused audit (decisions.md 2026-07-05).
-- **Incident postmortems** — branch-guard hook from the 054/055 shared-checkout tangle (2026-07-10); enforced dirty-main check from two silently parked batches (2026-07-08); plan 057's silent-failure alerts after my-planner's refresh token failed silently for a month (decisions.md 2026-07-06).
+- **Incident postmortems** — the branch-guard hook from the 054/055 shared-checkout tangle (2026-07-10; since replaced by the `pp-work` workspace walls); enforced dirty-main check from two silently parked batches (2026-07-08); plan 057's silent-failure alerts after my-planner's refresh token failed silently for a month (decisions.md 2026-07-06).
 - **Owner's operating pain** — captain v2 from hitting the 3-parallel-features wall; `tooling/cli/notify` because ntfy pushes didn't reach the owner's iPhone (ntfy retired 2026-08-30); the tracker pipeline engine from "had to do multiple redo" (all in decisions.md / failure-archaeology).
 
 ## When NOT to use this skill
@@ -85,18 +77,4 @@ The evidence bar for any statement that leaves a session — in docs, skills, `d
 - The video/TTS domain constraints and settled engine decisions themselves → `pipelines/video/CLAUDE.md`
 - Gates for adopting/landing the change (plans/ file or inline, secretary raise, boss, deploy gate) → **personal-stuff-change-control**
 - Verification mechanics and test culture — the verification ladder, "is this specific change done/correct?", fresh-context review → **personal-stuff-validation-and-qa**
-- Evaluating an external tool/service/idea for fit against the owner's stack → the `scout` skill (verdict-first)
 - The full route from idea to shipped product → **personal-stuff-idea-to-shipped**
-
-## Provenance and maintenance
-
-Authored 2026-07-12 from `decisions.md`, `plans/README.md` (batch notes + rejected/deferred findings sections), `pipelines/video/tts/CLAUDE.md`, `pipelines/video/heygen/CLAUDE.md` + `fal-lipsync/README.md`, and `pipelines/archive/`. Proof-and-analysis recipes + the claim evidence bar folded in 2026-07-12 (owner interview: this skill absorbed the "proof-and-analysis toolkit" and the ship-bar fragment of "external positioning"). All worked-example numbers spot-verified against those files on 2026-07-12.
-
-Re-verify a recipe example before citing it (grep here is rtk-filtered; on "N matches in 0 files" rerun via `rtk proxy grep`):
-
-- TTS bake-off: `rtk proxy grep -n "RTF" pipelines/video/tts/CLAUDE.md`
-- fal-lipsync spike: `rtk proxy grep -n "624 frames" pipelines/video/heygen/fal-lipsync/README.md` and `rtk proxy grep -n "fal-lipsync deferred" decisions.md`
-- plan-011 fixture flip: `rtk proxy grep -n "| 011 |" plans/README.md`
-- Lifecycle cases: `rtk proxy grep -n "<keyword>" decisions.md` / `plans/README.md`
-
-When a new hunch completes the lifecycle, add its row to the worked-examples table only after the decisions.md entry exists.

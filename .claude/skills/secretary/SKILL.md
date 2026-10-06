@@ -9,6 +9,10 @@ metadata:
 
 # secretary
 
+Contents
+- raise — procedure, the report names the executor
+- groom — hard boundary, procedure
+
 A skill with two modes: **raise** (this section) and **groom** (below).
 Secretary is the thin bridge between the `orchestrate` skill (which writes
 self-contained plans into `plans/`) and `boss` (which implements them via
@@ -90,36 +94,9 @@ gapped PR is automatically invisible to it without anyone refusing anything.
 
 ### The report ALWAYS names the executor
 
-**Every PR you report carries its executor and model, without being asked.**
-Read them out of the plan's frontmatter (`executor:` / `model:`) — never guess,
-never omit. A blank `model:` means the executor's default, which for `agy` is
-Gemini 3.1 Pro (High), for `claude-p` is Sonnet and for `codex` is gpt-5.6-terra; print the resolved name, not
-the blank.
-
-Owner rule (2026-08-23): *"whenever you give me summary on the PRs, I find it
-very annoying that you don't share me what executor have you used for which PR.
-I like seeing that."* Routing is an owner-level knob (change-control), so the
-owner has to be able to see the call you made without opening five files.
-
-**One PR** — a single line is enough:
-
-```
-#192 231-yt-script-beats-model  [agy · Gemini 3.1 Pro (High)]  boss:ready
-```
-
-**A batch** — a table, one row per PR, with these columns in this order:
-
-| PR | Plan | Executor | Model | Difficulty | UI gate | Waits for |
-|---|---|---|---|---|---|---|
-| #192 | 231 | `agy` | Gemini 3.1 Pro (High) | standard | — | — |
-| #193 | 232 | `claude-p` | Sonnet | standard | screenshot | #192 |
-
-`Difficulty` comes from the plan's Status block, `UI gate` from `ui:` in the
-frontmatter, `Waits for` from `needs_plans` (or `needs_prs`) — render it as the
-**PR** number once the batch is raised, since that is what the owner clicks. If a
-plan's dependency is a plan number, say so: `#221 (plan 261)`. If a batch mixes executors, add one
-sentence saying why — the owner reads that as the routing decision, and a silent
-mix reads as an accident.
+Every PR you report carries its executor and model, without being asked. The rule, the
+one-line and table shapes, and how to fill `Waits for` live in one place:
+[../orchestrate/references/batch-report.md](../orchestrate/references/batch-report.md).
 
 ## groom
 

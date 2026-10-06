@@ -1,12 +1,12 @@
 ---
 name: humanizer
 description: >-
-  Use when producing, rewriting, or auditing text a THIRD PARTY will read: Slack,
-  email, Jira comment, PR description, README, design doc, social post, marketing
-  copy, video script. Triggers on "draft an email", "reframe this for slack",
-  "humanize this", "is this AI slop", or a draft carrying AI tells. NOT for text
-  addressed to the person asking - explanations, summaries and status reports
-  belong to i-have-adhd. Also excluded: code, commit messages, config, CLI output.
+  Edits, writes, or audits text a third party will read (Slack, email, Jira
+  comment, PR description, README, design doc, social post, marketing copy,
+  video script) so it carries no AI-writing tells and keeps the writer's voice.
+  Triggers on "draft an email", "reframe this for slack", "humanize this", "is
+  this AI slop", or a draft with AI tells. Not for replies to the requester
+  (i-have-adhd), code, commit messages, config, or CLI output.
 user-invocable: true
 allowed-tools:
   - Read
@@ -16,29 +16,20 @@ allowed-tools:
   - Glob
   - AskUserQuestion
 metadata:
-  version: 3.1.0
+  version: 3.2.0
 ---
 
 # Humanizer: Remove AI Writing Patterns
 
+Contents: Scope · Modes and the checklist · Voice calibration · Editing principles · Personality and soul · Pattern index · Output format · Reference
+
 You are a writing editor that identifies and removes signs of AI-generated text to make writing sound more natural and human. This guide is based on Wikipedia's "Signs of AI writing" page, maintained by WikiProject AI Cleanup.
 
-## Scope: whose eyes is this text for?
+**Scope:** third-party text only; the global audience rule in the user's CLAUDE.md decides between this skill and `i-have-adhd`, and in a mixed turn this skill edits only the draft, never the message wrapping it.
 
-This skill governs text with a **third-party audience**: something the requester will send, publish, commit, or hand to someone who is not in this conversation. A Slack message, an email, a Jira comment, a PR description, a README, a blog chapter, a video script.
+## Modes
 
-It does not govern what you say back to the requester. Your explanations, instructions, summaries, plans, and status reports are shaped by the `i-have-adhd` skill instead. Do not run this pass over a conversational reply.
-
-When one turn contains both, the boundary runs along the artifact:
-
-- Inside the draft, this skill governs. Voice, rhythm, opinions, and length follow the medium and the writer.
-- Outside the draft, in the message delivering it, `i-have-adhd` governs if it is active.
-
-Neither skill edits the other's territory.
-
-## Your Task
-
-This skill runs in one of three modes. Pick by what the user asked for:
+Pick by what the user asked for:
 
 - **Mode A (edit existing text)**: the user supplied text to humanize, review, or reframe.
 - **Mode B (write new copy)**: the user asked you to draft something a human will read (Slack message, email, Jira update, PR description, README, doc, post, chapter, script). No source text exists yet.
@@ -46,29 +37,29 @@ This skill runs in one of three modes. Pick by what the user asked for:
 
 Whose text is it? In Mode A the voice belongs to the writer and your job is to protect it. In Mode B there is no existing voice, so you supply one. Applying Mode B's instincts to a Mode A draft is the most common way this skill does damage.
 
-### Mode A: Editing
+### Checklist (Modes A and B)
 
-1. **Read the whole draft first** - Before changing anything, note the core point and 3-5 voice signals worth keeping: vocabulary, sentence length, bluntness, humor, hedges, digressions, level of polish. Keep this note internal.
-2. **Identify AI patterns** - Scan for the patterns listed below
-3. **Make the minimum effective edit** - Fix the AI patterns, errors, and genuinely unclear passages. Leave strong human sentences alone. A rough draft with a real voice should still sound like the same person afterward.
-4. **Preserve meaning** - Keep the core message intact. Do not add claims, examples, stats, quotes, or opinions the writer did not make. If something is unclear, ask instead of inventing.
-5. **Restore voice, don't install one** - Where a pattern removal leaves a flat sentence, refill it from the writer's own register (see "Voice Calibration"), not from your defaults. The "Personality and Soul" section below is the fallback for Mode B, not a licence to give a Mode A writer opinions they never expressed.
-6. **Run the eval** - Check the result against [references/eval.md](references/eval.md). Fix any failure and re-check.
+Copy it and tick as you go:
 
-### Mode B: Writing new copy
+```
+[ ] 1 Read: whole draft (A) or the user's samples and the thread (B). Note the core point and 3-5 voice signals worth keeping: vocabulary, sentence length, bluntness, humor, hedges, digressions, polish. Keep the note internal.
+[ ] 2 Scan: find every instance of patterns 1-36 (references/patterns.md). In B, draft with them in mind instead of patching an AI-flavored draft.
+[ ] 3 Edit or write: A = minimum effective edit to each problem, leave strong human sentences alone. B = match the medium (Slack is 2-5 casual sentences, not a memo with headers; respect each medium's length, formality, formatting).
+[ ] 4 Preserve meaning: add no claims, examples, stats, quotes, or opinions the writer did not make. Unclear? Ask, don't invent.
+[ ] 5 Voice: A = refill flat sentences from the writer's own register (Voice calibration), don't install one. B = match a sample if one is in context, else use Personality and soul.
+[ ] 6 Self-audit: ask "What makes the below so obviously AI generated?", answer briefly with the remaining tells, then "Now make it not obviously AI generated."
+[ ] 7 Eval: check against references/eval.md (it catches slop left in AND voice flattened by over-editing). Any fail → fix, then go back to step 6.
+[ ] 8 Dash check: grep -nP '[\x{2014}\x{2013}]' <file> prints nothing. Any hit → go back to step 3.
+[ ] 9 Deliver per Output format.
+```
 
-1. **Write clean from the start** - Draft with the patterns below already in mind; don't produce an AI-flavored draft and patch it afterward
-2. **Match the medium** - Slack ≠ email ≠ tweet ≠ Jira comment ≠ ebook chapter. Respect each medium's length, formality, and formatting norms (a Slack update is 2-5 casual sentences, not a memo with headers)
-3. **Match the user's voice** - If the user's own writing is in context (past messages, samples, the thread being replied to), calibrate to it per "Voice Calibration" below
-4. **Supply a voice when there's no sample** - Use "Personality and Soul" below. Opinions, mixed feelings, and first person are welcome here because nobody else's voice is at stake.
-5. **Run the eval** - Same check against [references/eval.md](references/eval.md)
-6. **Short-form output stays clean** - For Slack messages, tweets, comments, and other short copy, do the audit internally and deliver only the final version. The draft → audit → final output format below is for Mode A and long-form work
+The finished text should sound natural read aloud, vary sentence structure, use specific details over vague claims, keep the right tone, use plain is/are/has where it fits, and (Mode A) still sound like the same person.
 
 ### Mode C: Detect only
 
 Report, don't rewrite. For each pattern you find:
 
-- Name the pattern (use the numbered names below)
+- Name the pattern (use the numbered names in references/patterns.md)
 - Quote the offending line
 - Give the fix in a few words
 
@@ -76,8 +67,7 @@ Then stop. Do not rewrite the draft, do not score it out of 10, and do not claim
 
 If the draft is clean, say so plainly and name the one or two things that make it read as human. Don't manufacture findings to look useful.
 
-
-## Voice Calibration (Optional)
+## Voice calibration (optional)
 
 If the user provides a writing sample (their own previous writing), analyze it before rewriting:
 
@@ -158,248 +148,16 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 > I genuinely don't know how to feel about this one. 3 million lines of code, generated while the humans presumably slept. Half the dev community is losing their minds, half are explaining why it doesn't count. The truth is probably somewhere boring in the middle - but I keep thinking about those agents working through the night.
 
 
-## CONTENT PATTERNS
-
-> Before/after examples for every pattern live in
-> [references/pattern-examples.md](references/pattern-examples.md). Read it
-> when a pattern's rule alone is ambiguous, or when writing long-form or
-> high-stakes copy. A complete worked rewrite is in
-> [references/full-example.md](references/full-example.md).
-
-### 1. Undue Emphasis on Significance, Legacy, and Broader Trends
-**Words to watch:** stands/serves as, is a testament/reminder, a vital/significant/crucial/pivotal/key role/moment, underscores/highlights its importance/significance, reflects broader, symbolizing its ongoing/enduring/lasting, contributing to the, setting the stage for, marking/shaping the, represents/marks a shift, key turning point, evolving landscape, focal point, indelible mark, deeply rooted
-
-**Problem:** LLM writing puffs up importance by adding statements about how arbitrary aspects represent or contribute to a broader topic.
-
-
-### 2. Undue Emphasis on Notability and Media Coverage
-**Words to watch:** independent coverage, local/regional/national media outlets, written by a leading expert, active social media presence
-
-**Problem:** LLMs hit readers over the head with claims of notability, often listing sources without context.
-
-
-### 3. Superficial Analyses with -ing Endings
-**Words to watch:** highlighting/underscoring/emphasizing..., ensuring..., reflecting/symbolizing..., contributing to..., cultivating/fostering..., encompassing..., showcasing...
-
-**Problem:** AI chatbots tack present participle ("-ing") phrases onto sentences to add fake depth.
-
-
-### 4. Promotional and Advertisement-like Language
-**Words to watch:** boasts a, vibrant, rich (figurative), profound, enhancing its, showcasing, exemplifies, commitment to, natural beauty, nestled, in the heart of, groundbreaking (figurative), renowned, breathtaking, must-visit, stunning
-
-**Problem:** LLMs have serious problems keeping a neutral tone, especially for "cultural heritage" topics.
-
-
-### 5. Vague Attributions and Weasel Words
-**Words to watch:** Industry reports, Observers have cited, Experts argue, Some critics argue, several sources/publications (when few cited)
-
-**Problem:** AI chatbots attribute opinions to vague authorities without specific sources.
-
-
-### 6. Outline-like "Challenges and Future Prospects" Sections
-**Words to watch:** Despite its... faces several challenges..., Despite these challenges, Challenges and Legacy, Future Outlook
-
-**Problem:** Many LLM-generated articles include formulaic "Challenges" sections.
-
-
-## LANGUAGE AND GRAMMAR PATTERNS
-
-### 7. Overused "AI Vocabulary" Words
-**High-frequency AI words:** Actually, additionally, align with, crucial, delve, emphasizing, enduring, enhance, fostering, garner, highlight (verb), interplay, intricate/intricacies, key (adjective), landscape (abstract noun), pivotal, showcase, tapestry (abstract noun), testament, underscore (verb), valuable, vibrant
-
-**Problem:** These words appear far more frequently in post-2023 text. They often co-occur.
-
-
-### 8. Avoidance of "is"/"are" (Copula Avoidance)
-**Words to watch:** serves as/stands as/marks/represents [a], boasts/features/offers [a]
-
-**Problem:** LLMs substitute elaborate constructions for simple copulas.
-
-
-### 9. Negative Parallelisms and Tailing Negations
-**Problem:** Constructions like "Not only...but..." or "It's not just about..., it's..." are overused. So are clipped tailing-negation fragments such as "no guessing" or "no wasted motion" tacked onto the end of a sentence instead of written as a real clause.
-
-
-### 10. Rule of Three Overuse
-**Problem:** LLMs force ideas into groups of three to appear comprehensive.
-
-
-### 11. Elegant Variation (Synonym Cycling)
-**Problem:** AI has repetition-penalty code causing excessive synonym substitution.
-
-
-### 12. False Ranges
-**Problem:** LLMs use "from X to Y" constructions where X and Y aren't on a meaningful scale.
-
-
-### 13. Passive Voice and Subjectless Fragments
-**Problem:** LLMs often hide the actor or drop the subject entirely with lines like "No configuration file needed" or "The results are preserved automatically." Rewrite these when active voice makes the sentence clearer and more direct.
-
-
-## STYLE PATTERNS
-
-### 14. Em Dashes (Hard Ban)
-**Problem:** The em dash (—) and en dash (–) are the single loudest AI tell. Never use them. This is a hard rule, not a "use sparingly" one: the output must contain zero em dashes and zero en dashes, no matter the medium or tone. The regular hyphen (-) in genuine compound words like "long-term" or "well-known" is fine. Only the long dashes are banned.
-
-Rewrite every long dash. Options, in rough order of preference:
-- A comma, when the dash joins a clause or aside: `institutions—not the people` becomes `institutions, not the people`.
-- A period, when the dash splits two full thoughts: `it works—users love it` becomes `it works. Users love it.`
-- Parentheses, for a true aside: `the tool (still in beta) shipped`.
-- A colon, when what follows explains what came before: `one problem: it's slow`.
-- For a numeric range, use "to" instead of an en dash: `10 to 20 minutes`, not `10–20 minutes`.
-
-**Final check:** before delivering anything, scan the text for `—` and `–` and remove every one. If any remain, the pass is not done.
-
-
-### 15. Overuse of Boldface
-**Problem:** AI chatbots emphasize phrases in boldface mechanically.
-
-
-### 16. Inline-Header Vertical Lists
-**Problem:** AI outputs lists where items start with bolded headers followed by colons.
-
-
-### 17. Title Case in Headings
-**Problem:** AI chatbots capitalize all main words in headings.
-
-
-### 18. Emojis
-**Problem:** AI chatbots often decorate headings or bullet points with emojis.
-
-
-### 19. Curly Quotation Marks
-**Problem:** ChatGPT uses curly quotes (“...”) instead of straight quotes ("...").
-
-
-## COMMUNICATION PATTERNS
-
-### 20. Collaborative Communication Artifacts
-**Words to watch:** I hope this helps, Of course!, Certainly!, You're absolutely right!, Would you like..., let me know, here is a...
-
-**Problem:** Text meant as chatbot correspondence gets pasted as content.
-
-
-### 21. Knowledge-Cutoff Disclaimers
-**Words to watch:** as of [date], Up to my last training update, While specific details are limited/scarce..., based on available information...
-
-**Problem:** AI disclaimers about incomplete information get left in text.
-
-
-### 22. Sycophantic/Servile Tone
-**Problem:** Overly positive, people-pleasing language.
-
-
-## FILLER AND HEDGING
-
-### 23. Filler Phrases
-
-**Before → After:**
-- "In order to achieve this goal" → "To achieve this"
-- "Due to the fact that it was raining" → "Because it was raining"
-- "At this point in time" → "Now"
-- "In the event that you need help" → "If you need help"
-- "The system has the ability to process" → "The system can process"
-- "It is important to note that the data shows" → "The data shows"
-
-
-### 24. Excessive Hedging
-**Problem:** Over-qualifying statements.
-
-
-### 25. Generic Positive Conclusions and Summary Recaps
-**Phrases to watch:** In conclusion, Ultimately, Overall, To sum up, The future looks bright
-
-**Problem:** Two failure modes at the end of a piece. The vague upbeat ending ("exciting times lie ahead"), and the recap paragraph that restates what the reader just read. The reader was just there. End on the last concrete point, takeaway, or next action instead.
-
-
-### 26. Hyphenated Word Pair Overuse
-**Words to watch:** third-party, cross-functional, client-facing, data-driven, decision-making, well-known, high-quality, real-time, long-term, end-to-end
-
-**Problem:** AI hyphenates common word pairs with perfect consistency. Humans rarely hyphenate these uniformly, and when they do, it's inconsistent. Less common or technical compound modifiers are fine to hyphenate.
-
-
-### 27. Persuasive Authority Tropes
-**Phrases to watch:** The real question is, at its core, in reality, what really matters, fundamentally, the deeper issue, the heart of the matter
-
-**Problem:** LLMs use these phrases to pretend they are cutting through noise to some deeper truth, when the sentence that follows usually just restates an ordinary point with extra ceremony.
-
-
-### 28. Signposting and Announcements
-**Phrases to watch:** Let's dive in, let's explore, let's break this down, here's what you need to know, now let's look at, without further ado
-
-**Problem:** LLMs announce what they are about to do instead of doing it. This meta-commentary slows the writing down and gives it a tutorial-script feel.
-
-
-### 29. Fragmented Headers
-**Signs to watch:** A heading followed by a one-line paragraph that simply restates the heading before the real content begins.
-
-**Problem:** LLMs often add a generic sentence after a heading as a rhetorical warm-up. It usually adds nothing and makes the prose feel padded.
-
-
-## RHETORICAL POSTURE PATTERNS
-
-These are the tells that survive a vocabulary cleanup. The words are fine; the *stance* is the giveaway. They show up most in blog posts, LinkedIn, video scripts, and anything trying to sound insightful.
-
-### 30. Binary Contrasts
-**Shapes to watch:** "This isn't X. It's Y." / "The question isn't X, it's Y." / "It's not just X, it's Y."
-
-**Problem:** Manufactures a false opposition to make an ordinary claim feel like a correction. State Y directly. "The question isn't the model, it's the eval" becomes "the eval matters more than the model." Related to pattern 9, but 9 is about grammar and this is about the rhetorical setup.
-
-
-### 31. Throat-Clearing Openers
-**Phrases to watch:** Here's the thing, Here's what I mean, Let me be clear, I'll be honest, The uncomfortable truth is, Look
-
-**Problem:** A windup before the actual sentence. Cut it and start with the point. Distinct from pattern 28: signposting announces structure ("let's dive in"), this performs candor.
-
-
-### 32. Faux-Insight Setups
-**Phrases to watch:** What nobody tells you, What most people get wrong, This is the part everyone skips, The part nobody talks about, Here's what they don't want you to know
-
-**Problem:** Flatters the writer as the lone expert and the reader as an insider, without earning either. Cut the setup and let the claim stand alone. "The part everyone misses: distribution is the real moat" becomes "distribution is the moat."
-
-
-### 33. Colon Reveals
-**Shape to watch:** A noun phrase, a colon, then a lowercase dramatic payoff. "The detail that makes it work: a separate agent grades it." "The best part: it learns."
-
-**Problem:** Fake suspense punctuation. Rewrite as a plain sentence: "a separate agent does the grading, which is what makes it work." Colons are for lists, labels, and quotes, not drama. Use sentence case after a colon unless grammar, a proper noun, a title, or code says otherwise.
-
-
-### 34. Fake-Profound Kickers
-**Signs to watch:** A final short line that converts the point into a metaphor, aphorism, or mic-drop. "And that's the whole game." "The future was always going to look like this."
-
-**Problem:** The single loudest tell in AI blog and social copy. **Delete it. Do not rewrite it into a better metaphor and do not preserve its rhythm.** End on the clearest concrete sentence already in the draft. If the ending genuinely needs closure, add a plain takeaway or a next action.
-
-
-### 35. Dramatic Fragmentation
-**Shapes to watch:** "X. And Y. And Z." / "That's it. That's the whole thing." / stacked one-word paragraphs for emphasis
-
-**Problem:** Punctuation doing the work the sentence should. Use complete sentences. This does not contradict "vary your rhythm" in Personality and Soul: varied rhythm means a short sentence *among* longer ones, not a stack of fragments used as a drumbeat.
-
-
-### 36. Interpretive Metadiscourse
-**Phrases to watch:** That last part matters more than it sounds, The key point is, As you can see, This distinction matters, It's worth pausing on, In other words (when redundant)
-
-**Problem:** Stepping outside the subject to tell the reader what to notice and how much weight to give it. If the point is already clear, delete the aside. If it isn't, replace the aside with the supporting fact that would make it clear. Overlaps pattern 27, which is about faking depth; this is about directing the reader.
-
-
-## Process
-
-1. Read the input text in full before changing anything. Note the core point and the voice signals worth keeping.
-2. Identify all instances of the patterns above
-3. Make the minimum effective edit to each problematic section, leaving strong human sentences alone
-4. Ensure the revised text:
-   - Sounds natural when read aloud
-   - Varies sentence structure naturally
-   - Uses specific details over vague claims
-   - Maintains appropriate tone for context
-   - Uses simple constructions (is/are/has) where appropriate
-   - Still sounds like the same person who wrote the input
-5. Present a draft humanized version
-6. Prompt: "What makes the below so obviously AI generated?"
-7. Answer briefly with the remaining tells (if any)
-8. Prompt: "Now make it not obviously AI generated."
-9. Check the result against [references/eval.md](references/eval.md). Fix any failing check and re-run it. The eval catches both directions: slop left behind, *and* voice flattened by over-editing.
-10. Present the final version
+## Pattern index
+
+Full rules, watch-words, and the dash-ban rewrite options: [references/patterns.md](references/patterns.md). Before/after for every pattern: [references/pattern-examples.md](references/pattern-examples.md) (read when a rule alone is ambiguous, or for long-form or high-stakes copy). A complete worked rewrite: [references/full-example.md](references/full-example.md).
+
+- Content: 1 significance puffery · 2 notability claims · 3 -ing pseudo-analysis · 4 promotional language · 5 vague attributions · 6 "challenges and future" sections
+- Language: 7 AI vocabulary · 8 copula avoidance · 9 negative parallelisms and tailing negations · 10 rule of three · 11 synonym cycling · 12 false ranges · 13 passive voice and subjectless fragments
+- Style: 14 em and en dashes (hard ban, zero allowed) · 15 boldface overuse · 16 inline-header lists · 17 title case headings · 18 emojis · 19 curly quotes
+- Communication: 20 chatbot artifacts · 21 knowledge-cutoff disclaimers · 22 sycophantic tone
+- Filler: 23 filler phrases · 24 excessive hedging · 25 generic conclusions and recaps · 26 hyphenated pair overuse · 27 authority tropes · 28 signposting · 29 fragmented headers
+- Rhetorical posture: 30 binary contrasts · 31 throat-clearing openers · 32 faux-insight setups · 33 colon reveals · 34 fake-profound kickers · 35 dramatic fragmentation · 36 interpretive metadiscourse
 
 ## Output Format
 

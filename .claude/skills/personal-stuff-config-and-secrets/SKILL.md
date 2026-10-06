@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-config-and-secrets
-description: Use when hunting where a secret, token, API key, or env var lives in personal-stuff, adding a new one, rotating one, or debugging "not set in .env" / auth-failed errors — Worker secrets, pipelines .env, Google OAuth tokens, VPS cron .env files, .dev.vars, .mcp.json, or infra/secrets. Also use before rebuilding any environment from an .example file.
+description: Maps where every secret, token, API key and env var in personal-stuff lives — the six axes (Worker secrets, .dev.vars, pipelines .env, Google OAuth tokens, infra/secrets, VPS-side), the real pipelines .env key list, and how to add or rotate one. Use when hunting a secret, adding or rotating one, debugging "not set in .env" or auth-failed errors, or before rebuilding an environment from an .example file.
 ---
 
 # Config and secrets map
@@ -77,7 +77,3 @@ Also per-CLI: the Hostinger API token lives at `tooling/mcp/hostinger/.env` (`AP
 - Auth *behavior* broken (401s, expired sessions) → **personal-stuff-debugging-playbook**
 - Rebuilding a whole machine → **personal-stuff-build-and-env**
 - Rotating a cron's Google token step-by-step → `VPS-CRONS.md` "Rotate a Google OAuth token"
-
-## Provenance and maintenance
-
-Key names verified against `pipelines/.env` (names only), `infra/secrets/` listing, `tooling/cli/hostinger/pp_hostinger.py`, app wrangler configs + CLAUDE.mds, `tooling/mcp/README.md`, and `VPS-CRONS.md` on 2026-07-12. Re-verify: run `scripts/verify.sh` in this skill dir (offline, names-only; exit 0 = all documented facts hold, exit 1 names the failing check). The one check it can't run offline — Worker prod secrets — stays manual: `cd apps/<app> && npx wrangler secret list` (needs Cloudflare auth).

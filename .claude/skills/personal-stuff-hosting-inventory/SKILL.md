@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-hosting-inventory
-description: Use when answering anything about personal-stuff's live URLs — what's deployed where, which folder serves a domain, whether a site is up, what auth gates it, adding or retiring a public surface, or reconciling my-hosted-sites.md / INFRA.md / the kushal-tools hub when they disagree.
+description: Maps personal-stuff's live URLs to repo folder, hosting surface and auth gate, and keeps the three inventories honest (my-hosted-sites.md, INFRA.md, the kushal-tools hub). Use for what is deployed where, which folder serves a domain, whether a site is up, adding or retiring a public surface, or reconciling the inventories when they disagree.
 ---
 
 # Hosting inventory
@@ -23,16 +23,16 @@ description: Use when answering anything about personal-stuff's live URLs — wh
 | lists.agrolloo.com | `apps/lists-app/` | Worker (SPA) + D1 | password, HMAC cookie |
 | go.agrolloo.com | `apps/redirector/` | Worker (zone route `/*`) + KV + D1 | public by design |
 | bridebestie.com (+www) | `apps/pinterest-landing-pages/bridebestie/` | assets-only Worker, own zone | public |
-
-**Two Hostinger logins exist.** `pp-hostinger` needs `--account vps|web`; a domain in the
-sibling account reports as *"not registered at Hostinger"*. `agrolloo.com` and the web
-hosting live in **web**; the VPS lives in **vps**. Retiring the second account was
-investigated and parked — see `plans/260-close-hostinger-web-account.md`.
 | my-dashboard.agrolloo.com | `apps/personal-dashboard/` | **VPS Docker** behind Traefik | password (hash self-heals into DB) |
 | render2.agrolloo.com | `apps/hyperframes-render/` | **VPS Docker** behind Traefik | password |
 | localhost:4319 | `tooling/cli/ccusage-dashboard/` | local only (`ccu-dash`) | n/a |
 
 Not URLs but public surface: `agrolloo.com` apex + `www` → Hostinger **shared hosting** (`191.101.230.133`), not this repo; `infra/vps-watchdog/` Worker (cron-only, no route).
+
+**Two Hostinger logins exist.** `pp-hostinger` needs `--account vps|web`; a domain in the
+sibling account reports as *"not registered at Hostinger"*. `agrolloo.com` and the web
+hosting live in **web**; the VPS lives in **vps**. Retiring the second account was
+investigated and parked — see `plans/260-close-hostinger-web-account.md`.
 
 `timeblock` (plan 054) is **deployed**, not just built — confirmed via `apps/timeblock/wrangler.toml` (`[[routes]] pattern = "timeblock.agrolloo.com"`, `custom_domain = true`) and its row in `my-hosted-sites.md`. Don't describe it as "built but not deployed" without re-checking those two.
 
@@ -67,7 +67,7 @@ This rule has slipped repeatedly. The 2026-06/07 drift it caused (founders-track
 
 ## INFRA.md drift — regression check
 
-This skill stays the single home of the "is INFRA.md stale?" question; sibling skills (**personal-stuff-repo-map**, **personal-stuff-architecture-contract**, **cloudflare-and-vps-reference**) link here instead of re-describing drift. Check mechanically, don't eyeball:
+This skill stays the single home of the "is INFRA.md stale?" question; sibling skills (**personal-stuff-architecture-contract**, **cloudflare-and-vps-reference**) link here instead of re-describing drift. Check mechanically, don't eyeball:
 
 `.claude/skills/personal-stuff-hosting-inventory/scripts/verify-inventory.sh` — compares INFRA.md against `apps/*/wrangler.*`, the hub-card `APPS` array, and `VPS-CRONS.md`; prints OK/DRIFT per row, exits 1 on any DRIFT, no network calls. All-OK as of 2026-07-12.
 
@@ -82,13 +82,3 @@ Remove the wrangler custom domain (or Traefik label), delete the three inventory
 - A listed site is DOWN → **personal-stuff-debugging-playbook** row 14
 - Deploy mechanics for a new surface → **personal-stuff-deploy-and-operate**
 - Platform details (bindings, domains) → **cloudflare-and-vps-reference**
-
-## Provenance and maintenance
-
-Map verified against `my-hosted-sites.md`, every `apps/*/wrangler.*`, app CLAUDE.mds, `INFRA.md`, and `VPS-CRONS.md` on 2026-07-05, re-verified 2026-07-12 (added timeblock; consolidated the INFRA.md drift descriptions from repo-map / architecture-contract / cloudflare-and-vps-reference into the canonical table above; those skills now point here). Re-verify:
-- Drift table: `.claude/skills/personal-stuff-hosting-inventory/scripts/verify-inventory.sh` (OK/DRIFT per row, exit 1 on any DRIFT)
-- List vs reality: `./scripts/probe-sites.sh`
-- Folder↔domain: `grep -rn "custom_domain\|pattern\|directory" apps/*/wrangler.*` (gym-app/kushal-docs: the source config carries the domain, but only `npm run deploy` — via `patch-routes.mjs` — actually ships it)
-- Hub cards: `grep -n "url" apps/kushal-tools/src/hub.ts`
-- D1 inventory (should be 5 — `clicks-db`, `lists-db`, `founders-db`, `tracker-db`, `yt-rankings`): `grep -rln "d1_databases" apps/*/wrangler.*` then `grep -n "database_name" <matches>`
-- Cron names/rows: `VPS-CRONS.md` → "Active crons" (`site-probe` hourly, `route-audit` weekly)
