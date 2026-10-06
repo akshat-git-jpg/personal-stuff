@@ -35,8 +35,8 @@ branch names, the commit lands by itself, the three allowed workspace-command fo
 `$VAR` path is refused). Read it before staging anything. `commit-now-work` is a separate
 user-level skill for ZluriHQ work repos only (split 2026-08-23).
 
-The one override policy that lives here: **never use `GUARD_OK=1`.** There are deliberately zero
-call sites. If the wall refuses one of commit-now's three forms, that is a bug in the wall: fix
+The one override policy that lives here: **never use `GUARD_OK=1` on your own**; only with the
+owner's say-so, for that one command. If the wall refuses one of commit-now's three forms, that is a bug in the wall: fix
 the wall, do not route around it (three forced uses in one afternoon before the 2026-08-23 fix).
 
 ## The non-negotiables (rule — rationale — incident)
