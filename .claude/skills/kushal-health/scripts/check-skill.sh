@@ -6,7 +6,7 @@ S="$D/SKILL.md"; M="$D/markers.md"; fail=0
 for h in "## Rules" "## Setup check" "## Read the PDF" "## Map to markers" "## Owner check" "## Write the verdict" "## Push" "## Confirm" "## Redo or fix a report"; do
   grep -qxF "$h" "$S" || { echo "missing section: $h"; fail=1; }
 done
-for s in "pdftotext -layout" "push-report.mjs --history" "push-report.mjs <json>" "Worth showing to your doctor." "120 words" ".ingest.env"; do
+for s in "pdftotext -layout" "push-report.mjs --history" "push-report.mjs <json>" "Worth showing to your doctor." "60 words" ".ingest.env"; do
   grep -qF -- "$s" "$S" || { echo "missing text: $s"; fail=1; }
 done
 grep -q '^name: kushal-health$' "$S" || { echo "bad frontmatter name"; fail=1; }

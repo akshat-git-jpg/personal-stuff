@@ -102,8 +102,48 @@ describe('BloodTab (home)', () => {
   })
 })
 
+describe('What this means', () => {
+  it('groups out-of-range tests by body area, worst first', () => {
+    home()
+    const cards = [...screen.getByTestId('insights').querySelectorAll('article')].map((a) => a.getAttribute('data-testid'))
+    expect(cards).toEqual(['insight-heart', 'insight-vitamins'])
+  })
+
+  it('explains what the test is, why it matters and what to do', () => {
+    home()
+    const card = screen.getByTestId('insight-heart')
+    expect(card.textContent).toContain('"bad" cholesterol')
+    expect(card.textContent).toContain('heart attack and stroke')
+    expect(card.textContent).toContain('Eat more fibre')
+    expect(card.textContent).toContain('up from 140 (worse)')
+  })
+
+  it('uses the low-side meaning for a low result', () => {
+    home()
+    const card = screen.getByTestId('insight-vitamins')
+    expect(card.textContent).toContain('weaken bones')
+    expect(card.textContent).toContain('midday sun')
+    expect(card.textContent).toContain('first time tested')
+  })
+})
+
 describe('Detail', () => {
   const detail = (key: string) => render(<Detail data={fixture} markerKey={key} />)
+
+  it('explains an out-of-range test with next steps', () => {
+    detail('ldl')
+    const about = screen.getByTestId('about')
+    expect(about.textContent).toContain('What it is')
+    expect(about.textContent).toContain('Why it matters')
+    expect(about.textContent).toContain('What you can do')
+  })
+
+  it('explains a normal test without alarm', () => {
+    detail('tsh')
+    const about = screen.getByTestId('about')
+    expect(about.textContent).toContain('If it goes high')
+    expect(about.textContent).not.toContain('What you can do')
+  })
 
   it('shows the latest value, status and change since the last test', () => {
     detail('ldl')

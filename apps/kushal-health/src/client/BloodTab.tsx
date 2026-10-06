@@ -6,8 +6,8 @@ import { fmtDate, fmtShort, fmtSpan } from './format'
 import BodyMap from './BodyMap'
 import LineChart from './LineChart'
 import { Chip, RangeBar, Sparkline } from './parts'
-
-export const markerHref = (key: string) => `#/m/${key}`
+import { markerHref } from './hrefs'
+import Insights from './Insights'
 
 function WorryCard({ m, labs }: { m: MarkerSeries; labs: Record<string, string> }) {
   const p = latest(m)
@@ -133,6 +133,8 @@ export default function BloodTab({ data }: { data: BloodData }) {
           ))}
         </section>
       )}
+
+      <Insights data={data} />
 
       <section className="section">
         <div className="section-head">

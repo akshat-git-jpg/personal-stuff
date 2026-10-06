@@ -86,14 +86,18 @@ says ok.
 
 ## Write the verdict
 
-Use the `--history` output to compare each marker with its last reading. The verdict must:
+The app already explains every out-of-range test (what it is, why it matters, what to do) from
+`apps/kushal-health/src/shared/guide.ts`, so the verdict is only the big picture. Use the
+`--history` output to compare with the last report. The verdict must:
 
-- be at most 120 words, in plain short sentences; any medical word gets a 3-word explanation;
-- start with a one-sentence overall call, e.g. "Mostly normal. 2 values need a look.";
-- have one bullet per out-of-range or near-edge marker: name, value and unit, the range, and
-  the change since last time if there is one ("up from 140 in Jun 2024");
-- have one bullet for clear improvements, if there are any;
+- be at most 60 words: 2–4 plain sentences, no bullets, no lists of numbers;
+- say the overall picture first, e.g. "Mostly fine, but three areas need attention: thyroid, cholesterol and uric acid.";
+- name what changed since the last report in words ("cholesterol and thyroid are worse; sugar is better");
+- name the single most important next step;
 - end with "Worth showing to your doctor." when anything is out of range.
+
+A marker key with no entry in `guide.ts` shows no explanation in the app: tell the owner, and
+add the entry (and its `markers.md` row) in a workspace before or after the push.
 
 Show the verdict to the owner before pushing. Put in any edits they ask for.
 
