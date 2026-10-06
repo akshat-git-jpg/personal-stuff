@@ -1,0 +1,37 @@
+{
+  "report": {
+    "id": "2024-06-10-test-lab-a",
+    "collected_on": "2024-06-10",
+    "lab": "Test Lab",
+    "source_file": "report-a.pdf",
+    "verdict": "Older report."
+  },
+  "results": [
+    {
+      "marker_key": "ldl",
+      "name": "LDL Cholesterol",
+      "panel": "Lipid",
+      "name_on_report": "LDL CHOLESTEROL",
+      "value_text": "140",
+      "value_num": 140,
+      "qualifier": null,
+      "unit": "mg/dL",
+      "ref_text": "<100",
+      "ref_low": null,
+      "ref_high": 100
+    },
+    {
+      "marker_key": "tsh",
+      "name": "TSH",
+      "panel": "Thyroid",
+      "name_on_report": "TSH",
+      "value_text": "3.2",
+      "value_num": 3.2,
+      "qualifier": null,
+      "unit": "µIU/mL",
+      "ref_text": "0.4 - 4.0",
+      "ref_low": 0.4,
+      "ref_high": 4
+    }
+  ]
+}

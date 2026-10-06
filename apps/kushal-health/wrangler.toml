@@ -1,0 +1,33 @@
+name = "kushal-health"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# SPA built into dist/, served by the Worker via the ASSETS binding.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# Shares kushal-income's D1 (the account is at the 10-database free limit, 2026-10-06).
+# Health tables: reports, markers, results. Own migrations table, so the apps never mix.
+[[d1_databases]]
+binding = "DB"
+database_name = "kushal-money"
+database_id = "1e875676-43a7-47f1-8fd3-5e9c28edb465"
+migrations_dir = "migrations"
+migrations_table = "health_migrations"
+
+# Original report PDFs. Owner creates with `npx wrangler r2 bucket create kushal-health-reports`.
+[[r2_buckets]]
+binding = "REPORTS"
+bucket_name = "kushal-health-reports"
+
+[[routes]]
+pattern = "kushal-health.agrolloo.com"
+custom_domain = true
+
+# Secrets (npx wrangler secret put <NAME>):
+#   APP_PASSWORD   - the owner's PIN
+#   SESSION_SECRET - signs the auth cookie
+#   INGEST_TOKEN   - bearer for scripts/push-report.mjs

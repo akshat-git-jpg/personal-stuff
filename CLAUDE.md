@@ -33,6 +33,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Session tags across your Claude Code sessions - the agents view grouped by tag (`pp-agents`) | `tooling/cli/pp-agents/README.md` |
 | Why the old binary-patch approach to tags was abandoned on 2.1.246 | `tooling/cli/pp-claude-tags/README.md` |
 | Send image-gen prompts to Google Flow from any pipeline (approve-the-look gates) | `tooling/cli/flow-queue/README.md` + the browser extension in `pipelines/video/zapi-flow-ext/` |
+| **Blood tests / lab reports / health data** — add a report, the trends, the verdict | `kushal-health` skill, then `apps/kushal-health/CLAUDE.md`. Health values never go into git, memory or docs |
 | **Any travel ask** (flight, train, bus, stay, ticket, booking, trip): start here | `travel` skill: routes to the CLIs below and the trip page, and carries the after-booking checklist (trip page + Drive folder) |
 | Flight search with live prices (Skyscanner, cheapest-day range) | `tooling/cli/flights/README.md` (`pp-flights`) |
 | Bus timings (Indore ↔ Badnagar, more routes as added) | `tooling/cli/bus/README.md` (`pp-bus`) |

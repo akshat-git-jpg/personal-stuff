@@ -1,0 +1,40 @@
+{
+  "name": "kushal-health",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev:api": ". ../../scripts/node22-path.sh && wrangler dev --port ${API_PORT:-8787}",
+    "dev:web": ". ../../scripts/node22-path.sh && vite",
+    "dev:local": "concurrently -k -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "build": ". ../../scripts/node22-path.sh && tsc -b && vite build",
+    "typecheck": ". ../../scripts/node22-path.sh && tsc -b",
+    "test": ". ../../scripts/node22-path.sh && vitest run",
+    "db:local": ". ../../scripts/node22-path.sh && wrangler d1 migrations apply DB --local",
+    "db:remote": ". ../../scripts/node22-path.sh && wrangler d1 migrations apply DB --remote",
+    "smoke": "bash scripts/smoke.sh",
+    "shoot": "node scripts/shoot.mjs",
+    "deploy": ". ../../scripts/node22-path.sh && npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "hono": "^4.12.23",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260811.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^24.12.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^10.0.3",
+    "jsdom": "^28.0.0",
+    "puppeteer-core": "^25.1.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12",
+    "vitest": "^4.1.9",
+    "wrangler": "^4.95.0"
+  }
+}
