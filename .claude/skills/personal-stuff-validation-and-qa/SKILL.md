@@ -14,7 +14,7 @@ The bar here is **"verified working", not "tests pass"** — this repo skips TDD
 | Level | Command | Applies to |
 |---|---|---|
 | 1. Static | `./scripts/check-apps.sh` — runs each app's `typecheck` (`tsc -b` on TS), `check` (`node --check` on JS), `lint`, `test` if present, + `bash -n` on shell scripts | any app change; CI-equivalent gate |
-| 2. Unit/guard | the app's `npm test` (vitest: tutorial-tracker-app ~76 `it`/`test` cases across 6 files incl. `engine.test.ts` as of 2026-07-12; lists-app; founders-tracker; timeblock; redirector `--passWithNoTests`) | apps with suites |
+| 2. Unit/guard | the app's `npm test` (vitest: tutorial-tracker-app ~76 `it`/`test` cases across 6 files incl. `engine.test.ts` as of 2026-07-12; lists-app; founders-tracker; redirector `--passWithNoTests`) | apps with suites |
 | 3. Smoke | run it and do one real user action (`npm run dev:local`, or the cron's `run.sh`, or the pipeline script on real input) | everything |
 | 4. Deploy | `./scripts/probe-sites.sh` + a real action on the live URL | after any deploy — see **personal-stuff-deploy-and-operate** |
 

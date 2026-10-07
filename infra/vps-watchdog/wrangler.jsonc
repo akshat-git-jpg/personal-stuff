@@ -1,5 +1,5 @@
 {
-  // VPS watchdog — runs on Cloudflare (off the VPS), pings the dashboard every
+  // VPS watchdog — runs on Cloudflare (off the VPS), pings render2 every
   // 2 minutes, and reboots the Hostinger VPS via API if the origin is truly down.
   "name": "vps-watchdog",
   "main": "src/index.js",
@@ -11,7 +11,7 @@
     { "binding": "WATCHDOG_KV", "id": "1e4a93d897d74c339490f3bf4cbc1570" }
   ],
   "vars": {
-    "TARGET_URL": "https://my-dashboard.agrolloo.com",
+    "TARGET_URL": "https://render2.agrolloo.com",
     "VPS_ID": "1377177",
     "COOLDOWN_SECONDS": "900",
     "FAIL_THRESHOLD": "3"

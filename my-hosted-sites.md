@@ -4,7 +4,6 @@
 - Gym tracker — https://kushal-gym.agrolloo.com
 - Sparkly Gym (friend's copy of the gym tracker) — https://sparkly-poop.agrolloo.com
 - Kushal Docs (document vault) — https://kushal-docs.agrolloo.com
-- Personal dashboard — https://my-dashboard.agrolloo.com
 - Tutorials tracker — https://tutorials-tracker.agrolloo.com
 - YT Analytics (link click dashboard) — https://yt-analytics.agrolloo.com (password-gated)
 - Kushal Money (personal ledger: SBI savings + SBI Card + Tata Neu + Amazon Pay ICICI, every payment tagged) — https://kushal-income.agrolloo.com (password-gated) — refreshed on demand by the `my-income` skill (`python3 -m ledger.run` in `pipelines/personal-finance`), which posts to the Worker's D1 `kushal-money`; the data is never committed; app at `apps/kushal-income`
@@ -16,7 +15,6 @@
 - Bride Bestie landing page — https://bridebestie.com
 - Hyperframes → Video renderer — https://render2.agrolloo.com (password-gated; editor pastes Hyperframes card HTML, downloads MP4)
 - Claude usage - http://localhost:4319/ (ccu-dash)
-- Timeblock day planner — https://timeblock.agrolloo.com (password-gated: APP_PASSWORD/SESSION_SECRET); Worker + KV (BLOCKS_KV), static `public/`; app at `apps/timeblock`
 - Dayboard (Google Calendar day view) — https://dayboard.agrolloo.com (password-gated: APP_PASSWORD/SESSION_SECRET); READ-ONLY mirror of Google Calendar — no writes, no store. Worker + KV (`CACHE_KV`, 50-min Google token + 60s day cache only), static `public/`; app at `apps/dayboard`
 - Closet (wear counter + outfit gallery) — https://closet.agrolloo.com (password-gated) — two tabs: Clothes (tap photo = +1 wear, ↺ washed = reset to 0, 10s Undo) and Looks (tagged outfit photos, AND-filter chips); installable PWA; Worker + D1 (closet-db) + R2 (closet-photos); app at `apps/closet-app`
 - Trip Planner (per-trip pin map: stay/transport/beach/sight/food/utility beside live location; navigation, live traffic and "near me" hand off to the Google Maps app) — https://trips.agrolloo.com (unlisted); installable PWA; Worker + KV (`TRIPS_KV`); `?trip=<slug>` deep-links to one trip; managed by `pp-trip` CLI + skill; app at `apps/trip-planner`

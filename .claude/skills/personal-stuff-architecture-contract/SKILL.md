@@ -50,7 +50,7 @@ One home per fact. The table of docs, their contracts and formats lives in **per
 
 ## Invariants (must not break)
 
-Owner-confirmed load-bearing set (2026-07-05). Important but not critical: VPS crons (daily digests, repo-sync) and personal PWAs (gym, docs, lists, founders, timeblock, dashboard). Archived — do not build on: `pipelines/archive/hyperframes-vs-remotion/`, `pipelines/archive/rvc-flow/` (superseded by IndexTTS-2, 2026-07-12), anything decommissioned in **personal-stuff-failure-archaeology**.
+Owner-confirmed load-bearing set (2026-07-05). Important but not critical: VPS crons (daily digests, repo-sync) and personal PWAs (gym, docs, lists, founders). Archived — do not build on: `pipelines/archive/hyperframes-vs-remotion/`, `pipelines/archive/rvc-flow/` (superseded by IndexTTS-2, 2026-07-12), anything decommissioned in **personal-stuff-failure-archaeology**.
 
 | Invariant | Rationale / what breaks if violated |
 |---|---|

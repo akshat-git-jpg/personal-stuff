@@ -1,6 +1,6 @@
 // VPS watchdog Worker.
 //
-// Cron (every 2 min): probe the dashboard. If it fails FAIL_THRESHOLD checks in a
+// Cron (every 2 min): probe TARGET_URL. If it fails FAIL_THRESHOLD checks in a
 // row, the origin VPS is considered hung — reboot it via the Hostinger API, then
 // hold off for COOLDOWN_SECONDS so we don't reboot-loop while it boots back up.
 //

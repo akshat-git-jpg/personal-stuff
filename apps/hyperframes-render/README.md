@@ -21,7 +21,7 @@ Optional: `HF_VERSION` (Hyperframes version, default 0.6.97), `FPS` (default 30)
 
 ## Deploy
 
-Runs as a Docker container on the Hostinger VPS behind the existing Traefik v3, same pattern as personal-dashboard. Deploy dir on the VPS is `/docker/hyperframes-render/` (holds `.env`). The `Host(...)` rule in `docker-compose.yml` sets the subdomain. Chrome needs `shm_size: 1gb` — the default 64MB is not enough.
+Runs as a Docker container on the Hostinger VPS behind the existing Traefik v3. Deploy dir on the VPS is `/docker/hyperframes-render/` (holds `.env`). The `Host(...)` rule in `docker-compose.yml` sets the subdomain. Chrome needs `shm_size: 1gb` — the default 64MB is not enough.
 
 ```bash
 docker compose up -d --build

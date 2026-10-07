@@ -12,7 +12,7 @@ Three deployment surfaces, three mechanisms. **Deploys go to production directly
 | Surface | Mechanism | Verify |
 |---|---|---|
 | Cloudflare Worker (`apps/*` with wrangler config) | `npm run deploy` inside the app folder | curl the URL + app smoke test |
-| VPS Docker app (personal-dashboard, hyperframes-render) | SSH → `cd /docker/<name> && docker compose up -d --build` | `docker ps` + curl the domain |
+| VPS Docker app (hyperframes-render) | SSH → `cd /docker/<name> && docker compose up -d --build` | `docker ps` + curl the domain |
 | VPS cron | Pattern B (code in git, wiring via SSH) — lifecycle in `VPS-CRONS.md`; schedule/dep changes: `ssh root@72.61.241.170 '/srv/crons/vps-apply.sh'` | manual run: `/srv/crons/<job>/run.sh`, then `tail logs/cron.log` |
 
 **Orchestrated path (plan-driven work): boss** (`tooling/boss/`, captain's successor — captain was deleted 2026-08-23). Boss lands PRs via greenlight then runs the gated `bin/boss-deploy.sh`. Standing permission (decisions.md 2026-07-11): boss may execute the owner-side deploy chain itself — `wrangler secret put`/`deploy`, VPS SSH cron wiring, committing wrappers to `vps-crons`, syncing the mirrored `VPS-CRONS.md` copies — but ONLY after the owner explicitly says "deploy" (or equivalent) on that item; the deploy gate itself is unchanged. Still human-only: interactive browser OAuth consent and deleting a live credential/account.
@@ -27,10 +27,10 @@ Three deployment surfaces, three mechanisms. **Deploys go to production directly
 
 ## VPS Docker apps
 
-- Deploy dir on the VPS (`/docker/<name>/`) holds the compose file + `.env`; rebuild with `docker compose up -d --build`. Source of truth for code is the repo (`apps/personal-dashboard/`, `apps/hyperframes-render/`) — keep them in sync when shipping.
+- Deploy dir on the VPS (`/docker/<name>/`) holds the compose file + `.env`; rebuild with `docker compose up -d --build`. Source of truth for code is the repo (`apps/hyperframes-render/`) — keep it in sync when shipping.
 - hyperframes-render specifically: deploy dir is `/docker/hyperframes-render/`; ship updates by rsync from `apps/hyperframes-render/` (exclude `node_modules`/`.env`) then `docker compose up -d --build` on the box. Note: VPS renders output 1080p; local `--quality high` gives 4K/2× DPR.
 - hyperframes-render mounts card templates read-only from the VPS repo clone (`/srv/projects/personal-stuff/pipelines/video/card-library/`), which the `repo-sync` cron refreshes every 15 min — **template changes are just `git push`; never hand-edit on the VPS.**
-- Traefik owns 80/443; a new VPS-hosted domain means a Traefik label in the compose file + a proxied DNS A/AAAA record to `72.61.241.170` (see `my-dashboard` / `render2` rows in `INFRA.md`).
+- Traefik owns 80/443; a new VPS-hosted domain means a Traefik label in the compose file + a proxied DNS A/AAAA record to `72.61.241.170` (see the `render2` row in `INFRA.md`).
 
 ## Crons — operational cheat sheet
 

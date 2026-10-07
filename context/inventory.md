@@ -7,7 +7,6 @@ This inventory tracks all apps, websites, and tools hosted under this repository
 | **KushalTools** | [kushal-tools.agrolloo.com](https://kushal-tools.agrolloo.com) | `apps/kushal-tools/` (Worker) | Shared launcher hub linking all live agrolloo.com sites | **Live** (Password Gated) |
 | **Gym Tracker** | [kushal-gym.agrolloo.com](https://kushal-gym.agrolloo.com) | `apps/gym-app/` (Worker) | Personal Gym & Workout PWA backed by Google Sheets | **Live** |
 | **Kushal Docs** | [kushal-docs.agrolloo.com](https://kushal-docs.agrolloo.com) | `apps/kushal-docs/` (Worker) | Document Vault PWA backed by Cloudflare R2 | **Live** (Google Auth Gated) |
-| **Personal Dashboard** | [my-dashboard.agrolloo.com](https://my-dashboard.agrolloo.com) | `apps/personal-dashboard/` (Docker) | Mobile PWA dashboard for daily metrics and tracking | **Live** (Auth Gated) |
 | **Tutorials Tracker** | [tutorials-tracker.agrolloo.com](https://tutorials-tracker.agrolloo.com) | `apps/analytics-app/` (Worker) | YouTube tutorial pipeline Kanban tracker & link shortener | **Live** |
 | **YT Analytics** | [yt-analytics.agrolloo.com](https://yt-analytics.agrolloo.com) | `apps/analytics-app/` (Worker) | Click dashboard over D1 clicks-db + YouTube view counts | **Live** (Password Gated) |
 | **Founders Tracker** | [founders.agrolloo.com](https://founders.agrolloo.com) | `apps/founders-tracker/` (Worker) | Action item tracking for Khushi + Kushal | **Live** (Password Gated) |

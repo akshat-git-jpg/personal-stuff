@@ -47,7 +47,7 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 `is_auto_renewed: true`, next billing **2027-01-31**; default Visa card on file, not expired
 (good to 2032-09-30).
 
-### Workers (14 deployed, no Pages projects)
+### Workers (13 deployed, no Pages projects)
 - **redirector** — `go.agrolloo.com/*` — URL shortener + click tracking. Bindings: `CLICKS_KV`, `clicks-db` (D1).
 - **kushal-tools** — `kushal-tools.agrolloo.com` — KushalTools hub: card launcher linking every live agrolloo.com site. Shared-password gate (stateless signed cookie, no KV). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. No bindings.
 - **kushal-gym** — `kushal-gym.agrolloo.com` — gym PWA, Google Sheet-backed via OAuth refresh token.
@@ -60,7 +60,6 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 - **yt-analytics** — `yt-analytics.agrolloo.com` — click dashboard (per-video/per-link counts) over `clicks-db`, plus **live YouTube view counts** fetched from the YouTube Data API per load. Shared-password gate (stateless signed cookie, no KV). Binding: `clicks-db` (D1, read-only). Secrets: `APP_PASSWORD`, `SESSION_SECRET`, `YT_API_KEY` (YouTube Data API v3 key, project `n8n-workflows-454504`).
 - **lists-app** — `lists.agrolloo.com` — personal categorized-lists app (SPA). Shared-password gate (stateless signed cookie, no KV). Bindings: `ASSETS` (SPA in `dist/`), `DB` (D1 `lists-db`). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 - **founders-tracker** — `founders.agrolloo.com` — founders/CRM tracker SPA. Bindings: `ASSETS`, `DB` (D1 `founders-db`). Worker cron `35 18 * * *`. Secrets: `APP_PIN`, `SESSION_SECRET`.
-- **timeblock** — `timeblock.agrolloo.com` — tap-to-block day planner. Shared-password gate (stateless signed cookie, no KV sessions). Bindings: `ASSETS`, `BLOCKS_KV` (KV, one JSON blob per day). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 - **dayboard** — `dayboard.agrolloo.com` — read-only Google Calendar day board (pings / context bands / inline descriptions). Shared-password gate (stateless signed cookie). Bindings: `ASSETS`, `CACHE_KV` (KV — caches ONLY the Google access token ~50 min and the day payload 60 s; never a source of truth). Secrets: `APP_PASSWORD`, `SESSION_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (the shared `kushalbakliwal25@gmail.com` token that routine-ringer also uses). Writes nothing to Google — every call is a GET.
 - **closet-app** — `closet.agrolloo.com` — wear counter + tagged outfit gallery PWA (two tabs: Clothes = raw wears-since-wash per garment, Looks = tagged outfit photos). Shared-password gate (stateless signed cookie, no KV). Bindings: `ASSETS` (SPA in `dist/`), `DB` (D1 `closet-db`), `PHOTOS` (R2 `closet-photos`). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. Deployed 2026-08-17.
 - **trip-planner** — `trips.agrolloo.com` — per-trip pin map PWA (one dropdown, one URL). MapLibre + OSM tiles for the pin canvas; navigation, live traffic, place details and "near me" search hand off to the Google Maps app via `google.com/maps/dir/` and `.../search/` URLs. No login (unlisted). Bindings: `TRIPS_KV` (KV, one JSON per trip + reserved `__index` for the dropdown). Secret: `ADMIN_TOKEN` (write-gate for the `pp-trip` CLI). Deployed 2026-09-10.
@@ -68,13 +67,12 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
   - **Plan view** (day list + booking documents) reads `days` / `bookings` / `docsFolderUrl` from the trip JSON. **Booking files are Google Drive links, not uploads** — one folder per trip at `My Drive / Trips / <trip name>` on the personal account `kushalbakliwal25@gmail.com`, kept private so Drive's own login gates the files. Reads on this app have no login, so anything served from here would be public; a booking's visible `fields` (phone, ticket ref, passenger name) are therefore public by design and private material belongs in the folder only. Varkala Sep 2026 folder: `16y-IFrlP1SnScRY9M3YyfDkXpvEc8ASc`.
 - **yt-script-desk** — `https://script-desk.agrolloo.com` — access is a per-video secret link; there is no login. Binding: `DESK_DB` (D1 `script-desk-db`). Secret: `DESK_ADMIN_TOKEN`.
 - **bridebestie** — `bridebestie.com` + `www` — static landing page (assets-only).
-- **vps-watchdog** — cron `*/2 * * * *`, no HTTP route — pings the dashboard; reboots VPS via Hostinger API if down. Binding: `WATCHDOG_KV`.
+- **vps-watchdog** — cron `*/2 * * * *`, no HTTP route — pings `render2.agrolloo.com`; reboots VPS via Hostinger API if down. Binding: `WATCHDOG_KV`.
 
-### KV namespaces (6)
+### KV namespaces (5)
 - `WATCHDOG_KV` — vps-watchdog state.
 - `CLICKS_KV` — redirector clicks.
 - `SESSIONS` — tutorials-tracker logins.
-- `BLOCKS_KV` — timeblock day blobs (key `day:YYYY-MM-DD`).
 - `TRIPS_KV` — trip-planner trips (key = slug; value = trip JSON; reserved `__index` = dropdown data).
 - `CACHE_KV` — dayboard's short-lived caches (Google access token, one day payload). Safe to purge at any time.
 
@@ -93,9 +91,8 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 
 ### DNS — agrolloo.com
 - `agrolloo.com` + `www` → `191.101.230.133` (Hostinger shared hosting, proxied) — NOT the VPS, NOT a Worker.
-- `my-dashboard.agrolloo.com` → `72.61.241.170` (VPS, proxied) — personal-dashboard container via Traefik.
 - `render2.agrolloo.com` → `72.61.241.170` (VPS, proxied) — Hyperframes → MP4 renderer behind Traefik (added after the 2026-06-13 audit).
-- `go` / `kushal-gym` / `sparkly-poop` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` / `founders` / `timeblock` / `dayboard` / `vo` / `closet` → the 13 routed Workers above (custom domains show as proxied `AAAA 100::`).
+- `go` / `kushal-gym` / `sparkly-poop` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` / `founders` / `dayboard` / `vo` / `closet` → the 12 routed Workers above (custom domains show as proxied `AAAA 100::`).
 - `ftp.agrolloo.com` → `191.101.230.133` (Hostinger hosting).
 - MX + `autoconfig` / `autodiscover` / DKIM → Hostinger mail.
 - `send.notifications.agrolloo.com` + `resend._domainkey` → Amazon SES / Resend (transactional email sending).
@@ -140,10 +137,9 @@ silently. Account config (hosts, ports, env-var names, no secrets) is committed 
   3. **D1 dumps in R2** (`d1-backups`) — the only copy that survives losing the VPS.
      Data only, no box config; rebuilding the VPS is a separate job.
 
-### Docker containers (5, all up — verified via `docker ps` 2026-08-30)
+### Docker containers (4, all up — `personal-dashboard` removed 2026-10-08)
 - **n8n-traefik-1** (traefik) — reverse proxy + Let's Encrypt TLS; the box's public edge. Ports `:80`, `:443`.
 - **n8n-n8n-1** (n8nio/n8n) — workflow automation. Internal `:5678`.
-- **personal-dashboard** (local build) — mobile dashboard PWA at `my-dashboard.agrolloo.com`. Internal `:8787`.
 - **hyperframes-render** (local build) — Hyperframes → MP4 renderer at `render2.agrolloo.com`, behind Traefik.
 - **minio** (minio) — S3-style asset storage. **Loopback only** `:9000/9001` (reach via SSH tunnel).
 
@@ -164,7 +160,7 @@ silently. Account config (hosts, ports, env-var names, no secrets) is committed 
 ### Key paths
 - `/srv/projects/personal-stuff` — code clone (read-only deploy key).
 - `/srv/crons` — cron orchestration (read-write deploy key).
-- `/docker/{n8n,minio,personal-dashboard}` — compose projects.
+- `/docker/{n8n,minio,hyperframes-render}` — compose projects.
 
 ### Services
 - `claude-rc.service` — Claude Code Remote Control (personal Pro).

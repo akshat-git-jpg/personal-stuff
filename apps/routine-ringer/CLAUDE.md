@@ -37,4 +37,3 @@ Deduped via `state.json` (fired event ids, pruned after 3 days).
 ## Related
 
 - `apps/telegram-my-planner/tools/daily-digest/` — same auth pattern (vendored token), same VPS-cron shape. Copy-adapt anything from there.
-- `apps/personal-dashboard/src/lib/googleCalendar.js` — Node-side calendar reader, richer parsing if this script ever grows.
