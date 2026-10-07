@@ -25,6 +25,7 @@ const APPS: App[] = [
   { name: "YT Income", host: "yt-income.agrolloo.com", url: "https://yt-income.agrolloo.com", kind: "app" },
   { name: "Kushal Income", host: "kushal-income.agrolloo.com", url: "https://kushal-income.agrolloo.com", kind: "app" },
   { name: "Kushal Health", host: "kushal-health.agrolloo.com", url: "https://kushal-health.agrolloo.com", kind: "app" },
+  { name: "Kushal Salary", host: "kushal-salary.agrolloo.com", url: "https://kushal-salary.agrolloo.com", kind: "app" },
   { name: "Founders Tracker", host: "founders.agrolloo.com", url: "https://founders.agrolloo.com", kind: "app" },
   { name: "Dayboard", host: "dayboard.agrolloo.com", url: "https://dayboard.agrolloo.com", kind: "app" },
   { name: "Hyperframes Renderer", host: "render2.agrolloo.com", url: "https://render2.agrolloo.com", kind: "infra" },

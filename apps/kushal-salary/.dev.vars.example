@@ -1,0 +1,4 @@
+# Copy to .dev.vars (gitignored) for local `wrangler dev`.
+APP_PASSWORD="1234"
+SESSION_SECRET="change me to a long random string"
+INGEST_TOKEN="change me to a long random string too"

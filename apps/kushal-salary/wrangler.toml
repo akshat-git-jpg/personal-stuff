@@ -1,0 +1,33 @@
+name = "kushal-salary"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# SPA built into dist/, served by the Worker via the ASSETS binding.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# Shares kushal-income's D1 (the account is at the 10-database free limit, 2026-10-06).
+# Salary tables: salary_months, salary_items, salary_notes. Own migrations table.
+[[d1_databases]]
+binding = "DB"
+database_name = "kushal-money"
+database_id = "1e875676-43a7-47f1-8fd3-5e9c28edb465"
+migrations_dir = "migrations"
+migrations_table = "salary_migrations"
+
+# Payslip and letter PDFs. Owner creates with `npx wrangler r2 bucket create kushal-salary-slips`.
+[[r2_buckets]]
+binding = "SLIPS"
+bucket_name = "kushal-salary-slips"
+
+[[routes]]
+pattern = "kushal-salary.agrolloo.com"
+custom_domain = true
+
+# Secrets (npx wrangler secret put <NAME>):
+#   APP_PASSWORD   - the owner's PIN
+#   SESSION_SECRET - signs the auth cookie
+#   INGEST_TOKEN   - bearer for scripts/push-month.mjs and push-note.mjs
