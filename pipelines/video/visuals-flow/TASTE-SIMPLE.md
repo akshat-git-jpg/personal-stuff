@@ -119,3 +119,19 @@ first and fix the cards that actually look wrong, rather than retrofitting all
 
 **Enforced by:** author judgement (the notice itself is non-blocking by
 design).
+
+## S-T9 — A line that names no tool shows no tool logo.
+
+The links, call-to-action and "let's jump in" lines are about every tool in the
+video. Do not pick a logo card for them, and do not fill a logo variable on them.
+Same rule as `TASTE-INTRO.md` `T31`; it is about what a logo MEANS, so it holds in
+either flow.
+
+**From:** best-no-code-automation-tool, 2026-08-18, folded 2026-10-08. Owner:
+*"It's better to don't show any icon when links below kind things are appeared on
+the audio. Remember this for the future lessons also"*, and *"you showed n8n and
+flowise only ... our video looks biased. It feels like we only promote these two
+tools."*
+
+**Enforced by:** author judgement at 115. Check: for each beat with a logo, the
+spoken clause names that tool.

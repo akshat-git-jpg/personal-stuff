@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-16T17:46:50.070Z",
+  "updated": "2026-10-07T18:41:39.206Z",
   "items": {
     "intro-b03": {
       "status": "fixed",
@@ -36,6 +36,126 @@
     "intro:0": {
       "status": "fixed",
       "message": "intro simplified per owner: shards duplicate removed at b14, logos dropped at b16, scorecard replaced by a plain bullet list, chain named at b08, LangChain slide removed. T18/T19/T20 written to TASTE-INTRO."
+    },
+    "intro-b01": {
+      "status": "fixed",
+      "message": "T21"
+    },
+    "intro-b02": {
+      "status": "fixed",
+      "message": "T21"
+    },
+    "intro-b03#2": {
+      "status": "fixed",
+      "message": "T21"
+    },
+    "intro-b04": {
+      "status": "fixed",
+      "message": "T21"
+    },
+    "intro-b05": {
+      "status": "fixed",
+      "message": "T21"
+    },
+    "intro-b06#2": {
+      "status": "fixed",
+      "message": "T21"
+    },
+    "intro-b07": {
+      "status": "fixed",
+      "message": "T21 (complexity) + T30 (avatar size varies by beat)"
+    },
+    "intro-b08#2": {
+      "status": "fixed",
+      "message": "T21"
+    },
+    "intro-b11#2": {
+      "status": "fixed",
+      "message": "T25 (draw-on stroke length measured from the path)"
+    },
+    "intro-b12#2": {
+      "status": "fixed",
+      "message": "T24 (a distributed row is computed, never typed)"
+    },
+    "intro-b13": {
+      "status": "fixed",
+      "message": "T21"
+    },
+    "intro-b14#2": {
+      "status": "fixed",
+      "message": "T21"
+    },
+    "intro-b15": {
+      "status": "fixed",
+      "message": "T22 (agenda built from the promise); bullet-template ask withdrawn as T23"
+    },
+    "intro-b16": {
+      "status": "fixed",
+      "message": "T26 (two lines must not say the same thing) + T31 / S-T9 (no tool logo on a line that names no tool)"
+    },
+    "intro-b17": {
+      "status": "fixed",
+      "message": "T31 / S-T9 (no tool logo on a line that names no tool)"
+    },
+    "final-v2:0": {
+      "status": "fixed",
+      "message": "T27 (a reveal lands on its word) + check-film-timing.mjs"
+    },
+    "final-v2:1": {
+      "status": "fixed",
+      "message": "T28 (stage centres when the presenter is off screen)"
+    },
+    "final-v2:2": {
+      "status": "fixed",
+      "message": "T29 (a clause naming a thing and its opposite shows both)"
+    },
+    "final-v2:3": {
+      "status": "fixed",
+      "message": "T27 (a reveal lands on its word) + check-film-timing.mjs"
+    },
+    "final-v2:4": {
+      "status": "fixed",
+      "message": "covered by T6 (a set at rest must look level)"
+    },
+    "final-v2:5": {
+      "status": "fixed",
+      "message": "T27 (a reveal lands on its word) + check-film-timing.mjs"
+    },
+    "final-v2:6": {
+      "status": "fixed",
+      "message": "T30 (presenter treatment varies with the beat)"
+    },
+    "final-v2:7": {
+      "status": "fixed",
+      "message": "CAP_Y_FRAC 0.87 -> 0.90 in lib/effects/captions.mjs + lib/captions.mjs (all videos)"
+    },
+    "final-v2:8": {
+      "status": "fixed",
+      "message": "lib/side-mode.mjs now throws when a side span is shorter than its card"
+    },
+    "final-v2:9": {
+      "status": "fixed",
+      "message": "instance-only, no rule"
+    },
+    "final-v2:10": {
+      "status": "fixed",
+      "message": "instance-only, no rule"
+    },
+    "final-v2:11": {
+      "status": "fixed",
+      "message": "overlap probe added (lib/overflow-measure.mjs)"
+    },
+    "final-v2:12": {
+      "status": "fixed",
+      "message": "630 README: a retired idea is retired from concept.json and cues too"
+    },
+    "final-v2:13": {
+      "status": "fixed",
+      "message": "instance-only, no rule"
+    },
+    "final-v2:14": {
+      "status": "fixed",
+      "message": "assemble.mjs ending guard: a video ends on something authored"
     }
   }
 }

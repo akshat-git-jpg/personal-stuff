@@ -40,6 +40,14 @@ So, before a lesson is written to any surface:
    the new lesson would reverse. If one exists, it is a conflict for the owner to
    settle, not a silent overwrite — the same instruction Phase 3 already carries.
 
+## A retired idea is retired from the whole video
+
+When a fold removes a metaphor or motif (a word, a device) from one surface, grep
+`concept.json`, `cues.json` and `resolved.json` for it and remove it there too.
+Owner, best-no-code-automation-tool 2026-08-20: *"I have changed the intro toll
+graphic thing. Then why this toll thing is appearing here"*. The intro fold dropped
+the toll, but `concept.json` still carried it, and two conclusion cards had quoted it.
+
 ## Procedure
 
 1. Collect feedback from two inputs:

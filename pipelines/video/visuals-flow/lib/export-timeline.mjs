@@ -448,7 +448,7 @@ anchor the whole track slides ~25s early.
 SRT carries words and timecodes and nothing else, so Resolve styles it
 with its own oversized white default. To match the burn, set the subtitle
 track style (Inspector -> Track Style) to Helvetica Bold, size 44, white
-with a 2px black border, no shadow, bottom-centre, bottom margin 140px
+with a 2px black border, no shadow, bottom-centre, bottom margin 108px
 (these are CAP_FONT_PX and CAP_Y_FRAC from lib/effects/captions.mjs at
 1080p — recompute if the canvas changes).
 

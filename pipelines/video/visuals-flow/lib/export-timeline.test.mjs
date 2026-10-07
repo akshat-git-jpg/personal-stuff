@@ -227,7 +227,7 @@ test('assFromCaptions: carries the burn style and per-word keyword colour', () =
 
   assert.ok(ass.includes('PlayResX: 1920') && ass.includes('PlayResY: 1080'));
   // same style line assemble builds: Helvetica 44, bold, outline 2, bottom-centre
-  assert.ok(/Style: Cap,Helvetica,44,&H00FFFFFF,&H00000000,&H00000000,1,2,0,2,40,40,140,1/.test(ass),
+  assert.ok(/Style: Cap,Helvetica,44,&H00FFFFFF,&H00000000,&H00000000,1,2,0,2,40,40,108,1/.test(ass),
     `style line mismatch:\n${ass.split('\n').find((l) => l.startsWith('Style:'))}`);
   // ASS centiseconds, absolute timeline time. Centiseconds FLOOR, exactly as
   // assemble's formatAssTime does — 25.61 lands on .60, and matching the burn
@@ -241,9 +241,9 @@ test('assFromCaptions: carries the burn style and per-word keyword colour', () =
 test('assFromCaptions: margin follows yFrac, size follows canvas height', () => {
   const chunks = [{ start: 0, end: 1, words: [{ text: 'x', hl: false }] }];
   const ass = assFromCaptions({ chunks, w: 3840, h: 2160 });
-  // 44px scales with height, margin is (1 - 0.87) of height
+  // 44px scales with height, margin is (1 - 0.90) of height
   assert.ok(ass.includes('Style: Cap,Helvetica,88,'), 'font scales to canvas');
-  assert.ok(/,40,40,281,1/.test(ass), `margin should be 2160-round(2160*0.87)=281:\n${ass}`);
+  assert.ok(/,40,40,216,1/.test(ass), `margin should be 2160-round(2160*0.90)=216:\n${ass}`);
 });
 
 test('buildNativeFcpxml: native generator layers', () => {
