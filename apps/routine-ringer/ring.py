@@ -21,6 +21,8 @@ Env (.env next to this file):
   TELEGRAM_BOT_TOKEN    Optional. If set with chat id, sends label message.
   TELEGRAM_CHAT_ID      Optional.
   TELEGRAM_THREAD_ID    Optional. Forum topic id when the chat is a group.
+  DAYBOARD_RINGER_TOKEN Optional. Bearer token for dayboard's mute switch. Unset = never muted.
+  DAYBOARD_URL          Default https://dayboard.agrolloo.com
 """
 from __future__ import annotations
 
@@ -50,6 +52,8 @@ CALENDAR_ID = os.environ.get("CALENDAR_ID", "primary")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 TELEGRAM_THREAD_ID = os.environ.get("TELEGRAM_THREAD_ID", "")
+DAYBOARD_URL = os.environ.get("DAYBOARD_URL", "https://dayboard.agrolloo.com").rstrip("/")
+DAYBOARD_RINGER_TOKEN = os.environ.get("DAYBOARD_RINGER_TOKEN", "")
 
 # Fire if event.start is in [now - PAST_WINDOW, now + FUTURE_WINDOW].
 # Cron runs every minute; this 90s window guarantees no event is missed
@@ -121,6 +125,23 @@ def event_start(ev: dict, tz: ZoneInfo) -> datetime.datetime | None:
     return None
 
 
+def is_muted() -> bool:
+    """The mute switch on dayboard. Any failure reads as NOT muted: a missed ring is worse than an extra one."""
+    if not DAYBOARD_RINGER_TOKEN:
+        return False
+    try:
+        r = requests.get(
+            f"{DAYBOARD_URL}/ringer/state",
+            headers={"Authorization": f"Bearer {DAYBOARD_RINGER_TOKEN}"},
+            timeout=5,
+        )
+        r.raise_for_status()
+        return r.json().get("muted") is True
+    except Exception as e:
+        print(f"[warn] mute check failed, ringing anyway: {e}", file=sys.stderr, flush=True)
+        return False
+
+
 def fire_bark(title: str, body: str) -> None:
     if not BARK_URL:
         raise RuntimeError("BARK_URL is not set")
@@ -185,6 +206,14 @@ def main() -> int:
         body = " | ".join(titles) if n > 1 else titles[0]
         push_title = f"🔔 Routine Time ({n})" if n > 1 else "🔔 Routine Time"
         first_start = due[0][1]
+        if is_muted():
+            # Mark as fired so unmuting later never replays these.
+            now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
+            for (_, _, dedupe_key) in due:
+                state["fired"][dedupe_key] = now_ts
+            print(f"[muted] {first_start.strftime('%H:%M')} {n} event(s) skipped: {body}", flush=True)
+            save_state(state)
+            return 0
         try:
             fire_bark(push_title, body)
             fire_telegram(f"⏰ {first_start.strftime('%H:%M')} — {body}")

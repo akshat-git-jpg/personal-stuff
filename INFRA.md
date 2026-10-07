@@ -61,7 +61,7 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 - **yt-analytics** — `yt-analytics.agrolloo.com` — click dashboard (per-video/per-link counts) over `clicks-db`, plus **live YouTube view counts** fetched from the YouTube Data API per load. Shared-password gate (stateless signed cookie, no KV). Binding: `clicks-db` (D1, read-only). Secrets: `APP_PASSWORD`, `SESSION_SECRET`, `YT_API_KEY` (YouTube Data API v3 key, project `n8n-workflows-454504`).
 - **lists-app** — `lists.agrolloo.com` — personal categorized-lists app (SPA). Shared-password gate (stateless signed cookie, no KV). Bindings: `ASSETS` (SPA in `dist/`), `DB` (D1 `lists-db`). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 - **founders-tracker** — `founders.agrolloo.com` — founders/CRM tracker SPA. Bindings: `ASSETS`, `DB` (D1 `founders-db`). Worker cron `35 18 * * *`. Secrets: `APP_PIN`, `SESSION_SECRET`.
-- **dayboard** — `dayboard.agrolloo.com` — read-only Google Calendar day board (pings / context bands / inline descriptions). Shared-password gate (stateless signed cookie). Bindings: `ASSETS`, `CACHE_KV` (KV — caches ONLY the Google access token ~50 min and the day payload 60 s; never a source of truth). Secrets: `APP_PASSWORD`, `SESSION_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (the shared `kushalbakliwal25@gmail.com` token that routine-ringer also uses). Writes nothing to Google — every call is a GET.
+- **dayboard** — `dayboard.agrolloo.com` — read-only Google Calendar day board (pings / context bands / inline descriptions). Shared-password gate (stateless signed cookie). Bindings: `ASSETS`, `CACHE_KV` (KV — caches ONLY the Google access token ~50 min and the day payload 60 s; never a source of truth), `SETTINGS_KV` (the phone-ring mute switch). Secrets: `APP_PASSWORD`, `SESSION_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (the shared `kushalbakliwal25@gmail.com` token that routine-ringer also uses), `RINGER_TOKEN` (routine-ringer reads the mute switch with it). Writes nothing to Google — every call is a GET.
 - **closet-app** — `closet.agrolloo.com` — wear counter + tagged outfit gallery PWA (two tabs: Clothes = raw wears-since-wash per garment, Looks = tagged outfit photos). Shared-password gate (stateless signed cookie, no KV). Bindings: `ASSETS` (SPA in `dist/`), `DB` (D1 `closet-db`), `PHOTOS` (R2 `closet-photos`). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. Deployed 2026-08-17.
 - **trip-planner** — `trips.agrolloo.com` — per-trip pin map PWA (one dropdown, one URL). MapLibre + OSM tiles for the pin canvas; navigation, live traffic, place details and "near me" search hand off to the Google Maps app via `google.com/maps/dir/` and `.../search/` URLs. No login (unlisted). Bindings: `TRIPS_KV` (KV, one JSON per trip + reserved `__index` for the dropdown). Secret: `ADMIN_TOKEN` (write-gate for the `pp-trip` CLI). Deployed 2026-09-10.
   - **Geocoding** happens at pin-authoring time in the `pp-trip` CLI, never in the Worker and never in the browser — so page views cost nothing. Ladder: cache → Nominatim (bounded) → **Google Places API (New)**. The Places key lives in `infra/secrets/google-places.env` (gitignored) on Google Cloud project **`n8n-workflows-454504`** (shared with the Gmail/Drive OAuth client), restricted to `places.googleapis.com`. **That project has no billing account attached on purpose:** the key cannot be charged, so past the free tier calls fail instead of costing money. Results cache permanently in `apps/trip-planner/geocache.json` (git-tracked).
@@ -70,12 +70,13 @@ The token's own account (VPS only), read 2026-08-30: subscription **KVM 2**, ₹
 - **bridebestie** — `bridebestie.com` + `www` — static landing page (assets-only).
 - **vps-watchdog** — cron `*/2 * * * *`, no HTTP route — pings `render2.agrolloo.com`; reboots VPS via Hostinger API if down. Binding: `WATCHDOG_KV`.
 
-### KV namespaces (5)
+### KV namespaces (6)
 - `WATCHDOG_KV` — vps-watchdog state.
 - `CLICKS_KV` — redirector clicks.
 - `SESSIONS` — tutorials-tracker logins.
 - `TRIPS_KV` — trip-planner trips (key = slug; value = trip JSON; reserved `__index` = dropdown data).
 - `CACHE_KV` — dayboard's short-lived caches (Google access token, one day payload). Safe to purge at any time.
+- `SETTINGS_KV` — dayboard owner settings. Today one key, `ringer:muted`: the phone-ring mute switch routine-ringer reads. **Not** safe to purge (it would unmute the phone).
 
 ### D1 databases (6)
 - `lists-db` — lists-app data store (categories + items). Bound as `DB` in lists-app only.

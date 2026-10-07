@@ -19,6 +19,12 @@ binding = "ASSETS"
 binding = "CACHE_KV"
 id = "173438186cd3484194ff856411716b02"
 
+# Owner settings that must survive a cache purge. Today: `ringer:muted`, the phone-ring
+# mute switch that routine-ringer reads through GET /ringer/state.
+[[kv_namespaces]]
+binding = "SETTINGS_KV"
+id = "eed8ae25533e46bb9b0af9d5d4b042d4"
+
 # Custom domain — Cloudflare auto-provisions DNS + SSL on the agrolloo.com zone.
 [[routes]]
 pattern = "dayboard.agrolloo.com"
@@ -30,3 +36,4 @@ custom_domain = true
 #   npx wrangler secret put GOOGLE_CLIENT_ID
 #   npx wrangler secret put GOOGLE_CLIENT_SECRET
 #   npx wrangler secret put GOOGLE_REFRESH_TOKEN
+#   npx wrangler secret put RINGER_TOKEN       (same value as DAYBOARD_RINGER_TOKEN in routine-ringer/.env)

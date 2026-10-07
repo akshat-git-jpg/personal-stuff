@@ -5,16 +5,19 @@
  *   POST /auth/logout               → clear cookie
  *   GET  /api/me                    → { authenticated }
  *   GET  /api/day?date=YYYY-MM-DD   → one day's DayLayout (auth)
+ *   GET|PUT /api/ringer             → phone-ring mute switch (auth)
+ *   GET  /ringer/state              → mute switch for routine-ringer (Bearer RINGER_TOKEN)
  *   GET  *                          → serve static assets (public/) via ASSETS
  *
- * Dayboard is a WINDOW onto Google Calendar, never a store: there is no write route,
- * and KV holds nothing but a 50-minute access token and a 60-second day cache.
+ * Dayboard is a WINDOW onto Google Calendar, never a store: nothing is written to Google.
+ * The one write is the ringer mute switch, in SETTINGS_KV (see ringer.ts).
  */
 import { Hono } from 'hono'
 import type { Env } from './auth'
 import { login, logout, me, requireAuth } from './auth'
 import { DAY_CACHE_TTL_SEC, fetchDay, type DayResult } from './day'
 import { GoogleAuthError } from './google'
+import { getRinger, putRinger, ringerState } from './ringer'
 import { todayIn } from './time'
 
 const app = new Hono<{ Bindings: Env }>()
@@ -24,6 +27,7 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 app.post('/auth/login', login)
 app.post('/auth/logout', logout)
 app.get('/api/me', me)
+app.get('/ringer/state', ringerState)
 
 app.use('/api/*', async (c, next) => {
   if (c.req.path === '/api/me') return next()
@@ -69,6 +73,9 @@ app.get('/api/day', async (c) => {
     return c.json({ error: 'upstream', message: err instanceof Error ? err.message : String(err) }, 502)
   }
 })
+
+app.get('/api/ringer', getRinger)
+app.put('/api/ringer', putRinger)
 
 app.get('*', (c) => c.env.ASSETS.fetch(c.req.raw))
 

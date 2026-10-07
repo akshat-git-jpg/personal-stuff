@@ -7,6 +7,8 @@ Small Python script fired every minute by VPS cron. Reads the owner's Google Cal
 
 Deduped via `state.json` (fired event ids, pruned after 3 days).
 
+**Mute switch:** before firing, it asks dayboard (`GET https://dayboard.agrolloo.com/ringer/state`, Bearer `DAYBOARD_RINGER_TOKEN`). Muted = the due events are marked fired and nothing rings, so unmuting never replays them. Any error, or no token set, = ring anyway. The owner flips it from the "Phone rings" button on dayboard. On the VPS the token lives in `/srv/crons/routine-ringer/.env`, not in the repo folder.
+
 ## Where things live
 
 - `ring.py` — the whole script. Single file on purpose; no framework, no scheduler (cron does that).
