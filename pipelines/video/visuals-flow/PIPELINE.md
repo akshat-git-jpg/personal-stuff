@@ -81,6 +81,9 @@ its `status` next-hint from, and what `lib/run-log.mjs` accepts as a ledger key.
 **A new step adds no code** — create the folder, write its `step.json`,
 regenerate this table.
 
+**Recipe isolation.** `recipe-isolation.json` declares each recipe's judgment surface and the names it must never reference;
+`lib/recipe-isolation.test.mjs` (run by `scripts/check.sh`) fails on any leak or missing path. A new recipe is one entry there.
+
 ### The entry point
 
 The driver script is the single entry point for the whole chain:
