@@ -1,0 +1,111 @@
+{
+  "$comment": "One recipe's judgment must never cloud another's. Each scope lists its judgment surface (files or folders, repo-root relative; folders are scanned recursively, skipping *.test.mjs, fixtures/ and .test-tmp/) and the names it must never reference. Enforced by lib/recipe-isolation.test.mjs. A banned name is allowed only on a prohibition line or under a prohibition heading (never read / do not read / must not / never in scope / not in scope), and in prose files only: code gets no exemption. To add a recipe, append one object to scopes (see newScopeExample). Never relax a ban to make the test pass.",
+  "prohibition": "never read|do not read|must not|never in scope|not in scope",
+  "scopes": [
+    {
+      "id": "template",
+      "why": "Card recipe: body and zone cue passes, card plan and build, the simple intro (115 picks from catalog.json by design), cue and zone rulebooks, TASTE-SIMPLE. Must not pick up the free-design intro's taste or authoring prompts.",
+      "surface": [
+        "pipelines/video/visuals-flow/steps/115-author-intro-simple-llm",
+        "pipelines/video/visuals-flow/steps/210-author-body-cues-llm",
+        "pipelines/video/visuals-flow/steps/220-author-conclusion-cues-llm",
+        "pipelines/video/visuals-flow/steps/230-review-cue-plan-run",
+        "pipelines/video/visuals-flow/steps/235-build-card-plan-run",
+        "pipelines/video/visuals-flow/steps/240-build-cards-llm",
+        "pipelines/video/visuals-flow/TASTE-SIMPLE.md",
+        "pipelines/video/visuals-flow/lib/cue-rules.mjs",
+        "pipelines/video/visuals-flow/lib/cue-constants.mjs",
+        "pipelines/video/visuals-flow/lib/zone-rules.mjs",
+        "pipelines/video/visuals-flow/lib/zone-constants.mjs",
+        "pipelines/video/visuals-flow/lib/card-plan.mjs",
+        "pipelines/video/visuals-flow/lib/build-prompt.mjs",
+        "pipelines/video/visuals-flow/lib/build-zone-prompt.mjs",
+        "pipelines/video/visuals-flow/lib/check-rulebook.mjs",
+        "pipelines/video/visuals-flow/lib/check-zone-rulebook.mjs",
+        "pipelines/video/visuals-flow/lib/lint-cues.mjs",
+        "pipelines/video/visuals-flow/lib/intro-kit",
+        "pipelines/video/card-library/catalog.json"
+      ],
+      "banned": [
+        "TASTE-INTRO.md",
+        "AUTHORING.md",
+        "IDEA-PASS.md",
+        "screenplay",
+        "110-propose-intro-idea-llm",
+        "130-author-intro-screenplay-llm"
+      ],
+      "allow": [
+        {
+          "file": "pipelines/video/visuals-flow/TASTE-SIMPLE.md",
+          "ref": "TASTE-INTRO.md",
+          "count": 6,
+          "why": "Names its sibling to keep the two apart (\"neither file inherits the other\") and credits the two rules it quotes verbatim. Pinned: a 7th mention fails."
+        }
+      ]
+    },
+    {
+      "id": "intro-film",
+      "why": "Free-design intro (complex flow): idea pass 110, screenplay authoring 130, frame review 140, TASTE-INTRO and lib/intro-film. The card catalog is a template set and must not reach its context. DESIGN.md and logos/registry.json are the brand and stay required, so card-library/ itself is not banned.",
+      "surface": [
+        "pipelines/video/visuals-flow/steps/110-propose-intro-idea-llm",
+        "pipelines/video/visuals-flow/steps/130-author-intro-screenplay-llm",
+        "pipelines/video/visuals-flow/steps/140-review-intro-frames-run",
+        "pipelines/video/visuals-flow/TASTE-INTRO.md",
+        "pipelines/video/visuals-flow/lib/intro-film"
+      ],
+      "banned": [
+        "catalog.json",
+        "card-plan.json",
+        "cues.json",
+        "TASTE-SIMPLE.md",
+        "cue-rules",
+        "zone-rules",
+        "RULEBOOK.md",
+        "cue-pass-prompt",
+        "zone-pass-prompt",
+        "SIMPLE-PASS.md",
+        "intro-kit"
+      ],
+      "allow": []
+    },
+    {
+      "id": "coupon",
+      "why": "Rule-table coupon variant: no LLM, no taste. It writes cues.json by design, but must not lean on any recipe's judgment files.",
+      "surface": [
+        "pipelines/video/visuals-flow/lib/coupon"
+      ],
+      "banned": [
+        "TASTE-SIMPLE.md",
+        "TASTE-INTRO.md",
+        "AUTHORING.md",
+        "IDEA-PASS.md",
+        "SIMPLE-PASS.md",
+        "RULEBOOK.md",
+        "cue-pass-prompt",
+        "zone-pass-prompt",
+        "screenplay"
+      ],
+      "allow": []
+    }
+  ],
+  "newScopeExample": {
+    "id": "animate",
+    "why": "Free-design animate recipe. Copy this object into scopes once the folder exists; a surface path that does not exist fails the test.",
+    "surface": [
+      "pipelines/video/animate-flow",
+      "pipelines/.claude/skills/<animate-skill>"
+    ],
+    "banned": [
+      "catalog.json",
+      "card-plan.json",
+      "cues.json",
+      "TASTE-SIMPLE.md",
+      "TASTE-INTRO.md",
+      "AUTHORING.md",
+      "cue-rules",
+      "zone-rules",
+      "RULEBOOK.md"
+    ],
+    "allow": []
+  }
+}
