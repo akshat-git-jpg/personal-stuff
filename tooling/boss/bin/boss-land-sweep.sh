@@ -514,6 +514,8 @@ sweep_one() {
     *) ex=agy ;;
   esac
   ex_bin=$(exec_bin "$ex")
+  # Fresh meta per dispatch: an old pid/fixups would trip boss_fixup_claim; the caps above bound a land.
+  : > "$STATE_DIR/land-$slug.meta"
   meta_set "land-$slug" worktree "$ws"
   # A blank model means "the executor's own default" — Gemini 3.1 Pro (High) for agy.
   # The fallback is pinned instead, because its default is the thing being chosen.

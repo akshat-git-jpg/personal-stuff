@@ -947,6 +947,19 @@ grep -q 'boss-l11' "$AGY_LOG" \
 land_reset
 echo "PASS: a stale entry for a landed branch is dropped; an unlanded one still dispatches"
 
+echo "--- (L12) a new block for a slug is not refused by an older fix-up's meta ---"
+# 2026-10-08. land-work-coupon-edit-flow kept pid + fixups=1 from its Oct 5 fix-up, so
+# every later dispatch hit boss_fixup_claim's REFUSED (rc=3), read as transient, after a
+# 2-minute chrome-lock wait at every session start. The sweep's own caps bound a land.
+land_reset
+l11_entry
+printf 'worktree=%s\nexecutor=agy\npid=999999\nfixups=1\n' "$l11_ws" > "$LANDS/land-boss-l11.meta"
+l12_out=$(LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+echo "$l12_out" | grep -q 'DISPATCHED' \
+  || fail "(L12) an old fix-up's meta refused a fresh land dispatch: $l12_out"
+land_reset
+echo "PASS: a fresh block dispatches despite an earlier fix-up's meta"
+
 echo "--- (D1) boss_dep_prelude installs deps for the dirs a command cd's into ---"
 # The verify and the mutation gate run in a POOL slot, not the crew's worktree, and
 # node_modules is per-slot — PR#197 (2026-08-23) read that as a broken mutation

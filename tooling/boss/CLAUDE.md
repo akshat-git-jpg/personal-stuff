@@ -12,7 +12,10 @@ Full design + rationale: `docs/specs/2026-07-07-boss-design.md` (source of truth
 
 ## Session start
 
-Run `bin/boss-session-start.sh`. It:
+Run `bin/boss-session-start.sh`. It takes about a minute (pp-work list/snapshot/reap are
+~50s of that), plus up to 2m if the land sweep waits on the chrome lock. Run it with
+`run_in_background` to a log file, never piped through `| tail`: a foreground timeout
+kills the pipe and you get no output at all (2026-10-08). It:
 1. Ensures all boss labels exist (`type:*`, `boss:*`).
 2. **Warns if the checkout is not on main, or is dirty — both informational.**
    Neither blocks a merge: since cbc9e6b7 greenlight lands from inside the leased
