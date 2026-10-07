@@ -3,10 +3,9 @@ name: yt-video-edit-feedback
 description: >-
   Close the loop on owner feedback for a yt-video-edit (visuals-flow) video: ingest,
   root-cause, discuss, then ONE summary for approval before any fix. Wraps the 630
-  feedback-fold step; the five phases are in the skill body. Triggers on "feedback is
-  done", "I'm done with feedback", "I've finished reviewing", "fold my feedback",
-  "process my feedback", "done with the final cut review", "/yt-video-edit-feedback",
-  "/visuals-flow-feedback" (the old name, still accepted).
+  feedback-fold step; the five phases are in the skill body. Invoke by name or via
+  "/yt-video-edit-feedback", "/visuals-flow-feedback" (the old name, still accepted).
+  Generic feedback phrases go through video-edit-router.
 user-invocable: true
 ---
 
@@ -45,6 +44,10 @@ gate fails, fix and re-run it before reporting.
 The four gates are shared with `yt-script-feedback`: read
 [references/feedback-loop.md](references/feedback-loop.md#hard-gates-check-before-anything).
 630 is an Opus-class step.
+
+Fifth gate: read the video's `run-config.json`. This skill folds only the template recipe
+(no `template`) or `coupon`; any other value, stop and name the skill that owns it
+(see `video-edit-router`).
 
 ## Phase 1 — Ingest (all six sources, always)
 

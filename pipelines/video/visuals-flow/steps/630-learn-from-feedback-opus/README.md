@@ -3,6 +3,9 @@
 Owner feedback must never be applied ad-hoc and forgotten — this step is the
 guarantee that a correction given once is never needed twice.
 
+**Recipe gate:** fold only videos whose `run-config.json` has no `template` or `template: coupon`;
+any other recipe belongs to its own skill (see `video-edit-router`).
+
 - **In:** every `videos/*/feedback.json` with unfolded items, owner feedback given
   in chat, and new findings in `tests/TESTS.md`
 - **Out:** edits to the four rule surfaces, each feedback item marked folded
