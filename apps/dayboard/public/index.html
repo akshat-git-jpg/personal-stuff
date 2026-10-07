@@ -120,6 +120,21 @@
   .cal .dot { width:9px; height:9px; border-radius:3px; flex-shrink:0;
               box-shadow:0 0 0 1px color-mix(in srgb, currentColor 30%, transparent); }
   .cal.off .dot { background:transparent !important; }
+  /* phone-ring mute switch */
+  .ring { display:flex; align-items:center; gap:12px; width:100%; margin-top:9px; padding:10px 12px;
+          border-radius:12px; border:1px solid var(--line-2); text-align:left; cursor:pointer; }
+  .ring .rt { flex:1; min-width:0; }
+  .ring b { display:block; font-size:13px; font-weight:600; color:var(--text); }
+  .ring small { display:block; font-size:11px; color:var(--faint); margin-top:2px; }
+  .ring .sw { width:34px; height:20px; border-radius:99px; background:var(--accent); position:relative; flex-shrink:0;
+              transition:background .15s; }
+  .ring .sw::after { content:""; position:absolute; top:3px; left:17px; width:14px; height:14px; border-radius:50%;
+                     background:#17130a; transition:left .15s; }
+  .ring.muted { border-color:color-mix(in oklab, var(--ping) 45%, var(--line-2)); }
+  .ring.muted b { color:var(--ping); }
+  .ring.muted .sw { background:#2a2f3a; }
+  .ring.muted .sw::after { left:3px; background:#8b92a1; }
+  .ring[disabled] { opacity:.55; cursor:default; }
   .calhint { font-size:10.5px; line-height:1.45; color:var(--faint); margin-top:9px; }
   .cal.off .dot { background:#2a2f3a !important; }
 
@@ -362,6 +377,14 @@
     </div>
 
     <div>
+      <div class="seclabel">Phone rings</div>
+      <button class="ring" id="ring" role="switch" aria-checked="true" disabled>
+        <span class="rt"><b id="ringstate">Loading…</b><small id="ringhint">&nbsp;</small></span>
+        <span class="sw"></span>
+      </button>
+    </div>
+
+    <div>
       <div class="seclabel">Today’s types</div>
       <div id="types"></div>
     </div>
@@ -535,6 +558,33 @@
     b.hidden = false;
   }
   const hideBanner = () => { $('banner').hidden = true; };
+
+  // ---------- phone-ring mute ----------
+  function renderRing(muted) {
+    const b = $('ring');
+    b.disabled = false;
+    b.classList.toggle('muted', muted);
+    b.setAttribute('aria-checked', String(!muted));
+    $('ringstate').textContent = muted ? 'Muted' : 'On';
+    $('ringhint').textContent = muted ? 'Nothing rings your phone. Tap to turn back on.' : 'Your phone rings at each event. Tap to mute.';
+  }
+  async function loadRing() {
+    try {
+      const res = await api('/api/ringer');
+      if (res.ok) renderRing((await res.json()).muted);
+    } catch { /* leave the switch disabled */ }
+  }
+  $('ring').addEventListener('click', async () => {
+    const b = $('ring');
+    const next = !b.classList.contains('muted');
+    b.disabled = true;
+    try {
+      const res = await api('/api/ringer', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ muted: next }),
+      });
+      if (res.ok) renderRing((await res.json()).muted); else b.disabled = false;
+    } catch { b.disabled = false; }
+  });
 
   // ---------- render ----------
   function render() {
@@ -1063,7 +1113,7 @@
 
   // ---------- auth ----------
   function showLogin() { $('login').hidden = false; $('app').hidden = true; }
-  function showApp() { $('login').hidden = true; $('app').hidden = false; }
+  function showApp() { $('login').hidden = true; $('app').hidden = false; loadRing(); }
 
   $('loginform').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1098,7 +1148,7 @@
 
   // The mobile "reload": coming back to the tab. No polling — see README.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && state.data) load(state.date, true);
+    if (document.visibilityState === 'visible' && state.data) { load(state.date, true); loadRing(); }
   });
 
   window.addEventListener('resize', () => { if (state.data) renderTrack(state.data); });

@@ -4,10 +4,16 @@ Read-only Google Calendar day board at `dayboard.agrolloo.com`. Full detail: `RE
 
 ## Guardrails
 
-- **Read-only, permanently.** There is no write route and no event store. If a request
-  arrives to "let me edit from here", that is a new app or a deliberate reversal — not a
-  small change. Every Google call is a GET.
-- **KV is a cache, never a source of truth.** `CACHE_KV` holds the access token (~50 min)
+- **Read-only to Google, permanently.** There is no event store. If a request arrives to
+  "let me edit from here", that is a new app or a deliberate reversal — not a small
+  change. Every Google call is a GET. The ONE write route is the phone-ring mute switch
+  (`PUT /api/ringer`, `src/worker/ringer.ts`), stored in `SETTINGS_KV`.
+- **Phone-ring mute switch** (2026-10-08). The rail's "Phone rings" button writes
+  `ringer:muted` to `SETTINGS_KV`; routine-ringer on the VPS reads it every minute through
+  `GET /ringer/state` (Bearer `RINGER_TOKEN`, same value as `DAYBOARD_RINGER_TOKEN` in
+  `/srv/crons/routine-ringer/.env`). A toggle takes up to ~1 min to reach the ringer (KV edge
+  cache). Never move the flag into `CACHE_KV`: that one is purgeable.
+- **`CACHE_KV` is a cache, never a source of truth.** It holds the access token (~50 min)
   and one day payload (60 s). Never persist events, never read the board from KV when
   Google is reachable.
 - **Stack**: Cloudflare Worker (Hono) + a single static `public/index.html`. **No build

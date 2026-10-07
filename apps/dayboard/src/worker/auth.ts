@@ -10,6 +10,8 @@ import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
 export type Env = {
   ASSETS: Fetcher
   CACHE_KV: KVNamespace
+  SETTINGS_KV: KVNamespace
+  RINGER_TOKEN: string
   APP_PASSWORD: string
   SESSION_SECRET: string
   GOOGLE_CLIENT_ID: string
