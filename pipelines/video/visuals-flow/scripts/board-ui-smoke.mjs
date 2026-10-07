@@ -1,10 +1,33 @@
-import { spawnSync, spawn } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 
-const CHROME = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+// Newest cached chrome-headless-shell: starts in <1s, where the full Chrome app took 50-120s (2026-10-08).
+// Below v150 is skipped: the cached v127 renders the board wrong and fails real assertions.
+const MIN_SHELL_MAJOR = 150;
+function resolveChrome() {
+  if (process.env.CHROME_BIN) return process.env.CHROME_BIN;
+  const exeName = process.platform === 'win32' ? 'chrome-headless-shell.exe' : 'chrome-headless-shell';
+  const found = [];
+  for (const root of ['.cache/hyperframes/chrome/chrome-headless-shell', '.cache/puppeteer/chrome-headless-shell']) {
+    const dir = path.join(os.homedir(), root);
+    if (!fs.existsSync(dir)) continue;
+    for (const ver of fs.readdirSync(dir)) {
+      const v = (ver.split('-').pop() || '').split('.').map(Number);
+      if (!(v[0] >= MIN_SHELL_MAJOR)) continue;
+      for (const sub of fs.readdirSync(path.join(dir, ver))) {
+        const exe = path.join(dir, ver, sub, exeName);
+        if (fs.existsSync(exe)) found.push({ v, exe });
+      }
+    }
+  }
+  found.sort((a, b) => b.v.reduce((d, x, i) => d || x - (a.v[i] ?? 0), 0));
+  return found[0]?.exe ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+}
+const CHROME = resolveChrome();
 const HASHES = ['', '#intro', '#storyboard', '#avatar', '#final-cut', '#calibrate'];
 
 // 30+ iframed tiles, measured ~20s+ on storyboard, plans 173/174 will add more.
@@ -16,6 +39,60 @@ const CHROME_TIMEOUT_MS = Number(process.env.BOARD_UI_SMOKE_TIMEOUT_MS ?? 120000
 if (!fs.existsSync(CHROME)) {
   console.log(new Date(), 'SKIP board-ui smoke: no Chrome');
   process.exit(0);
+}
+
+// One Chrome for the whole run; this gate used to cold-start ~20.
+// puppeteer-core comes from card-library, which check.sh installs before this runs.
+let puppeteer;
+try {
+  puppeteer = createRequire(path.resolve(process.cwd(), '../card-library/package.json'))('puppeteer-core');
+} catch (e) {
+  throw new Error(`board-ui smoke needs puppeteer-core from ../card-library (run its npm ci): ${e.message}`);
+}
+const browser = await puppeteer.launch({
+  executablePath: CHROME,
+  headless: path.basename(CHROME) === 'chrome-headless-shell' ? 'shell' : true,
+  timeout: CHROME_TIMEOUT_MS,
+  dumpio: Boolean(process.env.BOARD_UI_SMOKE_DUMPIO),
+  args: ['--no-sandbox', '--password-store=basic', '--use-mock-keychain', '--no-proxy-server',
+    '--disable-background-networking', '--disable-sync', '--disable-gpu', '--hide-scrollbars',
+    '--mute-audio', '--disable-audio-output', '--disable-audio-input'],
+});
+
+// Real-time stand-in for `--dump-dom`: load, network idle (capped), then 1s to settle. Fresh context per page.
+async function dumpDom(url, label, viewport = { width: 800, height: 600 }) {
+  const ctx = await browser.createBrowserContext();
+  try {
+    const page = await ctx.newPage();
+    await page.setViewport(viewport);
+    try {
+      await page.goto(url, { waitUntil: 'load', timeout: CHROME_TIMEOUT_MS });
+    } catch (e) {
+      throw new Error(`Chrome dump-dom timeout on ${label}: ${e.message}`);
+    }
+    // Capped: storyboard tiles keep the network busy, so idle may never come.
+    await page.waitForNetworkIdle({ idleTime: 500, concurrency: 2, timeout: 10000 }).catch(() => {});
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const out = await page.evaluate(() => document.documentElement.outerHTML);
+    return `<!DOCTYPE html>\n${out}`;
+  } finally {
+    await ctx.close();
+  }
+}
+
+async function screenshot(fileUrl, outPath, label) {
+  const ctx = await browser.createBrowserContext();
+  try {
+    const page = await ctx.newPage();
+    await page.setViewport({ width: 1400, height: 1000 });
+    await page.goto(fileUrl, { waitUntil: 'load', timeout: 300000 });
+    await page.screenshot({ path: outPath });
+  } catch (e) {
+    throw new Error(`Chrome screenshot timeout on static ${label}: ${e.message}`);
+  } finally {
+    await ctx.close();
+  }
+  if (!fs.existsSync(outPath)) throw new Error(`Screenshot missing on ${label}`);
 }
 
 const tmpDir = path.join(process.cwd(), '.test-tmp', 'board-ui-smoke');
@@ -59,55 +136,8 @@ try {
     const url = `http://127.0.0.1:${port}/app/?video=${slug}&probe=layout${hash}`;
     
     // 3. dumpDom
-    const dom = await new Promise((resolve, reject) => {
-      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
-      let child;
-      const timeout = setTimeout(() => {
-        if (child) child.kill('SIGKILL');
-        fs.writeFileSync(path.join(tmpDir, 'chrome-out.html'), out);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(new Error(`Chrome dump-dom timeout on ${hash || 'run'}. stderr:\n${err}`));
-      }, CHROME_TIMEOUT_MS);
-      child = spawn(CHROME, [
-        '--headless=new',
-        '--no-sandbox',
-        '--password-store=basic',
-        '--use-mock-keychain',
-        '--no-proxy-server',
-        '--disable-background-networking',
-        '--disable-sync',
-        `--user-data-dir=${profileDir}`,
-        '--disable-gpu',
-        '--hide-scrollbars',
-        '--virtual-time-budget=8000',
-        '--dump-dom',
-        '--enable-logging',
-        '--v=1',
-        url
-      ]);
-      let out = '';
-      let err = '';
-      child.stdout.on('data', d => {
-        out += d;
-        if (out.includes('</html>')) {
-          clearTimeout(timeout);
-          child.kill('SIGKILL');
-          fs.writeFileSync(path.join(tmpDir, 'chrome-out.html'), out);
-          resolve(out);
-        }
-      });
-      child.stderr.on('data', d => err += d);
-      child.on('close', code => {
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        if (code !== 0 && !out.includes('</html>')) console.error('Chrome dump-dom error:', err);
-      });
-      child.on('error', err => {
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(err);
-      });
-    });
+    const dom = await dumpDom(url, hash || 'run');
+    fs.writeFileSync(path.join(tmpDir, 'chrome-out.html'), dom);
 
     const match = dom.match(/<meta\s+name="layout-probe"\s+content="([^"]+)">/);
     if (!match) throw new Error(`layout-probe meta not found on ${hash || 'run'}`);
@@ -229,39 +259,7 @@ try {
   // Timeline mode still works behind the ?view=timeline override (list is the
   // default view since 2026-07-31).
   {
-    const domTl = await new Promise((resolve, reject) => {
-      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
-      let child;
-      const timeout = setTimeout(() => {
-        if (child) child.kill('SIGKILL');
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(new Error('Chrome dump-dom timeout on ?view=timeline#storyboard'));
-      }, CHROME_TIMEOUT_MS);
-      child = spawn(CHROME, [
-        '--headless=new', '--no-sandbox', '--disable-background-networking',
-        `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
-        '--virtual-time-budget=8000', '--dump-dom',
-        `http://127.0.0.1:${port}/app/?video=${slug}&view=timeline#storyboard`
-      ]);
-      let out = '';
-      child.stdout.on('data', d => {
-        out += d;
-        if (out.includes('</html>')) {
-          clearTimeout(timeout);
-          child.kill('SIGKILL');
-          resolve(out);
-        }
-      });
-      child.on('close', () => {
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-      });
-      child.on('error', e => {
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(e);
-      });
-    });
+    const domTl = await dumpDom(`http://127.0.0.1:${port}/app/?video=${slug}&view=timeline#storyboard`, '?view=timeline#storyboard');
     if (!domTl.includes('class="tl-ruler"')) throw new Error('tl-ruler not found in ?view=timeline');
     const ticks = domTl.match(/class="tl-tick"/g) || [];
     if (ticks.length < 2) throw new Error(`Expected >=2 tl-tick in ?view=timeline, found ${ticks.length}`);
@@ -309,38 +307,7 @@ try {
     // never refresh (found 2026-07-31, an hour-stale storyboard png).
     fs.rmSync(outPath, { force: true });
     
-    const domOut = await new Promise((resolve, reject) => {
-      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
-      let child;
-      const timeout = setTimeout(() => {
-        if (child) child.kill('SIGKILL');
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(new Error(`Chrome dump-dom timeout on ${hash}`));
-      }, CHROME_TIMEOUT_MS);
-      child = spawn(CHROME, [
-        '--headless=new', '--no-sandbox', '--disable-background-networking',
-        `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
-        '--virtual-time-budget=8000', '--dump-dom', url
-      ]);
-      let out = '';
-      child.stdout.on('data', d => {
-        out += d;
-        if (out.includes('</html>')) {
-          clearTimeout(timeout);
-          child.kill('SIGKILL');
-          resolve(out);
-        }
-      });
-      child.on('close', () => {
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-      });
-      child.on('error', e => {
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(e);
-      });
-    });
+    const domOut = await dumpDom(url, hash);
 
     domByHash[hash] = domOut;
 
@@ -350,41 +317,7 @@ try {
     const staticHtmlPath = path.resolve(process.cwd(), tmpDir, `shot-${hash ? hash.slice(1) : 'run'}.html`);
     fs.writeFileSync(staticHtmlPath, injectedHtml);
 
-    await new Promise((resolve, reject) => {
-      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
-      let child;
-      const timeout = setTimeout(() => {
-        if (child) child.kill('SIGKILL');
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(new Error(`Chrome screenshot timeout on static ${hash}`));
-      }, 300000);
-      child = spawn(CHROME, [
-        '--headless=new', '--no-sandbox', `--user-data-dir=${profileDir}`,
-        '--disable-gpu', '--hide-scrollbars', `--window-size=1400,1000`,
-        `--screenshot=${outPath}`, `file://${staticHtmlPath}`
-      ]);
-      const poll = setInterval(() => {
-        if (fs.existsSync(outPath) && fs.statSync(outPath).size > 1000) {
-          clearInterval(poll);
-          clearTimeout(timeout);
-          child.kill('SIGKILL');
-          resolve();
-        }
-      }, 100);
-      child.on('close', code => {
-        clearInterval(poll);
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        if (fs.existsSync(outPath)) resolve();
-        else reject(new Error(`Screenshot missing on ${hash}`));
-      });
-      child.on('error', e => {
-        clearInterval(poll);
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(e);
-      });
-    });
+    await screenshot(pathToFileURL(staticHtmlPath).href, outPath, hash);
   }
   // pre-040 degraded
   const workdirPre = path.join(tmpDir, 'smoke-pre');
@@ -402,38 +335,7 @@ try {
 
   try {
     const urlPre = `http://127.0.0.1:${portPre}/app/?video=smoke-pre#storyboard`;
-    const domPre = await new Promise((resolve, reject) => {
-      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
-      let child;
-      const timeout = setTimeout(() => {
-        if (child) child.kill('SIGKILL');
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(new Error(`Chrome dump-dom timeout on pre-040`));
-      }, CHROME_TIMEOUT_MS);
-      child = spawn(CHROME, [
-        '--headless=new', '--no-sandbox', '--disable-background-networking',
-        `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
-        '--virtual-time-budget=8000', '--dump-dom', urlPre
-      ]);
-      let out = '';
-      child.stdout.on('data', d => {
-        out += d;
-        if (out.includes('</html>')) {
-          clearTimeout(timeout);
-          child.kill('SIGKILL');
-          resolve(out);
-        }
-      });
-      child.on('close', () => {
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-      });
-      child.on('error', e => {
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(e);
-      });
-    });
+    const domPre = await dumpDom(urlPre, 'pre-040');
 
     if (!domPre.includes('no <code>resolved.json</code> yet')) {
       throw new Error('no resolved banner not found');
@@ -500,42 +402,8 @@ try {
     });
     try {
       const urlIntro = `http://127.0.0.1:${portIntro}/app/?video=${introSlug}&probe=layout#intro`;
-      const domIntro = await new Promise((resolve, reject) => {
-        const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
-        let child;
-        const timeout = setTimeout(() => {
-          if (child) child.kill('SIGKILL');
-          fs.rmSync(profileDir, { recursive: true, force: true });
-          reject(new Error('Chrome dump-dom timeout on #intro player'));
-        }, CHROME_TIMEOUT_MS);
-        child = spawn(CHROME, [
-          '--headless=new', '--no-sandbox', '--disable-background-networking',
-          `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
-          // A pinned window, because the player-size assertion below measures
-          // against it. The headless default (800px) is narrower than the
-          // wrappers this gate exists to catch, so the check would be blind.
-          '--window-size=1600,1000',
-          '--virtual-time-budget=8000', '--dump-dom', urlIntro
-        ]);
-        let out = '';
-        child.stdout.on('data', d => {
-          out += d;
-          if (out.includes('</html>')) {
-            clearTimeout(timeout);
-            child.kill('SIGKILL');
-            resolve(out);
-          }
-        });
-        child.on('close', () => {
-          clearTimeout(timeout);
-          fs.rmSync(profileDir, { recursive: true, force: true });
-        });
-        child.on('error', e => {
-          clearTimeout(timeout);
-          fs.rmSync(profileDir, { recursive: true, force: true });
-          reject(e);
-        });
-      });
+      // Pinned 1600px: the player-size assertion below measures against the window.
+      const domIntro = await dumpDom(urlIntro, '#intro player', { width: 1600, height: 1000 });
 
       // Plan 193: intro:"film" is the one config where the Intro tab's step
       // (027) applies, so its button must render — the mirror image of the
@@ -684,38 +552,7 @@ try {
     });
     try {
       const urlIdea = `http://127.0.0.1:${portIdea}/app/?video=${ideaSlug}#intro`;
-      const domIdea = await new Promise((resolve, reject) => {
-        const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
-        let child;
-        const timeout = setTimeout(() => {
-          if (child) child.kill('SIGKILL');
-          fs.rmSync(profileDir, { recursive: true, force: true });
-          reject(new Error('Chrome dump-dom timeout on #intro (idea gate)'));
-        }, CHROME_TIMEOUT_MS);
-        child = spawn(CHROME, [
-          '--headless=new', '--no-sandbox', '--disable-background-networking',
-          `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
-          '--virtual-time-budget=8000', '--dump-dom', urlIdea
-        ]);
-        let out = '';
-        child.stdout.on('data', d => {
-          out += d;
-          if (out.includes('</html>')) {
-            clearTimeout(timeout);
-            child.kill('SIGKILL');
-            resolve(out);
-          }
-        });
-        child.on('close', () => {
-          clearTimeout(timeout);
-          fs.rmSync(profileDir, { recursive: true, force: true });
-        });
-        child.on('error', e => {
-          clearTimeout(timeout);
-          fs.rmSync(profileDir, { recursive: true, force: true });
-          reject(e);
-        });
-      });
+      const domIdea = await dumpDom(urlIdea, '#intro (idea gate)');
 
       const playerCount = (domIdea.match(/class="intro-idea-teaser"/g) || []).length;
       if (playerCount !== 1) {
@@ -786,38 +623,7 @@ try {
     });
     try {
       const urlSimple = `http://127.0.0.1:${portSimple}/app/?video=${simpleSlug}#intro`;
-      const domSimple = await new Promise((resolve, reject) => {
-        const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
-        let child;
-        const timeout = setTimeout(() => {
-          if (child) child.kill('SIGKILL');
-          fs.rmSync(profileDir, { recursive: true, force: true });
-          reject(new Error('Chrome dump-dom timeout on #intro (simple gate)'));
-        }, CHROME_TIMEOUT_MS);
-        child = spawn(CHROME, [
-          '--headless=new', '--no-sandbox', '--disable-background-networking',
-          `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
-          '--virtual-time-budget=8000', '--dump-dom', urlSimple
-        ]);
-        let out = '';
-        child.stdout.on('data', d => {
-          out += d;
-          if (out.includes('</html>')) {
-            clearTimeout(timeout);
-            child.kill('SIGKILL');
-            resolve(out);
-          }
-        });
-        child.on('close', () => {
-          clearTimeout(timeout);
-          fs.rmSync(profileDir, { recursive: true, force: true });
-        });
-        child.on('error', e => {
-          clearTimeout(timeout);
-          fs.rmSync(profileDir, { recursive: true, force: true });
-          reject(e);
-        });
-      });
+      const domSimple = await dumpDom(urlSimple, '#intro (simple gate)');
 
       const rowCount = (domSimple.match(/class="intro-simple-beat-row[^"]*"/g) || []).length;
       if (rowCount !== simpleCutlist.beats.length) {
@@ -836,9 +642,11 @@ try {
     }
   }
 
+  await browser.close();
   console.log(new Date(), 'board-ui smoke OK');
   process.exit(0);
 } finally {
   if (server.closeAllConnections) server.closeAllConnections();
   server.close();
+  await browser.close().catch(() => {});
 }
