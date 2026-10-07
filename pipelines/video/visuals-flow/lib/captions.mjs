@@ -3,7 +3,7 @@ export const CAP_MAX_CHARS = 32;
 export const CAP_GAP_SPLIT = 0.6;
 export const CAP_TAIL = 0.4;
 export const CAP_FONT_PX = 44;
-export const CAP_Y_FRAC = 0.87;
+export const CAP_Y_FRAC = 0.90;
 
 // Brands seen across videos so far. This wants to become per-video config
 // rather than a growing global — see the note in tests/TESTS.md (2026-07-25).

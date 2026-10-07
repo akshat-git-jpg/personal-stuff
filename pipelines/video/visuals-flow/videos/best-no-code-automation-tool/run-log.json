@@ -1,6 +1,6 @@
 {
   "video": "best-no-code-automation-tool",
-  "updated": "2026-08-20T09:04:05.829Z",
+  "updated": "2026-10-07T18:41:39.310Z",
   "steps": {
     "010-configure-run-human": {
       "status": "done",
@@ -209,6 +209,14 @@
       "did": "Owner approved the final cut (version v2).",
       "output": "final-cut.json approved=true, version v2",
       "issues": "none found"
+    },
+    "630-learn-from-feedback-opus": {
+      "status": "done",
+      "ended": "2026-10-07T18:41:39.310Z",
+      "started": "2026-10-07T18:41:39.310Z",
+      "did": "Folded 30 owner notes. 26 were already turned into rules on 2026-08-18 to 08-20 (T21 to T30, hold, side-span and ending fixes) but never marked. Added 3 new rules: no tool logo on a line that names no tool, captions lower, and a retired idea is removed from the whole video.",
+      "issues": "This Mac has no media for this video, so no new cut was made. The owner kept the approved v2 (2026-10-08).",
+      "output": "feedback.json and claude_status.json marked; TASTE-INTRO T31, TASTE-SIMPLE S-T9, CAP_Y_FRAC 0.90, 630 README section; z04 and c67 text without 'toll'"
     }
   }
 }

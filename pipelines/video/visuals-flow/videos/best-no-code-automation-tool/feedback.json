@@ -156,7 +156,9 @@
         "beat": "b01",
         "start": 0,
         "clause": "If you're trying to automate workflows or build AI agents"
-      }
+      },
+      "folded": "2026-10-08 — T21",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b02": {
       "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
@@ -165,7 +167,9 @@
         "beat": "b02",
         "start": 4.32,
         "clause": "and you're stick or stuck between tools like n8n, Make, Zapier, LangChain or Flowise"
-      }
+      },
+      "folded": "2026-10-08 — T21",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b03#2": {
       "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
@@ -174,7 +178,9 @@
         "beat": "b03",
         "start": 12.24,
         "clause": "this video will save you hours of trial and error"
-      }
+      },
+      "folded": "2026-10-08 — T21",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b04": {
       "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
@@ -183,7 +189,9 @@
         "beat": "b04",
         "start": 15.68,
         "clause": "Some of these tools are pretty powerful but painfully complex"
-      }
+      },
+      "folded": "2026-10-08 — T21",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b05": {
       "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
@@ -192,7 +200,9 @@
         "beat": "b05",
         "start": 19.48,
         "clause": "Others are easy but hit a wall fast"
-      }
+      },
+      "folded": "2026-10-08 — T21",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b06#2": {
       "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
@@ -201,7 +211,9 @@
         "beat": "b06",
         "start": 22.34,
         "clause": "and a few actually give you real flexibility without locking you into crazy pricing"
-      }
+      },
+      "folded": "2026-10-08 — T21",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b07": {
       "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand. One more thing. Why you chose the size this much only for the avatar",
@@ -210,7 +222,9 @@
         "beat": "b07",
         "start": 28.84,
         "clause": "By the end of this video, you will know exactly which tool makes sense for your use case and which ones you should avoid"
-      }
+      },
+      "folded": "2026-10-08 — T21 (complexity) + T30 (avatar size varies by beat)",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b08#2": {
       "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand.",
@@ -219,7 +233,9 @@
         "beat": "b08",
         "start": 36.86,
         "clause": "This video is for all you creators, developers, automation builders, and anyone experimenting with AI workflows who wants control without unnecessary complexity"
-      }
+      },
+      "folded": "2026-10-08 — T21",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b11#2": {
       "text": "why there is the orange line after same use case, same prompt, same criteria",
@@ -228,7 +244,9 @@
         "beat": "b11",
         "start": 62.62,
         "clause": "To keep this fair, I'm testing all tools using the same automation use case, the same AI prompt logic, and the same evaluation criteria"
-      }
+      },
+      "folded": "2026-10-08 — T25 (draw-on stroke length measured from the path)",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b12#2": {
       "text": "uneven gap, look at the left  Side of the ease and the right ide of the value, their gaps are very uneven",
@@ -237,7 +255,9 @@
         "beat": "b12",
         "start": 72.24,
         "clause": "including ease of use, flexibility, output quality, and value for money"
-      }
+      },
+      "folded": "2026-10-08 — T24 (a distributed row is computed, never typed)",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b13": {
       "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand at a glance.",
@@ -246,7 +266,9 @@
         "beat": "b13",
         "start": 77.65,
         "clause": "No marketing claims, just real workflows and real outputs"
-      }
+      },
+      "folded": "2026-10-08 — T21",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b14#2": {
       "text": "This graphic looks super complicated and doesn’t really match the idea being explained in the text. We need something much simpler and easier to understand at a glance.",
@@ -255,7 +277,9 @@
         "beat": "b14",
         "start": 81.87,
         "clause": "In this video, again, I'll be covering a quick overview of all of these five tools, a live demo using the same workflow idea"
-      }
+      },
+      "folded": "2026-10-08 — T21",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b15": {
       "text": "In the “What We’ll Cover” section, two points are already covered in the sentence above, that points are missing. Also, please use my template  \"Bullet Points  for the format\".",
@@ -264,7 +288,9 @@
         "beat": "b15",
         "start": 91.68,
         "clause": "a breakdown of ease of use, customization, AI flexibility, and pricing, and finally, my honest verdict on which tools are worth your time and which ones actually fall short"
-      }
+      },
+      "folded": "2026-10-08 — T22 (agenda built from the promise); bullet-template ask withdrawn as T23",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b16": {
       "text": "Why there is \"every link\" above the \"links below\"? Also, you have just shown two icons N8n and FlowWise. It's better to don't show any icon when links below kind things are appeared on the audio. Remember this for the future lessons also",
@@ -273,7 +299,9 @@
         "beat": "b16",
         "start": 102.86,
         "clause": "And if you actually want to go ahead and try any of these tools yourself, you will find the relevant links in the description"
-      }
+      },
+      "folded": "2026-10-08 — T26 (two lines must not say the same thing) + T31 / S-T9 (no tool logo on a line that names no tool)",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "intro-b17": {
       "text": "Hi, you showed n8n and flowise only. It's better not to show anything. Because of this our video looks biased. It feels like we only promote these two tools.",
@@ -282,7 +310,9 @@
         "beat": "b17",
         "start": 109.54,
         "clause": "Without further ado, let's jump straight in"
-      }
+      },
+      "folded": "2026-10-08 — T31 / S-T9 (no tool logo on a line that names no tool)",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "final-v2:0": {
       "text": "These icons doesn't sync with the audioThese icons appear on the screen earlier than the audio Could you please let me know why this is done Like this",
@@ -290,7 +320,9 @@
       "context": "final@00:10",
       "images": [
         "feedback-images/final-v2-0-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — T27 (a reveal lands on its word) + check-film-timing.mjs",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "final-v2:1": {
       "text": "I have noticed that whenever the graphics are shown on the screen, even though there is no autad shown at the right or anywhere, the graphic is not in the center. What's the reason behind itNot only these graphic but all the graphics that shown on the screen that does not contain the avatar video are not in the center",
@@ -298,7 +330,9 @@
       "context": "final@00:24",
       "images": [
         "feedback-images/final-v2-1-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — T28 (stage centres when the presenter is off screen)",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "final-v2:2": {
       "text": "Why there is no graphic or anything when he said you should avoid, when you said We should make more sense. There you had shown the tick mark, but when he said about avoid it, you had said nothing. What's the reason behind it",
@@ -306,7 +340,9 @@
       "context": "final@00:43",
       "images": [
         "feedback-images/final-v2-2-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — T29 (a clause naming a thing and its opposite shows both)",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "final-v2:3": {
       "text": "These things are not synced with the audio. What's the reason behind it? This is not the first time this happened many times. Either the graphics appeared before and audio later or vice versa",
@@ -314,7 +350,9 @@
       "context": "final@00:43",
       "images": [
         "feedback-images/final-v2-3-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — T27 (a reveal lands on its word) + check-film-timing.mjs",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "final-v2:4": {
       "text": "why The tube of the langchain is bigger than the other tools",
@@ -322,7 +360,9 @@
       "context": "final@01:01",
       "images": [
         "feedback-images/final-v2-4-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — covered by T6 (a set at rest must look level)",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "final-v2:5": {
       "text": "Again, these are not syncing with the audio",
@@ -330,7 +370,9 @@
       "context": "final@01:36",
       "images": [
         "feedback-images/final-v2-5-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — T27 (a reveal lands on its word) + check-film-timing.mjs",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "final-v2:6": {
       "text": "I want you to know that it's not necessary to show the avar of the same size. You can sometimes show the avatar on big screen, sometimes on small circle, sometimes the thing like you are showing now, or anything else, what is best suited on screen and looks good on screen. I am leaving this completely upon you",
@@ -338,7 +380,9 @@
       "context": "final@01:52",
       "images": [
         "feedback-images/final-v2-6-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — T30 (presenter treatment varies with the beat)",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "final-v2:7": {
       "text": "Could you please let me know that  why these texts are this much above from the bottom of the screen",
@@ -346,7 +390,9 @@
       "context": "final@02:58",
       "images": [
         "feedback-images/final-v2-7-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — CAP_Y_FRAC 0.87 -> 0.90 in lib/effects/captions.mjs + lib/captions.mjs (all videos)",
+      "applied": "2026-10-08 — not needed: v2 approved as shipped (owner, 2026-10-08)"
     },
     "final-v2:8": {
       "text": "Why is Avatar missing on this black screen? Earlier, the avatar was clearly showing, but here it’s not appearing.",
@@ -354,7 +400,9 @@
       "context": "final@34:59",
       "images": [
         "feedback-images/final-v2-8-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — lib/side-mode.mjs now throws when a side span is shorter than its card",
+      "applied": "2026-08-20 — s13 and s15 side spans parked in shots.json"
     },
     "final-v2:9": {
       "text": "You’re talking about the Lang Chang section, but why the graphic isn’t staying on screen long enough. It disappears too quickly, and then the video starts playing.",
@@ -362,7 +410,9 @@
       "context": "final@35:01",
       "images": [
         "feedback-images/final-v2-9-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — instance-only, no rule",
+      "applied": "2026-08-20 — z03 hold raised in cues.json"
     },
     "final-v2:10": {
       "text": "You’re talking about the flowise section, but why the graphic isn’t staying on screen long enough. It disappears too quickly, and then the video starts playing.",
@@ -370,7 +420,9 @@
       "context": "final@35:25",
       "images": [
         "feedback-images/final-v2-10-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — instance-only, no rule",
+      "applied": "2026-08-20 — z04 hold raised in cues.json"
     },
     "final-v2:11": {
       "text": "Why the words\" why they win\"  are overlapping on the graphic? I have given similar kind of feedback before also. Why this is happening again",
@@ -378,7 +430,9 @@
       "context": "final@35:40",
       "images": [
         "feedback-images/final-v2-11-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — overlap probe added (lib/overflow-measure.mjs)",
+      "applied": "2026-08-20 — fill-gauge heading moved clear of the gauge"
     },
     "final-v2:12": {
       "text": "I have changed the intro toll graphic thing. Then why this toll thing is appearing here",
@@ -386,7 +440,9 @@
       "context": "final@35:16",
       "images": [
         "feedback-images/final-v2-12-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — 630 README: a retired idea is retired from concept.json and cues too",
+      "applied": "2026-10-08 — z04 promise and c67 banner text rewritten without \"toll\"; concept.json thesis too"
     },
     "final-v2:13": {
       "text": "again, You’re talking about the flowise section, but why the graphic isn’t staying on screen long enough. It disappears too quickly, and then the video starts playing.",
@@ -394,7 +450,9 @@
       "context": "final@35:26",
       "images": [
         "feedback-images/final-v2-13-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — instance-only, no rule",
+      "applied": "2026-08-20 — z04 hold raised in cues.json"
     },
     "final-v2:14": {
       "text": "why the  end screen is like this",
@@ -402,7 +460,9 @@
       "context": "final@36:09",
       "images": [
         "feedback-images/final-v2-14-0.png"
-      ]
+      ],
+      "folded": "2026-10-08 — assemble.mjs ending guard: a video ends on something authored",
+      "applied": "2026-08-20 — s17 extended to the last spoken words"
     }
   }
 }

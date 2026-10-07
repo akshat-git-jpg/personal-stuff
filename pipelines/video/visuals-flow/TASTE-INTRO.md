@@ -856,3 +856,20 @@ rule names. The mechanical half is in the composition: each treatment is a
 helper that also sets the stage offset (T28), so a new treatment cannot be added
 without deciding where the graphics go.
 
+
+## T31 — A line that names no tool shows no tool logo.
+
+**From:** best-no-code-automation-tool, 2026-08-18, folded 2026-10-08. Owner on
+b16 (the "links in the description" line): *"you have just shown two icons N8n
+and FlowWise. It's better to don't show any icon when links below kind things are
+appeared on the audio. Remember this for the future lessons also"*. And on b17
+("let's jump straight in"): *"you showed n8n and flowise only. It's better not to
+show anything. Because of this our video looks biased. It feels like we only
+promote these two tools."*
+
+A links, call-to-action or "let's jump in" line is about every tool in the video.
+A subset of logos on it reads as an endorsement the script never made. Show no
+logo on such a line.
+
+**Enforced by:** author judgement at 025. Check: for each beat with a logo, the
+spoken clause names that tool.

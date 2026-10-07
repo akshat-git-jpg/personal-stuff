@@ -1050,7 +1050,7 @@
       "variables": {
         "kind": "info",
         "label": "Pricing And Value",
-        "text": "Two chains reach the end without paying a toll in money or in hours.",
+        "text": "n8n and Flowise cost the least, in money and in hours.",
         "edge": "bottom",
         "variant": "a",
         "register": "light"
@@ -1142,7 +1142,7 @@
       "start": 2112.31,
       "duration": 12.32,
       "variables": {
-        "promise": "Both win without charging a toll",
+        "promise": "Both win on control and price",
         "sides": [
           {
             "name": "n8n",

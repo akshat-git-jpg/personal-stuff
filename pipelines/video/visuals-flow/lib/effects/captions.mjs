@@ -7,7 +7,7 @@ export const CONSTANTS = {
   CAP_GAP_SPLIT: 0.6,
   CAP_TAIL: 0.4,
   CAP_FONT_PX: 44,
-  CAP_Y_FRAC: 0.87
+  CAP_Y_FRAC: 0.90 // owner 2026-10-08: 0.87 sat too high above the bottom
 };
 
 export function plan(ctx) {
