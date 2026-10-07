@@ -63,7 +63,7 @@ this file was inferred from repo code alone and named the wrong person).
 
 ## Tools & Accounts I Drive Everything With
 - **Hostinger VPS**: 
-  - Ubuntu 24.04 LTS VPS (`srv1377177.hstgr.cloud` / `72.61.241.170`) running Docker containers (Traefik, n8n, MinIO, hyperframes-render, and personal-dashboard).
+  - Ubuntu 24.04 LTS VPS (`srv1377177.hstgr.cloud` / `72.61.241.170`) running Docker containers (Traefik, n8n, MinIO and hyperframes-render).
   - Configured with crons that sync repository skills every 15 minutes, generate daily digests (Telegram alerts), and run automated watchdogs.
 - **Cloudflare Edge**:
   - Handles zone DNS and hosts 10+ serverless Cloudflare Workers (like `redirector`, `tutorials-tracker`, `lists-app`, `yt-analytics`, etc.) backed by KV namespaces and D1 SQLite databases.

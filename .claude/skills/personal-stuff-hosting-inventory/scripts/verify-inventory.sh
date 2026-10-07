@@ -8,7 +8,7 @@
 # Checks:
 #   1. workers-in-INFRA   — every routed Worker domain found in a wrangler file
 #                           appears in INFRA.md's "### Workers" section.
-#   2. hub-card-timeblock — timeblock has a card in hub.ts's APPS array.
+#   2. (removed 2026-10-08 with timeblock)
 #   3. d1-names           — every distinct database_name in wrangler files
 #                           appears in INFRA.md's "### D1 databases" section.
 #   4. d1-count           — INFRA.md's "D1 databases (N)" header matches the
@@ -68,13 +68,6 @@ if [ -n "$missing" ]; then
   report DRIFT "workers-in-INFRA" "routed in wrangler but absent from INFRA.md '### Workers':$missing"
 else
   report OK "workers-in-INFRA" "all routed domains listed"
-fi
-
-# --- Check 2: timeblock card in the kushal-tools hub ------------------------
-if grep -q "timeblock" "$HUB"; then
-  report OK "hub-card-timeblock" "APPS array has a timeblock entry"
-else
-  report DRIFT "hub-card-timeblock" "no timeblock entry in APPS ($HUB)"
 fi
 
 # --- Checks 3+4: D1 names + count vs INFRA.md "### D1 databases" ------------

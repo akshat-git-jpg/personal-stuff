@@ -19,7 +19,7 @@ Everything public runs in one of three places: **Cloudflare Workers** (public ed
 | Shape | Pattern | Examples |
 |---|---|---|
 | SPA Worker | Vite + React + Hono, `ASSETS` binding with `not_found_handling: "single-page-application"`, `nodejs_compat` flag, `npm run deploy` = build + `wrangler deploy` | analytics-app, founders-tracker, gym-app, kushal-docs, lists-app, tutorial-tracker-app |
-| Plain Worker | Hono or raw fetch handler, no build step | kushal-tools (renders its own HTML so the PIN gate precedes any content), redirector, timeblock (static frontend via `ASSETS`, no build), infra/vps-watchdog |
+| Plain Worker | Hono or raw fetch handler, no build step | kushal-tools (renders its own HTML so the PIN gate precedes any content), redirector, infra/vps-watchdog |
 | Assets-only Worker | No main script, `assets.directory` only | pinterest-landing-pages/bridebestie |
 
 ## Custom domains and routes
@@ -32,7 +32,7 @@ Everything public runs in one of three places: **Cloudflare Workers** (public ed
 ## D1 / KV / R2 (state of 2026-07-12)
 
 - **D1 (11, per `apps/*/wrangler.*`):** `clicks-db` (owned + migrated by redirector; written by redirector + tutorial-tracker; read-only in analytics-app; columns are additive — readers tolerate new ones), `tracker-db` (tutorial-tracker's normalized store), `lists-db`, `founders-db`, `yt-rankings` (analytics-app read+write), `kushal-money` (apps/kushal-income), `closet-db`, `gym-db` + `sparkly-gym-db` (gym-app's two envs), `script-desk-db` (yt-script-desk).
-- **KV (4):** `CLICKS_KV` (shared: redirector + tutorial-tracker), `SESSIONS` (tutorial-tracker logins), `WATCHDOG_KV` (vps-watchdog), `BLOCKS_KV` (timeblock — one JSON blob per day).
+- **KV:** `CLICKS_KV` (shared: redirector + tutorial-tracker), `SESSIONS` (tutorial-tracker logins), `WATCHDOG_KV` (vps-watchdog).
 - **R2 (1):** bucket `kushal-docs` — real personal documents, **unencrypted**; never delete/overwrite/log contents.
 - Schema pushes: apps keep `schema.sql` + npm scripts like `db:local` / `db:remote` (`wrangler d1 execute <db> --local|--remote --file=schema.sql`). Migrations live with the owning app (`apps/redirector/migrations/`). **`db:remote` mutates production — for any non-additive migration on the load-bearing DBs (`clicks-db`, `tracker-db`), export the data first.**
 
@@ -44,7 +44,7 @@ Everything public runs in one of three places: **Cloudflare Workers** (public ed
 
 - `srv1377177.hstgr.cloud` / `72.61.241.170` (IPv6 `2a02:4780:12:4d02::1`). Ubuntu 24.04, timezone **UTC**, KVM 2 (2 vCPU / 8 GB), **no swap by choice**. SSH key-only: `ssh -i ~/.ssh/hostinger_vps root@72.61.241.170`. Firewall: inbound 22/80/443 only.
 - **If IPv4 to the origin is blocked, the VPS is reachable over IPv6** — try `ssh root@2a02:4780:12:4d02::1` before declaring it down.
-- Docker (5 containers, matching INFRA.md's `docker ps` of 2026-08-30): `traefik` (the public edge, owns 80/443 + Let's Encrypt), `n8n` (:5678 internal), `personal-dashboard` (:8787 internal → my-dashboard.agrolloo.com), `hyperframes-render` (→ render2.agrolloo.com), `minio` (**loopback-only** :9000/:9001 — reach via SSH tunnel) (`ntfy` was retired 2026-08-30 — it was public on `:8888` and world-writable). Live truth: `ssh root@72.61.241.170 'docker ps'`.
+- Docker (4 containers; `personal-dashboard` removed 2026-10-08): `traefik` (the public edge, owns 80/443 + Let's Encrypt), `n8n` (:5678 internal), `hyperframes-render` (→ render2.agrolloo.com), `minio` (**loopback-only** :9000/:9001 — reach via SSH tunnel) (`ntfy` was retired 2026-08-30 — it was public on `:8888` and world-writable). Live truth: `ssh root@72.61.241.170 'docker ps'`.
 - `infra/vps-watchdog/` (Worker, cron `*/2 * * * *`, no HTTP route) pings the dashboard and reboots the VPS via Hostinger API when down — remember it exists before hand-diagnosing "the VPS rebooted itself".
 - Traefik renews TLS via **Cloudflare DNS-01** (`CF_DNS_API_TOKEN` in `/docker/n8n/.env`, resolver name `mytlschallenge` kept) — set up 2026-06-13 because TLS-ALPN breaks behind the Cloudflare proxy. Do not revert to `tlschallenge`.
 - Placement rule for new services: web apps/sites → Cloudflare Workers; always-on stateful things (n8n, crons, scrapers, renderers, claude-rc) → VPS. Don't downgrade the VPS plan while those live there.

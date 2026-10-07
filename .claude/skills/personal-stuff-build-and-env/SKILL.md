@@ -95,7 +95,7 @@ Nothing special is needed any more. A bare `claude` launched inside the repo rea
 | Go (1.26.3+) | printing-press CLIs (`~/go/bin/*-pp-cli`, `cli-printing-press`) | reinstall via `go install` (see `printing-press/phases/01-preflight.md`) |
 | pipx | `notebooklm` CLI (`~/.local/bin/notebooklm`) | `pipx install` per the `notebooklm` skill |
 
-Wrangler is a per-app devDependency and versions are deliberately mixed (as of 2026-07-12: v3 in founders-tracker (pinned 3.114.17), gym-app, kushal-docs, redirector, timeblock; v4 in analytics-app, kushal-tools, lists-app, tutorial-tracker-app). There is no single repo-wide wrangler — never install or run a global one; always go through each app's own npm scripts.
+Wrangler is a per-app devDependency and versions are deliberately mixed (as of 2026-07-12: v3 in founders-tracker (pinned 3.114.17), gym-app, kushal-docs, redirector; v4 in analytics-app, kushal-tools, lists-app, tutorial-tracker-app). There is no single repo-wide wrangler — never install or run a global one; always go through each app's own npm scripts.
 
 ## The npm 401 trap (work machine)
 

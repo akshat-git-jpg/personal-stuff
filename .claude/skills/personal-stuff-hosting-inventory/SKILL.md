@@ -14,7 +14,6 @@ description: Maps personal-stuff's live URLs to repo folder, hosting surface and
 | URL | Repo folder | Surface | Auth |
 |---|---|---|---|
 | kushal-tools.agrolloo.com | `apps/kushal-tools/` | Worker (no build) | password, HMAC cookie |
-| timeblock.agrolloo.com | `apps/timeblock/` | Worker (no build) + KV (`BLOCKS_KV`) | password, HMAC cookie |
 | kushal-gym.agrolloo.com | `apps/gym-app/` | Worker (SPA) | **none** (obscure URL, deliberate) |
 | kushal-docs.agrolloo.com | `apps/kushal-docs/` | Worker (SPA) + R2 | Google OAuth, single allow-listed email |
 | tutorials-tracker.agrolloo.com | `apps/tutorial-tracker-app/` | Worker (SPA) + KV + 2×D1 | Google OAuth → role in D1 |
@@ -23,7 +22,6 @@ description: Maps personal-stuff's live URLs to repo folder, hosting surface and
 | lists.agrolloo.com | `apps/lists-app/` | Worker (SPA) + D1 | password, HMAC cookie |
 | go.agrolloo.com | `apps/redirector/` | Worker (zone route `/*`) + KV + D1 | public by design |
 | bridebestie.com (+www) | `apps/pinterest-landing-pages/bridebestie/` | assets-only Worker, own zone | public |
-| my-dashboard.agrolloo.com | `apps/personal-dashboard/` | **VPS Docker** behind Traefik | password (hash self-heals into DB) |
 | render2.agrolloo.com | `apps/hyperframes-render/` | **VPS Docker** behind Traefik | password |
 | localhost:4319 | `tooling/cli/ccusage-dashboard/` | local only (`ccu-dash`) | n/a |
 
@@ -34,7 +32,6 @@ sibling account reports as *"not registered at Hostinger"*. `agrolloo.com` and t
 hosting live in **web**; the VPS lives in **vps**. Retiring the second account was
 investigated and parked — see `plans/260-close-hostinger-web-account.md`.
 
-`timeblock` (plan 054) is **deployed**, not just built — confirmed via `apps/timeblock/wrangler.toml` (`[[routes]] pattern = "timeblock.agrolloo.com"`, `custom_domain = true`) and its row in `my-hosted-sites.md`. Don't describe it as "built but not deployed" without re-checking those two.
 
 Retired 2026-08-25: **media-board** (`localhost:4100`) was a local-only gallery over the tts/heygen asset hubs. It was never a hosted surface and is not in `my-hosted-sites.md`. Server archived at `.claude/skills-archive/2026-08-25/media-board/serve.mjs`.
 
