@@ -359,6 +359,7 @@ Step 010 output — the owner's kickoff choices. Absent file = all defaults.
   "review": "full",           // full (every gate; default) | express (unattended to final cut; waives 235/340 board approvals ONLY — never the new-card look-preview, never 530)
   "drive_folder": "1x-…",     // optional — the video's own Drive folder (holds Input/ and Output/); step 620 delivers into its Output/
   "drive_account": "a@b.com", // optional — pp-drive token account with write access
+  "canvas": { "w": 1920, "h": 1080, "fps": 30 }, // optional — assembly output canvas (lib/kit default shown); --draft renders at 2/3
   "decided_at": "2026-08-01T…"
 }
 ```

@@ -108,3 +108,14 @@ links it, never restates it. Cards and `catalog.json` are owned by
 `../card-library/`. Callers never edit either; if a schema or catalog change
 is needed for an integration, that's a change to make in those owning files,
 not a workaround in the caller.
+
+## 8. Assembling from another recipe: `lib/kit/`
+
+A recipe that only needs the finishing steps (segment planning, encode, overlays,
+effects, captions, audio mux) imports `lib/kit/index.mjs` and hands
+`assembleEditPlan()` an edit plan. The contract is the typedef at the top of
+`lib/kit/edit-plan.mjs`; `validateEditPlan()` names every problem before anything
+is encoded. Canvas defaults to 1920x1080 at 30fps and is set per plan
+(`run-config.json` `canvas` for this recipe). `lib/assemble.mjs` is the card
+recipe's adapter onto it. The kit never imports recipe code: `recipe-isolation.json`
+(scope `kit`) and `lib/kit/kit-imports.test.mjs` enforce that.
