@@ -1,8 +1,7 @@
 import fs from 'node:fs'
-// playwright-core ships no browsers; it drives the Chrome already on the machine.
-// That keeps `npm install` small and offline, and avoids depending on a sibling app's
-// node_modules, which a fresh checkout does not have.
+// playwright-core ships no browsers; the repo helper picks the cached headless shell.
 import { chromium } from 'playwright-core'
+import { launchOptions } from '../../../scripts/lib/chrome.mjs'
 
 fs.mkdirSync(process.env.OUT || '/tmp/dayboard-shots', { recursive: true })
 
@@ -10,7 +9,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8787'
 const PW = process.env.PW || 'devpass'
 const OUT = process.env.OUT || '/tmp/dayboard-shots'
 
-const browser = await chromium.launch({ channel: 'chrome' })
+const browser = await chromium.launch(launchOptions({ playwright: true }))
 
 async function shoot(name, width, height, extra) {
   const ctx = await browser.newContext({

@@ -8,6 +8,10 @@ tooling/cli/pp-agents/	python3 tooling/cli/pp-agents/test-pp-agents.py
 tooling/cli/greenlight/	bash tooling/boss/test-boss.sh
 tooling/cli/greenlight/	bash tooling/cli/greenlight/test-greenlight.sh
 scripts/	bash scripts/check-repo-hygiene.sh
+scripts/	node --test scripts/lib/
+apps/	bash scripts/check-repo-hygiene.sh
+pipelines/	bash scripts/check-repo-hygiene.sh
+tooling/	bash scripts/check-repo-hygiene.sh
 scripts/	bash scripts/test-mirror-codex-skills.sh
 scripts/	bash scripts/test-sync-shared-skills.sh
 pipelines/video/visuals-flow/	cd pipelines/video/visuals-flow && bash scripts/check.sh
@@ -16,10 +20,10 @@ apps/tutorial-tracker-app/	cd apps/tutorial-tracker-app && npm test
 apps/dayboard/	cd apps/dayboard && npm run check
 apps/analytics-app/	cd apps/analytics-app && npm run typecheck && npm run build
 apps/redirector/	cd apps/redirector && npm test && npm run typecheck
-.claude/hooks/	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh && bash .claude/hooks/test-no-edits-in-main.sh && bash .claude/hooks/test-no-global-gh-switch.sh
+.claude/hooks/	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh && bash .claude/hooks/test-no-edits-in-main.sh && bash .claude/hooks/test-no-global-gh-switch.sh && bash .claude/hooks/test-chrome-via-shell.sh
 .claude/skills/	bash .claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh
 tooling/press-clis/	cd tooling/press-clis/paypal-txns && go build ./... && go test ./...
-.claude/settings.json	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh && bash .claude/hooks/test-no-edits-in-main.sh
+.claude/settings.json	bash .claude/hooks/test-no-history-in-main.sh && bash .claude/hooks/test-commit-before-stop.sh && bash .claude/hooks/test-no-edits-in-main.sh && bash .claude/hooks/test-chrome-via-shell.sh
 pipelines/video-registry/	cd pipelines/video-registry && node --test registry.test.mjs
 tooling/maintainer/	bash tooling/maintainer/test-maintainer.sh
 pipelines/income-analysis/	python3 pipelines/income-analysis/test_income.py

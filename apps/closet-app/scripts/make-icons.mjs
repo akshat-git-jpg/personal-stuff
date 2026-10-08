@@ -2,11 +2,9 @@
 // Run once: `node scripts/make-icons.mjs`. The PNGs are committed; the merge
 // gate never runs this, so puppeteer is not a gate dependency.
 import puppeteer from 'puppeteer-core'
+import { launchOptions } from '../../../scripts/lib/chrome.mjs'
 import { mkdirSync } from 'node:fs'
 
-const CHROME =
-  process.env.CHROME_PATH ||
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 // A hanger over a dark tile. `pad` leaves the safe area a maskable icon needs.
 const svg = (pad) => `
@@ -27,7 +25,7 @@ const targets = [
 ]
 
 mkdirSync('public', { recursive: true })
-const browser = await puppeteer.launch({ executablePath: CHROME, headless: true })
+const browser = await puppeteer.launch(launchOptions())
 try {
   for (const { file, size, pad } of targets) {
     const page = await browser.newPage()

@@ -24,6 +24,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { execFileSync } from 'node:child_process'
+import { findChrome } from '../../../scripts/lib/chrome.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
@@ -388,6 +389,7 @@ const LEGEND = `<div class="legend">
 <span><b>Red box</b> = rules for the whole section, read first</span>
 </div>`
 
+// Edge and Chromium stay as fallbacks for a machine with no Chrome at all.
 const CHROMES = [
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
@@ -399,7 +401,7 @@ const CHROMES = [
 ]
 
 function toPdf(htmlPath) {
-  const chrome = CHROMES.find((p) => existsSync(p))
+  const chrome = findChrome() ?? CHROMES.find((p) => existsSync(p))
   if (!chrome) {
     console.error(
       'No Chrome/Edge/Chromium found for PDF export.\n' +

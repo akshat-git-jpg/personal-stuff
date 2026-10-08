@@ -24,14 +24,11 @@
 // the SAME authenticated page/browser instead of relaunching Chrome per shot.
 
 import puppeteer from "puppeteer-core";
+import { launchOptions } from "../../../scripts/lib/chrome.mjs";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// macOS system Chrome. Override with CHROME_PATH if needed.
-const CHROME =
-  process.env.CHROME_PATH ||
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
 /**
  * Navigate `page` to `url`, optionally wait for/click a selector, then
@@ -137,11 +134,7 @@ if (isMain) {
   const selector = typeof flags.selector === "string" ? flags.selector : null;
   const click = typeof flags.click === "string" ? flags.click : null;
 
-  const browser = await puppeteer.launch({
-    executablePath: CHROME,
-    headless: "new",
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
-  });
+  const browser = await puppeteer.launch(launchOptions({ args: ["--disable-dev-shm-usage"] }));
   const page = await browser.newPage();
   const result = await captureScreenshot({ page, url, out, width, height, fullPage, wait, selector, click });
   await browser.close();
