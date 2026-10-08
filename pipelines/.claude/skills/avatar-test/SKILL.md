@@ -27,6 +27,7 @@ pictures. Each test must be quick, free and recorded, so any avatar can be rebui
 | Drive folder for pictures | "Avatar Tests" `1I8ajZmG6xuRHOxuz1emRDvAWuFDQpf_g`, account `kushalbakliwal25@gmail.com` |
 | Local pictures | `~/kb-scratch/avatar-tests/` |
 | Mapping (committed) | `pipelines/video/heygen/avatar-test/avatar-tests.json` |
+| Voice samples (committed list) | `pipelines/video/heygen/avatar-test/voices.json`; files in `~/kb-scratch/avatar-tests/voices/` + Drive |
 | Watermark tool | `python3 pipelines/video/heygen/avatar-test/unwatermark.py <in> <out>` |
 | Photo avatar slots | Unlimited on the current plan (`credits` / `/v1/payment/subscription`). |
 
@@ -40,10 +41,11 @@ pictures. Each test must be quick, free and recorded, so any avatar can be rebui
 2. **Watermark.** Run `unwatermark.py <original> ~/kb-scratch/avatar-tests/<name>-clean.png`. It prints JSON.
    `found: true` → it removed the sparkle (only those pixels change); zoom-crop the box before/after and look at it
    before going on. `found: false` → the clean copy is identical; use it.
-3. **Audio.** Always ask (owner rule). `AskUserQuestion` "Which audio for the test video?" with options built from:
-   the audio of the last test (from the mapping), a coupon intro clip
-   (`pipelines/video/visuals-flow/videos/<slug>/slices-avatar/s01.mp3`, ~19 s), and "I'll give a file".
-   Keep it under ~60 s: it is a look test.
+3. **Voice.** Always ask (owner rule). `AskUserQuestion` "Which voice for the test video?": one option per entry in
+   `pipelines/video/heygen/avatar-test/voices.json` (label + description), plus "Other file" (the built-in free-text
+   choice). Use the entry's `local` file; if it is missing, `pp-drive download` its `drive` link back to `local`.
+   A new sample the owner wants to keep: cut ~15-20 s ending on a pause (`silencedetect`), save it under
+   `~/kb-scratch/avatar-tests/voices/`, upload to the Drive folder, add an entry. Keep samples under ~60 s.
 4. **Upload the pictures to Drive**: original and clean, into the Avatar Tests folder (`pp-drive upload <file>
    --parent 1I8ajZmG6xuRHOxuz1emRDvAWuFDQpf_g --account kushalbakliwal25@gmail.com`). Keep both links.
 5. **Run the test** (one command; it saves credits before, creates the avatar, renders on Avatar III, waits for
