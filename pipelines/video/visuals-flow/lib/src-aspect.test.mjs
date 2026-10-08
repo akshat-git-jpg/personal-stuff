@@ -111,7 +111,8 @@ test('planSideGeometry: a portrait source is cropped far less than a landscape o
 // but it is the one that actually fails when the argument is dropped again.
 test('every planPanelGeometry/planSideGeometry call site passes srcAspect', () => {
   const ROOT = path.resolve(import.meta.dirname);
-  const files = ['assemble.mjs', 'export-timeline.mjs'];
+  // The call sites moved into the kit core with the assembly engine; the pin follows them.
+  const files = ['assemble.mjs', 'export-timeline.mjs', path.join('kit', 'assemble-core.mjs')];
   const offenders = [];
   for (const f of files) {
     const src = fs.readFileSync(path.join(ROOT, f), 'utf8');

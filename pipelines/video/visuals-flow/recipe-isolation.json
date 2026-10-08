@@ -86,6 +86,41 @@
         "screenplay"
       ],
       "allow": []
+    },
+    {
+      "id": "kit",
+      "why": "Recipe-agnostic core (lib/kit/ plus the two utils it imports): assembly from an edit plan. It must hold no recipe's judgment: no cue, zone, card, intro, concept, screenplay or coupon knowledge, and no recipe file read. Imports are gated separately by lib/kit/kit-imports.test.mjs.",
+      "surface": [
+        "pipelines/video/visuals-flow/lib/kit",
+        "pipelines/video/visuals-flow/lib/captions.mjs",
+        "pipelines/video/visuals-flow/lib/versions.mjs"
+      ],
+      "banned": [
+        "cue-rules",
+        "zone-rules",
+        "cue-constants",
+        "zone-constants",
+        "lint-cues",
+        "resolve.mjs",
+        "card-plan",
+        "catalog.json",
+        "intro-modes",
+        "concept-spans",
+        "TASTE-",
+        "AUTHORING.md",
+        "RULEBOOK.md",
+        "screenplay",
+        "coupon",
+        "cues.json",
+        "shots.json",
+        "card-library",
+        "intro-film",
+        "intro-kit",
+        "shot-constants",
+        "run-config",
+        "effects/registry"
+      ],
+      "allow": []
     }
   ],
   "manualOnlySkills": {
