@@ -239,3 +239,4 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/everbee-promo-code-s01-test-template-bfc04309--fb3244eddc9648f2b3def18ccce00912) | bfc0430957444fdfbe0b4d05e80e9658 | s01.mp3 | `fb3244eddc9648f2b3def18ccce00912` |
 | [heygen link](https://app.heygen.com/videos/everbee-promo-code-s02--14b3723c695f47bba47f0c404408da9f) | bfc0430957444fdfbe0b4d05e80e9658 | s02.mp3 | `14b3723c695f47bba47f0c404408da9f` |
 | [heygen link](https://app.heygen.com/videos/everbee-promo-code-corner-01--9f7e8082d5a84abda47bcb32c910f1d0) | bfc0430957444fdfbe0b4d05e80e9658 | corner-01.mp3 | `9f7e8082d5a84abda47bcb32c910f1d0` |
+| [heygen link](https://app.heygen.com/videos/helen-test-everbee-intro-heygen3--3c8419504a3f4f0eb2c8c72b81fefc2c) | f64bdab33dcf4136b32d66da2a74ed28 | s01.mp3 | `3c8419504a3f4f0eb2c8c72b81fefc2c` |
