@@ -83,7 +83,9 @@ async function runCheck(env, { dryRun = false } = {}) {
   const result = { ts: now, target: env.TARGET_URL, down, attempts, action: 'none' };
 
   if (!down) {
-    await env.WATCHDOG_KV.put('last_status', JSON.stringify(result));
+    // Write only on recovery: a put every healthy run burns 720 of the 1k free daily writes.
+    const prev = JSON.parse((await env.WATCHDOG_KV.get('last_status')) || 'null');
+    if (!prev || prev.down) await env.WATCHDOG_KV.put('last_status', JSON.stringify(result));
     return result;
   }
 
