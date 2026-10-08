@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import type { Bar } from '../shared/salary'
 import type { ChartMark } from './derive'
 import { inr, monLabel } from './format'
@@ -44,6 +44,9 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
   const box = useRef<HTMLDivElement>(null)
   const [boxW, setBoxW] = useState(348)
   const [hover, setHover] = useState<number | null>(null)
+  const tip = useRef<HTMLDivElement>(null)
+  const [tipH, setTipH] = useState(0)
+  useLayoutEffect(() => setTipH(tip.current?.offsetHeight ?? 0), [hover])
   useEffect(() => {
     const el = box.current
     if (!el || typeof ResizeObserver === 'undefined') return
@@ -86,6 +89,9 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
   const h = hover === null ? null : bars[hover]
   const hMarks = hover === null ? [] : markList.filter((m) => m.i === hover)
   const tipLeft = hover === null ? 0 : Math.min(Math.max(cx(hover) - 95, 0), W - 190)
+  // Sit just above the month's highest dot; drop below the line when there is no room on top.
+  const GAP = 12
+  const tipTop = !h ? 0 : y(h.base + h.extra) - GAP - tipH >= 0 ? y(h.base + h.extra) - GAP - tipH : Math.min(y(h.base) + GAP, H - tipH)
 
   return (
     <div className="chart-scroll" ref={box}>
@@ -169,7 +175,7 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
           />
         </svg>
         {h && hover !== null && (
-          <div className="chart-tip" data-testid="chart-tip" style={{ left: tipLeft, top: TOP + 6 }} role="status">
+          <div ref={tip} className="chart-tip" data-testid="chart-tip" style={{ left: tipLeft, top: tipTop }} role="status">
             <div className="tip-month">{monLabel(h.month)}</div>
             <div className="tip-row">
               <b>{inr(h.base)}</b>
