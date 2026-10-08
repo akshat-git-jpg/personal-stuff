@@ -1,6 +1,6 @@
 import { loadAuth, die } from "../client/http.mjs";
 import { authCheck } from "../operations/auth.mjs";
-import { listAvatars, listLooks, createPhotoAvatar } from "../operations/avatars.mjs";
+import { listAvatars, listLooks, createPhotoAvatar, deleteAvatars } from "../operations/avatars.mjs";
 import { listVoices } from "../operations/voices.mjs";
 import { listVideos, status, deleteVideos, downloadCore, download } from "../operations/videos.mjs";
 import { submitGenerate, submitAudioGenerate, submitFromTemplate, studioRender, studioRenderStatus, templateEngine } from "../operations/render.mjs";
@@ -48,6 +48,7 @@ export async function run(args) {
     case "list-voices":  await listVoices(auth, rest); break;
     case "list-videos":  await listVideos(auth, rest); break;
     case "status":       await status(auth, rest[0]); break;
+    case "delete-avatar": await deleteAvatars(auth, rest.filter((x) => !x.startsWith("--"))); break;
     case "delete-video": await deleteVideos(auth, rest.filter((x) => !x.startsWith("--")), rest); break;
     case "download":     await download(auth, rest[0], rest.slice(1)); break;
     case "raw":          await raw(auth, rest[0], rest.slice(1)); break;

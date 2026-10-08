@@ -55,3 +55,13 @@ export async function createPhotoAvatar(auth, args) {
   console.error(`\n✓ Avatar III photo avatar created.\n  look_id (avatar_id) = ${lookId}\n  → use: generate/studio-render --avatar ${lookId}`);
   return { look_id: lookId };
 }
+
+// Deletes the whole avatar group (all its looks). HAR-verified 2026-10-09.
+export async function deleteAvatars(auth, ids) {
+  if (!ids.length) die("delete-avatar needs <group_id> [<group_id> ...]");
+  for (const id of ids) {
+    const r = await call(auth, endpoints.avatarGroupDelete, { id });
+    if (r?.code !== 100) die(`delete-avatar ${id} failed: ${JSON.stringify(r)}`);
+    console.error(`✓ deleted avatar ${id}`);
+  }
+}

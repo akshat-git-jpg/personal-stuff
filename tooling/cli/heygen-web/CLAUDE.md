@@ -54,4 +54,5 @@ Any `--avatar` / `--template` flag accepts **a slug or a raw id** — `registry.
   HeyGen silently fell back to Avatar III; stop and investigate. Never route
   through the official metered MCP.
 - **Auth**: Parsed from `infra/secrets/heygen-web-curls.txt` (gitignored). Sessions last days, not minutes — a capture from 2026-07-09 still authenticated on 2026-07-16, 7 days later (this file previously claimed "minutes to hours", which wrongly implied a recapture before every run). One observation isn't a guarantee, so don't plan around a fixed lifetime: probe with `auth-check` (read-only, exit 0 = live) when it matters, and recapture a fresh `submit` cURL on a 403.
+- **Delete an avatar**: `delete-avatar <group_id>` removes the whole group. For a photo avatar the look id printed by `create-photo-avatar` IS the group id. There is no undo, so confirm the name with `list-avatars` first.
 - **Testing**: `npm test` (i.e. `node --test`, run from this folder) is offline and safe. Live commands are ToS-grey and account-bound — run them manually, never in automation loops.
