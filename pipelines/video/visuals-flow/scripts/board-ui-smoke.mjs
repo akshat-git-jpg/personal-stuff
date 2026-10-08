@@ -36,8 +36,9 @@ const browser = await puppeteer.launch(launchOptions({
 // Real-time stand-in for `--dump-dom`: load, network idle (capped), then 1s to settle. Fresh context per page.
 async function dumpDom(url, label, viewport = { width: 800, height: 600 }) {
   const ctx = await browser.createBrowserContext();
+  let page;
   try {
-    const page = await ctx.newPage();
+    page = await ctx.newPage();
     await page.setViewport(viewport);
     try {
       await page.goto(url, { waitUntil: 'load', timeout: CHROME_TIMEOUT_MS });
@@ -50,21 +51,24 @@ async function dumpDom(url, label, viewport = { width: 800, height: 600 }) {
     const out = await page.evaluate(() => document.documentElement.outerHTML);
     return `<!DOCTYPE html>\n${out}`;
   } finally {
-    await ctx.close();
+    if (page && !page.isClosed()) await page.close().catch(() => {});
+    await ctx.close().catch(() => {});
   }
 }
 
 async function screenshot(fileUrl, outPath, label) {
   const ctx = await browser.createBrowserContext();
+  let page;
   try {
-    const page = await ctx.newPage();
+    page = await ctx.newPage();
     await page.setViewport({ width: 1400, height: 1000 });
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 300000 });
     await page.screenshot({ path: outPath });
   } catch (e) {
     throw new Error(`Chrome screenshot timeout on static ${label}: ${e.message}`);
   } finally {
-    await ctx.close();
+    if (page && !page.isClosed()) await page.close().catch(() => {});
+    await ctx.close().catch(() => {});
   }
   if (!fs.existsSync(outPath)) throw new Error(`Screenshot missing on ${label}`);
 }
