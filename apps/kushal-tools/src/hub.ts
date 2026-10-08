@@ -4,7 +4,7 @@
  *   - renderHub()   → the card grid (shown once the PIN cookie is valid)
  *   - renderLogin() → the password gate
  *
- * To add an app later, add one line to APPS. Nothing else changes.
+ * To add an app later, add one line to the right SECTIONS entry. Nothing else changes.
  */
 
 type App = {
@@ -12,27 +12,53 @@ type App = {
   url: string;
   /** short label, e.g. the host — shown in mono under the name */
   host: string;
-  /** one-word category, drives the accent dot grouping (purely cosmetic) */
+  /** one-word category, drives the accent dot color (purely cosmetic) */
   kind: "app" | "infra" | "page";
 };
 
-const APPS: App[] = [
-  { name: "Gym Tracker", host: "kushal-gym.agrolloo.com", url: "https://kushal-gym.agrolloo.com", kind: "app" },
-  { name: "Sparkly Gym", host: "sparkly-poop.agrolloo.com", url: "https://sparkly-poop.agrolloo.com", kind: "app" },
-  { name: "Kushal Docs", host: "kushal-docs.agrolloo.com", url: "https://kushal-docs.agrolloo.com", kind: "app" },
-  { name: "Tutorials Tracker", host: "tutorials-tracker.agrolloo.com", url: "https://tutorials-tracker.agrolloo.com", kind: "app" },
-  { name: "YT Analytics", host: "yt-analytics.agrolloo.com", url: "https://yt-analytics.agrolloo.com", kind: "app" },
-  { name: "YT Income", host: "yt-income.agrolloo.com", url: "https://yt-income.agrolloo.com", kind: "app" },
-  { name: "Kushal Income", host: "kushal-income.agrolloo.com", url: "https://kushal-income.agrolloo.com", kind: "app" },
-  { name: "Kushal Health", host: "kushal-health.agrolloo.com", url: "https://kushal-health.agrolloo.com", kind: "app" },
-  { name: "Kushal Salary", host: "kushal-salary.agrolloo.com", url: "https://kushal-salary.agrolloo.com", kind: "app" },
-  { name: "Founders Tracker", host: "founders.agrolloo.com", url: "https://founders.agrolloo.com", kind: "app" },
-  { name: "Dayboard", host: "dayboard.agrolloo.com", url: "https://dayboard.agrolloo.com", kind: "app" },
-  { name: "Hyperframes Renderer", host: "render2.agrolloo.com", url: "https://render2.agrolloo.com", kind: "infra" },
-  { name: "Lists", host: "lists.agrolloo.com", url: "https://lists.agrolloo.com", kind: "app" },
-  { name: "Closet", host: "closet.agrolloo.com", url: "https://closet.agrolloo.com", kind: "app" },
-  { name: "Trip Planner", host: "trips.agrolloo.com", url: "https://trips.agrolloo.com", kind: "app" },
+type Section = { title: string; apps: App[] };
+
+const app = (name: string, host: string, kind: App["kind"] = "app"): App => ({ name, host, url: `https://${host}`, kind });
+
+const SECTIONS: Section[] = [
+  {
+    title: "Daily",
+    apps: [
+      app("Dayboard", "dayboard.agrolloo.com"),
+      app("Lists", "lists.agrolloo.com"),
+      app("Trip Planner", "trips.agrolloo.com"),
+      app("Closet", "closet.agrolloo.com"),
+      app("Kushal Docs", "kushal-docs.agrolloo.com"),
+    ],
+  },
+  {
+    title: "Health",
+    apps: [
+      app("Gym Tracker", "kushal-gym.agrolloo.com"),
+      app("Kushal Health", "kushal-health.agrolloo.com"),
+      app("Sparkly Gym", "sparkly-poop.agrolloo.com"),
+    ],
+  },
+  {
+    title: "Money",
+    apps: [
+      app("Kushal Salary", "kushal-salary.agrolloo.com"),
+      app("Kushal Income", "kushal-income.agrolloo.com"),
+      app("YT Income", "yt-income.agrolloo.com"),
+    ],
+  },
+  {
+    title: "YouTube & work",
+    apps: [
+      app("YT Analytics", "yt-analytics.agrolloo.com"),
+      app("Tutorials Tracker", "tutorials-tracker.agrolloo.com"),
+      app("Founders Tracker", "founders.agrolloo.com"),
+      app("Hyperframes Renderer", "render2.agrolloo.com", "infra"),
+    ],
+  },
 ];
+
+const APP_COUNT = SECTIONS.reduce((n, s) => n + s.apps.length, 0);
 
 const FAVICON =
   "data:image/svg+xml," +
@@ -90,17 +116,25 @@ const BASE_CSS = `
 `;
 
 export function renderHub(): string {
-  const cards = APPS.map((a, i) => {
-    const delay = (i * 60).toString();
+  let i = 0;
+  const sections = SECTIONS.map((sec) => {
+    const cards = sec.apps.map((a) => {
+      const delay = (i++ * 50).toString();
+      return `
+        <a class="card" href="${a.url}" target="_blank" rel="noopener" style="--d:${delay}ms">
+          <span class="dot dot--${a.kind}"></span>
+          <span class="card__body">
+            <span class="card__name">${a.name}</span>
+            <span class="card__host">${a.host}</span>
+          </span>
+          <span class="card__go" aria-hidden="true">&#8599;</span>
+        </a>`;
+    }).join("");
     return `
-      <a class="card" href="${a.url}" target="_blank" rel="noopener" style="--d:${delay}ms">
-        <span class="dot dot--${a.kind}"></span>
-        <span class="card__body">
-          <span class="card__name">${a.name}</span>
-          <span class="card__host">${a.host}</span>
-        </span>
-        <span class="card__go" aria-hidden="true">&#8599;</span>
-      </a>`;
+      <section class="sec">
+        <h2 class="sec__title">${sec.title}<span class="sec__count">${sec.apps.length}</span></h2>
+        <div class="grid">${cards}</div>
+      </section>`;
   }).join("");
 
   return `<!doctype html>
@@ -135,6 +169,14 @@ ${BASE_CSS}
     letter-spacing: 0.02em; max-width: 30ch;
     animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.12s both;
   }
+  main { display: flex; flex-direction: column; gap: clamp(1.8rem, 4vw, 2.6rem); }
+  .sec__title {
+    display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.9rem;
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--muted); animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .sec__title::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .sec__count { color: var(--accent); letter-spacing: 0.05em; }
   .grid {
     display: grid; gap: 0.9rem;
     grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
@@ -206,9 +248,9 @@ ${BASE_CSS}
       <h1>Kushal<em>Tools</em></h1>
       <p class="sub">Everything I&rsquo;ve shipped, one tap away. Tap a card to open it.</p>
     </header>
-    <main class="grid">${cards}</main>
+    <main>${sections}</main>
     <footer>
-      <span>${APPS.length} tools</span>
+      <span>${APP_COUNT} tools</span>
       <a href="/logout" data-logout>Sign out &#8594;</a>
     </footer>
   </div>

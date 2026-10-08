@@ -50,12 +50,12 @@ Two automated checkers already run on the VPS (see `VPS-CRONS.md` → "Active cr
 When a public surface changes, update **all three in the same change**:
 1. `my-hosted-sites.md` (one line; probe-sites reads it — a URL missing here is invisible to monitoring),
 2. `INFRA.md` (Worker/bindings/DNS inventory),
-3. the kushal-tools hub card (`apps/kushal-tools/src/hub.ts` `APPS` array) + redeploy kushal-tools — its own CLAUDE.md mandates this.
+3. the kushal-tools hub card (`apps/kushal-tools/src/hub.ts` `SECTIONS` array) + redeploy kushal-tools — its own CLAUDE.md mandates this.
 
 **Do not rely on remembering step 3 — ask.** The moment a new surface is reachable at a
 URL, put the question to the owner directly: *"add this to kushal-tools?"* He asked for
 this on 2026-08-30, after yt-income shipped, deployed and got written into two inventories
-while the hub card was still missing. Adding it is one line in `APPS` plus a redeploy; the
+while the hub card was still missing. Adding it is one line in `SECTIONS` plus a redeploy; the
 failure mode is not difficulty, it is that the step sits at the end of a long build when
 attention has already moved on. Asking converts it from something you must remember into
 something he decides.
@@ -66,7 +66,7 @@ This rule has slipped repeatedly. The 2026-06/07 drift it caused (founders-track
 
 This skill stays the single home of the "is INFRA.md stale?" question; sibling skills (**personal-stuff-architecture-contract**, **cloudflare-and-vps-reference**) link here instead of re-describing drift. Check mechanically, don't eyeball:
 
-`.claude/skills/personal-stuff-hosting-inventory/scripts/verify-inventory.sh` — compares INFRA.md against `apps/*/wrangler.*`, the hub-card `APPS` array, and `VPS-CRONS.md`; prints OK/DRIFT per row, exits 1 on any DRIFT, no network calls. All-OK as of 2026-07-12.
+`.claude/skills/personal-stuff-hosting-inventory/scripts/verify-inventory.sh` — compares INFRA.md against `apps/*/wrangler.*`, the hub-card `SECTIONS` array, and `VPS-CRONS.md`; prints OK/DRIFT per row, exits 1 on any DRIFT, no network calls. All-OK as of 2026-07-12.
 
 If it reports DRIFT again: treat `apps/*/wrangler.*` + `VPS-CRONS.md` + `my-hosted-sites.md` as ground truth over INFRA.md wherever they disagree, and route the repair through **personal-stuff-change-control** (don't patch INFRA.md as a side effect of an unrelated task).
 

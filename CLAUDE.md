@@ -96,7 +96,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 - **Shipped a new public surface? ASK about the hub before you call it done.** Any new
   app, dashboard, tool or domain must land in three places, and the third is the one that
   keeps getting forgotten: `my-hosted-sites.md`, `INFRA.md`, and the **kushal-tools hub
-  card** (`apps/kushal-tools/src/hub.ts` `APPS` array — then redeploy kushal-tools, or the
+  card** (`apps/kushal-tools/src/hub.ts` `SECTIONS` array — then redeploy kushal-tools, or the
   card never appears). The rule was already written down in three skills and still slipped,
   because those skills only load if you happen to route to them; it lives here because this
   file is always loaded. So: the moment something becomes reachable at a URL, put the

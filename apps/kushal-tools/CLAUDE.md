@@ -4,9 +4,10 @@ A launcher hub for the other agrolloo.com apps. One Hono Worker, no build step.
 
 ## Adding / editing a card
 
-Edit the `APPS` array in `src/hub.ts` — one object per app
-(`{ name, host, url, kind }`). `kind` only drives the colored dot
-(`app` / `infra` / `page`). That's the whole change; there is no data store.
+Add one `app(name, host)` line to the right group in the `SECTIONS` array in
+`src/hub.ts` (Daily, Health, Money, YouTube & work). A third argument sets `kind`,
+which only drives the colored dot (`app` / `infra` / `page`). A new group is one
+more `{ title, apps }` entry. That's the whole change; there is no data store.
 
 When you add an app here, also add it to the repo-level `my-hosted-sites.md`
 and `INFRA.md` so the inventory stays accurate.
