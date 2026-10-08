@@ -82,11 +82,19 @@ describe('Every month tab', () => {
     expect(screen.getByTestId('recent').textContent).toContain('₹1,40,000 + ₹90,000')
   })
 
-  it('links the last 6 months to their payslips, newest first', () => {
+  it('lists every month newest first, linked to its payslip, under year headings', () => {
     render(<MonthsTab months={fixture} />)
-    const links = within(screen.getByTestId('recent')).getAllByRole('link')
-    expect(links).toHaveLength(6)
+    const list = screen.getByTestId('recent')
+    const links = within(list).getAllByRole('link')
+    expect(links).toHaveLength(9)
     expect(links[0].getAttribute('href')).toBe('/api/months/2025-06/pdf')
+    expect(links[8].getAttribute('href')).toBe('/api/months/2024-01/pdf')
+    expect([...list.querySelectorAll('.row-year')].map((e) => e.textContent)).toEqual(['2025', '2024'])
+  })
+
+  it('has no all-payouts box', () => {
+    render(<MonthsTab months={fixture} />)
+    expect(screen.getByTestId('kpis').textContent).not.toContain('payouts')
   })
 })
 

@@ -17,7 +17,6 @@ export function summary(months: Month[], mode: Mode) {
     hikes: count('hike'),
     payouts: count('payout'),
     latestBase: last.base,
-    allPayouts: b.reduce((a, x) => a + x.extra, 0),
     fy: fySoFar(months, mode),
     fyLabel: fyOf(last.month),
   }

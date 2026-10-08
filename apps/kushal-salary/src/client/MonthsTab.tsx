@@ -50,7 +50,7 @@ export default function MonthsTab({ months }: { months: Month[] }) {
     if (arrearsOf(m) > 0) l.push('Arrears')
     if (variableOf(m) + arrearsOf(m) > 0) labels[m.month] = l
   }
-  const recent = b.slice(-6).reverse()
+  const all = b.slice().reverse()
   const pdf = new Map(months.map((m) => [m.month, m.has_pdf]))
 
   return (
@@ -104,17 +104,19 @@ export default function MonthsTab({ months }: { months: Month[] }) {
           <span>monthly pay</span>
         </div>
         <div className="card kpi">
-          <b className="payout">{inr(s.allPayouts)}</b>
-          <span>all payouts</span>
-        </div>
-        <div className="card kpi">
           <b>{inr(s.fy)}</b>
           <span>{s.fyLabel} so far</span>
         </div>
       </div>
 
       <section className="card rows" data-testid="recent">
-        {recent.map((r) => {
+        {all.map((r, i) => {
+          const year = r.month.slice(0, 4)
+          const yearRow = (i === 0 || all[i - 1].month.slice(0, 4) !== year) && (
+            <div key={year} className="row-year">
+              {year}
+            </div>
+          )
           const body = (
             <>
               <span>{monLabel(r.month)}</span>
@@ -124,7 +126,7 @@ export default function MonthsTab({ months }: { months: Month[] }) {
               </span>
             </>
           )
-          return pdf.get(r.month) ? (
+          const row = pdf.get(r.month) ? (
             <a key={r.month} className="row" href={`/api/months/${r.month}/pdf`} target="_blank" rel="noopener">
               {body}
             </a>
@@ -133,6 +135,7 @@ export default function MonthsTab({ months }: { months: Month[] }) {
               {body}
             </div>
           )
+          return yearRow ? [yearRow, row] : row
         })}
       </section>
       <p className="muted small">
