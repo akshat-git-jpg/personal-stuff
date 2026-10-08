@@ -43,10 +43,10 @@ describe('Every month tab', () => {
     expect(screen.getAllByTestId('month-point')).toHaveLength(9)
   })
 
-  it('labels the months on the x axis', () => {
+  it('labels every month on the x axis', () => {
     render(<MonthsTab months={fixture} />)
     const labels = screen.getAllByTestId('month-label').map((t) => t.textContent)
-    expect(labels).toEqual(['Jan', 'Mar', 'May', 'May'])
+    expect(labels).toEqual(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Apr', 'May', 'Jun'])
   })
 
   it('shows full amounts for a month on hover', () => {
