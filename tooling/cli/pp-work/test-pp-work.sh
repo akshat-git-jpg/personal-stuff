@@ -536,5 +536,60 @@ if [ -f "$again_out/landed-again.txt" ]; then
   fail "(22) re-claim moved an existing workspace branch onto newer main -- that can eat in-progress work"
 fi
 
+# -----------------------------------------------------------------------------
+# 23. A land whose patch-id changed still counts as merged.
+#
+# patch-id hashes context lines too, so `git cherry` says `+` when main changed a line near
+# the edit before the land (assemble-core-split), or when part of the commit landed on its
+# own first (salary-line-chart). Both were fully on main and reported unlanded:1 (2026-10-09).
+# -----------------------------------------------------------------------------
+( cd "$MAIN_DIR" && git pull -q origin main >/dev/null 2>&1; printf 'l1\nl2\nl3\nl4\nl5\nl6\nl7\n' > ctx.txt \
+  && git add ctx.txt && git commit -qm "ctx" && git push -q origin main >/dev/null 2>&1 ) \
+  || fail "(23) fixture: could not seed ctx.txt"
+
+# 23a. context shift: main edits l2, the branch edits l4, then the branch is replayed.
+ctx_out=$(run_guarded "$PPWORK" claim --kind code --slug ctx-shift)
+( cd "$ctx_out" && sed -i.bak 's/^l4$/L4/' ctx.txt && rm ctx.txt.bak && git commit -qam "edit l4" )
+( cd "$MAIN_DIR" && sed -i.bak 's/^l2$/L2/' ctx.txt && rm ctx.txt.bak && git commit -qam "edit l2" \
+  && git cherry-pick "$(git -C "$ctx_out" rev-parse HEAD)" >/dev/null 2>&1 && git push -q origin main >/dev/null 2>&1 ) \
+  || fail "(23a) fixture: could not replay the commit onto main"
+[ "$(git -C "$MAIN_DIR" cherry origin/main work/ctx-shift | grep -c '^+' || true)" -eq 1 ] \
+  || fail "(23a) fixture is vacuous — git cherry already matches the replayed commit"
+list_out=$("$PPWORK" list 2>/dev/null) || fail "(23) list failed"
+echo "$list_out" | grep -q "ctx-shift .* unlanded:0" \
+  || fail "(23a) list counts a landed commit whose context shifted as pending"
+
+# 23b. split land: half the commit reaches main on its own, then the rest.
+split_out=$(run_guarded "$PPWORK" claim --kind code --slug split-land)
+( cd "$split_out" && echo a > half-a.txt && echo b > half-b.txt && git add half-a.txt half-b.txt && git commit -qm "both halves" )
+( cd "$MAIN_DIR" && git pull -q origin main >/dev/null 2>&1; echo a > half-a.txt && git add half-a.txt && git commit -qm "half a" \
+  && echo b > half-b.txt && git add half-b.txt && git commit -qm "half b" && git push -q origin main >/dev/null 2>&1 ) \
+  || fail "(23b) fixture: could not land the two halves"
+list_out=$("$PPWORK" list 2>/dev/null) || fail "(23) list failed"
+echo "$list_out" | grep -q "split-land .* unlanded:0" \
+  || fail "(23b) list counts a commit that landed in two parts as pending"
+run_guarded env PPWORK_GRACE_SECS=0 "$PPWORK" remove "$split_out" >/dev/null 2>&1 \
+  || fail "(23b) remove refused a workspace whose content is fully on main"
+
+# 23d. context shift, then main edits the landed line again: neither cherry nor today's main match.
+later_out=$(run_guarded "$PPWORK" claim --kind code --slug edited-later)
+( cd "$later_out" && sed -i.bak 's/^l6$/L6/' ctx.txt && rm ctx.txt.bak && git commit -qam "edit l6" )
+( cd "$MAIN_DIR" && git pull -q origin main >/dev/null 2>&1; sed -i.bak 's/^l3$/L3/' ctx.txt && rm ctx.txt.bak && git commit -qam "edit l3" \
+  && git cherry-pick "$(git -C "$later_out" rev-parse HEAD)" >/dev/null 2>&1 \
+  && sed -i.bak 's/^L6$/L6-v2/' ctx.txt && rm ctx.txt.bak && git commit -qam "rework l6" && git push -q origin main >/dev/null 2>&1 ) \
+  || fail "(23d) fixture: could not land and then rework the line"
+list_out=$("$PPWORK" list 2>/dev/null) || fail "(23) list failed"
+echo "$list_out" | grep -q "edited-later .* unlanded:0" \
+  || fail "(23d) list counts a landed commit as pending once main edited the same line again"
+
+# 23c. negative: a change that is NOT on main is still unlanded and still blocks remove.
+live_out=$(run_guarded "$PPWORK" claim --kind code --slug still-live)
+( cd "$live_out" && echo only-here > only-here.txt && git add only-here.txt && git commit -qm "only here" )
+list_out=$("$PPWORK" list 2>/dev/null) || fail "(23) list failed"
+echo "$list_out" | grep -q "still-live .* unlanded:1" \
+  || fail "(23c) list hides a commit that is not on main"
+run_guarded env PPWORK_GRACE_SECS=0 "$PPWORK" remove "$live_out" >/dev/null 2>&1 \
+  && fail "(23c) remove deleted a workspace holding a commit that exists only here"
+
 echo ""
 echo "ALL TESTS PASSED"
