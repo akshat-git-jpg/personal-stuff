@@ -1,0 +1,21 @@
+{
+  "note": "Short voice samples offered by the avatar-test skill. Audio is media: it lives in ~/kb-scratch and Drive, never in git.",
+  "voices": [
+    {
+      "id": "everbee-coupon",
+      "label": "EverBee coupon intro",
+      "description": "Owner's recorded voice, coupon video intro (\"Hey guys...\"), 18.8s",
+      "local": "/Users/kbtg/kb-scratch/avatar-tests/voices/everbee-coupon-intro.mp3",
+      "drive": "https://drive.google.com/file/d/1d_P_ey6Hb_LgjVwgS-WKzRhvxZJB20Fy",
+      "source": "pipelines/video/visuals-flow/videos/everbee-promo-code/slices-avatar/s01.mp3"
+    },
+    {
+      "id": "modal-tts",
+      "label": "Modal TTS voice",
+      "description": "IndexTTS-2 on Modal (yt-vo), first 18.4s of the 2026-09-28 voiceover",
+      "local": "/Users/kbtg/kb-scratch/avatar-tests/voices/modal-tts-sample.mp3",
+      "drive": "https://drive.google.com/file/d/1ePmjQkHpITNmRZX6SgZLzYEUSBNJ4cKB",
+      "source": "~/kb-scratch/video/tts/_adhoc/vo-best-realistic-youtube.mp3"
+    }
+  ]
+}
