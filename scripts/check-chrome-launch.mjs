@@ -1,6 +1,7 @@
 // Fails when tracked code starts the full Chrome app instead of going through scripts/lib/chrome.mjs.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import path from 'node:path';
 
 const CODE = /\.(mjs|cjs|js|ts|tsx|py|sh)$/;
 const BAD = [
@@ -29,6 +30,11 @@ for (const f of files) {
   if (!fs.existsSync(f)) continue;
   fs.readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
     for (const [re, why] of BAD) if (re.test(line)) hits.push(`${f}:${i + 1}: ${why}`);
+    // A wrong relative path to the helper only fails when the script runs, so check it here.
+    const imp = line.match(/from\s+['"]([^'"]*scripts\/lib\/chrome\.mjs)['"]/);
+    if (imp && imp[1].startsWith('.') && !fs.existsSync(path.join(path.dirname(f), imp[1]))) {
+      hits.push(`${f}:${i + 1}: import path '${imp[1]}' does not reach scripts/lib/chrome.mjs`);
+    }
   });
 }
 if (hits.length) {

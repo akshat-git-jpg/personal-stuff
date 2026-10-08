@@ -4,7 +4,7 @@
 // Usage: E2E_PIN=<pin> node scripts/e2e.mjs [url]   (default http://localhost:8787)
 // Exit 0 = every check passed. Needs months with PDFs in the target (a local copy or prod).
 import puppeteer from 'puppeteer-core'
-import { launchOptions } from '../../scripts/lib/chrome.mjs'
+import { launchOptions } from '../../../scripts/lib/chrome.mjs'
 
 const BASE = (process.argv[2] || 'http://localhost:8787').replace(/\/$/, '')
 const PIN = process.env.E2E_PIN
