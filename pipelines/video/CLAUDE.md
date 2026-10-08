@@ -77,6 +77,7 @@ Full derivation: `pipelines/video/tts/SYNC-PROBLEM.md` (header marks it answered
 
 - **Pose drift + the A→B frame-pinning trick**: I2V models' prior pulls faces frontal over the clip; prompting against it barely helps. Pinning first AND last frame to the same image stops drift but freezes the head (blinking only, looks dead). The working fix: pin the first frame to source pose **A** and the last frame to **B**, a slightly shifted variant of the same side pose (made with nano-banana; eyes at screen level, never lowered). Motion is bounded between two side poses — it can neither drift frontal nor freeze. The base clip must have a closed, still mouth or leftover jaw motion fights LatentSync.
 - LatentSync passed the de-risk test on the actual stylized side-view face: in sync, no face-detection failures across 624 frames, held through motion. Adopting fal later would save ~$3.25/video.
+- **Avatar III quality (2026-10-09):** head and eye motion follow a fixed clip from render second 0 (it loops about every 37.7 s), and only the mouth follows audio. So every full-screen section needs its own render, and the 25 fps output must never be resampled. Evidence and rules: `pipelines/video/heygen/AVATAR-III-QUALITY.md`.
 - Character ids/slugs: `pipelines/video/heygen/registry.json` (single source of truth); every render gets a `RENDERS.md` row; media outside the repo.
 
 ## GPU / serverless economics

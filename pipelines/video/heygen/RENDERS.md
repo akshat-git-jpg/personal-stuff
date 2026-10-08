@@ -242,3 +242,9 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/helen-test-everbee-intro-heygen3--3c8419504a3f4f0eb2c8c72b81fefc2c) | f64bdab33dcf4136b32d66da2a74ed28 | s01.mp3 | `3c8419504a3f4f0eb2c8c72b81fefc2c` |
 | [heygen link](https://app.heygen.com/videos/helen-office-clean-everbee-intro-test-heygen3--77beadaad1784f76bbc5ead8a191a501) | b4be8dff6e2649128f43594f1fb85848 | s01.mp3 | `77beadaad1784f76bbc5ead8a191a501` |
 | [heygen link](https://app.heygen.com/videos/helen-office-clean-fill-fix-test-heygen3--37dbc8428a054d46ad6969845f5460ce) | b4be8dff6e2649128f43594f1fb85848 | s01.mp3 | `37dbc8428a054d46ad6969845f5460ce` |
+| [heygen link](https://app.heygen.com/videos/helen-probe-s01-alone--8047a53576f14bd8bd931e3de02ce18a) | b4be8dff6e2649128f43594f1fb85848 | s01.mp3 | `8047a53576f14bd8bd931e3de02ce18a` |
+| [heygen link](https://app.heygen.com/videos/helen-probe-60s--90db96b40e8646019c11ba2e7f9dec4a) | b4be8dff6e2649128f43594f1fb85848 | probe-60s.mp3 | `90db96b40e8646019c11ba2e7f9dec4a` |
+| [heygen link](https://app.heygen.com/videos/motion-clock-probe-av2-intro-a--4d2c9753b14f48f3a319975a3da9b2cd) | 3eb3fa79938649068b02fe63320ae794 | s01.mp3 | `4d2c9753b14f48f3a319975a3da9b2cd` |
+| [heygen link](https://app.heygen.com/videos/motion-clock-probe-av2-intro-b--9ddcff372a6a45e1b5f36c2396601ad4) | 3eb3fa79938649068b02fe63320ae794 | s01.mp3 | `9ddcff372a6a45e1b5f36c2396601ad4` |
+| [heygen link](https://app.heygen.com/videos/motion-clock-probe-av2-prefix--adc5a914b4c24ad685b27d620a5e6174) | 3eb3fa79938649068b02fe63320ae794 | probe-prefix.mp3 | `adc5a914b4c24ad685b27d620a5e6174` |
+| [heygen link](https://app.heygen.com/videos/maria-turtleneck-test-2026-10-08--901a6bbd3d774f659724c1875a7adea6) | 9c14386e3e2c44b0a4ba9abdd55b17e3 | everbee-coupon-intro.mp3 | `901a6bbd3d774f659724c1875a7adea6` |

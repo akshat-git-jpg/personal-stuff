@@ -78,6 +78,11 @@ HeyGen template with this avatar is only needed for layouts; `generate-from-audi
 `AskUserQuestion` which avatar (multi-select, from the mapping). Confirm once more with the names. Then
 `delete-avatar <id>` and set `"deleted": "<date>"` on the row. The pictures stay in Drive, so it can be rebuilt.
 
+## Picking a photo
+
+Cover the neck (high neckline, collar or hair), head straight, mouth closed or slightly open, even front light.
+Why: `pipelines/video/heygen/AVATAR-III-QUALITY.md`.
+
 ## Rules
 
 - 0 credits per test is the contract. Never pass `--engine heygen4` or `--iv`.
