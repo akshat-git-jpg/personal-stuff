@@ -37,9 +37,16 @@ describe('Every month tab', () => {
     expect(localStorage.getItem('ksalary.mode')).toBe('gross')
   })
 
-  it('marks each payout month with a dot', () => {
+  it('puts a point on every month, payout months in amber', () => {
     render(<MonthsTab months={fixture} />)
     expect(screen.getAllByTestId('payout-dot')).toHaveLength(3)
+    expect(screen.getAllByTestId('month-point')).toHaveLength(6)
+  })
+
+  it('labels the months on the x axis', () => {
+    render(<MonthsTab months={fixture} />)
+    const labels = screen.getAllByTestId('month-label').map((t) => t.textContent)
+    expect(labels).toEqual(['Jan', 'Mar', 'May', 'May'])
   })
 
   it('shows full amounts for a month on hover', () => {
