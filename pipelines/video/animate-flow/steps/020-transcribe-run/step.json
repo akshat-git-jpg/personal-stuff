@@ -1,0 +1,18 @@
+{
+  "number": "020",
+  "slug": "020-transcribe-run",
+  "title": "transcribe the voiceover",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "transcribe"
+  ],
+  "consumes": [
+    "<media>/vo.mp3"
+  ],
+  "produces": [
+    "transcript.json",
+    "transcript-meta.json"
+  ],
+  "summary": "Word-level transcript. Groq whisper first (the shared `transcribe-groq.mjs` CLI), local whisper as the fallback."
+}

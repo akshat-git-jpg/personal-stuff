@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>m03 — one platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --positive: #34d399;
+        --negative: #ef4444;
+        --gold: #facc15;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #000;
+        font-family: "Inter", system-ui, sans-serif;
+        color: var(--text);
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 32% 30%, var(--bg-from) 0%, var(--bg-to) 62%);
+        overflow: hidden;
+      }
+      #glow {
+        position: absolute;
+        left: 120px;
+        top: -260px;
+        width: 1300px;
+        height: 1100px;
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(58, 31, 8, 0.9), rgba(58, 31, 8, 0));
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* Hero */
+      #hero {
+        position: absolute;
+        left: 180px;
+        top: 96px;
+        margin: 0;
+        font-size: 150px;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .w {
+        display: inline-block;
+      }
+
+      /* Panel */
+      #panel {
+        position: absolute;
+        left: 180px;
+        top: 300px;
+        width: 1560px;
+        height: 560px;
+        box-sizing: border-box;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        display: grid;
+        grid-template-columns: 380px 1040px;
+        column-gap: 60px;
+        align-items: center;
+      }
+      #panel-ring {
+        position: absolute;
+        inset: -2px;
+        border: 3px solid var(--accent);
+        border-radius: 26px;
+        opacity: 0;
+      }
+      .label {
+        font-size: 44px;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        line-height: 1.2;
+      }
+      #col-video {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 28px;
+      }
+      #film {
+        display: block;
+        width: 200px;
+        height: 240px;
+      }
+      #video-label {
+        max-width: 380px;
+      }
+
+      #col-scenes {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      #tiles {
+        position: relative;
+        width: 1020px;
+        height: 220px;
+      }
+      .tile {
+        position: absolute;
+        top: 0;
+        width: 320px;
+        height: 220px;
+        box-sizing: border-box;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.16);
+        overflow: hidden;
+      }
+      .tile svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #tile1 { left: 0; }
+      #tile2 { left: 350px; }
+      #tile3 { left: 700px; }
+      #thread {
+        position: absolute;
+        left: 110px;
+        top: 105px;
+        width: 800px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--accent);
+        transform-origin: 0 50%;
+      }
+      .char {
+        position: absolute;
+        top: 82px;
+        width: 44px;
+        height: 90px;
+      }
+      .char svg {
+        display: block;
+        width: 44px;
+        height: 90px;
+      }
+      #char1 { left: 88px; }
+      #char2 { left: 488px; }
+      #char3 { left: 888px; }
+      #scene-labels {
+        display: flex;
+        gap: 56px;
+      }
+      .label .dim {
+        color: var(--text-dim);
+      }
+
+      /* Tools */
+      .chip {
+        position: absolute;
+        width: 92px;
+        height: 92px;
+        box-sizing: border-box;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        display: grid;
+        place-items: center;
+      }
+      .chip svg {
+        display: block;
+        width: 48px;
+        height: 48px;
+      }
+      #chip1 { left: 1290px; top: 112px; }
+      #chip2 { left: 1408px; top: 168px; }
+      #chip3 { left: 1526px; top: 108px; }
+      #chip4 { left: 1644px; top: 164px; }
+      #hop {
+        position: absolute;
+        left: 1280px;
+        top: 102px;
+        width: 112px;
+        height: 112px;
+        box-sizing: border-box;
+        border-radius: 28px;
+        border: 3px solid var(--accent);
+        opacity: 0;
+      }
+
+      #closing {
+        position: absolute;
+        left: 180px;
+        top: 904px;
+        width: 1560px;
+        text-align: center;
+        font-size: 56px;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        line-height: 1.2;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="moment"
+      data-start="0"
+      data-width="1920"
+      data-height="1080"
+      data-duration="12.46"
+    >
+      <div id="bg" class="clip" data-start="0" data-duration="12.46" data-track-index="0">
+        <div id="glow" data-layout-allow-overflow></div>
+      </div>
+
+      <div id="stage" class="clip" data-start="0" data-duration="12.46" data-track-index="1">
+        <h1 id="hero"><span class="w" id="h-one">One</span> <span class="w" id="h-platform">platform</span></h1>
+
+        <div id="panel">
+          <div id="panel-ring"></div>
+
+          <div id="col-video">
+            <svg id="film" viewBox="0 0 200 240" fill="none">
+              <defs>
+                <clipPath id="film-clip">
+                  <rect x="12" y="12" width="176" height="216" rx="16" />
+                </clipPath>
+              </defs>
+              <g clip-path="url(#film-clip)" data-layout-allow-overflow>
+                <g id="film-roll">
+                  <g fill="rgba(255,239,219,0.6)">
+                    <rect x="24" y="-6" width="14" height="14" rx="3" />
+                    <rect x="24" y="29" width="14" height="14" rx="3" />
+                    <rect x="24" y="64" width="14" height="14" rx="3" />
+                    <rect x="24" y="99" width="14" height="14" rx="3" />
+                    <rect x="24" y="134" width="14" height="14" rx="3" />
+                    <rect x="24" y="169" width="14" height="14" rx="3" />
+                    <rect x="24" y="204" width="14" height="14" rx="3" />
+                    <rect x="24" y="239" width="14" height="14" rx="3" />
+                    <rect x="24" y="274" width="14" height="14" rx="3" />
+                    <rect x="162" y="-6" width="14" height="14" rx="3" />
+                    <rect x="162" y="29" width="14" height="14" rx="3" />
+                    <rect x="162" y="64" width="14" height="14" rx="3" />
+                    <rect x="162" y="99" width="14" height="14" rx="3" />
+                    <rect x="162" y="134" width="14" height="14" rx="3" />
+                    <rect x="162" y="169" width="14" height="14" rx="3" />
+                    <rect x="162" y="204" width="14" height="14" rx="3" />
+                    <rect x="162" y="239" width="14" height="14" rx="3" />
+                    <rect x="162" y="274" width="14" height="14" rx="3" />
+                  </g>
+                  <g stroke="#fb923c" stroke-width="3" fill="rgba(251,146,60,0.16)">
+                    <rect x="52" y="-50" width="96" height="58" rx="6" />
+                    <rect x="52" y="20" width="96" height="58" rx="6" />
+                    <rect x="52" y="90" width="96" height="58" rx="6" />
+                    <rect x="52" y="160" width="96" height="58" rx="6" />
+                    <rect x="52" y="230" width="96" height="58" rx="6" />
+                  </g>
+                </g>
+              </g>
+              <rect x="12" y="12" width="176" height="216" rx="16" stroke="#fb923c" stroke-width="4" />
+            </svg>
+            <div id="video-label" class="label">
+              <span class="w" id="v-full">Full</span> <span class="w" id="v-animated">animated</span>
+              <span class="w" id="v-video">video</span>
+            </div>
+          </div>
+
+          <div id="col-scenes">
+            <div id="tiles">
+              <div class="tile" id="tile1">
+                <svg viewBox="0 0 320 220" fill="none" stroke="rgba(255,239,219,0.6)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="250" cy="56" r="22" />
+                  <path d="M0 176 Q 80 130 160 166 T 320 150" />
+                </svg>
+              </div>
+              <div class="tile" id="tile2">
+                <svg viewBox="0 0 320 220" fill="none" stroke="rgba(255,239,219,0.6)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M0 174 H 320" />
+                  <path d="M206 174 V 92 L 248 60 L 290 92 V 174" />
+                  <rect x="236" y="130" width="24" height="44" />
+                </svg>
+              </div>
+              <div class="tile" id="tile3">
+                <svg viewBox="0 0 320 220" fill="none" stroke="rgba(255,239,219,0.6)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M0 174 H 320" />
+                  <path d="M78 48 A 22 22 0 1 0 100 78 A 18 18 0 0 1 78 48 Z" />
+                  <path d="M60 174 V 140 M 40 140 L 60 100 L 80 140 Z" />
+                  <path d="M120 174 V 146 M 104 146 L 120 114 L 136 146 Z" />
+                </svg>
+              </div>
+              <div id="thread"></div>
+              <div class="char" id="char1">
+                <svg viewBox="0 0 44 90"><circle cx="22" cy="20" r="18" fill="#fb923c" /><rect x="6" y="44" width="32" height="46" rx="14" fill="#fb923c" /></svg>
+              </div>
+              <div class="char" id="char2">
+                <svg viewBox="0 0 44 90"><circle cx="22" cy="20" r="18" fill="#fb923c" /><rect x="6" y="44" width="32" height="46" rx="14" fill="#fb923c" /></svg>
+              </div>
+              <div class="char" id="char3">
+                <svg viewBox="0 0 44 90"><circle cx="22" cy="20" r="18" fill="#fb923c" /><rect x="6" y="44" width="32" height="46" rx="14" fill="#fb923c" /></svg>
+              </div>
+            </div>
+            <div id="scene-labels">
+              <div class="label"><span class="w" id="s-multiple">Multiple</span> <span class="w" id="s-scenes">scenes</span></div>
+              <div class="label"><span class="w" id="c-consistent">Consistent</span> <span class="w" id="c-characters">characters</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chip" id="chip1">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 38 L 12 30 L 32 10 L 38 16 L 18 36 Z" /><path d="M28 14 L 34 20" />
+          </svg>
+        </div>
+        <div class="chip" id="chip2">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="17" y="6" width="14" height="24" rx="7" /><path d="M11 22 A 13 13 0 0 0 37 22" /><path d="M24 35 V 42" />
+          </svg>
+        </div>
+        <div class="chip" id="chip3">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="13" cy="35" r="6" /><circle cx="35" cy="35" r="6" /><path d="M17 31 L 36 8" /><path d="M31 31 L 12 8" />
+          </svg>
+        </div>
+        <div class="chip" id="chip4">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="9" width="36" height="30" rx="4" /><circle cx="17" cy="19" r="4" /><path d="M8 36 L 20 26 L 28 32 L 34 27 L 41 33" />
+          </svg>
+        </div>
+        <div id="hop"></div>
+
+        <div id="closing">No switching tools</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const END = 12.46;
+
+      // Ground: the glow drifts for the whole moment.
+      tl.fromTo("#glow", { x: -60, y: -20 }, { x: 140, y: 60, duration: END, ease: "sine.inOut" }, 0);
+
+      // "building" — the empty platform panel arrives.
+      tl.from("#panel", { opacity: 0, y: 24, scale: 0.98, duration: 0.55, ease: "power3.out" }, 0.28);
+
+      // "full animated video" — film strip, then it starts playing.
+      tl.from("#film", { opacity: 0, x: -40, duration: 0.5, ease: "power3.out" }, 1.0);
+      tl.from("#v-full", { opacity: 0, y: 18, duration: 0.45, ease: "power2.out" }, 1.0);
+      tl.from("#v-animated", { opacity: 0, y: 18, duration: 0.45, ease: "power2.out" }, 1.52);
+      tl.from("#v-video", { opacity: 0, y: 18, duration: 0.45, ease: "power2.out" }, 2.26);
+      const rollCycle = 0.7;
+      tl.to("#film-roll", {
+        y: 70,
+        duration: rollCycle,
+        ease: "none",
+        repeat: Math.max(0, Math.floor((END - 1.52) / rollCycle) - 1),
+      }, 1.52);
+
+      // "multiple scenes" — three scene tiles.
+      tl.from("#tile1", { opacity: 0, x: 40, duration: 0.5, ease: "power3.out" }, 3.56);
+      tl.from("#tile2", { opacity: 0, x: 40, duration: 0.5, ease: "power3.out" }, 3.82);
+      tl.from("#tile3", { opacity: 0, x: 40, duration: 0.5, ease: "power3.out" }, 4.08);
+      tl.from("#s-multiple", { opacity: 0, y: 18, duration: 0.45, ease: "power2.out" }, 3.56);
+      tl.from("#s-scenes", { opacity: 0, y: 18, duration: 0.45, ease: "power2.out" }, 4.08);
+
+      // "consistent characters throughout" — the same character in every scene, threaded.
+      tl.from("#char1", { opacity: 0, scale: 0.9, y: 10, duration: 0.4, ease: "back.out(1.6)" }, 4.86);
+      tl.from("#char2", { opacity: 0, scale: 0.9, y: 10, duration: 0.4, ease: "back.out(1.6)" }, 5.0);
+      tl.from("#char3", { opacity: 0, scale: 0.9, y: 10, duration: 0.4, ease: "back.out(1.6)" }, 5.16);
+      tl.from("#c-consistent", { opacity: 0, y: 18, duration: 0.45, ease: "power2.out" }, 4.86);
+      tl.from("#c-characters", { opacity: 0, y: 18, duration: 0.45, ease: "power2.out" }, 5.16);
+      tl.from("#thread", { scaleX: 0, duration: 0.5, ease: "power2.out" }, 5.68);
+      const bob = 0.6;
+      tl.to(".char", {
+        y: -6,
+        duration: bob,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: Math.max(0, Math.floor((END - 6.3) / bob) - 1),
+      }, 6.3);
+
+      // "all inside" — the panel lights up as one container.
+      tl.to("#panel-ring", { opacity: 1, duration: 0.5, ease: "power2.out" }, 8.36);
+
+      // "one platform" — the name of the panel.
+      tl.from("#h-one", { opacity: 0, y: 24, duration: 0.5, ease: "power3.out" }, 9.06);
+      tl.from("#h-platform", { opacity: 0, y: 24, duration: 0.5, ease: "power3.out" }, 9.38);
+
+      // "without chomping between tools" — loose tools, the focus hops between them...
+      ["#chip1", "#chip2", "#chip3", "#chip4"].forEach((c, i) => {
+        tl.from(c, { opacity: 0, scale: 0.9, duration: 0.4, ease: "back.out(1.6)" }, 9.84 + i * 0.1);
+      });
+      tl.to("#hop", { opacity: 1, duration: 0.15, ease: "power2.out" }, 10.24);
+      tl.to("#hop", { x: 118, y: 56, duration: 0.2, ease: "power2.inOut" }, 10.48);
+      tl.to("#hop", { x: 236, y: -4, duration: 0.2, ease: "power2.inOut" }, 10.74);
+      tl.to("#hop", { x: 354, y: 52, duration: 0.2, ease: "power2.inOut" }, 11.0);
+      tl.to("#hop", { opacity: 0, duration: 0.2, ease: "power2.in" }, 11.24);
+
+      // ...then on "tools" they drop into the panel and the line lands.
+      [
+        ["#chip1", 160, 216, -10],
+        ["#chip2", 44, 160, 8],
+        ["#chip3", -72, 220, -6],
+        ["#chip4", -190, 164, 10],
+      ].forEach(([c, dx, dy, r], i) => {
+        tl.to(c, { x: dx, y: dy, rotation: r, scale: 0.35, opacity: 0, duration: 0.42, ease: "power2.in" }, 11.24 + i * 0.05);
+      });
+      tl.from("#closing", { opacity: 0, y: 20, duration: 0.5, ease: "power3.out" }, 11.3);
+      tl.fromTo("#panel", { scale: 1 }, { scale: 1.012, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, 11.62);
+
+      // Quiet tail: the platform outline breathes.
+      tl.to("#panel-ring", { opacity: 0.55, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 1 }, 11.86);
+
+      window.__timelines["moment"] = tl;
+    </script>
+  </body>
+</html>

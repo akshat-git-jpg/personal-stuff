@@ -1,0 +1,17 @@
+{
+  "number": "080",
+  "slug": "080-review-human",
+  "title": "review the cut",
+  "actor": "human",
+  "actorLabel": "[OWNER]",
+  "verbs": [
+    "review"
+  ],
+  "consumes": [
+    "<media>/versions/vN.mp4"
+  ],
+  "produces": [
+    "feedback.json"
+  ],
+  "summary": "The owner watches the cut on a one-page player and leaves timestamped comments (same item schema as the other recipes)."
+}

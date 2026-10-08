@@ -117,5 +117,14 @@ effects, captions, audio mux) imports `lib/kit/index.mjs` and hands
 `lib/kit/edit-plan.mjs`; `validateEditPlan()` names every problem before anything
 is encoded. Canvas defaults to 1920x1080 at 30fps and is set per plan
 (`run-config.json` `canvas` for this recipe). `lib/assemble.mjs` is the card
-recipe's adapter onto it. The kit never imports recipe code: `recipe-isolation.json`
+recipe's adapter onto it.
+
+What the plan carries: any number of `composition` clips anywhere on the timeline (base
+layer; they may not overlap another base clip, unless the composition sets `shadows: true`,
+which drops base clips that start inside it, as this recipe's intro film does); an optional
+plan-level `audio: { src }` (default: the workdir's `master.wav`, else `vo.mp3`). Options
+beyond the template's: `holdTail: false` keeps the bed playing after the last clip instead
+of freezing to black. `lib/kit/hyperframes.mjs` is the shared lint/check/snapshot/render of
+one composition directory on the pinned renderer. `animate-flow` is the second recipe on
+the kit. The kit never imports recipe code: `recipe-isolation.json`
 (scope `kit`) and `lib/kit/kit-imports.test.mjs` enforce that.

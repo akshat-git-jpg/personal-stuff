@@ -1,0 +1,19 @@
+{
+  "number": "030",
+  "slug": "030-plan-moments-llm",
+  "title": "plan the moments",
+  "actor": "llm",
+  "actorLabel": "[LLM]",
+  "verbs": [
+    "plan-moments"
+  ],
+  "consumes": [
+    "transcript.json",
+    "design system DESIGN.md",
+    "TASTE-ANIMATE.md"
+  ],
+  "produces": [
+    "moments.json"
+  ],
+  "summary": "One fresh model run in a sealed stage picks the spans that deserve a graphic, anchored to transcript words."
+}

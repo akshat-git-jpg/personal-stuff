@@ -1,0 +1,18 @@
+{
+  "number": "090",
+  "slug": "090-learn-from-feedback-opus",
+  "title": "learn from the feedback",
+  "actor": "opus",
+  "actorLabel": "[OPUS]",
+  "verbs": [
+    "feedback-status"
+  ],
+  "consumes": [
+    "feedback.json"
+  ],
+  "produces": [
+    "TASTE-ANIMATE.md or the design system's DESIGN.md",
+    "feedback.json items marked applied/folded"
+  ],
+  "summary": "An Opus-class session folds each comment into this recipe's taste file or the design system, never into another recipe. Driven by the yt-animate-feedback skill."
+}
