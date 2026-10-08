@@ -4,9 +4,10 @@ The owner's salary history at https://kushal-salary.agrolloo.com. PIN-gated.
 
 Two tabs:
 
-- **Every month**: one bar per month. Grey is normal pay; amber on top is a one-time payout
-  (variable pay, bonus, back-pay). A blue step line follows normal pay; purple dots are
-  promotions, green dots are hikes. Net by default, with a Gross toggle.
+- **Every month**: a line chart. The solid line is what was paid each month, so payouts
+  (variable pay, bonus, back-pay) show as spikes with an amber dot; the dashed line is normal
+  pay. Promotions and hikes are vertical markers. Hover or tap for the month's full numbers.
+  Net by default, with a Gross toggle.
 - **Timeline**: promotions, hikes, payouts and HR mail notes (appraisal letters, "revised
   salary" mails), newest first.
 

@@ -16,8 +16,11 @@ Payslips and mail notes are added by the `kushal-salary` skill, never through th
   row. A new layout: add a synthetic fixture and a test in `test/parse.test.ts` first.
   `push-month.mjs` refuses a PDF whose checks fail (net = gross - deductions, items add up).
 - **Screens (owner-approved design, 2026-10-08):** tab "Every month" (`MonthsTab.tsx`,
-  `MonthChart.tsx`) and tab "Timeline" (`TimelineTab.tsx`). The chart draws at the box's real
-  pixel width (ResizeObserver) so labels never scale up; event labels sit in rows under the axis.
+  `MonthChart.tsx`) and tab "Timeline" (`TimelineTab.tsx`). The chart is a line chart (owner
+  rejected stacked bars as cluttered): solid line = paid that month, dashed = normal pay, amber
+  dot = payout month, vertical markers = promotion / hike, with a crosshair readout on hover,
+  tap or arrow keys. It draws at the box's real pixel width (ResizeObserver).
+- **Money is shown in full** (`inr()`, e.g. ₹1,85,846), never rounded to k / L (owner, 2026-10-08).
 - **PDFs are cookie-only.** `GET /api/months/:month/pdf` and `/api/notes/:id/pdf` use
   `requireAuth`, never `requireAuthOrIngest`. Tested in `test/auth.test.ts` and `scripts/smoke.sh`.
 - **Re-pushing a month replaces its items** and keeps its stored PDF. Same for notes.

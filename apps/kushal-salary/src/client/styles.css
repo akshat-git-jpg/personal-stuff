@@ -577,7 +577,128 @@ a.row:hover {
 }
 
 @media (max-width: 440px) {
-  .kpi b {
-    font-size: 17px;
+  .kpi {
+    padding: 10px;
   }
+  .kpi b {
+    font-size: 15px;
+  }
+}
+
+/* ---- line chart (2026-10-08 v2) ---- */
+.chart-wrap {
+  position: relative;
+}
+.chart:focus,
+.chart:focus-visible {
+  outline: none; /* focus shows as the crosshair on the latest month */
+}
+.chart .baseline {
+  stroke: #2c3542;
+}
+.chart .line-paid {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.chart .line-normal {
+  fill: none;
+  stroke: var(--soft);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  opacity: 0.8;
+}
+.chart .dot-payout {
+  fill: var(--payout);
+  stroke: var(--card);
+  stroke-width: 2;
+}
+.chart .crosshair line {
+  stroke: var(--soft);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+.chart .hover-paid {
+  fill: var(--accent);
+  stroke: var(--card);
+  stroke-width: 2;
+}
+.chart .hover-normal {
+  fill: var(--soft);
+  stroke: var(--card);
+  stroke-width: 2;
+}
+.chart-tip {
+  position: absolute;
+  width: 190px;
+  pointer-events: none;
+  background: var(--card-2);
+  border: 1px solid #2c3542;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-size: 12.5px;
+}
+.tip-month {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.tip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tip-row b {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.tip-row span {
+  color: var(--muted);
+}
+.tip-row i {
+  width: 12px;
+  height: 2px;
+  flex: none;
+}
+.tip-row .key-paid {
+  background: var(--accent);
+}
+.tip-row .key-normal {
+  background: repeating-linear-gradient(90deg, var(--soft) 0 4px, transparent 4px 7px);
+}
+.tip-payout b {
+  color: var(--payout);
+  margin-left: 20px;
+}
+.tip-promo span {
+  color: var(--promo);
+}
+.tip-hike span {
+  color: var(--hike);
+}
+.legend .lg-paid {
+  width: 14px;
+  height: 2px;
+  background: var(--accent);
+}
+.legend .lg-normal {
+  width: 14px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--soft) 0 4px, transparent 4px 7px);
+}
+.legend .lg-payout {
+  border-radius: 50%;
+}
+.legend .lg-promo,
+.legend .lg-hike {
+  width: 2px;
+  height: 12px;
+  border-radius: 0;
 }
