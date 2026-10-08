@@ -10,6 +10,7 @@ const PLOT = 220
 const XAXIS = 36 // month row + year row
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const CHAR = 6.6 // px per character of the 11px mono label font
+const MIN_STEP = 26 // px per month, so every month gets a label; a wider chart scrolls
 
 type Props = { bars: Bar[]; labels: Record<string, string[]>; marks: ChartMark[] }
 
@@ -54,13 +55,24 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
+  // The visible slice of a scrolled chart, so the tooltip and year label stay in view.
+  const [view, setView] = useState({ l: 0, w: 348 })
+  const onScroll = () => {
+    const el = box.current
+    if (el) setView({ l: el.scrollLeft, w: el.clientWidth })
+  }
 
   const n = bars.length
-  const W = Math.max(boxW, PADL + PADR + n * 5)
+  const W = Math.max(boxW, PADL + PADR + n * MIN_STEP)
   const step = (W - PADL - PADR) / n
   const cx = (i: number) => PADL + (i + 0.5) * step
-  // Label every month when labels get 30px, else every 2nd, 3rd or 6th calendar month.
-  const every = [1, 2, 3, 6].find((e) => step * e >= 30) ?? 12
+  useEffect(() => {
+    const el = box.current
+    if (!el) return
+    el.scrollLeft = el.scrollWidth // open on the latest month
+    onScroll()
+  }, [n, W])
+  const firstSeen = Math.min(n - 1, Math.max(0, Math.ceil((view.l + PADL) / step - 0.5)))
   const t = ticks(Math.max(...bars.map((b) => b.base + b.extra), 1))
 
   const marks = placeLabels(
@@ -88,126 +100,143 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
 
   const h = hover === null ? null : bars[hover]
   const hMarks = hover === null ? [] : markList.filter((m) => m.i === hover)
+  useEffect(() => {
+    const el = box.current
+    if (!el || hover === null) return
+    const x = cx(hover)
+    if (x < el.scrollLeft + PADL + step) el.scrollLeft = x - PADL - step
+    else if (x > el.scrollLeft + el.clientWidth - step) el.scrollLeft = x - el.clientWidth + step
+  }, [hover])
+
   // Above the month's top dot when it fits; else beside it, so the box never hides the month.
   const GAP = 12
   const TIPW = 190
+  const minL = view.l + PADL
+  const maxL = view.l + view.w - TIPW
   const pos = (() => {
     if (!h || hover === null) return { left: 0, top: 0 }
     const x = cx(hover)
     const top = y(h.base + h.extra)
-    if (top - GAP - tipH >= 0) return { left: Math.min(Math.max(x - TIPW / 2, 0), W - TIPW), top: top - GAP - tipH }
-    const left = x + GAP + TIPW <= W ? x + GAP : x - GAP - TIPW
-    return { left, top: Math.min(Math.max((top + y(h.base)) / 2 - tipH / 2, 0), H - tipH) }
+    if (top - GAP - tipH >= 0) return { left: Math.min(Math.max(x - TIPW / 2, minL), maxL), top: top - GAP - tipH }
+    const mid = Math.min(Math.max((top + y(h.base)) / 2 - tipH / 2, 0), H - tipH)
+    if (x + GAP <= maxL) return { left: x + GAP, top: mid }
+    if (x - GAP - TIPW >= minL) return { left: x - GAP - TIPW, top: mid }
+    // Too narrow for either side (phone): under the month's line dot.
+    return { left: Math.min(Math.max(x - TIPW / 2, minL), maxL), top: Math.min(y(h.base) + GAP, H - tipH) }
   })()
 
   return (
-    <div className="chart-scroll" ref={box}>
-      <div className="chart-wrap" style={{ width: W }}>
-        <svg
-          className="chart"
-          data-testid="month-chart"
-          width={W}
-          height={H}
-          viewBox={`0 0 ${W} ${H}`}
-          role="img"
-          aria-label="Pay each month. Use the left and right arrow keys to read each month."
-          tabIndex={0}
-          onKeyDown={onKey}
-          onFocus={() => setHover((v) => v ?? n - 1)}
-          onBlur={() => setHover(null)}
-        >
-          {t.list.map((v) => (
-            <g key={v}>
-              <line x1={PADL} x2={W - PADR} y1={y(v)} y2={y(v)} className={v === 0 ? 'baseline' : 'grid'} />
-              <text x={PADL - 8} y={y(v) + 3.5} textAnchor="end" className="axis">
-                {inr(v)}
-              </text>
-            </g>
-          ))}
-          {bars.map((b, i) => {
-            const mo = Number(b.month.slice(5, 7))
-            const showMonth = (mo - 1) % every === 0
-            const showYear = i === 0 || b.month.slice(0, 4) !== bars[i - 1].month.slice(0, 4)
-            return (
-              <g key={b.month}>
-                <line x1={cx(i)} x2={cx(i)} y1={BOT} y2={BOT + 4} className="tick" />
-                {showMonth && (
+    <div className="chart-frame">
+      <div className="chart-scroll" ref={box} onScroll={onScroll}>
+        <div className="chart-wrap" style={{ width: W }}>
+          <svg
+            className="chart"
+            data-testid="month-chart"
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            role="img"
+            aria-label="Pay each month. Use the left and right arrow keys to read each month."
+            tabIndex={0}
+            onKeyDown={onKey}
+            onFocus={() => setHover((v) => v ?? n - 1)}
+            onBlur={() => setHover(null)}
+          >
+            {t.list.map((v) => (
+              <g key={v}>
+                <line x1={PADL} x2={W - PADR} y1={y(v)} y2={y(v)} className={v === 0 ? 'baseline' : 'grid'} />
+              </g>
+            ))}
+            {bars.map((b, i) => {
+              const mo = Number(b.month.slice(5, 7))
+              const showYear = i === firstSeen || (i > firstSeen && b.month.slice(0, 4) !== bars[i - 1].month.slice(0, 4))
+              return (
+                <g key={b.month}>
+                  <line x1={cx(i)} x2={cx(i)} y1={BOT} y2={BOT + 4} className="tick" />
                   <text x={cx(i)} y={BOT + 16} textAnchor="middle" className="axis" data-testid="month-label">
                     {MON[mo - 1]}
                   </text>
-                )}
-                {showYear && (
-                  <text x={cx(i) - (showMonth ? 9 : 0)} y={BOT + 30} className="axis axis-year">
-                    {b.month.slice(0, 4)}
-                  </text>
-                )}
+                  {showYear && (
+                    <text x={cx(i) - 9} y={BOT + 30} className="axis axis-year">
+                      {b.month.slice(0, 4)}
+                    </text>
+                  )}
+                </g>
+              )
+            })}
+            {marks.map((m) => (
+              <g key={`${m.type}-${m.i}`} data-testid="event-mark">
+                <line x1={m.cx} x2={m.cx} y1={m.row * ROW + 14} y2={BOT} className={`guide guide-${m.type === 'promotion' ? 'promo' : 'hike'}`} />
+                <text x={m.lx} y={m.row * ROW + 11} className={m.type === 'promotion' ? 'mark-promo' : 'mark-hike'}>
+                  {m.text}
+                </text>
               </g>
-            )
-          })}
-          {marks.map((m) => (
-            <g key={`${m.type}-${m.i}`} data-testid="event-mark">
-              <line x1={m.cx} x2={m.cx} y1={m.row * ROW + 14} y2={BOT} className={`guide guide-${m.type === 'promotion' ? 'promo' : 'hike'}`} />
-              <text x={m.lx} y={m.row * ROW + 11} className={m.type === 'promotion' ? 'mark-promo' : 'mark-hike'}>
-                {m.text}
-              </text>
-            </g>
-          ))}
-          <path d={pay} className="line-pay" />
-          {bars.map((b, i) =>
-            b.extra > 0 ? (
-              <g key={b.month} data-testid="payout-dot">
-                <line x1={cx(i)} x2={cx(i)} y1={y(b.base)} y2={y(b.base + b.extra)} className="stem-payout" />
-                <circle cx={cx(i)} cy={y(b.base + b.extra)} r={4} className="dot-payout" />
-              </g>
-            ) : null,
-          )}
-          {bars.map((b, i) => (
-            <circle key={b.month} data-testid="month-point" cx={cx(i)} cy={y(b.base)} r={2.75} className="dot-month" />
-          ))}
-          {h && hover !== null && (
-            <g className="crosshair">
-              <line x1={cx(hover)} x2={cx(hover)} y1={TOP} y2={BOT} />
-              <circle cx={cx(hover)} cy={y(h.base)} r={5} className="hover-pay" />
-            </g>
-          )}
-          <rect
-            x={PADL}
-            y={0}
-            width={W - PADL - PADR}
-            height={BOT}
-            fill="transparent"
-            onPointerMove={pick}
-            onPointerDown={pick}
-            onPointerLeave={(e) => e.pointerType === 'mouse' && setHover(null)}
-          />
-        </svg>
-        {h && hover !== null && (
-          <div ref={tip} className="chart-tip" data-testid="chart-tip" style={pos} role="status">
-            <div className="tip-month">{monLabel(h.month)}</div>
-            <div className="tip-row">
-              <b>{inr(h.base)}</b>
-              <span>monthly pay</span>
-            </div>
-            {h.extra > 0 && (
-              <>
-                <div className="tip-row tip-payout">
-                  <b>+{inr(h.extra)}</b>
-                  <span>{(labels[h.month] ?? ['payout']).join(' + ').toLowerCase()}</span>
-                </div>
-                <div className="tip-row tip-total">
-                  <b>{inr(h.base + h.extra)}</b>
-                  <span>in bank</span>
-                </div>
-              </>
-            )}
-            {hMarks.map((m) => (
-              <div key={m.type} className={`tip-row ${m.type === 'promotion' ? 'tip-promo' : 'tip-hike'}`}>
-                <span>{m.text}</span>
-              </div>
             ))}
-          </div>
-        )}
+            <path d={pay} className="line-pay" />
+            {bars.map((b, i) =>
+              b.extra > 0 ? (
+                <g key={b.month} data-testid="payout-dot">
+                  <line x1={cx(i)} x2={cx(i)} y1={y(b.base)} y2={y(b.base + b.extra)} className="stem-payout" />
+                  <circle cx={cx(i)} cy={y(b.base + b.extra)} r={4} className="dot-payout" />
+                </g>
+              ) : null,
+            )}
+            {bars.map((b, i) => (
+              <circle key={b.month} data-testid="month-point" cx={cx(i)} cy={y(b.base)} r={2.75} className="dot-month" />
+            ))}
+            {h && hover !== null && (
+              <g className="crosshair">
+                <line x1={cx(hover)} x2={cx(hover)} y1={TOP} y2={BOT} />
+                <circle cx={cx(hover)} cy={y(h.base)} r={5} className="hover-pay" />
+              </g>
+            )}
+            <rect
+              x={PADL}
+              y={0}
+              width={W - PADL - PADR}
+              height={BOT}
+              fill="transparent"
+              onPointerMove={pick}
+              onPointerDown={pick}
+              onPointerLeave={(e) => e.pointerType === 'mouse' && setHover(null)}
+            />
+          </svg>
+          {h && hover !== null && (
+            <div ref={tip} className="chart-tip" data-testid="chart-tip" style={pos} role="status">
+              <div className="tip-month">{monLabel(h.month)}</div>
+              <div className="tip-row">
+                <b>{inr(h.base)}</b>
+                <span>monthly pay</span>
+              </div>
+              {h.extra > 0 && (
+                <>
+                  <div className="tip-row tip-payout">
+                    <b>+{inr(h.extra)}</b>
+                    <span>{(labels[h.month] ?? ['payout']).join(' + ').toLowerCase()}</span>
+                  </div>
+                  <div className="tip-row tip-total">
+                    <b>{inr(h.base + h.extra)}</b>
+                    <span>in bank</span>
+                  </div>
+                </>
+              )}
+              {hMarks.map((m) => (
+                <div key={m.type} className={`tip-row ${m.type === 'promotion' ? 'tip-promo' : 'tip-hike'}`}>
+                  <span>{m.text}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+      <svg className="chart y-axis" width={PADL} height={H} aria-hidden="true">
+        <rect width={PADL} height={H} className="y-axis-bg" />
+        {t.list.map((v) => (
+          <text key={v} x={PADL - 8} y={y(v) + 3.5} textAnchor="end" className="axis">
+            {inr(v)}
+          </text>
+        ))}
+      </svg>
     </div>
   )
 }

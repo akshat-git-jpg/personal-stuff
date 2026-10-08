@@ -589,6 +589,19 @@ a.row:hover {
 .chart-wrap {
   position: relative;
 }
+.chart-frame {
+  position: relative;
+}
+.y-axis {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+.y-axis .y-axis-bg {
+  fill: var(--card);
+}
 .chart:focus,
 .chart:focus-visible {
   outline: none; /* focus shows as the crosshair on the latest month */
@@ -625,6 +638,7 @@ a.row:hover {
 }
 .chart-tip {
   position: absolute;
+  z-index: 2;
   width: 190px;
   pointer-events: none;
   background: var(--card-2);
