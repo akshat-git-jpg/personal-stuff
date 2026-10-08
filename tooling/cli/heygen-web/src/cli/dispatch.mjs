@@ -2,11 +2,11 @@ import { loadAuth, die } from "../client/http.mjs";
 import { authCheck } from "../operations/auth.mjs";
 import { listAvatars, listLooks, createPhotoAvatar, deleteAvatars } from "../operations/avatars.mjs";
 import { listVoices } from "../operations/voices.mjs";
-import { listVideos, status, deleteVideos, downloadCore, download } from "../operations/videos.mjs";
+import { listVideos, status, deleteVideos, moveVideos, downloadCore, download } from "../operations/videos.mjs";
 import { submitGenerate, submitAudioGenerate, submitFromTemplate, studioRender, studioRenderStatus, templateEngine } from "../operations/render.mjs";
 import { resolveTemplate } from "../client/registry.mjs";
 import { arg } from "./args.mjs";
-import { limits, usage } from "../operations/account.mjs";
+import { limits, usage, credits } from "../operations/account.mjs";
 import { batch } from "../workflows/batch.mjs";
 import { raw } from "../workflows/raw.mjs";
 import { generate, generateFromAudio, generateFromTemplate } from "../workflows/generate.mjs";
@@ -49,6 +49,8 @@ export async function run(args) {
     case "list-videos":  await listVideos(auth, rest); break;
     case "status":       await status(auth, rest[0]); break;
     case "delete-avatar": await deleteAvatars(auth, rest.filter((x) => !x.startsWith("--"))); break;
+    case "move-video": { const folder = arg(rest, "--folder"); await moveVideos(auth, rest.filter((x) => !x.startsWith("--") && x !== folder), folder); break; }
+    case "credits": await credits(auth); break;
     case "delete-video": await deleteVideos(auth, rest.filter((x) => !x.startsWith("--")), rest); break;
     case "download":     await download(auth, rest[0], rest.slice(1)); break;
     case "raw":          await raw(auth, rest[0], rest.slice(1)); break;

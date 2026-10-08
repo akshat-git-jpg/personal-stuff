@@ -82,3 +82,19 @@ export async function usage(auth, args) {
     console.error(`→ baseline saved to ${USAGE_SNAP}`);
   }
 }
+
+// Plan vs add-on credits, from the billing page's own call. HAR-verified 2026-10-09.
+export async function credits(auth) {
+  const d = (await call(auth, endpoints.paymentSubscription))?.data || {};
+  const plan = (d.entitlements || []).find((e) => e.name === "plan_credit") || {};
+  const packs = (d.addons || []).filter((a) => a.total);
+  const out = {
+    tier: d.subscription?.tier_id,
+    renews: d.subscription?.expired_ts && new Date(d.subscription.expired_ts * 1000).toISOString().slice(0, 10),
+    plan: { total: plan.total, remain: plan.remain, resets: plan.reset_period },
+    addons: packs.map((a) => ({ name: a.display, total: a.total, remain: a.remain, purchased: a.purchase_count })),
+  };
+  console.log(JSON.stringify(out, null, 2));
+  const addRemain = packs.reduce((s, a) => s + (a.remain || 0), 0);
+  console.error(`plan ${plan.remain}/${plan.total} + add-ons ${addRemain} = ${(plan.remain || 0) + addRemain} credits left (Avatar IV = 20 credits/min)`);
+}

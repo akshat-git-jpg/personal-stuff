@@ -73,3 +73,14 @@ export async function download(auth, id, args) {
   writeFileSync(out, buf);
   console.log(`saved ${out} (${(buf.length / 1e6).toFixed(1)} MB)`);
 }
+
+// Moves videos into a folder ("project" in the API). HAR-verified 2026-10-09.
+export async function moveVideos(auth, ids, folder) {
+  if (!ids.length || !folder) die("move-video needs <video_id> [<video_id> ...] --folder <folder_id>");
+  const f = await call(auth, endpoints.projectGet, { id: folder });
+  if (f?.code !== 100) die(`no such folder ${folder}: ${JSON.stringify(f)}`);
+  const body = { project_id: folder, items: [{ item_type: "heygen_video", item_ids: ids }] };
+  const r = await call(auth, endpoints.projectItemsMove, {}, { body });
+  if (r?.code !== 100) die(`move-video failed: ${JSON.stringify(r)}`);
+  console.error(`✓ moved ${ids.length} video(s) to "${f.data.name}"`);
+}
