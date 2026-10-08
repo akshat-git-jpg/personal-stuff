@@ -702,3 +702,14 @@ a.row:hover {
   height: 12px;
   border-radius: 0;
 }
+.chart .dot-month {
+  fill: var(--accent);
+  stroke: var(--card);
+  stroke-width: 1.5;
+}
+.chart .tick {
+  stroke: #2c3542;
+}
+.chart .axis-year {
+  fill: var(--soft);
+}

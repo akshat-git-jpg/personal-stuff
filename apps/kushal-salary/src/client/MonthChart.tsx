@@ -7,7 +7,8 @@ const PADL = 78 // room for full rupee amounts on the y axis
 const PADR = 12
 const ROW = 16 // one row of event labels above the plot
 const PLOT = 220
-const XAXIS = 22
+const XAXIS = 36 // month row + year row
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const CHAR = 6.6 // px per character of the 11px mono label font
 
 type Props = { bars: Bar[]; labels: Record<string, string[]>; marks: ChartMark[] }
@@ -55,6 +56,8 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
   const W = Math.max(boxW, PADL + PADR + n * 5)
   const step = (W - PADL - PADR) / n
   const cx = (i: number) => PADL + (i + 0.5) * step
+  // Label every month when labels get 30px, else every 2nd, 3rd or 6th calendar month.
+  const every = [1, 2, 3, 6].find((e) => step * e >= 30) ?? 12
   const t = ticks(Math.max(...bars.map((b) => b.base + b.extra), 1))
 
   const marks = placeLabels(
@@ -110,13 +113,26 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
               </text>
             </g>
           ))}
-          {bars.map((b, i) =>
-            i === 0 || b.month.endsWith('-01') ? (
-              <text key={b.month} x={cx(i)} y={BOT + 16} textAnchor={i === 0 ? 'start' : 'middle'} className="axis">
-                {i === 0 ? monLabel(b.month) : b.month.slice(0, 4)}
-              </text>
-            ) : null,
-          )}
+          {bars.map((b, i) => {
+            const mo = Number(b.month.slice(5, 7))
+            const showMonth = (mo - 1) % every === 0
+            const showYear = i === 0 || b.month.slice(0, 4) !== bars[i - 1].month.slice(0, 4)
+            return (
+              <g key={b.month}>
+                <line x1={cx(i)} x2={cx(i)} y1={BOT} y2={BOT + 4} className="tick" />
+                {showMonth && (
+                  <text x={cx(i)} y={BOT + 16} textAnchor="middle" className="axis" data-testid="month-label">
+                    {MON[mo - 1]}
+                  </text>
+                )}
+                {showYear && (
+                  <text x={cx(i) - (showMonth ? 9 : 0)} y={BOT + 30} className="axis axis-year">
+                    {b.month.slice(0, 4)}
+                  </text>
+                )}
+              </g>
+            )
+          })}
           {marks.map((m) => (
             <g key={`${m.type}-${m.i}`} data-testid="event-mark">
               <line x1={m.cx} x2={m.cx} y1={m.row * ROW + 14} y2={BOT} className={`guide guide-${m.type === 'promotion' ? 'promo' : 'hike'}`} />
@@ -128,7 +144,11 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
           <path d={normal} className="line-normal" />
           <path d={paid} className="line-paid" />
           {bars.map((b, i) =>
-            b.extra > 0 ? <circle key={b.month} data-testid="payout-dot" cx={cx(i)} cy={y(b.base + b.extra)} r={4.5} className="dot-payout" /> : null,
+            b.extra > 0 ? (
+              <circle key={b.month} data-testid="payout-dot" cx={cx(i)} cy={y(b.base + b.extra)} r={4.5} className="dot-payout" />
+            ) : (
+              <circle key={b.month} data-testid="month-point" cx={cx(i)} cy={y(b.base)} r={2.75} className="dot-month" />
+            ),
           )}
           {h && hover !== null && (
             <g className="crosshair">
