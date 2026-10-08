@@ -340,13 +340,14 @@ export function captionsApply(seg, scope = 'screen') {
   return seg.kind === 'screen';
 }
 
+// Finals default to x264 slow/CRF 16: the hardware encoder and veryfast/18 soften the avatar face.
 export function encoderArgs({ encoder, draft }) {
   if (encoder === 'videotoolbox') {
     return ['-c:v', 'h264_videotoolbox', '-b:v', draft ? '4M' : '12M', '-pix_fmt', 'yuv420p'];
   }
   return draft
     ? ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28']
-    : ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18'];
+    : ['-c:v', 'libx264', '-preset', 'slow', '-crf', '16'];
 }
 
 // drawtext needs a real font file; the first one this machine has, else a fontconfig name.
@@ -636,6 +637,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     // Frame-exact piece length, with the sub-frame remainder CARRIED — see
     // framesUntil for why this is not simply (end - start).
     const segFrames = framesUntil(seg.end - endTrim, framePos, canvas.fps);
+    // Where this piece really starts on the frame grid; seg.start can sit up to half a frame off it.
+    const gridSlip = framePos / canvas.fps - (seg.start + startTrim);
     framePos += segFrames;
     const dur = segFrames / canvas.fps;
     let src = '';
@@ -694,7 +697,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         // it) arrives 18ms after this same instant in the master, so the
         // frame that actually lines up with the master here is 18ms further
         // into the source than the raw timeline math gives.
-        const seekPos = Math.max(0, seg.start + pStart - job.start + contentStartTrim + AVATAR_LIPSYNC_LEAD);
+        const seekPos = Math.max(0, seg.start + pStart - job.start + contentStartTrim + gridSlip + AVATAR_LIPSYNC_LEAD);
         seekArgs = ['-ss', String(seekPos)];
       }
     } else if (seg.kind === 'graphic') {

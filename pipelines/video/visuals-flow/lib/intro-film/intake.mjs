@@ -11,12 +11,12 @@ export function audioExtractArgs(inFile, outFile) {
   return ['-y', '-i', inFile, '-vn', '-ac', '1', '-ar', '16000', '-b:a', '32k', outFile];
 }
 
-// Normalise the recording to 1920x1080 / 30fps so the film composes against a
+// Normalise the recording to 1920x1080 / 25fps so the film composes against a
 // known canvas. Letterbox rather than crop — never silently discard picture.
 export function screenNormaliseArgs(inFile, outFile) {
   return [
     '-y', '-i', inFile,
-    '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=30',
+    '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=25',
     '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
     outFile,
   ];

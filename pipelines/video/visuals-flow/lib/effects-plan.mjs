@@ -60,7 +60,7 @@ function main() {
   });
 
   const { w, h } = CANVAS;
-  const VF = `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,fps=30,format=yuv420p`;
+  const VF = `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,fps=${CANVAS.fps},format=yuv420p`;
 
   const defaultInstances = [];
   

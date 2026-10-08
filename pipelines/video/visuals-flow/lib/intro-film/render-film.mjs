@@ -23,7 +23,7 @@ const HYPERFRAMES = FILM_RENDERER;
 // and the run dies at the audio mux with "Unable to choose an output format".
 export function renderArgs(outFile) {
   return ['-y', HYPERFRAMES, 'render', 'film',
-    '--fps', '30', '--format', 'mp4', '--quality', 'high',
+    '--fps', '25', '--format', 'mp4', '--quality', 'high',
     '-o', outFile];
 }
 

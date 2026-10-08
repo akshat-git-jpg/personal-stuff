@@ -11,7 +11,7 @@
 /**
  * @typedef {object} EditPlan
  * @property {number} total          master clock length in seconds (the voiceover)
- * @property {Canvas} [canvas]       default DEFAULT_CANVAS (1920x1080 @ 30)
+ * @property {Canvas} [canvas]       default DEFAULT_CANVAS (1920x1080 @ 25)
  * @property {{src: string}} [audio] the soundtrack for the whole cut; default master.wav, else vo.mp3, in the workdir
  * @property {Clip[]} clips          order matters: overlays composite in this order
  */
@@ -39,7 +39,8 @@
  * @property {object} [data]         opaque recipe payload, handed to effect modules untouched
  */
 
-export const DEFAULT_CANVAS = Object.freeze({ w: 1920, h: 1080, fps: 30 });
+// 25 fps: HeyGen avatars are 25 fps, and 30 repeats every 6th avatar frame (AVATAR-III-QUALITY.md).
+export const DEFAULT_CANVAS = Object.freeze({ w: 1920, h: 1080, fps: 25 });
 export const CLIP_KINDS = ['card', 'composition', 'footage', 'avatar', 'image', 'generated'];
 export const RESERVED_KINDS = ['image', 'generated'];
 export const AVATAR_MODES = ['full', 'panel', 'side', 'bubble'];
