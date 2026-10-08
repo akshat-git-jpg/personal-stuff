@@ -1,33 +1,11 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
+import { findChrome, launchOptions } from '../../../../scripts/lib/chrome.mjs';
 
-// Newest cached chrome-headless-shell: starts in <1s, where the full Chrome app took 50-120s (2026-10-08).
-// Below v150 is skipped: the cached v127 renders the board wrong and fails real assertions.
-const MIN_SHELL_MAJOR = 150;
-function resolveChrome() {
-  if (process.env.CHROME_BIN) return process.env.CHROME_BIN;
-  const exeName = process.platform === 'win32' ? 'chrome-headless-shell.exe' : 'chrome-headless-shell';
-  const found = [];
-  for (const root of ['.cache/hyperframes/chrome/chrome-headless-shell', '.cache/puppeteer/chrome-headless-shell']) {
-    const dir = path.join(os.homedir(), root);
-    if (!fs.existsSync(dir)) continue;
-    for (const ver of fs.readdirSync(dir)) {
-      const v = (ver.split('-').pop() || '').split('.').map(Number);
-      if (!(v[0] >= MIN_SHELL_MAJOR)) continue;
-      for (const sub of fs.readdirSync(path.join(dir, ver))) {
-        const exe = path.join(dir, ver, sub, exeName);
-        if (fs.existsSync(exe)) found.push({ v, exe });
-      }
-    }
-  }
-  found.sort((a, b) => b.v.reduce((d, x, i) => d || x - (a.v[i] ?? 0), 0));
-  return found[0]?.exe ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-}
-const CHROME = resolveChrome();
+const CHROME = findChrome();
 const HASHES = ['', '#intro', '#storyboard', '#avatar', '#final-cut', '#calibrate'];
 
 // 30+ iframed tiles, measured ~20s+ on storyboard, plans 173/174 will add more.
@@ -36,7 +14,7 @@ const HASHES = ['', '#intro', '#storyboard', '#avatar', '#final-cut', '#calibrat
 // 60s and flaked the merge gate (2026-07-31) — the ceiling must absorb load.
 const CHROME_TIMEOUT_MS = Number(process.env.BOARD_UI_SMOKE_TIMEOUT_MS ?? 120000);
 
-if (!fs.existsSync(CHROME)) {
+if (!CHROME || !fs.existsSync(CHROME)) {
   console.log(new Date(), 'SKIP board-ui smoke: no Chrome');
   process.exit(0);
 }
@@ -49,15 +27,11 @@ try {
 } catch (e) {
   throw new Error(`board-ui smoke needs puppeteer-core from ../card-library (run its npm ci): ${e.message}`);
 }
-const browser = await puppeteer.launch({
-  executablePath: CHROME,
-  headless: path.basename(CHROME) === 'chrome-headless-shell' ? 'shell' : true,
+const browser = await puppeteer.launch(launchOptions({
   timeout: CHROME_TIMEOUT_MS,
   dumpio: Boolean(process.env.BOARD_UI_SMOKE_DUMPIO),
-  args: ['--no-sandbox', '--password-store=basic', '--use-mock-keychain', '--no-proxy-server',
-    '--disable-background-networking', '--disable-sync', '--disable-gpu', '--hide-scrollbars',
-    '--mute-audio', '--disable-audio-output', '--disable-audio-input'],
-});
+  args: ['--no-proxy-server', '--disable-gpu', '--hide-scrollbars'],
+}));
 
 // Real-time stand-in for `--dump-dom`: load, network idle (capped), then 1s to settle. Fresh context per page.
 async function dumpDom(url, label, viewport = { width: 800, height: 600 }) {

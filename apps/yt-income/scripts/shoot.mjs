@@ -7,6 +7,7 @@
  *   node scripts/shoot.mjs [url] [out] [--password=...] [--month=2026-03]
  */
 import puppeteer from 'puppeteer-core'
+import { launchOptions } from '../../../scripts/lib/chrome.mjs'
 import { mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -21,12 +22,9 @@ const out = resolve(here, '..', positional[1] || '.shots/revenue.png')
 const password = flag('password', 'localtest123')
 const month = flag('month', '')
 
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 mkdirSync(dirname(out), { recursive: true })
 
-const browser = await puppeteer.launch({
-  executablePath: CHROME, headless: 'new', args: ['--no-sandbox'],
-})
+const browser = await puppeteer.launch(launchOptions())
 const page = await browser.newPage()
 await page.setViewport({ width: 1280, height: 1000, deviceScaleFactor: 2 })
 

@@ -25,7 +25,9 @@ HERE.mkdir(parents=True, exist_ok=True)
 BASE = os.environ.get("TRIP_PLANNER_URL", "https://trips.agrolloo.com")
 SLUG = "varkala-sep-2026"
 WIDTHS = [320, 360, 390, 430]
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+# The repo helper picks the cached headless shell; the full Chrome app takes minutes to start here.
+CHROME = subprocess.run(["node", str(Path(__file__).resolve().parents[2] / "scripts/lib/chrome.mjs"), "path"],
+                        capture_output=True, text=True, check=True).stdout.strip()
 
 MEASURE = r"""
 <script>

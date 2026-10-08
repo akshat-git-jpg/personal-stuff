@@ -17,13 +17,10 @@
 // broken render without a human looking at the image.
 
 import puppeteer from "puppeteer-core";
+import { launchOptions } from "../../../scripts/lib/chrome.mjs";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-// macOS system Chrome. Override with CHROME_PATH if needed.
-const CHROME =
-  process.env.CHROME_PATH ||
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
 // --- arg parsing -----------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -48,11 +45,7 @@ const selector = typeof flags.selector === "string" ? flags.selector : null;
 mkdirSync(dirname(out), { recursive: true });
 
 // --- capture ---------------------------------------------------------------
-const browser = await puppeteer.launch({
-  executablePath: CHROME,
-  headless: "new",
-  args: ["--no-sandbox", "--disable-dev-shm-usage"],
-});
+const browser = await puppeteer.launch(launchOptions({ args: ["--disable-dev-shm-usage"] }));
 
 const page = await browser.newPage();
 await page.setViewport({ width, height, deviceScaleFactor: 2 });

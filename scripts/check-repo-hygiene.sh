@@ -77,4 +77,7 @@ if [ -x scripts/sync-shared-skills.sh ]; then
     || echo "warn SKILL-SYNC: shared skills differ from the work-skills plugin — run scripts/sync-shared-skills.sh" >&2
 fi
 
+# HYGIENE-8: headless Chrome goes through scripts/lib/chrome.mjs, never the full app (50-120s to start here).
+node scripts/check-chrome-launch.mjs >/dev/null || fail "CHROME-LAUNCH: see the lines above"
+
 echo "repo hygiene OK"
