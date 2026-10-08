@@ -14,7 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export const MAPPING = process.env.HEYGEN_AVATAR_TESTS ||
   resolve(__dirname, "../../../../../pipelines/video/heygen/avatar-test/avatar-tests.json");
 export const TEST_FOLDER = "f214dcf8986a4114ba69b9630e38fe00"; // "Test Avatar"
-const METERS = ["credits", "seconds_consumed", "ai_image_credits", "ai_video_credits", "ai_concept_credits"];
+const METERS = ["credits", "seconds_consumed", "ai_image_credits", "ai_video_credits", "ai_concept_credits", "plan_remain", "addon_remain"];
 const POLL_MS = 20000, TIMEOUT_MS = 20 * 60 * 1000;
 
 export function meterSpent(before, after) {

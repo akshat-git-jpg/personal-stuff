@@ -84,3 +84,19 @@ export async function moveVideos(auth, ids, folder) {
   if (r?.code !== 100) die(`move-video failed: ${JSON.stringify(r)}`);
   console.error(`✓ moved ${ids.length} video(s) to "${f.data.name}"`);
 }
+
+// Waits until every video has finished (completed or failed). HeyGen bills at completion.
+export async function waitRendered(auth, ids, { pollMs = 20000, timeoutMs = 30 * 60 * 1000 } = {}) {
+  const end = Date.now() + timeoutMs, done = {};
+  for (;;) {
+    for (const id of ids.filter((i) => !done[i])) {
+      const item = (await call(auth, endpoints.projectItemsStatus, { id }))?.data?.[0];
+      if (item?.status === "completed" || item?.status === "failed") done[id] = item;
+    }
+    const left = ids.filter((i) => !done[i]);
+    if (!left.length) return done;
+    if (Date.now() > end) die(`still rendering after ${timeoutMs / 60000} min: ${left.join(", ")}. Credit check NOT done: re-run "usage --diff" once they finish.`);
+    console.error(`  credit check waits for ${left.length} render(s)…`);
+    await new Promise((r) => setTimeout(r, pollMs));
+  }
+}

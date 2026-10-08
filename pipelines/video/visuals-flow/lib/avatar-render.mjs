@@ -301,7 +301,7 @@ async function main() {
       const title = `${shotsResolved.video}__${job.id}`;
       const audioPath = path.join('slices-avatar', `${job.id}.mp3`);
       const jobEngine = engineFor(job);
-      const cmdArgs = [...pre, 'generate-from-template', '--template', opts.template, '--audio', audioPath, '--title', title, '--engine', jobEngine];
+      const cmdArgs = [...pre, 'generate-from-template', '--template', opts.template, '--audio', audioPath, '--title', title, '--engine', jobEngine, '--caller-meter', ...(jobEngine === 'heygen4' ? ['--allow-spend'] : [])];
       const res = spawnSync(bin, cmdArgs, { encoding: 'utf8', cwd: workdir });
       let video_id = null;
       let status = 'failed';

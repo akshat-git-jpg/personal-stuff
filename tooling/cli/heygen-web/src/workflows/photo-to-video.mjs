@@ -1,5 +1,6 @@
 import { createPhotoAvatar } from "../operations/avatars.mjs";
 import { submitAudioGenerate } from "../operations/render.mjs";
+import { meterChecked } from "../operations/account.mjs";
 import { die } from "../client/http.mjs";
 import { arg } from "../cli/args.mjs";
 
@@ -22,7 +23,7 @@ export async function photoToVideo(auth, args) {
   const engine = "heygen3";
 
   try {
-    const { video_id } = await submitAudioGenerate(auth, { avatar: look_id, audioPath: audio, engine, title, orientation });
+    const { video_id } = await meterChecked(auth, args, () => submitAudioGenerate(auth, { avatar: look_id, audioPath: audio, engine, title, orientation }));
     console.log(JSON.stringify({ look_id, video_id }, null, 2));
   } catch (e) {
     console.error(String(e.message || e));

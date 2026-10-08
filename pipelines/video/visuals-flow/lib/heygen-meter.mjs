@@ -26,8 +26,10 @@ export function meterDelta(before, after) {
     ai_image_credits: k('ai_image_credits'),
     ai_video_credits: k('ai_video_credits'),
     ai_concept_credits: k('ai_concept_credits'),
+    plan_remain: k('plan_remain'),
+    addon_remain: k('addon_remain'),
   };
-  const spent = delta.credits !== 0 || delta.seconds_consumed !== 0
+  const spent = delta.credits !== 0 || delta.seconds_consumed !== 0 || delta.plan_remain !== 0 || delta.addon_remain !== 0
     || delta.ai_image_credits < 0 || delta.ai_video_credits < 0 || delta.ai_concept_credits < 0;
   return { spent, delta };
 }
