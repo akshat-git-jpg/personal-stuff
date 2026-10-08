@@ -1,0 +1,93 @@
+{
+  "video": "animate-test-consistent-character",
+  "designSystem": "default",
+  "total": 77.4,
+  "planned": "2026-10-08T04:23:12.603Z",
+  "moments": [
+    {
+      "id": "m01",
+      "from": {
+        "i": 20,
+        "text": "Your"
+      },
+      "to": {
+        "i": 51,
+        "text": "together."
+      },
+      "hold": 0.5,
+      "idea": "Three scene cards slide in left to right, each holding the same drawn character outline; as the voice says 'face changes' the face in card 2 redraws differently, on 'proportions shift' card 3's figure stretches taller, and on 'falls apart' an orange connector line joining the cards snaps into pieces under the word 'consistency' in hero type.",
+      "why": "The core problem of the video is a before/after across clips, which a picture shows instantly while the bed has nothing to show yet.",
+      "start": 5.68,
+      "end": 18.34,
+      "duration": 12.66
+    },
+    {
+      "id": "m02",
+      "from": {
+        "i": 66,
+        "text": "But"
+      },
+      "to": {
+        "i": 74,
+        "text": "this."
+      },
+      "hold": 0.5,
+      "idea": "The broken connector from the problem reassembles into one solid orange line through three matching character silhouettes, and 'OpenArt' lands above it in hero type with a green check badge popping in on 'solves this'.",
+      "why": "It is the turn from problem to fix, one breath and one strong claim, and it pays off the first graphic.",
+      "start": 22.66,
+      "end": 26.48,
+      "duration": 3.82
+    },
+    {
+      "id": "m03",
+      "from": {
+        "i": 86,
+        "text": "I"
+      },
+      "to": {
+        "i": 109,
+        "text": "tools."
+      },
+      "hold": 0.6,
+      "idea": "A single panel labelled 'one platform' fills on the words: a film-strip icon for 'full animated video', a row of scene tiles for 'multiple scenes', the same character dot repeating across them for 'consistent characters', then a stack of scattered tool icons collapses into the panel with 'no switching tools' in orange.",
+      "why": "The narration counts out what the workflow covers and ends on a clear comparison (one platform vs. hopping between tools), while the bed is not demonstrating anything.",
+      "start": 29.38,
+      "end": 41.84,
+      "duration": 12.46
+    },
+    {
+      "id": "m04",
+      "from": {
+        "i": 155,
+        "text": "Step"
+      },
+      "to": {
+        "i": 213,
+        "text": "tools."
+      },
+      "hold": 0.3,
+      "idea": "A four-step track drawn left to right: hero step numbers 1-4 appear as each is spoken with a line icon and a short label (one reference image -> lock character, place across scenes, animate into clips, string together in Story + Timeline), and an orange progress line sweeps to each node as it lands.",
+      "why": "A numbered process said slowly over 17 seconds is exactly what a counted-out graphic explains better than a talking-over-UI bed, and it becomes the viewer's map for the rest of the video.",
+      "start": 54.88,
+      "end": 72.62,
+      "duration": 17.74
+    },
+    {
+      "id": "m05",
+      "from": {
+        "i": 214,
+        "text": "And"
+      },
+      "to": {
+        "i": 230,
+        "text": "for."
+      },
+      "hold": 0.5,
+      "idea": "A price-tag icon swings in beside the word 'Pricing' in hero type, then a simple balance scale tips as 'worth paying for?' appears with the question mark in orange, held until the video ends.",
+      "why": "The final agenda item is a question that hooks the viewer to stay, and a scale weighing cost against value acts it out without words.",
+      "start": 72.62,
+      "end": 77.4,
+      "duration": 4.78
+    }
+  ]
+}

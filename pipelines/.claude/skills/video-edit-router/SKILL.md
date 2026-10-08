@@ -17,8 +17,10 @@ recipe owns the video**, then loads that recipe's skill and nothing else.
 
 1. **Find the video.** Take the slug from the owner or the open session. If unsure:
    `node pipelines/video-registry/bin/vreg.mjs where <name>`.
-2. **Find the workdir.** `pipelines/video/visuals-flow/videos/<slug>/`. Missing → ASK the
-   owner where the video lives. Never guess.
+2. **Find the workdir.** `pipelines/video/visuals-flow/videos/<slug>/` or
+   `pipelines/video/animate-flow/videos/<slug>/` (`vreg where <slug>` shows which exist).
+   Missing → ASK the owner where the video lives. Never guess. Both present → ASK which edit
+   the owner means.
 3. **Read the recipe.** `run-config.json` in the workdir, field `template`, then use the
    table below.
 4. **Hand off** to the one skill in the row: the edit skill for edit asks, the feedback
@@ -30,6 +32,7 @@ recipe owns the video**, then loads that recipe's skill and nothing else.
 |---|---|---|---|
 | absent | template / cards | `yt-video-edit` | `yt-video-edit-feedback` |
 | `coupon` | coupon (rule-based) | `yt-video-edit` (Coupon section) | `yt-video-edit-feedback` |
+| `animate` | animate (free-design motion graphics, `pipelines/video/animate-flow/`) | `yt-animate` | `yt-animate-feedback` |
 
 ## Rules
 

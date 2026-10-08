@@ -1,0 +1,19 @@
+{
+  "number": "050",
+  "slug": "050-review-frames-run",
+  "title": "review the frames",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "review-frames"
+  ],
+  "consumes": [
+    "moments/<id>/index.html"
+  ],
+  "produces": [
+    "review/REVIEW.md",
+    "review/check.json",
+    "<media>/review/<id>/*.png"
+  ],
+  "summary": "Mechanical checks (contract, lint, runtime, layout, contrast) and three stills per moment, before anything is encoded."
+}

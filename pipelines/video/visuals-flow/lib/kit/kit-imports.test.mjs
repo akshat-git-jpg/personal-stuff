@@ -13,6 +13,8 @@ const ALLOW = {
   'captions.mjs': 'burned captions are a shared finishing step for every recipe',
   // Version registry for delivered cuts.
   'versions.mjs': 'every recipe registers the versions it delivers',
+  // The hyperframes version pin, so every recipe reviews and renders on one renderer.
+  'renderer-constants.mjs': 'a version string and its env override, nothing else',
 };
 
 const SPEC = /(?:^|[\s;])(?:import|export)\s[^'"`]*?from\s*['"]([^'"]+)['"]|(?:^|[\s;])import\s*['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/g;

@@ -4,7 +4,7 @@
   "scopes": [
     {
       "id": "template",
-      "why": "Card recipe: body and zone cue passes, card plan and build, the simple intro (115 picks from catalog.json by design), cue and zone rulebooks, TASTE-SIMPLE. Must not pick up the free-design intro's taste or authoring prompts.",
+      "why": "Card recipe: body and zone cue passes, card plan and build, the simple intro (115 picks from catalog.json by design), cue and zone rulebooks, TASTE-SIMPLE. Must not pick up the free-design intro's taste or authoring prompts. Must not see the animate recipe's taste, skills or folder.",
       "surface": [
         "pipelines/video/visuals-flow/steps/115-author-intro-simple-llm",
         "pipelines/video/visuals-flow/steps/210-author-body-cues-llm",
@@ -32,7 +32,10 @@
         "IDEA-PASS.md",
         "screenplay",
         "110-propose-intro-idea-llm",
-        "130-author-intro-screenplay-llm"
+        "130-author-intro-screenplay-llm",
+        "TASTE-ANIMATE.md",
+        "yt-animate",
+        "animate-flow"
       ],
       "allow": [
         {
@@ -45,7 +48,7 @@
     },
     {
       "id": "intro-film",
-      "why": "Free-design intro (complex flow): idea pass 110, screenplay authoring 130, frame review 140, TASTE-INTRO and lib/intro-film. The card catalog is a template set and must not reach its context. DESIGN.md and logos/registry.json are the brand and stay required, so card-library/ itself is not banned.",
+      "why": "Free-design intro (complex flow): idea pass 110, screenplay authoring 130, frame review 140, TASTE-INTRO and lib/intro-film. The card catalog is a template set and must not reach its context. DESIGN.md and logos/registry.json are the brand and stay required, so card-library/ itself is not banned. Must not see the animate recipe's taste, skills or folder.",
       "surface": [
         "pipelines/video/visuals-flow/steps/110-propose-intro-idea-llm",
         "pipelines/video/visuals-flow/steps/130-author-intro-screenplay-llm",
@@ -64,7 +67,10 @@
         "cue-pass-prompt",
         "zone-pass-prompt",
         "SIMPLE-PASS.md",
-        "intro-kit"
+        "intro-kit",
+        "TASTE-ANIMATE.md",
+        "yt-animate",
+        "animate-flow"
       ],
       "allow": []
     },
@@ -89,11 +95,12 @@
     },
     {
       "id": "kit",
-      "why": "Recipe-agnostic core (lib/kit/ plus the two utils it imports): assembly from an edit plan. It must hold no recipe's judgment: no cue, zone, card, intro, concept, screenplay or coupon knowledge, and no recipe file read. Imports are gated separately by lib/kit/kit-imports.test.mjs.",
+      "why": "Recipe-agnostic core (lib/kit/ plus the three utils it imports): assembly from an edit plan. It must hold no recipe's judgment: no cue, zone, card, intro, concept, screenplay or coupon knowledge, and no recipe file read. Imports are gated separately by lib/kit/kit-imports.test.mjs.",
       "surface": [
         "pipelines/video/visuals-flow/lib/kit",
         "pipelines/video/visuals-flow/lib/captions.mjs",
-        "pipelines/video/visuals-flow/lib/versions.mjs"
+        "pipelines/video/visuals-flow/lib/versions.mjs",
+        "pipelines/video/visuals-flow/lib/renderer-constants.mjs"
       ],
       "banned": [
         "cue-rules",
@@ -119,6 +126,39 @@
         "shot-constants",
         "run-config",
         "effects/registry"
+      ],
+      "allow": []
+    },
+    {
+      "id": "animate",
+      "why": "Free-design animate recipe (animate-flow): moment planning 030, per-moment authoring 040, its taste file, its two skills and the design systems it draws in. It must never see card templates, the card catalog, cue or zone rules, either visuals-flow taste file, the intro authoring contracts or the template recipe's feedback. 040 stages brand logos only, which is why card-library/ itself is not banned.",
+      "surface": [
+        "pipelines/video/animate-flow",
+        "pipelines/.claude/skills/yt-animate",
+        "pipelines/.claude/skills/yt-animate-feedback",
+        "pipelines/video/design-systems"
+      ],
+      "banned": [
+        "catalog.json",
+        "card-plan.json",
+        "cues.json",
+        "card-notes.json",
+        "cue-rules",
+        "zone-rules",
+        "lint-cues",
+        "TASTE-SIMPLE.md",
+        "TASTE-INTRO.md",
+        "AUTHORING.md",
+        "RULEBOOK.md",
+        "IDEA-PASS.md",
+        "SIMPLE-PASS.md",
+        "cue-pass-prompt",
+        "zone-pass-prompt",
+        "screenplay",
+        "intro-kit",
+        "card-library/DESIGN",
+        "yt-video-edit",
+        "visuals-flow/videos"
       ],
       "allow": []
     }
@@ -148,11 +188,11 @@
     ]
   },
   "newScopeExample": {
-    "id": "animate",
-    "why": "Free-design animate recipe. Copy this object into scopes once the folder exists; a surface path that does not exist fails the test.",
+    "id": "<new-recipe>",
+    "why": "Copy this object into scopes once the recipe folder exists; a surface path that does not exist fails the test.",
     "surface": [
-      "pipelines/video/animate-flow",
-      "pipelines/.claude/skills/<animate-skill>"
+      "pipelines/video/<new-recipe>",
+      "pipelines/.claude/skills/<new-recipe-skill>"
     ],
     "banned": [
       "catalog.json",

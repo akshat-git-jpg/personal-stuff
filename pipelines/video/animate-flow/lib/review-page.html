@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animate review</title>
+<style>
+  :root { --bg: #111; --panel: #1b1b1b; --line: #2c2c2c; --text: #eee; --dim: #999; --accent: #fb923c; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, sans-serif; }
+  main { max-width: 1280px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 360px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  header { grid-column: 1 / -1; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  h1 { font-size: 18px; margin: 0; }
+  select, button, textarea { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  select, button { padding: 6px 10px; }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); color: #111; border-color: var(--accent); font-weight: 600; }
+  video { width: 100%; background: #000; border-radius: 6px; display: block; }
+  .moments { display: flex; gap: 2px; margin-top: 8px; height: 22px; position: relative; background: var(--panel); border-radius: 4px; }
+  .moments span { position: absolute; top: 0; bottom: 0; background: rgba(251,146,60,.35); border-left: 2px solid var(--accent); cursor: pointer; font-size: 11px; padding-left: 3px; overflow: hidden; white-space: nowrap; }
+  aside { display: flex; flex-direction: column; gap: 10px; }
+  textarea { width: 100%; min-height: 84px; padding: 8px; resize: vertical; }
+  .at { color: var(--dim); font-size: 13px; }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  li { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+  li .meta { color: var(--dim); font-size: 12px; display: flex; justify-content: space-between; gap: 8px; }
+  li a { color: var(--accent); cursor: pointer; }
+  .empty { color: var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="title">Animate review</h1>
+    <label>Cut <select id="version"></select></label>
+    <span class="at" id="status"></span>
+  </header>
+  <section>
+    <video id="player" controls preload="metadata"></video>
+    <div class="moments" id="moments" title="Animated moments"></div>
+  </section>
+  <aside>
+    <div class="at">Pause where something is wrong, then write what you want changed.</div>
+    <textarea id="text" placeholder="e.g. the price lands before she says it"></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="at" id="at">at 00:00.0</span>
+      <button class="primary" id="add">Add comment</button>
+    </div>
+    <ul id="items"></ul>
+  </aside>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const clock = (t) => `${String(Math.floor(t / 60)).padStart(2, '0')}:${(t % 60).toFixed(1).padStart(4, '0')}`;
+let state = { versions: [], moments: [], items: {} };
+
+async function load() {
+  state = await (await fetch('/api/state')).json();
+  $('title').textContent = `Animate review: ${state.video}`;
+  const sel = $('version');
+  const keep = sel.value;
+  sel.innerHTML = '';
+  for (const v of [...state.versions].reverse()) sel.add(new Option(`${v.label}${v.draft ? ' (draft)' : ''}`, v.label));
+  if (keep) sel.value = keep;
+  if (!state.versions.length) $('status').textContent = 'No assembled cut yet: run assemble (070).';
+  if (sel.value && !$('player').src.endsWith(`/video/${sel.value}`)) $('player').src = `/video/${sel.value}`;
+  render();
+}
+
+function render() {
+  const p = $('player');
+  const total = p.duration || Math.max(1, ...state.moments.map((m) => m.end));
+  const bar = $('moments');
+  bar.innerHTML = '';
+  for (const m of state.moments) {
+    const s = document.createElement('span');
+    s.style.left = `${(m.start / total) * 100}%`;
+    s.style.width = `${((m.end - m.start) / total) * 100}%`;
+    s.textContent = m.id;
+    s.title = `${m.id}: ${m.idea}`;
+    s.onclick = () => { p.currentTime = m.start; };
+    bar.appendChild(s);
+  }
+  const label = $('version').value;
+  const list = $('items');
+  list.innerHTML = '';
+  const mine = Object.entries(state.items).filter(([k]) => k.startsWith(`final-${label}:`)).sort((a, b) => a[1].t - b[1].t);
+  if (!mine.length) list.innerHTML = '<li class="empty">No comments on this cut yet.</li>';
+  for (const [key, it] of mine) {
+    const li = document.createElement('li');
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const jump = document.createElement('a');
+    jump.textContent = `${clock(it.t)}${it.moment ? ` · ${it.moment}` : ''}`;
+    jump.onclick = () => { p.currentTime = it.t; };
+    meta.appendChild(jump);
+    if (!it.folded) {
+      const del = document.createElement('a');
+      del.textContent = 'delete';
+      del.onclick = async () => { await post('/api/feedback-delete', { key }); load(); };
+      meta.appendChild(del);
+    } else meta.appendChild(document.createTextNode('folded'));
+    const body = document.createElement('div');
+    body.textContent = it.text;
+    li.append(meta, body);
+    list.appendChild(li);
+  }
+}
+
+async function post(url, body) {
+  const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!j.ok) { $('status').textContent = j.error; throw new Error(j.error); }
+  $('status').textContent = '';
+  return j;
+}
+
+$('add').onclick = async () => {
+  const text = $('text').value.trim();
+  if (!text || !$('version').value) return;
+  await post('/api/feedback', { label: $('version').value, text, t: $('player').currentTime });
+  $('text').value = '';
+  load();
+};
+$('player').addEventListener('timeupdate', () => { $('at').textContent = `at ${clock($('player').currentTime)}`; });
+$('player').addEventListener('loadedmetadata', render);
+$('version').onchange = () => { $('player').src = `/video/${$('version').value}`; render(); };
+load();
+</script>
+</body>
+</html>

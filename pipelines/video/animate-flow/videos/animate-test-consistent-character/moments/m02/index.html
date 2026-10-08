@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>m02 — OpenArt solves this</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --positive: #34d399;
+        --negative: #ef4444;
+        --gold: #facc15;
+      }
+      html, body { margin: 0; background: #000; }
+      body { font-family: 'Inter', system-ui, sans-serif; color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+
+      #bg { position: absolute; inset: 0; background: var(--bg-to); }
+      #glow {
+        position: absolute; left: -560px; top: -620px; width: 2400px; height: 2000px;
+        background: radial-gradient(closest-side, var(--bg-from) 0%, rgba(58,31,8,0.55) 45%, rgba(10,8,5,0) 100%);
+      }
+
+      #stage { position: absolute; inset: 0; }
+
+      /* hero lockup */
+      #hero {
+        position: absolute; left: 0; right: 0; top: 230px; height: 200px;
+        display: flex; align-items: center; justify-content: center; gap: 56px;
+      }
+      #logo {
+        display: block; width: 168px; height: 168px; border-radius: 40px; overflow: hidden;
+        background: #12151c; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+        position: relative;
+      }
+      #logo img { display: block; width: 100%; height: 100%; }
+      #logo::after { content: ""; position: absolute; inset: 0; border-radius: 40px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10); }
+      #word {
+        display: block; margin: 0; font-size: 196px; font-weight: 900; letter-spacing: -0.035em; line-height: 1.0;
+      }
+      #mark { position: relative; width: 168px; height: 168px; flex: none; }
+      #badge {
+        position: absolute; right: -34px; top: -34px; width: 88px; height: 88px; border-radius: 50%;
+        background: var(--positive);
+        box-shadow: 0 0 0 8px #1c1007;
+      }
+      #badge svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+      /* connector */
+      .seg { position: absolute; top: 754px; height: 12px; transform-origin: 50% 50%; }
+      .seg .broken {
+        position: absolute; inset: 3px 0; border-radius: 3px;
+        background: repeating-linear-gradient(90deg, rgba(255,239,219,0.6) 0 26px, rgba(0,0,0,0) 26px 44px);
+      }
+      .seg .fixed {
+        position: absolute; inset: 0; border-radius: 6px; background: var(--accent);
+        transform-origin: 0 50%; box-shadow: 0 0 24px rgba(251,146,60,0.45);
+      }
+      #s1 { left: 220px; width: 228px; }
+      #s2 { left: 674px; width: 172px; }
+      #s3 { left: 1074px; width: 172px; }
+      #s4 { left: 1472px; width: 228px; }
+
+      #pulse {
+        position: absolute; top: 736px; left: 200px; width: 48px; height: 48px; border-radius: 50%;
+        background: radial-gradient(closest-side, #fff 0%, rgba(251,146,60,0.9) 40%, rgba(251,146,60,0) 100%);
+      }
+
+      /* character nodes */
+      .node { position: absolute; top: 645px; width: 230px; height: 230px; }
+      .node .disc {
+        position: absolute; inset: 0; border-radius: 50%; background: #170e06;
+        box-shadow: inset 0 0 0 2px rgba(255,239,219,0.28);
+      }
+      .node .ring {
+        position: absolute; inset: -4px; border-radius: 50%;
+        box-shadow: inset 0 0 0 5px var(--accent), 0 0 36px rgba(251,146,60,0.35);
+      }
+      .node .fig { position: absolute; left: 35px; top: 30px; width: 160px; height: 172px; overflow: hidden; border-radius: 0 0 80px 80px; }
+      .node .fig svg { display: block; width: 160px; height: 172px; }
+      #n1 { left: 445px; }
+      #n2 { left: 845px; }
+      #n3 { left: 1245px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="moment" data-start="0" data-width="1920" data-height="1080" data-duration="3.82">
+      <div id="bg" class="clip" data-start="0" data-duration="3.82" data-track-index="0">
+        <div id="glow"></div>
+      </div>
+
+      <div id="stage" class="clip" data-start="0" data-duration="3.82" data-track-index="1">
+        <div class="seg" id="s1"><div class="broken"></div><div class="fixed"></div></div>
+        <div class="seg" id="s2"><div class="broken"></div><div class="fixed"></div></div>
+        <div class="seg" id="s3"><div class="broken"></div><div class="fixed"></div></div>
+        <div class="seg" id="s4"><div class="broken"></div><div class="fixed"></div></div>
+        <div id="pulse"></div>
+
+        <div class="node" id="n1">
+          <div class="disc"></div><div class="ring"></div>
+          <div class="fig"><svg viewBox="0 0 160 172"><circle cx="80" cy="62" r="34" fill="#ffffff"/><path d="M14 172 C14 124 42 106 80 106 C118 106 146 124 146 172 Z" fill="#ffffff"/></svg></div>
+        </div>
+        <div class="node" id="n2">
+          <div class="disc"></div><div class="ring"></div>
+          <div class="fig"><svg viewBox="0 0 160 172"><circle cx="80" cy="62" r="34" fill="#ffffff"/><path d="M14 172 C14 124 42 106 80 106 C118 106 146 124 146 172 Z" fill="#ffffff"/></svg></div>
+        </div>
+        <div class="node" id="n3">
+          <div class="disc"></div><div class="ring"></div>
+          <div class="fig"><svg viewBox="0 0 160 172"><circle cx="80" cy="62" r="34" fill="#ffffff"/><path d="M14 172 C14 124 42 106 80 106 C118 106 146 124 146 172 Z" fill="#ffffff"/></svg></div>
+        </div>
+
+        <div id="hero">
+          <div id="mark">
+            <div id="logo"><img src="assets/openart.png" alt="OpenArt" /></div>
+            <div id="badge">
+              <svg viewBox="0 0 116 116"><path id="tick" d="M34 60 L51 76 L84 42" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="80" stroke-dashoffset="80"/></svg>
+            </div>
+          </div>
+          <h1 id="word">OpenArt</h1>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const D = 3.82;
+
+      // background glow drifts the whole time
+      tl.fromTo("#glow", { x: -40, y: -20, scale: 1 }, { x: 60, y: 30, scale: 1.06, duration: D, ease: "sine.inOut" }, 0);
+
+      // --- 0.00 "But": the broken connector and mismatched characters carry over
+      tl.set(".seg .fixed", { scaleX: 0 }, 0);
+      tl.set(".node .ring", { opacity: 0 }, 0);
+      tl.set("#pulse", { opacity: 0 }, 0);
+      tl.set("#tick", { strokeDashoffset: 80 }, 0);
+      const broken = [
+        { id: "#s1", y: -26, r: -7 },
+        { id: "#s2", y: 30, r: 9 },
+        { id: "#s3", y: -22, r: -11 },
+        { id: "#s4", y: 24, r: 6 },
+      ];
+      broken.forEach((b, i) => {
+        // settle in slightly from further apart, so the frame is alive from frame 0
+        tl.fromTo(b.id, { y: b.y * 1.5, rotation: b.r * 1.4 }, { y: b.y, rotation: b.r, duration: 1.3, ease: "sine.out" }, 0);
+      });
+      const figs = [
+        { id: "#n1 .fig", s: 0.8, r: -12, x: -14, o: 0.5 },
+        { id: "#n2 .fig", s: 1.08, r: 7, x: 10, o: 0.75 },
+        { id: "#n3 .fig", s: 0.88, r: 15, x: 6, o: 0.4 },
+      ];
+      figs.forEach((f) => {
+        tl.fromTo(f.id, { scale: f.s * 0.96, rotation: f.r * 1.2, x: f.x, opacity: f.o },
+          { scale: f.s, rotation: f.r, x: f.x, opacity: f.o, duration: 1.3, ease: "sine.out" }, 0);
+      });
+      tl.from(".node", { opacity: 0.6, duration: 0.3, ease: "power2.out" }, 0);
+
+      // --- 0.24 "OpenArt": logo + hero type land
+      tl.from("#logo", { opacity: 0, scale: 0.9, duration: 0.5, ease: "power3.out" }, 0.24);
+      tl.from("#word", { opacity: 0, y: 24, duration: 0.55, ease: "power3.out" }, 0.3);
+      tl.set("#badge", { opacity: 0, scale: 0.6 }, 0);
+
+      // --- 1.30 "workflow": the connector reassembles into one solid orange line
+      broken.forEach((b, i) => {
+        tl.to(b.id, { y: 0, rotation: 0, duration: 0.5, ease: "power3.out" }, 1.3 + i * 0.05);
+      });
+      tl.to(".seg .fixed", { scaleX: 1, duration: 0.22, ease: "none", stagger: 0.14 }, 1.42);
+      tl.to(".seg .broken", { opacity: 0, duration: 0.3, ease: "power2.out", stagger: 0.14 }, 1.5);
+
+      // --- 1.66 "that" / 1.90 "genuinely": the three characters snap to match, as the line reaches each
+      figs.forEach((f, i) => {
+        tl.to(f.id, { scale: 1, rotation: 0, x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 1.62 + i * 0.16);
+        tl.to("#n" + (i + 1) + " .ring", { opacity: 1, duration: 0.4, ease: "power2.out" }, 1.62 + i * 0.16);
+      });
+
+      // --- 2.36 "solves this": green check badge pops in
+      tl.to("#badge", { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, 2.36);
+      tl.to("#tick", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 2.5);
+
+      // --- after the claim: a light travels the line, rings pulse as it passes
+      tl.to("#pulse", { opacity: 1, duration: 0.15, ease: "power2.out" }, 2.6);
+      tl.fromTo("#pulse", { x: 0 }, { x: 1476, duration: 1.2, ease: "power1.inOut" }, 2.6);
+      [0, 1, 2].forEach((i) => {
+        const t = 2.6 + 1.2 * ((i * 400 + 340) / 1476) - 0.08;
+        tl.to("#n" + (i + 1), { scale: 1.06, duration: 0.16, ease: "power2.out" }, t);
+        tl.to("#n" + (i + 1), { scale: 1, duration: 0.3, ease: "power2.inOut" }, t + 0.16);
+      });
+      tl.to("#word", { scale: 1.02, duration: 1.3, ease: "sine.inOut" }, 2.5);
+
+      window.__timelines["moment"] = tl;
+    </script>
+  </body>
+</html>

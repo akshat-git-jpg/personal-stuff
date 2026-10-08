@@ -1,0 +1,6 @@
+{
+  "engine": "groq",
+  "model": "whisper-large-v3-turbo",
+  "words": 231,
+  "createdAt": "2026-10-08T04:21:47.295Z"
+}

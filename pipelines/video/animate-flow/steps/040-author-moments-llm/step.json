@@ -1,0 +1,20 @@
+{
+  "number": "040",
+  "slug": "040-author-moments-llm",
+  "title": "author the moments",
+  "actor": "llm",
+  "actorLabel": "[LLM]",
+  "verbs": [
+    "author-moments"
+  ],
+  "consumes": [
+    "moments.json",
+    "transcript.json",
+    "design system",
+    "TASTE-ANIMATE.md"
+  ],
+  "produces": [
+    "moments/<id>/index.html"
+  ],
+  "summary": "One fresh model run per moment, each in its own sealed stage, designs and writes a hyperframes composition."
+}

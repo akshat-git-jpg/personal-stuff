@@ -1,0 +1,54 @@
+{
+  "runs": {
+    "m01": {
+      "id": "m01",
+      "ok": true,
+      "error": null,
+      "seconds": 390,
+      "cost": 2.018239800000001,
+      "summary": "I built `composition/index.html`. `lint` and `check` both report 0 errors, and I looked at all three snapshots after the final changes. The one remaining lint warning is about loading Inter from Google Fonts, which the brief requires. No product is named in this moment, so there are no logos and no `assets/` folder.\n\nThe graphic shows three \"Scene\" cards, each holding the same line-drawn stick figure. An orange wire runs under the cards and links them as one sequence. On \"character\" the first card slides in and its figure draws itself on. Cards two and three follow on \"one scene\" and \"the next\", and the wire grows between them. On \"face changes\" (the transcript says \"phase\"), card 2 gets an orange outline, its face fades out, and a different face draws in: spiky hair, glasses and a frown. On \"proportions shift\", card 3's figure turns orange and stretches tall and thin, with its smaller head pushed up, over a faint cream copy of the original pose. On \"consistency\" the hero word rises in below the wire. The wire shakes on \"falls\", and on \"apart\" it snaps at both midpoints: the pieces drop away from their nodes and the letters of \"consistency\" knock out of line. On \"string … together\"",
+      "at": "2026-10-08T04:32:14.386Z",
+      "model": "opus"
+    },
+    "m02": {
+      "id": "m02",
+      "ok": true,
+      "error": null,
+      "seconds": 187,
+      "cost": 0.9752944,
+      "summary": "I built the m02 graphic in `composition/index.html` and copied the OpenArt logo into `composition/assets/openart.png`. Lint and check both report 0 errors. Lint gives one warning, about the Google Fonts link, which the prompt requires. I looked at all three snapshots, and nothing is clipped or overlapping.\n\n**What it shows and how it moves:** It opens on the broken state from the first graphic. A dashed, cream-coloured connector lies in four tilted pieces between three character silhouettes, each a different size, angle and brightness, and the pieces are already drifting so the frame is never still. On \"OpenArt\" (0.24s) the OpenArt logo tile and the word \"OpenArt\" in 196px black-weight type rise into place, centred in the top third. On \"workflow\" (1.3s) the pieces straighten into one line, and a solid orange line draws left to right through all three circles. As it reaches each one (\"that… genuinely\"), that silhouette snaps to full white at the same size and angle, and its circle lights up with an orange ring. On \"solves\" (2.36s) a green check badge pops onto the top-right corner of the OpenArt logo and its tick draws in. To the end, a point of light travels along the line, each ci",
+      "at": "2026-10-08T04:32:14.386Z",
+      "model": "opus"
+    },
+    "m03": {
+      "id": "m03",
+      "ok": true,
+      "error": null,
+      "seconds": 291,
+      "cost": 1.3543406,
+      "summary": "I built the composition at `composition/index.html` and checked it. `lint` and `check` both report 0 errors. `lint` gives one warning, about loading Inter from fonts.googleapis.com, which PROMPT.md requires. In the snapshots at 3.12s, 6.85s and 10.59s, nothing is clipped. My first snapshot at 10.59s showed two tool icons overlapping, so I spaced them out and re-snapshotted. I also took extra frames at 10.3s, 11.5s and 12.3s to check the ending, which the required three snapshots don't cover. The 10.59s frame catches the orange ring partway between two icons as it moves.\n\nThe graphic is one large panel on the warm dark background, filling up as the voice lists what it covers. On \"building\" the empty panel slides in. On \"full… animated… video\" an orange film-strip icon appears with its label one word at a time, and the strip starts scrolling like film running. On \"multiple scenes\" three scene tiles slide in: a hillside with a sun, a house, and trees under a moon. On \"consistent characters\" the same orange figure pops into each tile. On \"throughout\" an orange line draws across all three figures, and they bob gently from then on. On \"all inside\" the panel's outline turns orange, and \"O",
+      "at": "2026-10-08T04:32:14.386Z",
+      "model": "opus"
+    },
+    "m04": {
+      "id": "m04",
+      "ok": true,
+      "error": null,
+      "seconds": 232,
+      "cost": 1.4038578000000002,
+      "summary": "The composition is finished at `composition/index.html`, with the OpenArt logo copied to `composition/assets/openart.png`. `lint` and `check` both report 0 errors. `lint` gives one warning about loading the Inter font from Google Fonts, which the prompt allows. I opened the three required snapshots (4.43s, 9.76s, 15.08s) and three extra frames at 0.3s, 6.5s and 17.6s. Nothing is clipped or overlapping, and the text is readable at a glance. The first pass had two problems that I fixed: pulse rings were showing early on nodes that hadn't been reached yet, and the step labels wrapped to different heights, so the columns didn't line up.\n\nThe graphic is a four-stop track across the frame. Each step's big number (160px) lands on the word \"1\"/\"2\"/\"3\"/\"4\". It turns orange while that step is active and goes back to white when the next one arrives. At the same moment, the orange progress line sweeps along to that step's dot, which lights up and gives off a slow pulsing ring until the next step. Under each dot, a line icon and a short label appear on the words that say them:\n1. **Lock character**: a portrait frame on \"create\", a padlock on \"lock\", then \"from one image\" on \"reference\".\n2. **Pl",
+      "at": "2026-10-08T04:32:14.386Z",
+      "model": "opus"
+    },
+    "m05": {
+      "id": "m05",
+      "ok": true,
+      "error": null,
+      "seconds": 220,
+      "cost": 1.158734,
+      "summary": "I built `composition/index.html`. `lint` and `check` both report 0 errors, and I've looked at all three snapshots: nothing is clipped or overlapping, and everything uses the design system's colours, Inter and the warm glow.\n\n**What the graphic shows and how it moves:** An orange rule ticks in on \"finally\" and runs across on \"breakdown\". On \"pricing\", the word **Pricing** rises in hero type while an orange price tag swings in from a pin on the rule and settles with a damped sway. On \"whether\", a balance scale builds on the right: stand, post, beam with an orange pivot, then the two empty pans. \"Worth paying for\" comes in word by word: on \"worth\" a star (value) drops into the right pan, and on \"paying\" a coin (cost) drops into the left. The beam rocks from side to side as each lands, and the orange question mark pops on \"or\". The beam tips toward cost again on the second \"paying\" and hangs almost level, but never settles, as the question mark pulses on the last \"for\". The glow drifts the whole time, so the frame never freezes.\n\nA few things you might want to know:\n- **The speech slip:** the narration says \"praying for or paying for\". The screen says \"Worth paying for?\" and times \"pay",
+      "at": "2026-10-08T04:32:14.386Z",
+      "model": "opus"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "number": "070",
+  "slug": "070-assemble-run",
+  "title": "assemble the cut",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "assemble"
+  ],
+  "consumes": [
+    "moments.json",
+    "<media>/moments/*.mp4",
+    "<media>/audio.wav",
+    "<media>/screen.mp4 or a plain bed"
+  ],
+  "produces": [
+    "<media>/final-draft.mp4",
+    "<media>/versions/vN.mp4"
+  ],
+  "summary": "Builds the kit edit plan (bed + one composition per moment + the voiceover) and lets the kit cut it. No captions in v1."
+}

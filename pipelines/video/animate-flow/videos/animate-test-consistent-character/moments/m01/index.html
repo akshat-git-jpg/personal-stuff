@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>m01 — consistency falls apart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --positive: #34d399;
+        --negative: #ef4444;
+        --gold: #facc15;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+      }
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        color: var(--text);
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse 90% 90% at 30% 28%,
+          var(--bg-from) 0%,
+          var(--bg-to) 70%
+        );
+      }
+      #glow {
+        position: absolute;
+        left: 120px;
+        top: -260px;
+        width: 1100px;
+        height: 1100px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(58, 31, 8, 0.85) 0%, rgba(58, 31, 8, 0) 70%);
+      }
+      #scene {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* ---------- scene cards ---------- */
+      .card {
+        position: absolute;
+        top: 120px;
+        width: 440px;
+        height: 480px;
+        box-sizing: border-box;
+        padding: 36px 40px 30px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #card-1 { left: 180px; }
+      #card-2 { left: 740px; }
+      #card-3 { left: 1300px; }
+      .card-label {
+        align-self: flex-start;
+        font-size: 40px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        line-height: 1.2;
+        color: var(--text-dim);
+      }
+      .card-ring {
+        position: absolute;
+        inset: -1px;
+        border-radius: 24px;
+        border: 3px solid var(--accent);
+        opacity: 0;
+        pointer-events: none;
+      }
+      .fig-wrap {
+        position: relative;
+        width: 180px;
+        height: 351px;
+        margin-top: auto;
+      }
+      .fig {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 180px;
+        height: 351px;
+        overflow: visible;
+      }
+      .fig .ln {
+        fill: none;
+        stroke: var(--text);
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .fig .dot {
+        fill: var(--text);
+      }
+      .fig.accent .ln {
+        stroke: var(--accent);
+        stroke-width: 5;
+      }
+      .fig.accent .dot {
+        fill: var(--accent);
+      }
+      .fig .body .ln {
+        vector-effect: non-scaling-stroke;
+      }
+      .face-b .ln {
+        stroke: var(--accent);
+        stroke-width: 5;
+      }
+      #fig-3-ghost .ln {
+        stroke: var(--text-dim);
+        stroke-width: 3;
+      }
+      #fig-3-ghost .dot {
+        fill: var(--text-dim);
+      }
+
+      /* ---------- connector ---------- */
+      #wire {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: visible;
+      }
+      #wire .seg {
+        stroke: var(--accent);
+        stroke-width: 5;
+        stroke-linecap: round;
+      }
+      #wire .node {
+        fill: var(--accent);
+      }
+
+      /* ---------- hero ---------- */
+      #hero {
+        position: absolute;
+        left: 180px;
+        top: 800px;
+        width: 1560px;
+        text-align: center;
+        font-size: 150px;
+        font-weight: 900;
+        letter-spacing: -0.035em;
+        line-height: 1;
+        color: var(--text);
+        white-space: nowrap;
+      }
+      #hero .ch {
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="moment"
+      data-start="0"
+      data-width="1920"
+      data-height="1080"
+      data-duration="12.66"
+    >
+      <div id="bg" class="clip" data-start="0" data-duration="12.66" data-track-index="0">
+        <div id="glow" data-layout-ignore></div>
+      </div>
+
+      <div id="scene" class="clip" data-start="0" data-duration="12.66" data-track-index="1">
+        <!-- Connector between the three scenes. Each wire half starts at a node, so trimming its dash opens the break. -->
+        <svg id="wire" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+          <line id="stub-1" class="seg" x1="400" y1="600" x2="400" y2="680" />
+          <line id="stub-2" class="seg" x1="960" y1="600" x2="960" y2="680" />
+          <line id="stub-3" class="seg" x1="1520" y1="600" x2="1520" y2="680" />
+          <line id="seg-a1" class="seg" x1="400" y1="680" x2="680" y2="680" />
+          <line id="seg-a2" class="seg" x1="960" y1="680" x2="680" y2="680" />
+          <line id="seg-b1" class="seg" x1="960" y1="680" x2="1240" y2="680" />
+          <line id="seg-b2" class="seg" x1="1520" y1="680" x2="1240" y2="680" />
+          <circle id="node-1" class="node" cx="400" cy="680" r="11" />
+          <circle id="node-2" class="node" cx="960" cy="680" r="11" />
+          <circle id="node-3" class="node" cx="1520" cy="680" r="11" />
+        </svg>
+
+        <!-- Scene 1: the reference character -->
+        <div id="card-1" class="card">
+          <div id="label-1" class="card-label">Scene 1</div>
+          <div class="fig-wrap">
+            <svg id="fig-1" class="fig" viewBox="0 -90 200 390" xmlns="http://www.w3.org/2000/svg">
+              <g class="body">
+                <path class="ln draw" d="M100 106 L100 200" />
+                <path class="ln draw" d="M100 128 L66 178" />
+                <path class="ln draw" d="M100 128 L134 178" />
+                <path class="ln draw" d="M100 200 L74 288" />
+                <path class="ln draw" d="M100 200 L126 288" />
+              </g>
+              <g class="head">
+                <circle class="ln draw" cx="100" cy="62" r="44" />
+                <path class="ln draw" d="M60 48 Q80 30 100 44 Q120 30 140 48" />
+                <circle class="dot pop" cx="86" cy="64" r="5" />
+                <circle class="dot pop" cx="114" cy="64" r="5" />
+                <path class="ln draw" d="M86 82 Q100 94 114 82" />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Scene 2: the face changes -->
+        <div id="card-2" class="card">
+          <div class="card-ring" id="ring-2"></div>
+          <div id="label-2" class="card-label">Scene 2</div>
+          <div class="fig-wrap">
+            <svg id="fig-2" class="fig" viewBox="0 -90 200 390" xmlns="http://www.w3.org/2000/svg">
+              <g class="body">
+                <path class="ln" d="M100 106 L100 200" />
+                <path class="ln" d="M100 128 L66 178" />
+                <path class="ln" d="M100 128 L134 178" />
+                <path class="ln" d="M100 200 L74 288" />
+                <path class="ln" d="M100 200 L126 288" />
+              </g>
+              <g class="head">
+                <circle class="ln" cx="100" cy="62" r="44" />
+                <g id="face-2a">
+                  <path class="ln" d="M60 48 Q80 30 100 44 Q120 30 140 48" />
+                  <circle class="dot" cx="86" cy="64" r="5" />
+                  <circle class="dot" cx="114" cy="64" r="5" />
+                  <path class="ln" d="M86 82 Q100 94 114 82" />
+                </g>
+                <g id="face-2b" class="face-b">
+                  <path class="ln fb" d="M56 46 L66 8 L80 30 L94 -2 L106 28 L122 0 L132 30 L146 14 L144 50" />
+                  <circle class="ln fb" cx="84" cy="64" r="12" />
+                  <circle class="ln fb" cx="116" cy="64" r="12" />
+                  <path class="ln fb" d="M96 64 L104 64" />
+                  <path class="ln fb" d="M86 92 Q100 82 114 92" />
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Scene 3: the proportions shift -->
+        <div id="card-3" class="card">
+          <div class="card-ring" id="ring-3"></div>
+          <div id="label-3" class="card-label">Scene 3</div>
+          <div class="fig-wrap">
+            <svg id="fig-3-ghost" class="fig" viewBox="0 -90 200 390" xmlns="http://www.w3.org/2000/svg">
+              <g class="body">
+                <path class="ln" d="M100 106 L100 200" />
+                <path class="ln" d="M100 128 L66 178" />
+                <path class="ln" d="M100 128 L134 178" />
+                <path class="ln" d="M100 200 L74 288" />
+                <path class="ln" d="M100 200 L126 288" />
+              </g>
+              <g class="head">
+                <circle class="ln" cx="100" cy="62" r="44" />
+                <path class="ln" d="M60 48 Q80 30 100 44 Q120 30 140 48" />
+                <circle class="dot" cx="86" cy="64" r="5" />
+                <circle class="dot" cx="114" cy="64" r="5" />
+                <path class="ln" d="M86 82 Q100 94 114 82" />
+              </g>
+            </svg>
+            <svg id="fig-3" class="fig accent" viewBox="0 -90 200 390" xmlns="http://www.w3.org/2000/svg">
+              <g class="body" id="body-3">
+                <path class="ln" d="M100 106 L100 200" />
+                <path class="ln" d="M100 128 L66 178" />
+                <path class="ln" d="M100 128 L134 178" />
+                <path class="ln" d="M100 200 L74 288" />
+                <path class="ln" d="M100 200 L126 288" />
+              </g>
+              <g class="head" id="head-3">
+                <circle class="ln" cx="100" cy="62" r="44" />
+                <path class="ln" d="M60 48 Q80 30 100 44 Q120 30 140 48" />
+                <circle class="dot" cx="86" cy="64" r="5" />
+                <circle class="dot" cx="114" cy="64" r="5" />
+                <path class="ln" d="M86 82 Q100 94 114 82" />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div id="hero"><span class="ch">c</span><span class="ch">o</span><span class="ch">n</span><span class="ch">s</span><span class="ch">i</span><span class="ch">s</span><span class="ch">t</span><span class="ch">e</span><span class="ch">n</span><span class="ch">c</span><span class="ch">y</span></div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      // Stroke-draw setup: measure every path that gets drawn on.
+      document.querySelectorAll("#fig-1 .draw, #face-2b .fb").forEach((p) => {
+        const len = Math.ceil(p.getTotalLength() * 1.05);
+        p.style.strokeDasharray = `${len}`;
+        p.style.strokeDashoffset = `${len}`;
+      });
+      ["#seg-a1", "#seg-a2", "#seg-b1", "#seg-b2"].forEach((s) => {
+        const el = document.querySelector(s);
+        el.style.strokeDasharray = "290";
+        el.style.strokeDashoffset = "290";
+      });
+      ["#stub-1", "#stub-2", "#stub-3"].forEach((s) => {
+        const el = document.querySelector(s);
+        el.style.strokeDasharray = "90";
+        el.style.strokeDashoffset = "90";
+      });
+
+      const D = 12.66;
+      const tl = gsap.timeline({ paused: true });
+
+      // Background glow drifts the whole time.
+      tl.fromTo("#glow", { x: 0, y: 0 }, { x: 260, y: 120, duration: D, ease: "sine.inOut" }, 0);
+
+      // --- "Your character" (0.84): scene 1 arrives, the character draws on.
+      tl.from("#card-1", { x: -40, opacity: 0, duration: 0.55, ease: "power3.out" }, 0.84);
+      tl.to("#fig-1 .body .draw", { strokeDashoffset: 0, duration: 0.5, ease: "power2.out", stagger: 0.12 }, 1.0);
+      tl.to("#fig-1 .head .draw", { strokeDashoffset: 0, duration: 0.55, ease: "power2.out", stagger: 0.14 }, 1.15);
+      tl.from("#fig-1 .pop", { scale: 0, transformOrigin: "50% 50%", duration: 0.35, ease: "back.out(1.6)", stagger: 0.08 }, 1.75);
+      tl.to("#stub-1", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 1.9);
+      tl.from("#node-1", { scale: 0, svgOrigin: "400 680", duration: 0.4, ease: "back.out(1.6)" }, 2.15);
+
+      // --- "one scene" (2.76): scene 2, same character; the wire halves meet between 1 and 2.
+      tl.from("#card-2", { x: -40, opacity: 0, duration: 0.5, ease: "power3.out" }, 2.76);
+      tl.to("#seg-a1", { strokeDashoffset: 0, duration: 0.3, ease: "none" }, 2.95);
+      tl.to("#seg-a2", { strokeDashoffset: 0, duration: 0.3, ease: "none" }, 2.95);
+      tl.to("#stub-2", { strokeDashoffset: 0, duration: 0.25, ease: "power2.out" }, 2.85);
+      tl.from("#node-2", { scale: 0, svgOrigin: "960 680", duration: 0.4, ease: "back.out(1.6)" }, 2.9);
+
+      // --- "the next" (3.48): scene 3; wire joins 2 -> 3.
+      tl.from("#card-3", { x: -40, opacity: 0, duration: 0.5, ease: "power3.out" }, 3.48);
+      tl.to("#seg-b1", { strokeDashoffset: 0, duration: 0.3, ease: "none" }, 3.7);
+      tl.to("#seg-b2", { strokeDashoffset: 0, duration: 0.3, ease: "none" }, 3.7);
+      tl.to("#stub-3", { strokeDashoffset: 0, duration: 0.25, ease: "power2.out" }, 3.6);
+      tl.from("#node-3", { scale: 0, svgOrigin: "1520 680", duration: 0.4, ease: "back.out(1.6)" }, 3.65);
+
+      // --- "the face changes" (4.4): scene 2's face is redrawn as someone else.
+      tl.to("#ring-2", { opacity: 0.85, duration: 0.4, ease: "power2.out" }, 4.4);
+      tl.to("#face-2a", { opacity: 0, scale: 0.85, transformOrigin: "50% 50%", duration: 0.3, ease: "power2.in" }, 4.45);
+      tl.to("#face-2b .fb", { strokeDashoffset: 0, duration: 0.55, ease: "power2.out", stagger: 0.1 }, 4.7);
+
+      // --- "the proportions shift" (5.76 -> 6.5): scene 3 stretches tall and thin.
+      tl.to("#ring-2", { opacity: 0.35, duration: 0.4, ease: "power2.out" }, 5.76);
+      tl.to("#ring-3", { opacity: 0.85, duration: 0.4, ease: "power2.out" }, 5.76);
+      tl.from("#fig-3", { opacity: 0, duration: 0.3, ease: "power2.out" }, 5.76);
+      tl.from("#fig-3-ghost", { opacity: 0, duration: 0.01 }, 5.76);
+      tl.to("#fig-3-ghost", { opacity: 1, duration: 0.4, ease: "power2.out" }, 5.8);
+      tl.to("#body-3", { scaleY: 1.42, scaleX: 0.8, svgOrigin: "100 288", duration: 0.95, ease: "power3.inOut" }, 6.0);
+      tl.to("#head-3", { y: -69, scale: 0.84, svgOrigin: "100 62", duration: 0.95, ease: "power3.inOut" }, 6.0);
+
+      // --- "consistency" (7.88): the hero word lands under the wire.
+      tl.to("#ring-3", { opacity: 0.35, duration: 0.4, ease: "power2.out" }, 7.6);
+      tl.from("#hero", { y: 24, opacity: 0, duration: 0.55, ease: "power3.out" }, 7.88);
+
+      // --- "falls" (8.4): the wire trembles. "apart" (8.82): it snaps in two places.
+      tl.to("#wire", { x: 4, duration: 0.05, ease: "none", yoyo: true, repeat: 5 }, 8.4);
+      const snap = [
+        ["#seg-a1", "400 680", 13, 22],
+        ["#seg-a2", "960 680", -13, 22],
+        ["#seg-b1", "960 680", 13, 22],
+        ["#seg-b2", "1520 680", -13, 22],
+      ];
+      snap.forEach(([sel, origin, r, gap]) => {
+        tl.to(sel, { rotation: r, strokeDashoffset: gap, svgOrigin: origin, duration: 0.5, ease: "power4.out" }, 8.82);
+      });
+      const ys = [0, 10, -6, 14, -4, 9, -8, 5, 16, -5, 8];
+      const rs = [-3, 4, -5, 3, -4, 6, -3, 5, -6, 3, -4];
+      tl.to("#hero .ch", {
+        x: (i) => (i - 5) * 14,
+        y: (i) => ys[i],
+        rotation: (i) => rs[i],
+        duration: 0.5,
+        ease: "power4.out",
+      }, 8.85);
+
+      // --- "string ... together" (10.66 -> 11.8): the pieces try to rejoin, and fail.
+      snap.forEach(([sel, origin, r, gap]) => {
+        tl.to(sel, { rotation: r * 0.2, strokeDashoffset: gap * 0.3, svgOrigin: origin, duration: 0.7, ease: "power2.inOut" }, 10.66);
+        tl.to(sel, { rotation: r * 1.2, strokeDashoffset: gap * 1.5, svgOrigin: origin, duration: 0.5, ease: "power4.out" }, 11.8);
+      });
+      tl.to("#hero .ch", { x: (i) => (i - 5) * 4, y: 0, rotation: 0, duration: 0.7, ease: "power2.inOut" }, 10.66);
+      tl.to("#hero .ch", {
+        x: (i) => (i - 5) * 16,
+        y: (i) => ys[i] * 1.2,
+        rotation: (i) => rs[i] * 1.2,
+        duration: 0.5,
+        ease: "power4.out",
+      }, 11.8);
+
+      // Quiet loop under the tail: the scene nodes pulse.
+      ["#node-1", "#node-2", "#node-3"].forEach((s, i) => {
+        const cx = [400, 960, 1520][i];
+        tl.to(s, {
+          scale: 1.35,
+          svgOrigin: `${cx} 680`,
+          duration: 0.6,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: 3,
+        }, 9.3 + i * 0.2);
+      });
+
+      window.__timelines["moment"] = tl;
+    </script>
+  </body>
+</html>

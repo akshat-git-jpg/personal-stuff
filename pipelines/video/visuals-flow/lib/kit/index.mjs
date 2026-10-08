@@ -11,3 +11,7 @@ export {
   captionSegKey, maskCaptionWords, captionsApply, encoderArgs, detectEncoder, assemblyMd, drawtextFont,
 } from './assemble-core.mjs';
 export { registerVersion } from '../versions.mjs';
+export {
+  HYPERFRAMES, NPX_NEEDS_SHELL, npxArgs, npxSpawnOpts, lintArgs, checkArgs, snapshotArgs, renderArgs,
+  extractJsonObject, summariseFindings, checkComposition, snapshotComposition, renderComposition, lavfiPath, frameLuma,
+} from './hyperframes.mjs';

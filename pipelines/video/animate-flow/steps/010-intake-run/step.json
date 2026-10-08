@@ -1,0 +1,21 @@
+{
+  "number": "010",
+  "slug": "010-intake-run",
+  "title": "take in the sources",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "intake"
+  ],
+  "consumes": [
+    "a voiceover file",
+    "optional screen recording"
+  ],
+  "produces": [
+    "run-config.json",
+    "<media>/audio.wav",
+    "<media>/vo.mp3",
+    "<media>/screen.mp4"
+  ],
+  "summary": "Mints or finds the video key in the registry, copies the voiceover (and the screen recording, if any) into the media folder, optionally trimmed, and writes `run-config.json` with `template: \"animate\"` and the design system."
+}

@@ -1,0 +1,17 @@
+{
+  "template": "animate",
+  "video": "animate-test-consistent-character",
+  "title": "Animate recipe test: consistent character slice",
+  "designSystem": "default",
+  "source": {
+    "audio": "audio.wav",
+    "screen": "screen.mp4",
+    "from": "master.wav + screen.mp4",
+    "window": {
+      "from": 17,
+      "to": 94.4
+    }
+  },
+  "total": 77.4,
+  "created": "2026-10-08"
+}

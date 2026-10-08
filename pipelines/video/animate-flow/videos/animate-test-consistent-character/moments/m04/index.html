@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>m04 — the four-step track</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --positive: #34d399;
+        --negative: #ef4444;
+        --gold: #facc15;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+      }
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        color: var(--text);
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+
+      /* ---------- background ---------- */
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: var(--bg-to);
+        overflow: hidden;
+      }
+      #glow {
+        position: absolute;
+        left: -520px;
+        top: -560px;
+        width: 2000px;
+        height: 1600px;
+        background: radial-gradient(
+          ellipse at center,
+          var(--bg-from) 0%,
+          rgba(58, 31, 8, 0.55) 35%,
+          rgba(10, 8, 5, 0) 70%
+        );
+      }
+
+      /* ---------- content ---------- */
+      #scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 120px 180px;
+        box-sizing: border-box;
+      }
+      #stage {
+        position: relative;
+        width: 1560px;
+        height: 600px;
+        display: flex;
+      }
+
+      /* track: centred on the node row (num 160 + gap 32 + half node 22) */
+      .track {
+        position: absolute;
+        left: 0;
+        top: 212px;
+        width: 1560px;
+        height: 4px;
+        border-radius: 2px;
+        transform-origin: 0 50%;
+      }
+      #track-base {
+        background: rgba(255, 239, 219, 0.18);
+      }
+      #track-fill {
+        background: var(--accent);
+        box-shadow: 0 0 18px rgba(251, 146, 60, 0.55);
+      }
+
+      .col {
+        position: relative;
+        width: 390px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .num {
+        height: 160px;
+        font-size: 160px;
+        font-weight: 900;
+        letter-spacing: -0.035em;
+        line-height: 1;
+        color: var(--text);
+      }
+      .node-row {
+        position: relative;
+        margin-top: 32px;
+        width: 44px;
+        height: 44px;
+      }
+      .node {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        box-sizing: border-box;
+        border: 3px solid rgba(255, 239, 219, 0.35);
+        background: var(--bg-to);
+      }
+      .node-on {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 24px rgba(251, 146, 60, 0.7);
+        opacity: 0;
+      }
+      .ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        box-sizing: border-box;
+        border: 3px solid var(--accent);
+        opacity: 0;
+      }
+      .icon {
+        margin-top: 44px;
+        width: 132px;
+        height: 104px;
+        display: block;
+      }
+      .icon svg {
+        width: 132px;
+        height: 104px;
+        display: block;
+        overflow: visible;
+      }
+      .label {
+        margin-top: 28px;
+        max-width: 386px;
+        white-space: nowrap;
+        font-size: 44px;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        line-height: 1.2;
+        color: var(--text);
+      }
+      .sub {
+        margin-top: 14px;
+        max-width: 386px;
+        white-space: nowrap;
+        font-size: 40px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        line-height: 1.2;
+        color: var(--text-dim);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+      }
+      .logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        overflow: hidden;
+        flex: none;
+        display: block;
+        position: relative;
+      }
+      .logo img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .logo::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 12px;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+      }
+      .sub-text {
+        display: block;
+      }
+      .stroke {
+        fill: none;
+        stroke: var(--text);
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .stroke-accent {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .fill-accent {
+        fill: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="moment"
+      data-start="0"
+      data-width="1920"
+      data-height="1080"
+      data-duration="17.74"
+    >
+      <div id="bg" class="clip" data-start="0" data-duration="17.74" data-track-index="0">
+        <div id="glow"></div>
+      </div>
+
+      <section id="scene" class="clip" data-start="0" data-duration="17.74" data-track-index="1">
+        <div id="stage">
+          <div id="track-base" class="track"></div>
+          <div id="track-fill" class="track"></div>
+
+          <!-- Step 1: lock the character -->
+          <div class="col" id="c1">
+            <div class="num" id="n1">1</div>
+            <div class="node-row">
+              <div class="node"></div>
+              <div class="node-on" id="on1"></div>
+              <div class="ring" id="r1"></div>
+            </div>
+            <div class="icon" id="i1">
+              <svg viewBox="0 0 132 104">
+                <g id="i1-frame">
+                  <rect class="stroke" x="30" y="6" width="72" height="88" rx="12" />
+                  <circle class="stroke" cx="66" cy="38" r="13" />
+                  <path class="stroke" d="M42 84 C44 66 88 66 90 84" />
+                </g>
+                <g id="i1-lock">
+                  <path class="stroke-accent" d="M94 70 V62 a10 10 0 0 1 20 0 V70" />
+                  <rect class="fill-accent" x="88" y="68" width="32" height="26" rx="6" />
+                </g>
+              </svg>
+            </div>
+            <div class="label" id="l1">Lock character</div>
+            <div class="sub" id="s1"><span class="sub-text">from one image</span></div>
+          </div>
+
+          <!-- Step 2: place across scenes -->
+          <div class="col" id="c2">
+            <div class="num" id="n2">2</div>
+            <div class="node-row">
+              <div class="node"></div>
+              <div class="node-on" id="on2"></div>
+              <div class="ring" id="r2"></div>
+            </div>
+            <div class="icon" id="i2">
+              <svg viewBox="0 0 132 104">
+                <g class="i2-frame">
+                  <rect class="stroke" x="2" y="26" width="38" height="52" rx="7" />
+                  <circle class="stroke-accent" cx="21" cy="46" r="7" />
+                  <path class="stroke-accent" d="M10 72 C12 60 30 60 32 72" />
+                </g>
+                <g class="i2-frame">
+                  <rect class="stroke" x="47" y="26" width="38" height="52" rx="7" />
+                  <circle class="stroke-accent" cx="66" cy="46" r="7" />
+                  <path class="stroke-accent" d="M55 72 C57 60 75 60 77 72" />
+                </g>
+                <g class="i2-frame">
+                  <rect class="stroke" x="92" y="26" width="38" height="52" rx="7" />
+                  <circle class="stroke-accent" cx="111" cy="46" r="7" />
+                  <path class="stroke-accent" d="M100 72 C102 60 120 60 122 72" />
+                </g>
+              </svg>
+            </div>
+            <div class="label" id="l2">Place in scenes</div>
+            <div class="sub" id="s2"><span class="sub-text">stays consistent</span></div>
+          </div>
+
+          <!-- Step 3: animate into clips -->
+          <div class="col" id="c3">
+            <div class="num" id="n3">3</div>
+            <div class="node-row">
+              <div class="node"></div>
+              <div class="node-on" id="on3"></div>
+              <div class="ring" id="r3"></div>
+            </div>
+            <div class="icon" id="i3">
+              <svg viewBox="0 0 132 104">
+                <g id="i3-frame">
+                  <rect class="stroke" x="14" y="12" width="104" height="80" rx="12" />
+                  <path class="stroke" d="M14 30 H118 M14 74 H118" />
+                  <path class="stroke" d="M34 12 V30 M58 12 V30 M82 12 V30 M106 12 V30" />
+                  <path class="stroke" d="M34 74 V92 M58 74 V92 M82 74 V92 M106 74 V92" />
+                </g>
+                <path id="i3-play" class="fill-accent" d="M56 40 L80 52 L56 64 Z" />
+              </svg>
+            </div>
+            <div class="label" id="l3">Animate</div>
+            <div class="sub" id="s3"><span class="sub-text">into video clips</span></div>
+          </div>
+
+          <!-- Step 4: string it together -->
+          <div class="col" id="c4">
+            <div class="num" id="n4">4</div>
+            <div class="node-row">
+              <div class="node"></div>
+              <div class="node-on" id="on4"></div>
+              <div class="ring" id="r4"></div>
+            </div>
+            <div class="icon" id="i4">
+              <svg viewBox="0 0 132 104">
+                <path class="stroke" d="M6 86 H126" />
+                <rect id="i4-a" class="stroke" x="8" y="38" width="36" height="28" rx="6" />
+                <rect id="i4-b" class="stroke" x="48" y="38" width="36" height="28" rx="6" />
+                <rect id="i4-c" class="stroke" x="88" y="38" width="36" height="28" rx="6" />
+                <g id="i4-head">
+                  <path class="stroke-accent" d="M8 18 V94" />
+                  <path class="fill-accent" d="M1 12 H15 L8 22 Z" />
+                </g>
+              </svg>
+            </div>
+            <div class="label" id="l4">String together</div>
+            <div class="sub" id="s4">
+              <span class="logo" id="s4-logo"><img src="assets/openart.png" alt="OpenArt" /></span>
+              <span class="sub-text" id="s4-text">Story + Timeline</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const END = 17.74;
+
+      // ---- ground: glow drifts the whole time (never static) ----
+      tl.fromTo(
+        "#glow",
+        { x: 0, y: 0, scale: 1 },
+        { x: 140, y: 60, scale: 1.08, duration: END / 2, ease: "sine.inOut", yoyo: true, repeat: 1 },
+        0,
+      );
+
+      // ---- progress line starts empty; track base draws in under "Step" ----
+      tl.fromTo("#track-fill", { scaleX: 0 }, { scaleX: 0, duration: 0.01 }, 0);
+      tl.from("#track-base", { scaleX: 0, duration: 0.7, ease: "power3.out" }, 0);
+
+      // node centres as a fraction of the 1560px track
+      const STOPS = [0.125, 0.375, 0.625, 0.875];
+
+      // each step: [sweep start, number lands, next step's number time]
+      const STEPS = [
+        { sweep: 0.0, num: 0.2, until: 4.3 },
+        { sweep: 4.3, num: 4.54, until: 8.66 },
+        { sweep: 8.66, num: 8.9, until: 11.78 },
+        { sweep: 11.78, num: 11.96, until: 16.5 },
+      ];
+
+      STEPS.forEach((s, i) => {
+        const n = i + 1;
+        const prev = i > 0 ? i : null;
+
+        // orange progress line sweeps to this node
+        tl.to(
+          "#track-fill",
+          { scaleX: STOPS[i], duration: i === 0 ? 0.35 : 0.42, ease: "power2.inOut" },
+          s.sweep,
+        );
+
+        // node lights as the line arrives
+        tl.fromTo(
+          "#on" + n,
+          { opacity: 0, scale: 0.6 },
+          { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.6)" },
+          s.num,
+        );
+
+        // hero number lands in accent; previous one hands focus back to white
+        tl.fromTo(
+          "#n" + n,
+          { opacity: 0, y: 24, color: "#fb923c" },
+          { opacity: 1, y: 0, color: "#fb923c", duration: 0.5, ease: "power3.out" },
+          s.num,
+        );
+        if (prev) {
+          tl.to("#n" + prev, { color: "#ffffff", duration: 0.4, ease: "power2.out" }, s.num);
+        }
+
+        // active node ring pulses until the next step arrives
+        const cycle = 1.4;
+        const start = s.num + 0.4;
+        const reps = Math.max(0, Math.floor((s.until - start) / cycle) - 1);
+        tl.fromTo(
+          "#r" + n,
+          { opacity: 0.8, scale: 1 },
+          { opacity: 0, scale: 2.2, duration: cycle, ease: "power2.out", repeat: reps, immediateRender: false },
+          start,
+        );
+      });
+
+      // ---- Step 1: "create" -> frame, "lock" -> lock + label, "reference image" -> sub ----
+      tl.from("#i1-frame", { opacity: 0, y: 20, duration: 0.5, ease: "power3.out" }, 0.74);
+      tl.from(
+        "#i1-lock",
+        { opacity: 0, scale: 0.6, transformOrigin: "50% 100%", duration: 0.45, ease: "back.out(1.6)" },
+        1.18,
+      );
+      tl.from("#l1", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 1.18);
+      tl.from("#s1", { opacity: 0, y: 16, duration: 0.5, ease: "power2.out" }, 3.12);
+
+      // ---- Step 2: "place" -> label, "multiple scenes" -> three frames, "consistency" -> sub ----
+      tl.from("#l2", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 5.02);
+      tl.from(
+        "#i2 .i2-frame",
+        { opacity: 0, x: -40, duration: 0.5, ease: "power2.out", stagger: 0.3 },
+        5.38,
+      );
+      tl.from("#s2", { opacity: 0, y: 16, duration: 0.5, ease: "power2.out" }, 7.32);
+
+      // ---- Step 3: "animate" -> film frame + label, play pops, "video clips" -> sub ----
+      tl.from("#i3-frame", { opacity: 0, y: 20, duration: 0.5, ease: "power3.out" }, 9.4);
+      tl.from("#l3", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 9.4);
+      tl.from(
+        "#i3-play",
+        { opacity: 0, scale: 0.5, transformOrigin: "50% 50%", duration: 0.45, ease: "back.out(1.6)" },
+        9.68,
+      );
+      tl.from("#s3", { opacity: 0, y: 16, duration: 0.5, ease: "power2.out" }, 10.72);
+
+      // ---- Step 4: "string" -> clips apart + label, "together" -> they close up,
+      //              playhead travels, "open art" -> logo, "story" -> Story + Timeline ----
+      tl.from("#i4", { opacity: 0, y: 20, duration: 0.5, ease: "power3.out" }, 12.5);
+      tl.from("#l4", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 12.5);
+      tl.from("#i4-a", { x: -14, duration: 0.6, ease: "power3.out" }, 12.98);
+      tl.from("#i4-c", { x: 14, duration: 0.6, ease: "power3.out" }, 12.98);
+      tl.fromTo("#i4-head", { x: 0 }, { x: 116, duration: 3.0, ease: "none" }, 13.4);
+      tl.from(
+        "#s4-logo",
+        { opacity: 0, scale: 0.9, duration: 0.45, ease: "back.out(1.6)" },
+        15.42,
+      );
+      tl.from("#s4-text", { opacity: 0, x: -20, duration: 0.5, ease: "power2.out" }, 15.98);
+
+      // ---- finish: line completes the journey on "timeline tools", playhead loops again ----
+      tl.to("#track-fill", { scaleX: 1, duration: 0.9, ease: "power2.inOut" }, 16.5);
+      tl.fromTo("#i4-head", { x: 0 }, { x: 116, duration: 1.3, ease: "none", immediateRender: false }, 16.44);
+
+      window.__timelines["moment"] = tl;
+    </script>
+  </body>
+</html>

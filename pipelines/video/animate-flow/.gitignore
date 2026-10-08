@@ -1,0 +1,9 @@
+# Media never lives here: sources, renders, stages and cuts go to ~/kb-scratch/video/animate-flow/<slug>/.
+# Text artifacts (run-config, transcript, moments, compositions, feedback) are committed.
+videos/*/review/
+# Logo copies: restored from card-library/logos at review and render time (lib/assets.mjs).
+videos/*/moments/*/assets/
+*.mp4
+*.wav
+*.mp3
+.test-tmp/

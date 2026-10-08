@@ -1,0 +1,17 @@
+{
+  "number": "060",
+  "slug": "060-render-moments-run",
+  "title": "render the moments",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "render-moments"
+  ],
+  "consumes": [
+    "moments/<id>/index.html"
+  ],
+  "produces": [
+    "<media>/moments/<id>.mp4"
+  ],
+  "summary": "Encodes each composition; checks length and that the render is not black."
+}
