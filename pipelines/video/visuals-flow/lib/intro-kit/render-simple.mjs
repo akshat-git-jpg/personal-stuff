@@ -39,12 +39,12 @@ import { loadVideoManifest } from '../video-manifest.mjs';
 const FLOW_ROOT = path.resolve(import.meta.dirname, '..', '..');
 
 const HYPERFRAMES = CARD_RENDERER;
-const CANVAS_VF = 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=30,format=yuv420p';
+const CANVAS_VF = 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=25,format=yuv420p';
 
 // The reference videos' only transition (KIT.md / plan 220): a hard cut
 // punctuated by a couple of frames of white, never a crossfade or a blur.
 const FLASH_FRAMES = 2;
-const FPS = 30;
+const FPS = 25; // matches DEFAULT_CANVAS, so the 25 fps avatar is never resampled
 
 function run(cmd, args) {
   const r = spawnSync(cmd, args, { encoding: 'utf8' });

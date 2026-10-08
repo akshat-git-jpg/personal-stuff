@@ -18,6 +18,7 @@ import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
 import { sideModeCueIds } from './side-mode.mjs';
 import { CARD_RENDERER } from './renderer-constants.mjs';
+import { DEFAULT_CANVAS } from './kit/edit-plan.mjs';
 
 const HYPERFRAMES = CARD_RENDERER;
 const DURATION_TOLERANCE = 0.15;
@@ -131,14 +132,14 @@ export function applySideMode(resolved, workdir) {
   for (const cue of resolved) cue.sideMode = sideIds.has(cue.id);
 }
 
-export function planRender(cue, quality = 'standard') {
+export function planRender(cue, quality = 'standard', fps = DEFAULT_CANVAS.fps) {
   const format = cue.placement === 'overlay' ? 'mov' : 'mp4';
   const cardBase = path.basename(cue.card);
   const outFile = `${mmssDigits(cue.start)}-${cue.id}-${cardBase}.${format}`;
   const args = [
     'render', cue.card,
     '--variables-file', 'vars.json',
-    '--fps', '30',
+    '--fps', String(fps),
     '--format', format,
     '--quality', quality,
     '--quiet',

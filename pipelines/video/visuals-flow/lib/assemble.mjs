@@ -325,7 +325,7 @@ export async function loadAssemblyInputs(opts) {
   }
   
   const avatarTemplate = fs.existsSync(avatarJobsPath) ? JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8')).template : null;
-  // Output canvas: run-config.json `canvas` overrides the core default (1920x1080 @ 30).
+  // Output canvas: run-config.json `canvas` overrides the core default (1920x1080 @ 25).
   const canvas = loadRunConfig(workdir).canvas;
   return { workdir, video, resolved, avatarJobs, panelJobs, sideJobs, cornerJobs, words, total, screen, catalog, filmSpan, coupon, avatarTemplate, canvas };
 }
@@ -365,7 +365,7 @@ async function main() {
   const firstFull = inputs.avatarJobs.map((j) => j.end).sort((a, b) => a - b)[0];
   const bubbleOpts = { corner: opts.bubbleCorner ?? (inputs.coupon ? 'bottom-right' : 'top-right'), template: inputs.avatarTemplate,
     from: inputs.coupon && firstFull !== undefined ? firstFull : 0 };
-  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble, captionScope, bubbleOpts, transitionStyle: inputs.coupon ? 'leak' : null, captionClearCards: inputs.coupon ? ['like-subscribe/like-subscribe'] : [], captionMask: inputs.coupon ? COUPON_CODE_RE : null, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj, catalog: inputs.catalog });
+  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? (opts.draft ? detectEncoder() : 'x264'), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble, captionScope, bubbleOpts, transitionStyle: inputs.coupon ? 'leak' : null, captionClearCards: inputs.coupon ? ['like-subscribe/like-subscribe'] : [], captionMask: inputs.coupon ? COUPON_CODE_RE : null, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj, catalog: inputs.catalog });
 
   const usedPlaceholders = inputs.avatarJobs.some((j) => j.placeholder);
   const entry = registerVersion(kbWorkdir, out, { draft: opts.draft, placeholder: usedPlaceholders });

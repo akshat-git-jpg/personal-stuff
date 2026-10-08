@@ -264,7 +264,7 @@ test('planTransitions: edge skip at t=0 and t=total', () => {
 });
 
 test('encoderArgs', () => {
-  assert.ok(encoderArgs({ encoder: 'x264', draft: false }).includes('veryfast'));
+  assert.ok(encoderArgs({ encoder: 'x264', draft: false }).includes('slow'));
   assert.ok(encoderArgs({ encoder: 'x264', draft: true }).includes('ultrafast'));
   assert.ok(encoderArgs({ encoder: 'videotoolbox', draft: false }).includes('h264_videotoolbox'));
   assert.ok(encoderArgs({ encoder: 'videotoolbox', draft: false }).includes('12M'));
@@ -473,7 +473,7 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   for (const tFile of transFiles) {
     const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(tmpDir, tFile)], { encoding: 'utf8' });
     const d = parseFloat(p.stdout);
-    assert.ok(Math.abs(d - 0.1) <= 0.04, `transition duration ${d} not near 0.1`);
+    assert.ok(Math.abs(d - 0.1) <= 1 / CANVAS.fps + 1e-6, `transition duration ${d} not within a frame of 0.1`);
   }
   
   // check avatar sub-segments
@@ -955,7 +955,7 @@ test('Integration: a timeline of OFF-GRID spans still lands on an exact frame co
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono',
     '-t', String(total), '-q:a', '9', path.join(testTmp, 'vo.mp3')]);
 
-  // Six boundaries, none of them a whole number of 30fps frames.
+  // Six boundaries, none of them a whole number of canvas frames.
   const avatarJobs = [
     { purpose: 'avatar-full', id: 's01', start: 1.07, end: 4.43, file: clipOdd },
     { purpose: 'avatar-full', id: 's02', start: 6.91, end: 9.29, file: clipOdd },
@@ -974,8 +974,8 @@ test('Integration: a timeline of OFF-GRID spans still lands on an exact frame co
   const packets = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0',
     '-count_packets', '-show_entries', 'stream=nb_read_packets', '-of', 'csv=p=0', outOdd],
     { encoding: 'utf8' }).stdout.trim();
-  assert.equal(Number(packets), Math.round(total * 30),
-    `off-grid timeline lost video frames: ${packets} encoded vs ${Math.round(total * 30)} on the master clock`);
+  assert.equal(Number(packets), Math.round(total * CANVAS.fps),
+    `off-grid timeline lost video frames: ${packets} encoded vs ${Math.round(total * CANVAS.fps)} on the master clock`);
 });
 
 test('registerVersion records the placeholder flag', () => {

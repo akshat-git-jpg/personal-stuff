@@ -241,7 +241,7 @@ export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR, total: 
   return {
     errors: [], notes, code,
     cues: { video, approved: true, approvedNote: 'coupon template: rule-planned, no review by owner rule (2026-09-30)', cues: ordered, spans: [] },
-    shots: { video, approved: true, engineMode: 'test', oneRender: true, approvedNote: 'coupon template: Avatar III only (owner rule 2026-09-30)',
+    shots: { video, approved: true, engineMode: 'test', approvedNote: 'coupon template: Avatar III only (owner rule 2026-09-30)',
       intro_host_waived: 'coupon template: the before/after price opens the video and the host enters at the greeting (owner rule 2026-09-30)',
       spans },
     avatarPlan: { video, character: avatar, model: 'heygen3', approved: true, approvedNote: `coupon template: ${avatar} on Avatar III (owner rule 2026-09-30)` },

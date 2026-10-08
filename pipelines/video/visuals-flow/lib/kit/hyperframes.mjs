@@ -3,6 +3,7 @@
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { FILM_RENDERER } from '../renderer-constants.mjs';
+import { DEFAULT_CANVAS } from './edit-plan.mjs';
 
 // One pin for review and render, so a green review never ships on another renderer.
 export const HYPERFRAMES = FILM_RENDERER;
@@ -20,7 +21,7 @@ export const lintArgs = (dir) => ['-y', HYPERFRAMES, 'lint', dir];
 export const checkArgs = (dir) => ['-y', HYPERFRAMES, 'check', dir, '--at-transitions', '--json'];
 export const snapshotArgs = (dir, times, outDir) => ['-y', HYPERFRAMES, 'snapshot', dir, '--at', times.join(','), '--no-end', '--describe', 'false', '-o', outDir];
 // -o must be a file name with an extension, or the mux step cannot pick a format.
-export const renderArgs = (dir, outFile, fps = 30) => ['-y', HYPERFRAMES, 'render', dir, '--fps', String(fps), '--format', 'mp4', '--quality', 'high', '-o', outFile];
+export const renderArgs = (dir, outFile, fps = DEFAULT_CANVAS.fps) => ['-y', HYPERFRAMES, 'render', dir, '--fps', String(fps), '--format', 'mp4', '--quality', 'high', '-o', outFile];
 
 // The CLI prints progress around its JSON body, so scan braces to the matching close, skipping strings.
 export function extractJsonObject(raw) {
@@ -71,7 +72,7 @@ export function snapshotComposition(dir, times, outDir) {
   if (r.status !== 0) throw new Error(`hyperframes snapshot failed for ${dir} (exit ${r.status})`);
 }
 
-export function renderComposition(dir, outFile, { fps = 30 } = {}) {
+export function renderComposition(dir, outFile, { fps = DEFAULT_CANVAS.fps } = {}) {
   const r = npx(renderArgs(dir, outFile, fps), { stdio: 'inherit' });
   if (r.status !== 0) throw new Error(`hyperframes render failed for ${dir} (exit ${r.status})`);
 }

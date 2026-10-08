@@ -120,10 +120,10 @@ test('every problem is reported at once', () => {
   assert.equal(errs.length, 3);
 });
 
-test('canvas defaults to 1920x1080 at 30 and validates overrides', () => {
-  assert.deepEqual(resolveCanvas(undefined), { w: 1920, h: 1080, fps: 30 });
+test('canvas defaults to 1920x1080 at 25 and validates overrides', () => {
+  assert.deepEqual(resolveCanvas(undefined), { w: 1920, h: 1080, fps: 25 });
   assert.equal(resolveCanvas(undefined), DEFAULT_CANVAS);
-  assert.deepEqual(resolveCanvas({ w: 1080, h: 1920 }), { w: 1080, h: 1920, fps: 30 });
+  assert.deepEqual(resolveCanvas({ w: 1080, h: 1920 }), { w: 1080, h: 1920, fps: 25 });
   assert.throws(() => resolveCanvas({ w: 1081 }), /w must be a positive even integer/);
   assert.match(editPlanErrors(plan([], { canvas: { fps: 0 } })).join('\n'), /fps must be a positive integer/);
 });
