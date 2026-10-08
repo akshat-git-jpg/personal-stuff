@@ -77,7 +77,7 @@ export function UploadPanel({ token, unfinished, onChange }: Props) {
   return (
     <section className="panel upload" aria-label="Upload a new version">
       <h2>Upload a new version</h2>
-      <details className="export-help">
+      <details className="export-help" open>
         <summary>Export settings (read before you export)</summary>
         <ul>
           <li>Format: <b>MP4 (H.264)</b>, audio AAC</li>
