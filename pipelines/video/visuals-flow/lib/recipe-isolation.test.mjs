@@ -97,3 +97,13 @@ for (const scope of MANIFEST.scopes) {
     assert.deepEqual(violations, [], `recipe isolation broken:\n${violations.join('\n')}`);
   });
 }
+
+// Whole-video skills stay manual-only, so none can grab a request before the router.
+test('manual-only video skills keep their flag in frontmatter', () => {
+  const { flag, skills } = MANIFEST.manualOnlySkills;
+  const missing = skills.filter((dir) => {
+    const front = fs.readFileSync(path.join(REPO, dir, 'SKILL.md'), 'utf8').split(/^---$/m)[1] ?? '';
+    return !front.split('\n').some((l) => l.trim() === flag);
+  });
+  assert.deepEqual(missing, [], `skills that auto-load again (re-add "${flag}"): ${missing.join(', ')}`);
+});

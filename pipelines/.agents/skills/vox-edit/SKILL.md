@@ -1,5 +1,6 @@
 ---
 name: vox-edit
+disable-model-invocation: true
 description: >
   Build Vox-style explainer sections as ONE CONTINUOUS CAMERA FLIGHT through a single generated
   world — Higgsfield stills → chained Seedance clips → Remotion caption/data layer. Encodes the

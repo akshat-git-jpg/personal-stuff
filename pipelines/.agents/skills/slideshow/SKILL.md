@@ -1,5 +1,6 @@
 ---
 name: slideshow
+disable-model-invocation: true
 description: >
   Author a HyperFrames slideshow composition — a presentation, pitch deck, or
   interactive deck with discrete slides, fragment reveals, branching sequences,

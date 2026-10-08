@@ -1,5 +1,6 @@
 ---
 name: general-video
+disable-model-invocation: true
 description: >
   The fallback workflow for authoring custom HyperFrames video compositions at
   any length or format — longer or multi-scene pieces, brand / sizzle reels,

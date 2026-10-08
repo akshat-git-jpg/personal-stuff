@@ -1,5 +1,6 @@
 ---
 name: loop-studio
+disable-model-invocation: true
 description: >
   Luuk's in-house AI edit studio — the ONE front door for making any video end to end:
   understand the content → plan → assemble/cut → grade → caption → score → brand → review.
