@@ -5,6 +5,7 @@ export function printHelp() {
   login-from-browser [--browser arc|chrome]   copy the logged-in browser session into the auth file (macOS)
   auth-check
   limits                      monthly seconds used / remaining
+  credits                     plan vs add-on credits left (billing page numbers)
   usage [--save] [--diff]     credits + seconds + priority snapshot (prove unlimited = no delta)
   list-avatars [--limit 20]
   list-looks --group <group_id>
@@ -32,6 +33,7 @@ export function printHelp() {
   list-videos [--limit 30] [--type heygen_video] [--json]
   status <video_id>           one-shot status + ETA/progress (no polling loop)
   delete-avatar <group_id> [<group_id> ...]   delete an avatar (whole group, all looks)
+  move-video <video_id> [...] --folder <folder_id>   move videos into a HeyGen folder
   delete-video <video_id> [<video_id> ...] [--type heygen_video]
   raw <path> [--json '<body>']\n
 --avatar / --template accept a SLUG from the avatar registry (pipelines/video/heygen/registry.json) (e.g. "girl-1") or a raw id.

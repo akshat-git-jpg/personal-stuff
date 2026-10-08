@@ -32,7 +32,7 @@ test("1. Imports: modules can be imported without throwing", async () => {
   assert.ok(true, "All modules imported successfully");
 });
 
-test("2. Registry completeness: 26 named keys, valid paths", async () => {
+test("2. Registry completeness: 29 named keys, valid paths", async () => {
   const { endpoints } = await import(resolve(PKG_ROOT, "src/client/endpoints.mjs"));
   
   const expectedKeys = [
@@ -45,7 +45,7 @@ test("2. Registry completeness: 26 named keys, valid paths", async () => {
   ];
 
   const actualKeys = Object.keys(endpoints);
-  assert.strictEqual(actualKeys.length, 26, "Expected 26 endpoints, got " + actualKeys.length);
+  assert.strictEqual(actualKeys.length, 29, "Expected 29 endpoints, got " + actualKeys.length);
   
   for (const key of expectedKeys) {
     assert.ok(actualKeys.includes(key), "Missing endpoint: " + key);
@@ -61,7 +61,7 @@ test("3. Command parity: dispatch table keys", () => {
     "auth-check", "list-avatars", "list-looks", "limits", "usage", "generate",
     "generate-from-audio", "generate-from-template", "template-engine", "batch", "create-photo-avatar",
     "photo-to-video", "studio-render", "studio-render-status", "list-voices",
-    "list-videos", "status", "delete-video", "delete-avatar", "raw", "download"
+    "list-videos", "status", "delete-video", "delete-avatar", "move-video", "credits", "raw", "download"
   ]);
   
   const dispatchCode = fs.readFileSync(resolve(PKG_ROOT, "src/cli/dispatch.mjs"), "utf8");

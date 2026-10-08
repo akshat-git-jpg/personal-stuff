@@ -20,6 +20,11 @@ else in this CLI.
 | `POST /v1/pacific/collaboration/video.download` + `GET .../video.download/status` | Transcode-and-download chain. | ✅ `download` |
 | `DELETE /v1/project/item.trash` | Trash a video. | ✅ `delete-video` |
 | `DELETE /v1/avatar_group.delete?id=<group_id>` | Delete an avatar group (all its looks). No body; `{"code":100}` on success. HAR-captured 2026-10-09. | ✅ `delete-avatar` |
+| `POST /v1/project/items.move` | Move videos into a folder. Body `{project_id, items:[{item_type:"heygen_video", item_ids:[...]}]}`; a folder is a "project". | ✅ `move-video` |
+| `GET /v1/project/<folder_id>` | Folder name, path and owner. `/breadcrumbs` gives the path only. | ✅ (used by `move-video`) |
+| `GET /v1/payment/subscription` | Billing page numbers: `entitlements[name=plan_credit]` = monthly plan credits (total/remain), `addons[]` = add-on packs (e.g. Generative Credit Pack 300/month) with total/remain. The only call that splits plan vs add-on. | ✅ `credits` |
+| `PUT /v1/avatar_group/voices.modify` / `voices.set_primary` | Attach a HeyGen voice to an avatar group and make it primary. Body `{id, voice_to_add}` / `{id, voice_id, update_all:false}`. | ❌ (see CLAUDE.md "Voice change") |
+| `POST /v1/speech_to_speech.generate` | Re-voice an uploaded audio into a HeyGen voice, keeping words and timing. Body `{voice_id, audio_url, settings}`; returns `audio_url` + word timings. | ❌ (owner keeps the original voice, decisions.md 2026-10-09) |
 
 **Fixed (2026-10-09):** `generate-from-audio` pillarboxed every non-portrait photo avatar because both payloads carry the HAR avatar's 1792x2400 size and a 0.703 scale. It now reads the look's `image_width`/`image_height` (`avatar_group/look.list` → `avatar_looks[].look`) and sends scale = max(W/w, H/h), which is what the web editor sends (1.40625 for a 1376x768 photo). Verified on "helen office clean": full frame, no bars.
 
