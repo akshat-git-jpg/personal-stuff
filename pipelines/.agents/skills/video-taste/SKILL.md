@@ -1,5 +1,6 @@
 ---
 name: video-taste
+disable-model-invocation: true
 description: >
   Luuk's compounding editing taste + quality bar for ANY video (shorts, longform,
   vlogs, product demos, talking-heads). LOAD THIS before cutting, assembling, captioning,

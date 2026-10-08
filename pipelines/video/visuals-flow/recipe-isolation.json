@@ -88,6 +88,30 @@
       "allow": []
     }
   ],
+  "manualOnlySkills": {
+    "$comment": "Whole-video and taste skills that must never auto-load (owner 2026-10-08): they would cloud a recipe. Run them by name only. A vendor update that drops the flag fails this gate.",
+    "flag": "disable-model-invocation: true",
+    "skills": [
+      "pipelines/.agents/skills/loop-studio",
+      "pipelines/.agents/skills/general-video",
+      "pipelines/.agents/skills/faceless-explainer",
+      "pipelines/.agents/skills/product-launch-video",
+      "pipelines/.agents/skills/music-to-video",
+      "pipelines/.agents/skills/pr-to-video",
+      "pipelines/.agents/skills/website-to-video",
+      "pipelines/.agents/skills/website-to-hyperframes",
+      "pipelines/.agents/skills/slideshow",
+      "pipelines/.agents/skills/embedded-captions",
+      "pipelines/.agents/skills/broll-ingest",
+      "pipelines/.agents/skills/video-taste",
+      "pipelines/.agents/skills/video-feedback",
+      "pipelines/.agents/skills/motion-graphics",
+      "pipelines/.agents/skills/talking-head-recut",
+      "pipelines/.agents/skills/vox-edit",
+      "pipelines/.agents/skills/hyperframes-creative",
+      "pipelines/.claude/skills/hyperframes-helper"
+    ]
+  },
   "newScopeExample": {
     "id": "animate",
     "why": "Free-design animate recipe. Copy this object into scopes once the folder exists; a surface path that does not exist fails the test.",

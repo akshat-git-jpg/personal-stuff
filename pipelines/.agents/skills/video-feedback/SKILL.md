@@ -1,5 +1,6 @@
 ---
 name: video-feedback
+disable-model-invocation: true
 description: >
   Generate a frame.io-style HTML review tool for ANY video so Luuk can scrub, drop
   timestamped (and point-pinned) comments, and export them "for Claude" — then parse

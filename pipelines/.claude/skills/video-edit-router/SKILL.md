@@ -37,6 +37,6 @@ recipe owns the video**, then loads that recipe's skill and nothing else.
   Do not fall back to the template recipe.
 - Feedback for one recipe is never folded into another recipe's rules. If the video's
   recipe has no feedback skill yet, say so and stop.
-- Do not read the third-party taste skills (`video-taste`, `video-feedback`,
-  `motion-graphics`, `talking-head-recut`, `vox-edit`, under `pipelines/.agents/skills/`)
-  unless the chosen recipe's own skill points to one.
+- Whole-video and taste skills (`loop-studio`, `general-video`, `video-taste` and the rest in
+  `recipe-isolation.json` `manualOnlySkills`) never auto-load. Use one only when the owner
+  names it or the chosen recipe's own skill points to it.

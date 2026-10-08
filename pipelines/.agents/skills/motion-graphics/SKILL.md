@@ -1,5 +1,6 @@
 ---
 name: motion-graphics
+disable-model-invocation: true
 description: >
   Use when the user wants a short, design-led motion graphic where motion is the
   message: kinetic typography, stat or number count-up, chart/data-viz hit,

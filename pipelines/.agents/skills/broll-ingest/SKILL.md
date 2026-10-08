@@ -1,5 +1,6 @@
 ---
 name: broll-ingest
+disable-model-invocation: true
 description: Ingest a raw video clip into the b-roll library — pull dense timestamped frame maps, FIND the editorial moments, frame-accurately cut each select, color-grade it with the BuildLoop cinematic LUT, and catalog it. TRIGGER when the user hands a raw clip (or a folder of raws / an SD card) and wants the good moments found, cut, graded, and added to the library — phrases like 'ingest this clip', 'find the interesting parts of this video', 'pull the good moments', 'cut b-roll from this', 'grade and catalog this footage', 'add this to my b-roll library', 'which parts of this are usable'. This is the b-roll SELECTION + GRADE + CATALOG pipeline. It feeds the library that video-edit pulls from. NOT for cutting a talking-head script (that's video-cut) or editing a finished video (that's video-edit).
 ---
 
