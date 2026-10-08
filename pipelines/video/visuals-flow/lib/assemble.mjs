@@ -87,7 +87,8 @@ export function templateEditPlan({ workdir, resolved, avatarJobs = [], panelJobs
   const renderDir = path.join(workdir, 'renders');
   const clips = [];
   if (loadVideoManifest(workdir).base === 'screen') clips.push({ kind: 'footage', id: 'screen', src: screen, offset: screenOffset });
-  if (filmSpan) clips.push({ kind: 'composition', id: INTRO_FILM_ID, start: 0, end: filmSpan.end, src: path.join(workdir, 'intro-film', 'out', 'intro.mp4') });
+  // The intro film owns the opening: cards and avatars cued inside it are dropped, not refused.
+  if (filmSpan) clips.push({ kind: 'composition', id: INTRO_FILM_ID, start: 0, end: filmSpan.end, shadows: true, src: path.join(workdir, 'intro-film', 'out', 'intro.mp4') });
   for (const c of resolved) {
     if (c.placement !== 'fullframe' && c.placement !== 'overlay') throw new Error(`cue ${c.id}: unknown placement "${c.placement}"`);
     clips.push({ kind: 'card', id: c.id, start: c.start, duration: c.duration, src: path.join(renderDir, planRender(c).outFile),

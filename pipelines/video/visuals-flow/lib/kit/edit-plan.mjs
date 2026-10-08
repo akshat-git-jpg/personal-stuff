@@ -12,6 +12,7 @@
  * @typedef {object} EditPlan
  * @property {number} total          master clock length in seconds (the voiceover)
  * @property {Canvas} [canvas]       default DEFAULT_CANVAS (1920x1080 @ 30)
+ * @property {{src: string}} [audio] the soundtrack for the whole cut; default master.wav, else vo.mp3, in the workdir
  * @property {Clip[]} clips          order matters: overlays composite in this order
  */
 
@@ -20,7 +21,7 @@
  * @property {string} id             unique per kind; names the segment file
  * @property {'card'|'composition'|'footage'|'avatar'|'image'|'generated'} kind
  *   card         pre-rendered card clip (base or overlay layer)
- *   composition  pre-rendered HTML/hyperframes film; shadows base clips that start inside it
+ *   composition  pre-rendered HTML/hyperframes film, base layer, anywhere on the timeline
  *   footage      the screen recording bed: fills every gap between base clips (at most one, no start/end)
  *   avatar       talking-head clip, placed by `mode`
  *   image, generated  reserved: rejected until implemented
@@ -33,6 +34,7 @@
  * @property {boolean} [clearsCaptions]   captions step aside while this clip plays
  * @property {'full'|'panel'|'side'|'bubble'} [mode]  avatar only, default 'full'
  * @property {string} [placeholder]  full avatar only: still shown while `src` is not rendered yet
+ * @property {boolean} [shadows]     composition only: base clips that START inside it are dropped instead of refused
  * @property {number} [offset]       footage only: seconds into `src` at master time 0
  * @property {object} [data]         opaque recipe payload, handed to effect modules untouched
  */
@@ -58,6 +60,11 @@ export function clipEnd(c) {
   return c.end !== undefined ? c.end : c.start + c.duration;
 }
 
+// A base clip starting inside [start, end) of a shadowing composition is dropped. Shared with the segment planner.
+export function isShadowedBy(clipStart, start, end) {
+  return clipStart >= start - EPS && clipStart < end - EPS;
+}
+
 const isBase = (c) => c.kind === 'composition'
   || (c.kind === 'card' && (c.layer ?? 'base') === 'base')
   || (c.kind === 'avatar' && (c.mode ?? 'full') === 'full');
@@ -75,6 +82,7 @@ export function editPlanErrors(plan) {
   if (!plan || typeof plan !== 'object') return ['edit plan must be an object'];
   if (!(Number.isFinite(plan.total) && plan.total > 0)) errs.push(`total must be a positive number of seconds (got ${plan.total})`);
   try { resolveCanvas(plan.canvas); } catch (e) { errs.push(e.message.replace(/^edit plan /, '')); }
+  if (plan.audio !== undefined && !(plan.audio && typeof plan.audio.src === 'string' && plan.audio.src)) errs.push('audio.src must be a non-empty path');
   if (!Array.isArray(plan.clips)) return [...errs, 'clips must be an array'];
 
   const seen = new Set();
@@ -92,6 +100,7 @@ export function editPlanErrors(plan) {
     if (c.kind === 'avatar' && c.placeholder && (c.mode ?? 'full') !== 'full') errs.push(`${at}: placeholder is only supported on a full avatar`);
     if (c.kind === 'avatar' && !AVATAR_MODES.includes(c.mode ?? 'full')) errs.push(`${at}: unknown avatar mode "${c.mode}" (known: ${AVATAR_MODES.join(', ')})`);
     if (c.kind === 'card' && !['base', 'overlay'].includes(c.layer ?? 'base')) errs.push(`${at}: layer must be base or overlay (got "${c.layer}")`);
+    if (c.shadows !== undefined && c.kind !== 'composition') errs.push(`${at}: shadows is for composition clips only`);
 
     if (c.kind === 'footage') {
       if (c.start !== undefined || c.end !== undefined || c.duration !== undefined) errs.push(`${at}: footage is the bed and takes no start/end/duration`);
@@ -103,14 +112,12 @@ export function editPlanErrors(plan) {
     else if (!(clipEnd(c) > c.start)) errs.push(`${at}: ends at ${clipEnd(c)}, not after its start ${c.start}`);
   }
   if (plan.clips.filter((c) => c?.kind === 'footage').length > 1) errs.push('at most one footage clip (the bed)');
-  const comps = plan.clips.filter((c) => c?.kind === 'composition');
-  if (comps.length > 1) errs.push('only one composition clip is supported for now');
-  for (const c of comps) if (c.start !== 0) errs.push(`clip ${c.id}: a composition must start at 0 for now (got ${c.start})`);
   if (errs.length) return errs;
 
-  // Base clips may not overlap, except that a composition shadows base clips starting inside it.
-  const comp = comps[0];
-  const base = plan.clips.filter((c) => isBase(c) && !(comp && c !== comp && c.start < clipEnd(comp) - EPS))
+  // Base clips may not overlap, except that a shadowing composition drops base clips starting inside it.
+  const shadowing = plan.clips.filter((c) => c.kind === 'composition' && c.shadows);
+  const shadowed = (c) => c.kind !== 'composition' && shadowing.some((s) => isShadowedBy(c.start, s.start, clipEnd(s)));
+  const base = plan.clips.filter((c) => isBase(c) && !shadowed(c))
     .map((c) => ({ id: c.id, start: c.start, end: baseEnd(c, plan.total) }))
     .sort((a, b) => a.start - b.start);
   for (let i = 1; i < base.length; i++) {
@@ -129,9 +136,8 @@ export function validateEditPlan(plan) {
 
 // The plan as the per-role tracks the assembly engine runs on.
 export function editPlanToTracks(plan) {
-  const t = { resolved: [], avatarJobs: [], panelJobs: [], sideJobs: [], cornerJobs: [], filmSpan: null, filmSrc: null,
-    cardSrc: new Map(), screen: undefined, screenOffset: 0, base: 'none', total: plan.total };
-  const span = (c) => (c.end !== undefined ? { start: c.start, end: c.end } : { start: c.start, duration: c.duration });
+  const t = { resolved: [], avatarJobs: [], panelJobs: [], sideJobs: [], cornerJobs: [], films: [],
+    cardSrc: new Map(), screen: undefined, screenOffset: 0, base: 'none', total: plan.total, audio: plan.audio?.src ?? null };
   for (const c of plan.clips) {
     if (c.kind === 'card') {
       const duration = c.duration !== undefined ? c.duration : c.end - c.start;
@@ -149,8 +155,7 @@ export function editPlanToTracks(plan) {
         ({ panel: t.panelJobs, side: t.sideJobs, bubble: t.cornerJobs })[mode].push(job);
       }
     } else if (c.kind === 'composition') {
-      t.filmSpan = { id: c.id, ...span(c), end: clipEnd(c) };
-      t.filmSrc = c.src;
+      t.films.push({ id: c.id, start: c.start, end: clipEnd(c), src: c.src, shadows: !!c.shadows });
     } else if (c.kind === 'footage') {
       t.screen = c.src;
       t.screenOffset = c.offset ?? 0;
