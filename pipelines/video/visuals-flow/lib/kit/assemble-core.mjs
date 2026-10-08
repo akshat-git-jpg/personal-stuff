@@ -5,7 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { planCaptions, formatAssText } from '../captions.mjs';
-import { DEFAULT_CANVAS, resolveCanvas, validateEditPlan, editPlanToTracks } from './edit-plan.mjs';
+import { DEFAULT_CANVAS, resolveCanvas, validateEditPlan, editPlanToTracks, isShadowedBy } from './edit-plan.mjs';
 
 function formatAssTime(sec) {
   const h = Math.floor(sec / 3600);
@@ -140,20 +140,23 @@ export function planSideGeometry({ canvas, constants, srcAspect = 16 / 9 }) {
 // Legacy avatar jobs say `kind`, newer ones `purpose`.
 const jobPurpose = (j) => j.purpose ?? j.kind;
 
-// filmSpan carries its own id: the composition clip's id.
-export function planSegments({ resolved, avatarJobs, total, filmSpan }) {
+// films: composition clips ({id, start, end, shadows}). filmSpan is the older single opening film:
+// it starts at 0, carries its own id, and shadows what starts inside it.
+export function planSegments({ resolved, avatarJobs, total, filmSpan, films = [] }) {
+  const all = [...(filmSpan ? [{ id: filmSpan.id, start: 0, end: filmSpan.end, shadows: true }] : []), ...films];
+  const shadowed = (t) => all.some((f) => f.shadows && isShadowedBy(t, f.start, f.end));
   const repl = [];
-  if (filmSpan) {
-    repl.push({ kind: 'film', id: filmSpan.id, start: 0, end: filmSpan.end });
+  for (const f of all) {
+    repl.push({ kind: 'film', id: f.id, start: f.start, end: f.end });
   }
   for (const c of resolved.filter((c) => c.placement === 'fullframe')) {
-    if (filmSpan && c.start < filmSpan.end - EPS) continue;
+    if (shadowed(c.start)) continue;
     repl.push({ kind: 'graphic', id: c.id, start: c.start,
       end: Math.min(+(c.start + c.duration).toFixed(3), total) });
   }
   // Base selection must stay full-only — a panel must not replace the base.
   for (const j of avatarJobs.filter((j) => jobPurpose(j) === 'avatar-full')) {
-    if (filmSpan && j.start < filmSpan.end - EPS) continue;
+    if (shadowed(j.start)) continue;
     repl.push({ kind: 'avatar', id: j.id, start: j.start,
       end: Math.min(j.end, total) });
   }
@@ -346,6 +349,16 @@ export function encoderArgs({ encoder, draft }) {
     : ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18'];
 }
 
+// drawtext needs a real font file; the first one this machine has, else a fontconfig name.
+// A Windows drive colon is an option separator inside a filter, so that path is quoted and escaped.
+export const DRAWTEXT_FONTS = ['/System/Library/Fonts/Helvetica.ttc', 'C:/Windows/Fonts/arial.ttf',
+  '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', '/usr/share/fonts/dejavu/DejaVuSans.ttf'];
+export function drawtextFont({ candidates = DRAWTEXT_FONTS, exists = fs.existsSync } = {}) {
+  const f = candidates.find((p) => exists(p));
+  if (!f) return 'font=Sans';
+  return /^[A-Za-z]:/.test(f) ? `fontfile='${f.replace(/^([A-Za-z]):/, '$1\\:')}'` : `fontfile=${f}`;
+}
+
 export function detectEncoder() {
   const res = spawnSync('ffmpeg', ['-hide_banner', '-encoders'], { encoding: 'utf8' });
   return (res.stdout || '').includes('h264_videotoolbox') ? 'videotoolbox' : 'x264';
@@ -422,12 +435,12 @@ export async function assembleEditPlan(plan, opts) {
   return assembleTracks({ ...opts, ...tracks, canvas: resolveCanvas(plan.canvas) });
 }
 
-async function assembleTracks({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], sideJobs = [], cornerJobs = [], total, screen, screenOffset = 0, base, filmSpan, filmSrc, cardSrc, canvas, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'off', captionScope = 'screen', captionMask = null, words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, effectModules = [], effectContext = {}, avatarLayout }) {
-  let segments = planSegments({ resolved, avatarJobs, total, filmSpan });
+async function assembleTracks({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], sideJobs = [], cornerJobs = [], total, screen, screenOffset = 0, base, films = [], audio = null, holdTail = true, cardSrc, canvas, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'off', captionScope = 'screen', captionMask = null, words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, effectModules = [], effectContext = {}, avatarLayout }) {
+  let segments = planSegments({ resolved, avatarJobs, total, films });
   segments = absorbSlivers(segments);
   segments = fillGapsWithFreeze(segments, { base });
-  // Always, not only for base:'none' — see freezeTrailingGap.
-  segments = freezeTrailingGap(segments);
+  // Not only for base:'none' — see freezeTrailingGap. holdTail:false keeps the bed playing after the last clip.
+  if (holdTail) segments = freezeTrailingGap(segments);
 
   const cardFile = (cue) => cardSrc.get(cue.id);
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
@@ -639,6 +652,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       else {
         const job = avatarJobs.find(j => j.id === seg.from);
         if (job) src = job.placeholder ? job.placeholderFile : job.file;
+        else src = films.find(f => f.id === seg.from)?.src ?? '';
       }
       const fromIdx = segments.findIndex(s => s.id === seg.from);
       const isHead = fromIdx > i;
@@ -687,7 +701,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       const cue = resolved.find(c => c.id === seg.id);
       src = cardFile(cue);
     } else if (seg.kind === 'film') {
-      src = filmSrc;
+      src = films.find(f => f.id === seg.id).src;
       const contentStartTrim = Math.max(0, startTrim - pStart);
       seekArgs = ['-ss', String(contentStartTrim)];
     }
@@ -715,7 +729,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     if (segAvatarJob?.placeholder) {
       punchVF += ",eq=brightness=-0.05" +
         ",drawbox=x=0:y=ih-70:w=iw:h=70:color=black@0.55:t=fill" +
-        ",drawtext=fontfile=/System/Library/Fonts/Helvetica.ttc:text='AVATAR PLACEHOLDER - clip rendering on HeyGen':fontcolor=white@0.9:fontsize=30:x=28:y=h-48";
+        `,drawtext=${drawtextFont()}:text='AVATAR PLACEHOLDER - clip rendering on HeyGen':fontcolor=white@0.9:fontsize=30:x=28:y=h-48`;
     }
     const contribCtx = { ...ctx, dur, startTrim, endTrim, capDir, capChunks };
     let finalVFSuffix = '';
@@ -972,10 +986,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return { clips: timelineClips, overlays, total, w, h };
   }
 
+  // The plan's audio when it names one; else the workdir's master.wav, else vo.mp3.
   const masterPath = path.join(workdir, 'master.wav');
-  const hasMaster = fs.existsSync(masterPath);
-  const voPath = hasMaster ? masterPath : path.join(workdir, 'vo.mp3');
-  console.log(`using ${hasMaster ? 'master.wav' : 'vo.mp3'} for audio`);
+  const hasMaster = !audio && fs.existsSync(masterPath);
+  const voPath = audio ?? (hasMaster ? masterPath : path.join(workdir, 'vo.mp3'));
+  const audioSource = audio ? path.basename(audio) : (hasMaster ? 'master.wav' : 'vo.mp3');
+  if (!fs.existsSync(voPath)) {
+    console.error(`missing audio: ${voPath}`);
+    process.exit(1);
+  }
+  console.log(`using ${audioSource} for audio`);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(path.join(tmpDir, 'concat.txt'), concatLines.join('\n') + '\n');
   
@@ -1037,7 +1057,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return { at: t.at, direction: t.direction, fromIdx, toIdx };
   });
 
-  const md = assemblyMd(video, segments, overlays, total, out, transitionsObj, captions, hasMaster ? 'master.wav' : 'vo.mp3');
+  const md = assemblyMd(video, segments, overlays, total, out, transitionsObj, captions, audioSource);
   fs.writeFileSync(path.join(workdir, 'assembly.md'), md);
 
   if (!keepTemp) {
