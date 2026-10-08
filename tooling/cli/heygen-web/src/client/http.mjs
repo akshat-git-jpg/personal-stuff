@@ -52,7 +52,8 @@ export function headers(auth, extra = {}) {
   };
 }
 
-export async function api(auth, path, { method = "GET", body, xPath } = {}) {
+// soft: throw on an HTTP error instead of exiting, for lookups that have a fallback.
+export async function api(auth, path, { method = "GET", body, xPath, soft = false } = {}) {
   const res = await fetch(path.startsWith("http") ? path : BASE + path, {
     method,
     headers: headers(auth, xPath ? { "x-path": xPath } : {}),
@@ -63,7 +64,10 @@ export async function api(auth, path, { method = "GET", body, xPath } = {}) {
     die(`403 / Cloudflare — session cookie likely expired. Recapture a fresh\n` +
         `   \'submit\' cURL into ${CURLS}. (cf_clearance/__cf_bm rotate fast.)`);
   let json; try { json = JSON.parse(text); } catch { json = { raw: text }; }
-  if (!res.ok) die(`HTTP ${res.status} ${method} ${path}\n${text.slice(0, 500)}`);
+  if (!res.ok) {
+    if (soft) throw new Error(`HTTP ${res.status} ${method} ${path}`);
+    die(`HTTP ${res.status} ${method} ${path}\n${text.slice(0, 500)}`);
+  }
   return json;
 }
 
