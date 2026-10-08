@@ -39,7 +39,8 @@ frame by frame over 18 s. Lower numbers mean the same motion.
   multiples of about 37.7 s.
 - The independent reviewer reached the same main cause without being told it. It called the long
   render "a different take" (face PSNR 24 dB against 49 dB for a repeat render).
-- Side-by-side clips used to check this by eye were in `~/Downloads/proof-1` to `proof-7`. They are
+- Full POC write-up with every video comparison, picture and edit mistake (local, media not in git):
+  `~/kb-scratch/avatar-tests/poc/HEYGEN-AVATAR-QUALITY-POC.md`. Side-by-side clips were also in `~/Downloads/proof-1` to `proof-7`. They are
   not committed.
 
 The two explanations, "fixed render clock" and "the take depends on the audio before it", give the
