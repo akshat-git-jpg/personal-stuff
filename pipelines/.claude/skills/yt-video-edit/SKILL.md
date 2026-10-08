@@ -247,12 +247,15 @@ delivered file. Do not add a board step, a cue pass or an LLM pass to it.
 - Shape it expects: before/after price → "Hey guys…" → sign-up and checkout
   demo → "…and that's it" outro → "subscribe". A recording
   that lacks the opener or the outro is refused with `COUPON-PLAN:`.
-- Edit it produces: raw recording as-is (no zoom/crop, fitted 16:9); girl-1
+- Edit it produces: raw recording as-is (no zoom/crop, fitted 16:9); the avatar
   full screen from the greeting to the first "description" line and from
-  "that's it" to the end, with a warm light-leak cut each way; girl-1 bubble
+  "that's it" to the end, with a warm light-leak cut each way; the avatar bubble
   bottom-right in between; captions on the whole video; link-in-description and like-subscribe cards by rule. The coupon code is NEVER on screen (no card, and captions say "the code"): codes change, and only the description can be edited after upload
   (`lib/coupon/plan.mjs`, `COUPON_RULES`).
-- Avatar: girl-1 on **heygen3 only** (Avatar III, free). Never production mode
+- Avatar: `helen-office` by default (owner 2026-10-09); another registry slug only when the owner names one
+  (`--avatar <slug>`). **heygen3 only** (Avatar III, free). ONE render over the whole voiceover
+  (`shots.json` `oneRender`); the full-screen intro and outro are cut from it after download.
+  Bubble zoom/focus per avatar: `AVATAR_FOCUS_BY_TEMPLATE` in `lib/effects/bubble.mjs` (helen-office: zoom 1.4, owner pick B). Never production mode
   for a coupon video. The 6a credit check must end `verified-free`.
 - `run-config.json` `template: "coupon"` is the only thing that waives the
   intro, storyboard, avatar and final-cut gates. Never set it on another video.
@@ -260,8 +263,8 @@ delivered file. Do not add a board step, a cue pass or an LLM pass to it.
   Drive `Output/` folder when `drive_folder` is set.
 - Owner feedback on a coupon cut changes the RULES (`lib/coupon/`), so every
   later coupon video gets the fix; not a one-off edit to that video's cues.
-- girl-1 = HeyGen template `bfc04309…` (room with shelves, owner pick
-  2026-10-05; `pipelines/video/heygen/registry.json`). Always pass `--tool`
+- helen-office = photo avatar `b4be8dff…` (rendered with `generate-from-audio`); girl-1 = template
+  `bfc04309…`. Both in `pipelines/video/heygen/registry.json`; `avatar_id` vs `template_id` picks the render path. Always pass `--tool`
   with the brand's real casing (`--tool EverBee`), or captions fall back to
   the slug's casing. The silent tail after the last word is black by design.
 - A submit `403 / Cloudflare` with a live `auth-check` is transient: re-run

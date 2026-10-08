@@ -12,7 +12,7 @@ import { normWord } from '../resolve.mjs';
 //   everything else      -> screen recording with the avatar bubble
 
 export const COUPON_RULES = {
-  AVATAR: 'girl-1',
+  AVATAR: 'helen-office',  // default coupon presenter (owner 2026-10-09); --avatar overrides
   TRANSITION_GUARD: 0.6,   // s kept clear of cards around an avatar cut
   CARD_GAP: 0.3,           // s between two overlays
   MAX_SLIP: 2.5,           // s a card may move off its trigger before it is dropped
@@ -241,10 +241,10 @@ export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR, total: 
   return {
     errors: [], notes, code,
     cues: { video, approved: true, approvedNote: 'coupon template: rule-planned, no review by owner rule (2026-09-30)', cues: ordered, spans: [] },
-    shots: { video, approved: true, engineMode: 'test', approvedNote: 'coupon template: Avatar III only (owner rule 2026-09-30)',
+    shots: { video, approved: true, engineMode: 'test', oneRender: true, approvedNote: 'coupon template: Avatar III only (owner rule 2026-09-30)',
       intro_host_waived: 'coupon template: the before/after price opens the video and the host enters at the greeting (owner rule 2026-09-30)',
       spans },
-    avatarPlan: { video, character: avatar, model: 'heygen3', approved: true, approvedNote: 'coupon template: girl-1 on Avatar III (owner rule 2026-09-30)' },
+    avatarPlan: { video, character: avatar, model: 'heygen3', approved: true, approvedNote: `coupon template: ${avatar} on Avatar III (owner rule 2026-09-30)` },
     timeline: { s01, s02, total },
   };
 }

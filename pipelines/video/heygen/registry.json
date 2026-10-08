@@ -11,5 +11,9 @@
  "side-avatar": {
   "image": "characters/side-avatar/source.jpeg",
   "description": "Side-view 'working at laptop' woman for the fal-lipsync flow — carries NO HeyGen id of any kind (HeyGen can't hold this pose), so the 2026-08-02 id cull left it alone. Pose variants + scripts in fal-lipsync/; candidate base loop kling-base-v4-pingpong.mp4 in ~/kb-scratch/video/heygen/_test/fal-lipsync/"
+ },
+ "helen-office": {
+  "avatar_id": "b4be8dff6e2649128f43594f1fb85848",
+  "description": "Helen, grey-haired woman at a desk in a teal office (\"helen office clean\" photo avatar, Gemini mark removed). Avatar III via generate-from-audio. THE default coupon presenter (owner 2026-10-09)."
  }
 }
