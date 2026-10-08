@@ -65,7 +65,8 @@ export async function batch(auth, args) {
       }
       if (i < resolved.length - 1) await new Promise((r) => setTimeout(r, delay));
     }
-  });
+    return results;
+  }, { metered: iv, ids: (rs) => rs.map((r) => r.video_id) });
 
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const manifest = resolve(outDir, `batch-${stamp}.json`);

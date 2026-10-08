@@ -16,7 +16,7 @@ export async function generate(auth, args) {
     title: arg(args, "--title"),
     orientation: arg(args, "--orientation"),
     res: arg(args, "--res"),
-  }));
+  }), { metered: iv });
   if (video_id) console.error(`✓ video_id: ${video_id}\n  → view: https://app.heygen.com/projects`);
   console.log(JSON.stringify(raw, null, 2));
 }
@@ -32,7 +32,7 @@ export async function generateFromAudio(auth, args) {
   if (!existsSync(audioPath)) die(`no such audio file: ${audioPath}`);
   try {
     const { video_id } = await meterChecked(auth, args, () =>
-      submitAudioGenerate(auth, { avatar, audioPath, engine, title, orientation }));
+      submitAudioGenerate(auth, { avatar, audioPath, engine, title, orientation }), { metered: engine !== "heygen3" });
     console.log(JSON.stringify({ video_id }, null, 2));
   } catch (e) {
     console.error(String(e.message || e));
@@ -53,7 +53,7 @@ export async function generateFromTemplate(auth, args) {
   if (!existsSync(audioPath)) die(`no such audio file: ${audioPath}`);
   try {
     const { video_id } = await meterChecked(auth, args, () =>
-      submitFromTemplate(auth, { templateId, audioPath, title, iv: engine === "heygen4" }));
+      submitFromTemplate(auth, { templateId, audioPath, title, iv: engine === "heygen4" }), { metered: engine === "heygen4" });
     console.log(JSON.stringify({ video_id }, null, 2));
   } catch (e) {
     console.error(String(e.message || e));

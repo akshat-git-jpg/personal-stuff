@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { call, endpoints } from "../client/endpoints.mjs";
-import { USAGE_SNAP } from "../client/http.mjs";
+import { USAGE_SNAP, die } from "../client/http.mjs";
+import { waitRendered } from "./videos.mjs";
 
 export async function limits(auth) {
   const r = await call(auth, endpoints.videoGenerateLimits);
@@ -15,7 +16,12 @@ export async function usageSnapshot(auth) {
   const lim = (await call(auth, endpoints.videoGenerateLimits))?.data || {};
   const pri = (await call(auth, endpoints.monthlyPriorityCount))?.data || {};
   const ai = (await call(auth, endpoints.aiGenerateElementLimits))?.data || {};
-  let credits = null;
+  let credits = null, plan_remain = null, addon_remain = null;
+  try {
+    const b = (await call(auth, endpoints.paymentSubscription))?.data || {};
+    plan_remain = (b.entitlements || []).find((e) => e.name === "plan_credit")?.remain ?? null;
+    addon_remain = (b.addons || []).filter((a) => a.total).reduce((s, a) => s + (a.remain || 0), 0);
+  } catch {}
   try { credits = (await call(auth, endpoints.migrateToCreditCheck, {}, { body: {} }))?.data?.current_credits; } catch {}
   return {
     ts: new Date().toISOString(),
@@ -29,6 +35,7 @@ export async function usageSnapshot(auth) {
     ai_image_credits: ai.available_image_credits,
     ai_video_credits: ai.available_video_credits,
     ai_concept_credits: ai.available_concept_engine_credits,
+    plan_remain, addon_remain,
   };
 }
 
@@ -40,34 +47,45 @@ export function printUsage(s) {
 
 export function diffUsage(prev, cur) {
   const keys = ["credits", "seconds_consumed", "priority_count",
-    "ai_image_credits", "ai_video_credits", "ai_concept_credits"];
+    "ai_image_credits", "ai_video_credits", "ai_concept_credits", "plan_remain", "addon_remain"];
   const d = Object.fromEntries(keys.map((k) => [k, (cur[k] ?? 0) - (prev[k] ?? 0)]));
   const sign = (n) => (n >= 0 ? "+" : "") + n;
-  const spent = d.credits !== 0 || d.seconds_consumed !== 0 ||
+  const spent = d.credits !== 0 || d.seconds_consumed !== 0 || d.plan_remain !== 0 || d.addon_remain !== 0 ||
     d.ai_image_credits < 0 || d.ai_video_credits < 0 || d.ai_concept_credits < 0;
   console.error(`Δ since ${prev.ts}:`);
   console.error(`  credits ${sign(d.credits)}  seconds ${sign(d.seconds_consumed)}` +
     `  priority ${sign(d.priority_count)}` +
-    `  ai img ${sign(d.ai_image_credits)}/vid ${sign(d.ai_video_credits)}/concept ${sign(d.ai_concept_credits)}`);
+    `  ai img ${sign(d.ai_image_credits)}/vid ${sign(d.ai_video_credits)}/concept ${sign(d.ai_concept_credits)}` +
+    `  plan ${sign(d.plan_remain)}  add-on ${sign(d.addon_remain)}`);
   console.error(spent
     ? "⚠️  NOT free — a credit/second meter moved. This op is metered."
     : "✓ UNLIMITED confirmed — no credits, seconds, or AI-element credits consumed." +
       (d.priority_count > 0 ? ` (priority slot used: +${d.priority_count}/100 — free, queue only)` : ""));
+  return spent;
 }
 
-// Wrap a submit so every generate auto-proves whether it stayed free:
-// snapshot usage → run the submit → snapshot again → print the ✓UNLIMITED / ⚠️NOT-free
-// verdict (to stderr, so machine JSON on stdout is untouched). Skip with --no-meter-check.
-export async function meterChecked(auth, args, submitFn) {
-  if (args.includes("--no-meter-check")) return submitFn();
-  const before = await usageSnapshot(auth);
+// Every render submit goes through here (owner rule 2026-10-09: always check credits, any engine).
+// Metered engines need --allow-spend. The after-read waits for the renders, because HeyGen
+// bills at completion. --caller-meter: the caller holds its own before/after check (visuals-flow).
+export function spendGate(metered, args) {
+  return metered && !args.includes("--allow-spend")
+    ? "METERED engine (Avatar IV) spends credits. Re-run with --allow-spend only after the owner OKs this exact batch."
+    : null;
+}
+
+export async function meterChecked(auth, args, submitFn, { metered = false, ids = (r) => [r?.video_id] } = {}) {
+  const gate = spendGate(metered, args);
+  if (gate) die(gate);
+  if (args.includes("--no-meter-check")) console.error("(--no-meter-check is ignored: the credit check always runs)");
+  const before = await usageSnapshot(auth).catch((e) => die(`cannot read credits before submit, refusing: ${e.message || e}`));
+  printUsage(before);
   const result = await submitFn();
-  try {
-    const after = await usageSnapshot(auth);
-    diffUsage(before, after);
-  } catch (e) {
-    console.error(`(meter-check skipped: ${e.message || e})`);
-  }
+  if (args.includes("--caller-meter")) { console.error("credit check: held by the caller"); return result; }
+  const vids = ids(result).filter(Boolean);
+  if (vids.length) await waitRendered(auth, vids);
+  const after = await usageSnapshot(auth);
+  const spent = diffUsage(before, after);
+  if (spent && !metered) { console.error("✖ CREDITS USED on a free engine. Stop and tell the owner."); process.exitCode = 2; }
   return result;
 }
 
