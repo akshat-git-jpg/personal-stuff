@@ -1,0 +1,5 @@
+# Copy to .dev.vars (gitignored) for local `wrangler dev`.
+APP_PASSWORD="1234"
+SESSION_SECRET="change me to a long random string"
+# Local only: smaller upload pieces so a small test video still uses several parts.
+PART_MB="5"

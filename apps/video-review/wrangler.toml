@@ -1,0 +1,33 @@
+name = "video-review"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# SPA built into dist/, served by the Worker via the ASSETS binding.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+# Shares the tutorial tracker's D1 (the account is at the 10-database free limit).
+# Own tables, all prefixed vr_, and its own migrations table.
+[[d1_databases]]
+binding = "DB"
+database_name = "tracker-db"
+database_id = "1562469d-ffd1-4cc2-b9f7-7095b84128ad"
+migrations_dir = "migrations"
+migrations_table = "vr_migrations"
+
+# Review copies (720p) only. Owner creates with `npx wrangler r2 bucket create video-review`.
+[[r2_buckets]]
+binding = "VIDEOS"
+bucket_name = "video-review"
+
+[[routes]]
+pattern = "review.agrolloo.com"
+custom_domain = true
+
+# Secrets (npx wrangler secret put <NAME>):
+#   APP_PASSWORD   - the owner's PIN
+#   SESSION_SECRET - signs the auth cookie

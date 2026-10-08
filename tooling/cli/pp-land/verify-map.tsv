@@ -36,3 +36,4 @@ tooling/cli/splitwise/	cd tooling/cli/splitwise && npm test
 pipelines/video/card-library/	cd pipelines/video/card-library && source "$(git rev-parse --show-toplevel)/scripts/node22-path.sh" && { [ -d node_modules/puppeteer-core ] || npm ci --no-audit --no-fund; } && node --test scripts/*.test.mjs
 pipelines/video/design-systems/tools/	cd pipelines/video/design-systems/tools && node --test
 pipelines/video/animate-flow/	cd pipelines/video/animate-flow && bash scripts/check.sh
+apps/video-review/	cd apps/video-review && { [ -d node_modules/typescript ] || PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm ci --no-audit --no-fund; } && npm test && npm run typecheck
