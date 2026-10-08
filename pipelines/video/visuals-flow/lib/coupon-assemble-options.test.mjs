@@ -41,6 +41,8 @@ test('bubble corner: bottom-right sits on the bottom inset, default stays top-ri
 
 test('bubble focus per template, specs-man default for unknown', () => {
   assert.deepEqual(avatarFocus('girl-1'), { x: 0.5, y: 0.37 });
+  assert.equal(bubbleGeometry(1920, 1080, { zoom: avatarFocus('helen-office').zoom }).DZ,
+    Math.round(bubbleGeometry(1920, 1080).D * 1.4 / 2) * 2);
   assert.deepEqual(avatarFocus('nobody'), avatarFocus('specs-man'));
 });
 

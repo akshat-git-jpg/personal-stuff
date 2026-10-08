@@ -43,13 +43,19 @@ export function planCornerChunksRange(rangeStart, rangeEnd, chunk = CORNER_CHUNK
   return out;
 }
 
-export function planJobs(shotsResolved, totalDuration, { spansOnly = false, cornerRange = null } = {}) {
+export function planJobs(shotsResolved, totalDuration, { spansOnly = false, cornerRange = null, oneRender = false } = {}) {
   const spanJobs = (shotsResolved.spans || []).map((s) => ({
     id: s.id,
     purpose: s.mode === 'side' ? 'avatar-side' : (s.mode === 'panel' ? 'avatar-panel' : 'avatar-full'),
     start: s.start,
     end: s.end,
   }));
+  // One render over the whole VO; spans are cut from it after download (coupon, owner 2026-10-09).
+  if (oneRender) {
+    const end = +Math.max(totalDuration, ...spanJobs.map((s) => s.end)).toFixed(2);
+    const corner = { id: 'corner-01', purpose: 'corner', start: 0, end };
+    return [...spanJobs.map((s) => ({ ...s, from: corner.id })), corner].map((j) => ({ ...j, duration: +(j.end - j.start).toFixed(2) }));
+  }
   let cornerChunks = [];
   if (cornerRange) {
     cornerChunks = planCornerChunksRange(cornerRange[0], Math.min(cornerRange[1], totalDuration));
@@ -77,6 +83,19 @@ export function avatarManifestMd(video, jobs, offset = 0) {
     ...rows,
     '',
   ].join('\n');
+}
+
+// Registry entry for an avatar slug; photo avatars carry avatar_id, templates template_id.
+export function registryEntry(slug) {
+  const reg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'pipelines', 'video', 'heygen', 'registry.json'), 'utf8'));
+  return reg[slug] ?? null;
+}
+
+// Cut a span out of the one render; a clone pad covers a source a few frames short.
+export function cutSpan(src, offset, duration, out) {
+  return spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', String(offset), '-i', src, '-t', String(duration),
+    '-vf', 'tpad=stop_mode=clone:stop_duration=2', '-af', 'apad', '-t', String(duration),
+    '-c:v', 'libx264', '-crf', '16', '-preset', 'fast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', out]);
 }
 
 function parseArgs(argv) {
@@ -224,7 +243,8 @@ async function main() {
 
     if (!Array.isArray(words) || words.length === 0) { console.error('empty transcript.json — nothing to submit'); process.exit(1); }
     const totalDuration = words[words.length - 1].end;
-    const jobs = planJobs(shotsResolved, totalDuration, { spansOnly: !!opts.spansOnly, cornerRange: opts.cornerRange ?? null });
+    const jobs = planJobs(shotsResolved, totalDuration, { spansOnly: !!opts.spansOnly, cornerRange: opts.cornerRange ?? null, oneRender: shotsFile.oneRender === true });
+    const photoAvatar = registryEntry(opts.template)?.avatar_id ?? null;
 
     for (const job of jobs) {
       if (!SAFE.test(job.id)) {
@@ -239,7 +259,7 @@ async function main() {
       jobsState = JSON.parse(fs.readFileSync(jobsPath, 'utf8')).jobs || [];
     }
 
-    for (const job of jobs) {
+    for (const job of jobs.filter((j) => !j.from)) {
       const audioPath = path.join(slicesDir, `${job.id}.mp3`);
       if (!fs.existsSync(audioPath)) {
         const voPath = path.join(workdir, 'vo.mp3');
@@ -254,12 +274,12 @@ async function main() {
 
     const engineFor = (job) => opts.engine
       ?? ((engineMode === 'production' && jobPurpose(job) !== 'corner') ? 'heygen4' : 'heygen3');
-    const toSubmit = jobs.filter((job) => !jobsState.find((j) => j.id === job.id && j.video_id));
+    const toSubmit = jobs.filter((job) => !job.from && !jobsState.find((j) => j.id === job.id && j.video_id));
     const engines = [...new Set(toSubmit.map(engineFor))];
 
     if (toSubmit.length > 0) {
       // A heygen3 submit renders the template as saved, so the template itself must be Avatar III.
-      if (engines.includes('heygen3')) {
+      if (engines.includes('heygen3') && !photoAvatar) {
         const te = spawnSync(bin, [...pre, 'template-engine', '--template', opts.template], { encoding: 'utf8', cwd: workdir });
         if (te.status !== 0) {
           console.error(`TEMPLATE-NOT-AVATAR-III: "${opts.template}" did not pass the Avatar III check, refusing to submit.\n${(te.stdout || '').trim()}\n${(te.stderr || '').trim()}`.trim());
@@ -291,6 +311,10 @@ async function main() {
         outJobs.push(existing);
         continue;
       }
+      if (job.from) {
+        outJobs.push(existing?.from ? existing : { id: job.id, purpose: jobPurpose(job), start: job.start, end: job.end, duration: job.duration, from: job.from, status: 'from-render' });
+        continue;
+      }
 
       if (process.env.AVATAR_RENDER_NO_PACING !== '1' && submittedAny) {
         const gap = Math.floor(Math.random() * (PACING.maxGap - PACING.minGap + 1)) + PACING.minGap;
@@ -301,7 +325,10 @@ async function main() {
       const title = `${shotsResolved.video}__${job.id}`;
       const audioPath = path.join('slices-avatar', `${job.id}.mp3`);
       const jobEngine = engineFor(job);
-      const cmdArgs = [...pre, 'generate-from-template', '--template', opts.template, '--audio', audioPath, '--title', title, '--engine', jobEngine, '--caller-meter', ...(jobEngine === 'heygen4' ? ['--allow-spend'] : [])];
+      const meterFlags = ['--caller-meter', ...(jobEngine === 'heygen4' ? ['--allow-spend'] : [])];
+      const cmdArgs = photoAvatar
+        ? [...pre, 'generate-from-audio', '--avatar', photoAvatar, '--audio', audioPath, '--title', title, '--engine', jobEngine, ...meterFlags]
+        : [...pre, 'generate-from-template', '--template', opts.template, '--audio', audioPath, '--title', title, '--engine', jobEngine, ...meterFlags];
       const res = spawnSync(bin, cmdArgs, { encoding: 'utf8', cwd: workdir });
       let video_id = null;
       let status = 'failed';
@@ -413,6 +440,14 @@ async function main() {
       } catch (e) {
         exitCode = 1;
       }
+    }
+
+    for (const job of jobs.filter((j) => j.from && !j.file)) {
+      const src = jobs.find((j) => j.id === job.from);
+      if (!src?.file) continue;
+      const outFile = path.join(outDir, `${job.id}.mp4`);
+      const cut = cutSpan(src.file, +(job.start - src.start).toFixed(3), job.duration, outFile);
+      if (cut.status !== 0) { console.error(`${job.id}: cut from ${job.from} failed`); exitCode = 1; } else job.file = outFile;
     }
 
     fs.writeFileSync(jobsPath, JSON.stringify(jobsData, null, 2));

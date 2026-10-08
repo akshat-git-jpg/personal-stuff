@@ -41,10 +41,11 @@ export const CONSTANTS = {
   AVATAR_FOCUS_Y: 0.389
 };
 
-// Face focus per HeyGen template; the default above is specs-man.
+// Face focus (and optional zoom) per avatar; the default above is specs-man.
 export const AVATAR_FOCUS_BY_TEMPLATE = {
   'specs-man': { x: 0.445, y: 0.389 },
   'girl-1': { x: 0.5, y: 0.37 },
+  'helen-office': { x: 0.51, y: 0.40, zoom: 1.4 }, // owner pick B, 2026-10-09
 };
 
 export function avatarFocus(template) {
@@ -62,7 +63,7 @@ function hexToRgb(hex) {
 
 // Geometry of the corner bubble, derived from the canvas height so the look is
 // identical at 720p (draft) and 1080p (final). All values are integers.
-export function bubbleGeometry(w, h, { corner = 'top-right' } = {}) {
+export function bubbleGeometry(w, h, { corner = 'top-right', zoom = CONSTANTS.AVATAR_ZOOM } = {}) {
   const D = Math.round(h * CONSTANTS.BUBBLE_D_1080 / 1080);
   const R = Math.round(D / 2);
   // Ring/blur widths stay FRACTIONAL. Rounding them to whole pixels inflates
@@ -84,7 +85,7 @@ export function bubbleGeometry(w, h, { corner = 'top-right' } = {}) {
   // Band edges, centred on R so each band is EXACTLY its nominal width.
   const RIN = +(R - RING / 2).toFixed(2), ROUT = +(R + RING / 2).toFixed(2);
   const GIN = +(R - GW / 2).toFixed(2), GOUT = +(R + GW / 2).toFixed(2);
-  const DZ = Math.round(D * CONSTANTS.AVATAR_ZOOM / 2) * 2;
+  const DZ = Math.round(D * zoom / 2) * 2;
   const [rr, gg, bb] = hexToRgb(CONSTANTS.RING_COLOR);
   const [hr, hg, hb] = hexToRgb(CONSTANTS.GLEAM_COLOR);
   return { D, R, RING, INSET, rr, gg, bb, hr, hg, hb, OX: w - INSET - D, OY: corner === 'bottom-right' ? h - INSET - D : INSET, GW, GSIG, PAD, S, C, CORE, DZ, RIN, ROUT, GIN, GOUT };
@@ -136,7 +137,7 @@ export function contribute(seg, instances, ctx) {
   if (slices.length === 0) return null;
 
   const bopts = ctx.bubbleOpts || {};
-  const { D, R, RING, INSET, rr, gg, bb, hr, hg, hb, OX, OY, GW, GSIG, PAD, S, C, CORE, DZ, RIN, ROUT, GIN, GOUT } = bubbleGeometry(ctx.w, ctx.h, { corner: bopts.corner });
+  const { D, R, RING, INSET, rr, gg, bb, hr, hg, hb, OX, OY, GW, GSIG, PAD, S, C, CORE, DZ, RIN, ROUT, GIN, GOUT } = bubbleGeometry(ctx.w, ctx.h, { corner: bopts.corner, zoom: avatarFocus(bopts.template).zoom });
   const focus = avatarFocus(bopts.template);
 
   const inputs = [];

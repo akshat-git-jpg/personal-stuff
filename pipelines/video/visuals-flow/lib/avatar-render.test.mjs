@@ -6,6 +6,13 @@ import test from 'node:test';
 import assert from 'node:assert';
 import { planCornerChunks, planCornerChunksRange, planJobs, avatarManifestMd } from './avatar-render.mjs';
 
+test('planJobs oneRender → one corner job over the whole VO, spans cut from it', () => {
+  const jobs = planJobs({ spans: [{ id: 's01', mode: 'full', start: 17.8, end: 36.7 }, { id: 's02', mode: 'full', start: 244.8, end: 270.8 }] }, 270.6, { oneRender: true });
+  const corner = jobs.filter((j) => j.purpose === 'corner');
+  assert.deepStrictEqual(corner.map((j) => [j.id, j.start, j.end]), [['corner-01', 0, 270.8]]);
+  assert.ok(jobs.filter((j) => j.purpose === 'avatar-full').every((j) => j.from === 'corner-01'));
+});
+
 test('planCornerChunks', () => {
   const chunks = planCornerChunks(650);
   assert.strictEqual(chunks.length, 3);

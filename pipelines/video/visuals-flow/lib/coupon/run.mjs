@@ -12,7 +12,8 @@ const stepRun = (num) => path.join(stepDir(num), 'run.sh');
 
 // One command, raw recording in, final video out. Coupon videos skip every
 // review gate by owner rule (2026-09-30); run-config template=coupon records that.
-// Avatar is girl-1 on Avatar III only, with the credit check in avatar-render.
+// Avatar is helen-office by default (--avatar <registry slug> overrides), on Avatar III only,
+// as ONE render over the whole voiceover; the full-screen spans are cut from it.
 
 const ROOT = path.resolve(import.meta.dirname, '..', '..');
 const REPO = path.resolve(ROOT, '..', '..', '..');
@@ -21,17 +22,18 @@ const AVATAR_POLL_S = 60;
 const AVATAR_TIMEOUT_MIN = 60;
 
 function usage() {
-  console.error('usage: node lib/coupon/run.mjs <slug> [--src <file|drive-file-id>] [--tool <Name>] [--drive-account <email>] [--plan-only] [--no-deliver]');
+  console.error('usage: node lib/coupon/run.mjs <slug> [--src <file|drive-file-id>] [--tool <Name>] [--avatar <slug>] [--drive-account <email>] [--plan-only] [--no-deliver]');
   process.exit(2);
 }
 
 function parseArgs(argv) {
-  const o = { slug: argv[0], src: null, tool: null, driveAccount: null, planOnly: false, deliver: true };
+  const o = { slug: argv[0], src: null, tool: null, avatar: null, driveAccount: null, planOnly: false, deliver: true };
   if (!o.slug || o.slug.startsWith('--')) usage();
   for (let i = 1; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--src') o.src = argv[++i];
     else if (a === '--tool') o.tool = argv[++i];
+    else if (a === '--avatar') o.avatar = argv[++i];
     else if (a === '--drive-account') o.driveAccount = argv[++i];
     else if (a === '--plan-only') o.planOnly = true;
     else if (a === '--no-deliver') o.deliver = false;
@@ -101,9 +103,9 @@ function transcribe(slug, workdir, tool) {
   return words;
 }
 
-function plan(slug, workdir, words) {
+function plan(slug, workdir, words, avatar) {
   const probe = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(workdir, 'vo.mp3')], { encoding: 'utf8' });
-  const r = planCoupon(words, { video: slug, total: parseFloat(probe.stdout) || null });
+  const r = planCoupon(words, { video: slug, total: parseFloat(probe.stdout) || null, ...(avatar ? { avatar } : {}) });
   if (r.errors.length) {
     for (const e of r.errors) console.error(`COUPON-PLAN: ${e}`);
     throw new Error('this recording does not follow the coupon script shape, so the template cannot place the edit');
@@ -127,8 +129,8 @@ function avatars(slug, workdir) {
     const code = sh(process.execPath, ['lib/avatar-render.mjs', slug, '--download'], { allowFail: true });
     if (code === 2) throw new Error('HEYGEN-CREDITS-SPENT: the credit check failed, stopping before anything else');
     const jobs = JSON.parse(fs.readFileSync(path.join(workdir, 'avatar-jobs.json'), 'utf8')).jobs;
-    const pending = jobs.filter((j) => j.video_id && !j.file);
-    const failed = jobs.filter((j) => !j.video_id);
+    const pending = jobs.filter((j) => (j.video_id || j.from) && !j.file);
+    const failed = jobs.filter((j) => !j.video_id && !j.from);
     if (failed.length) throw new Error(`avatar submit failed for ${failed.map((j) => j.id).join(', ')}`);
     const meter = JSON.parse(fs.readFileSync(path.join(workdir, 'heygen-meter.json'), 'utf8'));
     if (pending.length === 0 && meter.status === 'verified-free') break;
@@ -137,7 +139,8 @@ function avatars(slug, workdir) {
     console.log(`waiting on HeyGen: ${pending.length} clip(s) pending, next check in ${AVATAR_POLL_S}s`);
     spawnSync('sleep', [String(AVATAR_POLL_S)]);
   }
-  log(slug, '430', 'done', { did: 'Rendered girl-1 on Avatar III for both full-screen spans and the whole-video bubble, then re-read the HeyGen meters: no credits used.', output: 'avatar-jobs.json + heygen-meter.json (verified-free)' });
+  const who = JSON.parse(fs.readFileSync(path.join(workdir, 'avatar-jobs.json'), 'utf8')).template;
+  log(slug, '430', 'done', { did: `Rendered ${who} on Avatar III once over the whole voiceover, cut the full-screen spans from it, then re-read the HeyGen meters: no credits used.`, output: 'avatar-jobs.json + heygen-meter.json (verified-free)' });
 }
 
 function deliver(slug, workdir, driveAccount) {
@@ -172,7 +175,7 @@ export async function main(argv) {
   setTemplate(workdir);
   ingest(workdir, o.src, o.driveAccount);
   const words = transcribe(slug, workdir, tool);
-  plan(slug, workdir, words);
+  plan(slug, workdir, words, o.avatar);
   if (o.planOnly) return;
 
   log(slug, '310', 'running');

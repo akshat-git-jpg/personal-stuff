@@ -43,7 +43,7 @@ test('the coupon shape plans two host spans, link pills and subscribe, and never
   assert.equal(cards.at(-1), 'like-subscribe/like-subscribe');
   assert.ok(cards.filter((c) => c.startsWith('link-in-description')).length >= 2);
   assert.equal(r.shots.engineMode, 'test');
-  assert.equal(r.avatarPlan.character, 'girl-1');
+  assert.equal(r.avatarPlan.character, 'helen-office');
   assert.equal(r.avatarPlan.model, 'heygen3');
 });
 
