@@ -101,6 +101,13 @@ whose patch is not upstream, and no `+` lines means fully applied however it got
 `list` reports that same count as **`unlanded:`**, replacing a raw commit count that
 called rebased-and-landed commits pending.
 
+patch-id still hashes context lines, so it misses a land where main changed a nearby line
+first, or where part of the commit landed on its own (both measured 2026-10-09). So before
+`git cherry`, both checks run `git merge-tree --write-tree <c> <branch>` for each main commit
+`c` since the fork that touches the branch's files (max 200). If any merge equals `c`'s own
+tree, main held all of the branch at that point and it counts as landed. Testing only the tip
+fails once main edits the same lines again after the land.
+
 General rule: any "is this work safe to discard?" check here must be by **content**, never
 by SHA reachability, because every landing path in this repo rebases.
 

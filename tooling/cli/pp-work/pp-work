@@ -128,9 +128,26 @@ ws_snapshot_count() {
     | grep -c . || true
 }
 
+# True when some main commit since the fork already held all of the branch: merging the
+# branch into it changes nothing. Catches what patch-id misses (shifted context, split lands);
+# checking every commit, not just the tip, survives main editing the same lines later.
+ws_content_landed() {
+  local branch="$1" base c merged files
+  base=$(git -C "$MAIN" merge-base origin/main "$branch" 2>/dev/null) || return 1
+  files=$(git -C "$MAIN" diff --name-only "$base" "$branch" 2>/dev/null) || return 1
+  [ -n "$files" ] || return 0
+  # shellcheck disable=SC2086
+  for c in $(git -C "$MAIN" rev-list --max-count=200 "$base..origin/main" -- $files 2>/dev/null); do
+    merged=$(git -C "$MAIN" merge-tree --write-tree "$c" "$branch" 2>/dev/null) || continue
+    [ "$merged" = "$(git -C "$MAIN" rev-parse "$c^{tree}")" ] && return 0
+  done
+  return 1
+}
+
 ws_is_merged() {
   local branch="$1" out rc=0
   git -C "$MAIN" merge-base --is-ancestor "$branch" origin/main 2>/dev/null && return 0
+  ws_content_landed "$branch" && return 0
   out=$(git -C "$MAIN" cherry origin/main "$branch" 2>/dev/null) || rc=$?
   [ "$rc" -eq 0 ] || return 1
   printf '%s\n' "$out" | grep -q '^+' && return 1
@@ -141,6 +158,7 @@ ws_is_merged() {
 # place of a raw `rev-list --count`, which counted rebased-and-landed commits as pending.
 ws_unlanded() {
   local branch="$1" out rc=0
+  if ws_content_landed "$branch"; then printf '0\n'; return 0; fi
   out=$(git -C "$MAIN" cherry origin/main "$branch" 2>/dev/null) || rc=$?
   if [ "$rc" -ne 0 ]; then printf '?\n'; return 0; fi
   printf '%s\n' "$out" | grep -c '^+' || true
