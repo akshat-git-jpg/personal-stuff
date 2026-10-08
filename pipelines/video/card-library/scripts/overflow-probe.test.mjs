@@ -11,30 +11,20 @@ import { probeCardVariant, fillToCapacity, probeTimes, closeBrowser } from './ov
 // blocked this plan's test_cmd (2026-07-30).
 after(closeBrowser);
 
-// The gate is worthless unless it can fail. This fixture is the real defect:
-// enacted/pipeline-flow, title "Submagic: Straight To Posted", variant "b".
-// It clipped both the title's top line and the final node off the canvas
-// (c17, opusclip-vs-submagic, 2026-07-30). If this test ever goes green with
-// the probe reporting "ok", the probe has stopped working — not the card.
-test('the probe reports overflow on the known-bad c17 input', async () => {
+// The gate is worthless unless it can fail. The c17 title alone stopped overflowing once the
+// card was resized (2026-08-02), so this uses 8 steps, past pipeline-flow's max_beats of 6.
+const OVER_CAP = ['Auto Edit', 'Publish Ready', 'Posted', 'Review Pass', 'Caption Sync', 'Final Export', 'Schedule Post', 'Archive'];
+test('the probe reports overflow past the declared beat cap', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ovf-'));
   fs.cpSync('enacted/pipeline-flow', path.join(dir, 'pipeline-flow'), { recursive: true });
   const res = await probeCardVariant(path.join(dir, 'pipeline-flow'), 'b', {
     title: 'Submagic: Straight To Posted',
     variant: 'b',
     register: 'light',
-    steps: [
-      { step: 'Auto Edit', icon: 'bolt' },
-      { step: 'Publish Ready', icon: 'star' },
-      { step: 'Posted', icon: 'rocket' },
-    ],
-    beats: [
-      { step: 'Auto Edit', at: 0.6 },
-      { step: 'Publish Ready', at: 2.44 },
-      { step: 'Posted', at: 4.2 },
-    ],
+    steps: OVER_CAP.map(step => ({ step, icon: 'star' })),
+    beats: OVER_CAP.map((step, i) => ({ step, at: 0.6 + i * 0.6 })),
   }, [1.2, 3.0]);
-  assert.equal(res.broken, true, 'the probe must reject the input that actually shipped clipped');
+  assert.equal(res.broken, true, 'the probe must reject an input past the beat cap');
   assert.ok(res.offenders.length > 0);
 });
 
