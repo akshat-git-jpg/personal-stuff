@@ -32,6 +32,22 @@
       "watermark": "removed",
       "credits_used": 0,
       "in_test_folder": true
+    },
+    {
+      "date": "2026-10-08",
+      "avatar_name": "brown laptop",
+      "avatar_id": "51b2cd3f31f8402189ef2c875412260c",
+      "video_title": "brown laptop - test 2026-10-08",
+      "video_id": "113fc77f80bd42a5821cd328ef84c5a9",
+      "video_status": "completed",
+      "audio": "modal-tts-sample.mp3",
+      "pic_local": "/Users/kbtg/kb-scratch/avatar-tests/brown-laptop-clean.png",
+      "pic_source": "/Users/kbtg/kb-scratch/avatar-tests/brown-laptop-original.png",
+      "pic_drive": "https://drive.google.com/file/d/1cn0Q3lCXUQX-keBNIEsId2pB8eDFMISZ",
+      "pic_source_drive": "https://drive.google.com/file/d/1X1BE1pjLeBzmCJqOAbAd1Go0sCbkH6BS",
+      "watermark": "removed",
+      "credits_used": 0,
+      "in_test_folder": true
     }
   ]
 }
