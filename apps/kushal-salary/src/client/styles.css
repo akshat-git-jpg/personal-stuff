@@ -596,18 +596,17 @@ a.row:hover {
 .chart .baseline {
   stroke: #2c3542;
 }
-.chart .line-paid {
+.chart .line-pay {
   fill: none;
   stroke: var(--accent);
   stroke-width: 2;
   stroke-linejoin: round;
 }
-.chart .line-normal {
-  fill: none;
-  stroke: var(--soft);
-  stroke-width: 1.5;
-  stroke-dasharray: 5 4;
-  opacity: 0.8;
+.chart .stem-payout {
+  stroke: var(--payout);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.7;
 }
 .chart .dot-payout {
   fill: var(--payout);
@@ -619,13 +618,8 @@ a.row:hover {
   stroke-width: 1;
   opacity: 0.6;
 }
-.chart .hover-paid {
+.chart .hover-pay {
   fill: var(--accent);
-  stroke: var(--card);
-  stroke-width: 2;
-}
-.chart .hover-normal {
-  fill: var(--soft);
   stroke: var(--card);
   stroke-width: 2;
 }
@@ -667,15 +661,12 @@ a.row:hover {
   height: 2px;
   flex: none;
 }
-.tip-row .key-paid {
-  background: var(--accent);
-}
-.tip-row .key-normal {
-  background: repeating-linear-gradient(90deg, var(--soft) 0 4px, transparent 4px 7px);
-}
 .tip-payout b {
   color: var(--payout);
-  margin-left: 20px;
+}
+.tip-total {
+  border-top: 1px solid #2c3542;
+  padding-top: 4px;
 }
 .tip-promo span {
   color: var(--promo);
@@ -683,15 +674,10 @@ a.row:hover {
 .tip-hike span {
   color: var(--hike);
 }
-.legend .lg-paid {
+.legend .lg-pay {
   width: 14px;
   height: 2px;
   background: var(--accent);
-}
-.legend .lg-normal {
-  width: 14px;
-  height: 2px;
-  background: repeating-linear-gradient(90deg, var(--soft) 0 4px, transparent 4px 7px);
 }
 .legend .lg-payout {
   border-radius: 50%;

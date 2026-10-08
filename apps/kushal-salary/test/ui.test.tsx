@@ -40,7 +40,7 @@ describe('Every month tab', () => {
   it('puts a point on every month, payout months in amber', () => {
     render(<MonthsTab months={fixture} />)
     expect(screen.getAllByTestId('payout-dot')).toHaveLength(3)
-    expect(screen.getAllByTestId('month-point')).toHaveLength(6)
+    expect(screen.getAllByTestId('month-point')).toHaveLength(9)
   })
 
   it('labels the months on the x axis', () => {
@@ -57,9 +57,9 @@ describe('Every month tab', () => {
     fireEvent.pointerMove(hit, { clientX: 35 })
     const tip = screen.getByTestId('chart-tip')
     expect(tip.textContent).toContain('Feb 2024')
-    expect(tip.textContent).toContain('₹1,50,000paid')
-    expect(tip.textContent).toContain('₹90,000normal')
+    expect(tip.textContent).toContain('₹90,000monthly pay')
     expect(tip.textContent).toContain('+₹60,000variable pay')
+    expect(tip.textContent).toContain('₹1,50,000in bank')
   })
 
   it('moves the readout with the arrow keys', () => {

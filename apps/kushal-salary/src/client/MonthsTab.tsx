@@ -79,16 +79,12 @@ export default function MonthsTab({ months }: { months: Month[] }) {
         <MonthChart bars={b} labels={labels} marks={chartMarks(months)} />
         <div className="legend">
           <span>
-            <i className="lg-paid" />
-            paid that month
-          </span>
-          <span>
-            <i className="lg-normal" />
-            normal pay
+            <i className="lg-pay" />
+            monthly pay
           </span>
           <span>
             <i className="lg-payout" />
-            payout month
+            extra that month
           </span>
           <span>
             <i className="lg-promo" />
@@ -105,7 +101,7 @@ export default function MonthsTab({ months }: { months: Month[] }) {
       <div className="kpis" data-testid="kpis">
         <div className="card kpi">
           <b>{inr(s.latestBase)}</b>
-          <span>normal per month</span>
+          <span>monthly pay</span>
         </div>
         <div className="card kpi">
           <b className="payout">{inr(s.allPayouts)}</b>
