@@ -31,6 +31,8 @@ export function Login({ onDone }: { onDone: () => void }) {
           autoComplete="current-password"
           className="input"
           placeholder="PIN"
+          maxLength={12}
+          aria-label="PIN"
           value={pin}
           autoFocus
           onChange={(e) => setPin(e.target.value)}

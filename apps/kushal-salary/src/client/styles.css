@@ -201,6 +201,10 @@ p {
   max-width: 320px;
   display: grid;
   gap: 12px;
+  padding: 24px;
+}
+.login-card > * {
+  min-width: 0;
 }
 .login-card h1 {
   font-family: var(--display);
@@ -208,11 +212,32 @@ p {
   letter-spacing: -0.02em;
 }
 .input {
+  width: 100%;
+  min-height: 48px;
   border: 1px solid #2a3340;
   border-radius: 10px;
-  padding: 12px;
+  padding: 0 14px;
   background: #0f141b;
-  letter-spacing: 0.3em;
+  font-family: var(--mono);
+  font-size: 18px;
+  letter-spacing: 0.4em;
+  text-align: center;
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+.input::placeholder {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 15px;
+  letter-spacing: normal;
+  color: var(--faint);
+}
+.input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.18);
+}
+.login-card .btn {
+  min-height: 48px;
+  font-size: 15px;
 }
 .error {
   color: var(--bad);
