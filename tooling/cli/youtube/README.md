@@ -68,8 +68,8 @@ Two defenses are built in:
 
 2. **PO tokens via bgutil.** The `bgutil-ytdlp-pot-provider` pip plugin plus
    its node script mint proof-of-origin tokens for every yt-dlp call on this
-   Mac, from any caller, no flags needed. The clone lives at
-   `~/kb-scratch/bgutil-ytdlp-pot-provider`; `~/bgutil-ytdlp-pot-provider`
+   Mac, from any caller, no flags needed. The server lives at
+   `~/kb-scratch/bgutil-ytdlp-pot-provider-<version>` (2.0.2 since 2026-10-08); `~/bgutil-ytdlp-pot-provider`
    symlinks to it because that's the plugin's default search path. Verify:
 
    ```bash
@@ -79,6 +79,11 @@ Two defenses are built in:
 
    Rebuild after pulling the clone (`npm ci && npx tsc` in `server/`), and
    update the pip plugin and the clone together so versions stay in step.
+   Symptom of drift (2026-10-08): every download 403s even though tokens
+   mint, and tools fall back to the 360p Android client. Fix: `pip install -U
+   yt-dlp bgutil-ytdlp-pot-provider`, then build the matching server tag
+   (public registry: `npm ci --registry https://registry.npmjs.org/`) and
+   repoint `~/bgutil-ytdlp-pot-provider`. Works on Node 20.
 
 Still seeing 429s with both in place? That's an active IP cooldown: stop
 retrying and wait a few hours, since hammering extends the ban. The next
