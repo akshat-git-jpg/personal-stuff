@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { arrearsOf, bars, variableOf, type Mode, type Month } from '../shared/salary'
 import { chartMarks, summary } from './derive'
-import { k, lakhYear, monLabel, plural } from './format'
+import { inr, monLabel, plural } from './format'
 import MonthChart from './MonthChart'
 
 const MODE_KEY = 'ksalary.mode'
@@ -60,7 +60,7 @@ export default function MonthsTab({ months }: { months: Month[] }) {
           Monthly pay up {s.growth}× since {monLabel(s.firstMonth)}
         </h1>
         <p className="soft small" data-testid="sub">
-          Fixed {lakhYear(s.fixedFirst)} → {lakhYear(s.fixedLast)} a year · {plural(s.promotions, 'promotion')} ·{' '}
+          Fixed pay {inr(s.fixedFirst * 12)} → {inr(s.fixedLast * 12)} a year · {plural(s.promotions, 'promotion')} ·{' '}
           {plural(s.hikes, 'hike')} · {plural(s.payouts, 'payout')}
         </p>
       </div>
@@ -79,12 +79,16 @@ export default function MonthsTab({ months }: { months: Month[] }) {
         <MonthChart bars={b} labels={labels} marks={chartMarks(months)} />
         <div className="legend">
           <span>
-            <i className="lg-line" />
-            normal monthly pay
+            <i className="lg-paid" />
+            paid that month
+          </span>
+          <span>
+            <i className="lg-normal" />
+            normal pay
           </span>
           <span>
             <i className="lg-payout" />
-            one-time payout
+            payout month
           </span>
           <span>
             <i className="lg-promo" />
@@ -95,19 +99,20 @@ export default function MonthsTab({ months }: { months: Month[] }) {
             hike
           </span>
         </div>
+        <p className="muted small">Hover or tap the chart to see each month.</p>
       </section>
 
       <div className="kpis" data-testid="kpis">
         <div className="card kpi">
-          <b>{k(s.latestBase)}</b>
+          <b>{inr(s.latestBase)}</b>
           <span>normal per month</span>
         </div>
         <div className="card kpi">
-          <b className="payout">{k(s.allPayouts)}</b>
+          <b className="payout">{inr(s.allPayouts)}</b>
           <span>all payouts</span>
         </div>
         <div className="card kpi">
-          <b>{k(s.fy)}</b>
+          <b>{inr(s.fy)}</b>
           <span>{s.fyLabel} so far</span>
         </div>
       </div>
@@ -118,8 +123,8 @@ export default function MonthsTab({ months }: { months: Month[] }) {
             <>
               <span>{monLabel(r.month)}</span>
               <span className="mono">
-                {k(r.base)}
-                {r.extra > 0 && <span className="payout"> + {k(r.extra)}</span>}
+                {inr(r.base)}
+                {r.extra > 0 && <span className="payout"> + {inr(r.extra)}</span>}
               </span>
             </>
           )

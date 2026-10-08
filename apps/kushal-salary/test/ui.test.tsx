@@ -25,28 +25,41 @@ describe('Every month tab', () => {
 
   it('defaults to net', () => {
     render(<MonthsTab months={fixture} />)
-    expect(kpi(0)).toBe('₹1.41L')
+    expect(kpi(0)).toBe('₹1,40,800')
     expect(screen.getByRole('button', { name: 'Net' }).getAttribute('aria-pressed')).toBe('true')
   })
 
   it('switches to gross and remembers it', () => {
     render(<MonthsTab months={fixture} />)
     fireEvent.click(screen.getByRole('button', { name: 'Gross' }))
-    expect(kpi(0)).toBe('₹1.61L')
+    expect(kpi(0)).toBe('₹1,61,000')
     expect(screen.getByRole('button', { name: 'Gross' }).getAttribute('aria-pressed')).toBe('true')
     expect(localStorage.getItem('ksalary.mode')).toBe('gross')
   })
 
-  it('draws one bar per month and one payout bar per payout month', () => {
+  it('marks each payout month with a dot', () => {
     render(<MonthsTab months={fixture} />)
-    const chart = screen.getByTestId('month-chart')
-    expect(within(chart as unknown as HTMLElement).getAllByTestId('base-bar')).toHaveLength(9)
-    expect(within(chart as unknown as HTMLElement).getAllByTestId('payout-bar')).toHaveLength(3)
+    expect(screen.getAllByTestId('payout-dot')).toHaveLength(3)
   })
 
-  it('labels a payout with its amount', () => {
+  it('shows full amounts for a month on hover', () => {
     render(<MonthsTab months={fixture} />)
-    expect(screen.getByTestId('month-chart').textContent).toContain('+₹60k')
+    const chart = screen.getByTestId('month-chart')
+    const hit = chart.querySelector('rect[fill="transparent"]')!
+    hit.getBoundingClientRect = () => ({ left: 0, top: 0, width: 270, height: 200, right: 270, bottom: 200, x: 0, y: 0, toJSON: () => ({}) })
+    fireEvent.pointerMove(hit, { clientX: 35 })
+    const tip = screen.getByTestId('chart-tip')
+    expect(tip.textContent).toContain('Feb 2024')
+    expect(tip.textContent).toContain('₹1,50,000paid')
+    expect(tip.textContent).toContain('₹90,000normal')
+    expect(tip.textContent).toContain('+₹60,000variable pay')
+  })
+
+  it('moves the readout with the arrow keys', () => {
+    render(<MonthsTab months={fixture} />)
+    const chart = screen.getByTestId('month-chart')
+    fireEvent.keyDown(chart, { key: 'ArrowLeft' })
+    expect(screen.getByTestId('chart-tip').textContent).toContain('May 2025')
   })
 
   it('marks the promotion and the hike on the chart', () => {
@@ -54,6 +67,12 @@ describe('Every month tab', () => {
     const text = screen.getByTestId('month-chart').textContent
     expect(text).toContain('+33% · Senior Engineer')
     expect(text).toContain('+20% hike')
+    expect(screen.getAllByTestId('event-mark')).toHaveLength(2)
+  })
+
+  it('shows full rupee amounts in the month list', () => {
+    render(<MonthsTab months={fixture} />)
+    expect(screen.getByTestId('recent').textContent).toContain('₹1,40,000 + ₹90,000')
   })
 
   it('links the last 6 months to their payslips, newest first', () => {

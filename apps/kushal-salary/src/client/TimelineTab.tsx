@@ -1,7 +1,7 @@
 import { bars, fixedOf, type Month } from '../shared/salary'
 import type { Note } from '../shared/types'
 import { timeline, type TimelineItem } from './derive'
-import { dayLabel, k, lakhYear, monLabel } from './format'
+import { dayLabel, inr, monLabel } from './format'
 import { Empty } from './MonthsTab'
 
 function Row({ item }: { item: TimelineItem }) {
@@ -45,7 +45,7 @@ function Row({ item }: { item: TimelineItem }) {
               {e.to} <span className="chip chip-promo">+{e.pct}%</span>
             </span>
             <span className="tl-line">
-              Promotion from {e.from} · fixed {lakhYear(e.fixedMonthly)} a year
+              Promotion from {e.from} · fixed {inr(e.fixedMonthly * 12)} a year
             </span>
           </div>
         </li>
@@ -63,7 +63,7 @@ function Row({ item }: { item: TimelineItem }) {
                 {e.pct}%
               </span>
             </span>
-            <span className="tl-line">Fixed {lakhYear(e.fixedMonthly)} a year</span>
+            <span className="tl-line">Fixed {inr(e.fixedMonthly * 12)} a year</span>
           </div>
         </li>
       )
@@ -74,9 +74,9 @@ function Row({ item }: { item: TimelineItem }) {
           <div className="tl-body">
             {when}
             <span className="tl-title">
-              {e.labels.join(' + ')} <span className="chip chip-payout">+{k(e.net)} net</span>
+              {e.labels.join(' + ')} <span className="chip chip-payout">+{inr(e.net)} net</span>
             </span>
-            <span className="tl-line">{k(e.gross)} before tax</span>
+            <span className="tl-line">{inr(e.gross)} before tax</span>
           </div>
         </li>
       )
@@ -89,7 +89,7 @@ function Row({ item }: { item: TimelineItem }) {
             <span className="tl-title">
               Start of records <span className="chip chip-start">{e.designation}</span>
             </span>
-            <span className="tl-line">Fixed {lakhYear(e.fixedMonthly)} a year</span>
+            <span className="tl-line">Fixed {inr(e.fixedMonthly * 12)} a year</span>
           </div>
         </li>
       )
@@ -111,7 +111,7 @@ export default function TimelineTab({ months, notes }: { months: Month[]; notes:
       <div className="stack">
         <h1 className="h1">{last.designation}</h1>
         <p className="soft small">
-          {lakhYear(fixedOf(last))} fixed a year · {k(base)} a month
+          {inr(fixedOf(last) * 12)} fixed a year · {inr(base)} a month
         </p>
       </div>
       <ol className="card timeline" data-testid="timeline">
