@@ -88,10 +88,17 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
 
   const h = hover === null ? null : bars[hover]
   const hMarks = hover === null ? [] : markList.filter((m) => m.i === hover)
-  const tipLeft = hover === null ? 0 : Math.min(Math.max(cx(hover) - 95, 0), W - 190)
-  // Sit just above the month's highest dot; drop below the line when there is no room on top.
+  // Above the month's top dot when it fits; else beside it, so the box never hides the month.
   const GAP = 12
-  const tipTop = !h ? 0 : y(h.base + h.extra) - GAP - tipH >= 0 ? y(h.base + h.extra) - GAP - tipH : Math.min(y(h.base) + GAP, H - tipH)
+  const TIPW = 190
+  const pos = (() => {
+    if (!h || hover === null) return { left: 0, top: 0 }
+    const x = cx(hover)
+    const top = y(h.base + h.extra)
+    if (top - GAP - tipH >= 0) return { left: Math.min(Math.max(x - TIPW / 2, 0), W - TIPW), top: top - GAP - tipH }
+    const left = x + GAP + TIPW <= W ? x + GAP : x - GAP - TIPW
+    return { left, top: Math.min(Math.max((top + y(h.base)) / 2 - tipH / 2, 0), H - tipH) }
+  })()
 
   return (
     <div className="chart-scroll" ref={box}>
@@ -175,7 +182,7 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
           />
         </svg>
         {h && hover !== null && (
-          <div ref={tip} className="chart-tip" data-testid="chart-tip" style={{ left: tipLeft, top: tipTop }} role="status">
+          <div ref={tip} className="chart-tip" data-testid="chart-tip" style={pos} role="status">
             <div className="tip-month">{monLabel(h.month)}</div>
             <div className="tip-row">
               <b>{inr(h.base)}</b>
