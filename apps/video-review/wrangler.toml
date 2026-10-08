@@ -25,7 +25,7 @@ binding = "VIDEOS"
 bucket_name = "video-review"
 
 [[routes]]
-pattern = "review.agrolloo.com"
+pattern = "video-review.agrolloo.com"
 custom_domain = true
 
 # Secrets (npx wrangler secret put <NAME>):

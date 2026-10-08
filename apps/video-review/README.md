@@ -1,6 +1,6 @@
 # Video Review
 
-A free frame.io-style review page for freelancer edits, at `review.agrolloo.com`.
+A free frame.io-style review page for freelancer edits, at `video-review.agrolloo.com`.
 
 - The owner signs in with a PIN, makes a **project** (one per video title) and sends its
   secret link to the editor.
