@@ -32,19 +32,19 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    title: "Health",
-    apps: [
-      app("Gym Tracker", "kushal-gym.agrolloo.com"),
-      app("Kushal Health", "kushal-health.agrolloo.com"),
-      app("Sparkly Gym", "sparkly-poop.agrolloo.com"),
-    ],
-  },
-  {
-    title: "Money",
+    title: "Monthly",
     apps: [
       app("Kushal Salary", "kushal-salary.agrolloo.com"),
       app("Kushal Income", "kushal-income.agrolloo.com"),
       app("YT Income", "yt-income.agrolloo.com"),
+      app("Kushal Health", "kushal-health.agrolloo.com"),
+    ],
+  },
+  {
+    title: "Gym",
+    apps: [
+      app("Gym Tracker", "kushal-gym.agrolloo.com"),
+      app("Sparkly Gym", "sparkly-poop.agrolloo.com"),
     ],
   },
   {
