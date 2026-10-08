@@ -21,6 +21,8 @@ else in this CLI.
 | `DELETE /v1/project/item.trash` | Trash a video. | ✅ `delete-video` |
 | `DELETE /v1/avatar_group.delete?id=<group_id>` | Delete an avatar group (all its looks). No body; `{"code":100}` on success. HAR-captured 2026-10-09. | ✅ `delete-avatar` |
 
+**Fixed (2026-10-09):** `generate-from-audio` pillarboxed every non-portrait photo avatar because both payloads carry the HAR avatar's 1792x2400 size and a 0.703 scale. It now reads the look's `image_width`/`image_height` (`avatar_group/look.list` → `avatar_looks[].look`) and sends scale = max(W/w, H/h), which is what the web editor sends (1.40625 for a 1376x768 photo). Verified on "helen office clean": full frame, no bars.
+
 **Resolved (2026-07-09):** the landscape pillarboxing on `generate-from-audio` was never
 fixable by adjusting canvas/scale/headers because we were rendering the wrong asset
 entirely — a generic test avatar ("Lilly") with a portrait-native source photo, standing in
