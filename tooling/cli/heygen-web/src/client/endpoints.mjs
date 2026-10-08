@@ -1,6 +1,7 @@
 export const endpoints = {
   avatarGroupPrivateList: { method: "GET",    path: ({ limit = 20, page = 1 }) => `/v2/avatar_group.private.list?limit=${limit}&page=${page}` },
   avatarLookList:         { method: "GET",    path: ({ group_id })            => `/v2/avatar_group/look.list?group_id=${group_id}&type=all&page=1&limit=20` },
+  avatarGroupDelete:      { method: "DELETE", path: ({ id })                  => `/v1/avatar_group.delete?id=${encodeURIComponent(id)}` },
   photoTempCreate:        { method: "GET",    path: ()                        => `/v1/avatar_group/photo/temp.create?num_photos=1` },
   imageAttributesSubmit:  { method: "POST",   path: ()                        => `/v1/media_evaluation/image_attributes.submit` },
   photoTempConvert:       { method: "GET",    path: ({ tid, name })           => `/v1/avatar_group/photo/temp.convert?parent_temporary_user_photar_id=${tid}&name=${encodeURIComponent(name)}&skip_validation=true` },

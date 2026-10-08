@@ -32,7 +32,7 @@ test("1. Imports: modules can be imported without throwing", async () => {
   assert.ok(true, "All modules imported successfully");
 });
 
-test("2. Registry completeness: 25 named keys, valid paths", async () => {
+test("2. Registry completeness: 26 named keys, valid paths", async () => {
   const { endpoints } = await import(resolve(PKG_ROOT, "src/client/endpoints.mjs"));
   
   const expectedKeys = [
@@ -45,7 +45,7 @@ test("2. Registry completeness: 25 named keys, valid paths", async () => {
   ];
 
   const actualKeys = Object.keys(endpoints);
-  assert.strictEqual(actualKeys.length, 25, "Expected 25 endpoints, got " + actualKeys.length);
+  assert.strictEqual(actualKeys.length, 26, "Expected 26 endpoints, got " + actualKeys.length);
   
   for (const key of expectedKeys) {
     assert.ok(actualKeys.includes(key), "Missing endpoint: " + key);
@@ -61,7 +61,7 @@ test("3. Command parity: dispatch table keys", () => {
     "auth-check", "list-avatars", "list-looks", "limits", "usage", "generate",
     "generate-from-audio", "generate-from-template", "template-engine", "batch", "create-photo-avatar",
     "photo-to-video", "studio-render", "studio-render-status", "list-voices",
-    "list-videos", "status", "delete-video", "raw", "download"
+    "list-videos", "status", "delete-video", "delete-avatar", "raw", "download"
   ]);
   
   const dispatchCode = fs.readFileSync(resolve(PKG_ROOT, "src/cli/dispatch.mjs"), "utf8");
@@ -115,7 +115,7 @@ test("6. Avatar registry: slug resolves, raw id passes through", async () => {
   // carries: the owner culled every other avatar/look/template id on
   // 2026-08-02, so this pair IS the allowlist. The second assertion used to be
   // "girl-2" (887ad69c…), which no longer exists.
-  assert.strictEqual(resolveTemplate("girl-1"), "7629dffbebe141eb8f701630948bd707");
+  assert.strictEqual(resolveTemplate("girl-1"), "bfc0430957444fdfbe0b4d05e80e9658");
   assert.strictEqual(resolveTemplate("specs-man"), "403f1f8c49d64c58bd3168f99a58bb0a");
   // and nothing else resolves — a culled slug must fall through as a raw value,
   // not quietly map to a dead id

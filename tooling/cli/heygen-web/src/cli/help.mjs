@@ -31,6 +31,7 @@ export function printHelp() {
   list-voices [--limit 30] [--page 1] [--search term] [--json]
   list-videos [--limit 30] [--type heygen_video] [--json]
   status <video_id>           one-shot status + ETA/progress (no polling loop)
+  delete-avatar <group_id> [<group_id> ...]   delete an avatar (whole group, all looks)
   delete-video <video_id> [<video_id> ...] [--type heygen_video]
   raw <path> [--json '<body>']\n
 --avatar / --template accept a SLUG from the avatar registry (pipelines/video/heygen/registry.json) (e.g. "girl-1") or a raw id.

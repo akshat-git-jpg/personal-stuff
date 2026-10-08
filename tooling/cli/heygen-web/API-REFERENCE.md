@@ -19,6 +19,7 @@ else in this CLI.
 | `GET /v1/project/items/status?item_ids=<id>` | **One-shot** status+ETA+progress for a render — `{status, progress 0-100, eta (seconds), thumbnail_url, error_code/type/message}`. Far better than polling `list-videos`. | ✅ `status <video_id>` |
 | `POST /v1/pacific/collaboration/video.download` + `GET .../video.download/status` | Transcode-and-download chain. | ✅ `download` |
 | `DELETE /v1/project/item.trash` | Trash a video. | ✅ `delete-video` |
+| `DELETE /v1/avatar_group.delete?id=<group_id>` | Delete an avatar group (all its looks). No body; `{"code":100}` on success. HAR-captured 2026-10-09. | ✅ `delete-avatar` |
 
 **Resolved (2026-07-09):** the landscape pillarboxing on `generate-from-audio` was never
 fixable by adjusting canvas/scale/headers because we were rendering the wrong asset
