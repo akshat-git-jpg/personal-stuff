@@ -33,5 +33,5 @@ npx wrangler r2 bucket create video-review
 npm run db:remote                                  # vr_ tables into tracker-db
 npx wrangler secret put APP_PASSWORD
 npx wrangler secret put SESSION_SECRET
-npm run deploy                                     # review.agrolloo.com
+npm run deploy                                     # video-review.agrolloo.com
 ```
