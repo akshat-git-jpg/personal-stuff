@@ -33,3 +33,13 @@ Payslips and mail notes are added by the `kushal-salary` skill, never through th
 npm run typecheck && npm test && npm run build && bash scripts/smoke.sh
 npm run deploy   # first deploy steps: README.md
 ```
+
+Any UI change also passes the browser walk before deploy and again on the live site after:
+`E2E_PIN=<pin> node scripts/e2e.mjs <url>`. It logs in, walks every month with the arrow keys,
+hovers, flips Net/Gross, clicks a month row and opens every payslip and letter link as a page
+visit, at desktop and phone width. Point it at a local `wrangler dev` holding months with PDFs
+and at least one letter, then at https://kushal-salary.agrolloo.com. It never writes data.
+
+Trap: `curl` checks are not page visits. A click sends `Sec-Fetch-Mode: navigate`, and with
+`not_found_handling = "single-page-application"` the SPA shell answers it unless the path is in
+`run_worker_first` (2026-10-08: every payslip link opened the app instead of the PDF).
