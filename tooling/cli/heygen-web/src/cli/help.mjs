@@ -26,6 +26,9 @@ export function printHelp() {
            .txt = one script per line; .json = [{text,avatar?,voice?,title?,...}]
   download <video_id> [--res 1080p|720p] [--captions] [--out file.mp4]
   create-photo-avatar <image-path> [--name N]   Avatar III photo avatar → look_id
+  avatar-test --image <pic> --audio <file> --name <N> [--pic-drive URL] [--source-pic P] [--watermark removed|none]
+           photo avatar → Avatar III video → credit check (exit 2 if anything was used)
+           → "Test Avatar" folder → row in pipelines/video/heygen/avatar-test/avatar-tests.json
   photo-to-video --image <img.jpg> --audio <audio.mp3> [--name N] [--title T] [--orientation O]
            creates an avatar from a photo and immediately renders it over audio
   studio-render --avatar <look_id> [--title T]  AI Studio render over the fixed 1-min audio

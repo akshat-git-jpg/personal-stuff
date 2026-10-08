@@ -61,7 +61,7 @@ test("3. Command parity: dispatch table keys", () => {
     "auth-check", "list-avatars", "list-looks", "limits", "usage", "generate",
     "generate-from-audio", "generate-from-template", "template-engine", "batch", "create-photo-avatar",
     "photo-to-video", "studio-render", "studio-render-status", "list-voices",
-    "list-videos", "status", "delete-video", "delete-avatar", "move-video", "credits", "raw", "download"
+    "list-videos", "status", "delete-video", "delete-avatar", "avatar-test", "move-video", "credits", "raw", "download"
   ]);
   
   const dispatchCode = fs.readFileSync(resolve(PKG_ROOT, "src/cli/dispatch.mjs"), "utf8");

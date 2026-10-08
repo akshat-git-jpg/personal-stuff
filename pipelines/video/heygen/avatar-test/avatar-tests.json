@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "date": "2026-10-09",
+      "avatar_name": "helen office clean",
+      "avatar_id": "b4be8dff6e2649128f43594f1fb85848",
+      "video_title": "helen office clean - fill fix test (heygen3)",
+      "video_id": "37dbc8428a054d46ad6969845f5460ce",
+      "video_status": "completed",
+      "audio": "everbee-promo-code s01.mp3 (coupon intro, 18.8s)",
+      "pic_local": "/Users/kbtg/kb-scratch/avatar-tests/helen-office-clean.png",
+      "pic_source": "/Users/kbtg/kb-scratch/avatar-tests/helen-office-original.png",
+      "pic_drive": "https://drive.google.com/file/d/1Cs1IHQ4gqZvmZ4P0D8eSVheKljsgLj-2",
+      "pic_source_drive": "https://drive.google.com/file/d/1ZknMOUP_30qyrOqfFh8166v6u1XUSSvn",
+      "watermark": "removed",
+      "credits_used": 0,
+      "in_test_folder": true,
+      "note": "Made by hand before the avatar-test command existed. Older test videos of this avatar are in Test Avatar too."
+    }
+  ]
+}
