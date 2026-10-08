@@ -59,17 +59,68 @@ same fix. The "same start, different words" result (0.60 and 0.74) favours the c
    slice start by 0.1 to 0.3 s, or add a little silence before it.
 5. **Keep full-screen avatar sections short** (about 10 to 25 s), and cut on pauses.
 
-## Picking a photo
+## Making a new avatar: the checklist
 
-- **Cover the neck.** Avatar III moves the head while the shoulders stay almost still, and it bends
-  the neck to join them. On a bare neck you can see throat lines appear and stretch. Maria with
-  thin straps: the head moved 4.2 times as much as the shoulders. Maria in a turtleneck (look
-  `9c14386e…`): no skin stretching was visible, because the collar hides the join. Helen's sweater
-  and hair did the same job.
-- **Head straight, calm face, eyes at the camera.**
-- **Mouth closed or only slightly open** (reviewer advice; not tested yet). The mouth is painted
-  from the photo.
-- **Even, front light.** No hands near the face.
+Do all of these for every new avatar. Each line comes from a test above or from the reviewer.
+
+**The photo**
+1. **Cover the neck.** Turtleneck, high collar, or hair over the neck. Avatar III moves the head while
+   the shoulders stay almost still, and it bends the neck to join them. A bare neck shows throat lines
+   that appear and stretch (Maria with thin straps: head moved 4.2 times as much as the shoulders;
+   Helen in a sweater: 2.0 times). Trade-off: Maria in a turtleneck had stiller shoulders and can look
+   a little stiff.
+2. **Head straight, eyes into the lens, calm face.** A slight smile at most. The motion clip adds
+   expression on top of the photo, so a strong expression in the photo gets stronger.
+3. **Mouth closed or only slightly open.** The mouth is painted from the photo (reviewer advice; not
+   tested yet).
+4. **Even, soft front light.** No hard shadows on the face.
+5. **Nothing near the face.** No hands, microphone, glasses glare, or hair across the mouth.
+6. **Sharp and large.** Face in focus, at least 1080 px tall (Maria at 2752x1536 worked well).
+7. **Head and shoulders, with room around the head.** The corner circle zooms 1.3 to 1.4 times on
+   the face; the frame must not cut the hair or chin at that zoom.
+8. **Plain background.** A clean office or wall; nothing that moves or draws the eye.
+9. **No watermark.** Google Flow pictures carry one. Remove it and check the result before upload.
+
+**The free test (avatar-test skill, Avatar III, 0 credits, credits checked before and after)**
+10. Render the standard 18 s intro and watch it in HeyGen. The owner judges the look here.
+11. Watch the neck and the shoulders. If the neck stretches, change the photo, not the edit.
+12. Render a 60 s test once. Note which render seconds look calm and how long the motion loop is
+    (helen office clean: about 37.7 s). Render second 0 is the safe start we know.
+13. Pick the circle zoom from an options picture (eyes open), then add it to
+    `AVATAR_FOCUS_BY_TEMPLATE` in `visuals-flow/lib/effects/bubble.mjs`.
+14. Add the avatar to `registry.json` (`avatar_id` for a photo avatar).
+
+**Using it in a video**
+15. Every full-screen section gets its own render, 10 to 25 s, cut on pauses. One long render only
+    for the small corner circle.
+16. Output 25 fps (the edit flow default since 2026-10-09). Never resample the avatar.
+17. Check lip timing after every cut, within one frame (40 ms).
+18. Stay on Avatar III. Avatar IV only with the owner's OK for that batch.
+
+## Owner decisions (2026-10-09)
+
+- **25 fps is the default for the whole edit flow**, not only coupon videos
+  (`DEFAULT_CANVAS` in `visuals-flow/lib/kit/edit-plan.mjs`). Cards, intro kit and intro film render
+  at 25 too. Side effect: 30 or 60 fps screen recordings lose some frames; the avatar matters more.
+- **Coupon videos render intro and outro separately again** (`oneRender` removed from the coupon plan).
+- **Lip timing:** the avatar seek now uses where the piece really starts on the frame grid, not the
+  planned time (up to half a frame of slip before).
+- **Finals encode with x264, preset slow, CRF 16** (was the hardware encoder or veryfast/CRF 18,
+  which softened the face). Drafts keep the fast settings.
+- **Loudness:** the final stays at -14 LUFS, the YouTube level; YouTube plays every video near that
+  level anyway. The HeyGen test only sounded quieter because it was raw. Open check: watch the good
+  test at -14 LUFS and see if it still looks good.
+- **Captions over the full-screen avatar:** left as they are for now.
+
+## Parked: the whole video in short renders
+
+The owner may later want every avatar part, not only full-screen sections, made from short renders.
+Known costs before doing it:
+- Every render opens with the same motion, so back-to-back batches can show the same head move.
+  Hide it with b-roll, a zoom change, or 0.2 to 0.5 s of silence before some batches.
+- At each join the head can jump from mid-move back to the photo pose. Cut on pauses and cover the cut.
+- Each cut needs the lip check (rule 3).
+- Total seconds stay the same. Unknown: whether HeyGen has a minimum charge per render.
 
 ## Still open (free tests)
 
@@ -78,8 +129,8 @@ same fix. The "same start, different words" result (0.60 and 0.74) favours the c
   offset that could be reused?
 - Render the same slice with 0.0 s, 0.2 s and 0.5 s of silence before it, and compare the takes.
 - Shift the voice 40 ms later in the final, and see whether the lip sync looks better.
-- The final intro was 12.6 dB louder than the HeyGen test. Does matching the loudness change how
-  it reads?
+- The final intro was 12.6 dB louder than the HeyGen test. Does the good test still look good at
+  -14 LUFS?
 
 ## Scripts
 
