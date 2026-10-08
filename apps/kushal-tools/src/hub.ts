@@ -26,9 +26,6 @@ const SECTIONS: Section[] = [
     apps: [
       app("Dayboard", "dayboard.agrolloo.com"),
       app("Lists", "lists.agrolloo.com"),
-      app("Trip Planner", "trips.agrolloo.com"),
-      app("Closet", "closet.agrolloo.com"),
-      app("Kushal Docs", "kushal-docs.agrolloo.com"),
     ],
   },
   {
@@ -46,6 +43,14 @@ const SECTIONS: Section[] = [
     apps: [
       app("Gym Tracker", "kushal-gym.agrolloo.com"),
       app("Sparkly Gym", "sparkly-poop.agrolloo.com"),
+    ],
+  },
+  {
+    title: "Personal",
+    apps: [
+      app("Trip Planner", "trips.agrolloo.com"),
+      app("Closet", "closet.agrolloo.com"),
+      app("Kushal Docs", "kushal-docs.agrolloo.com"),
     ],
   },
   {
