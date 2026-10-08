@@ -36,9 +36,9 @@ function ticks(peak: number) {
 }
 
 /**
- * Line chart, one point per month: a solid line for what was paid that month (payout months
- * spike up and get a dot) and a dashed line for normal pay. Promotions and hikes are vertical
- * markers. Hover, tap or arrow keys move a crosshair with the month's full numbers.
+ * Line chart of usual monthly pay, one point per month. A payout month adds an amber stem up to
+ * what came in that month. Promotions and hikes are vertical markers. Hover, tap or arrow keys
+ * move a crosshair with the month's full numbers.
  */
 export default function MonthChart({ bars, labels, marks: markList }: Props) {
   const box = useRef<HTMLDivElement>(null)
@@ -70,9 +70,7 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
   const H = BOT + XAXIS
   const y = (v: number) => BOT - (v / t.max) * PLOT
 
-  const line = (f: (b: Bar) => number) => bars.map((b, i) => `${i ? 'L' : 'M'}${cx(i).toFixed(1)},${y(f(b)).toFixed(1)}`).join('')
-  const paid = line((b) => b.base + b.extra)
-  const normal = line((b) => b.base)
+  const pay = bars.map((b, i) => `${i ? 'L' : 'M'}${cx(i).toFixed(1)},${y(b.base).toFixed(1)}`).join('')
 
   const pick = (e: PointerEvent<SVGRectElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
@@ -141,20 +139,22 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
               </text>
             </g>
           ))}
-          <path d={normal} className="line-normal" />
-          <path d={paid} className="line-paid" />
+          <path d={pay} className="line-pay" />
           {bars.map((b, i) =>
             b.extra > 0 ? (
-              <circle key={b.month} data-testid="payout-dot" cx={cx(i)} cy={y(b.base + b.extra)} r={4.5} className="dot-payout" />
-            ) : (
-              <circle key={b.month} data-testid="month-point" cx={cx(i)} cy={y(b.base)} r={2.75} className="dot-month" />
-            ),
+              <g key={b.month} data-testid="payout-dot">
+                <line x1={cx(i)} x2={cx(i)} y1={y(b.base)} y2={y(b.base + b.extra)} className="stem-payout" />
+                <circle cx={cx(i)} cy={y(b.base + b.extra)} r={4} className="dot-payout" />
+              </g>
+            ) : null,
           )}
+          {bars.map((b, i) => (
+            <circle key={b.month} data-testid="month-point" cx={cx(i)} cy={y(b.base)} r={2.75} className="dot-month" />
+          ))}
           {h && hover !== null && (
             <g className="crosshair">
               <line x1={cx(hover)} x2={cx(hover)} y1={TOP} y2={BOT} />
-              <circle cx={cx(hover)} cy={y(h.base)} r={4} className="hover-normal" />
-              <circle cx={cx(hover)} cy={y(h.base + h.extra)} r={5} className="hover-paid" />
+              <circle cx={cx(hover)} cy={y(h.base)} r={5} className="hover-pay" />
             </g>
           )}
           <rect
@@ -172,20 +172,20 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
           <div className="chart-tip" data-testid="chart-tip" style={{ left: tipLeft, top: TOP + 6 }} role="status">
             <div className="tip-month">{monLabel(h.month)}</div>
             <div className="tip-row">
-              <i className="key-paid" />
-              <b>{inr(h.base + h.extra)}</b>
-              <span>paid</span>
-            </div>
-            <div className="tip-row">
-              <i className="key-normal" />
               <b>{inr(h.base)}</b>
-              <span>normal</span>
+              <span>monthly pay</span>
             </div>
             {h.extra > 0 && (
-              <div className="tip-row tip-payout">
-                <b>+{inr(h.extra)}</b>
-                <span>{(labels[h.month] ?? ['payout']).join(' + ').toLowerCase()}</span>
-              </div>
+              <>
+                <div className="tip-row tip-payout">
+                  <b>+{inr(h.extra)}</b>
+                  <span>{(labels[h.month] ?? ['payout']).join(' + ').toLowerCase()}</span>
+                </div>
+                <div className="tip-row tip-total">
+                  <b>{inr(h.base + h.extra)}</b>
+                  <span>in bank</span>
+                </div>
+              </>
             )}
             {hMarks.map((m) => (
               <div key={m.type} className={`tip-row ${m.type === 'promotion' ? 'tip-promo' : 'tip-hike'}`}>
