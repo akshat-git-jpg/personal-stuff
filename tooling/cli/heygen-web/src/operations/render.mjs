@@ -74,13 +74,25 @@ export async function submitAudioGenerate(auth, { avatar, audioPath, engine, tit
   return { video_id: outVid };
 }
 
-// The photo's real pixel size; for a photo avatar the look id is also its group id.
+// The photo's real pixel size. A one-look avatar's look id is its group id; any other look is found by
+// scanning the avatar groups.
 async function lookSize(auth, avatar) {
+  const looksOf = async (group_id) => {
+    const r = await call(auth, endpoints.avatarLookList, { group_id }, { soft: true });
+    return (r?.data?.avatar_looks ?? []).map((x) => x.look ?? x);
+  };
+  const size = (l) => (l?.image_width && l?.image_height ? { w: l.image_width, h: l.image_height } : null);
   try {
-    const r = await call(auth, endpoints.avatarLookList, { group_id: avatar });
-    const looks = (r?.data?.avatar_looks ?? []).map((x) => x.look ?? x);
-    const l = looks.find((x) => x.id === avatar) ?? looks[0];
-    if (l?.image_width && l?.image_height) return { w: l.image_width, h: l.image_height };
+    const looks = await looksOf(avatar);
+    const s = size(looks.find((x) => x.id === avatar) ?? looks[0]);
+    if (s) return s;
+  } catch {}
+  try {
+    const groups = (await call(auth, endpoints.avatarGroupPrivateList, { limit: 100, page: 1 }, { soft: true }))?.data?.avatar_groups ?? [];
+    for (const g of groups.filter((g) => g.num_looks > 1)) {
+      const s = size((await looksOf(g.id).catch(() => [])).find((x) => x.id === avatar));
+      if (s) return s;
+    }
   } catch {}
   console.error("(avatar size unknown: using the default scale, which can pillarbox)");
   return null;

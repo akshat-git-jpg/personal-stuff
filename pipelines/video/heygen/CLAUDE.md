@@ -29,6 +29,11 @@ own avatar assets themselves. Created 2026-07-12 (consolidated from `video/voice
 `RENDERS.md` row pointing at its file.
 Renders live in `~/kb-scratch/video/heygen/`. (The media-board gallery was retired 2026-08-25.)
 
+## Quality rules (read before any avatar render)
+
+[`AVATAR-III-QUALITY.md`](AVATAR-III-QUALITY.md): Avatar III head motion follows the render clock, not the words,
+so every full-screen section gets its own render; never resample the 25 fps avatar; cover the neck in the photo.
+
 ## How to generate
 
 - **HeyGen (today's path):** `tooling/cli/heygen-web` — read its CLAUDE.md first (auth via

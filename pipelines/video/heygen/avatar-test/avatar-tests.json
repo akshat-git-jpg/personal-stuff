@@ -16,6 +16,22 @@
       "credits_used": 0,
       "in_test_folder": true,
       "note": "Made by hand before the avatar-test command existed. Older test videos of this avatar are in Test Avatar too."
+    },
+    {
+      "date": "2026-10-08",
+      "avatar_name": "maria turtleneck",
+      "avatar_id": "9c14386e3e2c44b0a4ba9abdd55b17e3",
+      "video_title": "maria turtleneck - test 2026-10-08",
+      "video_id": "901a6bbd3d774f659724c1875a7adea6",
+      "video_status": "completed",
+      "audio": "everbee-coupon-intro.mp3",
+      "pic_local": "/Users/kbtg/kb-scratch/avatar-tests/maria-turtleneck-clean.png",
+      "pic_source": "/Users/kbtg/kb-scratch/avatar-tests/maria-turtleneck-original.png",
+      "pic_drive": "https://drive.google.com/file/d/1yXsX-HGTPkrCMWORSea_OnR777ixxFLK",
+      "pic_source_drive": "https://drive.google.com/file/d/1WiRkYhqcmuO3pklAzjEMOZbnSXQoq8fs",
+      "watermark": "removed",
+      "credits_used": 0,
+      "in_test_folder": true
     }
   ]
 }
