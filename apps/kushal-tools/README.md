@@ -12,7 +12,7 @@ strings. That's deliberate: a static asset would be served *before* the Worker
 could check the password, so the page itself wouldn't be protected. Rendering in
 the Worker lets the gate wrap the whole thing.
 
-To add an app to the hub, add one line to the `APPS` array in `src/hub.ts`.
+To add an app to the hub, add one line to the right group in the `SECTIONS` array in `src/hub.ts`.
 Nothing else changes.
 
 ## Layout
@@ -21,7 +21,7 @@ Nothing else changes.
   (`expiry.HMAC-SHA256(SESSION_SECRET, expiry)`, no KV/DB). Copied from the
   yt-analytics app.
 - `src/hub.ts` — `renderHub()` (the card grid) and `renderLogin()` (the gate),
-  plus the `APPS` list.
+  plus the `SECTIONS` list (cards grouped by section).
 - `src/index.ts` — Hono routes: `POST /api/login`, `POST /api/logout`, and a
   catch-all that serves the hub when the cookie is valid, else the login page.
 
