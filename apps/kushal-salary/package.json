@@ -14,6 +14,7 @@
     "db:remote": ". ../../scripts/node22-path.sh && wrangler d1 migrations apply DB --remote",
     "smoke": "bash scripts/smoke.sh",
     "shoot": "node scripts/shoot.mjs",
+    "e2e": "node scripts/e2e.mjs",
     "deploy": ". ../../scripts/node22-path.sh && npm run build && wrangler deploy",
     "parse": "node scripts/parse-slip.mjs"
   },

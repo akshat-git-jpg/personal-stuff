@@ -143,4 +143,11 @@ N="$(count 'o.months.length + "/" + o.months[0].has_pdf + "/" + o.months[0].item
 CODE="$(curl -sS -o /dev/null -w '%{http_code}' "${BASE}/api/nope")"
 [ "$CODE" = "404" ] && pass "11 unknown api is 404" || fail "11 /api/nope gave ${CODE}"
 
+# 12. a click on a payslip is a page visit; the Worker must answer it, not the SPA shell
+NAV=(-H 'Sec-Fetch-Mode: navigate' -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html,application/xhtml+xml')
+CT="$(curl -sS -b "$JAR" "${NAV[@]}" -o "$OUT" -w '%{http_code} %{content_type}' "${BASE}/api/months/2025-05/pdf")"
+[ "$CT" = "200 application/pdf" ] || fail "12 page visit to a month PDF gave '${CT}'"
+CT="$(curl -sS -b "$JAR" "${NAV[@]}" -o "$OUT" -w '%{http_code} %{content_type}' "${BASE}/api/notes/2025-05-02-letter/pdf")"
+[ "$CT" = "200 application/pdf" ] && pass "12 page visits open the PDFs" || fail "12 page visit to a note PDF gave '${CT}'"
+
 echo "SMOKE OK"

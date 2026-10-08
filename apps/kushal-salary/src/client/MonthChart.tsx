@@ -106,6 +106,7 @@ export default function MonthChart({ bars, labels, marks: markList }: Props) {
     const x = cx(hover)
     if (x < el.scrollLeft + PADL + step) el.scrollLeft = x - PADL - step
     else if (x > el.scrollLeft + el.clientWidth - step) el.scrollLeft = x - el.clientWidth + step
+    onScroll() // place the tooltip against the new scroll now, not on the next scroll event
   }, [hover])
 
   // Above the month's top dot when it fits; else beside it, so the box never hides the month.
