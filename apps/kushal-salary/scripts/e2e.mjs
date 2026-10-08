@@ -4,10 +4,10 @@
 // Usage: E2E_PIN=<pin> node scripts/e2e.mjs [url]   (default http://localhost:8787)
 // Exit 0 = every check passed. Needs months with PDFs in the target (a local copy or prod).
 import puppeteer from 'puppeteer-core'
+import { launchOptions } from '../../scripts/lib/chrome.mjs'
 
 const BASE = (process.argv[2] || 'http://localhost:8787').replace(/\/$/, '')
 const PIN = process.env.E2E_PIN
-const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 if (!PIN) {
   console.error('set E2E_PIN')
   process.exit(2)
@@ -19,7 +19,7 @@ const check = (ok, what) => {
   if (!ok) failed++
 }
 
-const browser = await puppeteer.launch({ executablePath: CHROME, headless: true })
+const browser = await puppeteer.launch(launchOptions())
 
 /** Open `href` the way a click does (a top-level page visit) and report what came back. */
 async function visit(href) {
