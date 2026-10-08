@@ -104,7 +104,8 @@ Do all of these for every new avatar. Each line comes from a test above or from 
   at 25 too. Side effect: 30 or 60 fps screen recordings lose some frames; the avatar matters more.
 - **Coupon videos render intro and outro separately again** (`oneRender` removed from the coupon plan).
 - **Lip timing:** the avatar seek now uses where the piece really starts on the frame grid, not the
-  planned time (up to half a frame of slip before).
+  planned time (up to half a frame of slip before). Measured on the EverBee rebuild: lips 18 ms behind the
+  voice (HeyGen's own lag), down from about 40 ms. Nearer is not possible at 25 fps.
 - **Finals encode with x264, preset slow, CRF 16** (was the hardware encoder or veryfast/CRF 18,
   which softened the face). Drafts keep the fast settings.
 - **Loudness:** the final stays at -14 LUFS, the YouTube level; YouTube plays every video near that
