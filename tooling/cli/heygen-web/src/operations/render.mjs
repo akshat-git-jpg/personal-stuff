@@ -48,9 +48,14 @@ export async function submitAudioGenerate(auth, { avatar, audioPath, engine, tit
     __WIDTH__: width, __HEIGHT__: height, __SCALE__: scale,
   };
 
+  // The payloads carry the HAR avatar's 1792x2400 size; a wide photo sized that way pillarboxes.
+  const look = await lookSize(auth, avatar);
+  if (look) tokens.__SCALE__ = Math.max(width / look.w, height / look.h);
+
   const saveBody = fillTemplate("generate-audio-save.json", tokens);
   const saveAudioMeta = saveBody.metadata.find((m) => m.type === "audio");
   saveAudioMeta.words = audio.words; saveAudioMeta.duration = audio.duration;
+  if (look) setAvatarSize(saveBody.metadata.find((m) => m.type === "avatar"), look);
   await call(auth, endpoints.textDraftSave, {}, { xPath: editorPath, body: saveBody });
 
   const genBody = fillTemplate("generate-audio-generate.json",
@@ -60,12 +65,32 @@ export async function submitAudioGenerate(auth, { avatar, audioPath, engine, tit
   const audioElId = genTextDraft.script.timeline[0];
   genMeta[audioElId].words = audio.words;
   genMeta[audioElId].duration = audio.duration;
+  if (look) setAvatarSize(Object.values(genMeta).find((m) => m.type === "avatar"), look);
 
   const gen = await call(auth, endpoints.textDraftGenerate, {}, { xPath: editorPath, body: genBody });
   const outVid = gen?.data?.video_id;
   if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
   appendRenderLog({ avatar, audio: basename(audioPath), video_id: outVid, title: title || "generate-from-audio" });
   return { video_id: outVid };
+}
+
+// The photo's real pixel size; for a photo avatar the look id is also its group id.
+async function lookSize(auth, avatar) {
+  try {
+    const r = await call(auth, endpoints.avatarLookList, { group_id: avatar });
+    const looks = (r?.data?.avatar_looks ?? []).map((x) => x.look ?? x);
+    const l = looks.find((x) => x.id === avatar) ?? looks[0];
+    if (l?.image_width && l?.image_height) return { w: l.image_width, h: l.image_height };
+  } catch {}
+  console.error("(avatar size unknown: using the default scale, which can pillarbox)");
+  return null;
+}
+
+export function setAvatarSize(meta, { w, h }) {
+  if (!meta) return;
+  meta.width = meta.natural_width = w;
+  meta.height = meta.natural_height = h;
+  if (meta.preview?.normal?.size) meta.preview.normal.size = { width: w, height: h };
 }
 
 export async function getTemplate(auth, templateId) {
