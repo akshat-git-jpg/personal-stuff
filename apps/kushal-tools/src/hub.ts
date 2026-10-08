@@ -58,6 +58,7 @@ const SECTIONS: Section[] = [
     apps: [
       app("Tutorials Tracker", "tutorials-tracker.agrolloo.com"),
       app("Founders Tracker", "founders.agrolloo.com"),
+      app("Video Review", "review.agrolloo.com"),
       app("Hyperframes Renderer", "render2.agrolloo.com", "infra"),
     ],
   },

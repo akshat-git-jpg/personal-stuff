@@ -8,6 +8,7 @@
 - YT Analytics (link click dashboard) — https://yt-analytics.agrolloo.com (password-gated)
 - Kushal Money (personal ledger: SBI savings + SBI Card + Tata Neu + Amazon Pay ICICI, every payment tagged) — https://kushal-income.agrolloo.com (password-gated) — refreshed on demand by the `my-income` skill (`python3 -m ledger.run` in `pipelines/personal-finance`), which posts to the Worker's D1 `kushal-money`; the data is never committed; app at `apps/kushal-income`
 - Kushal Health (blood test reports over time: status per marker, trends, a verdict per report, original PDFs) — https://kushal-health.agrolloo.com (PIN-gated) — reports added on demand by the `kushal-health` skill; health data is never committed; app at `apps/kushal-health`
+- Video Review (frame.io-style review of freelancer edits: the editor uploads 720p versions by secret link, the owner leaves timed notes with an optional dot, then marks one Final) — https://review.agrolloo.com (PIN for the owner, secret link per project for editors) — app at `apps/video-review`
 - Kushal Salary (pay month by month with one-time payouts stacked on top, plus a timeline of promotions, hikes, payouts and HR mail notes; original payslip PDFs) — https://kushal-salary.agrolloo.com (PIN-gated) — payslips added on demand by the `kushal-salary` skill; salary data is never committed; app at `apps/kushal-salary`
 - YT Income (revenue by tool, tallied against the bank) — https://yt-income.agrolloo.com (password-gated)
 - Founders tracker (Khushi + Kushal action items) — https://founders.agrolloo.com (password-gated)
