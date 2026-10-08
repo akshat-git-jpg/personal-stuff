@@ -9,9 +9,9 @@
       "start": 17.82,
       "end": 36.66,
       "duration": 18.84,
-      "status": "from-render",
-      "from": "corner-01",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/everbee-promo-code/s01.mp4"
+      "status": "rendered",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/everbee-promo-code/helen/s01.mp4",
+      "audio": "slices-avatar/s01.mp3"
     },
     {
       "id": "s02",
@@ -19,9 +19,9 @@
       "start": 244.78,
       "end": 270.79,
       "duration": 26.01,
-      "status": "from-render",
-      "from": "corner-01",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/everbee-promo-code/s02.mp4"
+      "status": "rendered",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/everbee-promo-code/helen/s02.mp4",
+      "audio": "slices-avatar/s02.mp3"
     },
     {
       "id": "corner-01",
