@@ -203,6 +203,16 @@ Hostinger VPS (2 vCPU, 7.8 GB RAM, no GPU, no swap) + simple web UI for a non-te
 upload video → review/fix auto-transcript in a textbox → generate → download synced video.
 Async one-job-at-a-time queue. Add swap before heavy jobs.
 
+## `word-check/` — the word pronunciation check app (2026-10-09)
+
+Local app, port 4371, listed in the local apps dashboard as **word pronunciation
+check**. `serve.mjs` (Node built-ins) serves the API, the audio and the built React
+page in `ui/` (`node serve.mjs --build` installs and builds it). It reads and writes
+only `~/kb-scratch/video/tts/word-check/` (`queue.json`, `audio/`, `approved.json`;
+`WORD_CHECK_DIR` overrides). The tracked `respell.json` changes only through
+`word-check.mjs promote`, run in a workspace and committed. The order it runs in is
+the `yt-vo` skill's **The flow** table.
+
 ## `lib/` — the shared voiceover client (plan 251, 2026-08-26)
 
 The per-section IndexTTS-2 client used to live in
@@ -216,6 +226,7 @@ anything voice-related and a consuming pipeline must not own the engine.
 | `vo-lock.mjs` | CLI + `lockScript`. `node lib/vo-lock.mjs <slug> --root <dir> [--only sNN]` |
 | `vo-state.mjs` | `lockSection` — the lock preconditions (no flags, non-empty `spoken_text`, a take on disk) |
 | `vo-prep.mjs` | The prep check: refuses dashes, semicolons, ellipses, symbols, brackets, digits, 3+ letter caps and open flags in VO text after respell. `node lib/vo-prep.mjs <slug> --root <dir> [--seed]` or `--file x.vo.txt`. `vo-synth` runs the same check before any request |
+| `word-check.mjs` | The word pronunciation check: queue of risky words per job, one audio file per spelling option, owner approvals in `~/kb-scratch/video/tts/word-check/approved.json`, `promote` into `respell.json`. `wordGate` is the check `vo-prep` and `vo-synth` share |
 | `vo-say.mjs` | CLI for text with no `script.json`: `node lib/vo-say.mjs (--text t \| --file f) --out x.mp3`. Chunks, applies respell, joins |
 | `respell.mjs` | `loadRespell(videoPath)` — shared `respell.json` here, merged under the video's own map |
 | `spoken.mjs` | `deriveSpoken(display_text, respellMap)` — applies the respell map |

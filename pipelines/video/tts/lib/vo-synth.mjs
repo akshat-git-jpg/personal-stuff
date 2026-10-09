@@ -7,6 +7,7 @@ import { scanFlags } from "./flags.mjs";
 import { deriveSpoken } from "./spoken.mjs";
 import { loadRespell } from "./respell.mjs";
 import { lintSpoken } from "./vo-prep.mjs";
+import { wordGate } from "./word-check.mjs";
 
 // Section id -> wav name. Keeps the take identifiable without a DB.
 export function takeName(section) {
@@ -132,6 +133,12 @@ if (isMain) {
 
   if (script.stage !== "tts" && script.stage !== "polished") {
     console.error(`stage must be polished or tts (got ${script.stage})`);
+    process.exit(1);
+  }
+
+  const gate = wordGate(slug);
+  if (!gate.ok) {
+    console.error(`word check: ${gate.reason}`);
     process.exit(1);
   }
 

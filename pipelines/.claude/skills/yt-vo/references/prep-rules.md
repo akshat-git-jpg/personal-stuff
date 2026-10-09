@@ -14,7 +14,7 @@ those fixes has to be in the VO text before the engine sees it.
 |---|---|---|
 | The final script | `script.md` and `display_text` in `script.json` | captions, the editor, the owner. Never touched by prep |
 | The VO text | `spoken_text` in `script.json`, or `<name>.vo.txt` for a doc | the voice engine |
-| Pronunciation | `videos/<slug>/respell.json` (or `--respell` for a doc), and the shared `pipelines/video/tts/respell.json` | applied at synth time, on top of the VO text |
+| Pronunciation | the shared `pipelines/video/tts/respell.json`, filled by the owner's picks in the word pronunciation check (`approved.json` until promoted) | applied at synth time, on top of the VO text |
 
 The VO text keeps normal spelling for names (`HeyGen`, not `hay-jen`). The respell
 map swaps them in at synth time, so a fix to the shared map reaches every video.
@@ -46,6 +46,10 @@ Punctuation is the only pacing control that works on every engine.
 
 ## 3 · The pronunciation map
 
+You never write the map yourself. You **propose** 3 options per risky word, the
+owner hears each one in the word pronunciation check and picks; his pick lands in
+the shared map (SKILL.md, section **words**). Use these rules for the options.
+
 `respell.json` maps a problem word to a plain-letters respelling:
 
 ```json
@@ -65,8 +69,8 @@ Punctuation is the only pacing control that works on every engine.
 - **Spelled-out acronyms are capitals joined by hyphens** (`"D-ID": "D-I-D"`).
   Never `dee eye dee`: the engine pauses between the words and it sounds robotic
   (owner-picked by ear, 2026-09-28).
-- **Check the shared `pipelines/video/tts/respell.json` first.** Do not repeat its
-  words. A word that will recur across videos goes in the shared map instead.
+- **Words already in the shared map are approved.** The word check drops them;
+  never propose them again. A word kept "as written" is stored as itself.
 - Matching is whole-word and case-sensitive, longest key first.
 - **Never write a respelling into the VO text.** `hay-jen` typed into
   `spoken_text` gets respelled a second time if the map ever changes.

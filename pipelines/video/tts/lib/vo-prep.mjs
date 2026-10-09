@@ -5,6 +5,7 @@ import { parseArgs } from "node:util";
 import { scanFlags } from "./flags.mjs";
 import { deriveSpoken } from "./spoken.mjs";
 import { loadRespell } from "./respell.mjs";
+import { wordGate } from "./word-check.mjs";
 
 // What the engine must never see. Checked on the text AFTER the respell map runs.
 const RULES = [
@@ -40,6 +41,11 @@ export function checkScript(script, respellMap = {}) {
     problems: lintSpoken(sec.spoken_text || "", respellMap),
   }));
   return { ok: sections.every((s) => s.problems.length === 0), sections };
+}
+
+// The word-check job id for a doc: its file name without .vo.txt / .txt.
+export function fileJob(file) {
+  return path.basename(file).replace(/(\.vo)?\.txt$/, "");
 }
 
 // Copies display_text into every empty spoken_text, so prep starts from the final script.
@@ -94,8 +100,11 @@ if (isMain) {
     const respell = { ...loadRespell(null), ...(values.respell ? JSON.parse(await fs.readFile(values.respell, "utf8")) : {}) };
     const problems = lintSpoken(text, respell);
     printProblems("", problems);
-    console.log(problems.length ? `${problems.length} problem(s) in ${values.file}` : `${values.file}: ready for say`);
-    process.exit(problems.length ? 1 : 0);
+    const gate = wordGate(fileJob(values.file));
+    console.log(`word check: ${gate.reason}`);
+    const ready = !problems.length && gate.ok;
+    console.log(ready ? `${values.file}: ready for say` : `${values.file}: ${problems.length} text problem(s), word check ${gate.ok ? "done" : "not done"}`);
+    process.exit(ready ? 0 : 1);
   }
 
   const scriptPath = path.join(values.root, "videos", slug, "script.json");
@@ -117,6 +126,9 @@ if (isMain) {
     printProblems(s.id, s.problems);
   }
   const bad = sections.filter((s) => s.problems.length).length;
-  console.log(ok ? `all ${sections.length} sections ready for synth` : `${bad} of ${sections.length} sections still need prep`);
-  process.exit(ok ? 0 : 1);
+  const gate = wordGate(slug);
+  console.log(`word check: ${gate.reason}`);
+  console.log(ok ? `all ${sections.length} sections have clean VO text` : `${bad} of ${sections.length} sections still need prep`);
+  console.log(ok && gate.ok ? "ready for synth" : "not ready for synth");
+  process.exit(ok && gate.ok ? 0 : 1);
 }
