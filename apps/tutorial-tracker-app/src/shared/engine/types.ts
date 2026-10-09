@@ -69,7 +69,7 @@ export interface StageDef {
 
   /** The deliverable field. Default: { id:`${stage}_link`, slot:"work_link", type:"url", required:"submit" }. */
   work?: FieldDef;
-  /** Rare extra fields beyond the deliverable (e.g. Upload's short_links / actual_links). */
+  /** Rare extra fields beyond the deliverable (e.g. Upload's yt_upload_date). */
   extra?: FieldDef[];
 
   /** Brief-only: which card meta fields this stage shows/collects (Topic). */

@@ -53,7 +53,7 @@ export interface StageRecord {
   instruction?: string;
   eta?: string;
   feedback?: string;
-  extra_json?: string;        // stage extras (e.g. short_links, actual_links, yt_upload_date)
+  extra_json?: string;        // stage extras (e.g. yt_upload_date)
   status_since?: string;
 }
 

@@ -69,8 +69,6 @@ export const standard: PipelineDef = {
       work: { id: "yt_link", label: "YouTube link", type: "url", slot: "work_link", required: "submit" },
       extra: [
         { id: "yt_upload_date", label: "Upload date", type: "date" },
-        { id: "short_links", label: "Short links", type: "textarea" },
-        { id: "actual_links", label: "Actual links", type: "textarea" },
       ],
       cols: { status: "yt_upload_status", assignee: "uploader_email", work_link: "yt_link", eta: "yt_eta" },
     },
