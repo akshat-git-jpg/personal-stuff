@@ -8,7 +8,8 @@ import { PROTECTED_ADMIN_EMAIL } from "../shared/engine/registry";
 import { holdsRoleInSystem, effectiveRoles } from "../shared/engine/memberships";
 import { pipeOf, stageByIdIn, statusOf, showColumns, editColumns, requiredToApprove, requiredToSubmitFrom, missingColumns, colOf, isReviewable, feedbackColOf, isBrief, isStageComplete, isGateOpen, holderOf, sinceOf, type RoleKind } from "./stages";
 import { applyTransition, updateCell, displayName, personLabel, getCardEvents, getCachedChannels, type BoardRow, type CardEvent } from "./api";
-import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl } from "./labels";
+import { fieldLabel, LINK_HINTS, LINK_COLS, urlsIn } from "./labels";
+import { PROJECT_FOLDER } from "../shared/engine/types";
 import { daysSince } from "./pipeline";
 import { StatusPill } from "./Card";
 import { cn } from "@/lib/utils";
@@ -183,8 +184,8 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
       return ( <div key={col} className="space-y-1"> <div className={labelCls}> {displayLabel} {lockReason && <Lock className="size-3 text-muted-foreground" aria-label={lockReason} />} </div> {ETA_COLS.has(col) ? (
             <div className="flex items-center gap-2 text-sm"> {value || <span className="text-muted-foreground/50">—</span>} <EtaBadge value={value} /> </div>
           ) : ASSIGNEE_COLS.has(col) && value ? ( <div className="text-sm"> {displayName(value, names)} <span className="text-xs text-muted-foreground">{value}</span> </div>
-          ) : LINK_COLS.has(col) && isUrl(value) ? ( <div className="flex items-center gap-2 text-sm"> <span className="min-w-0 truncate text-muted-foreground">{value}</span> <a href={value} target="_blank" rel="noopener noreferrer" className="inline-flex shrink-0 items-center gap-0.5 text-primary hover:underline">
-                Open <ExternalLink className="size-3" /> </a> </div>
+          ) : LINK_COLS.has(col) && urlsIn(value).length ? ( <div className="space-y-1"> {urlsIn(value).map((u, i) => ( <div key={i} className="flex items-center gap-2 text-sm"> <span className="min-w-0 truncate text-muted-foreground">{u}</span> <a href={u} target="_blank" rel="noopener noreferrer" className="inline-flex shrink-0 items-center gap-0.5 text-primary hover:underline">
+                Open <ExternalLink className="size-3" /> </a> </div> ))} </div>
           ) : ( <div className={cn("break-words text-sm", MULTILINE_COLS.has(col) && "whitespace-pre-wrap leading-relaxed")}>{value || <span className="text-muted-foreground/50">—</span>}</div>
           )} {lockReason && <div className="text-[11px] text-muted-foreground">{lockReason}</div>} </div>
       ); }
@@ -218,11 +219,13 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
               onChange={(e) => {
                 handleChange(col, e.target.value);
                 void autoSaveField(col, e.target.value); }} /> {ETA_COLS.has(col) && <EtaBadge value={value} />} </div>
+        ) : col === PROJECT_FOLDER ? ( <> <textarea id={`f-${col}`} className={cn(inputCls, "h-auto min-h-16 py-2")} value={value} rows={2} placeholder="Paste the Drive folder link (one link per line)…" onChange={(e) => handleChange(col, e.target.value)} onBlur={(e) => void autoSaveField(col, e.target.value)} />
+            {urlsIn(value).map((u, i) => ( <a key={i} href={u} target="_blank" rel="noopener noreferrer" className="mr-3 mt-1 inline-flex items-center gap-0.5 text-xs text-primary hover:underline">
+                Open{urlsIn(value).length > 1 ? ` ${i + 1}` : ""} <ExternalLink className="size-3" /> </a> ))} </>
         ) : MULTILINE_COLS.has(col) ? ( <textarea id={`f-${col}`} className={cn(inputCls, "h-auto min-h-24 py-2")} value={value} rows={5} placeholder={`Write the ${label.toLowerCase()}…`} onChange={(e) => handleChange(col, e.target.value)} onBlur={(e) => void autoSaveField(col, e.target.value)} />
         ) : ( <> <input id={`f-${col}`} type="text" value={value} className={inputCls} placeholder={isLink ? `Enter the ${baseLabel.toLowerCase()} public link…` : `Enter the ${label.toLowerCase()}…`} onChange={(e) => handleChange(col, e.target.value)} onBlur={(e) => void autoSaveField(col, e.target.value)} />
-            {LINK_COLS.has(col) && isUrl(value) && ( <a href={value} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-0.5 text-xs text-primary hover:underline">
-                Open <ExternalLink className="size-3" /> </a>
-            )} </>
+            {LINK_COLS.has(col) && urlsIn(value).map((u, i) => ( <a key={i} href={u} target="_blank" rel="noopener noreferrer" className="mr-3 mt-1 inline-flex items-center gap-0.5 text-xs text-primary hover:underline">
+                Open{urlsIn(value).length > 1 ? ` ${i + 1}` : ""} <ExternalLink className="size-3" /> </a> ))} </>
         )} {LINK_HINTS[col] && <div className="text-[11px] text-muted-foreground">🔗 {LINK_HINTS[col]}</div>} {err && <div className="text-[11px] font-medium text-destructive">{err}</div>} </div>
     ); }
 

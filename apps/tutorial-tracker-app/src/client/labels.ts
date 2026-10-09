@@ -23,6 +23,8 @@ export const LINK_HINTS: Record<string, string> = {
 };
 
 export function isUrl(v: string): boolean { return /^https?:\/\//i.test((v ?? "").trim()); }
+/** Every URL in a link field; a field may hold several, one per line. */
+export function urlsIn(v: string): string[] { return (v ?? "").split(/[\s,]+/).filter(isUrl); }
 
 // ── ETA countdown badge ──────────────────────────────────────────────────────
 // Given an ETA date (yyyy-mm-dd), returns the "days left / days late" chip text

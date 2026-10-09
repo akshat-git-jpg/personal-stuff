@@ -48,3 +48,14 @@ test("links-tab: Mint links lists every video, including ones still in productio
   await expect(mint.getByRole("button", { name: "Preview links" })).toBeDisabled();
   await expect(mint.getByLabel("Add tool")).toBeVisible();
 });
+
+test("project folder takes several links, each with its own Open", async ({ page }) => {
+  await loginAs(page, PERSONAS.sean);
+  await page.getByText("test-standard-thumbnail-to-do", { exact: true }).first().click();
+  const dialog = page.getByRole("dialog");
+  const box = dialog.getByLabel(/Project folder/);
+  await box.fill("https://drive.example.com/folder-a\nhttps://drive.example.com/folder-b");
+  await box.blur();
+  await expect(dialog.getByRole("link", { name: "Open 1" })).toHaveAttribute("href", "https://drive.example.com/folder-a");
+  await expect(dialog.getByRole("link", { name: "Open 2" })).toHaveAttribute("href", "https://drive.example.com/folder-b");
+});
