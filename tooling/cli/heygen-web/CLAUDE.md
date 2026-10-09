@@ -46,7 +46,8 @@ Any `--avatar` / `--template` flag accepts **a slug or a raw id** — `registry.
 - **Re-login without a cURL paste**: on a 401 "session token expire", the owner logs in at app.heygen.com in Arc and the session runs `heygen-web login-from-browser --browser arc`. It decrypts Arc's cookies with the "Arc Safe Storage" Keychain key (first run shows an Allow popup; "Always Allow" makes later runs silent) and rewrites the auth file, keeping the old one as `.bak`. macOS only.
 - **Template engine check**: a heygen3 `generate-from-template` renders the template AS SAVED, so it now refuses (`TEMPLATE-NOT-AVATAR-III`) unless every avatar element is `avatar_iii` with unlimited mode on. `template-engine --template <slug>` is the read-only pre-check (exit 3 = not III). visuals-flow runs it before every batch (2026-09-30).
 - **Hard rule**: **Avatar III by default — it is the only free path.** Avatar IV
-  (`generate-from-template --engine heygen4`, or `--iv` on the shortcut path) is
+  (`generate-from-template --engine heygen4`, `generate-from-audio --engine heygen4`
+  (wired 2026-10-09, same engine patch as templates), or `--iv` on the shortcut path) is
   METERED against the `/1200` monthly second-pool and is allowed ONLY when the
   owner explicitly asks for Avatar IV in the current conversation, per batch
   (first authorized 2026-08-01 for finalizing opusclip-vs-submagic). Before an

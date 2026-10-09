@@ -59,8 +59,8 @@ export async function avatarTest(auth, args) {
   console.error(`credits before: ${before.credits}, seconds ${before.seconds_consumed}/${before.seconds_limit}`);
 
   const look_id = reuse || (await createPhotoAvatar(auth, [image, "--name", name])).look_id;
-  const title = `${name} - test ${new Date().toISOString().slice(0, 10)}`;
-  const { video_id } = await submitAudioGenerate(auth, { avatar: look_id, audioPath: audio, engine: "heygen3", title, orientation: "landscape" });
+  const { video_id, title } = await submitAudioGenerate(auth, { avatar: look_id, audioPath: audio, engine: "heygen3",
+    title: `${name} - test ${new Date().toISOString().slice(0, 10)}`, orientation: "landscape" });
   console.error(`→ video ${video_id} submitted, waiting for the render (credits are billed at the end)`);
   const done = await waitDone(auth, video_id);
 

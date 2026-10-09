@@ -13,7 +13,7 @@ export function printHelp() {
            [--orientation portrait|landscape] [--res 720p|1080p] [--iv]
   generate-from-audio --avatar <avatar_id> --audio <file> [--engine heygen3|heygen4]
            [--orientation landscape|portrait] [--title T]
-           heygen3 (Avatar III) is real (HAR-verified 2026-07-07); heygen4 (Avatar IV) is [TODO][HNS].
+           heygen3 = free Avatar III; heygen4 = metered Avatar IV (needs --allow-spend).
            orientation defaults to landscape (1920x1080) — matches this pipeline's source recordings.
   generate-from-template --template <template_id> --audio <file> [--title T] [--engine heygen3|heygen4]
            renders a TEMPLATE (pre-composed background + avatar bubble, e.g. "Girl 1"/"girl 2")
