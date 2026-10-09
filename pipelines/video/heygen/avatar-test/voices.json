@@ -1,5 +1,5 @@
 {
-  "note": "Short voice samples offered by the avatar-test skill. Audio is media: it lives in ~/kb-scratch and Drive, never in git.",
+  "note": "Short voice samples offered by the yt-avatar skill (test, retest). Audio is media: it lives in ~/kb-scratch and Drive, never in git.",
   "voices": [
     {
       "id": "everbee-coupon",

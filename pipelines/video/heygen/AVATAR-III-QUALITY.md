@@ -81,7 +81,7 @@ Do all of these for every new avatar. Each line comes from a test above or from 
 8. **Plain background.** A clean office or wall; nothing that moves or draws the eye.
 9. **No watermark.** Google Flow pictures carry one. Remove it and check the result before upload.
 
-**The free test (avatar-test skill, Avatar III, 0 credits, credits checked before and after)**
+**The free test (yt-avatar skill, `test` verb, Avatar III, 0 credits, credits checked before and after)**
 10. Render the standard 18 s intro and watch it in HeyGen. The owner judges the look here.
 11. Watch the neck and the shoulders. If the neck stretches, change the photo, not the edit.
 12. Render a 60 s test once. Note which render seconds look calm and how long the motion loop is

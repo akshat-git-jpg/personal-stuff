@@ -249,3 +249,4 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/motion-clock-probe-av2-prefix--adc5a914b4c24ad685b27d620a5e6174) | 3eb3fa79938649068b02fe63320ae794 | probe-prefix.mp3 | `adc5a914b4c24ad685b27d620a5e6174` |
 | [heygen link](https://app.heygen.com/videos/maria-turtleneck-test-2026-10-08--901a6bbd3d774f659724c1875a7adea6) | 9c14386e3e2c44b0a4ba9abdd55b17e3 | everbee-coupon-intro.mp3 | `901a6bbd3d774f659724c1875a7adea6` |
 | [heygen link](https://app.heygen.com/videos/brown-laptop-test-2026-10-08--113fc77f80bd42a5821cd328ef84c5a9) | 51b2cd3f31f8402189ef2c875412260c | modal-tts-sample.mp3 | `113fc77f80bd42a5821cd328ef84c5a9` |
+| [heygen link](https://app.heygen.com/videos/yt-avatar-smoke--a3d1c44140b94b448a00c9584f4e4ee3) | b4be8dff6e2649128f43594f1fb85848 | part.mp3 | `a3d1c44140b94b448a00c9584f4e4ee3` |
