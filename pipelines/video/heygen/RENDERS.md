@@ -250,3 +250,5 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/maria-turtleneck-test-2026-10-08--901a6bbd3d774f659724c1875a7adea6) | 9c14386e3e2c44b0a4ba9abdd55b17e3 | everbee-coupon-intro.mp3 | `901a6bbd3d774f659724c1875a7adea6` |
 | [heygen link](https://app.heygen.com/videos/brown-laptop-test-2026-10-08--113fc77f80bd42a5821cd328ef84c5a9) | 51b2cd3f31f8402189ef2c875412260c | modal-tts-sample.mp3 | `113fc77f80bd42a5821cd328ef84c5a9` |
 | [heygen link](https://app.heygen.com/videos/yt-avatar-smoke--a3d1c44140b94b448a00c9584f4e4ee3) | b4be8dff6e2649128f43594f1fb85848 | part.mp3 | `a3d1c44140b94b448a00c9584f4e4ee3` |
+| [heygen link](https://app.heygen.com/videos/brown-laptop-outro--95d927b161c542e8ab0983f56eafd285) | 51b2cd3f31f8402189ef2c875412260c | brown-laptop-outro.mp3 | `95d927b161c542e8ab0983f56eafd285` |
+| [heygen link](https://app.heygen.com/videos/brown-laptop-intro--8dc04c386f714c548d6045e4ee97eda9) | 51b2cd3f31f8402189ef2c875412260c | brown-laptop-intro.mp3 | `8dc04c386f714c548d6045e4ee97eda9` |

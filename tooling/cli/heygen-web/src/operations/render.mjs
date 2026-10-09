@@ -7,9 +7,14 @@ import { uploadAudio, RESOLUTIONS } from "./audio.mjs";
 import { arg } from "../cli/args.mjs";
 import { appendRenderLog } from "../cli/render-log.mjs";
 
+// Every video title names its model, so the HeyGen list shows which engine made it.
+export function modelTitle(title, iv) {
+  return /avatar (iii|iv)\b/i.test(title) ? title : `${title} - ${iv ? "Avatar IV" : "Avatar III"}`;
+}
+
 export async function submitGenerate(auth, { avatar, voice, text, title, orientation, res, iv }) {
   const body = {
-    video_title: title || "heygen-web video",
+    video_title: modelTitle(title || "heygen-web video", iv),
     video_orientation: orientation || "portrait",
     resolution: res || "720p",
     avatar_id: avatar,
@@ -26,9 +31,8 @@ export async function submitGenerate(auth, { avatar, voice, text, title, orienta
 }
 
 export async function submitAudioGenerate(auth, { avatar, audioPath, engine, title, orientation }) {
-  if (engine !== "heygen3")
-    throw new Error(`[TODO][HNS] generate-from-audio: only heygen3 (Avatar III) is HAR-verified; ` +
-      `heygen4 (Avatar IV) needs its own captured HAR before this path can be wired.`);
+  if (!["heygen3", "heygen4"].includes(engine)) throw new Error(`--engine must be heygen3 or heygen4, got: ${engine}`);
+  title = modelTitle(title || "generate-from-audio", engine === "heygen4");
   const { width, height, scale } = RESOLUTIONS[orientation || "landscape"];
   const audio = await uploadAudio(auth, audioPath);
 
@@ -41,7 +45,7 @@ export async function submitAudioGenerate(auth, { avatar, audioPath, engine, tit
   const editorPath = `/create-v4/${vid}`;
 
   const tokens = {
-    __VIDEO_ID__: vid, __AVATAR_ID__: avatar, __TITLE__: title || "generate-from-audio",
+    __VIDEO_ID__: vid, __AVATAR_ID__: avatar, __TITLE__: title,
     __AUDIO_URL__: audio.transcodeUrl,
     __AUDIO_TEXT__: JSON.stringify(audio.text).slice(1, -1),
     __VOICE_ID__: "42d00d4aac5441279d8536cd6b52c53c",
@@ -56,6 +60,7 @@ export async function submitAudioGenerate(auth, { avatar, audioPath, engine, tit
   const saveAudioMeta = saveBody.metadata.find((m) => m.type === "audio");
   saveAudioMeta.words = audio.words; saveAudioMeta.duration = audio.duration;
   if (look) setAvatarSize(saveBody.metadata.find((m) => m.type === "avatar"), look);
+  if (engine === "heygen4" && !patchAvatarIV(saveBody)) die("--engine heygen4: no avatar engine field in the save payload");
   await call(auth, endpoints.textDraftSave, {}, { xPath: editorPath, body: saveBody });
 
   const genBody = fillTemplate("generate-audio-generate.json",
@@ -66,12 +71,13 @@ export async function submitAudioGenerate(auth, { avatar, audioPath, engine, tit
   genMeta[audioElId].words = audio.words;
   genMeta[audioElId].duration = audio.duration;
   if (look) setAvatarSize(Object.values(genMeta).find((m) => m.type === "avatar"), look);
+  if (engine === "heygen4" && !patchAvatarIV(genBody)) die("--engine heygen4: no avatar engine field in the generate payload");
 
   const gen = await call(auth, endpoints.textDraftGenerate, {}, { xPath: editorPath, body: genBody });
   const outVid = gen?.data?.video_id;
   if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
-  appendRenderLog({ avatar, audio: basename(audioPath), video_id: outVid, title: title || "generate-from-audio" });
-  return { video_id: outVid };
+  appendRenderLog({ avatar, audio: basename(audioPath), video_id: outVid, title });
+  return { video_id: outVid, title };
 }
 
 // The photo's real pixel size. A one-look avatar's look id is its group id; any other look is found by
@@ -130,14 +136,27 @@ function patchDraftToAvatarIV(textDraft) {
     // tagged union wants avatar_iv_quality | avatar_iv_turbo; and `model` is
     // required with use_avatar_iv_model — legal values run '4.0'…'4.5_quality'.
     // Quality tier throughout: this flag exists for finalize-grade renders.
-    c.engine = "avatar_iv";
-    if (c.engine_settings?.engine_type) c.engine_settings.engine_type = "avatar_iv_quality";
-    c.use_avatar_iv_model = true;
-    c.use_unlimited_mode = false;
-    c.model = "4.5_quality";
+    setAvatarIV(c);
     patched++;
   }
   if (!patched) die("--engine heygen4: no avatar element with an engine field found in the template draft");
+}
+
+function setAvatarIV(c) {
+  c.engine = "avatar_iv";
+  if (c.engine_settings?.engine_type) c.engine_settings.engine_type = "avatar_iv_quality";
+  c.use_avatar_iv_model = true;
+  c.use_unlimited_mode = false;
+  c.model = "4.5_quality";
+}
+
+// Every avatar_iii engine block anywhere in a payload becomes Avatar IV; returns how many.
+export function patchAvatarIV(node) {
+  if (!node || typeof node !== "object") return 0;
+  let n = 0;
+  if (node.engine === "avatar_iii" && "use_unlimited_mode" in node) { setAvatarIV(node); n++; }
+  for (const v of Object.values(node)) n += patchAvatarIV(v);
+  return n;
 }
 
 // Engine fields of every avatar element in a template draft.
@@ -170,6 +189,7 @@ export async function templateEngine(auth, templateId) {
 }
 
 export async function submitFromTemplate(auth, { templateId, audioPath, title, iv = false }) {
+  title = modelTitle(title || "generate-from-template", iv);
   const tmpl = await getTemplate(auth, templateId);
   if (!iv) {
     try { assertDraftAvatarIII(tmpl.text_draft); } catch (e) { die(e.message); }
@@ -203,7 +223,7 @@ export async function submitFromTemplate(auth, { templateId, audioPath, title, i
 
   const saveBody = {
     video_id: vid, text_draft: textDraft, video_output: tmpl.video_output,
-    metadata: Object.values(metadata), title: title || "generate-from-template",
+    metadata: Object.values(metadata), title,
     skip_rate_limit: false, has_faceswap: false,
   };
   await call(auth, endpoints.textDraftSave, {}, { xPath: editorPath, body: saveBody });
@@ -216,7 +236,7 @@ export async function submitFromTemplate(auth, { templateId, audioPath, title, i
   const gen = await call(auth, endpoints.textDraftGenerate, {}, { xPath: editorPath, body: genBody });
   const outVid = gen?.data?.video_id;
   if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
-  appendRenderLog({ avatar: templateId, audio: basename(audioPath), video_id: outVid, title: title || "generate-from-template" });
+  appendRenderLog({ avatar: templateId, audio: basename(audioPath), video_id: outVid, title });
   return { video_id: outVid };
 }
 

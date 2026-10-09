@@ -1,8 +1,8 @@
 ---
 name: yt-avatar
 description: >-
-  HeyGen avatars, free Avatar III only. clip: turn one part of a script into an avatar video (VO via yt-vo, then
-  render with a finalized avatar, download). test: try a new photo as an avatar. retest: a saved avatar with another
+  HeyGen avatars. clip: turn one part of a script into an avatar video (VO via yt-vo or a given MP3, then render
+  with a saved avatar or template, free Avatar III or Avatar IV on request, download). test: try a new photo as an avatar. retest: a saved avatar with another
   voice. Also download, list, finalize, delete. Use for "avatar for this part", "avatar clip", "yt-avatar",
   "avatar-test", "test this avatar", "try this pic as an avatar", "which avatars have I tested", "finalize this avatar".
 user-invocable: true
@@ -11,8 +11,8 @@ user-invocable: true
 # yt-avatar
 
 Two jobs. **Make avatar clips** for a part of a script (`clip`). **Find new avatars** that suit the owner's voice and
-brand and look real, not AI (`test`, `retest`, then `finalize`). Each run must be free and recorded, so any avatar
-or clip can be rebuilt later.
+brand and look real, not AI (`test`, `retest`, then `finalize`). Each run is recorded, so any avatar or clip can be
+rebuilt later. Tests are always free; a clip is free unless the owner asks for Avatar IV.
 
 Full video edits do not come here: `yt-video-edit` places and renders avatars for a whole video (steps 320-430).
 
@@ -33,7 +33,9 @@ Full video edits do not come here: `yt-video-edit` places and renders avatars fo
 |---|---|
 | CLI | `node tooling/cli/heygen-web/heygen-web.mjs` (run inside a pp-work workspace; it appends to `pipelines/video/heygen/RENDERS.md`) |
 | Auth env | `HEYGEN_WEB_CURLS=/Users/kbtg/codebase/personal-stuff/infra/secrets/heygen-web-curls.txt` |
-| Engine | Avatar III (`heygen3`) only. Free. Never Avatar IV here. |
+| Engine | Avatar III (`heygen3`), free, by default. Avatar IV (`heygen4`) only for a `clip`, only when the owner asks for it |
+| Model in every name | The CLI adds ` - Avatar III` or ` - Avatar IV` to every HeyGen video title (tests and clips). Local files and Drive uploads end in `-avatar-iii` or `-avatar-iv` too |
+| HeyGen folder for clips | None. Clip videos stay in the main HeyGen projects list. Only `test`/`retest` move to Test Avatar |
 | HeyGen folder | "Test Avatar" `f214dcf8986a4114ba69b9630e38fe00` (built into the CLI's `avatar-test` command) |
 | Finalized avatars | `pipelines/video/heygen/registry.json`: a slug with `avatar_id` (photo avatar) or `template_id` (template) |
 | Clips folder (local) | `~/kb-scratch/video/heygen/clips/<clip-name>/` (VO text, VO audio, video). Never in git |
@@ -88,17 +90,28 @@ Full video edits do not come here: `yt-video-edit` places and renders avatars fo
    owner approves every risky word in the word pronunciation check app), then
    `say --file <clip-name>.vo.txt --out <clip-name>.mp3`. Never skip the word check:
    a wrong name in a clip means a second render.
-3. **Pick the avatar.** `AskUserQuestion` with the slugs from `registry.json` that carry an `avatar_id` or a
-   `template_id` (recommend the one its description calls the default). Skip entries with neither.
-4. **Render on Avatar III** (free; the CLI checks credits before and after and waits for the render):
+   **The owner already has the VO** (an MP3, or "use the full VO"): skip yt-vo. Cut the part out of the full VO on
+   silence (`whisper` word times + `silencedetect`), check the cut's first and last words, save it as `<clip-name>.mp3`.
+3. **Pick the avatar.** If the owner names or shows one (a test video title, a picture), use it. Otherwise
+   `AskUserQuestion` with: the `registry.json` slugs that carry an `avatar_id` or a `template_id` (recommend the one
+   its description calls the default), and the newest non-deleted avatars in the mapping (`avatar_id`).
+   An `avatar_id` (a photo avatar, slug or raw id) goes to `generate-from-audio`; a `template_id` goes to
+   `generate-from-template`.
+4. **Pick the engine.** Avatar III (free) unless the owner asks for Avatar IV ("heygen 4", "avatar 4", "IV").
+   Avatar IV costs 20 credits a minute: say the estimate and `credits` before the render. The owner's ask for that
+   clip batch is the OK for `--allow-spend`.
+5. **Render** (the CLI checks credits before and after and waits for the render). Never `move-video` a clip:
    ```
-   heygen-web generate-from-audio --avatar <slug> --audio <clip-name>.mp3 --title "<clip-name>"      # avatar_id
-   heygen-web generate-from-template --template <slug> --audio <clip-name>.mp3 --title "<clip-name>" # template_id
+   heygen-web generate-from-audio --avatar <slug|avatar_id> --audio <clip-name>.mp3 --title "<clip-name>" [--engine heygen4 --allow-spend]
+   heygen-web generate-from-template --template <slug> --audio <clip-name>.mp3 --title "<clip-name>" [--engine heygen4 --allow-spend]
    ```
-   Exit 2 = **credits were used**. Stop and tell the owner which meter moved.
-5. **Download** to the clip folder: `heygen-web download <video_id> --out ~/kb-scratch/video/heygen/clips/<clip-name>/<clip-name>.mp4`.
-6. **Commit** the `RENDERS.md` row the CLI appended (`chore(heygen): avatar clip <clip-name>`), with commit-now.
-7. **Report**: the clip path, its length, the avatar, "0 credits used". Then `AskUserQuestion` "What next?":
+   - Avatar III: exit 2 = **credits were used**. Stop and tell the owner which meter moved.
+   - Avatar IV: the check must print `NOT free`. A `✓UNLIMITED` verdict means HeyGen fell back to Avatar III: stop.
+6. **Download** at 1080p (the highest; renders are 1920x1080) to the clip folder:
+   `heygen-web download <video_id> --res 1080p --out ~/kb-scratch/video/heygen/clips/<clip-name>/<clip-name>-avatar-iii.mp4`
+   (`-avatar-iv` for Avatar IV). If the owner gives a Drive folder, upload it there with the same name.
+7. **Commit** the `RENDERS.md` row the CLI appended (`chore(heygen): avatar clip <clip-name>`), with commit-now.
+8. **Report**: the clip path, its length, the avatar, the engine, and the credits before and after. Then `AskUserQuestion` "What next?":
    Another part / Same part, other avatar / Done.
 
 ## Verb: retest — a saved avatar with another voice
@@ -113,7 +126,7 @@ For a face already in the mapping, when only the voice changes. No new picture, 
 ## Verb: download
 
 Only when the owner asks. `AskUserQuestion` which video (newest mapping rows, or clips from `RENDERS.md`), then
-`heygen-web download <video_id> --out ~/kb-scratch/avatar-tests/videos/<avatar-name>-<date>.mp4` (tests) or the
+`heygen-web download <video_id> --res 1080p --out ~/kb-scratch/avatar-tests/videos/<avatar-name>-<date>-avatar-iii.mp4` (tests) or the
 clip folder (clips). Report the path.
 
 ## Verb: list
@@ -139,7 +152,9 @@ Why: `pipelines/video/heygen/AVATAR-III-QUALITY.md`.
 
 ## Rules
 
-- 0 credits per test is the contract. Never pass `--engine heygen4` or `--iv`.
+- 0 credits per `test`/`retest` is the contract: never `--engine heygen4` or `--iv` there.
+- Avatar IV only in `clip`, only when the owner asks, and always with the credits before and after in the report.
+- Only `test`/`retest` videos go to the Test Avatar folder. Clip videos for a real video stay in the main list.
 - Test videos stay in HeyGen unless the owner asks (`download`). Clips are always downloaded.
 - The owner keeps his own recorded voice. Never re-voice audio (decisions.md 2026-10-09).
 - Pictures, audio and videos never go into git; only the mapping and `RENDERS.md` rows do.
