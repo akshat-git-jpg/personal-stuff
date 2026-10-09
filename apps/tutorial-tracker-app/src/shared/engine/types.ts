@@ -67,8 +67,9 @@ export interface StageDef {
    *  (what the uploader pastes into YouTube) instead of the internal notes. */
   contextFields?: string[];
 
-  /** The deliverable field. Default: { id:`${stage}_link`, slot:"work_link", type:"url", required:"submit" }. */
-  work?: FieldDef;
+  /** The deliverable field. Default: { id:`${stage}_link`, slot:"work_link", type:"url", required:"submit" }.
+   *  null = no per-stage link; the files go in the card's project folder. */
+  work?: FieldDef | null;
   /** Rare extra fields beyond the deliverable (e.g. Upload's yt_upload_date). */
   extra?: FieldDef[];
 
@@ -112,8 +113,11 @@ export function stageHasInstruction(s: StageDef): boolean {
   return s.hasInstruction ?? (stageKind(s) === "work" && lifecycleOf(s.lifecycle).reviewed);
 }
 
+/** The card's shared Drive folder, set on the brief and shown on every stage. */
+export const PROJECT_FOLDER = "project_folder";
+
 export function contextFieldsOf(s: StageDef): string[] {
-  return s.contextFields ?? ["video_title", "video_notes"];
+  return [...(s.contextFields ?? ["video_title", "video_notes"]), PROJECT_FOLDER];
 }
 
 export function stageHasEta(s: StageDef): boolean {
@@ -127,7 +131,7 @@ export function colOf(s: StageDef, slot: SlotKey): string {
 
 /** The deliverable field for a work stage (def override or derived default). */
 export function workField(s: StageDef): FieldDef | undefined {
-  if (stageKind(s) !== "work") return undefined;
+  if (stageKind(s) !== "work" || s.work === null) return undefined;
   return s.work ?? { id: `${s.id}_link`, label: s.label, type: "url", slot: "work_link", required: "submit" };
 }
 
@@ -135,6 +139,7 @@ const DEFAULT_CREATE_FIELDS: CreateField[] = [
   { col: "video_title", label: "Title", type: "text" },
   { col: "slug", label: "Slug", type: "text" },
   { col: "video_notes", label: "Notes / brief", type: "textarea" },
+  { col: PROJECT_FOLDER, label: "Project folder (Drive link)", type: "text" },
 ];
 
 /** The new-video form fields for a pipeline (its brief stage's, or the default). */

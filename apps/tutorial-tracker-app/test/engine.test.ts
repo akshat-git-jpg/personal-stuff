@@ -5,7 +5,7 @@ import { effectiveRoles, holdsRoleInSystem, systemsForRole } from "../src/shared
 import { workerStagesForMemberships, reviewQueueForMemberships, type Row, cardStagesForUser, upcomingStagesForUser, canSeeRow, visibleColsForRoles, canEditForRoles } from "../src/shared/engine/rbac";
 import { showColumns } from "../src/shared/engine/control";
 import { lifecycle } from "../src/shared/engine/lifecycle";
-import { createFieldsOf, type PipelineDef } from "../src/shared/engine/types";
+import { createFieldsOf, workField, type PipelineDef } from "../src/shared/engine/types";
 
 describe("pipeline definitions", () => {
   it("validate clean", () => {
@@ -23,7 +23,7 @@ describe("createFieldsOf", () => {
   it("returns default fields for standard and tut-2", () => {
     // Category/subcategory were dropped from the create form — nobody filled them
     // in, and assignment defaults are keyed on the SYSTEM now.
-    const defaultCols = ["video_title", "slug", "video_notes"];
+    const defaultCols = ["video_title", "slug", "video_notes", "project_folder"];
     expect(createFieldsOf(getPipeline("standard")).map((f) => f.col)).toEqual(defaultCols);
     expect(createFieldsOf(getPipeline("tut-2")).map((f) => f.col)).toEqual(defaultCols);
   });
@@ -83,7 +83,8 @@ describe("storage round-trip (flat Row ⇄ normalized)", () => {
   });
 
   it("routes writes to the right table/slot", () => {
-    expect(routeWrite(P, "script_link")).toEqual({ kind: "stage", stageId: "script", slot: "work_link" });
+    expect(routeWrite(P, "yt_link")).toEqual({ kind: "stage", stageId: "upload", slot: "work_link" });
+    expect(routeWrite(P, "project_folder")).toEqual({ kind: "card_extra", key: "project_folder" });
     expect(routeWrite(P, "video_editor_status")).toEqual({ kind: "stage", stageId: "editing", slot: "status" });
     expect(routeWrite(P, "editor_feedback")).toEqual({ kind: "stage", stageId: "editing", slot: "feedback" });
     expect(routeWrite(P, "video_title")).toEqual({ kind: "card", field: "title" });
@@ -218,28 +219,37 @@ describe("the control grid never shows a column RBAC withholds", () => {
     }
   }
 
-  it("a doer sees the brief, the upstream deliverable and its own fields at EVERY status", () => {
+  it("a doer sees the brief, the project folder and its own fields at EVERY status", () => {
     const P = getPipeline("standard");
     const editing = P.stages.find((s) => s.id === "editing")!;
     for (const status of lifecycle(editing.lifecycle).statuses) {
       const shown = showColumns(P, editing, "worker", status);
       expect(shown, status).toContain("video_title");
       expect(shown, status).toContain("video_notes");
-      expect(shown, status).toContain("tutorial_link");          // the recording it edits
-      expect(shown, status).toContain("processing_work_link");   // the processor's editor inputs
+      expect(shown, status).toContain("project_folder");
       expect(shown, status).toContain("video_editor_instruction");
       expect(shown, status).toContain("video_editor_eta");
-      expect(shown, status).toContain("video_editor_link");
+      expect(shown, status).not.toContain("video_editor_link"); // files live in the project folder
     }
   });
 
-  it("owning two stages never downgrades your own deliverable to read-only", () => {
-    // Recording's link is upstream context FOR Editing. Someone holding both
-    // roles must keep edit rights on the recording they produce.
-    const P = getPipeline("standard");
-    expect(canEditForRoles(["Script Recorder", "Video Editor"], P, "tutorial_link")).toBe(true);
-    expect(canEditForRoles(["Video Editor"], P, "tutorial_link")).toBe(false);
-    expect(visibleColsForRoles(["Video Editor"], P)).toContain("tutorial_link");
+  it("every role sees the project folder, only the admin edits it", () => {
+    for (const pid of pipelineIds()) {
+      const P = getPipeline(pid);
+      for (const role of [...new Set([...P.stages.map((s) => s.role), "Reviewer"])].filter((r) => r !== "Admin")) {
+        expect(visibleColsForRoles([role], P), `${pid}/${role}`).toContain("project_folder");
+        expect(canEditForRoles([role], P, "project_folder"), `${pid}/${role}`).toBe(false);
+      }
+      expect(canEditForRoles(["Admin"], P, "project_folder")).toBe(true);
+    }
+  });
+
+  it("only Upload keeps a per-stage link", () => {
+    for (const pid of pipelineIds()) {
+      const P = getPipeline(pid);
+      const withLink = P.stages.filter((s) => workField(s)).map((s) => s.id);
+      expect(withLink, pid).toEqual(["upload"]);
+    }
   });
 });
 

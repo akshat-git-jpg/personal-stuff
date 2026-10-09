@@ -4,21 +4,21 @@
 
 export const STAGE_GUIDE: Record<string, string> = {
   topic:
-    "Write the topic: a clear title, the notes/brief, and a description. Assign the scriptwriter, recorder, editor, uploader, and a reviewer, then submit it for review. The reviewer adds the starting instructions and marks it Done — that's what lets the scriptwriter begin.",
+    "Write the topic: a clear title, the notes/brief, a description, and the project folder (one Drive folder where everyone uploads their files). Assign the scriptwriter, recorder, editor, uploader, and a reviewer, then submit it for review. The reviewer adds the starting instructions and marks it Done — that's what lets the scriptwriter begin.",
   script:
-    "Write the script from the topic notes and the instructions on the card. Paste your script link and submit it for review. If it comes back as “Needs changes”, read the feedback, fix it, and resubmit.",
+    "Write the script from the topic notes and the instructions on the card. Upload your script to the project folder and submit it for review. If it comes back as “Needs changes”, read the feedback, fix it, and resubmit.",
   recording:
-    "Record the tutorial from the approved script. Paste your recording link and submit it for review. If it's sent back, check the feedback, redo it, and resubmit.",
+    "Record the tutorial from the approved script. Upload your recording to the project folder and submit it for review. If it's sent back, check the feedback, redo it, and resubmit.",
   outline:
-    "Write the outline from the topic brief and the instructions on the card. Paste your outline link and submit it for review. If it comes back as “Needs changes”, read the feedback, fix it, and resubmit.",
+    "Write the outline from the topic brief and the instructions on the card. Upload your outline to the project folder and submit it for review. If it comes back as “Needs changes”, read the feedback, fix it, and resubmit.",
   processing:
-    "Your step: take the approved screen recording and run it through the production pipeline (transcript, voiceover, avatar clips). Assemble the editor's input package, paste the Drive link that holds all the inputs, and mark it Complete — that hands the package to the video editor. No review step here.",
+    "Your step: take the approved screen recording and run it through the production pipeline (transcript, voiceover, avatar clips). Assemble the editor's input package, put all the inputs in the project folder, and submit it — that hands the package to the video editor. No review step here.",
   editing:
-    "Edit the final video from the approved recording. Paste the edited video link and submit it for review. Address any “Needs changes” feedback and resubmit.",
+    "Edit the final video from the approved recording. Upload the edited video to the project folder and submit it for review. Address any “Needs changes” feedback and resubmit.",
   thumbnail:
-    "Design the thumbnail from the final video. Paste the thumbnail link and submit it for review. Address any “Needs changes” feedback and resubmit.",
+    "Design the thumbnail from the final video. Upload the thumbnail to the project folder and submit it for review. Address any “Needs changes” feedback and resubmit.",
   upload:
-    "Upload the approved final video. Add the YouTube link and upload details, then mark it Uploaded. There's no review step here — this is the last stage.",
+    "Upload the approved final video from the project folder. Add the YouTube link and upload details, then mark it Uploaded. There's no review step here — this is the last stage.",
 };
 
 export const REVIEWER_GUIDE =

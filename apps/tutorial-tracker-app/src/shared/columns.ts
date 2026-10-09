@@ -12,7 +12,7 @@
 // an ETA column (*_eta): a calendar deadline the stage's worker commits to when
 // they start (To Do -> In Progress). Topic has no ETA.
 export const COLUMNS = [
-  "video_title","slug","video_notes","video_description","category","subcategory","topic_status","topic_date","admin_email",
+  "video_title","slug","video_notes","video_description","category","subcategory","topic_status","project_folder","topic_date","admin_email",
   "script_writer_email","script_instruction","script_link","script_status","script_eta","script_feedback",
   "tutorial_maker_email","tutorial_instruction","tutorial_link","tutorial_status","tutorial_eta","tutorial_feedback",
   "video_editor_email","video_editor_instruction","video_editor_link","video_editor_status","video_editor_eta","editor_feedback",
@@ -55,6 +55,7 @@ export const COLUMN_LABELS: Partial<Record<Column, string>> = {
   category: "Category",
   subcategory: "Subcategory",
   topic_status: "Topic status",
+  project_folder: "Project folder (Drive)",
   topic_date: "Topic date",
   admin_email: "Admin",
   reviewer_email: "Reviewer",
