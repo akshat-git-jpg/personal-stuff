@@ -16,6 +16,17 @@ import { parseRoles } from "../src/worker/roles";
 const STD = getPipeline("standard");
 const SCRIPT = stageById(STD, "script")!;
 const TOPIC = stageById(STD, "topic")!;
+const UPLOAD = stageById(STD, "upload")!;
+
+// A card whose every earlier stage is Done, now at Upload with up@x.
+function uploadCard(yt_upload_status: string): Row {
+  return {
+    row_id: "r2", video_title: "T", pipeline: "standard",
+    topic_status: "Done", script_status: "Done", tutorial_status: "Done", processing_status: "Done",
+    video_editor_status: "Done", thumbnail_status: "Done",
+    uploader_email: "up@x.com", yt_upload_status,
+  };
+}
 
 // A card that has cleared Topic and is at the Script stage, assigned to sw@x,
 // reviewed by rv@x.
@@ -155,12 +166,18 @@ describe("reviewer transitions + can't-review-own-work", () => {
 });
 
 describe("required fields gate submit/advance", () => {
-  it("a scriptwriter can't submit without a script link, and the transition says why", () => {
-    const noLink = scriptCard("In Progress"); // script_link empty
-    const ts = transitionsForStage(["Script Recorder"], "sw@x.com", SCRIPT, noLink);
-    const submit = ts.find((t) => t.kind === "submit")!;
-    expect(submit.disabledReason).toMatch(/script/i); // label for script_link is "Script"
-    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_status", "In Review", noLink).ok).toBe(false);
+  it("a scriptwriter submits without a link: the files live in the project folder", () => {
+    const noLink = scriptCard("In Progress");
+    const submit = transitionsForStage(["Script Recorder"], "sw@x.com", SCRIPT, noLink).find((t) => t.kind === "submit")!;
+    expect(submit.disabledReason).toBeUndefined();
+    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_status", "In Review", noLink).ok).toBe(true);
+  });
+  it("an uploader can't mark Uploaded without the YouTube link, and the transition says why", () => {
+    const up = uploadCard("In Progress");
+    const advance = transitionsForStage(["Uploader"], "up@x.com", UPLOAD, up).find((t) => t.kind === "advance")!;
+    expect(advance.disabledReason).toMatch(/youtube/i);
+    expect(authorizeWrite(["Uploader"], "up@x.com", "yt_upload_status", "Uploaded", up).ok).toBe(false);
+    expect(authorizeWrite(["Uploader"], "up@x.com", "yt_upload_status", "Uploaded", { ...up, yt_link: "https://youtu.be/x" }).ok).toBe(true);
   });
   it("…and can once the link is filled", () => {
     const withLink = { ...scriptCard("In Progress"), script_link: "https://x.com/s" };
@@ -221,16 +238,15 @@ describe("authorizeWrite (single enforcement point)", () => {
     expect(authorizeWrite(["Reviewer"], "rv@x.com", "script_status", "Done", ready).ok).toBe(true);
   });
   it("content fields lock once submitted / approved", () => {
-    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_link", "x", scriptCard("In Progress")).ok).toBe(true);
-    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_link", "x", scriptCard("In Review")).ok).toBe(false);
-    expect(authorizeWrite(["Script Recorder"], "sw@x.com", "script_link", "x", scriptCard("Done")).ok).toBe(false);
+    expect(authorizeWrite(["Uploader"], "up@x.com", "yt_link", "x", uploadCard("In Progress")).ok).toBe(true);
+    expect(authorizeWrite(["Uploader"], "up@x.com", "yt_link", "x", uploadCard("Uploaded")).ok).toBe(false);
   });
   it("admin bypasses content locks", () => {
     expect(authorizeWrite(["Admin"], "boss@x.com", "script_link", "x", scriptCard("Done")).ok).toBe(true);
   });
   it("fieldLockReason explains why a locked field is locked", () => {
-    expect(fieldLockReason(["Script Recorder"], "sw@x.com", "script_link", scriptCard("In Review"))).toMatch(/review/i);
-    expect(fieldLockReason(["Script Recorder"], "sw@x.com", "script_link", scriptCard("In Progress"))).toBeNull();
+    expect(fieldLockReason(["Uploader"], "up@x.com", "yt_link", uploadCard("Uploaded"))).toBeTruthy();
+    expect(fieldLockReason(["Uploader"], "up@x.com", "yt_link", uploadCard("In Progress"))).toBeNull();
   });
 });
 

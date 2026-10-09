@@ -25,22 +25,22 @@ export const tut2: PipelineDef = {
   name: "Tut 2",
   stages: [
     { id: "topic", label: "Topic", role: "Admin", lifecycle: "approveOnly", kind: "brief",
-      briefFields: ["video_title", "video_notes", "video_description", "topic_date"] },
+      briefFields: ["video_title", "video_notes", "video_description", "project_folder", "topic_date"] },
 
     { id: "outline", label: "Outline", role: "Scriptwriter", lifecycle: "review", gate: "topic",
-      work: { id: "outline_doc", label: "Outline", type: "url", slot: "work_link", required: "submit" } },
+      work: null },
 
     { id: "recording", label: "Screen recording", role: "Tutorial Maker", lifecycle: "review", gate: "outline",
-      work: { id: "recording_link", label: "Screen recording", type: "url", slot: "work_link", required: "submit" } },
+      work: null },
 
     { id: "processing", label: "Processing", role: "Processor", lifecycle: "review", gate: "recording",
-      work: { id: "inputs_link", label: "Editor inputs (Drive)", type: "url", slot: "work_link", required: "submit" } },
+      work: null },
 
     { id: "editing", label: "Editing", role: "Video Editor", lifecycle: "review", gate: "processing",
-      work: { id: "final_video", label: "Final video", type: "url", slot: "work_link", required: "submit" } },
+      work: null },
 
     { id: "thumbnail", label: "Thumbnail", role: "Thumbnail Maker", lifecycle: "review", gate: "editing",
-      work: { id: "thumbnail_link", label: "Thumbnail", type: "url", slot: "work_link", required: "submit" } },
+      work: null },
 
     { id: "upload", label: "Upload", role: "Uploader", lifecycle: "terminal", gate: "thumbnail",
       needs: ["editing", "thumbnail"],

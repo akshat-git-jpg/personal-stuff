@@ -46,6 +46,8 @@ test("New video setup guard", async ({ page }) => {
 
   await page.getByLabel(/Title/).fill("E2E setup video");
   await page.getByLabel(/Notes/).fill("Do this");
+  await expect(page.locator(".text-destructive")).toContainText("Project folder");
+  await page.getByLabel(/Project folder/).fill("https://drive.example.com/folder-e2e");
   
   // 2. Assert people selects are pre-filled (at least one non-empty)
   // There are selects for each doer role and reviewer.

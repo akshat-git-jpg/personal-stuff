@@ -21,12 +21,12 @@ export const standard: PipelineDef = {
     {
       id: "topic", label: "Topic", role: "Admin", lifecycle: "approveOnly", kind: "brief",
       cols: { status: "topic_status", assignee: "admin_email", reviewer: "topic_reviewer_email" },
-      briefFields: ["video_title", "video_notes", "video_description", "topic_date"],
+      briefFields: ["video_title", "video_notes", "video_description", "project_folder", "topic_date"],
     },
     {
       id: "script", label: "Script", role: "Script Recorder", lifecycle: "review", gate: "topic",
       contextFields: ["video_title", "video_notes"],
-      work: { id: "script_link", label: "Script", type: "url", slot: "work_link", required: "submit" },
+      work: null,
       cols: {
         status: "script_status", assignee: "script_writer_email", reviewer: "script_reviewer_email",
         work_link: "script_link", eta: "script_eta", instruction: "script_instruction", feedback: "script_feedback",
@@ -34,7 +34,7 @@ export const standard: PipelineDef = {
     },
     {
       id: "recording", label: "Recording", role: "Script Recorder", lifecycle: "review", gate: "script",
-      work: { id: "tutorial_link", label: "Recording", type: "url", slot: "work_link", required: "submit" },
+      work: null,
       cols: {
         status: "tutorial_status", assignee: "tutorial_maker_email", reviewer: "tutorial_reviewer_email",
         work_link: "tutorial_link", eta: "tutorial_eta", instruction: "tutorial_instruction", feedback: "tutorial_feedback",
@@ -43,12 +43,12 @@ export const standard: PipelineDef = {
     {
       id: "processing", label: "Processing", role: "Processor", lifecycle: "review", gate: "recording",
       needs: ["script", "recording"], // voiceover is made from the approved script + the recording
-      work: { id: "inputs_link", label: "Editor inputs (Drive)", type: "url", slot: "work_link", required: "submit" },
+      work: null,
     },
     {
       id: "editing", label: "Editing", role: "Video Editor", lifecycle: "review", gate: "processing",
       needs: ["recording", "processing"], // raw recording + the processor's editor inputs
-      work: { id: "video_editor_link", label: "Final video", type: "url", slot: "work_link", required: "submit" },
+      work: null,
       cols: {
         status: "video_editor_status", assignee: "video_editor_email", reviewer: "video_editor_reviewer_email",
         work_link: "video_editor_link", eta: "video_editor_eta", instruction: "video_editor_instruction", feedback: "editor_feedback",
@@ -56,7 +56,7 @@ export const standard: PipelineDef = {
     },
     {
       id: "thumbnail", label: "Thumbnail", role: "Thumbnail Maker", lifecycle: "review", gate: "editing",
-      work: { id: "thumbnail_link", label: "Thumbnail", type: "url", slot: "work_link", required: "submit" },
+      work: null,
       cols: {
         status: "thumbnail_status", assignee: "thumbnail_maker_email", reviewer: "thumbnail_reviewer_email",
         work_link: "thumbnail_link", eta: "thumbnail_eta", instruction: "thumbnail_instruction", feedback: "thumbnail_feedback",

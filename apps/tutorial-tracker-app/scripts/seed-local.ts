@@ -19,10 +19,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { getPipeline, PIPELINES } from "../src/shared/engine/registry";
 import { decomposeRow, type Row } from "../src/shared/engine/card";
-import { colOf, stageHasReviewerSlot, type StageDef } from "../src/shared/engine/types";
+import { colOf, stageHasReviewerSlot, workField, type StageDef } from "../src/shared/engine/types";
 import { lifecycle } from "../src/shared/engine/lifecycle";
 import { decomposeRow, type Row } from "../src/shared/engine/card";
-import { colOf, stageHasReviewerSlot, type StageDef } from "../src/shared/engine/types";
+import { colOf, stageHasReviewerSlot, workField, type StageDef } from "../src/shared/engine/types";
 import registry from "../../../config/channels.json";
 
 const q = (v: unknown) => (v == null || v === "" ? "NULL" : `'${String(v).replace(/'/g, "''")}'`);
@@ -84,6 +84,7 @@ function specToRow(spec: CardSpec, id: string): Row {
     category: spec.category ?? "",
     subcategory: spec.subcategory ?? "",
     video_notes: spec.notes ?? "",
+    project_folder: `https://drive.example.com/folder-${id}`,
     status_since: isoDaysAgo(spec.daysAgo ?? 1),
     last_updated: isoDaysAgo(spec.daysAgo ?? 1),
   };
@@ -94,7 +95,7 @@ function specToRow(spec: CardSpec, id: string): Row {
     if (vals.assignee) row[colOf(s, "assignee")] = vals.assignee;
     if (vals.reviewer && stageHasReviewerSlot(s)) row[colOf(s, "reviewer")] = vals.reviewer;
     if (vals.feedback) row[colOf(s, "feedback")] = vals.feedback;
-    if (vals.link) row[colOf(s, "work_link")] = vals.link;
+    if (vals.link && workField(s)) row[colOf(s, "work_link")] = vals.link;
   }
   return row;
 }

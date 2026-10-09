@@ -6,28 +6,25 @@ import { loginAs, PERSONAS } from "./helpers";
 // so run `npm run seed:local` before each full run.
 
 const CARD = "Processor hand-off demo";
-const INPUTS = "https://drive.example.com/editor-inputs-handoff";
+const FOLDER = /drive\.example\.com\/folder-/;
 const NOTE = "Voiceover done, script trimmed at the intro, all files in the folder.";
 
 test.describe.serial("processor hand-off", () => {
-  test("the processor sees the script and recording, and cannot submit without the Drive link", async ({ page }) => {
+  test("the processor sees the project folder and needs no link to submit", async ({ page }) => {
     await loginAs(page, PERSONAS.anusha);
     await page.getByText(CARD, { exact: true }).click();
     const dialog = page.getByRole("dialog");
 
-    await expect(dialog.getByText("https://docs.example.com/script-handoff")).toBeVisible();
-    await expect(dialog.getByText("https://drive.example.com/recording-handoff")).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Submit for review" })).toBeDisabled();
-    await expect(dialog.getByText("Add the Editor inputs (Drive) first.")).toBeVisible();
+    await expect(dialog.getByText(FOLDER)).toBeVisible();
+    await expect(dialog.getByText("Editor inputs (Drive) link")).toHaveCount(0);
+    await expect(dialog.getByText("Add the Editor inputs (Drive) first.")).toHaveCount(0);
   });
 
-  test("the processor submits the Drive folder with a note", async ({ page }) => {
+  test("the processor submits with a note", async ({ page }) => {
     await loginAs(page, PERSONAS.anusha);
     await page.getByText(CARD, { exact: true }).click();
     const dialog = page.getByRole("dialog");
 
-    await dialog.getByLabel("Editor inputs (Drive) link").fill(INPUTS);
-    await dialog.getByLabel("Editor inputs (Drive) link").blur();
     await dialog.getByTestId("submit-note-input").fill(NOTE);
     await dialog.getByTestId("submit-note-send").click();
     await expect(dialog).toBeHidden();
@@ -61,14 +58,11 @@ test.describe.serial("processor hand-off", () => {
     await expect(dialog).toBeHidden();
   });
 
-  test("the editor now has the recording and the processor's Drive folder", async ({ page }) => {
+  test("the editor now has the project folder and the brief", async ({ page }) => {
     await loginAs(page, PERSONAS.john);
     await page.getByText(CARD, { exact: true }).click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog.getByText("Recording link")).toBeVisible();
-    await expect(dialog.getByText("https://drive.example.com/recording-handoff")).toBeVisible();
-    await expect(dialog.getByText("Editor inputs (Drive) link")).toBeVisible();
-    await expect(dialog.getByText(INPUTS)).toBeVisible();
+    await expect(dialog.getByText(FOLDER)).toBeVisible();
     await expect(dialog.getByText("Use the voiceover from the folder, cut to it.")).toBeVisible();
     // John is a Processor in Tut 2 only; that must not make Standard's Processing "his part".
     const yourPart = dialog.getByTestId("card-detail-your-part");
@@ -114,10 +108,8 @@ test("the processor's board fits a phone", async ({ page }) => {
 // One person, two stages: the Script Recorder writes, gets it approved, then records.
 const JOURNEY = "Script recorder journey demo";
 
-async function submitWork(page: import("@playwright/test").Page, linkLabel: string, url: string) {
+async function submitWork(page: import("@playwright/test").Page) {
   const dialog = page.getByRole("dialog");
-  await dialog.getByLabel(linkLabel).fill(url);
-  await dialog.getByLabel(linkLabel).blur();
   await dialog.getByTestId("submit-note-input").fill("Ready.");
   await dialog.getByTestId("submit-note-send").click();
   await expect(dialog).toBeHidden();
@@ -147,7 +139,7 @@ test.describe.serial("script recorder journey", () => {
   test("the script recorder submits the script", async ({ page }) => {
     await loginAs(page, PERSONAS.sam);
     await page.getByText(JOURNEY, { exact: true }).click();
-    await submitWork(page, "Script link", "https://docs.example.com/journey-script");
+    await submitWork(page);
   });
 
   test("the reviewer approves the script after briefing the recording", async ({ page }) => {
@@ -159,7 +151,7 @@ test.describe.serial("script recorder journey", () => {
     await loginAs(page, PERSONAS.sam);
     await page.getByText(JOURNEY, { exact: true }).click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog.getByText("https://docs.example.com/journey-script")).toBeVisible();
+    await expect(dialog.getByText(FOLDER)).toBeVisible();
     await dialog.getByLabel("Recording ETA").fill("2026-10-05");
     await dialog.getByLabel("Recording ETA").blur();
     const started = page.waitForResponse((r) => r.url().includes("/api/update") && (r.request().postData() ?? "").includes("tutorial_status"));
@@ -172,7 +164,7 @@ test.describe.serial("script recorder journey", () => {
       await page.getByText(JOURNEY, { exact: true }).click();
       await expect(dialog.getByRole("button", { name: "Submit for review" })).toBeVisible({ timeout: 1500 });
     }).toPass({ timeout: 15000 });
-    await submitWork(page, "Recording link", "https://drive.example.com/journey-recording");
+    await submitWork(page);
   });
 
   test("approving the recording hands it to the processor", async ({ page }) => {

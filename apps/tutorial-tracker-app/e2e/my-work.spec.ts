@@ -24,18 +24,16 @@ test("a video you own twice is listed once, with its later stage noted", async (
   await expect(yourPart.getByText("Thumbnail", { exact: true })).toBeVisible();
 });
 
-test("a doer sees the upstream deliverable it works from", async ({ page }) => {
+test("a doer sees the project folder it works from", async ({ page }) => {
   await loginAs(page, PERSONAS.john);
   await page.getByText(DUAL, { exact: true }).click();
   const dialog = page.getByRole("dialog");
-  // The recording the editor must actually open — this used to be withheld.
-  await expect(dialog.getByText("Recording link")).toBeVisible();
-  await expect(dialog.getByText("https://drive.example.com/screen-recording-raw")).toBeVisible();
-  // …alongside the brief, the routing note, the ETA and its own deliverable.
+  await expect(dialog.getByText("Project folder (Drive) link")).toBeVisible();
+  await expect(dialog.getByText(/drive\.example\.com\/folder-/)).toBeVisible();
   await expect(dialog.getByText("Notes / brief")).toBeVisible();
   await expect(dialog.getByText("Editing instructions")).toBeVisible();
   await expect(dialog.getByText("Editing ETA")).toBeVisible();
-  await expect(dialog.getByText("Final video link")).toBeVisible();
+  await expect(dialog.getByText("Final video link")).toHaveCount(0); // files go in the folder
 });
 
 test("a not-yet-started stage still shows every field, read-only", async ({ page }) => {
@@ -43,7 +41,7 @@ test("a not-yet-started stage still shows every field, read-only", async ({ page
   // test-standard-thumbnail-to-do: To Do used to hide the deliverable slot.
   await page.getByText("test-standard-thumbnail-to-do", { exact: true }).click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText("Final video link")).toBeVisible();  // upstream: what it makes a thumb for
+  await expect(dialog.getByText("Project folder (Drive) link")).toBeVisible();
   await expect(dialog.getByText("Thumbnail instructions")).toBeVisible();
-  await expect(dialog.getByText("Thumbnail link")).toBeVisible();
+  await expect(dialog.getByText("Thumbnail ETA", { exact: true })).toBeVisible();
 });

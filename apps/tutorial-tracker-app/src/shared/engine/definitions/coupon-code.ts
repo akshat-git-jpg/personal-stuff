@@ -14,14 +14,14 @@ export const couponCode: PipelineDef = {
   name: "Coupon Code",
   stages: [
     { id: "topic", label: "Topic", role: "Admin", lifecycle: "approveOnly", kind: "brief",
-      briefFields: ["video_title", "video_notes", "video_description", "topic_date"] },
+      briefFields: ["video_title", "video_notes", "video_description", "project_folder", "topic_date"] },
 
     { id: "video", label: "Video", role: "Video Editor", lifecycle: "review", gate: "topic",
       contextFields: ["video_title", "video_notes"],
-      work: { id: "final_video", label: "Final video", type: "url", slot: "work_link", required: "submit" } },
+      work: null },
 
     { id: "thumbnail", label: "Thumbnail", role: "Thumbnail Maker", lifecycle: "review", gate: "video",
-      work: { id: "thumbnail_link", label: "Thumbnail", type: "url", slot: "work_link", required: "submit" } },
+      work: null },
 
     { id: "upload", label: "Upload", role: "Uploader", lifecycle: "terminal", gate: "thumbnail",
       needs: ["video", "thumbnail"],

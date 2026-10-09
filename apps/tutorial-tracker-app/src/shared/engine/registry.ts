@@ -137,7 +137,7 @@ export function validatePipeline(p: PipelineDef): ValidationIssue[] {
     }
 
     // a work stage must resolve a deliverable field
-    if ((s.kind ?? "work") === "work" && !workField(s)) at("work stage has no deliverable field");
+    if ((s.kind ?? "work") === "work" && s.work !== null && !workField(s)) at("work stage has no deliverable field");
   });
 
   return issues;

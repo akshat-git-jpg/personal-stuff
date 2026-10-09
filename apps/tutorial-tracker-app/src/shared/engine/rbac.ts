@@ -9,7 +9,7 @@
 // including admin "view as".
 // ===========================================================================
 import type { PipelineDef, StageDef } from "./types";
-import { colOf, stageHasReviewerSlot, stageKind, stageHasEta, stageHasInstruction, workField } from "./types";
+import { colOf, stageHasReviewerSlot, stageKind, stageHasEta, stageHasInstruction, workField, PROJECT_FOLDER } from "./types";
 import { getPipeline, PIPELINES, ADMIN_ROLE, REVIEWER_ROLE } from "./registry";
 import { effectiveRoles, unionRoles, type Memberships } from "./memberships";
 import { lifecycle } from "./lifecycle";
@@ -35,7 +35,7 @@ export function pipeOf(row: Row): PipelineDef {
 function reviewerAccess(p: PipelineDef): Partial<Record<string, Access>> {
   const acc: Partial<Record<string, Access>> = {
     video_title: "view", video_notes: "view", video_description: "view",
-    category: "view", subcategory: "view",
+    category: "view", subcategory: "view", [PROJECT_FOLDER]: "view",
   };
   for (const s of p.stages) {
     acc[colOf(s, "status")] = "edit";                          // approve / send back
