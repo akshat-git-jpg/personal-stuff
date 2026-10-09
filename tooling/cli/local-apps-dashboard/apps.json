@@ -108,6 +108,15 @@
       "url": "http://localhost:4322"
     },
     {
+      "id": "word-check",
+      "name": "word pronunciation check",
+      "cwd": "pipelines/video/tts/word-check",
+      "start": "node serve.mjs --build --port 4371",
+      "port": 4371,
+      "ports": [4371],
+      "url": "http://localhost:4371"
+    },
+    {
       "id": "script-desk",
       "name": "script desk",
       "cwd": "apps/yt-script-desk",

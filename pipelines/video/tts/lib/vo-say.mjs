@@ -9,7 +9,8 @@ import { loadEnv } from "./env.mjs";
 import { deriveSpoken } from "./spoken.mjs";
 import { loadRespell } from "./respell.mjs";
 import { synthOne } from "./vo-synth.mjs";
-import { lintSpoken } from "./vo-prep.mjs";
+import { lintSpoken, fileJob } from "./vo-prep.mjs";
+import { wordGate } from "./word-check.mjs";
 
 // ~22s of speech; longer requests drift in pacing (see SKILL batch notes).
 const MAX_CHARS = 350;
@@ -113,6 +114,10 @@ if (isMain) {
   const problems = lintSpoken(text, respell);
   if (problems.length) {
     console.log(`warning: not prepped (${problems.map((p) => `${p.kind} "${p.match}"`).join(", ")}). Run yt-vo prep for a clean read.`);
+  }
+  if (values.file) {
+    const gate = wordGate(fileJob(values.file));
+    if (!gate.ok) console.log(`warning: word check: ${gate.reason}`);
   }
 
   try {

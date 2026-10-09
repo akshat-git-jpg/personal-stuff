@@ -1,7 +1,7 @@
 ---
 name: yt-vo
 description: >-
-  Final script from any source -> voiceover, via IndexTTS-2 on Modal. Preps a VO copy (punctuation, numbers, pronunciation) without touching the script, then synthesizes, reviews and locks. Verbs: prep, synth, say, respell, review, lock, batch, status, setup. Use for "make the voiceover", "VO from this doc", "prep this script for VO", "re-roll s03", "mispronounces <word>", "lock the takes", "yt-vo", or a 401/404/timeout from the Modal endpoint.
+  Final script from any source -> voiceover, via IndexTTS-2 on Modal. One ordered run: prep a VO copy, owner approves risky words in the word pronunciation check app, synth, review, lock. Verbs: prep, words, synth, say, respell, review, lock, batch, status, setup. Use for "make the voiceover", "VO from this doc", "prep this script for VO", "re-roll s03", "mispronounces <word>", "lock the takes", "yt-vo", or a 401/404/timeout from the Modal endpoint.
 user-invocable: true
 metadata:
   author: kbtg
@@ -10,7 +10,7 @@ metadata:
 
 # yt-vo — the voiceover flow
 
-Contents: The flow · The two entry points · prep · say · setup · synth · respell · review · lock · batch · status · Sync · When it fails · Related
+Contents: The flow · The two entry points · prep · words · say · setup · synth · respell · review · lock · batch · status · Sync · When it fails · Related
 
 One VO engine for the whole repo. **The engine, the voice and the reference clip live
 in `pipelines/video/tts/`** — that folder is the hub and the source of truth for
@@ -21,16 +21,29 @@ Consuming pipelines own text and collect wavs. They never own a voice, a referen
 clip, or an engine choice. If you find yourself copying a `.wav` out of
 `pipelines/video/tts/references/`, stop — pass the slug instead.
 
-## The flow
+## The flow — run it in this order, every time
 
 **Final script in, voiceover out.** The script can come from anywhere: yt-script,
-a Google Doc, a freelancer. yt-vo never edits it, because it is also the caption
-text. It writes a separate VO copy for the voice:
+a Google Doc, a team member. yt-vo never edits it, because it is also the caption
+text. When the owner says "make the voiceover" (or names a script), run these
+steps in order without being asked for each one. Stop only where it says STOP.
 
-    final script  ->  prep (VO copy + respell map)  ->  synth / say  ->  review  ->  lock
+| # | Step | What you do | Done when |
+|---|---|---|---|
+| 1 | **prep** | Write the VO copy per `references/prep-rules.md` (section **prep** below) | the text check passes (it still reports the word check as not done) |
+| 2 | **words** | List every risky word with 3 spelling options, make the audio (section **words**) | the app shows every new word |
+| 3 | **STOP: owner listens** | Tell the owner to open **word pronunciation check** (local apps, `http://localhost:4371`) and approve one option per word. "None good" comes back in the terminal: add options with `more`, tell him to refresh | `words status` exits 0 |
+| 4 | **synth / say** | Make the voice audio (section **synth** or **say**) | every section has a take |
+| 5 | **STOP: owner reviews** | He listens; re-roll what he flags (section **review**) | he says it is good |
+| 6 | **lock** | Lock the takes (section **lock**) | all locked |
+| 7 | **save the words** | Claim a workspace, run `node pipelines/video/tts/lib/word-check.mjs promote pipelines/video/tts/respell.json`, commit | the new words are in git |
+
+Step 7 matters: the app saves approvals to `~/kb-scratch/video/tts/word-check/approved.json`
+(outside git) so they work at once; `promote` puts them in the shared map so every
+machine gets them. A word approved once is never asked again.
 
 Writing the script (what to say, cutting repeats, sounding human) is the script
-owner's job. Making it speakable (punctuation, numbers, pronunciation) is `prep`.
+owner's job. Making it speakable is yt-vo's.
 
 ## The two entry points
 
@@ -59,13 +72,13 @@ the script itself.
 **A script with `script.json`** (yt-script, step 120). From the pipeline folder:
 
     bash run.sh <slug> vo-prep --seed     # copy each display_text into an empty spoken_text
-    # edit spoken_text in videos/<slug>/script.json per prep-rules.md,
-    # and add problem words to videos/<slug>/respell.json
-    bash run.sh <slug> vo-prep            # check; repeat until it exits 0
+    # edit spoken_text in videos/<slug>/script.json per prep-rules.md
+    bash run.sh <slug> vo-prep            # check; repeat until the text has no problems
 
-The check prints every changed section as `script:` / `vo:` and every problem left
-(a dash, a digit, a symbol, ALL CAPS, an open flag). Show the owner that change
-list. Exit 0 means every section is ready for synth.
+The check prints every changed section as `script:` / `vo:`, every problem left
+(a dash, a digit, a symbol, ALL CAPS, an open flag) and the word-check state. Show
+the owner that change list. Exit 0 means the text is clean AND every risky word is
+approved: ready for synth.
 
 **A doc or pasted text** (no `script.json`):
 
@@ -73,7 +86,42 @@ list. Exit 0 means every section is ready for synth.
     # write <name>.vo.txt next to the source, per prep-rules.md
     node lib/vo-prep.mjs --file <name>.vo.txt [--respell extra.json]
 
-Then `say --file <name>.vo.txt`.
+The word-check job for a doc is its file name without `.vo.txt` (`launch.vo.txt` ->
+`launch`). Then `say --file <name>.vo.txt`.
+
+## words — the word pronunciation check
+
+Every VO gets one, even when it finds nothing. Pronunciation is the owner's ear, not
+yours: you propose, he picks.
+
+1. **List the risky words** from the VO text: every tool or brand name, acronym of
+   three or more letters, odd spelling, non-English word, and recurring token
+   (`1080p`, `.mp4`). Skip nothing because you think the engine "probably" knows it.
+2. **Give each word 3 options** in plain letters with hyphens, per
+   `references/prep-rules.md` § 3. "As written" is added for you as option 1.
+3. **Write them to a JSON file in your scratch dir** and add them:
+
+       [{ "word": "Descript", "options": ["dee-script", "deh-script", "dis-kript"] }]
+
+       bash run.sh <slug> vo-words add --words <file>          # yt-script
+       node pipelines/video/tts/lib/word-check.mjs add <job> --words <file>   # a doc
+
+   Words already approved are dropped. Every option gets its own audio file (one
+   short Modal call each). An empty list is fine: it records "nothing risky".
+4. **STOP.** Tell the owner the app URL and how many words wait. The app is in the
+   local apps dashboard as **word pronunciation check**; if it is not running,
+   `node pipelines/video/tts/word-check/serve.mjs --build` starts it on :4371.
+5. **"None of them are good"** — he says so in the terminal, usually with a hint.
+   Add new options; they appear in the app on its next refresh:
+
+       node pipelines/video/tts/lib/word-check.mjs more <job> --word Descript --options "duh-script,dess-kript"
+
+6. **Done** when `status` exits 0:
+
+       bash run.sh <slug> vo-words status
+       node pipelines/video/tts/lib/word-check.mjs status <job>
+
+`vo-synth` refuses to start until this passes. `say` warns.
 
 ## say — text with no script.json (a doc, a one-line test)
 
@@ -85,8 +133,8 @@ Run `prep` on a doc first. `say` still speaks unprepped text, so a one-line test
 works, but it prints a warning that lists each problem.
 
 Paragraphs split on blank lines, long ones cut to ~22s at sentence ends, one request
-each, joined with a 0.35s gap. It applies the shared `respell.json` and prints every
-word it respelled. `--respell extra.json` adds a map for this run only.
+each, joined with a 0.35s gap. It applies the shared `respell.json` (plus approvals
+not yet promoted) and prints every word it respelled. `--respell extra.json` adds a map for this run only.
 
 ## setup (one time per machine, and after any engine change)
 
@@ -137,14 +185,15 @@ empty or not speakable. Run `prep`. Synth never writes `spoken_text` back.
 
 TTS gets brand names and acronyms wrong. Fix the **text**, never the audio.
 
-Two maps, merged at synth time. **`pipelines/video/tts/respell.json` is shared** by
-every voiceover (`vo-synth` and `vo-say`): a word that recurs across videos (brand
-names like D-ID) goes there, once. A video's own map wins on a clash. Spelled-out
-acronyms are hyphenated capitals (`D-I-D`); `dee eye dee` pauses between letters.
+Maps merged at synth time, later wins: **`pipelines/video/tts/respell.json`**
+(shared, in git), then **`approved.json`** (owner picks from the word check, not yet
+promoted), then an optional per-video override `videos/<slug>/respell.json`.
+Spelled-out acronyms are hyphenated capitals (`D-I-D`); `dee eye dee` pauses
+between letters.
 
-For words only this video needs, put a map in `videos/<slug>/respell.json`:
-
-    { "Asana": "Ah-sah-nah", "n8n": "N eight N" }
+**A word sounds wrong in a take:** run it through the word check again
+(`word-check.mjs more <job> --word W --options "a,b,c"`) so the owner picks by ear,
+then re-roll. Do not edit the map by hand.
 
 The map is applied to `spoken_text` at synth time, every time. So `spoken_text`
 keeps normal spelling, and a fix to either map reaches every later take.

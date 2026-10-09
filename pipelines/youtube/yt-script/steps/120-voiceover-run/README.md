@@ -22,7 +22,10 @@ produced.
 cd pipelines/youtube/yt-script
 bash run.sh <key> status              # stage, section count, how many are locked
 bash run.sh <key> vo-prep --seed      # start the VO copy from the final script
-bash run.sh <key> vo-prep             # check the VO copy; repeat until it exits 0
+bash run.sh <key> vo-prep             # check the VO copy text
+bash run.sh <key> vo-words add --words <file>   # risky words -> audio options
+# STOP: owner approves one option per word in "word pronunciation check" (:4371)
+bash run.sh <key> vo-words status     # exits 0 when every word is approved
 bash run.sh <key> vo                  # every unlocked section
 bash run.sh <key> vo --only s03       # re-roll one
 bash run.sh <key> vo --force --only s03   # re-roll one that is already locked
@@ -36,7 +39,8 @@ text and collects wavs, and never picks a voice.
 ## Read the `yt-vo` skill before running this
 
 Its `prep` section and `references/prep-rules.md` say how to write the VO copy.
-`vo` refuses to send anything until `vo-prep` passes.
+`vo` refuses to send anything until the text is clean and every risky word is
+approved. The skill's **The flow** table is the order to run everything in.
 
 `pipelines/.claude/skills/yt-vo/SKILL.md` owns what "good" means before a take is
 locked, in this order: wrong words -> respell and re-roll; a faint onset "tsh" ->
