@@ -123,7 +123,7 @@ Snapshot of 2026-07-12, verified against `final-workflow-notes.md` (incl. the co
 - Landed truth: `grep -A30 "## boss-landed" plans/README.md` (table cells lie for boss-landed rows)
 - Open queue: `gh pr list --state open --label boss:ready`
 - The 7 problems + cost table: read `pipelines/youtube/final-workflow/final-workflow-notes.md`
-- 135 rulebook still a stub? `head -3 pipelines/youtube/tutorial-pipeline-2/5-visuals/135-build-graphics-sonnet/rulebook.md`
+- 135 rulebook still a stub? `head -3 pipelines/archive/tutorial-pipeline-2/5-visuals/135-build-graphics-sonnet/rulebook.md`
 - Autonomy window: decisions.md 2026-07-11 entry (≥4 clean weeks from 2026-07-11 → ~2026-08-08)
 
 ## personal-stuff-hosting-inventory
@@ -186,6 +186,6 @@ Grounded in `pipelines/youtube/final-workflow/final-workflow-notes.md`, `pipelin
 - Processor time log started yet (baseline rows)? `grep -n "Processor time log" pipelines/youtube/final-workflow/final-workflow-notes.md` (no match as of 2026-07-12 — the operator adds it per the Phase-1 protocol)
 - fal-lipsync still deferred? `grep -n "fal-lipsync deferred" decisions.md`
 - Unattended runs still read-only-first? `grep -n "Autonomy policy" decisions.md`
-- 135 rulebook still a stub? `head -3 pipelines/youtube/tutorial-pipeline-2/5-visuals/135-build-graphics-sonnet/rulebook.md`
-- HeyGen still stubbed (PIPE-01)? `grep -n "TODO\[HNS\]" pipelines/youtube/tutorial-pipeline-2/lib/heygen.py`
+- 135 rulebook still a stub? `head -3 pipelines/archive/tutorial-pipeline-2/5-visuals/135-build-graphics-sonnet/rulebook.md`
+- HeyGen still stubbed (PIPE-01)? `grep -n "TODO\[HNS\]" pipelines/archive/tutorial-pipeline-2/lib/heygen.py`
 - Which phases already have plans? `grep -in "final-workflow\|thumbnail\|qc" plans/README.md`

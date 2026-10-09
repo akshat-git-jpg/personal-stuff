@@ -33,7 +33,7 @@ A **workflow** is an end-to-end command that composes operations (e.g. `photo-to
 { "girl-1": { "template_id": "7629dffb…", "description": "Girl 1 — soft-voice tutorial template" } }
 ```
 
-Any `--avatar` / `--template` flag accepts **a slug or a raw id** — `registry.mjs`'s `resolveAvatar()` / `resolveTemplate()` map a known slug to its id and pass anything else through unchanged (so raw ids still work). To add a new avatar/template, edit `pipelines/video/heygen/registry.json` — no code change. The Python pipelines read this same file (`tutorial-pipeline-1/shared/avatar_mapping.py`), so ids live in exactly one place. Override the path with `HEYGEN_AVATARS`.
+Any `--avatar` / `--template` flag accepts **a slug or a raw id** — `registry.mjs`'s `resolveAvatar()` / `resolveTemplate()` map a known slug to its id and pass anything else through unchanged (so raw ids still work). To add a new avatar/template, edit `pipelines/video/heygen/registry.json` — no code change. The Python pipelines read this same file (`pipelines/archive/tutorial-pipeline-1/shared/avatar_mapping.py`, archived), so ids live in exactly one place. Override the path with `HEYGEN_AVATARS`.
 
 ## Operational Gotchas
 

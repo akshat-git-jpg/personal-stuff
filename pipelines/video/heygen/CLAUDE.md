@@ -10,7 +10,7 @@ own avatar assets themselves. Created 2026-07-12 (consolidated from `video/voice
 
 - `registry.json` — slug → HeyGen `avatar_id`/`template_id`, source-image path, notes. THE
   single source of truth for character ids; read by `tooling/cli/heygen-web` (override path
-  with `HEYGEN_AVATARS`) and `youtube/tutorial-pipeline-1/shared/avatar_mapping.py`.
+  with `HEYGEN_AVATARS`) and `archive/tutorial-pipeline-1/shared/avatar_mapping.py` (archived).
 - `RENDERS.md` — tracked manifest of every avatar video generated. The heygen-web CLI
   auto-appends a row on submit (`HEYGEN_RENDERS_LOG` overrides the path).
 - `characters/<slug>/` — tracked reference assets per character: `source.jpeg`, approved
