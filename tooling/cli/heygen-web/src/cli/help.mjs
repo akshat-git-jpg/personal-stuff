@@ -19,6 +19,9 @@ export function printHelp() {
            renders a TEMPLATE (pre-composed background + avatar bubble, e.g. "Girl 1"/"girl 2")
            over your audio; visual composition untouched, only the audio swaps in.
            HAR-verified 2026-07-09 — see API-REFERENCE.md "Create from template".
+  clip-batch (--avatar <slug|id> | --template <slug>) --audio <file> [--title T] [--out f.mp4] [--min 10] [--max 25]
+           Avatar III only: cuts the audio on pauses into 10-25 s pieces, renders each from render second 0,
+           downloads them at 1080p and joins them (x264 CRF 16, 25 fps). One credit check for the whole batch.
   template-engine --template <slug|id>   read-only: is the template Avatar III? exit 3 if not
   batch --file <items.txt|items.json> [--avatar id] [--voice id]
            [--orientation portrait|landscape] [--res 720p|1080p]

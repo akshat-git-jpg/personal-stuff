@@ -12,6 +12,7 @@ import { raw } from "../workflows/raw.mjs";
 import { generate, generateFromAudio, generateFromTemplate } from "../workflows/generate.mjs";
 import { photoToVideo } from "../workflows/photo-to-video.mjs";
 import { avatarTest } from "../workflows/avatar-test.mjs";
+import { clipBatch } from "../workflows/clip-batch.mjs";
 import { printHelp } from "./help.mjs";
 import { loginFromBrowser } from "../workflows/login-from-browser.mjs";
 
@@ -44,6 +45,7 @@ export async function run(args) {
     case "batch":        await batch(auth, rest); break;
     case "create-photo-avatar": await createPhotoAvatar(auth, rest); break;
     case "avatar-test": await avatarTest(auth, rest); break;
+    case "clip-batch": await clipBatch(auth, rest); break;
     case "photo-to-video": await photoToVideo(auth, rest); break;
     case "studio-render": await studioRender(auth, rest); break;
     case "studio-render-status": await studioRenderStatus(auth, rest[0], rest[1]); break;
