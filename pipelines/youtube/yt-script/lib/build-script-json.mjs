@@ -2,7 +2,7 @@
 //
 // Step 100 writes script.md for humans and this file derives the machine copy,
 // so the two cannot drift the way script.md + script.vo.txt would have. The
-// shape is tp3's (pipelines/youtube/tutorial-pipeline-3/lib/schema.mjs) because
+// shape is pipelines/video/tts/lib/script-schema.mjs because
 // pipelines/video/tts/lib/vo-synth.mjs reads exactly that shape.
 
 // A section heading: "### 12. Pricing & Value"

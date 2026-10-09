@@ -168,8 +168,8 @@ endpoint = `synth_section` in `modal/indextts2_app.py`, POST `{id, text, interva
 **Operate this via the `yt-vo` skill** — it owns the verbs (setup / synth / respell /
 review / lock / batch) for every consuming pipeline. Callers were originally the
 `apps/tutorial-vo` Worker UI (plan 132); that app was **retired 2026-08-20** (Worker,
-D1, R2 and DNS deleted) and voiceover is now an owner-run local step. tutorial-pipeline-3
-calls this endpoint directly from `lib/vo-synth.mjs`.
+D1, R2 and DNS deleted) and voiceover is now an owner-run local step. yt-script
+calls this endpoint through `lib/vo-synth.mjs`.
 
 All set MPS-off-by-fallback / device auto. HF auth: token stored globally
 (`~/.cache/huggingface/token`) — downloads are fast.
@@ -206,7 +206,7 @@ Async one-job-at-a-time queue. Add swap before heavy jobs.
 ## `lib/` — the shared voiceover client (plan 251, 2026-08-26)
 
 The per-section IndexTTS-2 client used to live in
-`pipelines/youtube/tutorial-pipeline-3/lib/`. It moved here when a second
+`pipelines/youtube/tutorial-pipeline-3/lib/` (now archived at `pipelines/archive/tutorial-pipeline-3/`). It moved here when a second
 pipeline (`yt-script`) needed it, because this folder is the source of truth for
 anything voice-related and a consuming pipeline must not own the engine.
 
@@ -219,6 +219,7 @@ anything voice-related and a consuming pipeline must not own the engine.
 | `respell.mjs` | `loadRespell(videoPath)` — shared `respell.json` here, merged under the video's own map |
 | `spoken.mjs` | `deriveSpoken(display_text, respellMap)` — applies the respell map |
 | `flags.mjs` | `scanFlags` / `stripFlags` over `[VERIFY: …]` / `[FILL: …]` |
+| `script-schema.mjs` | `validateScript` — the `script.json` shape vo-synth reads. Moved from tp3 when tp3 was archived (2026-10-09); yt-script's tests check against it |
 | `env.mjs` | `loadEnv(rootDir)` — reads `<rootDir>/../../.env`, i.e. `pipelines/.env` |
 
 **`--root` is the whole contract.** A consuming pipeline passes its own directory
@@ -227,7 +228,7 @@ and the client reads `<root>/videos/<slug>/script.json` plus optional
 That works for any pipeline sitting two levels under `pipelines/` — the depth
 `env.mjs` assumes.
 
-tp3 keeps one-line re-export shims at `lib/flags.mjs`, `lib/spoken.mjs` and
+The archived tp3 keeps one-line re-export shims at `lib/flags.mjs`, `lib/spoken.mjs` and
 `lib/env.mjs`, and re-exports `lockSection` from `lib/state.mjs`, so its own
 modules were not touched by the move.
 

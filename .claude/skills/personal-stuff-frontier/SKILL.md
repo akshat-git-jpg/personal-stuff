@@ -31,7 +31,7 @@ End state (owner-confirmed 2026-07-12): the pipeline running unattended end-to-e
 
 - **PR#3 `045-dossiers-explainer-flow` is `boss:ready`** — the only open PR. First step: dispatch it in a boss session. (Research-v2 explainer variant; its 044 parent was superseded by landed 051.)
 - **052 + 053 (dossier-build fixes: tool-identity/schema, then driver script + metadata):** plan files exist in `plans/`, no PR raised. First step: `/secretary raise` in order 052 → 053. These also unblock Front 1 problem #4.
-- **011 remnants:** step 135 graphics rulebook — `pipelines/youtube/tutorial-pipeline-2/5-visuals/135-build-graphics-sonnet/rulebook.md` EXISTS but is a 14-line stub (~814B, verified 2026-07-12); author the real thing in a Sonnet Claude Code session per the campaign skill. Ignore the legacy flat `steps/135-build-graphics-sonnet/` folder (only an empty `output/`) — the stage folders (`5-visuals/`, …) are canonical. Step 162 overlay passes (`PIPE-01`) stay blocked on real HeyGen downloads existing.
+- **011 remnants:** step 135 graphics rulebook — `pipelines/archive/tutorial-pipeline-2/5-visuals/135-build-graphics-sonnet/rulebook.md` EXISTS but is a 14-line stub (~814B, verified 2026-07-12); author the real thing in a Sonnet Claude Code session per the campaign skill. Ignore the legacy flat `steps/135-build-graphics-sonnet/` folder (only an empty `output/`) — the stage folders (`5-visuals/`, …) are canonical. Step 162 overlay passes (`PIPE-01`) stay blocked on real HeyGen downloads existing.
 
 ## Front 4 — cost: toward <$10/video all-in (beyond-SOTA axis b)
 

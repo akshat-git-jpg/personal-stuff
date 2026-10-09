@@ -1,11 +1,11 @@
-// The emitted script.json is checked against tp3's OWN validateScript, not a
-// local copy of the rules: if tp3's schema moves, this suite goes red instead of
+// The emitted script.json is checked against the TTS hub's validateScript, not a
+// local copy of the rules: if that schema moves, this suite goes red instead of
 // yt-script silently emitting a shape vo-synth cannot read.
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseScriptMd, buildScriptJson, wordCount, SCHEMA_ERROR, SHORT_BEAT_ERROR } from './build-script-json.mjs'
-import { validateScript } from '../../tutorial-pipeline-3/lib/schema.mjs'
+import { validateScript } from '../../../video/tts/lib/script-schema.mjs'
 
 const MD = `# Some Video — Script
 

@@ -1,7 +1,7 @@
 # INTEGRATION.md — the caller contract
 
-For any pipeline consuming visuals-flow as its graphics step (currently
-`tutorial-pipeline-1` and `tutorial-pipeline-2`). Read `PIPELINE.md` first for
+For any pipeline consuming visuals-flow as its graphics step (the first
+callers were `tutorial-pipeline-1` and `-2`, both archived 2026-10-09). Read `PIPELINE.md` first for
 the flow itself; this doc is what changes when the caller is another pipeline
 instead of a human running this folder directly.
 
@@ -17,7 +17,7 @@ free.
 ## 2. The workdir contract
 
 The caller owns a directory anywhere on disk — a step-output folder inside
-`tutorial-pipeline-1`/`-2` is fine, it does not need to live under this
+another pipeline is fine, it does not need to live under this
 pipeline's `videos/`. It must contain either:
 
 - `vo.mp3` (or a `vo.mp4`/`.mov`/`.mkv`/`.m4a`/`.wav` for step 010 to

@@ -7,7 +7,7 @@ import { loadEnv } from "./env.mjs";
 
 test("loadEnv parses .env", () => {
   const pipeRoot = fs.mkdtempSync(path.join(os.tmpdir(), "pipeline-"));
-  const projRoot = path.join(pipeRoot, "youtube/tutorial-pipeline-3");
+  const projRoot = path.join(pipeRoot, "youtube/yt-script");
   fs.mkdirSync(projRoot, { recursive: true });
   fs.writeFileSync(path.join(pipeRoot, ".env"), "TEST_KEY=123\n#comment\n\nTEST_KEY2=456");
   

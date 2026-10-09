@@ -62,9 +62,6 @@ npx ts-node run.ts --niche <slug>
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-research/`](youtube/yt-research/CLAUDE.md) | Niche → knowledge-base pipeline (Phase 1, Gemini) | TypeScript |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-script/`](youtube/yt-script/CLAUDE.md) | Owner-supplied knowledge → outline → team member's draft back → final AI-VO script → voiceover (step 4 unwired, 2026-08-18). Any topic, any format, no research step (2026-07-31). Driven by the `yt-script` skill | Markdown workflow |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/my-yt/`](youtube/my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/tutorial-pipeline-1/`](youtube/tutorial-pipeline-1/PIPELINE.md) | Drive-in → HeyGen spokesperson clips from an existing avatar → Drive-out. Standalone | Python + Claude steps |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/tutorial-pipeline-2/`](youtube/tutorial-pipeline-2/PIPELINE.md) | Tutorial recording prep steps (renamed from kushal-tutorial-pipeline-v2, 2026-07-07). Video-first + dub-sync — superseded by tutorial-pipeline-3's VO-first ordering (2026-07-23) | Python + Claude steps |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/tutorial-pipeline-3/`](youtube/tutorial-pipeline-3/WORKFLOW.md) | VO-first tutorial workflow — voiceover generated first, screen recorded to it, no sync machinery. Concept doc only, no implementation yet | Markdown |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/explainer-videos-pipeline-1/`](youtube/explainer-videos-pipeline-1/PIPELINE.md) | Topic + competitor styles → fully-generated explainer video draft. No screen recording, no avatar | Python + Claude steps |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/competitor-styles/`](youtube/competitor-styles/CLAUDE.md) | Competitor style packs (script + video Style DNA for yt-style-copy skill; includes the Devsplainers motion-graphics reverse-engineering + hyperframes build kit, moved here 2026-07-07) | Python + Claude skill |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/dossiers/`](youtube/dossiers/CLAUDE.md) | Persistent per-software research library — one dossier per tool, accumulated from every fetched video transcript | Python + Claude skill |
@@ -92,4 +89,5 @@ npx ts-node run.ts --niche <slug>
 | &nbsp;&nbsp;&nbsp;&nbsp;[`notes/to-do/`](notes/to-do/todolist.md) | Running task lists | Markdown |
 | [`archive/`](#) | Superseded work kept for reference | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`archive/hyperframes-vs-remotion/`](archive/hyperframes-vs-remotion/CLAUDE.md) | Superseded Hyperframes vs Remotion rendering tests | HTML/CSS/JS |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`archive/tutorial-pipeline-1/`](archive/tutorial-pipeline-1/PIPELINE.md), [`-2/`](archive/tutorial-pipeline-2/PIPELINE.md), [`-3/`](archive/tutorial-pipeline-3/WORKFLOW.md) | Old tutorial flows, archived 2026-10-09. Replaced by `youtube/yt-script/` + `video/visuals-flow/` | Python + Node |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`archive/rvc-flow/`](archive/rvc-flow/CLAUDE.md) | Superseded RVC male→female voice conversion (replaced by `video/tts/`'s IndexTTS-2) | Python |

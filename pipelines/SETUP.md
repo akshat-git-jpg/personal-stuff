@@ -163,7 +163,6 @@ Worth knowing so you do not spend an afternoon on something that cannot work:
 | MCP servers | `.mcp.json` is gitignored and holds absolute Mac paths. The DaVinci one also needs Resolve Studio installed |
 | The `branch-guard` hook | `.claude/settings.json` points at a Mac path that does not exist here. Override it in `.claude/settings.local.json` or every Bash call errors |
 | `pipelines/video/` | Built on ffmpeg, Whisper and DaVinci Resolve as they are set up on the Mac |
-| `youtube/tutorial-pipeline-2` | `lib/handoff.py` calls `pbcopy`, which is macOS-only. One-line fix if you need it |
 
 The `local-apps` dashboard does work now. From the repo root:
 
