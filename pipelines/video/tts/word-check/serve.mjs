@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
@@ -86,8 +87,15 @@ if (isMain) {
   });
   if (values.build) {
     const ui = path.join(HERE, "ui");
-    // shell: true so npm resolves to npm.cmd on Windows
-    if (!fs.existsSync(path.join(ui, "node_modules"))) execSync("npm ci --no-audit --no-fund", { cwd: ui, stdio: "inherit", shell: true });
+    // Reinstall whenever the lock file changed, so a stale install never survives an update.
+    const lock = fs.readFileSync(path.join(ui, "package-lock.json"));
+    const hash = crypto.createHash("sha1").update(lock).digest("hex");
+    const stamp = path.join(ui, "node_modules", ".word-check-lock");
+    if (!fs.existsSync(stamp) || fs.readFileSync(stamp, "utf8") !== hash) {
+      // shell: true so npm resolves to npm.cmd on Windows
+      execSync("npm ci --no-audit --no-fund", { cwd: ui, stdio: "inherit", shell: true });
+      fs.writeFileSync(stamp, hash);
+    }
     execSync("npm run build", { cwd: ui, stdio: "inherit", shell: true });
   }
   createApp().listen(Number(values.port), "127.0.0.1", () => {
