@@ -86,8 +86,6 @@ export const COLUMN_META: Partial<Record<Column, ColMeta>> = {
   yt_eta:         { type: "eta" },
   yt_upload_date: { type: "date" },
   yt_link:        { type: "link", hint: PUBLIC_LINK_HINT },
-  short_links:    { type: "link" },
-  actual_links:   { type: "link" },
 };
 
 // ── Engine-derived widget types — the GENERIC source of truth ────────────────

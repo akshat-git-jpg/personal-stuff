@@ -57,7 +57,7 @@ describe("storage round-trip (flat Row ⇄ normalized)", () => {
     tutorial_status: "In Review", tutorial_maker_email: "rec@x", tutorial_reviewer_email: "rv@x", tutorial_link: "tl", tutorial_eta: "2026-06-08", tutorial_instruction: "ti",
     video_editor_status: "To Do", video_editor_email: "ed@x", video_editor_reviewer_email: "rv@x", video_editor_instruction: "vi",
     thumbnail_status: "To Do", thumbnail_maker_email: "th@x", thumbnail_reviewer_email: "rv@x", thumbnail_instruction: "thi",
-    yt_upload_status: "To Do", uploader_email: "up@x", yt_upload_date: "2026-06-30", short_links: "go/x", actual_links: "http/x",
+    yt_upload_status: "To Do", uploader_email: "up@x", yt_upload_date: "2026-06-30",
   };
 
   it("is lossless including status_since + passthrough of stray legacy cols", () => {
@@ -88,7 +88,7 @@ describe("storage round-trip (flat Row ⇄ normalized)", () => {
     expect(routeWrite(P, "editor_feedback")).toEqual({ kind: "stage", stageId: "editing", slot: "feedback" });
     expect(routeWrite(P, "video_title")).toEqual({ kind: "card", field: "title" });
     expect(routeWrite(P, "status_since")).toEqual({ kind: "system", field: "status_since" });
-    expect(routeWrite(P, "short_links")).toEqual({ kind: "stage_extra", stageId: "upload", fieldId: "short_links" });
+    expect(routeWrite(P, "yt_upload_date")).toEqual({ kind: "stage_extra", stageId: "upload", fieldId: "yt_upload_date" });
     expect(routeWrite(P, "topic_date")).toEqual({ kind: "card_extra", key: "topic_date" });
     expect(routeWrite(P, "reviewer_email")).toEqual({ kind: "card_extra", key: "reviewer_email" }); // passthrough
   });

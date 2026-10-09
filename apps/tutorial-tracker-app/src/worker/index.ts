@@ -1224,25 +1224,9 @@ app.post("/api/link-confirm", async (c) => {
     if (action !== "skip") await c.env.CLICKS_KV.put(fullSlug, i.target_url);
   }
 
-  const actualItems: [string, string, boolean][] = finalItems
-    .filter(i => i.status !== "blocked")
-    .map(i => [i.slug, i.target_url, i.status === "affiliate"]);
-  const shortPairs: [string, string][] = finalItems
-    .filter(i => i.status !== "blocked")
-    .map(i => [i.slug, i.short_url]);
-
-  const actual_links = actualItems
-    .map(([tool, url, hasAff]) => (hasAff ? `${tool}: ${url}` : `${tool}: ${url} (no affiliate)`))
-    .join("\n");
-  const short_links = shortPairs
-    .map(([tool, url]) => `${tool}: ${url}`)
-    .join("\n");
-
   await getStore(c.env).updateCells(rowId, {
     ...codeUpdates,
     video_description: description,
-    actual_links,
-    short_links
   });
   await bustBoardCache(c.env);
 
