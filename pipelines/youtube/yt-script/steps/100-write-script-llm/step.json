@@ -4,7 +4,7 @@
   "title": "write the final script",
   "actor": "llm",
   "actorLabel": "[LLM]",
-  "oneLiner": "Finalises his words into the VO-ready script.",
+  "oneLiner": "Finalises his words into the final script.",
   "consumes": [
     "script-draft.md",
     "script-plan.md",
@@ -12,11 +12,10 @@
   ],
   "produces": [
     "script.md",
-    "script.json",
-    "respell.json"
+    "script.json"
   ],
   "gate": null,
   "external": false,
   "optional": false,
-  "summary": "`script-draft.md` -> `script.md` (human-readable) + `script.json` (the per-section feed step 120 reads) + `respell.json` (pronunciation). Follows `SCRIPT-INSTRUCTIONS.md`. This is a FINALISE pass over someone else's words, not a fresh write - his phrasing survives unless it is wrong."
+  "summary": "`script-draft.md` -> `script.md` (human-readable, also the captions) + `script.json` (the per-section feed step 120 reads). Follows `SCRIPT-INSTRUCTIONS.md`. This is a FINALISE pass over someone else's words, not a fresh write - his phrasing survives unless it is wrong. No VO prep: that is yt-vo's job at 120."
 }

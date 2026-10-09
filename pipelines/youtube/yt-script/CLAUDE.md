@@ -81,7 +81,7 @@ desk-draft.json     local-mode scratch, gitignored
 script-draft.md     090 — the maker's completed work, verbatim. Provenance, tracked
 script.md           100 — the final VO script
 script.json         100 - the per-section engine feed; step 120's input
-respell.json        100 - pronunciation map, applied at synth time
+respell.json        120 - pronunciation map, written by yt-vo prep, applied at synth time
 audio/              120 - generated wavs, gitignored
 ```
 

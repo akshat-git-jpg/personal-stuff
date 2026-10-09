@@ -77,7 +77,7 @@ test('ids are sequential sNN and PART B is the demo section', () => {
   )
 })
 
-test('stage is tts and spoken_text is empty, so respell.json can apply', () => {
+test('stage is tts and spoken_text is empty, left for yt-vo prep', () => {
   const { script } = buildScriptJson('some-video', parseScriptMd(MD))
   assert.equal(script.stage, 'tts', 'stage must be tts: vo-synth rejects anything else that allows empty spoken_text')
   for (const s of script.sections) {

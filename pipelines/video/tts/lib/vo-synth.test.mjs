@@ -12,8 +12,8 @@ function section(over = {}) {
     id: 's01',
     version: 1,
     demo: false,
-    display_text: 'Notion and Asana both promise a lot.',
-    spoken_text: '',
+    display_text: 'Notion & Asana both promise a lot.',
+    spoken_text: 'Notion and Asana both promise a lot.',
     flags: [],
     notes: '',
     tts: { regens_used: 0, locked: false, take: null },
@@ -22,7 +22,7 @@ function section(over = {}) {
   };
 }
 
-test('spokenFor derives from display_text and applies the respell map', () => {
+test('spokenFor reads the prepped spoken_text and applies the respell map', () => {
   const sec = section();
   assert.strictEqual(spokenFor(sec), 'Notion and Asana both promise a lot.');
   assert.strictEqual(
@@ -31,9 +31,11 @@ test('spokenFor derives from display_text and applies the respell map', () => {
   );
 });
 
-test('spokenFor prefers an explicit spoken_text over display_text', () => {
-  const sec = section({ spoken_text: 'Hand written narration.' });
-  assert.strictEqual(spokenFor(sec), 'Hand written narration.');
+test('spokenFor refuses a section that was never prepped, or still has TTS problems', () => {
+  assert.throws(() => spokenFor(section({ spoken_text: '' })), /not ready for synth \(empty/);
+  assert.throws(() => spokenFor(section({ spoken_text: 'In 2026 — wow.' })), /dash "—".*run yt-vo prep|digit "2026"/);
+  // a respell key covers a word the lint would otherwise flag
+  assert.strictEqual(spokenFor(section({ spoken_text: 'Export at 1080p.' }), { '1080p': 'ten-eighty p' }), 'Export at ten-eighty p.');
 });
 
 test('spokenFor refuses unresolved flags', () => {
@@ -45,7 +47,7 @@ test('spokenFor refuses unresolved flags', () => {
 
   // flags array empty but the marker survived in spoken_text
   const leaked = section({ spoken_text: 'Click [FILL: price].' });
-  assert.throws(() => spokenFor(leaked), /flag markers/);
+  assert.throws(() => spokenFor(leaked), /not ready for synth \(flag/);
 });
 
 test('takeName encodes section version and the next take number', () => {
@@ -98,8 +100,9 @@ test('synthScript writes one wav per section and updates the tts block', async (
   assert.strictEqual(next.sections[0].tts.take, 's01-v1-t1.wav');
   assert.strictEqual(next.sections[0].tts.regens_used, 1);
   assert.strictEqual(next.sections[0].tts.locked, false);
-  // spoken_text is materialized so the take is reproducible
+  // the VO copy is never overwritten with respelled text
   assert.strictEqual(next.sections[0].spoken_text, 'Notion and Asana both promise a lot.');
+  assert.strictEqual(next.sections[0].display_text, 'Notion & Asana both promise a lot.');
   // input is not mutated
   assert.strictEqual(script.sections[0].tts.take, null);
 });
@@ -130,6 +133,17 @@ test('synthScript leaves locked sections untouched and reports them as skipped',
   assert.strictEqual(next.sections[0].tts.regens_used, 1);
   const files = await fs.readdir(path.join(tmpdir, 'videos', 'demo', 'audio'));
   assert.deepStrictEqual(files, ['s02.wav']);
+});
+
+test('synthScript refuses before any request when one target is not prepped', async () => {
+  const tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), 'vo-synth-'));
+  let calls = 0;
+  const script = { stage: 'tts', sections: [section({ id: 's01' }), section({ id: 's02', spoken_text: '' })] };
+  await assert.rejects(
+    synthScript(script, { ...OPTS, root: tmpdir, slug: 'demo' }, async () => { calls++; return { ok: true }; }),
+    /s02: not ready for synth/
+  );
+  assert.strictEqual(calls, 0);
 });
 
 test('synthScript surfaces a non-ok response and a missing endpoint config', async () => {

@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 if [ $# -lt 2 ]; then
-  echo "usage: bash run.sh <key> <status|vo|vo-lock>"
+  echo "usage: bash run.sh <key> <status|vo-prep|vo|vo-lock>"
   exit 2
 fi
 
@@ -26,6 +26,9 @@ case "$verb" in
       echo "script.json: missing"
     fi
     ;;
+  vo-prep)
+    node "$TTS_LIB/vo-prep.mjs" "$key" --root "$YTS_ROOT" "${@:3}"
+    ;;
   vo)
     node "$TTS_LIB/vo-synth.mjs" "$key" --root "$YTS_ROOT" "${@:3}"
     ;;
@@ -33,7 +36,7 @@ case "$verb" in
     node "$TTS_LIB/vo-lock.mjs" "$key" --root "$YTS_ROOT" "${@:3}"
     ;;
   *)
-    echo "usage: bash run.sh <key> <status|vo|vo-lock>"
+    echo "usage: bash run.sh <key> <status|vo-prep|vo|vo-lock>"
     exit 2
     ;;
 esac

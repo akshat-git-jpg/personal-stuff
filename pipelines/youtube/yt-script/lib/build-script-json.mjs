@@ -87,10 +87,8 @@ export function parseScriptMd(md) {
 
 // beats -> the tp3-shaped script.json object.
 //
-// stage is "tts", not "polished", and every spoken_text is "". That pairing is
-// deliberate and it is the only one that works: deriveSpoken (and therefore
-// respell.json) only runs when spoken_text is empty, while validateScript's
-// "polished" branch forbids an empty spoken_text. vo-synth accepts "tts".
+// stage is "tts" and every spoken_text is "": yt-vo prep fills spoken_text later,
+// and validateScript's "polished" branch forbids an empty one.
 export function buildScriptJson(key, beats) {
   const errors = []
 

@@ -36,9 +36,9 @@ knowledge.md  ->  outline.md   ->  script-plan.md  ->  script-draft.md  ->  scri
 | `070-publish-desk-run` | [RUN] | Applies the staged desk edits, then publishes and prints the freelancer URL |
 | `080-freelancer-writes-human` | **[OWNER]** | He records, writes his lines, tells you he is done |
 | `090-pull-draft-run` | [RUN] | Pulls his completed draft back into the repo |
-| `100-write-script-llm` | [LLM] | Finalises his words into the VO-ready script |
+| `100-write-script-llm` | [LLM] | Finalises his words into the final script (also the captions) |
 | `110-approve-script-human` | **[OWNER]** | You read what changed and approve |
-| `120-voiceover-run` | [RUN] | Synthesizes the voiceover per section, then locks the takes |
+| `120-voiceover-run` | [RUN] | Hands the script to yt-vo: prep a VO copy, synthesize per section, lock |
 | `130-learn-from-feedback-llm` | [LLM] | Folds your feedback into rules — run by `yt-script-feedback` |
 
 `ls steps/` is the check that keeps this table honest. A step on disk that is not
@@ -107,8 +107,8 @@ desk.
 | `videos/<key>/script-plan.md` | 050 | The document the desk publishes: verbatim intro and conclusion, plus one card per body section |
 | `videos/<key>/script-draft.md` | 090 | The maker's completed work, verbatim. Provenance, tracked |
 | `videos/<key>/script.md` | 100 | The final VO script, human-readable |
-| `videos/<key>/script.json` | 100 | The per-section engine feed. Step 120's input |
-| `videos/<key>/respell.json` | 100 | Pronunciation map, applied at synth time |
+| `videos/<key>/script.json` | 100 | The per-section engine feed. Step 120's input. yt-vo `prep` fills its `spoken_text` |
+| `videos/<key>/respell.json` | 120 (yt-vo `prep`) | Pronunciation map, applied at synth time |
 | `videos/<key>/desk-draft.json` | local desk | Local-mode scratch, gitignored |
 | `TASTE.md` | 130 | Your accumulated taste rules, numbered and dated |
 | `FEEDBACK-LOG.md` | 130 | Every reaction, tagged. The repeat-detection index |
@@ -164,9 +164,9 @@ question for him, never a cue to go find the answer.
 - **Step 100 finalises someone else's draft.** You do not write the script from
   the script plan. If no draft has come back, there is nothing to do — say so
   instead of writing one yourself.
-- **Pronunciation lives in `respell.json`, never in the script.** A respelling
-  typed into `script.md` is applied twice. The engine owns pronunciation
-  (`pipelines/video/tts/lib/spoken.mjs`).
+- **yt-script never preps for the voice.** No respellings, no numbers-as-words,
+  no TTS punctuation in `script.md`: it is the caption text. The yt-vo skill's
+  `prep` makes the VO copy at step 120.
 - **`script-draft.md` is never edited.** It is the maker's words, kept as
   provenance. Every change of yours goes into `script.md`.
 - **Never invent a key.** It comes from `pipelines/video-registry/` (`vreg

@@ -1,16 +1,18 @@
 # 120 - the voiceover
 
-**[RUN]** &nbsp; Synthesizes the voiceover section by section, then locks the takes.
+**[RUN]** &nbsp; Preps a VO copy with yt-vo, synthesizes it section by section, then locks the takes.
 
-Runs the `yt-vo` engine over `script.json` one section at a time via the Modal
-`synth_section` endpoint, using `respell.json` for pronunciation. Re-roll a single
+Hands the final script to the `yt-vo` skill. Its `prep` writes a VO copy into each
+section's `spoken_text` (punctuation, numbers, pronunciation) plus `respell.json`.
+`script.md` and `display_text` are never touched: they are the captions. Then the
+engine runs one section at a time via the Modal `synth_section` endpoint. Re-roll a single
 section with `--only`, listen, then lock. Wired 2026-08-26 (plan 252); before that
 this step did nothing and `script.vo.txt`, its supposed input, had never once been
 produced.
 
-**Reads:** `script.json`, `respell.json`
+**Reads:** `script.json`
 
-**Writes:** `videos/<key>/audio/<id>.wav`
+**Writes:** `spoken_text` in `script.json`, `respell.json`, `videos/<key>/audio/<id>.wav`
 
 ---
 
@@ -19,6 +21,8 @@ produced.
 ```bash
 cd pipelines/youtube/yt-script
 bash run.sh <key> status              # stage, section count, how many are locked
+bash run.sh <key> vo-prep --seed      # start the VO copy from the final script
+bash run.sh <key> vo-prep             # check the VO copy; repeat until it exits 0
 bash run.sh <key> vo                  # every unlocked section
 bash run.sh <key> vo --only s03       # re-roll one
 bash run.sh <key> vo --force --only s03   # re-roll one that is already locked
@@ -30,6 +34,9 @@ the voice and the reference clip live in `pipelines/video/tts/` — this step ow
 text and collects wavs, and never picks a voice.
 
 ## Read the `yt-vo` skill before running this
+
+Its `prep` section and `references/prep-rules.md` say how to write the VO copy.
+`vo` refuses to send anything until `vo-prep` passes.
 
 `pipelines/.claude/skills/yt-vo/SKILL.md` owns what "good" means before a take is
 locked, in this order: wrong words -> respell and re-roll; a faint onset "tsh" ->
@@ -46,10 +53,8 @@ Edit `videos/<key>/respell.json`, then re-roll that section:
 { "HeyGen": "hay-jen", "n8n": "N eight N" }
 ```
 
-`script.md` keeps the normal spelling. The respell map is applied at synth time
-by `deriveSpoken`, and only to sections whose `spoken_text` is still empty — which
-is every section until its first synth. After that, `spoken_text` holds the
-derived text, so a later respell edit needs a re-roll to take effect.
+The map is applied to `spoken_text` at synth time, every time, so `spoken_text`
+keeps normal spelling and an edit to the map reaches the next take.
 
 ## There is no unlock
 

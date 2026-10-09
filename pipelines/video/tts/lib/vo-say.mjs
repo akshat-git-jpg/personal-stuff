@@ -9,6 +9,7 @@ import { loadEnv } from "./env.mjs";
 import { deriveSpoken } from "./spoken.mjs";
 import { loadRespell } from "./respell.mjs";
 import { synthOne } from "./vo-synth.mjs";
+import { lintSpoken } from "./vo-prep.mjs";
 
 // ~22s of speech; longer requests drift in pacing (see SKILL batch notes).
 const MAX_CHARS = 350;
@@ -108,6 +109,11 @@ if (isMain) {
 
   const hits = respellHits(text, respell);
   if (hits.length) console.log(`respelled: ${hits.map((k) => `${k} -> ${respell[k]}`).join(", ")}`);
+  // Warn, not refuse: a one-line test should still speak.
+  const problems = lintSpoken(text, respell);
+  if (problems.length) {
+    console.log(`warning: not prepped (${problems.map((p) => `${p.kind} "${p.match}"`).join(", ")}). Run yt-vo prep for a clean read.`);
+  }
 
   try {
     await fs.mkdir(path.dirname(out), { recursive: true });

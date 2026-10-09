@@ -1,12 +1,12 @@
 # 100 - write the final script
 
-**[LLM]** &nbsp; Finalises his words into the VO-ready script.
+**[LLM]** &nbsp; Finalises his words into the final script.
 
-`script-draft.md` -> `script.md` (human-readable) + `script.json` (the per-section feed step 120 reads) + `respell.json` (pronunciation). Follows `SCRIPT-INSTRUCTIONS.md`. This is a FINALISE pass over someone else's words, not a fresh write - his phrasing survives unless it is wrong.
+`script-draft.md` -> `script.md` (human-readable, also the captions) + `script.json` (the per-section feed step 120 reads). Follows `SCRIPT-INSTRUCTIONS.md`. This is a FINALISE pass over someone else's words, not a fresh write - his phrasing survives unless it is wrong.
 
 **Reads:** `script-draft.md`, `script-plan.md`, `knowledge.md`
 
-**Writes:** `script.md`, `script.json`, `respell.json`
+**Writes:** `script.md`, `script.json`
 
 ---
 
@@ -32,10 +32,9 @@ import('./lib/build-script-json.mjs').then(async (m) => {
 " <key>
 ```
 
-Then write `videos/<key>/respell.json` — every word an engine is likely to get
-wrong, mapped to a plain-letters respelling. `script.md` keeps normal spelling;
-the map is applied at synth time, never written into the script. Skip words already
-in the shared `pipelines/video/tts/respell.json`; a repeat here overrides it.
+**Not this step's job:** pronunciation, TTS punctuation and numbers-as-words.
+`script.md` is also the caption text, so it keeps normal writing ("2026", "50%").
+The yt-vo skill's `prep` makes a separate VO copy at step 120.
 
 If the builder reports `BEAT_TOO_SHORT`, do not pad the beat to clear it. Raise
 it to the owner — a beat under 8 words is an editorial call, and the maker wrote
@@ -72,5 +71,5 @@ the entire point of the handoff.
 
 ## Report the diff
 
-List every line reworded, respelled or cut, and why. That list is what the owner
+List every line reworded or cut, and why. That list is what the owner
 reads at 110.
