@@ -6,6 +6,7 @@ import { loadEnv } from "./env.mjs";
 import { scanFlags } from "./flags.mjs";
 import { deriveSpoken } from "./spoken.mjs";
 import { loadRespell } from "./respell.mjs";
+import { lintSpoken } from "./vo-prep.mjs";
 
 // Section id -> wav name. Keeps the take identifiable without a DB.
 export function takeName(section) {
@@ -13,21 +14,18 @@ export function takeName(section) {
   return `${section.id}-v${section.version}-t${n}.wav`;
 }
 
-// Throws naming the failed precondition; returns the spoken text to synthesize.
+// Throws naming the failed precondition; returns the text the engine gets.
+// spoken_text is the prepped VO copy; display_text stays the caption text.
 export function spokenFor(section, respellMap = {}) {
   if (section.flags && section.flags.length > 0) {
     throw new Error(`${section.id}: unresolved flags — polish the script first`);
   }
-  const text = section.spoken_text
-    ? section.spoken_text
-    : deriveSpoken(section.display_text, respellMap);
-  if (!text.trim()) {
-    throw new Error(`${section.id}: spoken text is empty`);
+  const problems = lintSpoken(section.spoken_text || "", respellMap);
+  if (problems.length) {
+    const list = problems.map((p) => `${p.kind} "${p.match}"`).join(", ");
+    throw new Error(`${section.id}: not ready for synth (${list}) — run yt-vo prep`);
   }
-  if (scanFlags(text).length > 0) {
-    throw new Error(`${section.id}: spoken text still contains flag markers`);
-  }
-  return text;
+  return deriveSpoken(section.spoken_text, respellMap);
 }
 
 // One POST to the Modal `synth_section` endpoint. Returns the wav bytes.
@@ -74,15 +72,17 @@ export async function synthScript(script, opts, fetchImpl = fetch, io = fs) {
     return { script, written: [], skipped: script.sections.map((s) => s.id) };
   }
 
+  // Check every target before the first paid request.
+  const texts = new Map(targets.map((sec) => [sec.id, spokenFor(sec, opts.respell)]));
+
   const byId = new Map();
   const written = [];
   for (const sec of targets) {
-    const text = spokenFor(sec, opts.respell);
+    const text = texts.get(sec.id);
     const bytes = await synthOne(sec, text, opts, fetchImpl);
     await io.writeFile(path.join(audioDir, `${sec.id}.wav`), bytes);
     byId.set(sec.id, {
       ...sec,
-      spoken_text: text,
       tts: {
         ...sec.tts,
         regens_used: (sec.tts?.regens_used ?? 0) + 1,

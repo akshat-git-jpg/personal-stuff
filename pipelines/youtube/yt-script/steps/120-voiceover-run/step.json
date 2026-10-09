@@ -4,16 +4,17 @@
   "title": "the voiceover",
   "actor": "run",
   "actorLabel": "[RUN]",
-  "oneLiner": "Synthesizes the voiceover section by section, then locks the takes.",
+  "oneLiner": "Preps a VO copy with yt-vo, synthesizes it section by section, then locks the takes.",
   "consumes": [
-    "script.json",
-    "respell.json"
+    "script.json"
   ],
   "produces": [
+    "script.json spoken_text",
+    "respell.json",
     "videos/<key>/audio/<id>.wav"
   ],
   "gate": null,
   "external": false,
   "optional": false,
-  "summary": "Runs the `yt-vo` engine over `script.json` one section at a time via the Modal `synth_section` endpoint, using `respell.json` for pronunciation. Re-roll a single section with `--only`, listen, then lock. Wired 2026-08-26 (plan 252); before that this step did nothing and `script.vo.txt`, its supposed input, had never once been produced."
+  "summary": "Hands the final script to the `yt-vo` skill. `prep` writes a VO copy into each section's `spoken_text` (punctuation, numbers, pronunciation) plus `respell.json`, without touching `script.md` or `display_text`. Then synth runs per section via the Modal `synth_section` endpoint. Re-roll a single section with `--only`, listen, then lock."
 }

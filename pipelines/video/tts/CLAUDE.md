@@ -215,6 +215,7 @@ anything voice-related and a consuming pipeline must not own the engine.
 | `vo-synth.mjs` | CLI + client for the Modal `synth_section` endpoint. `node lib/vo-synth.mjs <slug> --root <dir> [--only sNN] [--force]` |
 | `vo-lock.mjs` | CLI + `lockScript`. `node lib/vo-lock.mjs <slug> --root <dir> [--only sNN]` |
 | `vo-state.mjs` | `lockSection` — the lock preconditions (no flags, non-empty `spoken_text`, a take on disk) |
+| `vo-prep.mjs` | The prep check: refuses dashes, semicolons, ellipses, symbols, brackets, digits, 3+ letter caps and open flags in VO text after respell. `node lib/vo-prep.mjs <slug> --root <dir> [--seed]` or `--file x.vo.txt`. `vo-synth` runs the same check before any request |
 | `vo-say.mjs` | CLI for text with no `script.json`: `node lib/vo-say.mjs (--text t \| --file f) --out x.mp3`. Chunks, applies respell, joins |
 | `respell.mjs` | `loadRespell(videoPath)` — shared `respell.json` here, merged under the video's own map |
 | `spoken.mjs` | `deriveSpoken(display_text, respellMap)` — applies the respell map |

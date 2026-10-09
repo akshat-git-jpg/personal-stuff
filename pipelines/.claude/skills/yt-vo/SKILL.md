@@ -1,7 +1,7 @@
 ---
 name: yt-vo
 description: >-
-  Generate, review and lock TTS voiceover for any video pipeline in this repo, using IndexTTS-2 on Modal GPU. Verbs: setup, synth, say, respell, review, lock, batch, status. Use for "make the voiceover", "make a VO from this doc", "generate VO for <slug>", "re-roll section s03", "the voice mispronounces <word>", "lock the takes", "voiceover for <video>", "yt-vo". Also use when a pipeline step needs narration wavs, or when a VO run fails with 401/404/timeout against the Modal endpoint.
+  Final script from any source -> voiceover, via IndexTTS-2 on Modal. Preps a VO copy (punctuation, numbers, pronunciation) without touching the script, then synthesizes, reviews and locks. Verbs: prep, synth, say, respell, review, lock, batch, status, setup. Use for "make the voiceover", "VO from this doc", "prep this script for VO", "re-roll s03", "mispronounces <word>", "lock the takes", "yt-vo", or a 401/404/timeout from the Modal endpoint.
 user-invocable: true
 metadata:
   author: kbtg
@@ -10,7 +10,7 @@ metadata:
 
 # yt-vo — the voiceover flow
 
-Contents: The two entry points · say · setup · synth · respell · review · lock · batch · status · Sync · When it fails · Related
+Contents: The flow · The two entry points · prep · say · setup · synth · respell · review · lock · batch · status · Sync · When it fails · Related
 
 One VO engine for the whole repo. **The engine, the voice and the reference clip live
 in `pipelines/video/tts/`** — that folder is the hub and the source of truth for
@@ -20,6 +20,17 @@ in what order, and what "good" means before a take is locked.
 Consuming pipelines own text and collect wavs. They never own a voice, a reference
 clip, or an engine choice. If you find yourself copying a `.wav` out of
 `pipelines/video/tts/references/`, stop — pass the slug instead.
+
+## The flow
+
+**Final script in, voiceover out.** The script can come from anywhere: yt-script,
+a Google Doc, a freelancer. yt-vo never edits it, because it is also the caption
+text. It writes a separate VO copy for the voice:
+
+    final script  ->  prep (VO copy + respell map)  ->  synth / say  ->  review  ->  lock
+
+Writing the script (what to say, cutting repeats, sounding human) is the script
+owner's job. Making it speakable (punctuation, numbers, pronunciation) is `prep`.
 
 ## The two entry points
 
@@ -39,11 +50,39 @@ Both hit the same model and the same reference voice, so takes are interchangeab
 the 2026-09-08 VO said "did" for D-ID. For text with no `script.json` (a Google Doc, a
 pasted line), use `say` below.
 
+## prep — make a final script speakable
+
+**Read `references/prep-rules.md` first, every time.** It holds the punctuation,
+number and pronunciation rules. Prep never rewords, never cuts, and never touches
+the script itself.
+
+**A script with `script.json`** (yt-script, step 120). From the pipeline folder:
+
+    bash run.sh <slug> vo-prep --seed     # copy each display_text into an empty spoken_text
+    # edit spoken_text in videos/<slug>/script.json per prep-rules.md,
+    # and add problem words to videos/<slug>/respell.json
+    bash run.sh <slug> vo-prep            # check; repeat until it exits 0
+
+The check prints every changed section as `script:` / `vo:` and every problem left
+(a dash, a digit, a symbol, ALL CAPS, an open flag). Show the owner that change
+list. Exit 0 means every section is ready for synth.
+
+**A doc or pasted text** (no `script.json`):
+
+    cd pipelines/video/tts
+    # write <name>.vo.txt next to the source, per prep-rules.md
+    node lib/vo-prep.mjs --file <name>.vo.txt [--respell extra.json]
+
+Then `say --file <name>.vo.txt`.
+
 ## say — text with no script.json (a doc, a one-line test)
 
     cd pipelines/video/tts
     node lib/vo-say.mjs --text "One line to test." --out ~/Desktop/test.mp3
-    node lib/vo-say.mjs --file doc.txt --out ~/kb-scratch/video/tts/_adhoc/<name>.mp3
+    node lib/vo-say.mjs --file doc.vo.txt --out ~/kb-scratch/video/tts/_adhoc/<name>.mp3
+
+Run `prep` on a doc first. `say` still speaks unprepped text, so a one-line test
+works, but it prints a warning that lists each problem.
 
 Paragraphs split on blank lines, long ones cut to ~22s at sentence ends, one request
 each, joined with a 0.35s gap. It applies the shared `respell.json` and prints every
@@ -90,6 +129,10 @@ the verb is always safe.
 `[FILL:` flags. If the script still has flags, fix them in the pipeline's own
 writing step (yt-script: step 100); do not work around it here.
 
+**It reads `spoken_text`, never `display_text`.** It runs the prep check on every
+target section first and refuses before the first paid request if any section is
+empty or not speakable. Run `prep`. Synth never writes `spoken_text` back.
+
 ## respell — fixing pronunciation
 
 TTS gets brand names and acronyms wrong. Fix the **text**, never the audio.
@@ -103,9 +146,8 @@ For words only this video needs, put a map in `videos/<slug>/respell.json`:
 
     { "Asana": "Ah-sah-nah", "n8n": "N eight N" }
 
-It only applies to sections whose `spoken_text` is still empty — it feeds
-`deriveSpoken(display_text, respellMap)`. Once a section has an explicit
-`spoken_text`, edit that field directly instead; the map will not touch it.
+The map is applied to `spoken_text` at synth time, every time. So `spoken_text`
+keeps normal spelling, and a fix to either map reaches every later take.
 
 Then re-roll just that section. A respell edit does not by itself invalidate a take,
 so you must re-synth for it to take effect.
@@ -185,8 +227,9 @@ problem and the rejected approaches are recorded there.
   container. Expected. Do not lower the timeout.
 - **"unresolved flags"** → the script is not polished. Go back to the pipeline's
   writing step (yt-script: 100).
-- **"spoken text is empty"** → `display_text` derived to nothing, or `spoken_text` was
-  set to `""` by hand. Fix the script, not the synth call.
+- **"not ready for synth (...)"** → the section was never prepped (`empty`) or its VO
+  text still has a dash, digit, symbol, bracket or ALL CAPS word. Run `prep`; the
+  message names each problem.
 
 ## Related
 
@@ -194,4 +237,5 @@ problem and the rejected approaches are recorded there.
   catalog. Read before proposing an engine change.
 - `pipelines/video/CLAUDE.md` — cost model, engine trade-offs, settled decisions.
   Read before re-litigating VO-first or the fal-lipsync deferral.
+- `references/prep-rules.md` — the rules `prep` follows.
 - `pipelines/youtube/yt-script/steps/120-voiceover-run/README.md` — the step.

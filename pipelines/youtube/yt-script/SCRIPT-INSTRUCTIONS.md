@@ -1,29 +1,30 @@
 # Script instructions
 
 How to turn the **team member's completed draft** into `script.md` + `script.json`
-— the final script an AI voiceover engine reads correctly on the first take.
+— the final script. It is also the caption text, so it uses normal writing:
+numbers as digits, symbols where they read naturally. Making it speakable for the
+voice is not this step's job: the `yt-vo` skill's `prep` does that at step 120,
+into a separate VO copy.
 
 ```
 knowledge.md  ->  outline.md  ->  script-plan.md  ->  [ the desk ]
      script-plan.md  ->  [ he writes ]  ->  script-draft.md
-     script-draft.md ->  [ this file ] ->  script.md + script.json + respell.json
+     script-draft.md ->  [ this file ] ->  script.md + script.json
 ```
 
 **You are not writing the script.** The maker already did, working from the
 outline PDF and his own screen time. Your job is a finalise pass: make his words
-sound right out of a synthetic mouth, and separate what is spoken from what is
-not. Two documents come out of it:
+read right, cut repeats, and separate what is spoken from what is not. Two
+documents come out of it:
 
 | File | For | Contains |
 |---|---|---|
 | `script.md` | humans — the owner, the editor | everything: Voiceover, Notes, headings. Normal spelling |
-| `script.json` | the VO engine (step 120) | one entry per beat: `display_text`, `notes`, `tts` state |
-| `respell.json` | the VO engine (step 120) | pronunciation map, applied at synth time |
+| `script.json` | yt-vo (step 120) | one entry per beat: `display_text`, `notes`, `tts` state. `spoken_text` stays `""` until yt-vo `prep` fills it |
 
-The rest of this file is two things: the **standard the final script must meet**
-(voice, structure, conventions, budgets — sections below), and the **VO polish
-pass** that turns a human draft into engine-ready text (the last section, and the
-part that is specific to step 3).
+The rest of this file is the **standard the final script must meet** (voice,
+structure, conventions, budgets), then the **final pass** that turns his draft into
+`script.md` + `script.json` (the last section).
 
 Modelled on an existing script the owner wrote by hand (2026-08-11); the patterns
 below are inspiration, not a template to fill in — a topic that doesn't fit a
@@ -37,8 +38,7 @@ The draft's words are the maker's. The line is **sound, not substance**.
 **Change freely** — this is the job:
 
 - Split a long sentence into two the voice can land.
-- Respell a name or acronym so it is pronounced correctly.
-- Add or move punctuation to fix pacing and breath.
+- Add or move punctuation so the sentence reads cleanly.
 - Fix a typo, a tense slip, or a doubled word.
 - Move a stray production instruction out of Voiceover and into Notes.
 - Tighten filler that reads as dictation ("so basically what I did here was").
@@ -329,90 +329,15 @@ information. "But before we get into it, make sure to…" is a wind-up.
 
 ---
 
-# The VO polish pass
+# The final pass
 
-This is the part specific to step 3. A human reading a script silently corrects
-it: they see `HeyGen` and say "hay-jen", they see `1080p` and say "ten-eighty-pee",
-they see a 60-word sentence and breathe where it makes sense. **A synthetic voice
-does none of that.** It reads characters. Every one of those corrections has to be
-in the text before the engine sees it.
+This is the part specific to step 100. Pronunciation, TTS punctuation and
+numbers-as-words are **not** done here: they belong to yt-vo `prep`
+(`pipelines/.claude/skills/yt-vo/references/prep-rules.md`), which writes a
+separate VO copy and never touches `script.md`. Keep this script readable as
+captions.
 
-## 1 · The pronunciation map
-
-Pronunciation is **not** written into the script. It lives in
-`videos/<key>/respell.json`, and the engine applies it at synth time
-(`deriveSpoken` in `pipelines/video/tts/lib/spoken.mjs`).
-
-```json
-{
-  "HeyGen": "hay-jen",
-  "Descript": "dee-script",
-  "n8n": "N eight N",
-  "ElevenLabs": "eleven labs",
-  "1080p": "ten-eighty p",
-  "API": "A-P-I",
-  ".mp4": "dot em-pee-four"
-}
-```
-
-Rules for the map:
-
-- **One key per distinct problem word**, not per occurrence.
-- **Cover these categories every time:** product and brand names, acronyms,
-  file extensions and formats, version numbers, prices and currency, units,
-  numbers that are read as digits vs. words, and any non-English word.
-- **Respell phonetically in plain letters with hyphens.** No IPA, no
-  engine-specific phoneme codes.
-- **Spelled-out acronyms are capitals joined by hyphens** (`"D-ID": "D-I-D"`,
-  `"API": "A-P-I"`). Never `dee eye dee`: the engine pauses between the words
-  and it sounds robotic (owner-picked by ear, 2026-09-28).
-- **Check `pipelines/video/tts/respell.json` first.** That shared map applies to
-  every video. Do not repeat its words here: a key in this file overrides it.
-  A word that will recur across videos goes in the shared map instead.
-- Matching is whole-word and case-sensitive, longest key first.
-- `script.md` carries **no** lexicon table. It used to, and that meant the
-  respelling existed in two places. One source only (plan 252, 2026-08-26).
-
-## 2 · Never write a pronunciation hint into the text
-
-Brackets and parentheticals are read out loud or choked on. And now that
-`respell.json` owns pronunciation, a respelling typed into the script is worse
-than useless — it gets respelled a second time.
-
-```
-BAD   We'll start with HeyGen [hay-jen].
-BAD   We'll start with HeyGen (pronounced hay-jen).
-BAD   We'll start with hay-jen.
-GOOD  script.md     -> We'll start with HeyGen.
-      respell.json  -> { "HeyGen": "hay-jen" }
-```
-
-The one place a respelling ever appears is `respell.json`.
-
-## 3 · Punctuation is the pacing track
-
-Punctuation is the only pacing control that works on every engine. Use it
-deliberately.
-
-- **Full stop = a real beat.** Prefer two short sentences over one long one. If a
-  sentence runs past ~25 words, split it.
-- **Comma = a short breath.** Add them where a human would breathe, even where a
-  copy editor would not.
-- **Em dashes and semicolons: remove them.** Engines treat them inconsistently —
-  some pause, some ignore, some read the character. Convert to a full stop, a
-  comma, or a paragraph break.
-- **Ellipses: remove them** unless a deliberate trailing-off is the point, and
-  then use a full stop plus a new line instead.
-- **Paragraph break = the longest pause.** One idea per paragraph. This is how you
-  build the beat before a reveal.
-- **No ALL CAPS for emphasis** — many engines spell it out letter by letter. Get
-  emphasis from sentence shape and word order instead.
-- **Expand every symbol into words:** `&` → "and", `%` → "percent", `#` → "number",
-  `/` → "per" or "slash" as the sense requires, `+` → "plus".
-- **Write numbers the way they should be said.** `2026` as "twenty twenty-six",
-  `1,500` as "fifteen hundred", `4K` as "four K". Do not leave the engine to guess.
-
-## 4 · Headings and the spoken/not-spoken split
+## 1 · Headings and the spoken/not-spoken split
 
 `script.md` is read by a human who needs to find their place fast, so it is
 clearly headed. None of that structure reaches the engine.
@@ -446,7 +371,7 @@ The rules:
 - **Notes are never spoken.** Everything in the "Never appears in a spoken line"
   list above lives here.
 
-## 5 · Building `script.json`
+## 2 · Building `script.json`
 
 `script.json` is derived from `script.md` by `lib/build-script-json.mjs` (step
 100's README has the command). You do not hand-write it. What you control is
@@ -461,24 +386,22 @@ Then check, because this file is the last thing between the draft and the audio:
 
 - [ ] The builder exits 0 and reports the section count you expect.
 - [ ] No `[PLACEHOLDER]`, no `[illegible]`, no `[VERIFY:` / `[FILL:` anywhere.
-- [ ] No em dashes, semicolons or ellipses in any `display_text`. Punctuation is
-      the pacing track and those three have no spoken form.
+- [ ] No em dashes in any `display_text` (an AI tell, see "Reading as a human").
 - [ ] No production instruction sits in a `display_text` — it belongs in `notes`.
-- [ ] Every problem word has a `respell.json` key.
-- [ ] `stage` is `"tts"` and every `spoken_text` is `""`. Both are required: the
-      respell map only applies while `spoken_text` is empty, and `vo-synth`
-      refuses any stage other than `tts` or `polished`.
+- [ ] `stage` is `"tts"` and every `spoken_text` is `""`. yt-vo `prep` fills
+      `spoken_text` at step 120, and `vo-synth` refuses any stage other than
+      `tts` or `polished`.
 
 The old flat file is gone (plan 252, 2026-08-26). It was specified for two years of
 this flow and never once produced, and it duplicated the spoken words that
 `script.json` now holds.
 
-## 6 · The change report
+## 3 · The change report
 
-Step 3 ends with a report to the owner, not with a file. It lists:
+Step 100 ends with a report to the owner, not with a file. It lists:
 
-1. **Every line changed**, as draft → final, grouped by beat number. Reworded,
-   respelled, and repunctuated lines all count.
+1. **Every line changed**, as draft → final, grouped by beat number. Reworded and
+   repunctuated lines all count.
 2. **Every gap** — a claim with no support in `knowledge.md`, an unresolved
    `[PLACEHOLDER]`, an illegible source value.
 3. **Every judgement call** where you picked one of two readings of an ambiguous
@@ -487,7 +410,7 @@ Step 3 ends with a report to the owner, not with a file. It lists:
 The owner is reviewing changes to his team member's words. A silent improvement is
 the failure mode this report exists to prevent.
 
-## 7 · Word targets
+## 4 · Word targets
 
 `script-worksheet.md` carries a `target <n>–<n> words` marker on each body beat,
 stamped by the step-2 session from the budgets above. Check his draft against it

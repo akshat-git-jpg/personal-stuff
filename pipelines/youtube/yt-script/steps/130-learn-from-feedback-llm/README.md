@@ -25,7 +25,8 @@ so the two cannot drift.
 |---|---|---|
 | A parsed lane form the desk reads (`SAY`/`VIDEO`/`FACTS`, a table, a proof insert) | format spec | `SCRIPT-PLAN-INSTRUCTIONS.md` |
 | The one-page outline's shape, length or what a section line may contain | format spec | `OUTLINE-INSTRUCTIONS.md` |
-| The final script's format, the VO checklist, `respell.json`, `script.json` | format spec | `SCRIPT-INSTRUCTIONS.md` |
+| The final script's format, the checklist, `script.json` | format spec | `SCRIPT-INSTRUCTIONS.md` |
+| VO punctuation, numbers, pronunciation, `respell.json` | yt-vo prep rules | `pipelines/.claude/skills/yt-vo/references/prep-rules.md` |
 | What the script SAYS or how it SOUNDS - wording, register, a phrase to stop using, how a claim is framed, running-order preference | taste | `TASTE.md` |
 | One video only, no pattern yet | nothing durable | the video's own file, plus a `FEEDBACK-LOG.md` row |
 | A parser bug, a broken command, a missing tool | code | a plan in `plans/` via the `orchestrate` skill |
