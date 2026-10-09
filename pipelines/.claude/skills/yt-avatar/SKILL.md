@@ -1,20 +1,31 @@
 ---
-name: avatar-test
+name: yt-avatar
 description: >-
-  Test a HeyGen photo avatar from one picture: strip a Gemini watermark, create the avatar, render a free Avatar III
-  video with the owner's audio, prove 0 credits used, file it in "Test Avatar" and record it in a mapping. Also
-  list, finalize, delete. Use for "avatar-test", "test this avatar", "try this pic as an avatar", "which avatars
-  have I tested", "finalize this avatar".
+  HeyGen avatars, free Avatar III only. clip: turn one part of a script into an avatar video (VO via yt-vo, then
+  render with a finalized avatar, download). test: try a new photo as an avatar. retest: a saved avatar with another
+  voice. Also download, list, finalize, delete. Use for "avatar for this part", "avatar clip", "yt-avatar",
+  "avatar-test", "test this avatar", "try this pic as an avatar", "which avatars have I tested", "finalize this avatar".
 user-invocable: true
 ---
 
-# avatar-test
+# yt-avatar
 
-The owner is looking for avatars that suit his voice and brand and look real, not AI. He experiments with many
-pictures. Each test must be quick, free and recorded, so any avatar can be rebuilt later.
+Two jobs. **Make avatar clips** for a part of a script (`clip`). **Find new avatars** that suit the owner's voice and
+brand and look real, not AI (`test`, `retest`, then `finalize`). Each run must be free and recorded, so any avatar
+or clip can be rebuilt later.
+
+Full video edits do not come here: `yt-video-edit` places and renders avatars for a whole video (steps 320-430).
 
 **Selection-first.** At every decision, use `AskUserQuestion` with 2-4 ready options (recommended one first, marked
 "(Recommended)"), never an open question. The owner picks; you act. Keep replies in the owner's ELI5 style.
+
+| Verb | Use when the owner says |
+|---|---|
+| `clip` | "make an avatar for the pricing part", "avatar clip of this paragraph" |
+| `test` (default for a picture) | "test this avatar", "try this pic as an avatar" |
+| `retest` | "try helen with the Modal voice", "same avatar, another voice" |
+| `download` | "download that test video", "give me the mp4" |
+| `list` / `finalize` / `delete` | "which avatars have I tested", "finalize this avatar", "delete these" |
 
 ## Fixed facts
 
@@ -23,7 +34,9 @@ pictures. Each test must be quick, free and recorded, so any avatar can be rebui
 | CLI | `node tooling/cli/heygen-web/heygen-web.mjs` (run inside a pp-work workspace; it appends to `pipelines/video/heygen/RENDERS.md`) |
 | Auth env | `HEYGEN_WEB_CURLS=/Users/kbtg/codebase/personal-stuff/infra/secrets/heygen-web-curls.txt` |
 | Engine | Avatar III (`heygen3`) only. Free. Never Avatar IV here. |
-| HeyGen folder | "Test Avatar" `f214dcf8986a4114ba69b9630e38fe00` (built into `avatar-test`) |
+| HeyGen folder | "Test Avatar" `f214dcf8986a4114ba69b9630e38fe00` (built into the CLI's `avatar-test` command) |
+| Finalized avatars | `pipelines/video/heygen/registry.json`: a slug with `avatar_id` (photo avatar) or `template_id` (template) |
+| Clips folder (local) | `~/kb-scratch/video/heygen/clips/<clip-name>/` (VO text, VO audio, video). Never in git |
 | Drive folder for pictures | "Avatar Tests" `1I8ajZmG6xuRHOxuz1emRDvAWuFDQpf_g`, account `kushalbakliwal25@gmail.com` |
 | Local pictures | `~/kb-scratch/avatar-tests/` |
 | Mapping (committed) | `pipelines/video/heygen/avatar-test/avatar-tests.json` |
@@ -62,6 +75,47 @@ pictures. Each test must be quick, free and recorded, so any avatar can be rebui
 7. **Report**: avatar name, video title, "0 credits used", "in Test Avatar". Do not download the video. Then
    `AskUserQuestion` "What next?": Try another picture / Finalize this avatar / Delete this avatar.
 
+## Verb: clip — one part of a script as an avatar video
+
+1. **Get the part.** The owner gives a script (file, doc, paste) and names the part ("the pricing section",
+   "paragraph 3", a pasted chunk). Cut out exactly that text and show it back. `AskUserQuestion`: "Is this the
+   part?" (Yes / Add the next paragraph / Different part). Name the clip yourself: 2-4 lowercase words
+   (`everbee-pricing`). Make `~/kb-scratch/video/heygen/clips/<clip-name>/` and save the text there as `<clip-name>.txt`.
+   Every file is named after the clip: the word check uses the file name as its job, so a shared name
+   would mix two clips' words.
+2. **Make the VO with yt-vo**, following its flow for a doc (read `pipelines/.claude/skills/yt-vo/SKILL.md`):
+   prep `<clip-name>.txt` into `<clip-name>.vo.txt`, run the **word check** with job `<clip-name>` (STOP until the
+   owner approves every risky word in the word pronunciation check app), then
+   `say --file <clip-name>.vo.txt --out <clip-name>.mp3`. Never skip the word check:
+   a wrong name in a clip means a second render.
+3. **Pick the avatar.** `AskUserQuestion` with the slugs from `registry.json` that carry an `avatar_id` or a
+   `template_id` (recommend the one its description calls the default). Skip entries with neither.
+4. **Render on Avatar III** (free; the CLI checks credits before and after and waits for the render):
+   ```
+   heygen-web generate-from-audio --avatar <slug> --audio <clip-name>.mp3 --title "<clip-name>"      # avatar_id
+   heygen-web generate-from-template --template <slug> --audio <clip-name>.mp3 --title "<clip-name>" # template_id
+   ```
+   Exit 2 = **credits were used**. Stop and tell the owner which meter moved.
+5. **Download** to the clip folder: `heygen-web download <video_id> --out ~/kb-scratch/video/heygen/clips/<clip-name>/<clip-name>.mp4`.
+6. **Commit** the `RENDERS.md` row the CLI appended (`chore(heygen): avatar clip <clip-name>`), with commit-now.
+7. **Report**: the clip path, its length, the avatar, "0 credits used". Then `AskUserQuestion` "What next?":
+   Another part / Same part, other avatar / Done.
+
+## Verb: retest — a saved avatar with another voice
+
+For a face already in the mapping, when only the voice changes. No new picture, no new avatar.
+
+1. `AskUserQuestion` which avatar (newest non-deleted rows of the mapping), then which voice (as in `test` step 3).
+2. Run: `avatar-test --avatar-id <avatar_id from the row> --audio <file> --name "<same avatar name>"`. Same exit
+   codes as `test`. The mapping gets a new row with `reused_avatar: true`.
+3. Commit and report as in `test` steps 6-7.
+
+## Verb: download
+
+Only when the owner asks. `AskUserQuestion` which video (newest mapping rows, or clips from `RENDERS.md`), then
+`heygen-web download <video_id> --out ~/kb-scratch/avatar-tests/videos/<avatar-name>-<date>.mp4` (tests) or the
+clip folder (clips). Report the path.
+
 ## Verb: list
 
 Read the mapping. Show a short table: date, avatar name, video title, watermark, status. Newest first.
@@ -86,6 +140,6 @@ Why: `pipelines/video/heygen/AVATAR-III-QUALITY.md`.
 ## Rules
 
 - 0 credits per test is the contract. Never pass `--engine heygen4` or `--iv`.
-- Never download test videos; the owner watches them in HeyGen.
+- Test videos stay in HeyGen unless the owner asks (`download`). Clips are always downloaded.
 - The owner keeps his own recorded voice. Never re-voice audio (decisions.md 2026-10-09).
-- Pictures and videos never go into git; only the mapping does.
+- Pictures, audio and videos never go into git; only the mapping and `RENDERS.md` rows do.

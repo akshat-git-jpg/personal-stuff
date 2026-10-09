@@ -9,7 +9,7 @@ import { die } from "../client/http.mjs";
 import { arg } from "../cli/args.mjs";
 
 // One avatar test: photo avatar → Avatar III video → credit check → Test Avatar folder → mapping row.
-// Driven by the avatar-test skill; the mapping is the record of every test.
+// Driven by the yt-avatar skill (test, retest); the mapping is the record of every test.
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const MAPPING = process.env.HEYGEN_AVATAR_TESTS ||
   resolve(__dirname, "../../../../../pipelines/video/heygen/avatar-test/avatar-tests.json");
@@ -39,16 +39,26 @@ async function waitDone(auth, id) {
   }
 }
 
-export async function avatarTest(auth, args) {
+// --avatar-id reuses an avatar already made (a new voice on the same face); otherwise --image makes one.
+export function testInputs(args) {
   const image = arg(args, "--image"), audio = arg(args, "--audio"), name = arg(args, "--name");
-  if (!image || !audio || !name) die("avatar-test needs --image <pic> --audio <file> --name <avatar name> [--pic-drive <url>] [--source-pic <path>] [--source-drive <url>] [--watermark removed|none]");
-  if (!existsSync(image)) die(`no such image: ${image}`);
+  const reuse = arg(args, "--avatar-id");
+  if (!audio || !name || (!image && !reuse) || (image && reuse)) {
+    return { error: "avatar-test needs --audio <file> --name <avatar name> and either --image <pic> or --avatar-id <id> [--pic-drive <url>] [--source-pic <path>] [--source-drive <url>] [--watermark removed|none]" };
+  }
+  return { image, audio, name, reuse };
+}
+
+export async function avatarTest(auth, args) {
+  const { image, audio, name, reuse, error } = testInputs(args);
+  if (error) die(error);
+  if (image && !existsSync(image)) die(`no such image: ${image}`);
   if (!existsSync(audio)) die(`no such audio: ${audio}`);
 
   const before = await usageSnapshot(auth);
   console.error(`credits before: ${before.credits}, seconds ${before.seconds_consumed}/${before.seconds_limit}`);
 
-  const { look_id } = await createPhotoAvatar(auth, [image, "--name", name]);
+  const look_id = reuse || (await createPhotoAvatar(auth, [image, "--name", name])).look_id;
   const title = `${name} - test ${new Date().toISOString().slice(0, 10)}`;
   const { video_id } = await submitAudioGenerate(auth, { avatar: look_id, audioPath: audio, engine: "heygen3", title, orientation: "landscape" });
   console.error(`→ video ${video_id} submitted, waiting for the render (credits are billed at the end)`);
@@ -64,7 +74,8 @@ export async function avatarTest(auth, args) {
   const row = {
     date: new Date().toISOString().slice(0, 10), avatar_name: name, avatar_id: look_id,
     video_title: title, video_id, video_status: done.status, audio: basename(audio),
-    pic_local: resolve(image), pic_source: arg(args, "--source-pic") || null, pic_drive: arg(args, "--pic-drive") || null, pic_source_drive: arg(args, "--source-drive") || null,
+    reused_avatar: Boolean(reuse),
+    pic_local: image ? resolve(image) : null, pic_source: arg(args, "--source-pic") || null, pic_drive: arg(args, "--pic-drive") || null, pic_source_drive: arg(args, "--source-drive") || null,
     watermark: arg(args, "--watermark") || "none", credits_used: spent.length ? spent : 0,
     in_test_folder: moved,
   };
