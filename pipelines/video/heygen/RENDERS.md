@@ -252,3 +252,7 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/yt-avatar-smoke--a3d1c44140b94b448a00c9584f4e4ee3) | b4be8dff6e2649128f43594f1fb85848 | part.mp3 | `a3d1c44140b94b448a00c9584f4e4ee3` |
 | [heygen link](https://app.heygen.com/videos/brown-laptop-outro--95d927b161c542e8ab0983f56eafd285) | 51b2cd3f31f8402189ef2c875412260c | brown-laptop-outro.mp3 | `95d927b161c542e8ab0983f56eafd285` |
 | [heygen link](https://app.heygen.com/videos/brown-laptop-intro--8dc04c386f714c548d6045e4ee97eda9) | 51b2cd3f31f8402189ef2c875412260c | brown-laptop-intro.mp3 | `8dc04c386f714c548d6045e4ee97eda9` |
+| [heygen link](https://app.heygen.com/videos/maria-blue-intro-avatar-iv--fa36a8f1afb04330ab9a7ebbe62ba2bb) | 3eb3fa79938649068b02fe63320ae794 | maria-blue-intro.mp3 | `fa36a8f1afb04330ab9a7ebbe62ba2bb` |
+| [heygen link](https://app.heygen.com/videos/maria-blue-outro-avatar-iv--a2a1747db9484585aa5643cf72ba97d7) | 3eb3fa79938649068b02fe63320ae794 | maria-blue-outro.mp3 | `a2a1747db9484585aa5643cf72ba97d7` |
+| [heygen link](https://app.heygen.com/videos/maria-turtleneck-intro-avatar-iv--25282eaadb1f442d9cafa529bbfab962) | 9c14386e3e2c44b0a4ba9abdd55b17e3 | maria-turtleneck-intro.mp3 | `25282eaadb1f442d9cafa529bbfab962` |
+| [heygen link](https://app.heygen.com/videos/maria-turtleneck-outro-avatar-iv--201fa077c1154fcea2e93074af5510e3) | 9c14386e3e2c44b0a4ba9abdd55b17e3 | maria-turtleneck-outro.mp3 | `201fa077c1154fcea2e93074af5510e3` |
