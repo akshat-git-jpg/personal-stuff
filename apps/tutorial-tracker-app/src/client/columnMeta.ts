@@ -42,7 +42,7 @@ export const COLUMN_META: Partial<Record<Column, ColMeta>> = {
   category:          { type: "combo", options: "category" },
   subcategory:       { type: "combo", options: "subcategory" },
   topic_date:        { type: "date" },
-  project_folder:    { type: "link", hint: "One Drive folder for this video. Give everyone on the video edit access so they can upload." },
+  project_folder:    { type: "link", hint: "Drive folder for this video, one link per line if there are several. Give everyone on the video edit access so they can upload." },
 
   // Assignments
   admin_email:          { type: "assignee" },
