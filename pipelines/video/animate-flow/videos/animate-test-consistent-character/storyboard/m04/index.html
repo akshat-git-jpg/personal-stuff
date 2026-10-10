@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+:root{--bg-from:#3a1f08;--bg-to:#0a0805;--text:#fff;--text-dim:rgba(255,239,219,0.6);--accent:#fb923c;--positive:#34d399;--negative:#ef4444}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#000}
+body{position:relative;font-family:"Inter",system-ui,sans-serif;color:var(--text);background:radial-gradient(circle at 30% 18%,var(--bg-from) 0%,var(--bg-to) 72%)}
+.a{position:absolute}
+.hero{font-weight:900;letter-spacing:-0.035em;line-height:1;white-space:nowrap}
+.sec{font-weight:600;letter-spacing:-0.015em;line-height:1.2;white-space:nowrap;font-size:48px}
+.dim{color:var(--text-dim)}.acc{color:var(--accent)}
+.panel{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:24px}
+.logo{position:absolute;border-radius:28px;overflow:hidden}
+.logo img{width:100%;height:100%;display:block}
+.logo.d::after{content:"";position:absolute;inset:0;border-radius:28px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.10)}
+</style></head><body>
+<div class="a hero" style="left:120px;top:110px;font-size:280px">1</div><div class="a hero" style="left:520px;top:110px;font-size:280px">2</div><div class="a hero" style="left:920px;top:110px;font-size:280px">3</div><div class="a hero" style="left:1320px;top:110px;font-size:280px">4</div>
+<svg class="a" style="left:0;top:0" width="1920" height="1080">
+<line x1="140" y1="470" x2="1340" y2="470" stroke="#fb923c" stroke-width="10" stroke-linecap="round"/>
+
+<circle cx="140" cy="470" r="22" fill="#fb923c"/><circle cx="540" cy="470" r="22" fill="#fb923c"/><circle cx="940" cy="470" r="22" fill="#fb923c"/><circle cx="1340" cy="470" r="22" fill="#fb923c"/>
+</svg>
+<div class="a sec dim" style="left:120px;top:900px">One reference image in, one long animation out</div>
+<svg class="a" style="left:120px;top:560px" width="140" height="140" viewBox="0 0 140 140" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="15" y="20" width="110" height="100" rx="10"/><circle cx="70" cy="58" r="16"/><path d="M38 108 Q70 70 102 108"/></svg><div class="a sec" style="left:120px;top:740px">Lock character</div><svg class="a" style="left:520px;top:560px" width="140" height="140" viewBox="0 0 140 140" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="40" width="34" height="60" rx="5"/><rect x="53" y="40" width="34" height="60" rx="5"/><rect x="96" y="40" width="34" height="60" rx="5"/></svg><div class="a sec" style="left:520px;top:740px">Place scenes</div><svg class="a" style="left:920px;top:560px" width="140" height="140" viewBox="0 0 140 140" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="25" width="116" height="90" rx="12"/><path d="M58 48 L58 92 L96 70 Z"/></svg><div class="a sec" style="left:920px;top:740px">Animate clips</div><svg class="a" style="left:1320px;top:560px" width="140" height="140" viewBox="0 0 140 140" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 40 H80 M10 70 H125 M10 100 H55"/><path d="M96 20 V120"/></svg><div class="a sec" style="left:1320px;top:740px">Join timeline</div></body></html>

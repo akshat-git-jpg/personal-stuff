@@ -1,0 +1,46 @@
+{
+  "video": "animate-test-consistent-character",
+  "moments": {
+    "m01": {
+      "at": 9.3,
+      "caption": "Three scene cards hold the same character drawn differently each time, while the orange connector between them snaps and the word consistency sits in hero type.",
+      "sig": "ed7009fd7574",
+      "status": "pending",
+      "model": "sonnet",
+      "drawn": "2026-10-10T08:08:36.253Z"
+    },
+    "m02": {
+      "at": 3.4,
+      "caption": "OpenArt logo and name with a green check, above one unbroken orange line running through three identical characters.",
+      "sig": "821fb09c4377",
+      "status": "pending",
+      "model": "sonnet",
+      "drawn": "2026-10-10T08:08:36.253Z"
+    },
+    "m03": {
+      "at": 11.9,
+      "caption": "One platform holds full video, many scenes and the same character, while four separate tool logos are crossed out under 'No switching tools'.",
+      "sig": "e77db6cbe245",
+      "status": "pending",
+      "model": "sonnet",
+      "drawn": "2026-10-10T08:08:36.253Z"
+    },
+    "m04": {
+      "at": 17.4,
+      "caption": "Four numbered steps along an orange progress track: lock character, place scenes, animate clips, join timeline.",
+      "sig": "7184f119da5a",
+      "status": "pending",
+      "model": "sonnet",
+      "drawn": "2026-10-10T08:08:36.253Z"
+    },
+    "m05": {
+      "at": 4.5,
+      "caption": "Close-up of a tipped balance scale, a price tag against a star, beside 'Pricing' and 'Worth paying for?'.",
+      "sig": "c35aa76e1001",
+      "status": "pending",
+      "model": "sonnet",
+      "drawn": "2026-10-10T08:08:36.253Z"
+    }
+  },
+  "made": "2026-10-10T08:08:36.253Z"
+}

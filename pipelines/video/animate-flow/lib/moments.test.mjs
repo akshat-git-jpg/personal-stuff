@@ -42,6 +42,13 @@ test('length limits, ids, required fields and empty plans are reported together'
   assert.match(resolveMoments({ moments: [] }, words).errors.join(), /empty/);
 });
 
+test('a moment is a takeover unless it says overlay; any other kind is an error', () => {
+  const { errors, moments } = resolveMoments({ moments: [mom('m01', 2, 10), mom('m02', 14, 24, { kind: 'overlay' })] }, words, { total: 20 });
+  assert.deepEqual(errors, []);
+  assert.deepEqual(moments.map((m) => m.kind), ['takeover', 'overlay']);
+  assert.match(resolveMoments({ moments: [mom('m01', 2, 10, { kind: 'popup' })] }, words, { total: 20 }).errors.join(), /kind must be takeover or overlay/);
+});
+
 test('moment words are relative to the moment and the lookup finds the moment at t', () => {
   const { moments } = resolveMoments({ moments: [mom('m01', 4, 9)] }, words, { total: 20 });
   const w = momentWords(words, moments[0]);

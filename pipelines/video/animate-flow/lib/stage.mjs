@@ -38,8 +38,8 @@ function walk(dir, base = dir) {
   });
 }
 
-// Skills are third-party docs and the transcript is the speaker's words: both are checked by name only.
-const TEXT_SKIP = /^(\.claude|logos)[\\/]|^transcript\.|^moment\.json$/;
+// Skills are third-party docs; transcripts and moment briefs carry the speaker's words: all are checked by name only.
+const TEXT_SKIP = /^(\.claude|logos)[\\/]|^transcript\.|^moments?\.json$/;
 
 // Every file in the stage, checked: no banned name in any path, and none in the text we wrote.
 export function auditStage(dir, { banned = bannedNames(), textSkip = (rel) => TEXT_SKIP.test(rel) } = {}) {

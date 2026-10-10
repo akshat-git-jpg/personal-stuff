@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+:root{--bg-from:#3a1f08;--bg-to:#0a0805;--text:#fff;--text-dim:rgba(255,239,219,0.6);--accent:#fb923c;--positive:#34d399;--negative:#ef4444}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#000}
+body{position:relative;font-family:"Inter",system-ui,sans-serif;color:var(--text);background:radial-gradient(circle at 30% 18%,var(--bg-from) 0%,var(--bg-to) 72%)}
+.a{position:absolute}
+.hero{font-weight:900;letter-spacing:-0.035em;line-height:1;white-space:nowrap}
+.sec{font-weight:600;letter-spacing:-0.015em;line-height:1.2;white-space:nowrap;font-size:48px}
+.dim{color:var(--text-dim)}.acc{color:var(--accent)}
+.panel{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:24px}
+.logo{position:absolute;border-radius:28px;overflow:hidden}
+.logo img{width:100%;height:100%;display:block}
+.logo.d::after{content:"";position:absolute;inset:0;border-radius:28px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.10)}
+</style></head><body>
+<svg class="a" style="left:0;top:0" width="1920" height="1080" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+<path d="M500 230 V900 M360 900 H640"/>
+<path d="M210 290 L790 170"/><circle cx="500" cy="230" r="16" fill="#0a0805"/>
+<path d="M210 290 L120 600 M210 290 L300 600 M110 600 A100 80 0 0 0 310 600 Z"/>
+<path d="M790 170 L690 480 M790 170 L890 480 M690 480 A100 80 0 0 0 890 480 Z"/>
+<g transform="translate(210 585) scale(0.5) translate(-210 -585) rotate(-10 210 500)"><path d="M210 405 L275 450 V585 H145 V450 Z"/><circle cx="210" cy="440" r="10"/></g>
+<polygon transform="translate(790 430) scale(0.6) translate(-790 -380)" points="790,310 807.6,355.7 856.6,358.4 818.5,389.3 831.2,436.6 790,410 748.8,436.6 761.5,389.3 723.4,358.4 772.4,355.7"/>
+</svg>
+<div class="a hero" style="left:1010px;top:340px;font-size:210px">Pricing</div>
+<div class="a sec" style="left:1010px;top:590px;font-size:64px;font-weight:700">Worth paying for<span class="acc">?</span></div>
+</body></html>

@@ -27,7 +27,8 @@ or text is banned for this recipe in `visuals-flow/recipe-isolation.json`.
 
 ## Out
 
-`videos/<slug>/moments.json`: each moment's word anchors (`from`, `to`), `idea`, `why`, and
+`videos/<slug>/moments.json`: each moment's word anchors (`from`, `to`), `kind` (`takeover`,
+the default, or `overlay` on the running recording), `idea`, `why`, and
 the resolved `start`/`end`/`duration` in seconds. Validation (`lib/moments.mjs`): anchors must
 match the transcript word for word, moments 3-20s, no overlap, gaps under 1s are closed. One
 correction round runs in the same session if the file fails.
