@@ -32,6 +32,9 @@ for (const e of evs) console.log(Math.max(0, e.t - 0.7).toFixed(3), e.sheet);
   ffmpeg -y -ss "$start" -t 1.4 -i "$VIDEO" -vf "fps=30,scale=480:-1,tile=4x11" "$QC/$sheet" >/dev/null 2>&1
 done
 
+# report-only: dead beats + phone sheet from the shared kit; warns, never fails the run
+node lib/qc-motion.mjs "$VIDEO" "$QC" || true
+
 COUNT=$(ls "$QC" | grep -c '^event-' || true)
 EXPECTED=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$QC/events.json','utf8')).length)")
 [[ "$COUNT" -eq "$EXPECTED" ]] || { echo "sheet count $COUNT != events $EXPECTED — a sheet failed to render"; exit 1; }
