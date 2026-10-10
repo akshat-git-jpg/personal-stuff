@@ -6,6 +6,8 @@ Custom motion graphics for a YouTube video, designed per moment in a swappable d
 bash run.sh my-video intake --audio vo.wav --screen screen.mp4 --title "My video"
 bash run.sh my-video transcribe
 bash run.sh my-video plan-moments
+bash run.sh my-video storyboard
+bash run.sh my-video storyboard-review   # approve or reject each panel at http://127.0.0.1:4331/
 bash run.sh my-video author-moments
 bash run.sh my-video review-frames
 bash run.sh my-video render-moments

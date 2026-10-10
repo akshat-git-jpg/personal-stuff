@@ -3,6 +3,8 @@
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
+// takeover: the graphic owns the whole frame. overlay: it sits on the screen recording, which stays visible.
+export const MOMENT_KINDS = Object.freeze(['takeover', 'overlay']);
 export const MOMENT_LIMITS = Object.freeze({ minDur: 3, maxDur: 20, maxHold: 1.5, defaultHold: 0.5, minGap: 1 });
 const EPS = 0.05;
 
@@ -37,6 +39,7 @@ export function resolveMoments(doc, words, { total, limits = MOMENT_LIMITS } = {
     else seen.add(m.id);
     if (typeof m.idea !== 'string' || !m.idea.trim()) errors.push(`${at}: idea is required (one line)`);
     if (typeof m.why !== 'string' || !m.why.trim()) errors.push(`${at}: why is required (one line)`);
+    if (m.kind !== undefined && !MOMENT_KINDS.includes(m.kind)) errors.push(`${at}: kind must be ${MOMENT_KINDS.join(' or ')}`);
     const anchorErrs = [...anchorErrors(at, 'from', m.from, words), ...anchorErrors(at, 'to', m.to, words)];
     errors.push(...anchorErrs);
     if (anchorErrs.length) continue;
@@ -45,7 +48,7 @@ export function resolveMoments(doc, words, { total, limits = MOMENT_LIMITS } = {
     if (!(Number.isFinite(hold) && hold >= 0 && hold <= limits.maxHold)) errors.push(`${at}: hold must be 0-${limits.maxHold}s`);
     const start = +words[m.from.i].start.toFixed(2);
     const stop = +Math.min(words[m.to.i].end + hold, end).toFixed(2);
-    out.push({ ...m, start, end: stop });
+    out.push({ ...m, kind: m.kind ?? 'takeover', start, end: stop });
   }
   out.sort((a, b) => a.start - b.start);
   // A hold may not run into the next moment; a gap shorter than minGap would flash the bed, so close it.

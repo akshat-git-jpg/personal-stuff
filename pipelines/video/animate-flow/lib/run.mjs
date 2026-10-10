@@ -44,15 +44,34 @@ export const HANDLERS = {
     if (r.moments) for (const m of r.moments) console.log(`  ${m.id}  ${m.start.toFixed(2)}-${m.end.toFixed(2)}s  ${m.idea}`);
     console.log(`030 plan-moments: ${r.moments ? `${r.moments.length} moments ($${r.cost.toFixed(2)})` : 'stage only'} | stage ${r.stage}`);
   },
+  storyboard: async (slug, f) => {
+    const r = await (await import('./storyboard.mjs')).storyboard(slug, { only: list(f.only), stageOnly: !!f['stage-only'] });
+    if (!r.sheet) { console.log(`035 storyboard: stage only | ${r.stage}`); return; }
+    for (const [id, p] of Object.entries(r.board.moments)) console.log(`  ${id}  @${p.at}s  ${p.status}  ${p.caption}`);
+    console.log(`035 storyboard: sheet ${r.sheet} ($${r.cost.toFixed(2)})\n  approve: node lib/run.mjs ${slug} storyboard-review`);
+  },
+  'storyboard-review': async (slug, f) => {
+    (await import('./storyboard-server.mjs')).serveStoryboard(slug, { port: num(f.port) });
+    await new Promise(() => {});
+  },
+  'approve-storyboard': async (slug, f) => {
+    const { decide, readBoard } = await import('./storyboard.mjs');
+    if (list(f.ok)) decide(slug, list(f.ok), 'approved', typeof f.note === 'string' && !list(f.reject) ? f.note : undefined);
+    if (list(f.reject)) {
+      if (typeof f.note !== 'string') throw new Error('--reject needs --note "what to change"');
+      decide(slug, list(f.reject), 'rejected', f.note);
+    }
+    for (const [id, p] of Object.entries(readBoard(slug).moments)) console.log(`  ${id}  ${p.status}${p.note ? `  "${p.note}"` : ''}`);
+  },
   'author-moments': async (slug, f) => {
-    const r = await (await import('./author-moments.mjs')).authorMoments(slug, { only: list(f.only), jobs: num(f.jobs) ?? 3, stageOnly: !!f['stage-only'] });
+    const r = await (await import('./author-moments.mjs')).authorMoments(slug, { only: list(f.only), jobs: num(f.jobs) ?? 3, stageOnly: !!f['stage-only'], skipStoryboard: !!f['skip-storyboard'] });
     if (!r.results) { console.log(`040 author-moments: stage only\n  ${r.stages.join('\n  ')}`); return; }
     const failed = r.results.filter((x) => !x.ok);
     console.log(`040 author-moments: ${r.results.length - failed.length}/${r.results.length} authored ($${r.results.reduce((s, x) => s + x.cost, 0).toFixed(2)})`);
     if (failed.length) { for (const x of failed) console.error(`  ${x.id}: ${x.error}`); process.exitCode = 1; }
   },
   'review-frames': async (slug, f) => {
-    const r = (await import('./review-frames.mjs')).reviewFrames(slug, { only: list(f.only), snapshots: !f['no-snapshots'] });
+    const r = (await import('./review-frames.mjs')).reviewFrames(slug, { only: list(f.only), snapshots: !f['no-snapshots'], probe: !f['no-measure'], cut: !f['no-cut'] });
     console.log(`050 review-frames: ${r.errors} error(s) -> ${r.file}`);
     if (r.errors) process.exitCode = 1;
   },
@@ -64,7 +83,8 @@ export const HANDLERS = {
   },
   assemble: async (slug, f) => {
     const r = await (await import('./assemble.mjs')).assemble(slug, { final: !!f.final });
-    console.log(`070 assemble: ${r.out} (registered ${r.version})\n  review: node lib/run.mjs ${slug} review`);
+    for (const x of r.extra) console.log(`  ${x.format}: ${x.out}`);
+    console.log(`070 assemble: ${r.out} (registered ${r.version})\n  cut checks: videos/${slug}/review/REVIEW.md\n  review: node lib/run.mjs ${slug} review`);
   },
   review: async (slug, f) => {
     (await import('./review-server.mjs')).serveReview(slug, { port: num(f.port) });
@@ -82,7 +102,7 @@ export const HANDLERS = {
     const has = (p) => (fs.existsSync(p) ? 'yes' : '-');
     console.log(`workdir ${wd}\nmedia   ${media}`);
     for (const [label, p] of [['run-config.json', path.join(wd, 'run-config.json')], ['transcript.json', path.join(wd, 'transcript.json')],
-      ['moments.json', path.join(wd, 'moments.json')], ['review/REVIEW.md', path.join(wd, 'review', 'REVIEW.md')],
+      ['moments.json', path.join(wd, 'moments.json')], ['storyboard.json', path.join(wd, 'storyboard.json')], ['review/REVIEW.md', path.join(wd, 'review', 'REVIEW.md')],
       ['final-draft.mp4', path.join(media, 'final-draft.mp4')], ['feedback.json', path.join(wd, 'feedback.json')]]) console.log(`  ${has(p).padEnd(4)}${label}`);
     const mp = path.join(wd, 'moments.json');
     if (fs.existsSync(mp)) for (const m of readJson(mp).moments) {

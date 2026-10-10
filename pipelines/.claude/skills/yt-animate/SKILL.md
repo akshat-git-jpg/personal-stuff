@@ -22,7 +22,7 @@ Pipeline and schemas: `PIPELINE.md`. Operating rules: `CLAUDE.md`.
    skill, taste file or prompts in this session.
 2. **Name through the registry.** A new video starts with `intake`, which calls
    `vreg ensure`; use the key it prints as `<slug>` from then on.
-3. **You do not author the graphics yourself.** 030 and 040 run fresh `claude -p` sessions in
+3. **You do not author the graphics yourself.** 030, 035 and 040 run fresh `claude -p` sessions in
    sealed stages outside the repo; that is the isolation. Do not hand-write a moment in this
    session unless the owner asks for a specific edit to one, and then edit
    `videos/<slug>/moments/<id>/index.html` directly and re-run 050-070.
@@ -37,8 +37,11 @@ Pipeline and schemas: `PIPELINE.md`. Operating rules: `CLAUDE.md`.
 | "animate <video>", "start an animate edit" | `node lib/run.mjs <name> intake --audio <file> [--screen <file>] [--title "..."] [--design-system <name>] [--canvas WxH] [--from s --to s]` | 010 |
 | "transcribe it" | `node lib/run.mjs <slug> transcribe` | 020 |
 | "pick the moments", "plan the graphics" | `node lib/run.mjs <slug> plan-moments` | 030 |
-| "animate the moments", "make the graphics" | `node lib/run.mjs <slug> author-moments [--only m02]` | 040 |
-| "check the graphics" | `node lib/run.mjs <slug> review-frames` | 050 |
+| "storyboard it", "draw the key frames" | `node lib/run.mjs <slug> storyboard [--only m01]` | 035 |
+| "let me approve the storyboard" | `node lib/run.mjs <slug> storyboard-review` (http://127.0.0.1:4331/) | **035 owner gate** |
+| "approve m02 and m04", "reject m01: ..." | `node lib/run.mjs <slug> approve-storyboard --ok m02,m04` / `--reject m01 --note "..."` | 035 |
+| "animate the moments", "make the graphics" | `node lib/run.mjs <slug> author-moments [--only m02]` (approved panels only; `--skip-storyboard` overrides, say so) | 040 |
+| "check the graphics" | `node lib/run.mjs <slug> review-frames [--no-measure] [--no-cut]` | 050 |
 | "render them" | `node lib/run.mjs <slug> render-moments` | 060 |
 | "cut it", "assemble" | `node lib/run.mjs <slug> assemble [--final]` | 070 |
 | "let me review", "open the review page" | `node lib/run.mjs <slug> review` (http://127.0.0.1:4330/) | 080 |
@@ -49,5 +52,12 @@ Pipeline and schemas: `PIPELINE.md`. Operating rules: `CLAUDE.md`.
 
 ## A normal run
 
-intake -> transcribe -> plan-moments -> author-moments -> review-frames (fix errors with
-`author-moments --only <id>`) -> render-moments -> assemble -> look at frames -> owner reviews.
+intake -> transcribe -> plan-moments -> storyboard -> **owner approves panels** ->
+author-moments -> review-frames (fix errors with `author-moments --only <id>`) ->
+render-moments -> assemble (re-runs the cut checks) -> look at the phone sheet and stills ->
+owner reviews.
+
+After every run, read `videos/<slug>/review/REVIEW.md` and tell the owner its last line, the
+weakest moment, and what would fix it. Show the storyboard sheet
+(`<media>/storyboard/storyboard.png`) before asking for approval. Extra formats (9:16, 1:1):
+set `formats` in `run-config.json`; 16:9 stays the default.

@@ -1,0 +1,26 @@
+{
+  "number": "035",
+  "slug": "035-storyboard-moments-llm",
+  "title": "storyboard the moments",
+  "actor": "llm",
+  "actorLabel": "[LLM]",
+  "verbs": [
+    "storyboard",
+    "storyboard-review",
+    "approve-storyboard"
+  ],
+  "consumes": [
+    "moments.json",
+    "transcript.json",
+    "design system",
+    "TASTE-ANIMATE.md",
+    "<media>/screen.mp4"
+  ],
+  "produces": [
+    "storyboard/<id>/index.html",
+    "storyboard.json",
+    "<media>/storyboard/storyboard.png",
+    "<media>/storyboard/<id>.png"
+  ],
+  "summary": "One cheap sealed model run (sonnet) draws a static key still per moment; each is composited over the real recording frame at its key time into one contact sheet. The owner approves or rejects each panel; 040 refuses a moment whose panel is not approved."
+}

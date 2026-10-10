@@ -8,7 +8,7 @@ import { ROOT } from './paths.mjs';
 const steps = loadSteps();
 
 test('every step folder declares itself consistently', () => {
-  assert.equal(steps.length, 9);
+  assert.equal(steps.length, 10);
   for (const s of steps) {
     assert.equal(s.slug, s.folder, `${s.folder}: slug must equal the folder name`);
     assert.equal(s.folder.slice(0, 3), s.number);

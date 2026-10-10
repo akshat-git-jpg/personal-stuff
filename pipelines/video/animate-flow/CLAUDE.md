@@ -12,7 +12,7 @@ Steps, inputs and outputs: [PIPELINE.md](PIPELINE.md).
 
 This recipe's judgment must never be shaped by another recipe's, and the other way round.
 
-- **By construction.** 030 and 040 run `claude -p` from a sealed stage outside the repo
+- **By construction.** 030, 035 and 040 run `claude -p` from a sealed stage outside the repo
   (`~/kb-scratch/video/animate-flow/<slug>/stage/<step>/`) holding only that step's inputs, with
   `--setting-sources project`. No repo `CLAUDE.md`, skill or memory is reachable. `sealStage()`
   refuses to start a run if any staged path or authored text names something this recipe bans,
@@ -50,5 +50,15 @@ Gate: `bash scripts/check.sh`.
 
 ## Not in v1 (on purpose)
 
-Captions, transitions, avatar, take-cutting and vertical output. The kit supports a vertical
-canvas (`--canvas 1080x1920`) and an avatar clip kind; wiring them in is a later step.
+Captions, kit transitions, avatar and take-cutting. Vertical and square output exist behind
+`formats` in run-config (laid out again by 040, not cropped); 16:9 only is the default.
+
+## Lessons adopted from cth9191/animate (MIT), adapted to screen recordings
+
+The storyboard gate (035), the frame checklist in the 030/035/040 prompts, starter rules
+A1-A13 in `TASTE-ANIMATE.md`, the measured checks in 050 and multi-format layout. The
+difference that shapes all of them: our graphics sit on a screen recording or take over
+from it for a moment, so the recording is the stage, overlays stay off its busy region,
+dead beats are measured on the composite, and storyboard stills are drawn over the real
+recording frame. The recipe-neutral measures (dead beats, motion map, phone sheet, the
+composition box probe) live in the kit.
