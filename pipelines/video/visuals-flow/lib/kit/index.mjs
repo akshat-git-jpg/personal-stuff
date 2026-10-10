@@ -15,3 +15,7 @@ export {
   HYPERFRAMES, NPX_NEEDS_SHELL, npxArgs, npxSpawnOpts, lintArgs, checkArgs, snapshotArgs, renderArgs,
   extractJsonObject, summariseFindings, checkComposition, snapshotComposition, renderComposition, lavfiPath, frameLuma,
 } from './hyperframes.mjs';
+export {
+  DEAD_BEAT_DEFAULTS, probeVideo, grayFrames, meanAbsDiff, deadRuns, deadBeats, motionGrid, busyCells, motionMap, phoneSheet,
+} from './motion.mjs';
+export { hyperframesChrome, probeComposition, parseProbeOutput, screenshotPage } from './composition-probe.mjs';
