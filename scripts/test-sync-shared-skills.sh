@@ -13,7 +13,7 @@ ok()  { echo "  ok   $1"; }
 bad() { echo "  FAIL $1" >&2; fails=$((fails + 1)); }
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
-SHARED="claude-router github-router humanizer i-have-adhd session-handoff"
+SHARED="claude-router github-router humanizer i-have-adhd"
 
 new_env() {
   rm -rf "$TMP/repo" "$TMP/plugin"
@@ -33,7 +33,7 @@ rc_of() { set +e; run "$@" >/dev/null 2>&1; local r=$?; set -e; echo "$r"; }
 echo "1. copies the shared skills into the plugin"
 new_env; run >/dev/null
 n=0; for s in $SHARED; do [ -f "$TMP/plugin/skills/$s/SKILL.md" ] && n=$((n+1)); done
-[ "$n" -eq 5 ] && ok "all five copied" || bad "all five copied (got $n)"
+[ "$n" -eq 4 ] && ok "all four copied" || bad "all four copied (got $n)"
 [ -e "$TMP/plugin/skills/commit-now" ] && bad "an unshared skill leaked" || ok "unshared skills not copied"
 
 echo "2. --check reports drift and changes nothing"

@@ -39,7 +39,7 @@ dups="$(for d in .claude/skills pipelines/.claude/skills pipelines/.agents/skill
 done | sort | uniq -d)"
 for dup in $dups; do
   case "$dup" in
-    claude-router|github-router|humanizer|i-have-adhd|session-handoff) ;;   # the 5 duplicated on purpose
+    claude-router|github-router|humanizer|i-have-adhd) ;;   # the 4 duplicated on purpose
     *) note "unexpected duplicate skill: $dup" ;;
   esac
 done

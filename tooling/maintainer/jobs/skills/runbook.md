@@ -128,9 +128,9 @@ claude plugin install work-skills@work-skills --scope local      # once per repo
 `--scope local` writes to that repo's **gitignored** `.claude/settings.local.json`, so
 nothing is ever committed to a shared ZluriHQ repo. Repo-scoped, account-independent.
 
-### The five duplicated on purpose
+### The four duplicated on purpose
 
-`claude-router`, `github-router`, `humanizer`, `i-have-adhd`, `session-handoff` exist in
+`claude-router`, `github-router`, `humanizer`, `i-have-adhd` exist in
 BOTH `.claude/skills/` and the private plugin. A symlink cannot span a public and a
 private repo without leaving a dead link in whichever one someone else clones, so two
 real copies is the honest answer.
@@ -192,8 +192,8 @@ for d in .claude/skills pipelines/.claude/skills pipelines/.agents/skills \
 done | sort | uniq -d
 ```
 
-Expected output is **exactly the five deliberately duplicated skills** (§4):
-`claude-router`, `github-router`, `humanizer`, `i-have-adhd`, `session-handoff`.
+Expected output is **exactly the four deliberately duplicated skills** (§4):
+`claude-router`, `github-router`, `humanizer`, `i-have-adhd`.
 Anything else is a real duplicate and needs resolving.
 
 Then for each unexpected hit, decide by **total content bytes**, not line count (§7):
@@ -229,7 +229,7 @@ bash scripts/relink.sh                     # codex mirror + push gate + memory l
    and repo names have leaked this way before.
 3. **Never commit a personal skill to a ZluriHQ repo.** Use the private plugin at local
    scope.
-4. **Edit the real folder, never a symlink target elsewhere.** For the five shared
+4. **Edit the real folder, never a symlink target elsewhere.** For the four shared
    skills, edit the `personal-stuff` copy and sync outward.
 5. **Never commit generated media.** Vendor skill packs ship renders — 48 MB of `.mp4`
    arrived with `loop-studio` and `hyperframes-animation`. `pp-push` refuses any single
