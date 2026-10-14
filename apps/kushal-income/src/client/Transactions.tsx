@@ -7,7 +7,8 @@
 import { useMemo, useState } from "react";
 import type { Ledger, Row, Source, Status, TagNode } from "./api";
 import { inPick, type Pick } from "./DatePicker";
-import { chain, dayLabel, isIn, makeTree, namesOf, rs, SOURCES, totals, tripTag, within } from "./lib";
+import { chain, dayLabel, isIn, makeTree, namesOf, nextSort, rs, sortRows, SOURCES, totals, tripTag, within, type Sort } from "./lib";
+import { SortHead } from "./SortHead";
 import { TagEditor } from "./TagEditor";
 
 const STATUS: Record<Status, string> = { proven: "Proven", confirmed: "Confirmed by you", needs: "Needs you" };
@@ -33,6 +34,7 @@ export function Transactions({ data, params, pick, newest, reload }: {
   const [limit, setLimit] = useState(300);
   const [bulk, setBulk] = useState(false);
   const [more, setMore] = useState(false);
+  const [sort, setSort] = useState<Sort>({ key: "date", desc: true });
 
   const nodeOf = (r: Row) => (r.status === "needs" ? null : r.tag_id ?? null);
   const atPath = at && at !== NEEDS ? namesOf(tree, at).join("/") : "";
@@ -75,6 +77,8 @@ export function Transactions({ data, params, pick, newest, reload }: {
     return true;
   });
   const t = totals(rows);
+  const shown = sortRows(rows, sort);
+  const onSort = (k: Sort["key"]) => setSort(nextSort(sort, k));
   const filtered = !!(qq || src.size || at || stat.size || inferredOnly);
   const flip = <T,>(set: Set<T>, v: T, put: (s: Set<T>) => void) => {
     const n = new Set(set);
@@ -161,9 +165,14 @@ export function Transactions({ data, params, pick, newest, reload }: {
 
       <section className="panel table">
         <div className="trow thead">
-          <span>Date</span><span>Paid by</span><span>What it was</span><span>Tags</span><span>Status</span><span className="right">Amount</span>
+          <SortHead k="date" label="Date" sort={sort} onSort={onSort} />
+          <SortHead k="source" label="Paid by" sort={sort} onSort={onSort} />
+          <SortHead k="what" label="What it was" sort={sort} onSort={onSort} />
+          <SortHead k="tag" label="Tags" sort={sort} onSort={onSort} />
+          <SortHead k="status" label="Status" sort={sort} onSort={onSort} />
+          <SortHead k="amount" label="Amount" sort={sort} onSort={onSort} right />
         </div>
-        {rows.slice(0, limit).map((r) => (
+        {shown.slice(0, limit).map((r) => (
           <RowView key={r.id} r={r} tags={data.tags} open={open === r.id} editing={editing === r.id}
             toggle={() => { setOpen(open === r.id ? null : r.id); setEditing(null); }}
             edit={() => setEditing(r.id)} done={async () => { setEditing(null); await reload(); }} />

@@ -99,3 +99,29 @@ export function parseHash(h: string): { page: string; params: URLSearchParams } 
   const [path, q] = h.replace(/^#\/?/, "").split("?");
   return { page: path || "overview", params: new URLSearchParams(q ?? "") };
 }
+
+export type SortKey = "date" | "source" | "what" | "tag" | "status" | "amount";
+export type Sort = { key: SortKey; desc: boolean };
+
+/** Amount sorts by size, so the biggest money is first whether it went out or came in. */
+export function sortRows(rows: Row[], { key, desc }: Sort): Row[] {
+  const v = (r: Row): string | number => {
+    switch (key) {
+      case "date": return r.date + (r.time ?? "");
+      case "source": return SOURCES[r.source].short;
+      case "what": return (r.desc ?? r.payee).toLowerCase();
+      case "tag": return r.tags.join("/") || "~";
+      case "status": return r.status;
+      case "amount": return Math.abs(r.amount ?? 0);
+    }
+  };
+  return [...rows].sort((a, b) => {
+    const x = v(a), y = v(b);
+    const c = typeof x === "number" ? x - (y as number) : x.localeCompare(y as string);
+    return desc ? -c : c;
+  });
+}
+
+/** Click a column once to sort by it; click it again to flip the order. Dates and amounts start biggest first. */
+export const nextSort = (s: Sort, key: SortKey): Sort =>
+  s.key === key ? { key, desc: !s.desc } : { key, desc: key === "date" || key === "amount" };

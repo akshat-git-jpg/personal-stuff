@@ -5,17 +5,20 @@
 import { useState } from "react";
 import type { Ledger, Row, Statement } from "./api";
 import { inPick, type Pick } from "./DatePicker";
-import { dayLabel, isSpend, mainTag, rs, SOURCES } from "./lib";
+import { dayLabel, isSpend, mainTag, nextSort, rs, sortRows, SOURCES, type Sort } from "./lib";
+import { SortHead } from "./SortHead";
 
 type Card = Statement["source"];
 const CARDS: Card[] = ["sbic", "neu", "icici"];
 
 export function Cards({ data, pick, newest }: { data: Ledger; pick: Pick; newest: string }) {
   const [card, setCard] = useState<Card>("sbic");
+  const [sort, setSort] = useState<Sort>({ key: "date", desc: true });
+  const onSort = (k: Sort["key"]) => setSort(nextSort(sort, k));
   const spends = (c: Card) => data.rows.filter((r) => r.source === c && inPick(pick, r.date, newest) && isSpend(r));
   const sum = (rs: Row[]) => rs.reduce((a, r) => a - r.amount!, 0);
 
-  const rows = spends(card).sort((a, b) => b.date.localeCompare(a.date));
+  const rows = sortRows(spends(card), sort);
   const byTag = new Map<string, number>();
   for (const r of rows) byTag.set(mainTag(r), (byTag.get(mainTag(r)) ?? 0) - r.amount!);
   const tags = [...byTag.entries()].sort((a, b) => b[1] - a[1]);
@@ -46,6 +49,14 @@ export function Cards({ data, pick, newest }: { data: Ledger; pick: Pick; newest
 
       <div className="grid-3">
         <section className="panel span-2 table">
+          {rows.length > 0 && (
+            <div className="minirow thead">
+              <SortHead k="date" label="Date" sort={sort} onSort={onSort} />
+              <SortHead k="what" label="What it was" sort={sort} onSort={onSort} />
+              <SortHead k="tag" label="Tags" sort={sort} onSort={onSort} />
+              <SortHead k="amount" label="Amount" sort={sort} onSort={onSort} right />
+            </div>
+          )}
           {rows.map((r) => <MiniRow key={r.id} r={r} />)}
           {!rows.length && <div className="empty">Nothing spent on this card in this period.</div>}
           {notFinal > 0 && <div className="muted small pad">{notFinal} rows marked "not final" come from purchase emails. The next statement confirms them.</div>}
