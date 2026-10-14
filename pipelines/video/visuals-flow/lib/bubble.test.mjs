@@ -106,9 +106,9 @@ test('contribute slice arithmetic across a chunk boundary', () => {
   const slices = bubbleSlices(seg, cornerJobs, ctx);
   assert.strictEqual(slices.length, 2);
   // chunk a overlap 10-15: seek 10 into a, shows segment-local 0-5
-  assert.deepStrictEqual(slices[0], { file: 'a.mp4', sliceStart: 10, overlapDur: 5, at: 0, until: 5 });
+  assert.deepStrictEqual(slices[0], { file: 'a.mp4', sliceStart: 10, overlapDur: 5, at: 0, until: 5, joinOut: true });
   // chunk b overlap 15-20: seek 0 into b, shows segment-local 5-10 (boundary at t=5)
-  assert.deepStrictEqual(slices[1], { file: 'b.mp4', sliceStart: 0, overlapDur: 5, at: 5, until: 10 });
+  assert.deepStrictEqual(slices[1], { file: 'b.mp4', sliceStart: 0, overlapDur: 5, at: 5, until: 10, joinIn: true });
 
   const contrib = contribute(seg, plan({}), ctx);
   assert.deepStrictEqual(contrib.inputs, [
@@ -123,6 +123,8 @@ test('contribute slice arithmetic across a chunk boundary', () => {
   assert.ok(chain.includes("enable='between(t,0.000,5.000)'"), 'first enable window');
   assert.ok(chain.includes("enable='between(t,5.000,10.000)'"), 'second enable window');
   assert.strictEqual(nextV, 'bb_1');
+  // the join gets a warm light leak on both sides
+  assert.strictEqual((chain.match(/colorchannelmixer=rr=1.35/g) || []).length, 2);
   // format=rgba precedes every geq (alpha math in RGB space)
   const geqCount = (chain.match(/geq=/g) || []).length;
   const rgbaCount = (chain.match(/format=rgba,geq=/g) || []).length;

@@ -62,7 +62,44 @@ function refitClip(src, job, id) {
   return out;
 }
 
-export function planJobs(shotsResolved, totalDuration, { spansOnly = false, cornerRange = null, oneRender = false } = {}) {
+// Short corner pieces, so every piece plays the calm opening of the Avatar III motion clip
+// (render seconds 0 to ~18; the clip turns tense near second 19). Cuts land in the longest pause
+// near the target, so a long silence never sits deep inside a render. AVATAR-III-QUALITY.md.
+export const CORNER_PIECE = { target: 15, min: 6, max: 17 };
+
+export function planCornerPieces(ranges, silences, { target, min, max } = CORNER_PIECE) {
+  const out = [];
+  for (const [rs, re] of ranges) {
+    let s = rs;
+    while (re - s > 0.05) {
+      let cut = re;
+      if (re - s > max) {
+        const fits = silences.map((x) => ({ at: (x.start + Math.min(x.end, re)) / 2, dur: Math.min(x.end, re) - x.start }))
+          .filter((x) => x.at >= s + min && x.at <= s + max);
+        const best = fits.sort((a, b) => (b.dur - 0.05 * Math.abs(b.at - s - target)) - (a.dur - 0.05 * Math.abs(a.at - s - target)))[0];
+        cut = best ? best.at : s + target;
+        if (re - cut < min) cut = (s + re) / 2;
+      }
+      out.push({ start: +s.toFixed(2), end: +cut.toFixed(2) });
+      s = +cut.toFixed(2);
+    }
+  }
+  return out.map((p, i) => ({ id: `corner-p${String(i + 1).padStart(2, '0')}`, ...p }));
+}
+
+// [0, total) minus the full-screen spans: the corner is hidden there, so it needs no render.
+export function cornerRanges(spanJobs, total) {
+  const out = [];
+  let t = 0;
+  for (const s of [...spanJobs].sort((a, b) => a.start - b.start)) {
+    if (s.start - t > 0.5) out.push([t, s.start]);
+    t = Math.max(t, s.end);
+  }
+  if (total - t > 0.5) out.push([t, total]);
+  return out;
+}
+
+export function planJobs(shotsResolved, totalDuration, { spansOnly = false, cornerRange = null, oneRender = false, silences = null } = {}) {
   const spanJobs = (shotsResolved.spans || []).map((s) => ({
     id: s.id,
     purpose: s.mode === 'side' ? 'avatar-side' : (s.mode === 'panel' ? 'avatar-panel' : 'avatar-full'),
@@ -76,7 +113,9 @@ export function planJobs(shotsResolved, totalDuration, { spansOnly = false, corn
     return [...spanJobs.map((s) => ({ ...s, from: corner.id })), corner].map((j) => ({ ...j, duration: +(j.end - j.start).toFixed(2) }));
   }
   let cornerChunks = [];
-  if (cornerRange) {
+  if (silences && !spansOnly && !cornerRange) {
+    cornerChunks = planCornerPieces(cornerRanges(spanJobs, totalDuration), silences);
+  } else if (cornerRange) {
     cornerChunks = planCornerChunksRange(cornerRange[0], Math.min(cornerRange[1], totalDuration));
   } else if (!spansOnly) {
     cornerChunks = planCornerChunks(totalDuration);
@@ -258,7 +297,8 @@ async function main() {
 
     if (!Array.isArray(words) || words.length === 0) { console.error('empty transcript.json — nothing to submit'); process.exit(1); }
     const totalDuration = words[words.length - 1].end;
-    const jobs = planJobs(shotsResolved, totalDuration, { spansOnly: !!opts.spansOnly, cornerRange: opts.cornerRange ?? null, oneRender: shotsFile.oneRender === true });
+    const silences = shotsFile.cornerPieces === true ? probeVoSpeech(path.join(workdir, 'vo.mp3')).silences : null;
+    const jobs = planJobs(shotsResolved, totalDuration, { spansOnly: !!opts.spansOnly, cornerRange: opts.cornerRange ?? null, oneRender: shotsFile.oneRender === true, silences });
     const photoAvatar = registryEntry(opts.template)?.avatar_id ?? null;
 
     for (const job of jobs) {

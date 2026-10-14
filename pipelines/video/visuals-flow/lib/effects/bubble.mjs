@@ -109,12 +109,17 @@ export function bubbleSlices(seg, cornerJobs, ctx) {
     const oEnd = Math.min(j.end, contentEnd);
     const overlapDur = +(oEnd - oStart).toFixed(3);
     if (overlapDur <= 0.01) continue;
+    // A join between two renders: the head snaps back to the start pose there, so a light leak hides it.
+    const joinIn = oStart === j.start && cornerJobs.some((k) => k !== j && Math.abs(k.end - j.start) < 0.01);
+    const joinOut = oEnd === j.end && cornerJobs.some((k) => k !== j && Math.abs(k.start - j.end) < 0.01);
     slices.push({
       file: j.file,
       sliceStart: +(oStart - j.start + (j.trimLead || 0)).toFixed(3),
       overlapDur,
       at: +Math.max(0, oStart - contentStart).toFixed(3),
-      until: +(oEnd - contentStart).toFixed(3)
+      until: +(oEnd - contentStart).toFixed(3),
+      ...(joinIn ? { joinIn } : {}),
+      ...(joinOut ? { joinOut } : {})
     });
   }
   return slices;
@@ -134,6 +139,18 @@ export function gapAlphaExpr(gaps, offset) {
     const a = +(g.start - offset + 0.1 + GAP_FADE).toFixed(3), b = +(g.end - offset - 0.15 - GAP_FADE).toFixed(3);
     return `max(clip((${a}-T)/${GAP_FADE},0,1),clip((T-${b})/${GAP_FADE},0,1))`;
   }).join('*');
+}
+
+// The coupon whip leak, shorter and inside the circle only: warm near-white at the join, back to normal LEAK_HALF either side.
+export const JOIN_LEAK = { half: 0.2, color: { r: 1.35, g: 1.05, b: 0.72 }, gain: 0.95 };
+export function joinLeak(s) {
+  const { half, color: L, gain } = JOIN_LEAK;
+  const parts = [];
+  if (s.joinIn) parts.push(`max(1-t/${half},0)`);
+  if (s.joinOut) parts.push(`max(1-(${s.overlapDur}-t)/${half},0)`);
+  if (!parts.length) return '';
+  const k = parts.length === 2 ? `max(${parts[0]},${parts[1]})` : parts[0];
+  return `colorchannelmixer=rr=${L.r}:gg=${L.g}:bb=${L.b}:enable='gt(${k},0)',eq=brightness='${gain}*pow(${k},2)':eval=frame,`;
 }
 
 export function plan(ctx) {
@@ -196,7 +213,7 @@ export function contribute(seg, instances, ctx) {
           // Zoom + focus-point crop: scale the source taller than the circle,
           // then crop the circle out around the face instead of fitting the
           // whole frame height (which framed head + torso, not a portrait).
-          chain += `[${idx}:v]setpts=PTS-STARTPTS,scale=-2:${DZ},crop=${D}:${D}:x='clip(iw*${focus.x}-${R},0,iw-${D})':y='clip(ih*${focus.y}-${R},0,ih-${D})',format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='if(lte(hypot(X-${R},Y-${R}),${R}-1),255,0)',pad=${S}:${S}:${PAD}:${PAD}:color=0x00000000[${bub}];`;
+          chain += `[${idx}:v]setpts=PTS-STARTPTS,${joinLeak(s)}scale=-2:${DZ},crop=${D}:${D}:x='clip(iw*${focus.x}-${R},0,iw-${D})':y='clip(ih*${focus.y}-${R},0,ih-${D})',format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='if(lte(hypot(X-${R},Y-${R}),${R}-1),255,0)',pad=${S}:${S}:${PAD}:${PAD}:color=0x00000000[${bub}];`;
           // Layer 1 — the hairline. Constant brand colour the whole way round,
           // uniform width, CORE blur for anti-aliasing only and NO halo: the
           // reference ring drops straight to background away from the gleam.
