@@ -221,5 +221,21 @@ test('pad_into_silence grows a span into the pauses but never over a neighbourin
   }, gappy);
   assert.deepEqual(errors, []);
   assert.equal(spans[0].start, 2.6);
-  assert.equal(spans[0].end, 6.25);
+  assert.equal(spans[0].end, 6.29);
+});
+
+test('pad_into_silence uses the measured voice edge when the transcript ends a word early', () => {
+  const ws = [
+    { text: 'Before.', start: 0, end: 1 }, { text: 'hi', start: 3, end: 3.5 }, { text: 'there', start: 3.5, end: 4 },
+    { text: 'you', start: 4, end: 4.2 }, { text: 'go', start: 4.2, end: 4.4 }, { text: 'the', start: 4.4, end: 4.6 },
+    { text: 'end.', start: 4.6, end: 5 }, { text: 'next', start: 6, end: 7 },
+    ...Array.from({ length: 20 }, (_, i) => ({ text: `z${i}`, start: 8 + i, end: 9 + i })),
+  ];
+  const voSpeech = { speech: [{ start: 0, end: 1 }, { start: 2.9, end: 5.3 }, { start: 6, end: 30 }] };
+  const { spans } = resolveShots({
+    engineMode: 'test',
+    spans: [{ id: 's01', purpose: 'avatar-full', mode: 'full', from_anchor: 'hi there you', to_anchor: 'go the end', pad_into_silence: 0.4 }],
+  }, ws, { voSpeech });
+  assert.equal(spans[0].start, 2.5);
+  assert.equal(spans[0].end, 5.7);
 });

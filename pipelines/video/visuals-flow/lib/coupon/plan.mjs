@@ -1,4 +1,5 @@
 import { normWord } from '../resolve.mjs';
+import { speechEdges } from '../resolve-shots.mjs';
 
 // Coupon-code videos follow one fixed script shape, so the edit is a rule table
 // over the transcript: no LLM, no review. Same words in, same plan out.
@@ -144,7 +145,7 @@ export function markOpenerBreaks(words) {
   return { words: out, marks };
 }
 
-export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR, total: audioTotal = null } = {}) {
+export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR, total: audioTotal = null, voSpeech = null } = {}) {
   const W = indexWords(words);
   const errors = [];
   const notes = [];
@@ -191,8 +192,8 @@ export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR, total: 
   ];
   // Same padding resolve-shots applies, so cards keep clear of the real cuts.
   const P = COUPON_RULES.SILENCE_PAD;
-  const padStart = (k) => (k > 0 ? Math.min(W[k].start, Math.max(W[k].start - P, W[k - 1].end + 0.05)) : W[k].start);
-  const padEnd = (k) => (W[k + 1] ? Math.max(W[k].end, Math.min(W[k].end + P, W[k + 1].start - 0.05)) : W[k].end);
+  const padStart = (k) => (k > 0 ? Math.min(W[k].start, Math.max(speechEdges(voSpeech, W[k].start, W[k].end).start - P, W[k - 1].end + 0.05)) : W[k].start);
+  const padEnd = (k) => (W[k + 1] ? Math.max(W[k].end, Math.min(speechEdges(voSpeech, W[k].start, W[k].end).end + P, W[k + 1].start - 0.01)) : W[k].end);
   const s01 = { start: padStart(intro), end: padEnd(introEnd) };
   const s02 = { start: padStart(outro), end: total };
   const cuts = [s01.start, s01.end, s02.start].filter((t) => t > 0.5);

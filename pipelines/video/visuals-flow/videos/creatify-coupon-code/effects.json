@@ -14,9 +14,9 @@
       "enabled": true
     },
     {
-      "id": "whip-35.5",
+      "id": "whip-35.8",
       "type": "whip",
-      "at": 35.52,
+      "at": 35.79,
       "direction": "right",
       "fromIdx": 1,
       "toIdx": 2,

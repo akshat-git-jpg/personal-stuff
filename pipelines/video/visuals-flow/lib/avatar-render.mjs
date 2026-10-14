@@ -43,6 +43,25 @@ export function planCornerChunksRange(rangeStart, rangeEnd, chunk = CORNER_CHUNK
   return out;
 }
 
+// Max edge shift (s) a rendered clip absorbs by holding/trimming its edge frames instead of a new HeyGen render.
+export const REFIT_MAX = 1.0;
+
+// Re-cut a rendered clip to new span times: trim or hold (clone) edge frames; video only, the master carries the audio.
+export function refitArgs(src, job, srcDur, out) {
+  const lead = +(src.start - job.start).toFixed(3), tail = +(job.end - src.end).toFixed(3);
+  const vf = `trim=start=${Math.max(0, -lead)}:end=${+(srcDur - Math.max(0, -tail)).toFixed(3)},setpts=PTS-STARTPTS,` +
+    `tpad=start_mode=clone:start_duration=${Math.max(0, lead)}:stop_mode=clone:stop_duration=${Math.max(0, tail)}`;
+  return ['-v', 'error', '-y', '-i', src.file, '-vf', vf, '-an', '-c:v', 'libx264', '-crf', '14', '-pix_fmt', 'yuv420p', out];
+}
+
+function refitClip(src, job, id) {
+  const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src.file], { encoding: 'utf8' });
+  const out = path.join(path.dirname(src.file), `${id}.refit.mp4`);
+  const r = spawnSync('ffmpeg', refitArgs(src, job, parseFloat(p.stdout), out), { encoding: 'utf8' });
+  if (r.status !== 0) throw new Error(`refit failed for ${id}: ${(r.stderr || '').slice(-300)}`);
+  return out;
+}
+
 export function planJobs(shotsResolved, totalDuration, { spansOnly = false, cornerRange = null, oneRender = false } = {}) {
   const spanJobs = (shotsResolved.spans || []).map((s) => ({
     id: s.id,
@@ -165,7 +184,8 @@ async function main() {
     // Same audio-end snap resolve-shots uses, or a span ending at the video's end always reads as stale.
     const voFile = path.join(workdir, 'vo.mp3');
     const voSpeechEnd = fs.existsSync(voFile) ? lastSpeechEnd(probeVoSpeech(voFile)) : null;
-    const recomputed = resolveShots(shotsFile, words, { voSpeechEnd });
+    const voSpeech = fs.existsSync(voFile) ? probeVoSpeech(voFile) : null;
+    const recomputed = resolveShots(shotsFile, words, { voSpeechEnd, voSpeech });
     if (recomputed.errors.length > 0 || JSON.stringify(recomputed.spans) !== JSON.stringify(shotsResolved.spans)) {
       if (!opts.force) {
         console.error('re-run node lib/resolve-shots.mjs <slug>');
@@ -232,11 +252,6 @@ async function main() {
       process.exit(1);
     }
 
-    const authRes = spawnSync(bin, [...pre, 'auth-check'], { encoding: 'utf8' });
-    if (authRes.status !== 0) {
-      console.error('auth expired — recapture cURLs (tooling/cli/heygen-web/CLAUDE.md)');
-      process.exit(1);
-    }
 
     const slicesDir = path.join(workdir, 'slices-avatar');
     fs.mkdirSync(slicesDir, { recursive: true });
@@ -258,15 +273,21 @@ async function main() {
     if (fs.existsSync(jobsPath)) {
       jobsState = JSON.parse(fs.readFileSync(jobsPath, 'utf8')).jobs || [];
     }
-    // A span whose times moved is a new clip: drop the old job and its cached audio slice.
-    jobsState = jobsState.filter((s) => {
+    // A span whose times moved: an edge shift of up to REFIT_MAX is refit locally (hold/trim edge frames, no HeyGen); a bigger move re-renders.
+    jobsState = jobsState.flatMap((s) => {
       const job = jobs.find((j) => j.id === s.id);
       const moved = job && !job.from && (Math.abs(job.start - s.start) > 0.01 || Math.abs(job.end - s.end) > 0.01);
-      if (moved) {
+      if (!moved) return [s];
+      const src = s.refitFrom ?? (s.file ? { file: s.file, start: s.start, end: s.end } : null);
+      if (src && fs.existsSync(src.file) && Math.abs(src.start - job.start) <= REFIT_MAX && Math.abs(job.end - src.end) <= REFIT_MAX) {
+        const file = refitClip(src, job, s.id);
         fs.rmSync(path.join(slicesDir, `${s.id}.mp3`), { force: true });
-        console.error(`${s.id}: span moved ${s.start}-${s.end} → ${job.start}-${job.end}, re-rendering`);
+        console.error(`${s.id}: span moved ${s.start}-${s.end} → ${job.start}-${job.end}, refit locally (no HeyGen)`);
+        return [{ ...s, start: job.start, end: job.end, duration: job.duration, file, refitFrom: src }];
       }
-      return !moved;
+      fs.rmSync(path.join(slicesDir, `${s.id}.mp3`), { force: true });
+      console.error(`${s.id}: span moved ${s.start}-${s.end} → ${job.start}-${job.end}, re-rendering`);
+      return [];
     });
 
     for (const job of jobs.filter((j) => !j.from)) {
@@ -288,6 +309,12 @@ async function main() {
     const engines = [...new Set(toSubmit.map(engineFor))];
 
     if (toSubmit.length > 0) {
+      // Auth only when something goes to HeyGen: a refit-only run never needs it.
+      const authRes = spawnSync(bin, [...pre, 'auth-check'], { encoding: 'utf8' });
+      if (authRes.status !== 0) {
+        console.error('auth expired — recapture cURLs (tooling/cli/heygen-web/CLAUDE.md)');
+        process.exit(1);
+      }
       // A heygen3 submit renders the template as saved, so the template itself must be Avatar III.
       if (engines.includes('heygen3') && !photoAvatar) {
         const te = spawnSync(bin, [...pre, 'template-engine', '--template', opts.template], { encoding: 'utf8', cwd: workdir });

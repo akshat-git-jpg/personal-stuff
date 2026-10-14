@@ -12,7 +12,15 @@ export const SNAP_EDGE = 1.5;
 // repeated phrases resolve in transcript order.
 // `voSpeechEnd` is the acoustic end of speech in vo.mp3 (lib/vo-speech.mjs).
 // Passed in rather than probed here so this stays a pure function.
-export function resolveShots(shotsFile, words, { voSpeechEnd = null } = {}) {
+// Acoustic edges of the speech that holds [start, end]: the voice can start earlier or run later than the transcript says.
+export function speechEdges(voSpeech, start, end) {
+  const sp = voSpeech?.speech ?? [];
+  const first = sp.find((x) => x.end > start - 0.3 && x.start < start + 0.3);
+  const last = [...sp].reverse().find((x) => x.start < end + 0.3 && x.end > end - 0.3);
+  return { start: first ? Math.min(start, first.start) : start, end: last ? Math.max(end, last.end) : end };
+}
+
+export function resolveShots(shotsFile, words, { voSpeechEnd = null, voSpeech = null } = {}) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
   const total = W.length > 0 ? W[W.length - 1].end : 0;
   const errors = [];
@@ -67,8 +75,10 @@ export function resolveShots(shotsFile, words, { voSpeechEnd = null } = {}) {
     const pad = span.pad_into_silence ?? 0;
     if (pad > 0) {
       const prev = W[a.idx - 1], next = W[b.idx + b.len];
-      if (prev && start > 0) start = +Math.min(start, Math.max(start - pad, prev.end + 0.05)).toFixed(2);
-      if (next && !snapped) end = +Math.max(end, Math.min(end + pad, next.start - 0.05)).toFixed(2);
+      // Transcript word times run ~0.3s off the voice; use the measured speech edges when we have them.
+      const edges = speechEdges(voSpeech, start, end);
+      if (prev && start > 0) start = +Math.min(start, Math.max(edges.start - pad, prev.end + 0.05)).toFixed(2);
+      if (next && !snapped) end = +Math.max(end, Math.min(edges.end + pad, next.start - 0.01)).toFixed(2);
     }
     const spanObj = {
       id: span.id, purpose, mode,
@@ -98,7 +108,8 @@ async function main() {
   const voPath = path.join(workdir, 'vo.mp3');
   const voSpeechEnd = fs.existsSync(voPath) ? lastSpeechEnd(probeVoSpeech(voPath)) : null;
 
-  const { spans, errors } = resolveShots(shotsFile, words, { voSpeechEnd });
+  const voSpeech = fs.existsSync(voPath) ? probeVoSpeech(voPath) : null;
+  const { spans, errors } = resolveShots(shotsFile, words, { voSpeechEnd, voSpeech });
   if (errors.length) {
     for (const e of errors) console.error(e);
     process.exit(1);

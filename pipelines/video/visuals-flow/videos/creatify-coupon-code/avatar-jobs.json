@@ -7,13 +7,18 @@
       "id": "s01",
       "purpose": "avatar-full",
       "start": 15.82,
-      "end": 35.52,
-      "duration": 19.7,
+      "end": 35.79,
+      "duration": 19.97,
       "audio": "slices-avatar/s01.mp3",
       "video_id": "10d75443256647679dd63cd18d3c98a3",
       "status": "submitted",
       "submitted_at": "2026-10-14T17:31:28.159Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/creatify-coupon-code/s01.mp4"
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/creatify-coupon-code/s01.refit.mp4",
+      "refitFrom": {
+        "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/creatify-coupon-code/s01.mp4",
+        "start": 15.82,
+        "end": 35.52
+      }
     },
     {
       "id": "s02",

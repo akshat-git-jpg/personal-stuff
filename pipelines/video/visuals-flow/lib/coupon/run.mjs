@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { resolveWorkdir } from '../workdir.mjs';
 import { planCoupon, markOpenerBreaks } from './plan.mjs';
+import { probeVoSpeech } from '../vo-speech.mjs';
 import { fixBrand, toolFromSlug } from './brand.mjs';
 import { stepDir } from '../steps.mjs';
 
@@ -105,7 +106,8 @@ function transcribe(slug, workdir, tool) {
 
 function plan(slug, workdir, words, avatar) {
   const probe = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(workdir, 'vo.mp3')], { encoding: 'utf8' });
-  const r = planCoupon(words, { video: slug, total: parseFloat(probe.stdout) || null, ...(avatar ? { avatar } : {}) });
+  const voSpeech = probeVoSpeech(path.join(workdir, 'vo.mp3'));
+  const r = planCoupon(words, { video: slug, total: parseFloat(probe.stdout) || null, voSpeech, ...(avatar ? { avatar } : {}) });
   if (r.errors.length) {
     for (const e of r.errors) console.error(`COUPON-PLAN: ${e}`);
     throw new Error('this recording does not follow the coupon script shape, so the template cannot place the edit');
