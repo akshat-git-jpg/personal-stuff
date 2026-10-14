@@ -409,3 +409,13 @@ test('credit guard: template not Avatar III -> refuses before any submit', (t) =
   assert.match(sub.stderr, /TEMPLATE-NOT-AVATAR-III/);
   assert.ok(!fs.existsSync(path.join(f.workdir, 'stub-counter.txt')), 'nothing was submitted');
 });
+
+test('refitArgs holds edge frames for a longer span and trims for a shorter one', async () => {
+  const { refitArgs } = await import('./avatar-render.mjs');
+  const grow = refitArgs({ file: 'a.mp4', start: 10, end: 20 }, { start: 9.6, end: 20.3 }, 10, 'o.mp4');
+  const vf = grow[grow.indexOf('-vf') + 1];
+  assert.match(vf, /trim=start=0:end=10,/);
+  assert.match(vf, /start_duration=0.4:stop_mode=clone:stop_duration=0.3/);
+  const shrink = refitArgs({ file: 'a.mp4', start: 10, end: 20 }, { start: 10.2, end: 19.5 }, 10, 'o.mp4');
+  assert.match(shrink[shrink.indexOf('-vf') + 1], /trim=start=0.2:end=9.5,.*start_duration=0:stop_mode=clone:stop_duration=0$/);
+});
