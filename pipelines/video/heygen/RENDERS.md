@@ -287,3 +287,6 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/everbee-promo-code-corner-p16--eecc8a40807442aebefbdc33936592d6) | b4be8dff6e2649128f43594f1fb85848 | corner-p16.mp3 | `eecc8a40807442aebefbdc33936592d6` |
 | [heygen link](https://app.heygen.com/videos/everbee-promo-code-corner-p17--f85d056b02ab429681586bea1dba8a16) | b4be8dff6e2649128f43594f1fb85848 | corner-p17.mp3 | `f85d056b02ab429681586bea1dba8a16` |
 | [heygen link](https://app.heygen.com/videos/everbee-promo-code-corner-p18--9413be4fb9a249ff8fad95610747d541) | b4be8dff6e2649128f43594f1fb85848 | corner-p18.mp3 | `9413be4fb9a249ff8fad95610747d541` |
+| [heygen link](https://app.heygen.com/videos/everbee-promo-code-helen-s01--49aadb6a5655494692711c22c893dd83) | b4be8dff6e2649128f43594f1fb85848 | s01.mp3 | `49aadb6a5655494692711c22c893dd83` |
+| [heygen link](https://app.heygen.com/videos/everbee-promo-code-helen-s02--0e486b0fa34c44a0a01f9709619a10dc) | b4be8dff6e2649128f43594f1fb85848 | s02.mp3 | `0e486b0fa34c44a0a01f9709619a10dc` |
+| [heygen link](https://app.heygen.com/videos/everbee-promo-code-helen-corner-01--2fde7671d11f48bdb2656fae7c1036f2) | b4be8dff6e2649128f43594f1fb85848 | corner-01.mp3 | `2fde7671d11f48bdb2656fae7c1036f2` |
