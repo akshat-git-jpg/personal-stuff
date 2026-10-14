@@ -173,6 +173,51 @@ class Rides(unittest.TestCase):
         self.assertIn("b → a", untimed["tags"])
 
 
+GPAY_PDF = """Date & time Transaction details Amount
+01 Apr, 2026
+12:17 PM
+Paid to Devi
+UPI Transaction ID: 645795843313
+Paid by Federal Bank 2448
+₹69
+03 Apr, 2026
+08:47 PM
+Paid to Treat Cafe
+UPI Transaction ID: 121032465383
+Paid by HDFC Bank XX86 | RuPay credit card
+₹1,460.50
+28 Sep, 2026
+10:11 PM
+Received from A Friend
+UPI Transaction ID: 130390990606
+Paid to State Bank of India 1272
+₹5,608
+29 Sep, 2026
+11:12 AM
+Paid to SHOP
+UPI Transaction ID: 628750312428
+Paid by State Bank of India 1272
+₹70
+"""
+
+
+class GooglePay(unittest.TestCase):
+    def test_statement_pdf_keeps_tracked_payments_only(self):
+        ev = evidence.gpay_statement_events(GPAY_PDF)
+        self.assertEqual([(e["source"], e["to"], e["amount"], e["upi"]) for e in ev],
+                         [("neu", "Treat Cafe", 1460.5, "121032465383"), ("sbi", "SHOP", 70.0, "628750312428")])
+        self.assertEqual(ev[0]["ts"], dt.datetime(2026, 4, 3, 20, 47))
+
+    def test_upi_id_picks_the_payment_and_blocks_a_wrong_one(self):
+        ev = evidence.gpay_statement_events(GPAY_PDF)
+        right = {"id": "a", "source": "sbi", "date": "2026-09-29", "amount": -70.0, "time": None,
+                 "text": "UPI/DR/628750312428/SHOP/UPI"}
+        wrong = dict(right, id="b", text="UPI/DR/999999999999/OTHER/UPI")
+        evidence.attach_times([wrong, right], ev)
+        self.assertEqual((right["_gpay_to"], right["time"]), ("SHOP", "11:12"))
+        self.assertNotIn("_gpay_to", wrong)
+
+
 class Flipkart(unittest.TestCase):
     @staticmethod
     def row(i, date, amount, text="Flipkart Bangalore IN"):

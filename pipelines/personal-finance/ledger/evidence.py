@@ -2,6 +2,8 @@
 
 - Google Pay Takeout (`data/raw/gpay/**/My Activity.html`): the exact time of
   each UPI payment and which account paid it. SBI statements carry no time.
+- Google Pay statement PDFs (`data/raw/gpay/**/gpay_statement_*.pdf`, made in the
+  app): the same, plus every payee name and the UPI ID the bank prints.
 - Rapido receipts (`data/inbox/rapido/*.pdf`, emailed on request): ride time,
   fare, vehicle and both addresses.
 
@@ -28,9 +30,54 @@ logging.getLogger("pypdf").setLevel(logging.ERROR)
 AFTER_MIN, AFTER_MAX = -10, 120
 
 
+# A Google Pay statement PDF entry, as pypdf reads it.
+GPAY_PDF_ROW = re.compile(r"(\d{2} \w{3}, \d{4})\n(\d{1,2}:\d\d [AP]M)\n(Paid to|Received from) (.+?)\n"
+                          r"UPI Transaction ID: (\d+)\n(?:Paid by|Paid to) (.+?)\n₹([\d,]+(?:\.\d+)?)")
+
+
+def _gpay_source(acct):
+    if "RuPay credit card" in acct or acct.startswith("6529"):
+        return "neu"
+    if acct.endswith("1272"):
+        return "sbi"
+    return None
+
+
+def gpay_statement_events(text):
+    """[{ts, amount, to, source, kind, upi}] for every payment in a Google Pay statement PDF."""
+    out = []
+    for m in GPAY_PDF_ROW.finditer(text):
+        src = _gpay_source(m[6])
+        if not src or m[3] != "Paid to":
+            continue
+        out.append({"ts": dt.datetime.strptime("%s %s" % (m[1], m[2]), "%d %b, %Y %I:%M %p"),
+                    "amount": float(m[7].replace(",", "")), "to": m[4].strip(), "source": src,
+                    "kind": "Paid", "upi": m[5]})
+    return out
+
+
 def gpay_events(data):
     """[{ts, amount, to, source}] for every Paid/Sent entry, deduped across exports."""
     seen, out = set(), []
+    # PDFs first: they carry the UPI ID. They have no seconds, so Takeout skips a PDF payment by the minute.
+    in_pdf = set()
+    for f in sorted((data / "raw" / "gpay").glob("**/gpay_statement_*.pdf")):
+        try:
+            text = "\n".join(p.extract_text() or "" for p in pypdf.PdfReader(str(f)).pages)
+        except Exception:
+            continue
+        for e in gpay_statement_events(text):
+            if e["upi"] not in seen:
+                seen.add(e["upi"])
+                in_pdf.add((e["ts"], e["amount"], e["source"]))
+                out.append(e)
+
+    def add(e):
+        key = (e["ts"], e["amount"], e["source"])
+        if key not in seen and (e["ts"].replace(second=0), e["amount"], e["source"]) not in in_pdf:
+            seen.add(key)
+            out.append(e)
+
     for f in sorted((data / "raw" / "gpay").glob("**/My Activity.html")):
         t = f.read_text(errors="ignore")
         for c in re.findall(r'<div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1">(.*?)</div>', t, re.S):
@@ -39,14 +86,11 @@ def gpay_events(data):
                          r"(\w{3} \d{1,2}, \d{4}, [\d:]+\s?[AP]M)", x)
             if not m:
                 continue
-            ts = dt.datetime.strptime(m[5].replace(" ", " "), "%b %d, %Y, %I:%M:%S %p")
-            acct = m[4] or ""
-            src = "neu" if acct.startswith("6529") else "sbi" if acct.endswith("1272") else None
-            key = (ts, m[2], acct)
-            if src and key not in seen:
-                seen.add(key)
-                out.append({"ts": ts, "amount": float(m[2].replace(",", "")), "to": (m[3] or "").strip(),
-                            "source": src, "kind": m[1]})
+            ts = dt.datetime.strptime(m[5].replace("\u202f", " "), "%b %d, %Y, %I:%M:%S %p")
+            src = _gpay_source(m[4] or "")
+            if src:
+                add({"ts": ts, "amount": float(m[2].replace(",", "")), "to": (m[3] or "").strip(),
+                     "source": src, "kind": m[1]})
     return out
 
 
@@ -113,10 +157,13 @@ def attach_times(rows, events):
         d = dt.date.fromisoformat(r["date"])
         cands = [e for e in pool.get((r["source"], round(-r["amount"], 2)), [])
                  if id(e) not in used and abs((e["ts"].date() - d).days) <= 1]
+        # Both sides carry a UPI ID: they must agree.
+        refs = set(re.findall(r"(?<!\d)\d{12}(?!\d)", r["text"]))
+        cands = [e for e in cands if not (refs and e.get("upi") and e["upi"] not in refs)]
         if not cands:
             continue
-        # Same calendar day first, then the nearest day.
-        e = min(cands, key=lambda e: (e["ts"].date() != d, abs((e["ts"].date() - d).days)))
+        # Same UPI ID first, then same calendar day, then the nearest day.
+        e = min(cands, key=lambda e: (e.get("upi") not in refs, e["ts"].date() != d, abs((e["ts"].date() - d).days)))
         used.add(id(e))
         if not r["time"]:
             r["time"] = e["ts"].strftime("%H:%M")

@@ -37,6 +37,8 @@ What the owner does first (also shown on the app's Overview, "Where the data com
 1. YONO: email himself the month's SBI statement (or hand you the PDF path).
 2. Rapido app: request receipts for the month's rides.
 3. Trip bookings (bus + stay, with times) on trips.agrolloo.com.
+4. Google Pay app: download a statement from the last one's end to today
+   (`gpay_statement_<from>_<to>.pdf`). It names every UPI payee and its UPI ID.
 
 Then you run, from a workspace:
 
@@ -44,8 +46,9 @@ Then you run, from a workspace:
 cd pipelines/personal-finance
 export PF_DATA=/Users/kbtg/codebase/personal-stuff/pipelines/personal-finance/data
 export PP_GOOGLE_SHARED=/Users/kbtg/codebase/personal-stuff/tooling/mcp/google-shared
-ls -t ~/Downloads/AccountStatement_*.pdf | head; ls -t "$PF_DATA/raw/" | head   # ALWAYS, even if he gave no path
+ls -t ~/Downloads/AccountStatement_*.pdf ~/Downloads/gpay_statement_*.pdf | head; ls -t "$PF_DATA/raw/" "$PF_DATA/raw/gpay/" | head   # ALWAYS, even if he gave no path
 cp ~/Downloads/AccountStatement_<new>.pdf "$PF_DATA/raw/"   # each Downloads PDF not yet in raw/
+cp ~/Downloads/gpay_statement_<new>.pdf "$PF_DATA/raw/gpay/"
 python3 -m ledger.run                                    # fetch + build + publish
 python3 -m unittest discover -s ledger/tests -t .
 ```
