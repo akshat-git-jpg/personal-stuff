@@ -1,0 +1,27 @@
+{
+  "video": "creatify-coupon-code",
+  "offset": 0,
+  "engineMode": "test",
+  "intro_host_waived": "coupon template: the before/after price opens the video and the host enters at the greeting (owner rule 2026-09-30)",
+  "spans": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 16.22,
+      "end": 35.12,
+      "duration": 18.9,
+      "note": "coupon template: intro, from the greeting to the first link-in-description line"
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 245.72,
+      "end": 271.78,
+      "duration": 26.06,
+      "note": "coupon template: outro, from \"that's it\" to the end",
+      "snapped": true
+    }
+  ]
+}

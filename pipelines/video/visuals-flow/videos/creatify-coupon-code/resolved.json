@@ -1,0 +1,56 @@
+{
+  "video": "creatify-coupon-code",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "c01",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 35.72,
+      "duration": 4,
+      "variables": {
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c02",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 140.44,
+      "duration": 4,
+      "variables": {
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c03",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 209.92,
+      "duration": 4,
+      "variables": {
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c04",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 255.28,
+      "duration": 4,
+      "variables": {
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "like-subscribe/like-subscribe",
+      "placement": "overlay",
+      "start": 267.76,
+      "duration": 5,
+      "variables": {
+        "register": "dark"
+      }
+    }
+  ]
+}

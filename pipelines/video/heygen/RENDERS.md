@@ -264,3 +264,6 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/pose-map-51b2cd3f-avatar-iii--2d24cf5edc6946cca5f7b3970ff171be) | 51b2cd3f31f8402189ef2c875412260c | pose-map.mp3 | `2d24cf5edc6946cca5f7b3970ff171be` |
 | [heygen link](https://app.heygen.com/videos/brown-laptop-outro-p01-avatar-iii--97fe8c1e31de432285776f669472bf26) | 51b2cd3f31f8402189ef2c875412260c | brown-laptop-outro-p01.mp3 | `97fe8c1e31de432285776f669472bf26` |
 | [heygen link](https://app.heygen.com/videos/brown-laptop-outro-p02-avatar-iii--22dd03aad8e5460d8fa6ed2e160c3c73) | 51b2cd3f31f8402189ef2c875412260c | brown-laptop-outro-p02.mp3 | `22dd03aad8e5460d8fa6ed2e160c3c73` |
+| [heygen link](https://app.heygen.com/videos/creatify-coupon-code-s01-avatar-iii--19b22e3dfd8341e9b27265773eb45032) | b4be8dff6e2649128f43594f1fb85848 | s01.mp3 | `19b22e3dfd8341e9b27265773eb45032` |
+| [heygen link](https://app.heygen.com/videos/creatify-coupon-code-s02-avatar-iii--5be10d16ec5a494aa6550565bb1a0368) | b4be8dff6e2649128f43594f1fb85848 | s02.mp3 | `5be10d16ec5a494aa6550565bb1a0368` |
+| [heygen link](https://app.heygen.com/videos/creatify-coupon-code-corner-01-avatar-iii--33164ed501df4c01a2e21461d5be94b8) | b4be8dff6e2649128f43594f1fb85848 | corner-01.mp3 | `33164ed501df4c01a2e21461d5be94b8` |

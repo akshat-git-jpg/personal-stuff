@@ -1,0 +1,49 @@
+{
+  "status": "verified-free",
+  "metered": false,
+  "engines": [
+    "heygen3"
+  ],
+  "template": "helen-office",
+  "before": {
+    "ts": "2026-10-14T16:38:30.259Z",
+    "credits": 200,
+    "seconds_consumed": 303,
+    "seconds_limit": 1500,
+    "seconds_remain": 1197,
+    "free_credit_remain": 600,
+    "priority_count": 0,
+    "priority_limit": 100,
+    "ai_image_credits": 199,
+    "ai_video_credits": 26,
+    "ai_concept_credits": 132,
+    "plan_remain": 200,
+    "addon_remain": 199
+  },
+  "opened_at": "2026-10-14T16:38:30.271Z",
+  "after": {
+    "ts": "2026-10-14T16:48:36.496Z",
+    "credits": 200,
+    "seconds_consumed": 303,
+    "seconds_limit": 1500,
+    "seconds_remain": 1197,
+    "free_credit_remain": 600,
+    "priority_count": 2,
+    "priority_limit": 100,
+    "ai_image_credits": 199,
+    "ai_video_credits": 26,
+    "ai_concept_credits": 132,
+    "plan_remain": 200,
+    "addon_remain": 199
+  },
+  "delta": {
+    "credits": 0,
+    "seconds_consumed": 0,
+    "ai_image_credits": 0,
+    "ai_video_credits": 0,
+    "ai_concept_credits": 0,
+    "plan_remain": 0,
+    "addon_remain": 0
+  },
+  "closed_at": "2026-10-14T16:48:36.508Z"
+}
