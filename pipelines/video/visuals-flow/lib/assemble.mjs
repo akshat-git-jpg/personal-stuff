@@ -23,6 +23,7 @@ import { pathToFileURL } from 'node:url';
 import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
 import { loadBrand } from './brand-inline.mjs';
+import { bubbleGaps } from './effects/bubble.mjs';
 import { assembleEditPlan, detectEncoder, planSegments as corePlanSegments } from './kit/index.mjs';
 
 export {
@@ -364,7 +365,8 @@ async function main() {
   const captionScope = opts.captionScope ?? (inputs.coupon ? 'all' : 'screen');
   const firstFull = inputs.avatarJobs.map((j) => j.end).sort((a, b) => a - b)[0];
   const bubbleOpts = { corner: opts.bubbleCorner ?? (inputs.coupon ? 'bottom-right' : 'top-right'), template: inputs.avatarTemplate,
-    from: inputs.coupon && firstFull !== undefined ? firstFull : 0 };
+    from: inputs.coupon && firstFull !== undefined ? firstFull : 0,
+    gaps: bubble === 'on' ? bubbleGaps(path.join(inputs.workdir, 'vo.mp3')) : [] };
   await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? (opts.draft ? detectEncoder() : 'x264'), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble, captionScope, bubbleOpts, transitionStyle: inputs.coupon ? 'leak' : null, captionClearCards: inputs.coupon ? ['like-subscribe/like-subscribe'] : [], captionMask: inputs.coupon ? COUPON_CODE_RE : null, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj, catalog: inputs.catalog });
 
   const usedPlaceholders = inputs.avatarJobs.some((j) => j.placeholder);
