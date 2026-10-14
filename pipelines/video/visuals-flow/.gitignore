@@ -22,7 +22,7 @@ lib/fixtures/board/vo.mp3
 lib/fixtures/board/slices/
 .DS_Store
 # raw source video segments per test/video — never committed
-videos/*/src/
+videos/*/src
 assets/sfx/*.wav
 videos/*/master.wav
 videos/*/music-ducked.wav
