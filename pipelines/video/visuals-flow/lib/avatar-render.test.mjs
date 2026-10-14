@@ -4,7 +4,7 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import assert from 'node:assert';
-import { planCornerChunks, planCornerChunksRange, planJobs, avatarManifestMd } from './avatar-render.mjs';
+import { planCornerChunks, planCornerChunksRange, planJobs, avatarManifestMd, planCornerPieces, cornerRanges, CORNER_PIECE } from './avatar-render.mjs';
 
 test('planJobs oneRender → one corner job over the whole VO, spans cut from it', () => {
   const jobs = planJobs({ spans: [{ id: 's01', mode: 'full', start: 17.8, end: 36.7 }, { id: 's02', mode: 'full', start: 244.8, end: 270.8 }] }, 270.6, { oneRender: true });
@@ -418,4 +418,23 @@ test('refitArgs holds edge frames for a longer span and trims for a shorter one'
   assert.match(vf, /start_duration=0.4:stop_mode=clone:stop_duration=0.3/);
   const shrink = refitArgs({ file: 'a.mp4', start: 10, end: 20 }, { start: 10.2, end: 19.5 }, 10, 'o.mp4');
   assert.match(shrink[shrink.indexOf('-vf') + 1], /trim=start=0.2:end=9.5,.*start_duration=0:stop_mode=clone:stop_duration=0$/);
+
+});
+test('cornerRanges leaves out the full-screen spans', () => {
+  assert.deepEqual(cornerRanges([{ start: 10, end: 20 }, { start: 50, end: 60 }], 60), [[0, 10], [20, 50]]);
+  assert.deepEqual(cornerRanges([], 30), [[0, 30]]);
+});
+
+test('planCornerPieces keeps pieces short and cuts in the longest pause', () => {
+  const silences = [{ start: 12.5, end: 13.1 }, { start: 13.5, end: 16.5 }, { start: 30, end: 30.3 }];
+  const p = planCornerPieces([[0, 40]], silences);
+  assert.equal(p[0].end, 15);  // middle of the 3 s pause, not the short one
+  for (const x of p) assert.ok(x.end - x.start <= CORNER_PIECE.max + 1e-9 && x.end - x.start >= CORNER_PIECE.min - 1e-9);
+  assert.equal(p.at(-1).end, 40);
+  assert.deepEqual(p.map((x) => x.id), p.map((_, i) => `corner-p${String(i + 1).padStart(2, '0')}`));
+});
+
+test('planJobs with silences plans corner pieces around the spans', () => {
+  const jobs = planJobs({ spans: [{ id: 's01', mode: 'full', start: 5, end: 20 }] }, 30, { silences: [] });
+  assert.deepEqual(jobs.filter((j) => j.purpose === 'corner').map((j) => [j.start, j.end]), [[0, 5], [20, 30]]);
 });

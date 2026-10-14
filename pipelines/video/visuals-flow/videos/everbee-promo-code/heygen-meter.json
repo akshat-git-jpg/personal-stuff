@@ -4,40 +4,46 @@
   "engines": [
     "heygen3"
   ],
-  "template": "girl-1",
+  "template": "helen-office",
   "before": {
-    "ts": "2026-10-05T15:43:04.743Z",
+    "ts": "2026-10-08T21:47:11.851Z",
     "credits": 200,
     "seconds_consumed": 303,
     "seconds_limit": 1500,
     "seconds_remain": 1197,
     "free_credit_remain": 600,
-    "priority_count": 6,
+    "priority_count": 21,
     "priority_limit": 100,
     "ai_image_credits": 199,
     "ai_video_credits": 26,
-    "ai_concept_credits": 132
+    "ai_concept_credits": 132,
+    "plan_remain": 200,
+    "addon_remain": 199
   },
-  "opened_at": "2026-10-05T15:43:04.750Z",
+  "opened_at": "2026-10-08T21:47:11.857Z",
   "after": {
-    "ts": "2026-10-05T15:54:10.448Z",
+    "ts": "2026-10-08T21:54:19.106Z",
     "credits": 200,
     "seconds_consumed": 303,
     "seconds_limit": 1500,
     "seconds_remain": 1197,
     "free_credit_remain": 600,
-    "priority_count": 8,
+    "priority_count": 39,
     "priority_limit": 100,
     "ai_image_credits": 199,
     "ai_video_credits": 26,
-    "ai_concept_credits": 132
+    "ai_concept_credits": 132,
+    "plan_remain": 200,
+    "addon_remain": 199
   },
   "delta": {
     "credits": 0,
     "seconds_consumed": 0,
     "ai_image_credits": 0,
     "ai_video_credits": 0,
-    "ai_concept_credits": 0
+    "ai_concept_credits": 0,
+    "plan_remain": 0,
+    "addon_remain": 0
   },
-  "closed_at": "2026-10-05T15:54:10.457Z"
+  "closed_at": "2026-10-08T21:54:19.127Z"
 }
