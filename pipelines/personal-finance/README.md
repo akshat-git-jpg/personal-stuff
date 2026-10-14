@@ -97,8 +97,11 @@ python3 -m unittest discover -s ledger/tests -t .
 - `data/config.json` also holds the card PDF passwords (`passwords`) and the app's
   `ingest` url and token. Running from a workspace: set `PF_DATA` to the main
   checkout's `data/` and `PP_GOOGLE_SHARED` to its `tooling/mcp/google-shared`.
-- **Rides and payment times** (`ledger/evidence.py`). A Google Pay Takeout unzipped
-  into `data/raw/gpay/` gives each UPI payment its exact time. Rapido receipts
+- **Rides and payment times** (`ledger/evidence.py`). Google Pay statement PDFs
+  (`data/raw/gpay/gpay_statement_*.pdf`, made in the app) give each UPI payment its
+  time, payee name and UPI ID; a bank row with a UPI ref only matches the same ID.
+  The old Takeout export in `data/raw/gpay/Takeout/` still covers 2019 to Sep 2026.
+  Payments from Federal Bank 2448 are skipped: that account is not tracked (owner, 2026-10-14). Rapido receipts
   (requested in the app, emailed from partner@rapido.bike, fetched on sync) prove a
   payment was a ride and give its route. Place labels (home, office, gym) are the
   owner's, in `data/config.json` `places`; unlabelled places show only their area.
@@ -128,7 +131,8 @@ python3 -m unittest discover -s ledger/tests -t .
 1. YONO: email yourself the month's SBI statement (SBI's own monthly one can come late).
 2. Rapido app: request receipts for the month's rides.
 3. Keep the trip's bookings (bus, stay) on the trip planner.
-4. Run the sync, then tag what is left in Needs you.
+4. Google Pay app: download a statement from the last one's end to today.
+5. Run the sync, then tag what is left in Needs you.
 
 Card statements, alerts, Uber, Flipkart and trips are fetched by the sync itself.
 

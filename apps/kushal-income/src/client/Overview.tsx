@@ -162,12 +162,12 @@ const YOU = [
   ["SBI savings (passbook)", "In YONO, email yourself the month's statement. SBI's own monthly email can come days late."],
   ["Rides (Rapido)", "In the Rapido app, request receipts for the month's rides. The sync picks them up from Gmail."],
   ["Trips", "Add the bus and stay bookings, with times, on trips.agrolloo.com."],
+  ["Google Pay", "In the Google Pay app, download a statement from the last one to today. It names every UPI payee."],
   ["Needs you", "After the sync, tag the payments it could not."],
 ];
 const SOMETIMES = [
   ["Flipkart login expired", "Run pp-flipkart login and type the OTP."],
   ["A bank changes a statement password", "Say the new password in the sync chat."],
-  ["Payment times look wrong", "Add a fresh Google Pay Takeout. Rarely needed."],
 ];
 const AUTO = [
   ["SBI Card, Tata Neu, Amazon Pay ICICI", "Monthly statement PDF from Gmail. This is the truth. Nothing to download."],
