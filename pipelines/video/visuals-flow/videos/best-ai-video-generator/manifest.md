@@ -4,17 +4,14 @@ Timecodes assume the voiceover starts at 00:00.0 on the editor timeline. If an i
 
 | place at | file | duration | placement | card |
 |---|---|---|---|---|
-| 00:00.0 | 0000-z01-promise-shelf.mp4 | 14.08s | fullframe | enacted/promise-shelf |
-| 00:14.1 | 0014-z02-roster-pop.mp4 | 11.53s | fullframe | tool-icon/roster-pop |
+| 00:00.0 | 0000-z01-promise-shelf.mp4 | 14.83s | fullframe | enacted/promise-shelf |
+| 00:14.8 | 0014-z02-roster-pop.mp4 | 10.78s | fullframe | tool-icon/roster-pop |
 | 00:32.5 | 0032-z03-promise-payoff.mp4 | 13.74s | fullframe | statement/promise-payoff |
 | 00:46.2 | 0046-z04-pipeline-flow.mp4 | 10.8s | fullframe | enacted/pipeline-flow |
 | 01:22.4 | 0122-z06-link-scrim.mov | 5s | overlay | link-in-description/link-scrim |
-| 01:31.4 | 0131-c01-tool-glass-tile.mp4 | 6s | fullframe | tool-icon/tool-glass-tile |
-| 01:45.2 | 0145-c02-icon-pills.mp4 | 12.1s | fullframe | checklist/icon-pills |
-| 01:57.3 | 0157-c03-tool-glass-tile.mp4 | 6s | fullframe | tool-icon/tool-glass-tile |
+| 01:45.2 | 0145-c02-icon-pills.mp4 | 9.51s | fullframe | checklist/icon-pills |
 | 02:12.3 | 0212-c04-lower-third.mov | 5s | overlay | overlay/lower-third |
 | 02:22.5 | 0222-c05-stat-hit.mov | 5s | overlay | overlay/stat-hit |
-| 02:32.0 | 0232-c06-tool-glass-tile.mp4 | 6s | fullframe | tool-icon/tool-glass-tile |
 | 02:47.4 | 0247-c07-lower-third.mov | 5s | overlay | overlay/lower-third |
 | 02:56.4 | 0256-c08-tool-intro.mp4 | 6s | fullframe | section/tool-intro |
 | 03:14.6 | 0314-c09-tip-banner.mov | 5s | overlay | overlay/tip-banner |

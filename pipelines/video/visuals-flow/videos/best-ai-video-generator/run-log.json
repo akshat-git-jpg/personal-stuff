@@ -1,6 +1,6 @@
 {
   "video": "best-ai-video-generator",
-  "updated": "2026-08-02T11:05:06.058Z",
+  "updated": "2026-09-20T13:11:23.762Z",
   "steps": {
     "020-transcribe-run": {
       "status": "done",
@@ -44,11 +44,11 @@
     },
     "310-sync-graphics-run": {
       "status": "blocked",
-      "started": "2026-08-01T14:28:16.036Z",
-      "issues": "exited 1, see terminal",
+      "started": "2026-09-20T13:10:19.263Z",
+      "issues": "E12 frame-gate: z02 (tool-icon/roster-pop) overflows the canvas at t=2.5s with its real content — offenders: span.initial (\"O\") sits on div.ring — 100% covered, div.label (\"OpenArt\") sits on div.ring — 100% covered  |  E12 frame-gate: c16 (statement/keyword-statement) overflows the canvas at t=3.44s with its real content — offenders: span.word (\"a\") sits on span.kw-bg — 96% covered, span.word (\"category\") sits on span.kw-bg — 97% cover  |  E12 frame-gate: c29 (statement/strike-list) overflows the canvas at t=4.75s with its real content — offenders: div.label (\"Free credits\") sits on div.strike — 9% covered  |  E12 frame-gate: c50 (statement/strike-list) overflows the canvas at t=2.44s with its real content — offenders: div.label (\"Creator waits\") sits on div.strike — 9% covered  |  E12 frame-gate: z16 (statement/keyword-statement) overflows the canvas at t=2.5s with its real content — offenders: span.word (\"fits\") sits on span.kw-bg — 97% covered, span.word (\"how\") sits on span.kw-bg — 97% covered,",
       "did": "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint.",
       "output": "resolved.json",
-      "ended": "2026-08-01T14:28:16.152Z"
+      "ended": "2026-09-20T13:10:33.947Z"
     },
     "235-build-card-plan-run": {
       "status": "done",
@@ -91,20 +91,20 @@
       "output": "audit.json — 88 items, 13 labelled, 7 fullframe fixes applied or accepted; cues.json now 86 cues, resolve and lint-shots both at zero errors"
     },
     "410-render-graphics-run": {
-      "status": "done",
-      "started": "2026-08-01T17:02:25.966Z",
-      "issues": "The first render attempt refused on a stale resolve after the audit fixes; re-resolving fixed two knock-on collisions (c50's beat anchors ran backwards past its own anchor, and c49 overlapped c50) before the render went through cleanly.",
+      "status": "blocked",
+      "started": "2026-09-20T12:59:18.254Z",
+      "issues": "exited 1, see terminal",
       "did": "Rendered every approved cue to a clip and wrote the editor manifest.",
       "output": "renders/ + manifest.md",
-      "ended": "2026-08-01T17:02:56.083Z"
+      "ended": "2026-09-20T12:59:18.689Z"
     },
     "510-assemble-video-run": {
       "status": "blocked",
-      "started": "2026-08-02T01:28:04.057Z",
+      "started": "2026-09-20T13:11:23.470Z",
       "did": "Assembled the screen recording, 86 graphics clips, 6 avatar clips, effects and the mastered audio into a 32:07.7 draft, then fixed three defects QC caught in the first cut and re-cut twice. Draft v3 is the current version.",
       "issues": "exited 1, see terminal",
       "output": "final-draft.mp4 32:07.7 (v3) in kb-scratch/video/visuals-flow/best-ai-video-generator/ + assembly.md",
-      "ended": "2026-08-02T01:28:04.445Z"
+      "ended": "2026-09-20T13:11:23.762Z"
     },
     "010-configure-run-human": {
       "status": "done",
