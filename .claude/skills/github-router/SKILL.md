@@ -1,10 +1,10 @@
 ---
 name: github-router
-description: Picks the correct GitHub account (work / yt / personal) before any git commit, push, branch, or PR action, verifying the repo's author email and gh token match its remote. Triggers on "commit", "push", "open PR", "gh pr create", "create a branch and push", or any intent that writes to a git remote. Also use when a push 403s, a commit landed under the wrong author, or two parallel sessions seem to be fighting over the GitHub account.
+description: Picks the correct GitHub account (work / yt / personal) before any git commit, push, branch, or PR action, verifying the repo's author email and gh token match its remote. Triggers on "commit", "push", "open PR", "gh pr create", "create a branch and push", or any intent that writes to a git remote. Also use when a push 403s or fails with "Repository not found" / "gh: Not Found (HTTP 404)" on a repo that exists, when pushing a personal repo (work-skills, personal-stuff) from a work-repo session, when a commit landed under the wrong author, or two parallel sessions seem to be fighting over the GitHub account.
 user-invocable: true
 metadata:
   author: kbtg
-  version: 3.0.0
+  version: 3.0.1
 ---
 
 # GitHub Account Router
