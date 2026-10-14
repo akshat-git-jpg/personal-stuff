@@ -667,7 +667,7 @@ Scripts in `executors/` implementing three verbs, plus an optional fourth:
 ```
 
 Shipped: `claude-p` (backgrounded `claude -p`, default model sonnet),
-`agy` (Antigravity CLI, default model Gemini 3.1 Pro (High)),
+`agy` (Antigravity CLI, default model Gemini 3.8 Flash (High)),
 `codex` (OpenAI Codex CLI, default model gpt-5.6-terra).
 
 **`codex` (added 2026-08-25).** Backgrounded `codex exec` on the owner's ChatGPT

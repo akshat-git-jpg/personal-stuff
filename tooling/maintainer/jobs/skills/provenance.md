@@ -42,7 +42,7 @@ Workflow, registry, and routing verified on 2026-07-12 against
 `tooling/boss/README.md`, `docs/specs/2026-07-07-boss-design.md`, and this
 skill's `scripts/`. Executor/model routing lives in `tooling/boss/data/rules.md`
 — this skill has NO `data/` dir of its own. Owner rule (confirmed 2026-07-12):
-never pick the executor model unilaterally; agy runs use Gemini 3.1 Pro (High)
+never pick the executor model unilaterally; agy runs use Gemini 3.8 Flash (High)
 (agy's default); routing comes from the rules file. Re-verify:
 
 - Dispatch/watch scripts still present: `ls .claude/skills/orchestrate/scripts/`

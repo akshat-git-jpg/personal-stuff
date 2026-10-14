@@ -16,7 +16,7 @@ case "$verb" in
     # head_before/pid are overwritten below.
     boss_fixup_claim "$id" || exit 3
     out="$STATE_DIR/$id.out"; : > "$out"
-    model=$(meta_get "$id" model) || model=""; [ -n "$model" ] || model="${AGY_DEFAULT_MODEL:-Gemini 3.1 Pro (High)}"
+    model=$(meta_get "$id" model) || model=""; [ -n "$model" ] || model="${AGY_DEFAULT_MODEL:-Gemini 3.8 Flash (High)}"
     meta_set "$id" head_before "$(git -C "$worktree" rev-parse HEAD 2>/dev/null || echo none)"
     ( cd "$worktree" || exit 1
       exec agy -p "$(cat "$brief")" \

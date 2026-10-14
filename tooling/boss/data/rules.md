@@ -14,7 +14,7 @@ exception for the scenarios below, not the default.
 
 | task type / scenario | executor | model |
 |---|---|---|
-| default (any plan that passes the fully-inlined bar) | agy | (agy default — Gemini 3.1 Pro High) |
+| default (any plan that passes the fully-inlined bar) | agy | (agy default — Gemini 3.8 Flash High) |
 | quality-setting CONTENT the owner judges by taste — rulebooks, prompts, prose, docs | claude-p | sonnet |
 | plan can't be fully inlined — real judgment/exploration expected mid-execution | claude-p | sonnet |
 | tricky — subtle concurrency, security-sensitive, gnarly refactor needing live judgment | claude-p | opus |
