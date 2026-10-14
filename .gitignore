@@ -91,7 +91,9 @@ pipelines/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.webm
 docs/voice-pipeline-test/
 
 # Node dependencies — never commit
-node_modules/
+node_modules
+# local secrets, also when bootstrap symlinks them in
+.dev.vars
 
 # secrets escrow — never commit archives (script writes to TMPDIR, this is a guard)
 infra/escrow/*.gpg
