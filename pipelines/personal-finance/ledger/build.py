@@ -31,6 +31,7 @@ SOURCES = {"sbi": "SBI savings", "sbic": "SBI Card", "neu": "Tata Neu Infinity",
 CARD_NAMES = {"sbic": "SBI Card", "neu": "Tata Neu", "icici": "ICICI"}
 MISC_MAX, MISC_BEFORE = 200, "2026-06-01"
 UNIDENTIFIED_UNTIL = "2026-05-31"  # owner: no misc for recent payments; newer unknowns stay "Needs you"
+NO_MISC_FROM = "2026-09-01"  # owner, 2026-10-14: nothing from the dashboard's first month on is ever misc
 COMMUTE = {"cab", "auto", "metro", "bike taxi", "ride"}
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -337,6 +338,14 @@ def path_of(tags, trip_label=None):
     return "/".join(x for x in ("trip", label, m[2] if m else None) if x)
 
 
+def no_recent_misc(rows):
+    """Misc is only for the past. A newer payment that lands on misc goes back to Needs you."""
+    for r in rows:
+        if r["date"] >= NO_MISC_FROM and r["tags"][:1] == ["misc"]:
+            r.update(tags=[], path=None, desc=None, status="needs",
+                     why="Misc is only for payments before Sep 2026. Tag what this was.")
+
+
 def normalize_tags(row):
     _normalize_tags(row)
     row["path"] = path_of(row["tags"], row.get("trip_label"))
@@ -571,6 +580,7 @@ def build(data, config, today=None, log=print):
 
     for r in rows:
         normalize_tags(r)
+    no_recent_misc(rows)
     rows.sort(key=lambda r: (r["date"], r["time"] or ""), reverse=True)
 
     # Statement checks for the Cards page
