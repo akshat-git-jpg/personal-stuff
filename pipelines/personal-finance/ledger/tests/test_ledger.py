@@ -240,6 +240,29 @@ class NoRecentMisc(unittest.TestCase):
         self.assertEqual((new["tags"], new["status"], new["path"]), ([], "needs", None))
 
 
+AMZ = ("Hello Kushal! Ordered Kushal – BENGALURU, KARNATAKA Order # \u202b407-7383063-0091507 View or edit order Open Box Inspection "
+       "Quantity: 1 ₹ 39 00 ₹ 39 00 Total ₹39.00 Arriving soon Khushi – Barnagar, MADHYA PRADESH Order # \u202b407-0807432-8413964 "
+       "View or edit order Service included during delivery JLab JBuds LUX ANC Headphones - O... Quantity: 1 ₹ 3,999 00 ₹ 3,999 00 "
+       "Total ₹4,004.00 Buy it again")
+
+
+class Amazon(unittest.TestCase):
+    def orders(self):
+        return [dict(o, ts=dt.datetime(2026, 10, 8, 0, 36), email="m1") for o in evidence.parse_amazon(AMZ)]
+
+    def test_parse_orders_items_and_ship_to(self):
+        o = self.orders()
+        self.assertEqual([(x["id"], x["total"], x["to"]) for x in o],
+                         [("407-7383063-0091507", 39.0, "Kushal, Bengaluru"), ("407-0807432-8413964", 4004.0, "Khushi, Barnagar")])
+        self.assertEqual(o[1]["items"], [("JLab JBuds LUX ANC Headphones - O...", 1, 3999.0)])
+
+    def test_one_charge_for_both_orders_of_an_email(self):
+        r = {"id": "a", "date": "2026-10-08", "amount": -4043.0, "kind": "spend", "desc": "Amazon order", "_hay": "amazon pay",
+             "tags": ["shopping"], "status": "confirmed"}
+        self.assertEqual(evidence.match_amazon([r], self.orders()), 1)
+        self.assertEqual((r["status"], r["desc"]), ("proven", "Amazon: JLab JBuds LUX ANC Headphones - O, Open Box Inspection (to Khushi, Barnagar)"))
+
+
 class Flipkart(unittest.TestCase):
     @staticmethod
     def row(i, date, amount, text="Flipkart Bangalore IN"):

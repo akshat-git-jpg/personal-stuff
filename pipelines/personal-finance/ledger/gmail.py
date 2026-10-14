@@ -5,6 +5,7 @@ is new. Nothing here parses; `build.py` reads the inbox.
 
     data/inbox/statements/<source>/<message-id>.pdf
     data/inbox/alerts/<message-id>.json   {id, source, ts, text}
+    data/inbox/amazon/<message-id>.json   {id, ts, text}  (Amazon "Ordered:" emails)
 """
 
 from __future__ import annotations
@@ -108,6 +109,17 @@ def fetch(inbox, log=print):
     folder = inbox / "uber"
     folder.mkdir(parents=True, exist_ok=True)
     for mid in _ids(svc, 'from:uber.com subject:"trip with Uber" after:%s' % SINCE):
+        path = folder / (mid + ".json")
+        if path.exists():
+            continue
+        msg = svc.users().messages().get(userId="me", id=mid).execute()
+        path.write_text(json.dumps({"id": mid, "ts": int(msg["internalDate"]), "text": _text(msg["payload"])}))
+        new += 1
+
+    # Amazon order confirmations: what each Amazon card payment bought.
+    folder = inbox / "amazon"
+    folder.mkdir(parents=True, exist_ok=True)
+    for mid in _ids(svc, "from:auto-confirm@amazon.in after:2025/08/01"):
         path = folder / (mid + ".json")
         if path.exists():
             continue

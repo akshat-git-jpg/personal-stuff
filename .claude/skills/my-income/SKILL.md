@@ -62,7 +62,7 @@ owner often forgets to mention it; a missed PDF means a second full sync.
 
 `ledger.run` fetches by itself: all 3 card statement PDFs (Gmail, the truth - the owner
 never downloads these), card alerts (fill days after the last statement, "not final"),
-SBI e-statements, Rapido + Uber receipts (Gmail), Flipkart orders (`pp-flipkart`), trips
+SBI e-statements, Rapido + Uber receipts and Amazon order emails (Gmail), Flipkart orders (`pp-flipkart`), trips
 (trips.agrolloo.com -> `data/inbox/trips.json`).
 
 ## After the sync: count from the app, then find proof yourself
@@ -99,7 +99,7 @@ ask "did you check X?". For each row, in this order:
    `trip/<trip>/flight|train|bus|stay|food|auto|metro`, never on `travel` (2026-10-01: the 30 Oct flight was
    tagged by hand without reading the planner, and its train + return flight stayed
    `travel`).
-5. Flipkart orders, already joined by the sync.
+5. Flipkart and Amazon orders, already joined by the sync.
 
 Tag only what a document proves, then show him one table (row, proof, tag) and ask about
 the rest with every detail you found (day, time, card, VPA, UPI ref, where he was).
@@ -140,7 +140,7 @@ left (from D1), any card bill due soon, and anything the log says "skipped".
   ₹50) up to 120 days before the trip (`build.py` `match_bookings`), so ask the owner to
   fill `Paid` on every booking. Quick-delivery apps (Zepto, Blinkit, Instamart, Flipkart
   Minutes) are never trip.
-- Flipkart matching: `ledger/evidence.py` `match_flipkart`.
+- Flipkart matching: `ledger/evidence.py` `match_flipkart`. Amazon: `match_amazon` (an email's orders can be one charge).
 - App changes: `cd apps/kushal-income && npm run typecheck && npm run build && npm run deploy`.
   Lint is broken (typescript-eslint missing). Verify UI by rendering `dist/` with Playwright
   and routing `/api/ledger` to `data/ledger.json` (no app password needed).

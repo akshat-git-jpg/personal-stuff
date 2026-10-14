@@ -119,6 +119,10 @@ python3 -m unittest discover -s ledger/tests -t .
   before count too. Spending in the window gets `trip` plus `<name>-stay/food/bus/auto/metro`
   (name = slug without `-sep-2026`); anything unknown stays in Needs you. `data/config.json`
   `trips` still works for a trip the planner does not have.
+- **Amazon orders** come from the "Ordered:" emails (auto-confirm@amazon.in), fetched on sync
+  into `data/inbox/amazon/`. Each Amazon card payment gets its items, and "to <name>" when it
+  shipped to someone else. Amazon charges when an order ships, so a payment can come up to 10
+  days after the email; the orders in one email can be a single charge.
 - **Flipkart orders** come from `tooling/cli/flipkart` (`pp-flipkart`), fetched on sync
   into `data/inbox/flipkart/orders.json`. An order matches a Flipkart payment of the same
   amount (±₹2) up to a day before or 3 days after it; an order partly paid by Flipkart
