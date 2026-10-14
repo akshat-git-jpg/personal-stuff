@@ -102,10 +102,44 @@ MAIN_TOP="$(dirname "$GCD")"
 
 TOP="$(git -C "$CWD" rev-parse --show-toplevel 2>/dev/null)" || exit 0
 
+TRANSCRIPT="$(json_field transcript_path)"
+if [ -n "$TRANSCRIPT" ] && command -v cygpath >/dev/null 2>&1; then
+  TRANSCRIPT="$(cygpath -u "$TRANSCRIPT" 2>/dev/null || printf '%s' "$TRANSCRIPT")"
+fi
+
+# Workspaces this session edited from outside: the Bash cwd resets every call, so cwd alone never sees them (2026-10-14).
+WS_MSG=""
+if [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ]; then
+  while IFS= read -r wt; do
+    [ -n "$wt" ] && [ "$wt" != "$TOP" ] && [ -f "$(dirname "$wt")/manifest" ] || continue
+    grep -qF -e "\"file_path\":\"$wt/" -e "cd $wt" -e "cd \\\"$wt" -e "cd '$wt" "$TRANSCRIPT" 2>/dev/null || continue
+    WS_DIRTY="$(git -C "$wt" status --porcelain 2>/dev/null)"
+    [ -n "$WS_DIRTY" ] || continue
+    WS_MSG="$WS_MSG
+  workspace: $wt
+$(printf '%s\n' "$WS_DIRTY" | head -10 | sed 's/^/    /')"
+  done < <(git -C "$MAIN_TOP" worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p')
+fi
+
+finish() {  # finish <exit code>: adds the touched-workspace nag to whatever the caller decided
+  if [ -n "$WS_MSG" ]; then
+    cat >&2 <<MSG
+This session edited workspace(s) that still hold uncommitted work:
+$WS_MSG
+
+Run the commit-now flow in each one: cd into it, stage the files you changed, commit.
+If you must not commit (a check is failing, or the owner said not to), say so plainly in
+your reply. This hook allows the next attempt through, so it will not trap you.
+MSG
+    exit 2
+  fi
+  exit "$1"
+}
+
 # Tracked modifications and genuinely new files both count. Gitignored paths do not appear
 # in --porcelain at all, so renders and node_modules cannot trigger either branch.
 DIRTY="$(git -C "$TOP" status --porcelain 2>/dev/null)"
-[ -n "$DIRTY" ] || exit 0
+[ -n "$DIRTY" ] || finish 0
 COUNT="$(printf '%s\n' "$DIRTY" | grep -c . || true)"
 
 # The list is what makes the nag actionable — the session recognises its own paths in it.
@@ -125,7 +159,7 @@ if [ "$GD" = "$GCD" ]; then
   # not apply. If every dirty path is a desk-managed script-plan.md, exit silently. Any
   # other dirty file (even one, alongside a desk file) still trips the nag.
   NON_DESK="$(printf '%s\n' "$DIRTY" | awk 'NF { p=substr($0,4); if (p !~ "^pipelines/youtube/yt-script/videos/[^/]+/script-plan\\.md$") print }')"
-  [ -z "$NON_DESK" ] && exit 0
+  [ -z "$NON_DESK" ] && finish 0
 
   # Suppress the nag when THIS session made no file-editing tool call. Main is shared, so
   # its dirty files usually belong to someone else's session; forcing every read-only or
@@ -134,14 +168,8 @@ if [ "$GD" = "$GCD" ]; then
   # could plausibly have dirtied a tracked file. A grep is enough: false positives (the
   # name appearing in message text) preserve the pre-fix behaviour of nagging, and false
   # negatives cannot occur when the session made no tool calls at all.
-  TRANSCRIPT="$(json_field transcript_path)"
-  if [ -n "$TRANSCRIPT" ]; then
-    if command -v cygpath >/dev/null 2>&1; then
-      TRANSCRIPT="$(cygpath -u "$TRANSCRIPT" 2>/dev/null || printf '%s' "$TRANSCRIPT")"
-    fi
-    if [ -f "$TRANSCRIPT" ] && ! grep -qE '"name":"(Edit|Write|MultiEdit|NotebookEdit|Bash)"' "$TRANSCRIPT" 2>/dev/null; then
-      exit 0
-    fi
+  if [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ] && ! grep -qE '"name":"(Edit|Write|MultiEdit|NotebookEdit|Bash)"' "$TRANSCRIPT" 2>/dev/null; then
+    finish 0
   fi
   cat >&2 <<MSG
 The main checkout has $COUNT uncommitted change(s) and the turn is about to end.
@@ -166,12 +194,12 @@ them with POSIX \`patch -R\` rather than reaching for GUARD_OK=1.
 If none of these are yours, say so in one line and end the turn. This hook allows the next
 attempt through, so it will not trap you.
 MSG
-  exit 2
+  finish 2
 fi
 
 # --- a LINKED worktree: only a real pp-work workspace, whose parent holds the manifest ---
 SLUG_DIR="$(dirname "$TOP")"
-[ -f "$SLUG_DIR/manifest" ] || exit 0
+[ -f "$SLUG_DIR/manifest" ] || finish 0
 
 BRANCH="$(git -C "$TOP" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
 
@@ -192,4 +220,4 @@ If you genuinely must not commit — a check is failing, or the owner told you n
 so plainly in your reply and end the turn. This hook allows the next attempt through, so it
 will not trap you; but do not end silently on uncommitted work.
 MSG
-exit 2
+finish 2

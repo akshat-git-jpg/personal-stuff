@@ -169,6 +169,60 @@ expect 0 "$FWS/repo" false \
 expect 0 "$TMP" false \
   'FAIL: STOP-GUARD did not exit cleanly outside a git repository'
 
+# --- sessions that run in main and edit a workspace by absolute path (2026-10-14) ---
+# The Bash cwd resets after every call, so a session's cwd is main even while it works in a
+# workspace. The hook must find those workspaces in the transcript.
+git -C "$PLAIN" checkout -- README.md >/dev/null 2>&1
+WSR="$(git -C "$WS" rev-parse --show-toplevel)"
+PLAINR="$(git -C "$PLAIN" rev-parse --show-toplevel)"
+T="$TMP/transcript.jsonl"
+
+run_hook_t() {  # run_hook_t <cwd> <active> <transcript line>
+  printf '%s\n' "$3" > "$T"
+  printf '{"cwd":%s,"stop_hook_active":%s,"transcript_path":%s,"session_id":"t","hook_event_name":"Stop"}' \
+    "$(jstr "$1")" "$2" "$(jstr "$T")" | bash "$HOOK" >/dev/null 2>&1
+  echo $?
+}
+expect_t() {  # expect_t <want> <cwd> <active> <transcript line> <msg>
+  local got; got="$(run_hook_t "$2" "$3" "$4")"
+  if [ "$got" != "$1" ]; then
+    echo "$5 (want exit $1, got $got)"
+    FAILURES=$((FAILURES + 1))
+  fi
+}
+
+EDIT_WS='{"type":"tool_use","name":"Edit","input":{"file_path":"'"$WSR"'/README.md"}}'
+CD_WS='{"type":"tool_use","name":"Bash","input":{"command":"cd '"$WSR"' && git status"}}'
+READ_WS='{"type":"tool_use","name":"Bash","input":{"command":"git -C '"$WSR"' status --porcelain"}}'
+
+# 16. clean main, session edited a DIRTY workspace by path: must block
+printf 'changed\n' >> "$WS/README.md"
+expect_t 2 "$MAIN" false "$EDIT_WS" \
+  'FAIL: STOP-GUARD missed a dirty workspace edited from main by absolute path'
+
+# 17. same, via a Bash `cd <workspace>`
+expect_t 2 "$MAIN" false "$CD_WS" \
+  'FAIL: STOP-GUARD missed a dirty workspace a Bash command cd-ed into'
+
+# 18. a session that only READ the workspace must not be blamed for its dirt
+expect_t 0 "$MAIN" false "$READ_WS" \
+  'FAIL: STOP-GUARD blamed a session that only read a dirty workspace'
+
+# 19. the loop guard holds for the transcript check too
+expect_t 0 "$MAIN" true "$EDIT_WS" \
+  'FAIL: STOP-GUARD ignored stop_hook_active on the touched-workspace check'
+git -C "$WS" checkout -- README.md >/dev/null 2>&1
+
+# 20. a touched workspace that is CLEAN must let the turn end
+expect_t 0 "$MAIN" false "$EDIT_WS" \
+  'FAIL: STOP-GUARD blocked on a touched workspace that is clean'
+
+# 21. a dirty worktree that is NOT a pp-work workspace stays out of scope
+printf 'dirty\n' >> "$PLAIN/README.md"
+expect_t 0 "$MAIN" false '{"type":"tool_use","name":"Edit","input":{"file_path":"'"$PLAINR"'/README.md"}}' \
+  'FAIL: STOP-GUARD blocked on a touched non-workspace worktree'
+git -C "$PLAIN" checkout -- README.md >/dev/null 2>&1
+
 if [ "$FAILURES" -ne 0 ]; then
   echo "$FAILURES test(s) failed"
   exit 1
