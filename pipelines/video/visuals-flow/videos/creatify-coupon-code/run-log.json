@@ -1,18 +1,18 @@
 {
   "video": "creatify-coupon-code",
-  "updated": "2026-10-14T16:51:06.365Z",
+  "updated": "2026-10-14T17:05:53.927Z",
   "steps": {
     "020-transcribe-run": {
       "status": "done",
       "started": "2026-10-14T16:37:55.258Z",
-      "ended": "2026-10-14T16:49:20.399Z",
+      "ended": "2026-10-14T17:05:49.824Z",
       "did": "Transcribed the voiceover, fixed the tool name to \"Creatify\" in 0 place(s) and closed 0 run-on sentence(s) before the intro/outro openers, by rule. No LLM clean-up: coupon template.",
       "output": "transcript.json",
       "issues": "none found"
     },
     "210-author-body-cues-llm": {
       "status": "done",
-      "ended": "2026-10-14T16:49:20.546Z",
+      "ended": "2026-10-14T17:05:50.418Z",
       "started": "2026-10-14T16:37:57.604Z",
       "did": "Placed 5 cards and 2 full-screen avatar spans from the coupon rule table (lib/coupon/plan.mjs), no LLM.",
       "output": "cues.json + shots.json + avatar-plan.json",
@@ -20,19 +20,18 @@
     },
     "310-sync-graphics-run": {
       "status": "done",
-      "started": "2026-10-14T16:49:20.591Z",
+      "started": "2026-10-14T17:05:50.469Z",
       "did": "Resolved the coupon cards and avatar spans to times.",
       "output": "resolved.json + shots.resolved.json",
       "issues": "none found",
-      "ended": "2026-10-14T16:49:23.536Z"
+      "ended": "2026-10-14T17:05:53.874Z"
     },
     "430-render-avatar-run": {
-      "status": "done",
-      "started": "2026-10-14T16:49:23.581Z",
+      "status": "running",
+      "started": "2026-10-14T17:05:53.927Z",
       "did": "Rendered helen-office on Avatar III once over the whole voiceover, cut the full-screen spans from it, then re-read the HeyGen meters: no credits used.",
       "output": "avatar-jobs.json + heygen-meter.json (verified-free)",
-      "issues": "none found",
-      "ended": "2026-10-14T16:49:25.139Z"
+      "issues": "none found"
     },
     "410-render-graphics-run": {
       "status": "done",
