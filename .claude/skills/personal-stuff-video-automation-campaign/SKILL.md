@@ -60,7 +60,7 @@ The bottleneck metric gets a mechanical protocol, not a vibe:
 
 ## Change control (every phase)
 
-No phase's build work happens inline in a chat session. Route: `orchestrate` skill → plan file in `plans/` → `/secretary raise` → boss dispatch (see **personal-stuff-change-control**). Never pick the executor model unilaterally: routing comes from `tooling/boss/data/rules.md` (orchestrate stamps the plan's `executor`/`model` frontmatter; agy runs use Gemini 3.1 Pro (High)) — a boss build was once wrongly forced onto Claude; don't repeat it. Phases marked **OWNER GATE** need an explicit owner decision recorded in `decisions.md` before the plan is written. De-risk anything unproven with a small paid/timed test first (see **personal-stuff-research-methodology**); evidence bar for "done" per **personal-stuff-validation-and-qa**.
+No phase's build work happens inline in a chat session. Route: `orchestrate` skill → plan file in `plans/` → `/secretary raise` → boss dispatch (see **personal-stuff-change-control**). Never pick the executor model unilaterally: routing comes from `tooling/boss/data/rules.md` (orchestrate stamps the plan's `executor`/`model` frontmatter; agy runs use Gemini 3.8 Flash (High)) — a boss build was once wrongly forced onto Claude; don't repeat it. Phases marked **OWNER GATE** need an explicit owner decision recorded in `decisions.md` before the plan is written. De-risk anything unproven with a small paid/timed test first (see **personal-stuff-research-methodology**); evidence bar for "done" per **personal-stuff-validation-and-qa**.
 
 ## Phase 1 — productize the processor (open problem #1, do this first)
 

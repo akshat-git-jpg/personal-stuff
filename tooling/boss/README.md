@@ -28,7 +28,7 @@ tooling/boss/
     boss-deploy.sh       # gated post-merge deploy on main checkout + notify
   executors/
     claude-p.sh          # backgrounded claude -p (default model: sonnet)
-    agy.sh               # Antigravity CLI (default model: Gemini 3.1 Pro (High))
+    agy.sh               # Antigravity CLI (default model: Gemini 3.8 Flash (High))
     codex.sh             # OpenAI Codex CLI (default model: gpt-5.6-terra)
   data/
     rules.md             # task-type → executor+model defaults (secretary input)
