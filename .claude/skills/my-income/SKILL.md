@@ -30,6 +30,10 @@ is `yt-income` -> yt-income.agrolloo.com.
   "Trip" (`trips.py` `trip_label`). Nothing is guessed; unknown stays "Needs you".
 - Commits: one line, from a `pp-work` workspace, never in main.
 - Don't ask about scraping Rapido's private API again.
+- **Never tag a payment from Sep 2026 on as `misc`** (owner, 2026-10-14). Misc was a one-off
+  for the past. A newer payment nobody can place stays in Needs you; dig for proof or ask.
+  The sync (`build.py` `no_recent_misc`) and the Worker's tag endpoint both refuse it, and a
+  hand-written D1 `overrides` insert must not get round them.
 
 ## The month-end sync
 

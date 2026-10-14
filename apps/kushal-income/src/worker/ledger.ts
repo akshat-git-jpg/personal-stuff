@@ -152,6 +152,18 @@ export async function read(env: Env) {
 export interface TagBody { row_ids?: unknown; tag_id?: unknown; desc?: unknown; always?: unknown }
 
 /** Put one or more rows on a tag. `always` also saves a rule for each row's payee. */
+/** Owner, 2026-10-14: misc is only for the past. Nothing from the dashboard's first month on goes there. */
+export const NO_MISC_FROM = "2026-09-01";
+
+async function isMisc(env: Env, id: string): Promise<boolean> {
+  for (let at: string | null = id, n = 0; at && n < 20; n++) {
+    if (at === "misc") return true;
+    const t: { parent_id: string | null } | null = await env.DB.prepare("SELECT parent_id FROM tags WHERE id = ?").bind(at).first();
+    at = t?.parent_id ?? null;
+  }
+  return false;
+}
+
 export async function tag(env: Env, b: TagBody): Promise<number> {
   const ids = b.row_ids;
   if (!Array.isArray(ids) || !ids.length || ids.length > 500 || !ids.every((i) => typeof i === "string")
@@ -159,6 +171,12 @@ export async function tag(env: Env, b: TagBody): Promise<number> {
     throw new Error("row_ids[] and tag_id required");
   }
   if (!(await env.DB.prepare("SELECT 1 FROM tags WHERE id = ?").bind(b.tag_id).first())) throw new Error("unknown tag");
+  if (await isMisc(env, b.tag_id)) {
+    if (b.always === true) throw new Error("misc can't be a rule for a payee. Pick the real tag");
+    const late = await env.DB.prepare("SELECT COUNT(*) AS n FROM rows WHERE date >= ? AND id IN (SELECT value FROM json_each(?))")
+      .bind(NO_MISC_FROM, JSON.stringify(ids)).first<{ n: number }>();
+    if (late?.n) throw new Error("misc is only for payments before Sep 2026. Pick the real tag");
+  }
   const desc = typeof b.desc === "string" && b.desc.trim() ? b.desc.trim().slice(0, 120) : null;
   const now = new Date().toISOString();
   const found = await env.DB.prepare(

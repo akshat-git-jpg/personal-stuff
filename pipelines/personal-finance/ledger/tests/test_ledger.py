@@ -231,6 +231,15 @@ class Takeout(unittest.TestCase):
         self.assertEqual([(e["amount"], e["source"]) for e in ev], [(42390.0, "sbi")])
 
 
+class NoRecentMisc(unittest.TestCase):
+    def test_misc_only_before_september_2026(self):
+        old = {"date": "2026-08-31", "tags": ["misc"], "path": "misc", "desc": "x", "status": "confirmed", "why": ""}
+        new = dict(old, date="2026-09-01")
+        build.no_recent_misc([old, new])
+        self.assertEqual(old["tags"], ["misc"])
+        self.assertEqual((new["tags"], new["status"], new["path"]), ([], "needs", None))
+
+
 class Flipkart(unittest.TestCase):
     @staticmethod
     def row(i, date, amount, text="Flipkart Bangalore IN"):
