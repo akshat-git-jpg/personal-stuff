@@ -218,6 +218,19 @@ class GooglePay(unittest.TestCase):
         self.assertNotIn("_gpay_to", wrong)
 
 
+def _takeout_cell(text, status):
+    return ('<div class="outer-cell mdl-cell"><div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1">'
+            + text + '</div><div class="content-cell">Details:<br>abc<br>' + status + '</div></div>')
+
+
+class Takeout(unittest.TestCase):
+    def test_failed_payments_are_skipped(self):
+        t = (_takeout_cell("Paid ₹80,000.00 to ICICI Bank Credit Card using Bank Account XXXXXX1272<br>Oct 11, 2026, 5:01:15\u202fAM IST", "Failed")
+             + _takeout_cell("Paid ₹42,390.00 to ICICI Bank Credit Card using Bank Account XXXXXX1272<br>Oct 11, 2026, 5:32:32\u202fAM IST", "Completed"))
+        ev = evidence.takeout_events(t)
+        self.assertEqual([(e["amount"], e["source"]) for e in ev], [(42390.0, "sbi")])
+
+
 class Flipkart(unittest.TestCase):
     @staticmethod
     def row(i, date, amount, text="Flipkart Bangalore IN"):
