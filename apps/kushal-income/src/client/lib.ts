@@ -62,8 +62,14 @@ export const monthOf = (iso: string) => iso.slice(0, 7);
 
 /** Money that left and counts as spending. Card bills and card-side payments never do. */
 export const isSpend = (r: Row) => r.kind === "spend" && r.amount !== null && r.amount < 0;
-/** Money that came in: salary, interest, other credits, refunds. */
-export const isIn = (r: Row) => (r.kind === "in" || r.kind === "refund") && r.amount !== null && r.amount > 0;
+/** Money that came in: salary, interest, other credits, refunds. A loan to you is not income. */
+export const isIn = (r: Row) => (r.kind === "in" || r.kind === "refund") && r.amount !== null && r.amount > 0 && r.tags[0] !== "loan";
+
+/** Compact rupees for tight spots: ₹1.4L, ₹12k, ₹850. */
+export const rsShort = (n: number) => {
+  const a = Math.abs(n);
+  return a >= 1e5 ? `₹${(a / 1e5).toFixed(a >= 1e6 ? 0 : 1).replace(/\.0$/, "")}L` : a >= 1e3 ? `₹${Math.round(a / 1e3)}k` : rs(a);
+};
 
 export function totals(rows: Row[]) {
   let spent = 0, inn = 0, needs = 0, needsN = 0, fxOnly = 0;

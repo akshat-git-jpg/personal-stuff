@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchLedger, logout, UnauthorizedError, type Ledger } from "./api";
 import { Cards } from "./Cards";
-import { makeTree, namesOf, parseHash } from "./lib";
+import { DatePicker, type Pick } from "./DatePicker";
+import { makeTree, monthOf, namesOf, parseHash, todayIso } from "./lib";
 import { Login } from "./Login";
 import { Overview } from "./Overview";
 import { Review } from "./Review";
@@ -21,6 +22,8 @@ export function App() {
   const [data, setData] = useState<Ledger | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [hash, setHash] = useState(location.hash);
+  // One period for every page, so Overview, Transactions, Cards and Needs you always agree.
+  const [pick, setPick] = useState<Pick | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -49,6 +52,10 @@ export function App() {
   if (!data) return <div className="app"><div className="empty">Loading…</div></div>;
 
   const { page, params } = parseHash(hash);
+  const newest = data.rows.reduce((m, r) => (r.date > m ? r.date : m), "") || todayIso();
+  const first = monthOf(data.rows.reduce((m, r) => (r.date < m ? r.date : m), newest));
+  const last = monthOf(newest);
+  const period: Pick = pick ?? { kind: "months", months: [last] };
   const needs = data.rows.filter((r) => r.status === "needs" && r.kind !== "payment").length;
   // The data is a snapshot from the last sync. Saying when is not decoration.
   const when = data.generated_at
@@ -73,15 +80,18 @@ export function App() {
           Sign out
         </button>
       </header>
+      {page !== "tags" && data.rows.length > 0 && (
+        <div className="period"><DatePicker value={period} onChange={setPick} first={first} last={last} /></div>
+      )}
       {!data.rows.length ? (
         <div className="empty">
           Nothing synced yet. Run <code>python3 -m ledger.run</code> in <code>pipelines/personal-finance</code>.
         </div>
-      ) : page === "transactions" ? <Transactions data={data} params={params} reload={load} />
-        : page === "cards" ? <Cards data={data} />
-        : page === "review" ? <Review data={data} reload={load} />
+      ) : page === "transactions" ? <Transactions data={data} params={params} pick={period} newest={newest} reload={load} />
+        : page === "cards" ? <Cards data={data} pick={period} newest={newest} />
+        : page === "review" ? <Review data={data} pick={period} newest={newest} setPick={setPick} reload={load} />
         : page === "tags" ? <Tags data={data} reload={load} />
-        : <Overview data={data} />}
+        : <Overview data={data} pick={period} newest={newest} />}
     </div>
   );
 }
