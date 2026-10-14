@@ -1,0 +1,55 @@
+{
+  "video": "creatify-coupon-code",
+  "approved": true,
+  "instances": [
+    {
+      "id": "sfx-1",
+      "at": 0.5,
+      "sample": "riser",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-8",
+      "at": 16.22,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-9",
+      "at": 35.12,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-2",
+      "at": 35.72,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-10",
+      "at": 245.72,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-6",
+      "at": 267.76,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-7",
+      "at": 272.33,
+      "sample": "success",
+      "semi": 0,
+      "gainDb": -14
+    }
+  ]
+}

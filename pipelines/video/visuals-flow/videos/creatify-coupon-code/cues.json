@@ -1,0 +1,63 @@
+{
+  "video": "creatify-coupon-code",
+  "approved": true,
+  "approvedNote": "coupon template: rule-planned, no review by owner rule (2026-09-30)",
+  "cues": [
+    {
+      "id": "c01",
+      "card": "link-in-description/link-in-description",
+      "anchor": "in the description.",
+      "lead": -1.32,
+      "hold": 4,
+      "register": "dark",
+      "variables": {},
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c02",
+      "card": "link-in-description/link-in-description",
+      "anchor": "the video description.",
+      "lead": -0.32,
+      "hold": 4,
+      "register": "dark",
+      "variables": {},
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c03",
+      "card": "link-in-description/link-in-description",
+      "anchor": "the video description",
+      "lead": -0.34,
+      "hold": 4,
+      "register": "dark",
+      "variables": {},
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c04",
+      "card": "link-in-description/link-in-description",
+      "anchor": "the video description",
+      "lead": -0.34,
+      "hold": 4,
+      "register": "dark",
+      "variables": {},
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c05",
+      "card": "like-subscribe/like-subscribe",
+      "anchor": "hit the subscribe",
+      "lead": 0.74,
+      "hold": 5,
+      "register": "dark",
+      "variables": {},
+      "beats": [],
+      "flagged": false
+    }
+  ],
+  "spans": []
+}

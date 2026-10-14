@@ -1,0 +1,43 @@
+{
+  "video": "creatify-coupon-code",
+  "template": "helen-office",
+  "engineMode": "test",
+  "jobs": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "start": 16.22,
+      "end": 35.12,
+      "duration": 18.9,
+      "audio": "slices-avatar/s01.mp3",
+      "video_id": "19b22e3dfd8341e9b27265773eb45032",
+      "status": "submitted",
+      "submitted_at": "2026-10-14T16:38:47.957Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/creatify-coupon-code/s01.mp4"
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "start": 245.72,
+      "end": 271.78,
+      "duration": 26.06,
+      "audio": "slices-avatar/s02.mp3",
+      "video_id": "5be10d16ec5a494aa6550565bb1a0368",
+      "status": "submitted",
+      "submitted_at": "2026-10-14T16:40:17.584Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/creatify-coupon-code/s02.mp4"
+    },
+    {
+      "id": "corner-01",
+      "purpose": "corner",
+      "start": 0,
+      "end": 271.66,
+      "duration": 271.66,
+      "audio": "slices-avatar/corner-01.mp3",
+      "video_id": "33164ed501df4c01a2e21461d5be94b8",
+      "status": "submitted",
+      "submitted_at": "2026-10-14T16:42:32.392Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/creatify-coupon-code/corner-01.mp4"
+    }
+  ]
+}
