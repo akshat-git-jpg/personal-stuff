@@ -482,6 +482,8 @@ def build(data, config, today=None, log=print):
                        why="Your default: Flipkart payments are groceries. Change it if this was a normal Flipkart order.")
     fk = evidence.flipkart_orders(data)
     log("evidence: %d Flipkart orders, %d matched to payments" % (len(fk), evidence.match_flipkart(rows, fk)))
+    amz = evidence.amazon_orders(data)
+    log("evidence: %d Amazon orders, %d payments matched" % (len(amz), evidence.match_amazon(rows, amz)))
 
     trips = trips_mod.load(data / "inbox" / "trips.json", config.get("trips", []))
     for t in trips:

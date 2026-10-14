@@ -479,3 +479,73 @@ def match_flipkart(rows, orders):
 def _fk_day(t):
     d = dt.datetime.strptime(t, "%Y-%m-%d %H:%M")
     return d.strftime("%-d %b %Y %H:%M")
+
+
+# Amazon charges the card when an order ships, so the payment can come days after the email.
+AMZ_DAYS = (-1, 10)
+_AMZ_ITEM = re.compile(r"(?:View or edit order|₹ [\d,]+ \d\d)\s+(?:Service included during delivery\s+)?(.+?)\s+Quantity: (\d+) ₹ ([\d,]+) (\d\d)")
+
+
+def amazon_orders(data):
+    """[{id, ts, to, total, items: [(title, qty, price)], email}] from the Amazon "Ordered:" emails."""
+    out = []
+    for f in sorted((data / "inbox" / "amazon").glob("*.json")):
+        m = json.loads(f.read_text())
+        text, ts = m["text"], dt.datetime.utcfromtimestamp(m["ts"] / 1000) + dt.timedelta(hours=5, minutes=30)
+        out += [dict(o, ts=ts, email=m["id"]) for o in parse_amazon(text)]
+    return out
+
+
+def parse_amazon(text):
+    orders = []
+    parts = text.split("Order # ")
+    for before, chunk in zip(parts, parts[1:]):
+        tot = re.search(r"Total ₹([\d,]+(?:\.\d+)?)", chunk)
+        oid = re.match(r"\W*([\d-]{15,})", chunk)
+        if not tot or not oid:
+            continue
+        body = chunk[:tot.start()]
+        items = [(t.strip(), int(q), float(p.replace(",", "") + "." + c)) for t, q, p, c in _AMZ_ITEM.findall(body)]
+        to = re.search(r"([A-Z][\w ]{1,30}) – ([\w ,]+?)\s*$", before.strip())
+        orders.append({"id": oid[1], "total": float(tot[1].replace(",", "")), "items": items,
+                       "to": "%s, %s" % (to[1].split()[-1], to[2].split(",")[0].title()) if to else ""})
+    return orders
+
+
+def match_amazon(rows, orders, me="Kushal"):
+    """Put each Amazon order's items on the card payment it made. One email's orders can be charged
+    together, so their sum counts too. Returns the number of payments matched."""
+    taken, used, n = set(), set(), 0
+    by_email = {}
+    for o in orders:
+        by_email.setdefault(o["email"], []).append(o)
+    groups = [[o] for o in orders] + [g for g in by_email.values() if len(g) > 1]
+    for g in sorted(groups, key=lambda g: (len(g), g[0]["ts"])):
+        if any(o["id"] in used for o in g):
+            continue
+        amt, day = round(sum(o["total"] for o in g), 2), g[0]["ts"].date()
+        cands = [r for r in rows if r["id"] not in taken and r["amount"] is not None and r["kind"] == "spend"
+                 and abs(-r["amount"] - amt) < 0.01 and "amazon" in ((r["desc"] or "") + " " + r.get("_hay", "")).lower()
+                 and AMZ_DAYS[0] <= (dt.date.fromisoformat(r["date"]) - day).days <= AMZ_DAYS[1]]
+        if not cands:
+            continue
+        row = min(cands, key=lambda r: abs((dt.date.fromisoformat(r["date"]) - day).days))
+        taken.add(row["id"])
+        used.update(o["id"] for o in g)
+        items = sorted((i for o in g for i in o["items"]), key=lambda i: -i[1] * i[2])  # costliest first
+        names = ", ".join(_amz_short(t) for t, _, _ in items[:3]) + (" +%d more" % (len(items) - 3) if len(items) > 3 else "")
+        to = {o["to"] for o in g if o["to"] and not o["to"].startswith(me)}
+        row.update(desc="Amazon: " + (names or "order") + (" (to %s)" % ", ".join(sorted(to)) if to else ""), status="proven",
+                   why="Amazon order %s on %s for ₹%.2f matches this payment." % (" + ".join(o["id"] for o in g), _fk_day(g[0]["ts"].strftime("%Y-%m-%d %H:%M")), amt))
+        row.setdefault("details", []).extend(
+            ["Amazon order %s, %s, ₹%.2f%s" % (o["id"], _fk_day(o["ts"].strftime("%Y-%m-%d %H:%M")), o["total"], ", to " + o["to"] if o["to"] else "") for o in g]
+            + ["%d × %s · ₹%.2f" % (q, t, p) for t, q, p in items])
+        if not row["tags"]:
+            row["tags"] = ["shopping", "amazon"]
+        n += 1
+    return n
+
+
+def _amz_short(t):
+    t = t.rstrip(". ").strip()
+    return t if len(t) <= 34 else t[:33].rstrip() + "…"
