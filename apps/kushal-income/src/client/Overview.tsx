@@ -1,28 +1,28 @@
 /**
- * Overview — one month at a glance: in, out, saved, how sure, and where it went.
- *
- * "How sure" is the share of spending that is proven or confirmed by the owner.
- * Untagged money is never folded into a category; it is its own hatched bar.
+ * Overview — the picked period at a glance: in, out, saved, what still needs you,
+ * and where it went. Untagged money is never folded into a category.
  */
-import { useMemo, useState } from "react";
 import type { Ledger, Row } from "./api";
-import { dayLabel, isSpend, mainTag, monthLabel, monthOf, rs, SOURCES, totals } from "./lib";
+import { inPick, type Pick } from "./DatePicker";
+import { addDays, dayLabel, isSpend, mainTag, monthLabel, monthOf, rs, rsShort, SOURCES, totals } from "./lib";
 
 const REGULAR = ["rent", "cook", "family", "loan", "subscription", "bills"];
 
-export function Overview({ data }: { data: Ledger }) {
-  const months = useMemo(() => [...new Set(data.rows.map((r) => monthOf(r.date)))].sort().slice(-12), [data]);
-  const [sel, setSel] = useState(months[months.length - 1]);
-  const prevKey = months[months.indexOf(sel) - 1];
+/** The month before, when the pick is exactly one month. Other picks have nothing fair to compare with. */
+function prevMonth(p: Pick) {
+  if (p.kind !== "months" || p.months.length !== 1) return null;
+  const [y, m] = p.months[0].split("-").map(Number);
+  return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
+}
 
-  const inMonth = (m: string | undefined) => data.rows.filter((r) => m && monthOf(r.date) === m);
-  const rows = inMonth(sel);
-  const prev = inMonth(prevKey);
+export function Overview({ data, pick, newest }: { data: Ledger; pick: Pick; newest: string }) {
+  const rows = data.rows.filter((r) => inPick(pick, r.date, newest));
+  const prevKey = prevMonth(pick);
+  const prev = prevKey ? data.rows.filter((r) => monthOf(r.date) === prevKey) : [];
   const t = totals(rows);
   const pt = totals(prev);
   const saved = t.inn - t.spent;
-  const hasSalary = rows.some((r) => r.tags.includes("salary"));
-  const sure = t.spent ? Math.round((1 - t.needs / t.spent) * 100) : 100;
+  const loans = rows.filter((r) => r.tags[0] === "loan" && (r.amount ?? 0) > 0).reduce((a, r) => a + r.amount!, 0);
 
   const byTag = group(rows.filter(isSpend), mainTag);
   const prevTag = group(prev.filter(isSpend), mainTag);
@@ -30,177 +30,100 @@ export function Overview({ data }: { data: Ledger }) {
   const max = tags.length ? tags[0][1] : 1;
 
   const bySrc = group<string>(rows.filter(isSpend), (r) => r.source);
-  const days = daily(rows, sel);
+  const days = daily(rows);
   const dmax = Math.max(1, ...days.map((d) => d.v));
   const regular = regulars(rows, prev);
+  const vs = prevKey ? monthLabel(prevKey).slice(0, 3) : "";
 
   return (
     <main className="stack">
-      <div className="months">
-        {months.map((m) => (
-          <button key={m} className="mbtn" aria-pressed={m === sel} onClick={() => setSel(m)}>
-            {monthLabel(m).slice(0, 3)}
-          </button>
-        ))}
-        <span className="muted">{monthLabel(sel)}</span>
-      </div>
-
       <div className="kpis">
         <div className="panel kpi">
           <h2>Money in</h2>
           <div className="kpi-v in">{rs(t.inn)}</div>
-          <div className="kpi-sub">Salary, interest, refunds</div>
+          <div className="kpi-sub">{loans ? `Loans not counted: ${rs(loans)}` : "Salary, interest, refunds"}</div>
         </div>
         <div className="panel kpi">
           <h2>Spent</h2>
           <div className="kpi-v out">{rs(t.spent)}</div>
-          <div className="kpi-sub">All 4 sources. Card bills not counted twice</div>
+          <div className="kpi-sub">{prevKey && pt.spent ? `${vs} was ${rs(pt.spent)}` : "Card bills not counted twice"}</div>
         </div>
         <div className="panel kpi">
           <h2>Saved</h2>
           <div className="kpi-v">{saved < 0 ? "−" : ""}{rs(saved)}</div>
-          <div className="kpi-sub">
-            {!hasSalary ? "Salary not in yet: it usually lands on the last day"
-              : `${Math.round((saved / t.inn) * 100)}% of money in`}
-            {prevKey && pt.inn ? ` · ${monthLabel(prevKey).slice(0, 3)} was ${Math.round(((pt.inn - pt.spent) / pt.inn) * 100)}%` : ""}
-          </div>
+          <div className="kpi-sub">{t.inn ? `${Math.round((saved / t.inn) * 100)}% of money in` : "No money in yet"}</div>
         </div>
-        <a className="panel kpi alarm" href="#/review">
-          <h2>How sure is this month</h2>
-          <div className="kpi-v">{sure}%</div>
-          <div className="kpi-sub">
-            {t.needsN ? `${rs(t.needs)} in ${t.needsN} payments needs you. Tag them →` : "Every payment is proven or confirmed"}
-            {t.fxOnly ? ` · ${t.fxOnly} in foreign money, counted when the statement comes` : ""}
-          </div>
+        <a className={`panel kpi ${t.needsN ? "alarm" : ""}`} href="#/review">
+          <h2>Not tagged</h2>
+          <div className="kpi-v">{t.needsN ? rs(t.needs) : "None"}</div>
+          <div className="kpi-sub">{t.needsN ? `${t.needsN} payment${t.needsN > 1 ? "s" : ""}. Tag them →` : "Every payment is tagged"}</div>
         </a>
       </div>
 
       <div className="grid-3">
         <section className="panel span-2">
-          <div className="head"><h2>Where it went</h2><span className="muted">Click a tag to see its payments</span></div>
+          <div className="head"><h2>Where it went</h2>{prevKey && <span className="muted">Change vs {vs}</span>}</div>
+          {!tags.length && <div className="empty">No spending in this period.</div>}
           {tags.map(([tag, v]) => {
             const p = prevTag.get(tag) ?? 0;
-            const d = p ? Math.round(((v - p) / p) * 100) : null;
+            const d = v - p;
             return (
-              <a key={tag} className="tagbar" href={`#/transactions?tag=${encodeURIComponent(tag)}&month=${sel}`}>
+              <a key={tag} className="tagbar" href={`#/transactions?tag=${encodeURIComponent(tag)}`}>
                 <span className="tagbar-name">{tag}</span>
                 <span className="bar"><i className={tag === "needs you" ? "hatch" : ""} style={{ width: `${(v / max) * 100}%` }} /></span>
                 <span className="num">{rs(v)}</span>
-                <span className={`delta ${d !== null && d > 0 ? "up" : ""}`}>
-                  {tag === "needs you" ? "" : d === null ? (prevKey ? "new" : "") : `${d > 0 ? "+" : ""}${d}%`}
+                <span className={`delta ${d > 0 ? "up" : ""}`}>
+                  {!prevKey || tag === "needs you" ? "" : !p ? "new" : Math.abs(d) < 1 ? "same" : `${d > 0 ? "+" : "−"}${rsShort(d)}`}
                 </span>
               </a>
             );
           })}
         </section>
 
-        <section className="panel">
-          <h2>Regular payments</h2>
-          {!regular.length && <div className="muted">None found yet.</div>}
-          {regular.map((g) => (
-            <div key={g.name} className="regular">
-              <span className={`dot ${g.paid ? "done" : "due"}`} />
-              <span className="grow">{g.name}</span>
-              <span className="num">{rs(g.amount)}</span>
-              <span className={`when ${g.paid ? "" : "due"}`}>{g.paid ? `paid ${dayLabel(g.paid)}` : "not yet"}</span>
-            </div>
-          ))}
-        </section>
-      </div>
-
-      <section className="panel">
-        <div className="head"><h2>Spend by day</h2><span className="muted">Card bills left out</span></div>
-        <div className="days">
-          {days.map((d, i) => (
-            <div key={d.day} className="day" title={`${dayLabel(d.day)}: ${rs(d.v)}`}>
-              {d.v > dmax * 0.4 && <span className={`daylbl ${i < 3 ? "l" : i > days.length - 4 ? "r" : ""}`}>{d.v >= 1000 ? `₹${Math.round(d.v / 1000)}k` : rs(d.v)}</span>}
-              <i style={{ height: `${Math.max(d.v ? 3 : 0, Math.sqrt(d.v / dmax) * 130)}px` }} />
-            </div>
-          ))}
-        </div>
-        <div className="axis"><span>{dayLabel(days[0].day)}</span><span>{dayLabel(days[days.length - 1].day)}</span></div>
-      </section>
-
-      <div className="grid-2">
-        <section className="panel">
-          <h2>Spent from each source</h2>
-          <div className="srcbar">
-            {Object.keys(SOURCES).map((s) => (
-              <i key={s} style={{ width: `${((bySrc.get(s) ?? 0) / (t.spent || 1)) * 100}%`, background: SOURCES[s as keyof typeof SOURCES].color }} />
-            ))}
-          </div>
-          <div className="srclist">
-            {Object.entries(SOURCES).map(([s, m]) => (
-              <div key={s}><span className="sq" style={{ background: m.color }} /><span className="grow">{m.label}</span><span className="num">{rs(bySrc.get(s) ?? 0)}</span></div>
-            ))}
-          </div>
-        </section>
-
-        <section className="panel">
-          <h2>Is the data complete?</h2>
-          {data.sources.map((s) => (
-            <div key={s.source} className="srcstat">
-              <span className={`tick ${s.ok ? "ok" : "warn"}`} aria-hidden>{s.ok ? "✓" : "!"}</span>
-              <div className="grow">
-                <div className="strong">{s.name}</div>
-                <div className="muted small">{s.detail}</div>
-                {s.note && <div className="muted small">{s.note}</div>}
-                {s.errors.length > 0 && <div className="warn small">{s.errors.length} file(s) could not be read: {s.errors[0]}</div>}
+        <div className="stack">
+          <section className="panel">
+            <h2>Regular payments</h2>
+            {!regular.length && <div className="muted">None in this period.</div>}
+            {regular.map((g) => (
+              <div key={g.name} className="regular">
+                <span className={`dot ${g.paid ? "done" : "due"}`} />
+                <span className="grow">{g.name}</span>
+                <span className="num">{rs(g.amount)}</span>
+                <span className={`when ${g.paid ? "" : "due"}`}>{g.paid ? `paid ${dayLabel(g.paid)}` : "not yet"}</span>
               </div>
-              {s.pending > 0 && <span className="pill gold">{s.pending} newer, not final</span>}
+            ))}
+          </section>
+          <section className="panel">
+            <h2>Paid from</h2>
+            <div className="srcbar">
+              {Object.keys(SOURCES).map((s) => (
+                <i key={s} style={{ width: `${((bySrc.get(s) ?? 0) / (t.spent || 1)) * 100}%`, background: SOURCES[s as keyof typeof SOURCES].color }} />
+              ))}
             </div>
-          ))}
+            <div className="srclist">
+              {Object.entries(SOURCES).map(([s, m]) => (
+                <div key={s}><span className="sq" style={{ background: m.color }} /><span className="grow">{m.short}</span><span className="num">{rs(bySrc.get(s) ?? 0)}</span></div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {days.length > 1 && days.length <= 92 && (
+        <section className="panel">
+          <div className="head"><h2>Spend by day</h2><span className="muted">Card bills left out</span></div>
+          <div className="days">
+            {days.map((d, i) => (
+              <div key={d.day} className="day" title={`${dayLabel(d.day)}: ${rs(d.v)}`}>
+                {d.v > dmax * 0.4 && <span className={`daylbl ${i < 3 ? "l" : i > days.length - 4 ? "r" : ""}`}>{rsShort(d.v)}</span>}
+                <i style={{ height: `${Math.max(d.v ? 3 : 0, Math.sqrt(d.v / dmax) * 130)}px` }} />
+              </div>
+            ))}
+          </div>
+          <div className="axis"><span>{dayLabel(days[0].day)}</span><span>{dayLabel(days[days.length - 1].day)}</span></div>
         </section>
-      </div>
-
-      <DataSources />
+      )}
     </main>
-  );
-}
-
-const YOU = [
-  ["SBI savings (passbook)", "In YONO, email yourself the month's statement. SBI's own monthly email can come days late."],
-  ["Rides (Rapido)", "In the Rapido app, request receipts for the month's rides. The sync picks them up from Gmail."],
-  ["Trips", "Add the bus and stay bookings, with times, on trips.agrolloo.com."],
-  ["Google Pay", "In the Google Pay app, download a statement from the last one to today. It names every UPI payee."],
-  ["Needs you", "After the sync, tag the payments it could not."],
-];
-const SOMETIMES = [
-  ["Flipkart login expired", "Run pp-flipkart login and type the OTP."],
-  ["A bank changes a statement password", "Say the new password in the sync chat."],
-];
-const AUTO = [
-  ["SBI Card, Tata Neu, Amazon Pay ICICI", "Monthly statement PDF from Gmail. This is the truth. Nothing to download."],
-  ["Card purchase alerts", "From Gmail. They fill the days after the last statement, marked not final."],
-  ["SBI monthly e-statement", "From Gmail, when SBI sends it."],
-  ["Flipkart and Flipkart Minutes", "Orders and items, from your Flipkart account."],
-  ["Uber and Rapido receipts", "From Gmail. They prove a payment was a ride and give its route."],
-  ["Trips", "From trips.agrolloo.com: first departure to last arrival."],
-];
-
-function DataSources() {
-  const list = (items: string[][], mark: string, cls: string) => items.map(([name, how]) => (
-    <div key={name} className="srcstat">
-      <span className={`tick ${cls}`} aria-hidden>{mark}</span>
-      <div className="grow"><div className="strong">{name}</div><div className="muted small">{how}</div></div>
-    </div>
-  ));
-  return (
-    <section className="panel">
-      <div className="head"><h2>Where the data comes from</h2><span className="muted">Each month end: do "You do this", then sync</span></div>
-      <div className="grid-2">
-        <div>
-          <h3 className="subhead">You do this</h3>
-          {list(YOU, "→", "wait")}
-          <h3 className="subhead">Only sometimes</h3>
-          {list(SOMETIMES, "·", "")}
-        </div>
-        <div>
-          <h3 className="subhead">The sync gets it by itself</h3>
-          {list(AUTO, "✓", "ok")}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -210,12 +133,15 @@ function group<K>(rows: Row[], key: (r: Row) => K) {
   return m;
 }
 
-function daily(rows: Row[], ym: string) {
-  const [y, mo] = ym.split("-").map(Number);
-  const n = new Date(Date.UTC(y, mo, 0)).getUTCDate();
-  const v = new Array(n).fill(0);
-  for (const r of rows) if (isSpend(r)) v[+r.date.slice(8, 10) - 1] -= r.amount!;
-  return v.map((x, i) => ({ day: `${ym}-${String(i + 1).padStart(2, "0")}`, v: x }));
+/** Spend per day, from the first to the last day the rows cover. */
+function daily(rows: Row[]) {
+  const ds = rows.map((r) => r.date).sort();
+  if (!ds.length) return [];
+  const v = new Map<string, number>();
+  for (const r of rows) if (isSpend(r)) v.set(r.date, (v.get(r.date) ?? 0) - r.amount!);
+  const out: { day: string; v: number }[] = [];
+  for (let d = ds[0]; d <= ds[ds.length - 1] && out.length < 400; d = addDays(d, 1)) out.push({ day: d, v: v.get(d) ?? 0 });
+  return out;
 }
 
 /** A regular is a payee tagged rent/cook/family/... in this month or the one before. */

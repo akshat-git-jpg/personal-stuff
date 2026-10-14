@@ -33,7 +33,7 @@ is `yt-income` -> yt-income.agrolloo.com.
 
 ## The month-end sync
 
-What the owner does first (also shown on the app's Overview, "Where the data comes from"):
+What the owner does first:
 1. YONO: email himself the month's SBI statement (or hand you the PDF path).
 2. Rapido app: request receipts for the month's rides.
 3. Trip bookings (bus + stay, with times) on trips.agrolloo.com.
@@ -76,9 +76,9 @@ FROM rows WHERE json_extract(data,'$.status')='needs' AND json_extract(data,'$.k
 ORDER BY date DESC
 ```
 
-The app's badge counts rows; "All time (N)" on Needs you counts payees. They differ when
-one payee has two rows. "This month" there means the newest month with any row, so on the
-1st of a month it can hide the month just synced: point him at "All time".
+The app's badge counts rows; Needs you lists payees. They differ when one payee has two rows.
+Every page follows the one date picker at the top (default: the newest month), so on the 1st
+of a month it can hide the month just synced: point him at "Show all time" on Needs you.
 
 **Before handing him the list, dig for proof on every new row.** He should never have to
 ask "did you check X?". For each row, in this order:

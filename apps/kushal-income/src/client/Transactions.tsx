@@ -6,16 +6,16 @@
  */
 import { useMemo, useState } from "react";
 import type { Ledger, Row, Source, Status, TagNode } from "./api";
-import { DatePicker, inPick, pickLabel, type Pick } from "./DatePicker";
-import { chain, dayLabel, isIn, makeTree, monthOf, namesOf, rs, SOURCES, todayIso, totals, tripTag, within } from "./lib";
+import { inPick, type Pick } from "./DatePicker";
+import { chain, dayLabel, isIn, makeTree, namesOf, rs, SOURCES, totals, tripTag, within } from "./lib";
 import { TagEditor } from "./TagEditor";
 
 const STATUS: Record<Status, string> = { proven: "Proven", confirmed: "Confirmed by you", needs: "Needs you" };
 const NEEDS = "\u0000needs";
 
-export function Transactions({ data, params, reload }: { data: Ledger; params: URLSearchParams; reload: () => Promise<void> }) {
-  const newest = data.rows.reduce((m, r) => (r.date > m ? r.date : m), "");
-  const pm = params.get("month");
+export function Transactions({ data, params, pick, newest, reload }: {
+  data: Ledger; params: URLSearchParams; pick: Pick; newest: string; reload: () => Promise<void>;
+}) {
   const [q, setQ] = useState("");
   const [src, setSrc] = useState<Set<Source>>(new Set(params.get("source") ? [params.get("source") as Source] : []));
   const tree = useMemo(() => makeTree(data.tags), [data]);
@@ -32,11 +32,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
   const [editing, setEditing] = useState<string | null>(null);
   const [limit, setLimit] = useState(300);
   const [bulk, setBulk] = useState(false);
-
-  const anchor = newest || todayIso();
-  const first = data.rows.reduce((m, r) => (r.date < m ? r.date : m), anchor).slice(0, 7);
-  const last = monthOf(anchor);
-  const [pick, setPick] = useState<Pick>({ kind: "months", months: [pm ?? last] });
+  const [more, setMore] = useState(false);
 
   const nodeOf = (r: Row) => (r.status === "needs" ? null : r.tag_id ?? null);
   const atPath = at && at !== NEEDS ? namesOf(tree, at).join("/") : "";
@@ -44,7 +40,7 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
   const qq = q.trim().toLowerCase();
   // Every filter except the tag ones, so each chip's total is what clicking it would show.
   const base = data.rows.filter((r) => {
-    if (!inPick(pick, r.date, anchor)) return false;
+    if (!inPick(pick, r.date, newest)) return false;
     if (hideBills && (r.kind === "bill" || r.kind === "payment") && atPath !== "bank/card bill") return false;
     if (src.size && !src.has(r.source)) return false;
     if (stat.size && !stat.has(r.status)) return false;
@@ -85,7 +81,6 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
     if (n.has(v)) n.delete(v); else n.add(v);
     put(n);
   };
-  const rangeText = pickLabel(pick, first, last);
 
   return (
     <main className="stack">
@@ -94,7 +89,12 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
           <label className="sr" htmlFor="q">Search</label>
           <input id="q" className="search" type="search" value={q} onChange={(e) => setQ(e.target.value)}
             placeholder="Search shop, description or tag. Try: swiggy, uber, rent" />
-          <DatePicker value={pick} onChange={setPick} first={first} last={last} />
+          <button className="linkbtn" aria-expanded={more} onClick={() => setMore(!more)}>{more ? "Fewer filters" : "More filters"}</button>
+          {filtered && (
+            <button className="linkbtn" onClick={() => { setQ(""); setSrc(new Set()); setAt(null); setStat(new Set()); setInferredOnly(false); }}>
+              Clear filters
+            </button>
+          )}
         </div>
         <div className="row">
           <span className="lbl">Paid by</span>
@@ -118,45 +118,27 @@ export function Transactions({ data, params, reload }: { data: Ledger; params: U
             )}
           </div>
         ))}
+        {more && <>
         <div className="row">
           <span className="lbl">Status</span>
           {(Object.keys(STATUS) as Status[]).map((s) => (
             <button key={s} className="chip" aria-pressed={stat.has(s)} onClick={() => flip(stat, s, setStat)}>{STATUS[s]}</button>
           ))}
           <button className="chip" aria-pressed={inferredOnly} onClick={() => setInferredOnly(!inferredOnly)}>From ride pattern</button>
-          {filtered && (
-            <button className="linkbtn" onClick={() => { setQ(""); setSrc(new Set()); setAt(null); setStat(new Set()); setInferredOnly(false); }}>
-              Clear filters
-            </button>
-          )}
         </div>
         <label className="check">
           <input type="checkbox" checked={hideBills} onChange={(e) => setHideBills(e.target.checked)} />
-          <span>Hide card bill payments. Each card purchase is already a row, so a bill would count it twice.</span>
+          <span>Hide card bill payments (each card purchase is already a row)</span>
         </label>
+        </>}
       </section>
 
-      <div className="kpis">
-        <div className="panel kpi dark">
-          <h2>Spent in these rows</h2>
-          <div className="kpi-v">{rs(t.spent)}</div>
-          <div className="kpi-sub">{rangeText}{filtered ? ", filtered" : ""}{hideBills ? " · card bills hidden" : ""}</div>
-        </div>
-        <div className="panel kpi">
-          <h2>Money in</h2>
-          <div className="kpi-v in">{rs(t.inn)}</div>
-          <div className="kpi-sub">Salary, interest, refunds</div>
-        </div>
-        <div className="panel kpi">
-          <h2>Rows</h2>
-          <div className="kpi-v">{rows.length}</div>
-          <div className="kpi-sub">Newest first{t.fxOnly ? ` · ${t.fxOnly} in foreign money not in the total yet` : ""}</div>
-        </div>
-        <div className="panel kpi alarm">
-          <h2>Not sure yet</h2>
-          <div className="kpi-v">{rs(t.needs)}</div>
-          <div className="kpi-sub">{t.needsN ? `${t.needsN} of these rows are not tagged yet` : "Every row here is tagged"}</div>
-        </div>
+      <div className="summary">
+        <span><span className="muted">Spent</span> <b className="num out">{rs(t.spent)}</b></span>
+        <span><span className="muted">In</span> <b className="num in">{rs(t.inn)}</b></span>
+        <span><span className="muted">Rows</span> <b className="num">{rows.length}</b></span>
+        {t.needsN > 0 && <span className="warn">{rs(t.needs)} in {t.needsN} rows not tagged</span>}
+        {t.fxOnly > 0 && <span className="muted">{t.fxOnly} in foreign money, not in the total yet</span>}
       </div>
 
       {(() => {
@@ -203,7 +185,9 @@ function sumBy(rows: Row[], key: (r: Row) => string | string[]): Map<string, Sum
   for (const r of rows) for (const k of [key(r)].flat()) g.set(k, [...(g.get(k) ?? []), r]);
   return new Map([...g].map(([k, rs]) => {
     const t = totals(rs);
-    return [k, t.spent > 0 ? { amt: t.spent, isIn: false } : { amt: t.inn, isIn: t.inn > 0 }];
+    // A loan is neither spend nor income, but its chip still shows the money that came in.
+    const got = t.inn || rs.reduce((a, r) => a + Math.max(0, r.amount ?? 0), 0);
+    return [k, t.spent > 0 ? { amt: t.spent, isIn: false } : { amt: got, isIn: got > 0 }];
   }));
 }
 
