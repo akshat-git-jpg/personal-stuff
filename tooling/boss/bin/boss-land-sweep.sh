@@ -360,7 +360,17 @@ reap_one() {
     return 0
   fi
   if boss_head_advanced "land-$slug"; then
-    say "ADVANCED   land-$slug — fix-up committed; the post-commit hook re-triggers the land"
+    # A fix-up that ends by finishing a rebase fires no post-commit hook, so start the land here (2026-10-15).
+    local ws lander
+    ws=$(entry_get "$f" workspace)
+    lander="${BOSS_PP_LAND_BIN:-$REPO_ROOT/tooling/cli/pp-land/pp-land}"
+    if [ -n "$ws" ] && [ -d "$ws" ] && [ -x "$lander" ]; then
+      nohup "$lander" "$ws" >>"$(dirname "$ws")/land.log" 2>&1 &
+      disown $! 2>/dev/null || true
+      say "ADVANCED   land-$slug — fix-up moved the branch; land started"
+    else
+      say "ADVANCED   land-$slug — fix-up moved the branch; could not start the land (no workspace or pp-land)"
+    fi
     rm -f "$f"
     return 0
   fi
@@ -517,7 +527,7 @@ sweep_one() {
   # Fresh meta per dispatch: an old pid/fixups would trip boss_fixup_claim; the caps above bound a land.
   : > "$STATE_DIR/land-$slug.meta"
   meta_set "land-$slug" worktree "$ws"
-  # A blank model means "the executor's own default" — Gemini 3.1 Pro (High) for agy.
+  # A blank model means "the executor's own default" — Gemini 3.8 Flash (High) for agy.
   # The fallback is pinned instead, because its default is the thing being chosen.
   if [ "$ex" = agy ]; then
     meta_set "land-$slug" model ""

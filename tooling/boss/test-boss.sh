@@ -960,6 +960,26 @@ echo "$l12_out" | grep -q 'DISPATCHED' \
 land_reset
 echo "PASS: a fresh block dispatches despite an earlier fix-up's meta"
 
+echo "--- (L13) a fix-up that moved the branch gets its land started by the sweep ---"
+# 2026-10-15. The avatar-quality-fixes fix-up ended by finishing a rebase. A rebase fires no
+# post-commit hook, so nothing started the land and the work sat unlanded until a hand run.
+land_reset
+l13_before=$(git -C "$l11_ws" rev-parse HEAD)
+git -C "$l11_ws" -c user.email=t@t -c user.name=t commit -q --allow-empty -m rebased
+l11_entry
+mv "$LANDS/land-boss-l11.blocked" "$LANDS/land-boss-l11.dispatching"
+printf 'worktree=%s\nexecutor=agy\nhead_before=%s\npid=999999\n' "$l11_ws" "$l13_before" > "$LANDS/land-boss-l11.meta"
+l13_log="$TMP/l13-pp-land.log"; : > "$l13_log"
+printf '#!/bin/bash\nprintf "%%s\\n" "$1" >> "%s"\n' "$l13_log" > "$TMP/l13-pp-land"
+chmod +x "$TMP/l13-pp-land"
+l13_out=$(BOSS_PP_LAND_BIN="$TMP/l13-pp-land" LAND_STUB_SLEEP=0 BOSS_CHROME_WAIT_MIN=0 "$LAND_SWEEP" 2>&1)
+sleep 1
+grep -qxF "$l11_ws" "$l13_log" \
+  || fail "(L13) the sweep did not start a land after the fix-up moved the branch: $l13_out"
+[ -e "$LANDS/land-boss-l11.dispatching" ] && fail "(L13) the advanced entry was kept"
+land_reset
+echo "PASS: an advanced fix-up gets its land started"
+
 echo "--- (D1) boss_dep_prelude installs deps for the dirs a command cd's into ---"
 # The verify and the mutation gate run in a POOL slot, not the crew's worktree, and
 # node_modules is per-slot — PR#197 (2026-08-23) read that as a broken mutation
