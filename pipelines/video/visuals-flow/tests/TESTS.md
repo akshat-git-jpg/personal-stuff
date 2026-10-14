@@ -148,6 +148,7 @@ tested, with what source, and what the run taught us.
 - 2026-10-14 — owner (creatify + everbee coupon): bubble popped in 0.4s after the light leak, read as lag → transition halves on the screen side now carry the bubble under the flash (lib/kit/assemble-core.mjs `withBubble`); every bubble video.
 - 2026-10-14 — owner (creatify + everbee coupon, 0:34): light leak washed out Helen's face mid-word on "description" → coupon spans `pad_into_silence` 0.4s so the cut sits in the pause; E7 accepts a cut inside a sentence-edge pause; avatar-render re-renders a span whose times moved (it silently reused the old clip).
 - 2026-10-14 — owner (creatify, round 3): flash still ate the end of "description" → pad uses measured vo.mp3 speech edges (Whisper ended the word 0.27s early); a span edge shift ≤1s refits the saved clip locally instead of a HeyGen render; `lib/preview.mjs` cuts a 12s review clip.
+- 2026-10-14 — owner (creatify 0:54-0:57): bubble avatar did idle head/eye motion in a silent pause → bubble fades out (0.3s) in every vo.mp3 pause ≥1.5s (`bubbleGaps`/`gapAlphaExpr`); every bubble video.
 
 ## Convergence
 

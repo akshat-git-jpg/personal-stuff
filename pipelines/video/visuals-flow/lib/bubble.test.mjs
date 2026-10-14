@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { plan, contribute, bubbleGeometry, bubbleSlices, CONSTANTS } from './effects/bubble.mjs';
+import { plan, contribute, bubbleGeometry, bubbleSlices, CONSTANTS, bubbleGaps, gapAlphaExpr } from './effects/bubble.mjs';
 
 test('plan emits one bubble instance', () => {
   const insts = plan({});
@@ -309,4 +309,12 @@ print('B', b(imgB, 117, 60), b(imgB, 3, 60))
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
+});
+
+test('bubble fades out in long voice pauses only', () => {
+  assert.deepStrictEqual(bubbleGaps('/no/such/vo.mp3'), []);
+  const fake = () => ({ silences: [{ start: 10, end: 10.5 }, { start: 20, end: 23 }] });
+  assert.deepStrictEqual(bubbleGaps(new URL(import.meta.url).pathname, fake), [{ start: 20, end: 23 }]);
+  assert.strictEqual(gapAlphaExpr([{ start: 20, end: 23 }], 5), 'max(clip((15.4-T)/0.3,0,1),clip((T-17.55)/0.3,0,1))');
+  assert.strictEqual(gapAlphaExpr([], 5), '');
 });

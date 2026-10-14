@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import { probeVoSpeech } from '../vo-speech.mjs';
 export const TYPE = 'bubble';
 // Sizing is measured off the reference (references/vPqSgj8Ta3Y.md): the bubble
 // is ~28% of frame height and hugs the corner. The doc's "~120px" was measured
@@ -118,6 +120,22 @@ export function bubbleSlices(seg, cornerJobs, ctx) {
   return slices;
 }
 
+// Long voice pauses: the bubble fades out in them, so Avatar III's idle head motion never plays on a silent face.
+export const GAP_MIN = 1.5, GAP_FADE = 0.3;
+export function bubbleGaps(voPath, probe = probeVoSpeech) {
+  if (!fs.existsSync(voPath)) return [];
+  return probe(voPath).silences.filter((x) => Number.isFinite(x.end) && x.end - x.start >= GAP_MIN)
+    .map((x) => ({ start: +x.start.toFixed(3), end: +x.end.toFixed(3) }));
+}
+
+// Alpha multiplier (0..1) over segment-local T: hidden from start+0.1+fade to end-0.15-fade, ramped either side.
+export function gapAlphaExpr(gaps, offset) {
+  return gaps.map((g) => {
+    const a = +(g.start - offset + 0.1 + GAP_FADE).toFixed(3), b = +(g.end - offset - 0.15 - GAP_FADE).toFixed(3);
+    return `max(clip((${a}-T)/${GAP_FADE},0,1),clip((T-${b})/${GAP_FADE},0,1))`;
+  }).join('*');
+}
+
 export function plan(ctx) {
   return [{ id: 'bubble', type: TYPE, enabled: true }];
 }
@@ -192,7 +210,9 @@ export function contribute(seg, instances, ctx) {
           // reads as "thick curved motion around a thin circle".
           chain += `color=c=0x00000000:s=${S}x${S}:d=${s.overlapDur},format=rgba,geq=r='${hr}':g='${hg}':b='${hb}':a='if(between(hypot(X-${C},Y-${C}),${GIN},${GOUT}),255*${wgt},0)',gblur=sigma=${GSIG}:steps=2[${ring}gleam];`;
           chain += `[${bub}][${ring}base]overlay=0:0[${ring}b];`;
-          chain += `[${ring}b][${ring}gleam]overlay=0:0,setpts=PTS-STARTPTS+${s.at.toFixed(3)}/TB[${bubr}];`;
+          const fade = gapAlphaExpr((bopts.gaps || []).filter((g) => g.end > PHASE + s.at && g.start < PHASE + s.until), PHASE);
+          chain += `[${ring}b][${ring}gleam]overlay=0:0,setpts=PTS-STARTPTS+${s.at.toFixed(3)}/TB` +
+            (fade ? `,format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='alpha(X,Y)*${fade}'` : '') + `[${bubr}];`;
           chain += `[${lastV}][${bubr}]overlay=${OX - PAD}:${OY - PAD}:enable='between(t,${s.at.toFixed(3)},${s.until.toFixed(3)})'[${nextV}];`;
           lastV = nextV;
         }
