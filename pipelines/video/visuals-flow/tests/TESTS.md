@@ -146,6 +146,7 @@ tested, with what source, and what the run taught us.
 - 2026-10-08 best-no-code-automation-tool (final-v2:12) — *"I have changed the intro toll graphic thing. Then why this toll thing is appearing here"* → 630 README: a retired idea is removed from concept.json and cues too. Computed on one surface, never removed from the next.
 - 2026-10-08 best-no-code-automation-tool (split brain) — 26 of 30 open notes were already folded on 2026-08-18 to 08-20 (T21 to T30, z03/z04 holds, side-span throw, ending guard) and never marked in feedback.json, so the gate sat red for 50 days. Marked now.
 - 2026-10-14 — owner (creatify + everbee coupon): bubble popped in 0.4s after the light leak, read as lag → transition halves on the screen side now carry the bubble under the flash (lib/kit/assemble-core.mjs `withBubble`); every bubble video.
+- 2026-10-14 — owner (creatify + everbee coupon, 0:34): light leak washed out Helen's face mid-word on "description" → coupon spans `pad_into_silence` 0.4s so the cut sits in the pause; E7 accepts a cut inside a sentence-edge pause; avatar-render re-renders a span whose times moved (it silently reused the old clip).
 
 ## Convergence
 

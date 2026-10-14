@@ -122,20 +122,23 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog, filmSpa
     // output would fail this gate.
     const voEndForE7 = lastSpeechEnd(voSpeech);
     const sentenceEnds = voEndForE7 !== null ? [T, voEndForE7] : [T];
+    const sentenceEndPauses = [];
     for (let i = 0; i < words.length - 1; i++) {
       if (/[.!?]["')\]]?$/.test(wordText(words[i]).trim())) {
         sentenceEnds.push(words[i].end);
+        // A cut anywhere in the pause after a sentence is still on its edge (coupon pad_into_silence).
+        sentenceEndPauses.push([words[i].end, words[i + 1].start]);
         sentenceStarts.push({ t: words[i + 1].start, gap: +(words[i + 1].start - words[i].end).toFixed(3) });
       }
     }
     for (const s of shotsResolved.spans ?? []) {
-      const hit = sentenceStarts.find((x) => Math.abs(x.t - s.start) <= TOL);
+      const hit = sentenceStarts.find((x) => Math.abs(x.t - s.start) <= TOL || (s.start < x.t && x.t - s.start <= x.gap));
       if (!hit) {
         errors.push(`E7 sentence-cut: span ${s.id} starts at ${s.start.toFixed(2)}s, mid-sentence — a full-screen host span must start where a sentence starts`);
       } else if (hit.gap < BREATH) {
         warnings.push(`W7 flush-cut: span ${s.id} starts at a sentence start with only ${hit.gap.toFixed(2)}s of silence before it — the cut reads as mid-sentence; prefer the neighbouring sentence with a real breath before it`);
       }
-      if (!sentenceEnds.some((t) => Math.abs(t - s.end) <= TOL)) {
+      if (!sentenceEnds.some((t) => Math.abs(t - s.end) <= TOL) && !sentenceEndPauses.some(([a, b]) => s.end >= a && s.end <= b)) {
         errors.push(`E7 sentence-cut: span ${s.id} ends at ${s.end.toFixed(2)}s, mid-sentence — a full-screen host span must end where a sentence ends`);
       }
     }

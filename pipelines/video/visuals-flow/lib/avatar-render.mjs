@@ -258,6 +258,16 @@ async function main() {
     if (fs.existsSync(jobsPath)) {
       jobsState = JSON.parse(fs.readFileSync(jobsPath, 'utf8')).jobs || [];
     }
+    // A span whose times moved is a new clip: drop the old job and its cached audio slice.
+    jobsState = jobsState.filter((s) => {
+      const job = jobs.find((j) => j.id === s.id);
+      const moved = job && !job.from && (Math.abs(job.start - s.start) > 0.01 || Math.abs(job.end - s.end) > 0.01);
+      if (moved) {
+        fs.rmSync(path.join(slicesDir, `${s.id}.mp3`), { force: true });
+        console.error(`${s.id}: span moved ${s.start}-${s.end} → ${job.start}-${job.end}, re-rendering`);
+      }
+      return !moved;
+    });
 
     for (const job of jobs.filter((j) => !j.from)) {
       const audioPath = path.join(slicesDir, `${job.id}.mp3`);

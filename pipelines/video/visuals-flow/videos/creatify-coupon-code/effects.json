@@ -3,9 +3,9 @@
   "approved": true,
   "instances": [
     {
-      "id": "whip-16.2",
+      "id": "whip-15.8",
       "type": "whip",
-      "at": 16.22,
+      "at": 15.82,
       "direction": "right",
       "fromIdx": 0,
       "toIdx": 1,
@@ -14,9 +14,9 @@
       "enabled": true
     },
     {
-      "id": "whip-35.1",
+      "id": "whip-35.5",
       "type": "whip",
-      "at": 35.12,
+      "at": 35.52,
       "direction": "right",
       "fromIdx": 1,
       "toIdx": 2,
@@ -25,9 +25,9 @@
       "enabled": true
     },
     {
-      "id": "whip-245.7",
+      "id": "whip-245.3",
       "type": "whip",
-      "at": 245.72,
+      "at": 245.32,
       "direction": "right",
       "fromIdx": 2,
       "toIdx": 3,
