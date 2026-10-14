@@ -8,18 +8,18 @@
       "id": "s01",
       "purpose": "avatar-full",
       "mode": "full",
-      "start": 16.22,
-      "end": 35.12,
-      "duration": 18.9,
+      "start": 15.82,
+      "end": 35.52,
+      "duration": 19.7,
       "note": "coupon template: intro, from the greeting to the first link-in-description line"
     },
     {
       "id": "s02",
       "purpose": "avatar-full",
       "mode": "full",
-      "start": 245.72,
+      "start": 245.32,
       "end": 271.78,
-      "duration": 26.06,
+      "duration": 26.46,
       "note": "coupon template: outro, from \"that's it\" to the end",
       "snapped": true
     }

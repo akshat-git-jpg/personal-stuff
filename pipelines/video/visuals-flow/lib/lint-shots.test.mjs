@@ -433,3 +433,14 @@ test('E7: a span ending at the acoustic end of speech is a legal sentence end', 
   const e7end = errors.filter((e) => e.startsWith('E7') && e.includes('ends at'));
   assert.deepEqual(e7end, [], `unexpected E7 end error: ${JSON.stringify(e7end)}`);
 });
+
+test('E7: a span edge inside the pause next to a sentence edge is legal, inside a word is not', () => {
+  const words = [
+    { text: 'Before.', start: 0, end: 1 }, { text: 'Hi', start: 2, end: 2.3 }, { text: 'guys', start: 2.3, end: 2.6 },
+    { text: 'description.', start: 2.6, end: 5 }, { text: 'It', start: 5.7, end: 6 }, { text: 'goes.', start: 6, end: 30 },
+  ];
+  const ok = lintShots({ shotsResolved: { spans: [{ id: 's01', start: 1.6, end: 5.4, duration: 3.8, mode: 'full' }] }, resolvedCues: [], words, catalog: mockCatalog });
+  assert.deepEqual(ok.errors.filter((e) => e.startsWith('E7')), []);
+  const bad = lintShots({ shotsResolved: { spans: [{ id: 's01', start: 1.6, end: 6.5, duration: 4.9, mode: 'full' }] }, resolvedCues: [], words, catalog: mockCatalog });
+  assert.ok(bad.errors.some((e) => e.startsWith('E7') && e.includes('ends at')));
+});

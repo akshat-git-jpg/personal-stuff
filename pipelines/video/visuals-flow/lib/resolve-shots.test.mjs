@@ -209,3 +209,17 @@ test('a mid-video span is untouched by voSpeechEnd', () => {
   assert.equal(spans[0].end, 22);
   assert.equal(spans[0].snapped, undefined);
 });
+
+test('pad_into_silence grows a span into the pauses but never over a neighbouring word', () => {
+  const gappy = [
+    { text: 'a', start: 0, end: 1 }, { text: 'hi', start: 3, end: 3.5 }, { text: 'there', start: 3.5, end: 4 }, { text: 'you', start: 4, end: 4.3 },
+    { text: 'go', start: 4.3, end: 4.6 }, { text: 'the', start: 4.6, end: 5 }, { text: 'end', start: 5.2, end: 6 }, { text: 'next', start: 6.3, end: 7 }, ...Array.from({ length: 20 }, (_, i) => ({ text: `z${i}`, start: 8 + i, end: 9 + i }))
+  ];
+  const { spans, errors } = resolveShots({
+    engineMode: 'test',
+    spans: [{ id: 's01', purpose: 'avatar-full', mode: 'full', from_anchor: 'hi there you', to_anchor: 'go the end', pad_into_silence: 0.4 }]
+  }, gappy);
+  assert.deepEqual(errors, []);
+  assert.equal(spans[0].start, 2.6);
+  assert.equal(spans[0].end, 6.25);
+});

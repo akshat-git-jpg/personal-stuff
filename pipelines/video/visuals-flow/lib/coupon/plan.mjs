@@ -15,8 +15,9 @@ export const COUPON_RULES = {
   AVATAR: 'helen-office',  // default coupon presenter (owner 2026-10-09); --avatar overrides
   TRANSITION_GUARD: 0.6,   // s kept clear of cards around an avatar cut
   CARD_GAP: 0.3,           // s between two overlays
-  MAX_SLIP: 2.5,           // s a card may move off its trigger before it is dropped
+  MAX_SLIP: 3,             // s a card may move off its trigger before it is dropped
   PILL_MIN_GAP: 20,        // s between two link pills
+  SILENCE_PAD: 0.4,        // s each avatar cut moves into the pause, so the light leak never covers a word (= whip LEAK_HALF)
   DUR: {
     'link-in-description/link-in-description': 4,
     'like-subscribe/like-subscribe': 5,
@@ -182,12 +183,18 @@ export function planCoupon(words, { video, avatar = COUPON_RULES.AVATAR, total: 
   if (!b2) return { errors: ['could not build unique avatar span anchors'], notes };
   const spans = [
     { id: 's01', purpose: 'avatar-full', mode: 'full', from_anchor: a1.text, to_anchor: b1.text,
+      pad_into_silence: COUPON_RULES.SILENCE_PAD,
       note: 'coupon template: intro, from the greeting to the first link-in-description line', flagged: false },
     { id: 's02', purpose: 'avatar-full', mode: 'full', from_anchor: a2.text, to_anchor: b2.text,
+      pad_into_silence: COUPON_RULES.SILENCE_PAD,
       note: 'coupon template: outro, from "that\'s it" to the end', flagged: false },
   ];
-  const s01 = { start: W[intro].start, end: W[introEnd].end };
-  const s02 = { start: W[outro].start, end: total };
+  // Same padding resolve-shots applies, so cards keep clear of the real cuts.
+  const P = COUPON_RULES.SILENCE_PAD;
+  const padStart = (k) => (k > 0 ? Math.min(W[k].start, Math.max(W[k].start - P, W[k - 1].end + 0.05)) : W[k].start);
+  const padEnd = (k) => (W[k + 1] ? Math.max(W[k].end, Math.min(W[k].end + P, W[k + 1].start - 0.05)) : W[k].end);
+  const s01 = { start: padStart(intro), end: padEnd(introEnd) };
+  const s02 = { start: padStart(outro), end: total };
   const cuts = [s01.start, s01.end, s02.start].filter((t) => t > 0.5);
 
   const candidates = [];

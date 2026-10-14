@@ -63,6 +63,13 @@ export function resolveShots(shotsFile, words, { voSpeechEnd = null } = {}) {
       end = +Math.max(total, voSpeechEnd ?? total).toFixed(2);
       snapped = true;
     }
+    // pad_into_silence: grow the span into the pauses around it (never past a neighbouring word), so a transition flash lands on silence.
+    const pad = span.pad_into_silence ?? 0;
+    if (pad > 0) {
+      const prev = W[a.idx - 1], next = W[b.idx + b.len];
+      if (prev && start > 0) start = +Math.min(start, Math.max(start - pad, prev.end + 0.05)).toFixed(2);
+      if (next && !snapped) end = +Math.max(end, Math.min(end + pad, next.start - 0.05)).toFixed(2);
+    }
     const spanObj = {
       id: span.id, purpose, mode,
       start, end, duration: +(end - start).toFixed(2),
