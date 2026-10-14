@@ -142,8 +142,6 @@ Card statements, alerts, Uber, Flipkart and trips are fetched by the sync itself
   statement on demand, or SBI alert emails if they carry UPI debits (not checked yet).
 - **A sync button in the app.** For now the sync is the `my-income` skill ("sync Kushal
   Money"). It stays on demand.
-- **Needs you left over:** 15 June to September payees, and the ₹2,728.95 Redbus booking
-  on 15 Sep (Varkala or not).
 - **kushal-tools hub card:** rename it to "Kushal Money".
 - **Health and travel tags:** keep them (they only show in months that have them) or merge
   health into personal care and travel into trip. Owner to decide.

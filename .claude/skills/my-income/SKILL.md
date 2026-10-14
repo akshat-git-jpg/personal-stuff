@@ -144,5 +144,6 @@ left (from D1), any card bill due soon, and anything the log says "skipped".
 ## Parked (owner said later)
 
 In `pipelines/personal-finance/README.md` "Parked": same-day SBI payments, a sync button,
-leftover Needs-you payees + the 15 Sep Redbus ₹2,728.95, renaming the kushal-tools hub card
-to "Kushal Money", and whether to keep or merge the health and travel tags.
+renaming the kushal-tools hub card to "Kushal Money", and whether to keep or merge the
+health and travel tags. Needs you was cleared to zero on 2026-10-14; payees nobody remembers
+go on `misc` as "Unidentified: <payee>" (owner).
