@@ -56,6 +56,25 @@ def gpay_statement_events(text):
     return out
 
 
+def takeout_events(t):
+    """Paid/Sent entries of a Takeout My Activity page. A Failed one moved no money, so it is skipped."""
+    out = []
+    for cell in t.split('<div class="outer-cell')[1:]:
+        c = re.search(r'<div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1">(.*?)</div>', cell, re.S)
+        if not c or re.search(r"Details:.*?\bFailed\b", re.sub(r"<[^>]+>", " ", cell), re.S):
+            continue
+        x = html.unescape(re.sub(r"<[^>]+>", " ", c[1].replace("<br>", " | ")))
+        m = re.match(r"\s*(Paid|Sent)\s+₹([\d,]+\.\d\d)(?: to (.+?))?(?: using Bank Account (\S+))?\s*\|\s*"
+                     r"(\w{3} \d{1,2}, \d{4}, [\d:]+\s?[AP]M)", x)
+        if not m:
+            continue
+        src = _gpay_source(m[4] or "")
+        if src:
+            out.append({"ts": dt.datetime.strptime(m[5].replace("\u202f", " "), "%b %d, %Y, %I:%M:%S %p"),
+                        "amount": float(m[2].replace(",", "")), "to": (m[3] or "").strip(), "source": src, "kind": m[1]})
+    return out
+
+
 def gpay_events(data):
     """[{ts, amount, to, source}] for every Paid/Sent entry, deduped across exports."""
     seen, out = set(), []
@@ -79,18 +98,8 @@ def gpay_events(data):
             out.append(e)
 
     for f in sorted((data / "raw" / "gpay").glob("**/My Activity.html")):
-        t = f.read_text(errors="ignore")
-        for c in re.findall(r'<div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1">(.*?)</div>', t, re.S):
-            x = html.unescape(re.sub(r"<[^>]+>", " ", c.replace("<br>", " | ")))
-            m = re.match(r"\s*(Paid|Sent)\s+₹([\d,]+\.\d\d)(?: to (.+?))?(?: using Bank Account (\S+))?\s*\|\s*"
-                         r"(\w{3} \d{1,2}, \d{4}, [\d:]+\s?[AP]M)", x)
-            if not m:
-                continue
-            ts = dt.datetime.strptime(m[5].replace("\u202f", " "), "%b %d, %Y, %I:%M:%S %p")
-            src = _gpay_source(m[4] or "")
-            if src:
-                add({"ts": ts, "amount": float(m[2].replace(",", "")), "to": (m[3] or "").strip(),
-                     "source": src, "kind": m[1]})
+        for e in takeout_events(f.read_text(errors="ignore")):
+            add(e)
     return out
 
 
