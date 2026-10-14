@@ -362,3 +362,16 @@ a.minibar:hover span:first-child{color:var(--c1)}
   .cardsub .muted{display:none}
   .cardsub .num.big{font-size:16px}
 }
+
+/* sortable headings */
+.sorth{border:0;background:none;padding:6px 0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;
+  cursor:pointer;display:inline-flex;gap:5px;align-items:center;min-height:32px}
+.sorth:hover,.sorth.on{color:var(--ink)}
+.sortarrow{font-size:11px;opacity:.45} .sorth.on .sortarrow{opacity:1}
+.right .sorth{margin-left:auto} span.right:has(.sorth){display:flex;justify-content:flex-end}
+.minirow.thead{min-height:0}
+@media(max-width:900px){
+  .minirow.thead span:nth-child(2){display:block}
+  .minirow.thead span:nth-child(4){display:flex}
+  .minirow.thead span:nth-child(3){display:none}
+}
