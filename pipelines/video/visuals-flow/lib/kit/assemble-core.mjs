@@ -590,7 +590,25 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   }
 
   const whipInstances = enabledInstances.filter(i => i.type === transitionMod?.TYPE);
-  
+
+  // A transition half on the screen side carries the bubble too, under the flash, so it never pops in after it.
+  const bubbleMod = effectModules.find((m) => m.TYPE === 'bubble');
+  const bubbleInsts = enabledInstances.filter(i => i.type === 'bubble');
+  const withBubble = (ex, span) => {
+    const head = `[0:v]${VF},`;
+    if (!bubbleMod || bubbleInsts.length === 0 || !ex.chain.startsWith(head)) return ex;
+    const contrib = bubbleMod.contribute({ kind: 'screen', ...span }, bubbleInsts, { ...ctx, startTrim: 0, endTrim: 0, dur: span.end - span.start });
+    if (!contrib?.inputs?.length) return ex;
+    let chain = `[0:v]${VF}[tb0];`;
+    let lastV = 'tb0';
+    for (const frag of contrib.chainFragments) {
+      const r = frag(lastV, { inputOffset: 1 });
+      chain += r.chain;
+      lastV = r.nextV;
+    }
+    return { ...ex, sliceArgs: [...ex.sliceArgs, ...contrib.inputs], chain: chain + `[${lastV}]` + ex.chain.slice(head.length) };
+  };
+
   const concatLines = [];
   const timelineClips = [];
   let segIndex = 1;
@@ -875,7 +893,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         // Transition halves sit on the same frame clock as the segments they
         // join, walking forward from where this segment's content ended.
         let exEnd = seg.end - endTrim;
-        for (const ex of bSegsRes.extraSegments) {
+        const nextSeg = segments.find(s => Math.abs(s.start - tOut.at) < 0.01);
+        const [exOut, exIn] = bSegsRes.extraSegments;
+        const extras = bSegsRes.extraSegments.length === 2 ? [
+          seg.kind === 'screen' ? withBubble(exOut, { start: tOut.at - exOut.dur, end: tOut.at }) : exOut,
+          nextSeg?.kind === 'screen' ? withBubble(exIn, { start: tOut.at, end: tOut.at + exIn.dur }) : exIn,
+        ] : bSegsRes.extraSegments;
+        for (const ex of extras) {
           const transStr = `seg-${String(segIndex).padStart(3, '0')}-${ex.fileTag}.ts`;
           const transFile = path.join(tmpDir, transStr);
           concatLines.push(`file '${transStr}'`);
