@@ -22,6 +22,7 @@ one of them, `bt-audio-guard`, with its script unbacked-up anywhere.
 | `com.kbtg.pp-work-snapshot` | Records every `pp-work` workspace's file tree **without committing it**. A commit inside a workspace fires `pp-land`, which rebases, verifies and pushes to `main` — so there is no such thing as a private "just in case" commit here. This is the safety net instead. | every 30 min | `tooling/cli/pp-work/` |
 | `com.kbtg.bt-audio-guard` | On earbud reconnect, switches the audio **input** back to the MacBook microphone. macOS otherwise grabs the earbud mic, which forces the link into HFP call mode — mono 16 kHz, and music sounds broken. | polls every 3s (`KeepAlive`) | `tooling/cli/bt-audio-guard/` |
 | `com.kbtg.coffee-watchdog` | Enforces the `coffee` lease: keeps the Mac awake with the lid shut while an unexpired lease exists, and re-enables sleep the moment it expires, the battery drops under 20% while discharging, or the lease file goes away. It never READS the power setting, it re-asserts the correct one every 20s — so sleep-enabled is the resting state and nothing forgotten can strand the Mac awake. | always on (`KeepAlive`) | `tooling/cli/coffee/` |
+| `com.kbtg.inbox-pull` | Saves new files and text sent to the **KB Inbox** Telegram bot into `~/Inbox`, with a macOS notification. Telegram drops unread updates after 24h, so this keeps the phone-to-Mac drop reliable. | every 5 min | `tooling/cli/inbox/` |
 | `com.kushal.skills-sync` | Copies the five person-level skills (`claude-router`, `github-router`, `humanizer`, `i-have-adhd`, `session-handoff`) from `.claude/skills/` into the **private** `work-skills` plugin, then commits and pushes it. Backstop: the repo hygiene gate already warns at commit time. Skips a dirty checkout. | daily 04:10 | `scripts/` |
 
 `mega.mac.megaupdater` also sits in `~/Library/LaunchAgents/`. It belongs to the MEGA
@@ -45,6 +46,7 @@ was unloaded and renamed `com.kbtg.pp-claude-tags.plist.retired`. Do not re-add 
 | bt-audio-guard | `~/Library/Logs/bt-audio-guard.log` (and `/tmp/bt-audio-guard.err`) |
 | coffee-watchdog | `~/Library/Logs/coffee.log` (and `/tmp/coffee-watchdog.err`) |
 | skills-sync | `~/Library/Logs/skills-sync.log` |
+| inbox-pull | `~/Library/Logs/inbox-pull.log` |
 
 `logger` and `log show` do **not** work for retrieving bt-audio-guard's output on this
 machine — that is why it writes a plain file.
@@ -67,6 +69,7 @@ ln -sfn "$PWD/tooling/cli/bt-audio-guard/bt-audio-guard.sh" ~/.local/bin/bt-audi
 #    resolve through ~/.local/bin while the real files stay in git.
 ln -sfn "$PWD/tooling/cli/coffee/coffee-watchdog.sh" ~/.local/bin/coffee-watchdog.sh
 ln -sfn "$PWD/tooling/cli/coffee/coffee"             ~/.local/bin/coffee
+ln -sfn "$PWD/tooling/cli/inbox/inbox"               ~/.local/bin/inbox
 
 # 2. Install every plist.
 cp tooling/cli/yt-claude/com.kushal.yt-claude-relay.plist   ~/Library/LaunchAgents/
@@ -74,16 +77,17 @@ cp tooling/cli/yt-claude/com.kushal.yt-claude-prune.plist   ~/Library/LaunchAgen
 cp tooling/cli/pp-work/com.kbtg.pp-work-snapshot.plist      ~/Library/LaunchAgents/
 cp tooling/cli/bt-audio-guard/com.kbtg.bt-audio-guard.plist ~/Library/LaunchAgents/
 cp tooling/cli/coffee/com.kbtg.coffee-watchdog.plist        ~/Library/LaunchAgents/
+cp tooling/cli/inbox/com.kbtg.inbox-pull.plist             ~/Library/LaunchAgents/
 
 # 3. Load them.
 for j in com.kushal.yt-claude-relay com.kushal.yt-claude-prune \
          com.kbtg.pp-work-snapshot com.kbtg.bt-audio-guard \
-         com.kbtg.coffee-watchdog; do
+         com.kbtg.coffee-watchdog com.kbtg.inbox-pull; do
   launchctl load ~/Library/LaunchAgents/$j.plist 2>/dev/null
 done
 
 # 4. Verify — five lines, no "not registered".
-launchctl list | grep -E 'yt-claude|pp-work-snapshot|bt-audio-guard|coffee-watchdog'
+launchctl list | grep -E 'yt-claude|pp-work-snapshot|bt-audio-guard|coffee-watchdog|inbox-pull'
 
 # 5. coffee ALSO needs a scoped sudoers rule, or its watchdog cannot revoke a
 #    lease — which fails toward "stuck awake". Two exact command lines, nothing else.
