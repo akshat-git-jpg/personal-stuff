@@ -197,7 +197,7 @@ fm_get() {
 boss_repo_dirty() { git -C "$REPO_ROOT" status --porcelain --untracked-files=no; }
 
 slug_of()     { echo "${1#boss/}"; }
-boss_notify() { "$REPO_ROOT/tooling/cli/notify/notify" send "$1" || true; }
+boss_notify() { "$REPO_ROOT/tooling/cli/notify/notify" send --topic boss "$1" || true; }
 
 # boss_free_branch_worktree <branch> — release ANY worktree currently holding
 # <branch> so a checkout of it can succeed. git refuses to check out a branch that

@@ -64,7 +64,9 @@ One-time, on the phone:
 
 After that a new area needs nothing: `notify send --topic <new-area> "..."` creates the topic.
 
-Topics: `boss` (PR landed, parked, failed), `infra` (vps-watchdog, site-probe, cred-probe, d1-backup, repo-sync, and every VPS cron failure), `links` (tracker link guard), `amul` (stock alerts), `gmail` (6 AM Gmail summary), `reminders` (routine-ringer, plus its Bark alarm). All buzz. Off: my-planner, route-audit (2026-10-05).
+Topics: `boss` (PR landed, parked, failed, and every `boss_notify`), `infra` (vps-watchdog, site-probe, cred-probe, d1-backup, repo-sync, every VPS cron failure, plus the Mac's skills-sync and coffee), `links` (tracker link guard), `amul` (stock alerts), `gmail` (6 AM Gmail summary), `reminders` (routine-ringer, plus its Bark alarm). All buzz. Off: my-planner, route-audit (2026-10-05).
+
+**Every caller passes `--topic`.** A bare `notify send` goes to the DM, which is meant to stay empty (2026-10-16: boss, skills-sync and coffee were still landing there).
 
 ## Files
 
