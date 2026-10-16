@@ -1,2 +1,3 @@
-APP_PASSWORD=change-me
-SESSION_SECRET=change-me-to-a-long-random-string
+# Copy to .dev.vars (gitignored) for local `wrangler dev`.
+APP_PASSWORD="change-me"
+SESSION_SECRET="change me to a long random string"
