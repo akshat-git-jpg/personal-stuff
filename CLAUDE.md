@@ -26,9 +26,10 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | **Which GitHub account a repo commits and pushes as** — wrong author, push 403, two parallel sessions flipping accounts | `tooling/cli/gh-acct/README.md`, then the `github-router` skill. Routing is by the repo's **remote**, never its path. `gh auth switch` and `git config --global user.email` are **banned** and hook-blocked; the replacement is `eval "$(gh-acct export)"` |
 | A custom Claude skill (source of truth) | `.claude/skills/` for anything a root-level session needs; `pipelines/.claude/skills/` for pipelines-domain skills (symlinked up so a root session sees them). Skills are **repo-scoped** — no global store, no per-account manifest (decisions.md 2026-08-25) |
 | Repo hygiene — the maintainer agent, its jobs and how to run one | [`tooling/maintainer/README.md`](tooling/maintainer/README.md) |
+| **Daily check-in** — what needs me today from email, calendar, lists, trips, month-end jobs; learns what matters (`butler`) | [`tooling/butler/README.md`](tooling/butler/README.md) |
 | Auditing or restructuring skills (where they live, why, the recurring audit) | [`tooling/maintainer/jobs/skills/runbook.md`](tooling/maintainer/jobs/skills/runbook.md) |
 | Auditing Claude's file-based memory (what it is for, the four-question test, the audit) | [`tooling/maintainer/jobs/memory/runbook.md`](tooling/maintainer/jobs/memory/runbook.md) |
-| CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude, cf-email, drive, heygen-web, local-apps-dashboard, flights, bus, trains, flow-queue) | `tooling/cli/` |
+| CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude, cf-email, drive, heygen-web, local-apps-dashboard, flights, bus, trains, flow-queue, lists, calendar) | `tooling/cli/` |
 | Printing Press Go CLIs (`paypal-txns-pp-cli`, `impact-pp-cli`, others) and where their source is backed up | `tooling/press-clis/README.md` |
 | Session tags across your Claude Code sessions - the agents view grouped by tag (`pp-agents`) | `tooling/cli/pp-agents/README.md` |
 | Why the old binary-patch approach to tags was abandoned on 2.1.246 | `tooling/cli/pp-claude-tags/README.md` |
