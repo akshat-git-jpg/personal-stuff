@@ -1,58 +1,247 @@
 {
   "_about": "Facts the scanner cannot read from files. Edit by hand or through the my-repo skill. Keys are node ids (kind:name).",
-
   "services": {
-    "cli:pp-drive": ["Google Drive"],
-    "cli:pp-gmail": ["Gmail"],
-    "cli:pp-sheets": ["Google Sheets"],
-    "cli:pp-cal": ["Google Calendar"],
-    "cli:pp-youtube": ["YouTube"],
-    "cli:pp-yt-transcript": ["YouTube"],
-    "cli:pp-hostinger": ["Hostinger"],
-    "cli:pp-flights": ["Skyscanner"],
-    "cli:pp-trains": ["erail", "ConfirmTkt", "RailYatri"],
-    "cli:pp-bus": ["Printed bus timetables"],
-    "cli:pp-splitwise": ["Splitwise"],
-    "cli:pp-flipkart": ["Flipkart"],
-    "cli:pp-rapidapi": ["RapidAPI Hub"],
-    "cli:inbox": ["Telegram"],
-    "cli:notify": ["Telegram"],
-    "cli:pp-lists": ["lists.agrolloo.com"],
-    "cli:pp-trip": ["trip.agrolloo.com"],
-    "cli:pp-heygen-batch": ["HeyGen"],
-    "cli:heygen-web": ["HeyGen"],
-    "cli:cf-email": ["Cloudflare"],
-    "cli:pp-flow-queue": ["Google Flow"],
-    "cli:gh-acct": ["GitHub"],
-    "cli:greenlight": ["GitHub"],
-    "cli:pp-land": ["GitHub"],
-    "mcp:cloudflare": ["Cloudflare"],
-    "mcp:davinci-resolve": ["DaVinci Resolve"],
-    "mcp:davinci-resolve-advanced": ["DaVinci Resolve"],
-    "mcp:google-tasks": ["Google Tasks"],
-    "mcp:gmail": ["Gmail"],
-    "mcp:indmoney": ["INDmoney"],
-    "mcp:mongo-app-dev": ["Zluri MongoDB"],
-    "mcp:mongo-app-prod": ["Zluri MongoDB"],
-    "mcp:postgres-app-dev": ["Zluri Postgres"],
-    "mcp:postgres-app-prod": ["Zluri Postgres"]
+    "cli:pp-drive": [
+      "Google Drive"
+    ],
+    "cli:pp-gmail": [
+      "Gmail"
+    ],
+    "cli:pp-sheets": [
+      "Google Sheets"
+    ],
+    "cli:pp-cal": [
+      "Google Calendar"
+    ],
+    "cli:pp-youtube": [
+      "YouTube"
+    ],
+    "cli:pp-yt-transcript": [
+      "YouTube"
+    ],
+    "cli:pp-hostinger": [
+      "Hostinger"
+    ],
+    "cli:pp-flights": [
+      "Skyscanner"
+    ],
+    "cli:pp-trains": [
+      "erail",
+      "ConfirmTkt",
+      "RailYatri"
+    ],
+    "cli:pp-bus": [
+      "Printed bus timetables"
+    ],
+    "cli:pp-splitwise": [
+      "Splitwise"
+    ],
+    "cli:pp-flipkart": [
+      "Flipkart"
+    ],
+    "cli:pp-rapidapi": [
+      "RapidAPI Hub"
+    ],
+    "cli:inbox": [
+      "Telegram"
+    ],
+    "cli:notify": [
+      "Telegram"
+    ],
+    "cli:pp-lists": [
+      "lists.agrolloo.com"
+    ],
+    "cli:pp-trip": [
+      "trip.agrolloo.com"
+    ],
+    "cli:pp-heygen-batch": [
+      "HeyGen"
+    ],
+    "cli:heygen-web": [
+      "HeyGen"
+    ],
+    "cli:cf-email": [
+      "Cloudflare"
+    ],
+    "cli:pp-flow-queue": [
+      "Google Flow"
+    ],
+    "cli:gh-acct": [
+      "GitHub"
+    ],
+    "cli:greenlight": [
+      "GitHub"
+    ],
+    "cli:pp-land": [
+      "GitHub"
+    ],
+    "mcp:cloudflare": [
+      "Cloudflare"
+    ],
+    "mcp:davinci-resolve": [
+      "DaVinci Resolve"
+    ],
+    "mcp:davinci-resolve-advanced": [
+      "DaVinci Resolve"
+    ],
+    "mcp:google-tasks": [
+      "Google Tasks"
+    ],
+    "mcp:gmail": [
+      "Gmail"
+    ],
+    "mcp:indmoney": [
+      "INDmoney"
+    ],
+    "mcp:mongo-app-dev": [
+      "Zluri MongoDB"
+    ],
+    "mcp:mongo-app-prod": [
+      "Zluri MongoDB"
+    ],
+    "mcp:postgres-app-dev": [
+      "Zluri Postgres"
+    ],
+    "mcp:postgres-app-prod": [
+      "Zluri Postgres"
+    ]
   },
-
   "plumbing": [
-    "cli:wt", "cli:pp-work", "cli:pp-land", "cli:pp-push", "cli:greenlight", "cli:gh-acct",
-    "cli:notify", "cli:pp-agents", "cli:pp-claude-tags", "cli:bt-audio-guard",
-    "cli:ccusage-dashboard", "cli:local-apps-dashboard", "cli:yt-claude", "cli:pp-heygen-batch"
+    "cli:wt",
+    "cli:pp-work",
+    "cli:pp-land",
+    "cli:pp-push",
+    "cli:greenlight",
+    "cli:gh-acct",
+    "cli:notify",
+    "cli:pp-agents",
+    "cli:pp-claude-tags",
+    "cli:bt-audio-guard",
+    "cli:ccusage-dashboard",
+    "cli:local-apps-dashboard",
+    "cli:yt-claude",
+    "cli:pp-heygen-batch"
   ],
-
   "abandoned": {
     "cli:pp-claude-tags": "Superseded by pp-agents on 2026-08-26"
   },
-
   "skillCalls": {
-    "work:zluri-datadog": ["connector:Datadog"],
-    "work:zluri-sentry": ["connector:Sentry"],
-    "work:zluri-db": ["mcp:mongo-app-dev", "mcp:mongo-app-prod", "mcp:postgres-app-dev", "mcp:postgres-app-prod"],
-    "skill:kushal-salary": ["connector:Gmail"],
-    "skill:my-income": ["connector:Gmail"]
-  }
+    "work:zluri-datadog": [
+      "connector:Datadog"
+    ],
+    "work:zluri-sentry": [
+      "connector:Sentry"
+    ],
+    "work:zluri-db": [
+      "mcp:mongo-app-dev",
+      "mcp:mongo-app-prod",
+      "mcp:postgres-app-dev",
+      "mcp:postgres-app-prod"
+    ],
+    "skill:kushal-salary": [
+      "connector:Gmail"
+    ],
+    "skill:my-income": [
+      "connector:Gmail"
+    ]
+  },
+  "_areas": "Each skill, CLI and MCP lands in the FIRST area of its scope whose groups or name pattern match. Scope is work for work-skills and for names matching workScope; else personal. No match: Other. Order matters; the page shows areas in this order, except a collapsed area sorts last.",
+  "workScope": "^(mongo-app|postgres-app|claude\\.ai (Datadog|Sentry))",
+  "areas": [
+    {
+      "scope": "personal",
+      "name": "Money",
+      "blurb": "Income, salary, payouts and spending",
+      "match": "(income|salary|paypal|impact|tolt|skool|bookbolt|splitwise|flipkart|rapidapi|indmoney)"
+    },
+    {
+      "scope": "personal",
+      "name": "Video libraries",
+      "blurb": "Vendored animation and video skills (gsap, lottie, hyperframes)",
+      "groups": [
+        "vendored"
+      ],
+      "collapsed": true
+    },
+    {
+      "scope": "personal",
+      "name": "YouTube & video",
+      "blurb": "Scripts, voiceover, avatars, editing, research",
+      "groups": [
+        "pipelines"
+      ],
+      "match": "^(yt-|dossier|transcribe|video-|hyperframes-helper|heygen|pp-heygen|pp-flow|pp-yt|pp-youtube|youtube|tweet|reddit|notebooklm|remotion|personal-stuff-video|davinci)"
+    },
+    {
+      "scope": "personal",
+      "name": "Life & travel",
+      "blurb": "Trips, trains, health, phone and Mac helpers",
+      "match": "(health|travel|trip|flights|trains|pp-bus|coffee|inbox|lists|bt-audio|notify)"
+    },
+    {
+      "scope": "personal",
+      "name": "Google & mail",
+      "blurb": "Gmail, Sheets, Drive, Calendar, Tasks",
+      "match": "(gmail|sheets|drive|pp-cal|calendar|google)"
+    },
+    {
+      "scope": "personal",
+      "name": "Cloudflare & hosting",
+      "blurb": "Workers, VPS, domains, deploys",
+      "match": "(cloudflare|wrangler|durable|agents-sdk|workers|sandbox|web-perf|hostinger|cf-email|hosting|deploy)"
+    },
+    {
+      "scope": "personal",
+      "name": "Repo guides",
+      "blurb": "How this repo is built, run and changed",
+      "match": "^personal-stuff-"
+    },
+    {
+      "scope": "personal",
+      "name": "Printing Press",
+      "blurb": "Generate and polish CLIs from any API",
+      "match": "(printing-press|-pp-cli$)"
+    },
+    {
+      "scope": "personal",
+      "name": "Ship & git",
+      "blurb": "Plans, commits, landing, worktrees, sessions",
+      "match": "(orchestrate|secretary|commit|github|gh-acct|session|claude|pp-work|pp-land|pp-push|greenlight|^wt$|pp-agents|ccusage|local-apps|fable|my-repo)"
+    },
+    {
+      "scope": "personal",
+      "name": "Writing, UI & learning",
+      "blurb": "How text and screens should read, plus study",
+      "match": "(humanizer|adhd|ui-craft|simple|dsa)"
+    },
+    {
+      "scope": "work",
+      "name": "Ship & review",
+      "blurb": "Branch to merge: PRs, builds, feature envs, prod queries",
+      "match": "(ship-feature$|pr-review|build-gate|feature-deploy|commit-now-work|submit-query|zluri-release)"
+    },
+    {
+      "scope": "work",
+      "name": "Testing & debug",
+      "blurb": "UI tests, API tests, debugging a Zluri system",
+      "match": "(testing|debug)"
+    },
+    {
+      "scope": "work",
+      "name": "Docs & notes",
+      "blurb": "Module docs, feature docs, session learnings",
+      "match": "(doc|close-session)"
+    },
+    {
+      "scope": "work",
+      "name": "Zluri systems",
+      "blurb": "Access to pods, Argo, Datadog, Sentry, AWS, DBs, Kafka",
+      "match": "^(zluri-|mongo-app|postgres-app|claude\\.ai)"
+    },
+    {
+      "scope": "work",
+      "name": "Shared with personal",
+      "blurb": "Skills both repos carry"
+    }
+  ]
 }

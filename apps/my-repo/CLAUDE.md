@@ -13,6 +13,7 @@ Live at `my-repo.agrolloo.com`. Redeployed by the `my-repo` skill. Human detail:
   hosted.
 - **The graph is cookie-only.** `/api/graph` uses `requireAuth`. `/api/version` (sha + scan time) is
   public on purpose: the maintainer `my-repo` job reads it. Both tested in `test/auth.test.ts`.
+- **Two tabs, then areas (owner design, 2026-10-16).** Personal and Work never mix on one screen; inside a tab the home is a grid of area cards and the map shows one area at a time. Area rules are data in `data/curated.json` (`areas`, `workScope`), applied by `assignAreas` in `scripts/graph.mjs`. A tool another area owns still draws on the map, tagged with its area.
 - **Layout and trace live in `src/client/derive.ts`** (tested in `test/derive.test.ts`); components only render.
 - `package-lock.json` was seeded from kushal-health's, same reason as there (npm arborist bug on a fresh install).
 

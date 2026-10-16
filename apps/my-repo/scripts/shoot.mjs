@@ -13,6 +13,13 @@ const OUT = path.join(APP, '.shots')
 fs.mkdirSync(OUT, { recursive: true })
 
 const fail = (m) => { console.error(`FAIL ${m}`); process.exitCode = 1 }
+const clickText = (page, sel, text) => page.evaluate((s, t) => {
+  const el = [...document.querySelectorAll(s)].find((b) => b.textContent?.trim().startsWith(t))
+  el?.click()
+  return !!el
+}, sel, text)
+const pause = () => new Promise((r) => setTimeout(r, 250))
+
 const browser = await puppeteer.launch(launchOptions())
 try {
   for (const [label, width, height] of [['desktop', 1440, 1000], ['phone', 390, 844]]) {
@@ -24,35 +31,53 @@ try {
     if (await page.$('input[type=password]')) {
       await page.type('input[type=password]', PIN)
       await page.click('button[type=submit]')
-      await page.waitForSelector('.map', { timeout: 15000 })
     }
-    await page.screenshot({ path: `${OUT}/${label}-map.png`, fullPage: false })
-    const nodes = await page.$$eval('.node', (els) => els.length)
-    if (nodes < 20) fail(`${label}: only ${nodes} boxes on the map`)
+    await page.waitForSelector('.areas', { timeout: 15000 })
+    const cards = await page.$$eval('.area', (els) => els.length)
+    if (cards < 5) fail(`${label}: only ${cards} area cards`)
+    await page.screenshot({ path: `${OUT}/${label}-home.png`, fullPage: label === 'desktop' })
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     if (overflow > 1) fail(`${label}: page scrolls sideways by ${overflow}px`)
 
-    await page.evaluate(() => [...document.querySelectorAll('.node')].find((b) => b.textContent?.trim() === 'drive')?.click())
-    await page.waitForSelector('#detail-h')
+    if (!(await clickText(page, '.area-open', 'Google & mail'))) fail(`${label}: no Google & mail card`)
+    await page.waitForSelector('.map')
+    const boxes = await page.$$eval('.node', (els) => els.length)
+    if (boxes < 4 || boxes > 60) fail(`${label}: Google & mail map has ${boxes} boxes`)
+    await clickText(page, '.node', 'drive')
+    await pause()
     const lit = await page.$$eval('.line.hot', (els) => els.length)
     if (!lit) fail(`${label}: clicking drive lit no lines`)
-    await page.screenshot({ path: `${OUT}/${label}-traced.png`, fullPage: label === 'phone' })
+    await page.screenshot({ path: `${OUT}/${label}-area.png`, fullPage: label === 'phone' })
+    await clickText(page, '.back', '← All areas')
+    await page.waitForSelector('.areas')
 
     await page.type('input[type=search]', 'train')
-    await new Promise((r) => setTimeout(r, 200))
-    const searched = await page.$$eval('.node', (els) => els.map((e) => e.textContent?.trim()))
-    if (!searched.includes('pp-trains')) fail(`${label}: search "train" lost pp-trains`)
+    await pause()
+    const hits = await page.$$eval('.area .mini', (els) => els.map((e) => e.textContent?.trim()))
+    if (!hits.includes('pp-trains')) fail(`${label}: search "train" did not find pp-trains`)
+    await page.screenshot({ path: `${OUT}/${label}-search.png` })
     for (let i = 0; i < 5; i++) await page.keyboard.press('Backspace')
 
+    await clickText(page, '.tabs.scope button', 'Work')
+    await pause()
+    const work = await page.$$eval('.area-name', (els) => els.map((e) => e.textContent))
+    if (!work.includes('Zluri systems')) fail(`${label}: Work tab has no Zluri systems card`)
+    if (work.includes('Money')) fail(`${label}: Work tab shows a personal area`)
+    await page.screenshot({ path: `${OUT}/${label}-work.png` })
+
     for (const [tab, sel] of [['Table', 'table'], ['Loose ends', '#loose-h']]) {
-      await page.evaluate((t) => [...document.querySelectorAll('.tabs button')].find((b) => b.textContent?.startsWith(t))?.click(), tab)
+      await clickText(page, '.tabs button', tab)
       await page.waitForSelector(sel)
       await page.screenshot({ path: `${OUT}/${label}-${tab.split(' ')[0].toLowerCase()}.png` })
     }
-    await page.evaluate(() => document.querySelector('.loose-item')?.click())
-    await page.waitForSelector('.map')
+    await clickText(page, '.tabs.scope button', 'Personal')
+    await pause()
+    if (await page.$('.loose-item')) {
+      await page.evaluate(() => document.querySelector('.loose-item')?.click())
+      await page.waitForSelector('.map')
+    }
     if (errors.length) fail(`${label}: page errors ${errors.join(' | ')}`)
-    console.log(`${label}: ${nodes} boxes, ${lit} lit lines, shots in .shots/`)
+    console.log(`${label}: ${cards} personal areas, ${boxes} boxes in Google & mail, ${lit} lit lines, ${work.length} work areas`)
     await page.close()
   }
 } finally {

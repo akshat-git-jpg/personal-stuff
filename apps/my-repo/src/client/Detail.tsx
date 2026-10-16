@@ -30,7 +30,7 @@ export function Detail({ graph, id, onPick, onClose }: Props) {
               <li key={other + kind}>
                 <button className={`link k-${o.kind}`} onClick={() => onPick(o.id)}>
                   <span className="node-name">{o.name}</span>
-                  <span className="muted small">{VERB[kind] ?? kind}</span>
+                  <span className="muted small">{VERB[kind] ?? kind}{o.area && o.area !== n.area ? ` · ${o.area}` : ''}</span>
                 </button>
               </li>
             )
@@ -49,6 +49,7 @@ export function Detail({ graph, id, onPick, onClose }: Props) {
       {n.desc && <p className="desc">{n.desc}</p>}
       <dl className="facts">
         {n.path && (<><dt>Lives at</dt><dd className="mono">{n.path}</dd></>)}
+        {n.area && (<><dt>Area</dt><dd>{n.scope === 'work' ? 'Work · ' : ''}{n.area}</dd></>)}
         <dt>Group</dt><dd>{n.group}</dd>
         {n.descLen != null && (<><dt>Description</dt><dd>{n.descLen} / 500 chars</dd></>)}
         {n.updated && (<><dt>Changed</dt><dd>{n.updated}</dd></>)}

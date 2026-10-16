@@ -3,11 +3,13 @@
 A web page that shows how this repo's skills, CLIs, MCPs and harness connect:
 <https://my-repo.agrolloo.com> (same PIN as kushal-tools).
 
-- **Map**: four lanes, *what you say → skill → CLI or MCP → outside service*. Click a box to light
-  up everything it calls and everything that calls it. Filter by kind or skill group, or search.
+- **Personal / Work tabs**: each opens a grid of areas (Money, YouTube & video, Life & travel, …;
+  for work: Ship & review, Zluri systems, …) with counts and a loose-end badge.
+- **One area's map**: four lanes, *what you say → skill → CLI or MCP → outside service*. Click a
+  box to light up everything it calls and everything that calls it. Search covers everything.
 - **Harness** (under the map): the parts that run on their own: `CLAUDE.md` routing, hooks,
   plugins, Mac launchd jobs, VPS crons.
-- **Table**: every item, sortable, with its link counts and last change.
+- **Table**: every item grouped by area, sortable, with its link counts and last change.
 - **Loose ends**: what the last scan flagged: a CLI no skill calls, a description over budget, a
   broken symlink, a parked MCP, an abandoned tool.
 
