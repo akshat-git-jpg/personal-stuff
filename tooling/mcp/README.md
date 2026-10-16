@@ -1,6 +1,6 @@
 # MCPs for Claude Code
 
-> **Status (2026):** Mostly legacy. The Gmail / Sheets / YouTube / Hostinger work moved to plain CLIs in `../cli`, which cost tokens only when they run. Five servers are wired into the active `.mcp.json`: `google-drive`, `cloudflare`, `indian-railways`, `davinci-resolve`, and `davinci-resolve-advanced`. This folder stays in place for two reasons: the CLIs in `../cli` borrow their Google OAuth from `mcp/google-shared`, and the VPS `gmail-digest` cron runs `gmail-mcp-server/server.py` directly (see `../../VPS-CRONS.md`). Don't move it without updating those.
+> **Status (2026):** Mostly legacy. The Gmail / Sheets / YouTube / Hostinger work moved to plain CLIs in `../cli`, which cost tokens only when they run. Three servers are wired into the active `.mcp.json`: `cloudflare`, `davinci-resolve`, and `davinci-resolve-advanced`. `google-drive` and `indian-railways` were retired 2026-10-16: `pp-drive` and `pp-trains` cover everything they did. This folder stays in place for two reasons: the CLIs in `../cli` borrow their Google OAuth from `mcp/google-shared`, and the VPS `gmail-digest` cron runs `gmail-mcp-server/server.py` directly (see `../../VPS-CRONS.md`). Don't move it without updating those.
 
 A bundle of MCP (Model Context Protocol) servers that Claude Code can call as tools while you work in this repo. Examples: read/write Google Sheets, query a Cloudflare D1 database, search YouTube, send a Gmail draft.
 
@@ -63,7 +63,7 @@ This folder has its own `.env` file (gitignored). See the per-folder README or j
 
 ### 5. Register with Claude Code
 
-Create `.mcp.json` (gitignored) with the path to each MCP server you want. Copy `.mcp.json.template` and replace `<PATH_TO_REPO>` with your absolute path to the repository root, then trim it down to the servers you actually use. The tracked generator writes the five active servers listed above:
+Create `.mcp.json` (gitignored) with the path to each MCP server you want. Copy `.mcp.json.template` and replace `<PATH_TO_REPO>` with your absolute path to the repository root, then trim it down to the servers you actually use. The tracked generator writes the three active servers listed above:
 
 ```bash
 sed "s|<PATH_TO_REPO>|$(cd ../.. && pwd)|g" .mcp.json.template > ../../.mcp.json
@@ -75,10 +75,10 @@ Restart Claude Code. The MCPs should show up in the `/mcp` list.
 
 ## Optional MCPs (skip if you don't need them)
 
-Each entry in `.mcp.json` is independent. Ask before removing one. The active default is the five-server set listed above.
+Each entry in `.mcp.json` is independent. Ask before removing one. The active default is the three-server set listed above.
 
-- `indian-railways-mcp/` — Indian Railways timetable, train details and PNR, from [rajprem4214/indian-railways-mcp](https://github.com/rajprem4214/indian-railways-mcp). Active. No key. Chosen over two rival MCPs because it reads erail (a timetable) rather than a booking API, which is the only way unreserved DEMU and passenger trains show up at all. Read `indian-railways-mcp/LOCAL-NOTES.md` and `../../docs/indian-railways-data-sources.md` before extending it.
-- `google-drive-mcp-server/` — Google Drive. Active default.
+- `indian-railways-mcp/` — Indian Railways timetable, train details and PNR, from [rajprem4214/indian-railways-mcp](https://github.com/rajprem4214/indian-railways-mcp). **Retired 2026-10-16** (not wired): `pp-trains` reads the same erail source and adds fares, seats, PNR and live status. No key. Chosen over two rival MCPs because it reads erail (a timetable) rather than a booking API, which is the only way unreserved DEMU and passenger trains show up at all. Read `indian-railways-mcp/LOCAL-NOTES.md` and `../../docs/indian-railways-data-sources.md` before extending it.
+- `google-drive-mcp-server/` — Google Drive. **Retired 2026-10-16** (not wired): `pp-drive` now has search, move, rename, share and trash.
 - `cloudflare-mcp-server/` — Cloudflare D1/KV/DNS. Active default.
 - `davinci-resolve-mcp/` — Control DaVinci Resolve (edit points, timelines, color, render) from [samuelgursky/davinci-resolve-mcp](https://github.com/samuelgursky/davinci-resolve-mcp), vendored as plain source (own `.git` stripped on clone, like the other server folders). Two servers registered: `davinci-resolve` (Python, compound 34-tool surface, `src/server.py` via its own `venv/`) and `davinci-resolve-advanced` (Node, granular 341-tool surface, `bin/davinci-resolve-advanced-mcp.mjs`). **The Python server requires DaVinci Resolve *Studio*** (the free edition has no external-scripting API — and this Mac runs the FREE 21.0.2, verified 2026-07-21, so `davinci-resolve` tools will NOT connect here until a Studio upgrade) with **Preferences → General → External scripting using → Local**, and Resolve running before tool calls will connect. **`davinci-resolve-advanced` needs no Resolve at all** — it authors/edits `.drp`/`.drt`/`.drx` files offline (vendored `resolve-advanced/` lib) and is the engine behind the GFX-19 DRT-native export path (POC 2026-07-20/21: structure/transitions import ✓, media-pool + Text+ blobs are the open problems — see `docs/specs/2026-07-21-native-editor-export-design.md`). `RESOLVE_SCRIPT_API`/`RESOLVE_SCRIPT_LIB`/`PYTHONPATH` in `.mcp.json` are pre-filled with the standard macOS paths — update them if Resolve is ever installed somewhere nonstandard. To refresh: `cd davinci-resolve-mcp && git pull` won't work (no `.git`) — re-clone over it, or run `python3 install.py --update-now` from a real clone and copy `src/` back in.
 - ~~`mcp-skyscanner/`~~ — evaluated 2026-08-04 and deleted, never committed. It reached Skyscanner's *mobile* API behind PerimeterX and got `403 {"action":"captcha"}` on every request from this IP. Flight search lives in `../cli/flights` (`pp-flights`) instead, on the website's plain JSON endpoint, which needs no key and no anti-bot dance. Full post-mortem in `../../decisions.md` under 2026-08-04.

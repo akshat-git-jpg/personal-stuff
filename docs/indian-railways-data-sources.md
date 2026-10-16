@@ -128,7 +128,7 @@ Always search from the station you will physically stand on.
 
 | Repo | Source | Verdict |
 |---|---|---|
-| [rajprem4214/indian-railways-mcp](https://github.com/rajprem4214/indian-railways-mcp) | erail + ConfirmTkt for PNR | **Installed.** Only one that sees unreserved trains |
+| [rajprem4214/indian-railways-mcp](https://github.com/rajprem4214/indian-railways-mcp) | erail + ConfirmTkt for PNR | Installed 2026-08-04, **retired 2026-10-16**: `pp-trains` covers it. Only one that sees unreserved trains |
 | [uditya-kumar/confirmtkt-mcp](https://github.com/uditya-kumar/confirmtkt-mcp) | ConfirmTkt only | Skipped. Blind to 4 of 10 trains, but its endpoint write-up is where Source B above came from |
 | [amith-vp/indian-railway-mcp](https://github.com/amith-vp/indian-railway-mcp) | `railwayapi.amithv.xyz`, the author's own host | Skipped despite the most stars. Both the MCP and its API run on someone's personal domain, so every query leaves the machine and the whole thing dies when they stop paying |
 

@@ -2,7 +2,7 @@
 # Regenerate .mcp.json at the repo root.
 #
 # .mcp.json is gitignored because it holds machine-absolute paths - each clone
-# generates its own. The five active servers are listed in tooling/mcp/README.md.
+# generates its own. The three active servers are listed in tooling/mcp/README.md.
 #
 # Run this after cloning, or after the repo moves/renames, so the paths inside
 # .mcp.json point at this machine's tooling/mcp servers.
@@ -15,27 +15,11 @@ PYTHON="${MCP_PYTHON:-/Library/Frameworks/Python.framework/Versions/3.11/bin/pyt
 cat > "$REPO/.mcp.json" <<JSON
 {
   "mcpServers": {
-    "google-drive": {
-      "type": "stdio",
-      "command": "$PYTHON",
-      "args": [
-        "$MCP/google-drive-mcp-server/server.py"
-      ],
-      "env": {}
-    },
     "cloudflare": {
       "type": "stdio",
       "command": "$PYTHON",
       "args": [
         "$MCP/cloudflare-mcp-server/server.py"
-      ],
-      "env": {}
-    },
-    "indian-railways": {
-      "type": "stdio",
-      "command": "node",
-      "args": [
-        "$MCP/indian-railways-mcp/build/index.js"
       ],
       "env": {}
     },
