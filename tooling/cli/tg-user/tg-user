@@ -1,0 +1,167 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["telethon==1.40.0"]
+# ///
+"""tg-user — drives the owner's own Telegram account, so bots never need hand-making.
+
+  tg-user login --phone +91XXXXXXXXXX     step 1: Telegram sends a login code
+  tg-user login --code 12345 [--password P]  step 2: finish login (password only if 2FA is on)
+  tg-user whoami
+  tg-user new-bot "<Name>" <username_bot> --save-as <ENV_KEY>
+                                            BotFather /newbot; token saved into telegram.env
+  tg-user add-admin <@bot> [--group <id>]   add a bot to KB Alerts (TELEGRAM_GROUP_ID) as admin with Manage topics
+
+Creds: TELEGRAM_API_ID / TELEGRAM_API_HASH in infra/secrets/telegram.env.
+Session: infra/secrets/telegram-user.session (full account access; gitignored, never copy it).
+Exit: 0 ok, 1 error, 2 usage.
+"""
+import argparse
+import asyncio
+import json
+import os
+import re
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
+SECRETS = os.environ.get("TG_USER_SECRETS", os.path.join(REPO_ROOT, "infra", "secrets"))
+ENV_FILE = os.environ.get("TG_USER_ENV_FILE", os.path.join(SECRETS, "telegram.env"))
+SESSION = os.path.join(SECRETS, "telegram-user")  # Telethon adds .session
+PENDING = os.path.join(SECRETS, "telegram-user.pending.json")
+TOKEN_RE = re.compile(r"\b(\d{6,}:[A-Za-z0-9_-]{30,})\b")
+
+
+def die(msg, code=1):
+    print(f"ERROR: {msg}", file=sys.stderr)
+    sys.exit(code)
+
+
+def load_env():
+    env = {}
+    if os.path.exists(ENV_FILE):
+        for line in open(ENV_FILE):
+            m = re.match(r"^\s*([A-Z0-9_]+)=(.*)$", line)
+            if m:
+                env[m.group(1)] = m.group(2).strip().strip('"').strip("'")
+    return env
+
+
+def set_env_var(key, val):
+    lines = open(ENV_FILE).read().splitlines() if os.path.exists(ENV_FILE) else []
+    out = [l for l in lines if not l.startswith(key + "=")] + [f"{key}={val}"]
+    with open(ENV_FILE, "w") as f:
+        f.write("\n".join(out) + "\n")
+
+
+def find_token(text):
+    m = TOKEN_RE.search(text or "")
+    return m.group(1) if m else None
+
+
+def client():
+    from telethon import TelegramClient
+    env = load_env()
+    if not env.get("TELEGRAM_API_ID") or not env.get("TELEGRAM_API_HASH"):
+        die(f"TELEGRAM_API_ID / TELEGRAM_API_HASH not set in {ENV_FILE} (get them at my.telegram.org).")
+    return TelegramClient(SESSION, int(env["TELEGRAM_API_ID"]), env["TELEGRAM_API_HASH"])
+
+
+async def authed():
+    c = client()
+    await c.connect()
+    if not await c.is_user_authorized():
+        die("Not logged in. Run `tg-user login --phone <number>` first.")
+    return c
+
+
+async def cmd_login(a):
+    from telethon.errors import SessionPasswordNeededError
+    c = client()
+    await c.connect()
+    if await c.is_user_authorized():
+        me = await c.get_me()
+        print(f"Already logged in as {me.first_name} (@{me.username}).")
+        return
+    if a.phone:
+        sent = await c.send_code_request(a.phone)
+        with open(PENDING, "w") as f:
+            json.dump({"phone": a.phone, "hash": sent.phone_code_hash}, f)
+        os.chmod(PENDING, 0o600)
+        print("Code sent. It arrives inside Telegram, from 'Telegram'. Then run: tg-user login --code <code>")
+        return
+    if not a.code:
+        die("Pass --phone first, then --code.", 2)
+    try:
+        p = json.load(open(PENDING))
+    except FileNotFoundError:
+        die("No pending login. Run `tg-user login --phone <number>` first.")
+    try:
+        await c.sign_in(phone=p["phone"], code=a.code, phone_code_hash=p["hash"])
+    except SessionPasswordNeededError:
+        if not a.password:
+            die("2FA is on. Re-run with --code <code> --password '<your Telegram password>'.")
+        await c.sign_in(password=a.password)
+    os.remove(PENDING)
+    os.chmod(SESSION + ".session", 0o600)
+    me = await c.get_me()
+    print(f"Logged in as {me.first_name} (@{me.username}).")
+
+
+async def cmd_whoami(a):
+    c = await authed()
+    me = await c.get_me()
+    print(f"{me.first_name} (@{me.username}) id={me.id}")
+
+
+async def cmd_new_bot(a):
+    if not a.username.lower().endswith("bot"):
+        die("Bot usernames must end in 'bot'.", 2)
+    c = await authed()
+    async with c.conversation("BotFather", timeout=30) as conv:
+        for text in ("/newbot", a.name, a.username):
+            await conv.send_message(text)
+            reply = (await conv.get_response()).raw_text
+        token = find_token(reply)
+        if not token:
+            await conv.send_message("/cancel")
+            die(f"BotFather did not return a token: {reply.splitlines()[0] if reply else 'no reply'}")
+    set_env_var(a.save_as, token)
+    print(f"Created @{a.username}; token saved as {a.save_as}.")
+
+
+async def cmd_add_admin(a):
+    from telethon import functions, types
+    from telethon.errors import UserAlreadyParticipantError
+    group_id = a.group or load_env().get("TELEGRAM_GROUP_ID")
+    if not group_id:
+        die("No --group and no TELEGRAM_GROUP_ID in telegram.env.", 2)
+    c = await authed()
+    await c.get_dialogs(limit=100)  # fills the entity cache so the numeric group id resolves; unlimited hangs
+    group = await c.get_entity(int(group_id))
+    bot = await c.get_entity(a.bot)
+    try:
+        await c(functions.channels.InviteToChannelRequest(group, [bot]))
+    except UserAlreadyParticipantError:
+        pass
+    # Raw request: Telethon's edit_admin has no manage_topics flag.
+    rights = types.ChatAdminRights(manage_topics=True, delete_messages=True, pin_messages=True,
+                                   post_messages=True, edit_messages=True, other=True)
+    await c(functions.channels.EditAdminRequest(group, bot, rights, rank="bot"))
+    print(f"{a.bot} is now an admin of {group.title} with Manage topics.")
+
+
+def main():
+    p = argparse.ArgumentParser(prog="tg-user", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = p.add_subparsers(dest="cmd", required=True)
+    s = sub.add_parser("login"); s.add_argument("--phone"); s.add_argument("--code"); s.add_argument("--password")
+    sub.add_parser("whoami")
+    s = sub.add_parser("new-bot"); s.add_argument("name"); s.add_argument("username"); s.add_argument("--save-as", required=True)
+    s = sub.add_parser("add-admin"); s.add_argument("bot"); s.add_argument("--group")
+    a = p.parse_args()
+    fn = {"login": cmd_login, "whoami": cmd_whoami, "new-bot": cmd_new_bot, "add-admin": cmd_add_admin}[a.cmd]
+    asyncio.run(fn(a))
+
+
+if __name__ == "__main__":
+    main()
