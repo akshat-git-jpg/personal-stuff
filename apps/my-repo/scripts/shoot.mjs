@@ -8,7 +8,7 @@ import { launchOptions } from '../../../scripts/lib/chrome.mjs'
 
 const APP = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const BASE = process.argv[2] ?? 'http://localhost:8791'
-const PIN = process.env.MYREPO_PIN ?? '1234'
+const PIN = process.env.MYREPO_PIN ?? 'change-me'
 const OUT = path.join(APP, '.shots')
 fs.mkdirSync(OUT, { recursive: true })
 

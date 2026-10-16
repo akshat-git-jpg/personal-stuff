@@ -1,2 +1,2 @@
-APP_PASSWORD=1234
-SESSION_SECRET=replace-with-a-long-random-string
+APP_PASSWORD=change-me
+SESSION_SECRET=change-me-to-a-long-random-string
