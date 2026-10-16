@@ -67,6 +67,7 @@ Also per-CLI: the Hostinger API token lives at `tooling/mcp/hostinger/.env` (`AP
 2. Add the NAME to the matching `.example` file (`.dev.vars.example`, `pipelines/.env.example`, `vps-crons/<job>/.env.example`) — this is the step that keeps rebuilds possible.
 3. Re-verify: run the consumer once (`wrangler dev` + hit the route; or the pipeline script; or the cron's `run.sh` manually).
 4. `git status` — confirm nothing secret is staged.
+5. Share it: `node tooling/cli/infisical/pp-secrets.mjs push <path>` (a new file needs a `secrets.map.json` line first). Every other machine gets it on its next session. Detail: `tooling/cli/infisical/README.md`.
 
 ## No-secrets zones
 
