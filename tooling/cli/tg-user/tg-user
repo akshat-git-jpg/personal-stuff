@@ -11,6 +11,8 @@
   tg-user new-bot "<Name>" <username_bot> --save-as <ENV_KEY>
                                             BotFather /newbot; token saved into telegram.env
   tg-user add-admin <@bot> [--group <id>]   add a bot to KB Alerts (TELEGRAM_GROUP_ID) as admin with Manage topics
+  tg-user send [text] [--file F]... [--chat founders]   post as the owner in a named group (default: Founders Group, with his sister)
+  tg-user read [--limit N] [--save DIR] [--chat founders]  print the latest messages; --save downloads their files
 
 Creds: TELEGRAM_API_ID / TELEGRAM_API_HASH in infra/secrets/telegram.env.
 Session: infra/secrets/telegram-user.session (full account access; gitignored, never copy it).
@@ -24,7 +26,20 @@ import re
 import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
+
+
+def main_checkout():
+    # the session lives only in the main checkout; a pp-work workspace has no infra/secrets
+    import subprocess
+    try:
+        common = subprocess.check_output(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                                         cwd=SCRIPT_DIR, text=True).strip()
+        return os.path.dirname(common)
+    except Exception:
+        return os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
+
+
+REPO_ROOT = main_checkout()
 SECRETS = os.environ.get("TG_USER_SECRETS", os.path.join(REPO_ROOT, "infra", "secrets"))
 ENV_FILE = os.environ.get("TG_USER_ENV_FILE", os.path.join(SECRETS, "telegram.env"))
 SESSION = os.path.join(SECRETS, "telegram-user")  # Telethon adds .session
@@ -151,6 +166,50 @@ async def cmd_add_admin(a):
     print(f"{a.bot} is now an admin of {group.title} with Manage topics.")
 
 
+async def named_chat(c, name):
+    # --chat founders -> TELEGRAM_FOUNDERS_CHAT_ID in telegram.env (a basic group id)
+    from telethon.tl.types import PeerChat
+    key = f"TELEGRAM_{name.upper()}_CHAT_ID"
+    chat_id = load_env().get(key)
+    if not chat_id:
+        die(f"No {key} in telegram.env.", 2)
+    return await c.get_entity(PeerChat(int(chat_id)))
+
+
+async def cmd_send(a):
+    if not a.text and not a.file:
+        die("Nothing to send: pass text and/or --file.", 2)
+    c = await authed()
+    chat = await named_chat(c, a.chat)
+    text = " ".join(a.text)
+    for i, f in enumerate(a.file or []):
+        if not os.path.isfile(f):
+            die(f"No such file: {f}")
+        await c.send_file(chat, f, caption=text if i == 0 else None, force_document=True)
+    if text and not a.file:
+        await c.send_message(chat, text, link_preview=False)
+    print(f"Sent to {chat.title}.")
+
+
+async def cmd_read(a):
+    c = await authed()
+    chat = await named_chat(c, a.chat)
+    me = await c.get_me()
+    msgs = [m async for m in c.iter_messages(chat, limit=a.limit)]
+    for m in reversed(msgs):
+        who = "me" if m.sender_id == me.id else (getattr(m.sender, "first_name", None) or str(m.sender_id))
+        line = f"[{m.date.astimezone():%Y-%m-%d %H:%M}] {who}: {m.raw_text or ''}".rstrip()
+        if m.file:
+            name = m.file.name or f"{m.id}{m.file.ext or ''}"
+            if a.save:
+                os.makedirs(a.save, exist_ok=True)
+                path = await m.download_media(file=os.path.join(a.save, name))
+                line += f"  [file saved: {path}]"
+            else:
+                line += f"  [file: {name}]"
+        print(line)
+
+
 def main():
     p = argparse.ArgumentParser(prog="tg-user", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -158,8 +217,11 @@ def main():
     sub.add_parser("whoami")
     s = sub.add_parser("new-bot"); s.add_argument("name"); s.add_argument("username"); s.add_argument("--save-as", required=True)
     s = sub.add_parser("add-admin"); s.add_argument("bot"); s.add_argument("--group")
+    s = sub.add_parser("send"); s.add_argument("text", nargs="*"); s.add_argument("--file", action="append"); s.add_argument("--chat", default="founders")
+    s = sub.add_parser("read"); s.add_argument("--limit", type=int, default=20); s.add_argument("--save"); s.add_argument("--chat", default="founders")
     a = p.parse_args()
-    fn = {"login": cmd_login, "whoami": cmd_whoami, "new-bot": cmd_new_bot, "add-admin": cmd_add_admin}[a.cmd]
+    fn = {"login": cmd_login, "whoami": cmd_whoami, "new-bot": cmd_new_bot, "add-admin": cmd_add_admin,
+          "send": cmd_send, "read": cmd_read}[a.cmd]
     asyncio.run(fn(a))
 
 
