@@ -13,8 +13,14 @@ All subcommands take `--account EMAIL`.
 | `mirror LOCALDIR [--parent ID] [--overwrite]` | Recreate the local tree in Drive (dirs→folders, files→uploads) |
 | `stat ID` | Print tab-separated id, name, mimeType |
 | `list-folder ID` | Print tab-separated id, name, mimeType for children |
-| `download ID --out PATH` | Download a file, print saved <path> |
+| `download ID --out PATH` | Download a file (Docs/Sheets/Slides are exported as PDF/CSV/PDF), print saved <path> |
+| `search QUERY [--max N] [--raw]` | Name-contains search, newest first; `--raw` takes a Drive query (`mimeType='application/pdf'`) |
+| `move ID --to FOLDER_ID` | Move into another folder |
+| `rename ID NEW_NAME` | Rename |
+| `share ID --email X [--role R] [--no-notify]` / `share ID --anyone` | Give a person, or anyone with the link, access (reader, commenter, writer) |
+| `trash ID` | Move to Drive trash (recoverable for 30 days). No permanent delete on purpose |
+
+Every ID argument also accepts a pasted Drive URL. Claude reaches this CLI through the `drive` skill; the `google-drive` MCP it replaced was retired 2026-10-16.
 
 Idempotent: folders are found-or-created; files are skipped if a same-named file already exists in that folder (`--overwrite` to replace). `root` or omitted `--parent` means My Drive root.
 
-> Stub scaffolded by the `routing` maintainer job — flesh out as needed.

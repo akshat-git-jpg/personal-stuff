@@ -34,7 +34,7 @@ A hook rewrites shell commands through `rtk` transparently (60–90% token savin
 | Google Sheets | `google-sheets` skill → `pp-sheets` | |
 | YouTube data/channels/comments | `youtube` skill → `pp-youtube` | |
 | YouTube transcripts | `tooling/cli/youtube/pp-yt-transcript get <url>` | **Mac/residential IP only**; cache `~/.cache/pp-yt-transcript/` |
-| Google Drive | `pp-drive --account <email>` or `google-drive` MCP | idempotent find-or-create; `--overwrite` to replace |
+| Google Drive | `pp-drive --account <email>` (`drive` skill) | idempotent find-or-create; `--overwrite` to replace |
 | Hostinger VPS/DNS/snapshots via API | `hostinger` skill → `pp-hostinger` | |
 | Cloudflare D1/KV/DNS ad hoc | `cloudflare` MCP tools | Python pipelines use `common/cloudflare.py` instead |
 | Push notification to phone | `tooling/cli/notify/` — Telegram only (used by greenlight) | `notify send "<msg>"`: exit 0 sent, 3 undeliverable, 2 usage. The self-hosted ntfy server was retired 2026-08-30 (public `:8888`, read-write to anyone); do not reintroduce a fallback that is open by default. |

@@ -4,6 +4,10 @@ Small command-line tools Claude Code calls during a session. These are the activ
 
 Each tool lives in its own folder with the executable and (mostly) a README.
 
+## How Claude finds a CLI
+
+A CLI has no trigger phrases of its own; Claude only runs one that some text it reads names. So every tool the owner asks for in plain words gets a thin **front-door skill** in `.claude/skills/` (trigger phrases + the command list), and the CLI stays the engine. Current pairs: `gmail`, `google-sheets`, `hostinger`, `youtube`, `drive`, `splitwise`, `inbox`, `coffee`, and `travel` (flights, bus, trains, trip). Plumbing that hooks or other skills call (`wt`, `pp-work`, `pp-land`, `pp-push`, `greenlight`, `gh-acct`, `notify`) needs no skill. New user-facing CLI ⇒ new skill in the same change.
+
 - `gmail/` — read and send Gmail.
 - `sheets/` — read and write Google Sheets. Shares Google auth with the others via `../mcp/google-shared`.
 - `youtube/` — YouTube data and transcripts (`pp-yt-transcript` fetches transcripts free; run it from a residential IP, datacenter IPs are blocked).

@@ -49,7 +49,7 @@ Also per-CLI: the Hostinger API token lives at `tooling/mcp/hostinger/.env` (`AP
 
 ## Machine-local config (not secret, still per-machine)
 
-- `.mcp.json` (repo root) — **gitignored**, absolute paths; regenerate after clone/move: `./scripts/regen-mcp-json.sh` (env `MCP_PYTHON` overrides the interpreter). Wires only `google-drive` + `cloudflare`.
+- `.mcp.json` (repo root) — **gitignored**, absolute paths; regenerate after clone/move: `./scripts/regen-mcp-json.sh` (env `MCP_PYTHON` overrides the interpreter). Wires only `cloudflare` + the two `davinci-resolve` servers.
 - `.claude/settings.local.json` — permission allow-list + enabled MCP servers.
 - Per-app `.npmrc` pinning the public npm registry (work `~/.npmrc` → CodeArtifact 401s).
 
