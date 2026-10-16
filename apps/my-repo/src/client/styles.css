@@ -159,3 +159,30 @@ tr.sel td { background: var(--skill-bg); }
   .search { justify-content: stretch; }
   .field { max-width: none; }
 }
+
+/* Areas */
+.tabs.scope button[aria-pressed='true'] { background: var(--skill-bd); }
+.areas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; align-items: start; }
+.area { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.area.quiet { background: var(--ground); }
+.area-open { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; padding: 0; border: 0; background: transparent; text-align: left; }
+.area-open:hover .area-name { text-decoration: underline; }
+.area-open:focus-visible, .mini:focus-visible, .back:focus-visible { outline: 3px solid var(--skill-bd); outline-offset: 2px; }
+.area-name { font-size: 16px; font-weight: 600; }
+.area-blurb { margin: 0; }
+.area-counts { margin: 2px 0 4px; display: flex; flex-wrap: wrap; gap: 10px; }
+.t-skill { color: var(--skill-fg); } .t-cli { color: var(--cli-fg); } .t-mcp { color: var(--mcp-fg); }
+.area-items { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.mini { min-height: 32px; padding: 0 9px; border: 1px solid; border-radius: 6px; font-size: 12.5px; background: var(--panel); }
+.mini.k-skill { border-color: var(--skill-bd); background: var(--skill-bg); color: var(--skill-fg); }
+.mini.k-cli { border-color: var(--cli-bd); background: var(--cli-bg); color: var(--cli-fg); border-radius: 2px; font-family: var(--mono); }
+.mini.k-mcp { border-color: var(--mcp-bd); background: var(--mcp-bg); color: var(--mcp-fg); border-radius: 16px; font-family: var(--mono); }
+.mini.more { border-color: var(--line); color: var(--muted); }
+.crumb { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.crumb h2 { font-size: 17px; }
+.back { min-height: 36px; padding: 0 8px; color: var(--skill-fg); }
+.away { font-family: var(--sans); font-size: 10.5px; font-weight: 600; padding: 1px 5px; border-radius: 4px; background: var(--ink); color: #fff; white-space: nowrap; }
+.away.static { margin-right: 6px; }
+.group-row th { padding: 14px 8px 6px; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--line); background: var(--panel); }
+.loose-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lvl { font-size: 11px; font-weight: 600; }

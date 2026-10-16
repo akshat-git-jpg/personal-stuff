@@ -1,5 +1,41 @@
 import { describe, expect, it } from 'vitest'
-import { buildGraph, mentionedSkills, mentionsCli, triggers } from '../scripts/graph.mjs'
+import { assignAreas, buildGraph, mentionedSkills, mentionsCli, triggers } from '../scripts/graph.mjs'
+
+describe('assignAreas', () => {
+  const curated = {
+    workScope: '^mongo-app',
+    areas: [
+      { scope: 'personal', name: 'Libs', groups: ['vendored'] },
+      { scope: 'personal', name: 'Google', match: '(drive|gmail)' },
+      { scope: 'work', name: 'Systems', match: '^(zluri-|mongo-app)' },
+      { scope: 'work', name: 'Shared' },
+    ],
+  }
+  const nodes = [
+    { id: 'skill:drive', kind: 'skill', name: 'drive', group: 'personal' },
+    { id: 'skill:gsap-drive', kind: 'skill', name: 'gsap-drive', group: 'vendored' },
+    { id: 'skill:odd', kind: 'skill', name: 'odd', group: 'personal' },
+    { id: 'work:zluri-db', kind: 'skill', name: 'zluri-db', group: 'work' },
+    { id: 'work:humanizer', kind: 'skill', name: 'humanizer', group: 'work' },
+    { id: 'mcp:mongo-app-prod', kind: 'mcp', name: 'mongo-app-prod', group: 'user' },
+    { id: 'service:Mongo', kind: 'service', name: 'Mongo', group: 'outside' },
+  ] as { id: string; kind: string; name: string; group: string; scope?: string; area?: string | null }[]
+  const list = assignAreas(nodes, [{ from: 'mcp:mongo-app-prod', to: 'service:Mongo', kind: 'reaches' }], curated)
+  const area = (id: string) => nodes.find((n) => n.id === id)?.area
+  it('first matching area wins, a group beats a later name match', () => {
+    expect(area('skill:gsap-drive')).toBe('Libs')
+    expect(area('skill:drive')).toBe('Google')
+  })
+  it('work scope by group or by workScope name; its catch-all takes the rest', () => {
+    expect(area('mcp:mongo-app-prod')).toBe('Systems')
+    expect(area('work:humanizer')).toBe('Shared')
+    expect(nodes.find((n) => n.id === 'service:Mongo')?.scope).toBe('work')
+  })
+  it('an unmatched personal item goes to Other, and Other is listed', () => {
+    expect(area('skill:odd')).toBe('Other')
+    expect(list.map((a: { name: string; scope: string }) => `${a.scope}:${a.name}`)).toContain('personal:Other')
+  })
+})
 
 const skill = (name: string, desc: string, body = '', group = 'personal') => ({
   name, group, dir: `/r/.claude/skills/${name}`, md: `---\nname: ${name}\ndescription: ${desc}\n---\n${body}`, docs: body, fm: { description: desc },

@@ -34,6 +34,38 @@ export function mentionedSkills(text, names, self) {
   return hits
 }
 
+export const OTHER = 'Other'
+
+/**
+ * Sets `scope` (personal | work) and `area` on every node; returns the area list for the page.
+ * Skills, CLIs and MCPs take the first matching area of their scope. Services take their callers' scope.
+ */
+export function assignAreas(nodes, edges, curated = {}) {
+  const defs = (curated.areas ?? []).map((a) => ({ ...a, re: a.match ? new RegExp(a.match) : null }))
+  const workRe = curated.workScope ? new RegExp(curated.workScope) : null
+  const fallback = (scope) => defs.filter((a) => a.scope === scope && !a.re && !a.groups).at(-1)?.name ?? OTHER
+  for (const n of nodes) {
+    if (n.kind === 'service') continue
+    n.scope = n.group === 'work' || workRe?.test(n.name) ? 'work' : 'personal'
+    if (n.kind === 'harness') { n.area = null; continue }
+    const hit = defs.find((a) => a.scope === n.scope && ((a.groups ?? []).includes(n.group) || a.re?.test(n.name)))
+    n.area = hit?.name ?? fallback(n.scope)
+  }
+  const byId = new Map(nodes.map((n) => [n.id, n]))
+  for (const n of nodes) {
+    if (n.kind !== 'service') continue
+    const callers = edges.filter((e) => e.to === n.id).map((e) => byId.get(e.from)).filter(Boolean)
+    n.scope = callers.some((c) => c.scope === 'personal') || !callers.length ? 'personal' : 'work'
+    n.area = null
+  }
+  const used = new Set(nodes.map((n) => `${n.scope}|${n.area}`))
+  const list = defs.filter((a) => used.has(`${a.scope}|${a.name}`)).map(({ name, scope, blurb, collapsed }) => ({ name, scope, blurb: blurb ?? '', collapsed: !!collapsed }))
+  for (const scope of ['personal', 'work']) {
+    if (used.has(`${scope}|${OTHER}`)) list.push({ name: OTHER, scope, blurb: 'Matched no area rule: add one in data/curated.json', collapsed: false })
+  }
+  return list
+}
+
 export function buildGraph(input) {
   const { skills, work, clis, mcps, harness, routing, curated = {}, existingCliDirs = [], changed = () => null, rel = (p) => p } = input
   const nodes = new Map()
@@ -125,10 +157,12 @@ export function buildGraph(input) {
     else if (n.group === 'user' && !calledBy(n.id).length) note(n.id, 'warn', 'No skill calls this CLI, so plain words never reach it')
   }
 
+  const areas = assignAreas([...nodes.values()], edges, curated)
+
   const order = { error: 0, warn: 1, info: 2 }
   findings.sort((a, b) => order[a.level] - order[b.level] || a.node.localeCompare(b.node))
   return {
-    meta: { repo: input.repo, sha: input.sha, scannedAt: input.scannedAt, workSkills: !!input.workFound },
+    meta: { repo: input.repo, sha: input.sha, scannedAt: input.scannedAt, workSkills: !!input.workFound, areas },
     nodes: [...nodes.values()],
     edges,
     findings,

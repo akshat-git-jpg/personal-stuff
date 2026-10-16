@@ -35,6 +35,7 @@ for (const e of g.edges) if (e.from.endsWith(":"+q)||e.to.endsWith(":"+q)) conso
 
 - `services`: node id -> outside services it reaches (`"cli:pp-drive": ["Google Drive"]`). Add one for every new user-facing CLI or MCP.
 - `plumbing`: CLIs that hooks or other skills call; they never get a "no skill calls this" loose end.
+- `areas`: the ordered area rules for the Personal and Work tabs. An item takes the first area of its scope whose `groups` or `match` regex fits; work scope = work-skills plus `workScope` names. A new item in "Other" means a rule is missing: add a pattern, never a one-off id.
 - `abandoned`: node id -> why. `skillCalls`: links a skill makes through a claude.ai connector or a user-level MCP.
 
 Node ids are `skill:<name>`, `work:<name>` (work-skills), `cli:<binary>`, `mcp:<name>`.

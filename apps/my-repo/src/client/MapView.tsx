@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef } from 'react'
 import type { Graph } from '../shared/types'
 import { BOX_H, LANES, layout, MAP_W, pathFor, trace, type Filters } from './derive'
 
-type Props = { graph: Graph; filters: Filters; selected: string | null; onPick: (id: string) => void }
+type Props = { graph: Graph; filters: Filters; selected: string | null; onPick: (id: string) => void; onBack: () => void }
 
-export function MapView({ graph, filters, selected, onPick }: Props) {
+export function MapView({ graph, filters, selected, onPick, onBack }: Props) {
   const lay = useMemo(() => layout(graph, filters), [graph, filters])
   const lit = useMemo(() => trace(graph, selected), [graph, selected])
   const scroller = useRef<HTMLDivElement>(null)
@@ -16,13 +16,17 @@ export function MapView({ graph, filters, selected, onPick }: Props) {
   }, [selected])
   const on = (id: string) => !lit || lit.has(id)
   const skillCount = lay.boxes.filter((b) => b.lane === 1).length
+  const area = graph.meta.areas.find((a) => a.name === filters.area && a.scope === filters.scope)
 
   return (
     <section aria-labelledby="map-h" className="card">
       <div className="card-head">
-        <h2 id="map-h">How a request flows</h2>
+        <div className="crumb">
+          <button className="btn ghost back" onClick={onBack}>← All areas</button>
+          <h2 id="map-h">{filters.area}</h2>
+        </div>
         <span className="muted small">
-          {skillCount} skills on the map{lay.hidden ? ` · ${lay.hidden} filtered out` : ''} · click any box to trace it
+          {area?.blurb ? `${area.blurb} · ` : ''}{skillCount} skills · click any box to trace it
         </span>
       </div>
       {lay.boxes.length === 0 ? (
@@ -68,7 +72,7 @@ export function MapView({ graph, filters, selected, onPick }: Props) {
                   title={n.desc}
                 >
                   <span className="node-name">{n.name}</span>
-                  {n.group === 'work' && <span className="tag">work</span>}
+                  {b.away && <span className="away">{b.away}</span>}
                 </button>
               )
             })}
@@ -81,6 +85,7 @@ export function MapView({ graph, filters, selected, onPick }: Props) {
         <span><i className="sw k-mcp" />MCP · pill</span>
         <span><i className="sw k-service" />Outside service</span>
         <span><i className="sw-line" />skill hands off to skill</span>
+        <span><span className="away static">Area</span>lives in another area</span>
       </div>
     </section>
   )

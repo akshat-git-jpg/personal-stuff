@@ -1,4 +1,4 @@
-import type { Edge, Graph, GraphNode, Kind } from '../shared/types'
+import type { Area, Edge, Graph, GraphNode, Kind, Scope } from '../shared/types'
 
 export const ROW = 50
 export const BOX_H = 40
@@ -11,13 +11,14 @@ export const LANES = [
 ] as const
 export const MAP_W = 930
 
-export type Filters = { kinds: Set<Kind>; groups: Set<string>; query: string }
+/** What the map shows: one area of one scope, narrowed by kind and search. */
+export type Filters = { kinds: Set<Kind>; query: string; scope: Scope; area: string | null }
 
-export type Placed = { node: GraphNode; lane: number; y: number; phrase?: string }
+export type Placed = { node: GraphNode; lane: number; y: number; phrase?: string; away?: string }
 export type Line = { from: Placed; to: Placed; kind: Edge['kind'] }
-export type Layout = { boxes: Placed[]; lines: Line[]; height: number; hidden: number }
+export type Layout = { boxes: Placed[]; lines: Line[]; height: number }
 
-export const SKILL_GROUPS = ['personal', 'pipelines', 'vendored', 'work'] as const
+export const TOOL_KINDS: Kind[] = ['cli', 'mcp']
 
 export function matches(n: GraphNode, q: string): boolean {
   if (!q) return true
@@ -56,21 +57,40 @@ export function trace(g: Graph, id: string | null): Set<string> | null {
 }
 
 const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : Infinity)
+const inArea = (n: GraphNode, f: Filters) => n.scope === f.scope && (f.area == null || n.area === f.area)
 
-/** Four lanes: phrase · skill · CLI/MCP · service, ordered to keep lines short. */
+/** Areas of one scope, in config order with collapsed ones last, plus what each holds. */
+export function areaCards(g: Graph, scope: Scope, query: string) {
+  const areas = g.meta.areas.filter((a) => a.scope === scope)
+  const sorted = [...areas.filter((a) => !a.collapsed), ...areas.filter((a) => a.collapsed)]
+  return sorted.map((area: Area) => {
+    const items = g.nodes.filter((n) => n.scope === scope && n.area === area.name)
+    const ids = new Set(items.map((n) => n.id))
+    const count = (k: Kind) => items.filter((n) => n.kind === k).length
+    return {
+      area,
+      skills: count('skill'),
+      clis: count('cli'),
+      mcps: count('mcp'),
+      loose: g.findings.filter((f) => ids.has(f.node)).length,
+      top: items.filter((n) => n.kind === 'skill').slice(0, 6),
+      hits: query ? items.filter((n) => matches(n, query)) : [],
+    }
+  })
+}
+
+/** Four lanes for one area: phrase · skill · CLI/MCP · service. Tools from other areas carry `away`. */
 export function layout(g: Graph, f: Filters): Layout {
   const { out, inn, byId } = index(g)
-  const isTool = (n: GraphNode) => n.kind === 'cli' || n.kind === 'mcp'
-  const allSkills = g.nodes.filter((n) => n.kind === 'skill')
-  let skills = f.kinds.has('skill') ? allSkills.filter((n) => f.groups.has(n.group)) : []
+  const isTool = (n: GraphNode) => TOOL_KINDS.includes(n.kind)
   const toolsOf = (id: string) => out(id).map((e) => byId.get(e.to)!).filter((n) => n && isTool(n) && f.kinds.has(n.kind))
 
+  let skills = f.kinds.has('skill') ? g.nodes.filter((n) => n.kind === 'skill' && inArea(n, f)) : []
   let tools: GraphNode[] = []
   const toolSet = new Set<string>()
   const pushTool = (t: GraphNode) => { if (!toolSet.has(t.id)) { toolSet.add(t.id); tools.push(t) } }
   for (const s of skills) toolsOf(s.id).forEach(pushTool)
-  // Tools no visible skill reaches still show, so a loose CLI is visible on the map.
-  for (const n of g.nodes) if (isTool(n) && f.kinds.has(n.kind) && n.group !== 'plumbing' && !inn(n.id).some((e) => e.from.startsWith('skill:') || e.from.startsWith('work:'))) pushTool(n)
+  for (const n of g.nodes) if (isTool(n) && f.kinds.has(n.kind) && inArea(n, f)) pushTool(n)
 
   if (f.query) {
     const hit = new Set(g.nodes.filter((n) => matches(n, f.query)).map((n) => n.id))
@@ -79,7 +99,7 @@ export function layout(g: Graph, f: Filters): Layout {
     tools = tools.filter((t) => near(t) || skills.some((s) => toolsOf(s.id).includes(t)))
   }
 
-  skills.sort((a, b) => a.group.localeCompare(b.group) || a.name.localeCompare(b.name))
+  skills.sort((a, b) => a.name.localeCompare(b.name))
   for (let pass = 0; pass < 2; pass++) {
     const sIdx = new Map(skills.map((s, i) => [s.id, i]))
     tools.sort((a, b) => avg(inn(a.id).map((e) => sIdx.get(e.from)!).filter((x) => x != null)) - avg(inn(b.id).map((e) => sIdx.get(e.from)!).filter((x) => x != null)))
@@ -87,7 +107,6 @@ export function layout(g: Graph, f: Filters): Layout {
     skills.sort((a, b) => avg(toolsOf(a.id).map((t) => tIdx.get(t.id)!)) - avg(toolsOf(b.id).map((t) => tIdx.get(t.id)!)))
   }
 
-  const tIdx = new Map(tools.map((t, i) => [t.id, i]))
   const services: GraphNode[] = []
   if (f.kinds.has('service')) {
     const seen = new Set<string>()
@@ -95,13 +114,13 @@ export function layout(g: Graph, f: Filters): Layout {
       const s = byId.get(e.to)
       if (s?.kind === 'service' && !seen.has(s.id)) { seen.add(s.id); services.push(s) }
     }
-    services.sort((a, b) => avg(inn(a.id).map((e) => tIdx.get(e.from)!).filter((x) => x != null)) - avg(inn(b.id).map((e) => tIdx.get(e.from)!).filter((x) => x != null)))
   }
 
   const boxes: Placed[] = []
   const at = new Map<string, Placed>()
   const put = (node: GraphNode, lane: number, y: number) => {
-    const p: Placed = { node, lane, y }
+    const away = f.area && node.area && node.area !== f.area ? node.area : undefined
+    const p: Placed = { node, lane, y, away }
     boxes.push(p)
     at.set(node.id, p)
     return y
@@ -118,7 +137,6 @@ export function layout(g: Graph, f: Filters): Layout {
     return last
   }
   const bottom = Math.max(TOP + (skills.length - 1) * ROW, settle(tools, 2), settle(services, 3))
-  const rows = Math.round((bottom - TOP) / ROW) + 1
   for (const s of skills) {
     const p = at.get(s.id)!
     if (s.triggers?.length) boxes.push({ node: s, lane: 0, y: p.y, phrase: s.triggers[0] })
@@ -130,15 +148,9 @@ export function layout(g: Graph, f: Filters): Layout {
     const b = at.get(e.to)
     if (a && b && e.kind !== 'routes') lines.push({ from: a, to: b, kind: e.kind })
   }
-  for (const s of skills) {
-    const p = at.get(s.id)!
-    const phrase = boxes.find((b) => b.lane === 0 && b.node.id === s.id)
-    if (phrase) lines.push({ from: phrase, to: p, kind: 'calls' })
-  }
+  for (const b of boxes) if (b.lane === 0) lines.push({ from: b, to: at.get(b.node.id)!, kind: 'calls' })
 
-  const shown = new Set(boxes.map((b) => b.node.id))
-  const hidden = g.nodes.filter((n) => n.kind !== 'harness' && !shown.has(n.id)).length
-  return { boxes, lines, height: TOP + Math.max(1, rows) * ROW + 20, hidden }
+  return { boxes, lines, height: Math.max(bottom, TOP) + ROW + 20 }
 }
 
 /** SVG path for one line: right edge of the left box to the left edge of the right box. */
@@ -156,12 +168,6 @@ export function pathFor(l: Line): string {
   const x2 = B.x
   const mid = (x1 + x2) / 2
   return `M${x1} ${y1} C${mid} ${y1} ${mid} ${y2} ${x2} ${y2}`
-}
-
-export function counts(g: Graph) {
-  const c = (k: Kind) => g.nodes.filter((n) => n.kind === k).length
-  const mcpWired = g.nodes.filter((n) => n.kind === 'mcp' && n.group === 'wired').length
-  return { skill: c('skill'), cli: c('cli'), mcp: c('mcp'), mcpWired, harness: c('harness'), service: c('service') }
 }
 
 export const KIND_LABEL: Record<Kind, string> = { skill: 'Skills', cli: 'CLIs', mcp: 'MCPs', harness: 'Harness', service: 'Outside services' }
