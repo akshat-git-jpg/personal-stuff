@@ -53,9 +53,9 @@ git -C "$PLUGIN" commit -q -m "chore: sync shared skills" || { say "commit faile
 
 if git -C "$PLUGIN" push -q 2>/dev/null; then
   say "pushed ($changed file(s))"
-  [ -x "$NOTIFY" ] && "$NOTIFY" send "skills-sync: $changed file(s) synced to work-skills" >/dev/null 2>&1
+  [ -x "$NOTIFY" ] && "$NOTIFY" send --topic infra "skills-sync: $changed file(s) synced to work-skills" >/dev/null 2>&1
 else
   say "commit made but push failed — push it by hand"
-  [ -x "$NOTIFY" ] && "$NOTIFY" send "skills-sync: committed to work-skills but PUSH FAILED" >/dev/null 2>&1
+  [ -x "$NOTIFY" ] && "$NOTIFY" send --topic infra "skills-sync: committed to work-skills but PUSH FAILED" >/dev/null 2>&1
   exit 1
 fi

@@ -65,7 +65,7 @@ revoke() {
   rm -f "$DEADLINE_FILE"
   echo "$reason" > "$REASON_FILE"
   log "REVOKE ($reason) — sleep re-enabled"
-  "$COFFEE_NOTIFY" send "coffee: sleep re-enabled ($reason). Your Mac will now sleep when you shut the lid." >/dev/null 2>&1
+  "$COFFEE_NOTIFY" send --topic infra "coffee: sleep re-enabled ($reason). Your Mac will now sleep when you shut the lid." >/dev/null 2>&1
 }
 
 # One reconcile tick. Kept as a function so the test suite can call it directly
