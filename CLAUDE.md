@@ -40,6 +40,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Bus timings (Indore ↔ Badnagar, more routes as added) | `tooling/cli/bus/README.md` (`pp-bus`) |
 | Trains: search, seats and fares, route, live running status | `tooling/cli/trains/README.md` (`pp-trains`); sources and traps in [`docs/indian-railways-data-sources.md`](docs/indian-railways-data-sources.md) — read before trusting any train result |
 | Phone notifications (Telegram-first) | tooling/cli/notify/README.md |
+| **Phone <-> Mac file drop** — "I sent it on Telegram", fetch a file from the phone, send a file to the phone (KB Inbox bot, `~/Inbox`) | `tooling/cli/inbox/README.md` (`inbox pull` / `inbox send`) |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
 | Running this repo under Codex (or any non-Claude agent) — path mapping, what doesn't carry over | [`AGENTS.md`](AGENTS.md) + `scripts/mirror-codex-skills.sh` |
 | A specific app | apps/<name>/ — full list in the README map below; each app folder carries its own operate-doc (README and/or CLAUDE.md) |

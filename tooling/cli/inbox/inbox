@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+"""inbox — phone <-> Mac file drop over a private Telegram bot DM.
+
+  inbox setup                 one-time: save TELEGRAM_INBOX_CHAT_ID (message the bot first)
+  inbox pull [--dir D]        save every new message/file from the DM into D
+  inbox send <file|text>...   send files (as documents, full quality) or text to the DM
+  inbox open                  open the inbox folder in Finder
+
+Creds: infra/secrets/telegram.env (TELEGRAM_INBOX_BOT_TOKEN, TELEGRAM_INBOX_CHAT_ID).
+A dedicated bot, because amul-watch consumes the main bot's getUpdates queue.
+Exit: 0 ok, 1 error, 2 usage.
+"""
+import datetime
+import json
+import mimetypes
+import os
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
+
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
+ENV_FILE = os.environ.get("INBOX_ENV_FILE", os.path.join(REPO_ROOT, "infra", "secrets", "telegram.env"))
+STATE_DIR = os.environ.get("INBOX_STATE_DIR", os.path.expanduser("~/.local/state/inbox"))
+DEFAULT_DIR = os.environ.get("INBOX_DIR", os.path.expanduser("~/Inbox"))  # not ~/Downloads: macOS blocks launchd there
+API = os.environ.get("INBOX_API_BASE", "https://api.telegram.org")
+DOWNLOAD_LIMIT = 20 * 1024 * 1024  # Bot API getFile cap
+UPLOAD_LIMIT = 50 * 1024 * 1024    # Bot API send cap
+
+
+def die(msg, code=1):
+    print(f"ERROR: {msg}", file=sys.stderr)
+    sys.exit(code)
+
+
+def usage():
+    print(__doc__.strip().split("\n\n")[0], file=sys.stderr)
+    sys.exit(2)
+
+
+def load_env():
+    env = {}
+    if os.path.exists(ENV_FILE):
+        with open(ENV_FILE) as f:
+            for line in f:
+                m = re.match(r"^\s*([A-Z0-9_]+)=(.*)$", line)
+                if m:
+                    env[m.group(1)] = m.group(2).strip().strip('"').strip("'")
+    if not env.get("TELEGRAM_INBOX_BOT_TOKEN"):
+        die(f"TELEGRAM_INBOX_BOT_TOKEN not set in {ENV_FILE}. Create a bot via @BotFather and paste the token there.")
+    return env
+
+
+def set_env_var(key, val):
+    lines = open(ENV_FILE).read().splitlines() if os.path.exists(ENV_FILE) else []
+    out, done = [], False
+    for line in lines:
+        if line.startswith(key + "="):
+            out.append(f"{key}={val}")
+            done = True
+        else:
+            out.append(line)
+    if not done:
+        out.append(f"{key}={val}")
+    with open(ENV_FILE, "w") as f:
+        f.write("\n".join(out) + "\n")
+
+
+def call(token, method, params=None, body=None, headers=None, timeout=30):
+    url = f"{API}/bot{token}/{method}"
+    if params:
+        url += "?" + urllib.parse.urlencode(params)
+    req = urllib.request.Request(url, data=body, headers=headers or {})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            data = json.load(r)
+    except urllib.error.HTTPError as e:
+        try:
+            data = json.load(e)
+        except Exception:
+            die(f"{method}: HTTP {e.code}")
+    except urllib.error.URLError as e:
+        die(f"{method}: {e.reason}")
+    if not data.get("ok"):
+        die(f"{method}: {data.get('description', 'failed')}")
+    return data["result"]
+
+
+def multipart(fields, file_field, path):
+    boundary = uuid.uuid4().hex
+    parts = []
+    for k, v in fields.items():
+        parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode())
+    name = os.path.basename(path)
+    ctype = mimetypes.guess_type(name)[0] or "application/octet-stream"
+    with open(path, "rb") as f:
+        content = f.read()
+    parts.append(
+        f'--{boundary}\r\nContent-Disposition: form-data; name="{file_field}"; filename="{name}"\r\n'
+        f"Content-Type: {ctype}\r\n\r\n".encode() + content + b"\r\n"
+    )
+    parts.append(f"--{boundary}--\r\n".encode())
+    return b"".join(parts), {"Content-Type": f"multipart/form-data; boundary={boundary}"}
+
+
+def read_offset():
+    try:
+        with open(os.path.join(STATE_DIR, "offset.json")) as f:
+            return json.load(f).get("offset", 0)
+    except (FileNotFoundError, ValueError):
+        return 0
+
+
+def write_offset(offset):
+    os.makedirs(STATE_DIR, exist_ok=True)
+    path = os.path.join(STATE_DIR, "offset.json")
+    with open(path + ".tmp", "w") as f:
+        json.dump({"offset": offset}, f)
+    os.replace(path + ".tmp", path)
+
+
+def unique_path(folder, name):
+    name = re.sub(r"[/\\:\0]", "_", name).strip() or "file"
+    base, ext = os.path.splitext(name)
+    path, n = os.path.join(folder, name), 1
+    while os.path.exists(path):
+        path = os.path.join(folder, f"{base} ({n}){ext}")
+        n += 1
+    return path
+
+
+def pick_file(msg):
+    """Returns (file_id, size, filename) for the message's attachment, or None."""
+    stamp = datetime.datetime.fromtimestamp(msg["date"]).strftime("%Y-%m-%d_%H%M%S")
+    if "document" in msg:
+        d = msg["document"]
+        return d["file_id"], d.get("file_size", 0), d.get("file_name") or f"{stamp}_file"
+    if "photo" in msg:
+        p = max(msg["photo"], key=lambda x: x.get("file_size", 0))
+        return p["file_id"], p.get("file_size", 0), f"{stamp}_photo.jpg"
+    for kind, ext in (("video", ".mp4"), ("audio", ".mp3"), ("voice", ".ogg"), ("video_note", ".mp4"), ("animation", ".mp4")):
+        if kind in msg:
+            d = msg[kind]
+            return d["file_id"], d.get("file_size", 0), d.get("file_name") or f"{stamp}_{kind}{ext}"
+    return None
+
+
+def cmd_setup():
+    env = load_env()
+    if env.get("TELEGRAM_INBOX_CHAT_ID"):
+        print(f"TELEGRAM_INBOX_CHAT_ID already set ({env['TELEGRAM_INBOX_CHAT_ID']}).")
+        return
+    updates = call(env["TELEGRAM_INBOX_BOT_TOKEN"], "getUpdates", {"timeout": 0})
+    for u in updates:
+        chat = (u.get("message") or {}).get("chat", {})
+        if chat.get("type") == "private":
+            set_env_var("TELEGRAM_INBOX_CHAT_ID", chat["id"])
+            print(f"Saved TELEGRAM_INBOX_CHAT_ID={chat['id']} ({chat.get('first_name', '')}).")
+            return
+    die("No DM found. Send the inbox bot any message, then re-run `inbox setup`.")
+
+
+def cmd_pull(args):
+    folder = DEFAULT_DIR
+    if args[:1] == ["--dir"] and len(args) == 2:
+        folder = os.path.expanduser(args[1])
+    elif args:
+        usage()
+    env = load_env()
+    token, chat_id = env["TELEGRAM_INBOX_BOT_TOKEN"], env.get("TELEGRAM_INBOX_CHAT_ID")
+    if not chat_id:
+        die("TELEGRAM_INBOX_CHAT_ID not set. Run `inbox setup` first.")
+    os.makedirs(folder, exist_ok=True)
+    offset = read_offset()
+    saved = skipped = 0
+    while True:
+        updates = call(token, "getUpdates", {"timeout": 0, "offset": offset, "allowed_updates": '["message"]'})
+        if not updates:
+            break
+        for u in updates:
+            msg = u.get("message")
+            if msg and str(msg["chat"]["id"]) == str(chat_id):
+                stamp = datetime.datetime.fromtimestamp(msg["date"]).strftime("%Y-%m-%d_%H%M%S")
+                text = msg.get("text") or msg.get("caption")
+                f = pick_file(msg)
+                if f:
+                    file_id, size, name = f
+                    if size and size > DOWNLOAD_LIMIT:
+                        print(f"SKIP (over 20 MB, bot cannot download): {name}")
+                        skipped += 1
+                    else:
+                        info = call(token, "getFile", {"file_id": file_id})
+                        path = unique_path(folder, name)
+                        with urllib.request.urlopen(f"{API}/file/bot{token}/{info['file_path']}", timeout=120) as r, open(path, "wb") as out:
+                            out.write(r.read())
+                        print(path)
+                        saved += 1
+                if text:
+                    path = unique_path(folder, f"{stamp}_note.txt")
+                    with open(path, "w") as out:
+                        out.write(text + "\n")
+                    print(path)
+                    saved += 1
+            # Offset advances only after this update is fully saved.
+            offset = u["update_id"] + 1
+            write_offset(offset)
+    print(f"{saved} saved, {skipped} skipped -> {folder}", file=sys.stderr)
+    if saved and sys.platform == "darwin" and os.environ.get("INBOX_NOTIFY", "1") != "0":
+        import subprocess
+        subprocess.run(["osascript", "-e", f'display notification "{saved} new in ~/Inbox" with title "Telegram inbox"'], check=False)
+
+
+def cmd_send(args):
+    if not args:
+        usage()
+    env = load_env()
+    token, chat_id = env["TELEGRAM_INBOX_BOT_TOKEN"], env.get("TELEGRAM_INBOX_CHAT_ID")
+    if not chat_id:
+        die("TELEGRAM_INBOX_CHAT_ID not set. Run `inbox setup` first.")
+    for item in args:
+        if os.path.isfile(item):
+            if os.path.getsize(item) > UPLOAD_LIMIT:
+                die(f"{item} is over 50 MB, the bot cannot send it.")
+            body, headers = multipart({"chat_id": chat_id}, "document", item)
+            call(token, "sendDocument", body=body, headers=headers, timeout=300)
+            print(f"sent {item}")
+        elif os.path.isdir(item):
+            die(f"{item} is a folder. Zip it first.")
+        else:
+            call(token, "sendMessage", body=urllib.parse.urlencode({"chat_id": chat_id, "text": item}).encode())
+            print("sent text")
+
+
+def main():
+    argv = sys.argv[1:]
+    if not argv:
+        usage()
+    cmd, rest = argv[0], argv[1:]
+    if cmd == "setup" and not rest:
+        cmd_setup()
+    elif cmd == "pull":
+        cmd_pull(rest)
+    elif cmd == "open" and not rest:
+        os.makedirs(DEFAULT_DIR, exist_ok=True)
+        os.execvp("open", ["open", DEFAULT_DIR])
+    elif cmd == "send":
+        cmd_send(rest)
+    else:
+        usage()
+
+
+if __name__ == "__main__":
+    main()
