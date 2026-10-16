@@ -38,3 +38,6 @@ pipelines/video/card-library/	cd pipelines/video/card-library && source "$(git r
 pipelines/video/design-systems/tools/	cd pipelines/video/design-systems/tools && node --test
 pipelines/video/animate-flow/	cd pipelines/video/animate-flow && bash scripts/check.sh
 apps/video-review/	cd apps/video-review && { [ -d node_modules/typescript ] || PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm ci --no-audit --no-fund; } && npm test && npm run typecheck
+tooling/butler/	bash tooling/butler/test-butler.sh
+tooling/cli/lists/	bash tooling/butler/test-butler.sh
+tooling/cli/calendar/	bash tooling/butler/test-butler.sh

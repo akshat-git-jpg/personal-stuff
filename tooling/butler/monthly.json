@@ -1,0 +1,38 @@
+{
+  "jobs": [
+    {
+      "id": "yt-income",
+      "skill": "yt-income",
+      "label": "YouTube revenue dashboard",
+      "from_day": 25,
+      "to_day": 5,
+      "inputs": [
+        "Mother's PNB passbook PDF (password-protected) covering the month"
+      ]
+    },
+    {
+      "id": "my-income",
+      "skill": "my-income",
+      "label": "Kushal Money ledger",
+      "from_day": 25,
+      "to_day": 5,
+      "inputs": [
+        "SBI statement PDF from YONO (emailed to yourself or in ~/Downloads)",
+        "Rapido: request ride receipts for the month in the app",
+        "Trip bookings (bus + stay, with times) added on trips.agrolloo.com",
+        "Google Pay statement PDF from the last one's end to today (gpay_statement_<from>_<to>.pdf)"
+      ]
+    },
+    {
+      "id": "kushal-salary",
+      "skill": "kushal-salary",
+      "label": "Salary tracker",
+      "from_day": 25,
+      "to_day": 5,
+      "inputs": [
+        "Nothing to gather if the RazorpayX payslip mail has arrived in work Gmail",
+        "apps/kushal-salary/.ingest.env must exist"
+      ]
+    }
+  ]
+}
