@@ -58,8 +58,9 @@ class Stub(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         n = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(n)
-        sent.append((self.path.rsplit("/", 1)[1], body))
-        self.reply({"ok": True, "result": {}})
+        method = self.path.rsplit("/", 1)[1]
+        sent.append((method, body))
+        self.reply({"ok": True, "result": {"message_thread_id": 77} if method == "createForumTopic" else {}})
 
 
 def run(env, *args):
@@ -114,6 +115,30 @@ def main():
 
     r = run(env, "send", tmp)
     check(r.returncode == 1 and "Zip it" in r.stderr, "folder refused")
+
+    # Topic mode: KB Alerts group, only the inbox topic, never other bots.
+    GROUP = -100123
+    UPDATES[:] = [
+        {"update_id": 20, "message": {"chat": {"id": GROUP, "type": "supergroup"}, "message_thread_id": 77,
+                                      "from": {"is_bot": False}, "date": 1760000010, "text": "topic note"}},
+        {"update_id": 21, "message": {"chat": {"id": GROUP, "type": "supergroup"}, "message_thread_id": 7,
+                                      "from": {"is_bot": False}, "date": 1760000011, "text": "infra chatter"}},
+        {"update_id": 22, "message": {"chat": {"id": GROUP, "type": "supergroup"}, "message_thread_id": 77,
+                                      "from": {"is_bot": True}, "date": 1760000012, "text": "bot echo"}},
+    ]
+    envg = os.path.join(tmp, "group.env")
+    open(envg, "w").write(f"TELEGRAM_INBOX_BOT_TOKEN=t\nTELEGRAM_GROUP_ID={GROUP}\n")
+    genv = dict(env, INBOX_ENV_FILE=envg, INBOX_STATE_DIR=os.path.join(tmp, "gstate"), INBOX_DIR=os.path.join(tmp, "gout"))
+    r = run(genv, "setup")
+    gtext = open(envg).read()
+    check(r.returncode == 0 and f"TELEGRAM_INBOX_CHAT_ID={GROUP}" in gtext and "TELEGRAM_INBOX_THREAD_ID=77" in gtext,
+          "setup in group mode creates the inbox topic")
+    r = run(genv, "pull")
+    gnotes = [open(os.path.join(tmp, "gout", n)).read() for n in os.listdir(os.path.join(tmp, "gout"))]
+    check(gnotes == ["topic note\n"], "group pull keeps only the inbox topic, skips bots")
+    sent.clear()
+    r = run(genv, "send", "hi")
+    check(b"message_thread_id=77" in sent[0][1], "group send posts into the inbox topic")
 
     r = run(env, "bogus")
     check(r.returncode == 2, "bad command exits 2")

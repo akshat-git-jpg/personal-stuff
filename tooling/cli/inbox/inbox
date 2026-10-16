@@ -1,12 +1,13 @@
-#!/usr/bin/env python3
-"""inbox — phone <-> Mac file drop over a private Telegram bot DM.
+#!/usr/bin/python3
+# System python on purpose: the python.org 3.11 first on PATH has no CA certs.
+"""inbox — phone <-> Mac file drop over the KB Inbox bot (the `inbox` topic in KB Alerts).
 
-  inbox setup                 one-time: save TELEGRAM_INBOX_CHAT_ID (message the bot first)
+  inbox setup                 one-time: create the inbox topic in TELEGRAM_GROUP_ID (no group: save the DM)
   inbox pull [--dir D]        save every new message/file from the DM into D
   inbox send <file|text>...   send files (as documents, full quality) or text to the DM
   inbox open                  open the inbox folder in Finder
 
-Creds: infra/secrets/telegram.env (TELEGRAM_INBOX_BOT_TOKEN, TELEGRAM_INBOX_CHAT_ID).
+Creds: infra/secrets/telegram.env (TELEGRAM_INBOX_BOT_TOKEN, TELEGRAM_INBOX_CHAT_ID, TELEGRAM_INBOX_THREAD_ID).
 A dedicated bot, because amul-watch consumes the main bot's getUpdates queue.
 Exit: 0 ok, 1 error, 2 usage.
 """
@@ -153,7 +154,15 @@ def cmd_setup():
     if env.get("TELEGRAM_INBOX_CHAT_ID"):
         print(f"TELEGRAM_INBOX_CHAT_ID already set ({env['TELEGRAM_INBOX_CHAT_ID']}).")
         return
-    updates = call(env["TELEGRAM_INBOX_BOT_TOKEN"], "getUpdates", {"timeout": 0})
+    token, group = env["TELEGRAM_INBOX_BOT_TOKEN"], env.get("TELEGRAM_GROUP_ID")
+    if group:
+        # KB Alerts mode: the bot (admin, Manage topics) owns an "inbox" topic there.
+        topic = call(token, "createForumTopic", body=urllib.parse.urlencode({"chat_id": group, "name": "inbox"}).encode())
+        set_env_var("TELEGRAM_INBOX_CHAT_ID", group)
+        set_env_var("TELEGRAM_INBOX_THREAD_ID", topic["message_thread_id"])
+        print(f"Created the inbox topic in group {group} (thread {topic['message_thread_id']}).")
+        return
+    updates = call(token, "getUpdates", {"timeout": 0})
     for u in updates:
         chat = (u.get("message") or {}).get("chat", {})
         if chat.get("type") == "private":
@@ -171,6 +180,7 @@ def cmd_pull(args):
         usage()
     env = load_env()
     token, chat_id = env["TELEGRAM_INBOX_BOT_TOKEN"], env.get("TELEGRAM_INBOX_CHAT_ID")
+    thread = env.get("TELEGRAM_INBOX_THREAD_ID")
     if not chat_id:
         die("TELEGRAM_INBOX_CHAT_ID not set. Run `inbox setup` first.")
     os.makedirs(folder, exist_ok=True)
@@ -182,7 +192,10 @@ def cmd_pull(args):
             break
         for u in updates:
             msg = u.get("message")
-            if msg and str(msg["chat"]["id"]) == str(chat_id):
+            mine = msg and str(msg["chat"]["id"]) == str(chat_id) and not msg.get("from", {}).get("is_bot")
+            if mine and thread and str(msg.get("message_thread_id")) != str(thread):
+                mine = False
+            if mine:
                 stamp = datetime.datetime.fromtimestamp(msg["date"]).strftime("%Y-%m-%d_%H%M%S")
                 text = msg.get("text") or msg.get("caption")
                 f = pick_file(msg)
@@ -220,17 +233,20 @@ def cmd_send(args):
     token, chat_id = env["TELEGRAM_INBOX_BOT_TOKEN"], env.get("TELEGRAM_INBOX_CHAT_ID")
     if not chat_id:
         die("TELEGRAM_INBOX_CHAT_ID not set. Run `inbox setup` first.")
+    dest = {"chat_id": chat_id}
+    if env.get("TELEGRAM_INBOX_THREAD_ID"):
+        dest["message_thread_id"] = env["TELEGRAM_INBOX_THREAD_ID"]
     for item in args:
         if os.path.isfile(item):
             if os.path.getsize(item) > UPLOAD_LIMIT:
                 die(f"{item} is over 50 MB, the bot cannot send it.")
-            body, headers = multipart({"chat_id": chat_id}, "document", item)
+            body, headers = multipart(dest, "document", item)
             call(token, "sendDocument", body=body, headers=headers, timeout=300)
             print(f"sent {item}")
         elif os.path.isdir(item):
             die(f"{item} is a folder. Zip it first.")
         else:
-            call(token, "sendMessage", body=urllib.parse.urlencode({"chat_id": chat_id, "text": item}).encode())
+            call(token, "sendMessage", body=urllib.parse.urlencode({**dest, "text": item}).encode())
             print("sent text")
 
 
