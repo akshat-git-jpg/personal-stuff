@@ -1,69 +1,83 @@
 # pp-secrets (Infisical)
 
-One place for every gitignored secret file in this repo. Add or change a secret once, and every
-machine (the owner's Mac, his sister's Windows PC) gets it on its next Claude session.
+Every personal secret file lives in Infisical and syncs both ways on its own: the owner's Mac, his
+sister's Windows PC and the VPS. **Nobody copies a secret by hand, and Claude never asks the owner to.**
+Create, edit or delete the file where it belongs; the next sync carries it everywhere.
 
 - **Store:** Infisical Cloud, org `Agrolloo`, project `personal-stuff`, environment `prod`.
   Owner login: `akshatpatidar17@gmail.com` (GitHub sign-in) at https://app.infisical.com.
-- **Which files:** [`secrets.map.json`](secrets.map.json). Each `.env`-style file is one Infisical
-  folder with one secret per key. Each other file (JSON, `.txt`, `.md`) is one folder with a single
-  `FILE_CONTENT` secret. The folder name is the file path with every `.` and `@` turned into `_`.
-- **Auto-pull:** a `SessionStart` hook in `.claude/settings.json` runs `pull --quiet` on every
-  session. With no login on the machine it does nothing; a network error never blocks a session.
-- **Runtime:** plain `node` (20+), no npm install, same on macOS and Windows.
+- **Runtime:** plain `node` (20+), no npm install. Same file on macOS, Windows and the VPS.
+
+## When it runs (all automatic)
+
+| Where | Trigger | Command |
+|---|---|---|
+| Mac, Windows | every Claude session start in this repo (`SessionStart` hook) | `sync --quiet` |
+| Mac, Windows | end of every Claude turn (`Stop` hook), detached, logs to `~/.config/pp-secrets/sync.log` | `sync --background` |
+| VPS | cron every 15 min at :07 (`vps-crons/crontab.txt`) | `sync --quiet` |
+
+No login on a machine: the hooks do nothing. A network error never blocks a session.
+
+## What is synced (found automatically, no list to keep)
+
+- **Repos:** untracked files in `personal-stuff` and the personal repos listed in `OTHER_REPOS`
+  (`IT`, `vps-crons`, `personal projects/mend-pilot`, as siblings of personal-stuff) whose name looks
+  like a secret: `.env`, `*.env`, `.env.*`, `.dev.vars`, `*credentials*.json`, `token*.json`,
+  `*secret*`, `tokens/*.json`, anything in `infra/secrets/`. A repo that is not cloned is skipped.
+- **Home:** `~/.config/*-pp-cli/` and `~/.config/pp-trip/` files ending `.env`, `.toml` or `.json`.
+- **VPS only:** `/srv/crons/*/.env` and `/root/.claude-rc.env`.
+- **Never:** work or ZluriHQ repos; `*.example`, `*.bak`, `*.log`; `*.session`, because Telegram kills a
+  session used from two machines at once (`telegram-user.session`); binary files.
+
+The file list itself is in Infisical (`/_registry`, key `FILES`), so a new file needs no commit.
+Each `.env`-style file is one folder with one secret per key (edit them in the web UI). Every other
+file is one folder with a single `FILE_CONTENT` secret. Folder = the file id with `.` and `@` as `_`:
+`repo:personal-stuff/apps/gym-app/.dev.vars` -> `/repo/personal-stuff/apps/gym-app/_dev_vars`.
 
 ## Commands
 
 ```
-node tooling/cli/infisical/pp-secrets.mjs setup <login.json>   # one time per machine
-node tooling/cli/infisical/pp-secrets.mjs pull                 # write every file from Infisical
-node tooling/cli/infisical/pp-secrets.mjs status               # what pull would change; changes nothing
-node tooling/cli/infisical/pp-secrets.mjs push [path...]       # upload local files (all if no path)
+node tooling/cli/infisical/pp-secrets.mjs sync           # what the hooks run; prints each change
+node tooling/cli/infisical/pp-secrets.mjs status         # what sync would do; changes nothing
+node tooling/cli/infisical/pp-secrets.mjs remove <path>  # delete a secret file everywhere
+node tooling/cli/infisical/pp-secrets.mjs setup <login.json>  # one time per machine
 ```
 
-Exit codes: 0 ok, 1 error, 2 usage, 3 push conflict.
+Exit codes: 0 ok, 1 error, 2 usage. `pull` and `push` are old names for `sync`.
 
-## Add a secret
+## How sync decides (so nothing is lost)
 
-- **New key in a file that is already mapped:** add it in the Infisical web UI, in that file's folder.
-  Or edit the local file and run `push <path>`.
-- **A whole new secret file:** add one line to `secrets.map.json` (commit it), then `push <path>`.
+Per key, against a hash of what this machine last synced (`~/.config/pp-secrets/state.json`):
 
-## How pull decides (so nothing is lost)
+- Only the local side changed: pushed. Only Infisical changed: pulled.
+- Both changed: the newer one wins (file mtime vs Infisical `updatedAt`).
+- A machine's first sync: Infisical wins (old hand-copied files lose).
+- `remove` marks the file removed. Other machines delete their copy on their next sync, unless the
+  file there was edited after the removal (then it comes back).
+- Any local file sync overwrites or deletes is copied first to `~/.config/pp-secrets/backup/<time>/`.
 
-- File missing on this machine: written.
-- Local value still equals what this machine last synced: replaced with the Infisical value.
-- Local value was edited since the last sync: **kept**, and pull prints `kept ... run push`.
-- First pull on a machine with old hand-copied files: Infisical wins, and the old file is copied to
-  `~/.config/pp-secrets/backup/<time>/` first.
-- `push` never deletes a key in Infisical, and refuses (exit 3) to overwrite a value someone changed
-  in the web UI since this machine last synced. `--force` overrides.
+Repo files always land in the **main checkout** (via `git rev-parse --git-common-dir`), never in a
+`pp-work` workspace. `.env` comments and order are kept locally; Infisical stores values unquoted.
 
-Secrets always land in the **main checkout** (resolved via `git rev-parse --git-common-dir`), never in
-a `pp-work` workspace. `.env` comments and order are kept locally; Infisical stores values unquoted.
-
-## Machine-local files (never in git)
-
-- `~/.config/pp-secrets/infisical.json`: this machine's login (Client ID + its own Client Secret).
-- `~/.config/pp-secrets/state.json`: hashes of what was last synced, used for the rules above.
+## Logins (never in git)
 
 One machine identity, `personal-stuff-machines` (role `member` on the project), with **one Client Secret
-per machine** (`owner-mac`, `sister-windows`). A lost machine: delete only its Client Secret in
-Infisical (Organization > Access Control > Identities > personal-stuff-machines > Universal Auth).
+per machine**: `owner-mac`, `sister-windows`, `vps`. Each machine keeps its own in
+`~/.config/pp-secrets/infisical.json` (the VPS one has `"machine": "vps"`). A lost machine: delete only
+its Client Secret (Organization > Access Control > Identities > personal-stuff-machines > Universal Auth).
 
 ## Staying on the free plan (owner rule: never pay)
 
-Free plan limits as of 2026-10-16: 5 identities (users + machine identities), 3 environments per
-project, unlimited projects and secrets. In use: 1 user + 1 machine identity, 1 environment.
+Free plan limits as of 2026-10-16: 5 identities (users + machine identities), 3 environments per project,
+unlimited projects and secrets, a request rate limit (sync waits and retries on HTTP 429). In use:
+1 user + 1 machine identity, 1 environment.
 
-- Add machines as new **Client Secrets** on the existing identity, never as new identities.
+- A new machine is a new **Client Secret** on the existing identity, never a new identity.
 - Never start a trial, add a card, or turn on secret syncs, integrations, rotation or extra environments.
 - If Infisical ever ends the free plan: the core is MIT open source and self-hostable for $0, and
-  the escrow (`infra/escrow/`) still holds an offline copy of every file.
+  the escrow (`infra/escrow/`) still holds an offline copy.
 
-## Not synced, on purpose
+## Not here
 
-- `infra/secrets/telegram-user.session`: a full login to the owner's Telegram account.
-- `infra/secrets/heygen-web-curls.txt.bak`, `infra/secrets/heygen-usage-last.json`: a backup and a ledger, not secrets.
-- VPS-side secrets (`/srv/crons/*/.env`, `/root/.claude-rc.env`): still copied by hand, see `VPS-CRONS.md`.
-- Cloudflare Worker prod secrets: still `wrangler secret put` per app.
+- Cloudflare Worker prod secrets: still `wrangler secret put` per app (Cloudflare cannot read them back).
+- `/root/.claude/.credentials.json` on the VPS: a Claude login, machine-specific.

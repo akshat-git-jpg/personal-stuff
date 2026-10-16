@@ -8,8 +8,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/tooling/cli/infisical/pp-secrets.mjs\" pull --quiet",
-            "timeout": 30
+            "command": "node \"$CLAUDE_PROJECT_DIR/tooling/cli/infisical/pp-secrets.mjs\" sync --quiet",
+            "timeout": 60
           }
         ]
       }
@@ -69,6 +69,10 @@
           {
             "type": "command",
             "command": "bash \"$(cygpath -u \"$CLAUDE_PROJECT_DIR\" 2>/dev/null || printf %s \"$CLAUDE_PROJECT_DIR\")/.claude/hooks/commit-before-stop.sh\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/tooling/cli/infisical/pp-secrets.mjs\" sync --background"
           }
         ]
       }

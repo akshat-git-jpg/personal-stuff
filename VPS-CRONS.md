@@ -35,7 +35,7 @@ You only have to SSH to the VPS in exactly these **5 situations**:
 | 🆕 Adding a brand-new cron | create `.env`, set up `.venv`, `crontab /srv/crons/crontab.txt` |
 | ⏰ Changing a cron's schedule (`crontab.txt` edited) | `ssh root@72.61.241.170 '/srv/crons/vps-apply.sh'` |
 | 📦 New pip dep added (changed `requirements.txt`) | `ssh root@72.61.241.170 '/srv/crons/vps-apply.sh'` |
-| 🔐 Secret changed (Telegram token, OAuth token expired) | edit `.env` or scp the new token |
+| 🔐 Secret changed (Telegram token, OAuth token expired) | edit the `.env` on the VPS, or in Infisical under `/vps/srv/crons/<job>/_env`; the `secrets-sync` cron (every 15 min) carries it both ways. See `personal-stuff/tooling/cli/infisical/README.md` |
 | 🗑️ Removing/disabling a cron | edit `crontab.txt`, run `crontab /srv/crons/crontab.txt` |
 
 Anything else — code, prompts, preferences, new files inside a project — is **just `git push` on the Mac**. The VPS catches up on the next cron tick.

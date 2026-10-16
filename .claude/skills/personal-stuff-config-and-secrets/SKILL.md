@@ -9,6 +9,12 @@ description: Maps where every secret, token, API key and env var in personal-stu
 
 Secrets never enter git — they live in exactly six places, each with its own rotation path. **Names are documented; values are not.** If a script errors `<NAME> not set in .env`, find the axis below, don't invent a new location.
 
+**Every axis except 1 is mirrored in Infisical and syncs itself** (`tooling/cli/infisical/README.md`): Mac and Windows on every session start and turn end, the VPS every 15 min. So:
+- **Never ask the owner to copy, send or paste a secret to another machine** (his sister's PC, the VPS). Write the file in its axis; sync carries it.
+- A secret missing on this machine: run `node tooling/cli/infisical/pp-secrets.mjs sync` first, before asking anyone.
+- Deleting a secret file: `pp-secrets.mjs remove <path>`, never a plain `rm` (the next sync would bring it back).
+- A secret in a new place: it syncs only if its file name matches the patterns in the README. If it does not, rename it to match (for example `<tool>.env` in `infra/secrets/`) instead of widening the patterns.
+
 ## The six secret axes
 
 | Axis | Location | What lives there | Rotation / setup |
@@ -18,7 +24,7 @@ Secrets never enter git — they live in exactly six places, each with its own r
 | 3. Python workspace | `pipelines/.env` + `pipelines/credentials.json` (both gitignored) | 21 keys (below) + Google **service account** | edit `.env`; share each Sheet with the service account's `client_email` as Editor |
 | 4. Google OAuth (human accounts) | `tooling/mcp/google-shared/credentials.json` + `tokens/<email>.json` (gitignored) | one OAuth Desktop client; per-account tokens (5 as of 2026-07-12: `kushalbakliwal25`, `seankerman25`, `jessicap123k`, `akshatpatidar17`, `seemabakliwal19` @gmail.com) | `python3 tooling/mcp/google-shared/setup_auth.py <email>` (browser consent on the Mac) |
 | 5. Misc tool secrets | `infra/secrets/` | `heygen-web-curls.txt` (+ `heygen-usage-last.json` ledger), `hostinger-vps.env`, `impact.env`, `minio.env`, `fal.env`, `telegram.env` (+ `telegram.env.example`, `minio-access.md`), `telegram-user.session` (full login to the owner's Telegram Admin account, used by `tg-user`; revoke in Telegram Settings > Devices) | edit file; heygen cookies rotate in minutes–hours (recapture cURL on 403) |
-| 6. VPS-side | `/srv/crons/<job>/.env` (Telegram bot+chat), vendored `token.json` next to project code, `/root/.claude/.credentials.json`, `/root/.claude-rc.env` (chmod 600, EnvironmentFile for `claude-rc.service`: ELEVENLABS/PEXELS/SKOOL/VALYU/OPENROUTER keys) | per-cron delivery secrets, OAuth tokens, Claude Pro login, Remote Control env | edit on VPS directly / `scp` from Mac — never via git |
+| 6. VPS-side | `/srv/crons/<job>/.env` (Telegram bot+chat), vendored `token.json` next to project code, `/root/.claude/.credentials.json`, `/root/.claude-rc.env` (chmod 600, EnvironmentFile for `claude-rc.service`: ELEVENLABS/PEXELS/SKOOL/VALYU/OPENROUTER keys) | per-cron delivery secrets, OAuth tokens, Claude Pro login, Remote Control env | edit on VPS directly, or edit it in Infisical (`/vps/...`) and the VPS cron pulls it within 15 min — never via git. `/root/.claude/.credentials.json` is not synced |
 
 Also per-CLI: the Hostinger API token lives at `tooling/mcp/hostinger/.env` (`API_TOKEN`) — the `pp-hostinger` CLI in `tooling/cli/hostinger/` reads it from there, NOT from a `.env` of its own; `~/.config/` holds `paypal-txns-pp-cli` creds. `GUMROAD_ACCESS_TOKEN` for the gumroad CLI.
 
@@ -67,7 +73,7 @@ Also per-CLI: the Hostinger API token lives at `tooling/mcp/hostinger/.env` (`AP
 2. Add the NAME to the matching `.example` file (`.dev.vars.example`, `pipelines/.env.example`, `vps-crons/<job>/.env.example`) — this is the step that keeps rebuilds possible.
 3. Re-verify: run the consumer once (`wrangler dev` + hit the route; or the pipeline script; or the cron's `run.sh` manually).
 4. `git status` — confirm nothing secret is staged.
-5. Share it: `node tooling/cli/infisical/pp-secrets.mjs push <path>` (a new file needs a `secrets.map.json` line first). Every other machine gets it on its next session. Detail: `tooling/cli/infisical/README.md`.
+5. Nothing to share by hand: the Stop hook syncs it to Infisical at the end of the turn, and every other machine pulls it on its next sync. To make it immediate, run `node tooling/cli/infisical/pp-secrets.mjs sync`.
 
 ## No-secrets zones
 
