@@ -1,0 +1,58 @@
+{
+  "_about": "Facts the scanner cannot read from files. Edit by hand or through the my-repo skill. Keys are node ids (kind:name).",
+
+  "services": {
+    "cli:pp-drive": ["Google Drive"],
+    "cli:pp-gmail": ["Gmail"],
+    "cli:pp-sheets": ["Google Sheets"],
+    "cli:pp-cal": ["Google Calendar"],
+    "cli:pp-youtube": ["YouTube"],
+    "cli:pp-yt-transcript": ["YouTube"],
+    "cli:pp-hostinger": ["Hostinger"],
+    "cli:pp-flights": ["Skyscanner"],
+    "cli:pp-trains": ["erail", "ConfirmTkt", "RailYatri"],
+    "cli:pp-bus": ["Printed bus timetables"],
+    "cli:pp-splitwise": ["Splitwise"],
+    "cli:pp-flipkart": ["Flipkart"],
+    "cli:pp-rapidapi": ["RapidAPI Hub"],
+    "cli:inbox": ["Telegram"],
+    "cli:notify": ["Telegram"],
+    "cli:pp-lists": ["lists.agrolloo.com"],
+    "cli:pp-trip": ["trip.agrolloo.com"],
+    "cli:pp-heygen-batch": ["HeyGen"],
+    "cli:heygen-web": ["HeyGen"],
+    "cli:cf-email": ["Cloudflare"],
+    "cli:pp-flow-queue": ["Google Flow"],
+    "cli:gh-acct": ["GitHub"],
+    "cli:greenlight": ["GitHub"],
+    "cli:pp-land": ["GitHub"],
+    "mcp:cloudflare": ["Cloudflare"],
+    "mcp:davinci-resolve": ["DaVinci Resolve"],
+    "mcp:davinci-resolve-advanced": ["DaVinci Resolve"],
+    "mcp:google-tasks": ["Google Tasks"],
+    "mcp:gmail": ["Gmail"],
+    "mcp:indmoney": ["INDmoney"],
+    "mcp:mongo-app-dev": ["Zluri MongoDB"],
+    "mcp:mongo-app-prod": ["Zluri MongoDB"],
+    "mcp:postgres-app-dev": ["Zluri Postgres"],
+    "mcp:postgres-app-prod": ["Zluri Postgres"]
+  },
+
+  "plumbing": [
+    "cli:wt", "cli:pp-work", "cli:pp-land", "cli:pp-push", "cli:greenlight", "cli:gh-acct",
+    "cli:notify", "cli:pp-agents", "cli:pp-claude-tags", "cli:bt-audio-guard",
+    "cli:ccusage-dashboard", "cli:local-apps-dashboard", "cli:yt-claude", "cli:pp-heygen-batch"
+  ],
+
+  "abandoned": {
+    "cli:pp-claude-tags": "Superseded by pp-agents on 2026-08-26"
+  },
+
+  "skillCalls": {
+    "work:zluri-datadog": ["connector:Datadog"],
+    "work:zluri-sentry": ["connector:Sentry"],
+    "work:zluri-db": ["mcp:mongo-app-dev", "mcp:mongo-app-prod", "mcp:postgres-app-dev", "mcp:postgres-app-prod"],
+    "skill:kushal-salary": ["connector:Gmail"],
+    "skill:my-income": ["connector:Gmail"]
+  }
+}

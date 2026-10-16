@@ -18,6 +18,7 @@ You are the maintainer. You find rot, propose, and act only on approval. You bui
 | 10 | **token-budget** | where are tokens being wasted | [`jobs/token-budget/runbook.md`](jobs/token-budget/runbook.md) |
 | 11 | **improve** | where is the highest-leverage improvement in the source code | [`jobs/improve/runbook.md`](jobs/improve/runbook.md) |
 | 12 | **diskspace** | how much of the checkout is gitignored bulk, and what can safely go | [`jobs/diskspace/runbook.md`](jobs/diskspace/runbook.md) |
+| 13 | **my-repo** | is the live repo map older than the repo it maps | [`jobs/my-repo/runbook.md`](jobs/my-repo/runbook.md) |
 
 ## The Four Beats
 

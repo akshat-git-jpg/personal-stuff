@@ -1,0 +1,18 @@
+name = "my-repo"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# SPA built into dist/; the graph itself is bundled into the Worker and served behind the PIN.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[routes]]
+pattern = "my-repo.agrolloo.com"
+custom_domain = true
+
+# Secrets (npx wrangler secret put <NAME>):
+#   APP_PASSWORD   - the owner's PIN
+#   SESSION_SECRET - signs the auth cookie
