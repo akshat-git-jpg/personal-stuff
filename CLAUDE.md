@@ -48,6 +48,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Running this repo under Codex (or any non-Claude agent) — path mapping, what doesn't carry over | [`AGENTS.md`](AGENTS.md) + `scripts/mirror-codex-skills.sh` |
 | A specific app | apps/<name>/ — full list in the README map below; each app folder carries its own operate-doc (README and/or CLAUDE.md) |
 | YouTube / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
+| **Secrets sync across machines** — a new secret, "my sister needs this key", a missing `.env`/`.dev.vars` on a fresh clone (Infisical free plan, `pp-secrets`) | [`tooling/cli/infisical/README.md`](tooling/cli/infisical/README.md) |
 | Worktree pool for agent runs (wt) | [`tooling/cli/wt/README.md`](tooling/cli/wt/README.md) |
 | PR-driven implementation orchestrator — dispatch a crew, verify, merge, deploy (boss) | `tooling/boss/README.md` |
 | YouTube research / scripts / tutorial pipeline | `pipelines/youtube/` |
