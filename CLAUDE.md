@@ -43,6 +43,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Trains: search, seats and fares, route, live running status | `tooling/cli/trains/README.md` (`pp-trains`); sources and traps in [`docs/indian-railways-data-sources.md`](docs/indian-railways-data-sources.md) — read before trusting any train result |
 | Phone notifications (Telegram-first) | tooling/cli/notify/README.md |
 | **Phone <-> Mac file drop** — "I sent it on Telegram", fetch a file from the phone, send a file to the phone (`inbox` topic in KB Alerts, `~/Inbox`) | `tooling/cli/inbox/README.md` (`inbox pull` / `inbox send`) |
+| **Send something to my sister, or read what she sent** — "tell my sister", "send her this file", "what did she say" (Telegram "Founders Group", as the owner) | `tooling/cli/tg-user/README.md`, **Founders Group** section (`tg-user send` / `tg-user read`) |
 | **Make a new Telegram bot** or add one to KB Alerts — never ask the owner to use BotFather | `tooling/cli/tg-user/README.md` (`tg-user new-bot` / `add-admin`) |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
 | Running this repo under Codex (or any non-Claude agent) — path mapping, what doesn't carry over | [`AGENTS.md`](AGENTS.md) + `scripts/mirror-codex-skills.sh` |
