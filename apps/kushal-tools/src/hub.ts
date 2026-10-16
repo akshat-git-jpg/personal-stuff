@@ -51,6 +51,7 @@ const SECTIONS: Section[] = [
       app("Trip Planner", "trips.agrolloo.com"),
       app("Closet", "closet.agrolloo.com"),
       app("Kushal Docs", "kushal-docs.agrolloo.com"),
+      app("my-repo", "my-repo.agrolloo.com"),
     ],
   },
   {

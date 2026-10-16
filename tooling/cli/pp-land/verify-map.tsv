@@ -41,3 +41,4 @@ apps/video-review/	cd apps/video-review && { [ -d node_modules/typescript ] || P
 tooling/butler/	bash tooling/butler/test-butler.sh
 tooling/cli/lists/	bash tooling/butler/test-butler.sh
 tooling/cli/calendar/	bash tooling/butler/test-butler.sh
+apps/my-repo/	cd apps/my-repo && { [ -d node_modules/typescript ] || PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm ci --no-audit --no-fund; } && npm test && npm run typecheck

@@ -13,6 +13,7 @@
 - YT Income (revenue by tool, tallied against the bank) — https://yt-income.agrolloo.com (password-gated)
 - Founders tracker (Khushi + Kushal action items) — https://founders.agrolloo.com (password-gated)
 - Lists (categorized personal lists) — https://lists.agrolloo.com (password-gated)
+- my-repo (map of this repo's skills, CLIs, MCPs and harness, how they connect, plus loose ends) — https://my-repo.agrolloo.com (PIN-gated) — rebuilt on demand by the `my-repo` skill ("update my-repo"); app at `apps/my-repo`
 - URL shortener — https://go.agrolloo.com
 - Bride Bestie landing page — https://bridebestie.com
 - Hyperframes → Video renderer — https://render2.agrolloo.com (password-gated; editor pastes Hyperframes card HTML, downloads MP4)

@@ -130,3 +130,7 @@ apps/telegram-email-assistant/imap-accounts.local.json
 # Quarantined content from the no-writes-in-main wall — reverted file bytes,
 # never meant to be tracked.
 /.claude/quarantine/
+
+# Session scratch in the main checkout (artifact drafts, throwaway files). Ignored so the
+# commit-before-stop hook does not flag it; nothing here is ever committed.
+/.scratch/
