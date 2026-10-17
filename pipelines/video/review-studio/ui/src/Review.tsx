@@ -228,6 +228,7 @@ export function Review({ recipe, slug }: { recipe: string; slug: string }) {
           </div>
         </section>
 
+        <div className="side">
         <section className="pane script" aria-label="Script">
           <div className="pane-head"><span className="eyebrow">Script</span><span className="dim" style={{ fontSize: 11 }}>follows playback</span></div>
           <div className="pane-body" ref={scriptRef} style={{ padding: '0 10px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -265,6 +266,7 @@ export function Review({ recipe, slug }: { recipe: string; slug: string }) {
           notesEnabled={data.notesEnabled}
           onNotes={async (text) => { await api.saveNotes(recipe, slug, text); }}
         />
+        </div>
       </div>
 
       <Timeline

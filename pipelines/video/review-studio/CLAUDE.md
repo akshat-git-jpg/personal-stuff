@@ -25,3 +25,9 @@ Add an adapter to `lib/recipes.mjs`: `videosDir`, `mediaDir`, `approved`, `timel
 ```bash
 npm test
 ```
+
+After any layout change, also run the screen check against a running studio. It opens six window sizes, from 1000x700 to 2200x1200 plus a phone, and fails if a pane is off screen or squeezed. The first version only got checked at 1440 and 390, and broke at a 1000px laptop window:
+
+```bash
+node scripts/layout-check.mjs http://localhost:4340 visuals-flow/<slug> [screenshot-dir]
+```
