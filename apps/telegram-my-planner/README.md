@@ -2,7 +2,7 @@
 
 Personal planning files plus the daily-digest tool that turns them into a morning Telegram message. A VPS cron runs the digest at 06:00 IST.
 
-- `to-do/todo.md` — the running to-do list.
+- Open points and ideas moved to `../../context/ideas.md` (2026-10-17).
 - `my-daily-routine/` — daily routine.
 - `exercise-routine/exercise-routine.md` — workout routine.
 - `preferences-tasks-*.md` — per-account task preferences.

@@ -6,6 +6,6 @@ This directory holds the context, identity, active bets, product inventory, and 
 - **Update Cadence**: 
   - Update [bets.md](file:///Users/kbtg/codebase/personal-stuff/context/bets.md) when a business bet starts, pauses, stops, or changes direction.
   - Update [inventory.md](file:///Users/kbtg/codebase/personal-stuff/context/inventory.md) when a new project/site is launched, paused, or retired.
-  - Update [ideas.md](file:///Users/kbtg/codebase/personal-stuff/context/ideas.md) when a new high-potential idea is identified.
+  - Update [ideas.md](file:///Users/kbtg/codebase/personal-stuff/context/ideas.md) when a new high-potential idea is identified, and for every open point or "continue later" item from the terminal (section 4). It is the single home; there is no separate to-do file.
 - **Pointers, Not Copies**: Keep synthesis and links to live directories (e.g. `pipelines/income-analysis/` for financials) rather than duplicating numbers or logs here.
 - **Security & Privacy**: Do NOT store API keys, credentials, financial account numbers, or third-party PII here. This is a personal-but-not-secret context layer.

@@ -56,7 +56,7 @@ This document lists the active business, content, and career bets being pursued 
 ## 5. Career Progression & Job-Switch Prep
 - **Thesis**: Keep skills current and prepare for job-switching opportunities through structured systems development and practice.
 - **Where it lives**:
-  - Tasks list: [pipelines/to-do/todolist.md](file:///Users/kbtg/codebase/personal-stuff/pipelines/to-do/todolist.md) (and `apps/telegram-my-planner/to-do/business.md`)
+  - Open points: [context/ideas.md](ideas.md), section 4
   - DSA Practice: [learning/DSA/](file:///Users/kbtg/codebase/personal-stuff/learning/DSA/)
 - **Status & Metrics**:
   - Monitored privately.

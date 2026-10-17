@@ -1,6 +1,6 @@
 # Idea Funnel Backlog
 
-> **Notice**: The active source of truth for daily tasks and short-term crons remains in [apps/telegram-my-planner/to-do/](file:///Users/kbtg/codebase/personal-stuff/apps/telegram-my-planner/to-do/). This file serves as a durable, long-term backlog for synthesizing and grouping product, content, and automation ideas.
+> **The one home for every idea and open point.** Anything the owner says in the terminal as "keep it as an idea", "open point" or "continue later" goes here, in section 4. The owner's own lists app (lists.agrolloo.com) is his, not Claude's: never write there.
 
 ---
 
@@ -36,3 +36,51 @@
 - **Digital Product Marketplace Accretion**: Bulk publishing digital assets to passive marketplaces.
 - **AI Tutorial Reviewer Gate**: Semi-automating screen recorder guidance and script review gates for third-party tutorial makers.
 - <!-- TODO(owner interview): Outline the tech stack preferences for these business engines. -->
+
+---
+
+## 4. Open points (from the terminal)
+
+Raw items, newest at the bottom. Move one up into sections 1-3 once it is worth keeping long-term; delete it once done or dropped.
+
+### Personal / setup
+- iPhone apps into folders: Claude drives it via iPhone Mirroring on the Mac (screenshot + `cliclick` drags). Needs the same Apple ID on Mac and phone (work Mac may block), terminal gets Accessibility + Screen Recording, `brew install cliclick`, and folder names. Started 2026-10-17.
+- Password manager: passkeys cleanup and setup.
+- Own hosting.
+- Buy an oversized t-shirt.
+- Job switch prep.
+
+### Tooling / Claude
+- Remove the Gemini call from yt-analytics.
+- Skill for worktrees.
+- Claude on the VPS listening to a webhook / change event, then making changes or sending a response from web-app button clicks (not the Claude API).
+- Every other day, make something with Claude and share it in the Skool community.
+- Smallest AI (look into it).
+- YT board: all links in one place, hand download/upload jobs to a different person or do them on mobile.
+- Host HTML and videos somewhere.
+
+### Tutorial / software videos
+- Tutorial maker: check and use Loom; use an auto-zoom screen recorder.
+- Small problems: more realistic avatar (especially side view), better TTS voice, better avatar face, keyword/topic finder, affiliate program apply automation.
+- Big problems: researcher + scripting automation (whole or helper); video editor helper for motion graphics.
+- Update the tutorial tracker; add coupons as a separate system; update for the Kushal system.
+- A knowledge-base workflow per software, used for reviews and for pointers at the start.
+- A reviewer: an architect who knows the niche and tools, reviews work and guides freelancers to raise quality, removing the dependency on us.
+- Entire channel on "how to make this kind of video".
+- Personal avatar content creation, like Vaibhav Sisinty / Varun Mayya.
+- Quality rule: do not shy away from spending on quality. Aim for at least $100 per video; 4 very high quality videos beat 12 low quality ones. No bulk game.
+
+### Content / traffic channels
+- Medium articles; Substack; newsletter like Linas Beliunas (LinkedIn, Twitter, Substack).
+- Influencer in the clothing/fashion affiliate niche; digital products via Pinterest.
+- Warrior Plus; FB ads; Threads traffic; Twitter.
+- Porn / ED niche.
+- Education video production team, like WsCube and Website Learners.
+- Marketplace: just keep uploading, people will find and use it.
+- Sell games.
+- App to track transactions.
+
+### Priorities (were in business.md)
+1. Job and switch prep.
+2. Scale software review videos and raise the quality.
+3. Start 2 more businesses with 95-100% automation.
