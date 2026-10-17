@@ -1,0 +1,11 @@
+{
+  "name": "pp-mods",
+  "owner": { "name": "akshat-git-jpg" },
+  "plugins": [
+    {
+      "name": "session-brief",
+      "source": "./session-brief",
+      "description": "Side pane (/brief): what needs you, the plan, drafts to paste and links to keep"
+    }
+  ]
+}
