@@ -70,3 +70,4 @@ A reviewer might be necessary. He is like a architect who is knowledablt about n
 Dont shy away from spending money on quality. 4 quality videos - 50k, 130 dollar per video. but imagine if video is too good. Make mindset to spend atleast $100 per video.
 
 Always try to up the quality. Dont do bulk game. 4 very high quality video is btter than 12 low quality video.
+- iphone apps into folders - Claude drives it via iPhone Mirroring on the Mac (screenshot + cliclick drags). Needs: same Apple ID on Mac + phone (work Mac may block), terminal gets Accessibility + Screen Recording, `brew install cliclick`, folder names. Started 2026-10-17.
