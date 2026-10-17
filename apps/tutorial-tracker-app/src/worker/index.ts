@@ -55,8 +55,9 @@ import {
 } from "../shared/engine/registry";
 import { mintSlug } from "../shared/slug";
 import { emailProblem } from "../shared/email";
-import { derive, statusOf } from "../shared/engine/derive";
-import { colOf, stageHasReviewerSlot, createFieldsOf, requiredToCreate } from "../shared/engine/types";
+import { derive, statusOf, isGateOpen } from "../shared/engine/derive";
+import { colOf, stageHasReviewerSlot, createFieldsOf, requiredToCreate, type PipelineDef, type StageDef } from "../shared/engine/types";
+import { assignSlotOf, assignmentProblem, assignmentProblems } from "../shared/engine/assign";
 import { lifecycle, eventTypeFor } from "../shared/engine/lifecycle";
 import { fieldLabelOf } from "../shared/engine/labels";
 import { liveHoldingsFor, rolesRemoved } from "../shared/engine/holdings";
@@ -67,28 +68,13 @@ import { structuralIssues, buildReport, type GuardIssue } from "./linkguard";
 import { descriptionIssues, fetchDescriptions, type DescVideo } from "./descguard";
 import { probeAll, type ProbeOne } from "./linkprobe";
 import { sendTelegram } from "./notify-telegram";
-import { cardIssues, cardIssuesReport } from "../shared/engine/integrity";
+import { cardIssues, cardIssuesReport, defaultIssues } from "../shared/engine/integrity";
 import { syncYouTubeId } from "./ytsync";
 
-// ---------------------------------------------------------------------------
-// KV-backed read cache for board rows (~60 s TTL)
-// ---------------------------------------------------------------------------
-
-const BOARD_CACHE_KEY = "board:rows";
-const BOARD_CACHE_TTL = 60;
-
-async function cachedReadRows(env: Env): Promise<Row[]> {
-  const cached = await env.SESSIONS.get(BOARD_CACHE_KEY);
-  if (cached) {
-    try { return JSON.parse(cached) as Row[]; } catch { /* fall through */ }
-  }
-  const rows = await getStore(env).readRows();
-  await env.SESSIONS.put(BOARD_CACHE_KEY, JSON.stringify(rows), { expirationTtl: BOARD_CACHE_TTL });
-  return rows;
-}
-
-async function bustBoardCache(env: Env): Promise<void> {
-  await env.SESSIONS.delete(BOARD_CACHE_KEY);
+// Board rows are read live from D1 on every request. The old 60s KV cache let
+// permission checks run on stale cards (2026-10-17 audit).
+async function readAllRows(env: Env): Promise<Row[]> {
+  return getStore(env).readRows();
 }
 
 // ---------------------------------------------------------------------------
@@ -178,22 +164,39 @@ function buildMembershipsMap(team: TeamMember[]): Record<string, Record<string, 
   return out;
 }
 
+/** Admins get the whole team; anyone else only the people on cards they can see. */
+function peopleFor(team: TeamMember[], admin: boolean, viewer: string, rows: Record<string, unknown>[]) {
+  const seen = new Set([viewer.toLowerCase()]);
+  if (!admin) for (const r of rows) for (const v of Object.values(r)) if (typeof v === "string" && v.includes("@")) seen.add(v.trim().toLowerCase());
+  const shown = admin ? team : team.filter((m) => seen.has(m.email));
+  const memberships = buildMembershipsMap(admin ? team : team.filter((m) => m.email === viewer.toLowerCase()));
+  return { names: buildNamesMap(shown), memberRoles: buildRolesMap(shown), memberships };
+}
+
 function displayName(email: string, names: Record<string, string>): string {
   if (!email) return "";
   const key = email.trim().toLowerCase();
   return names[key] || (email.includes("@") ? email.split("@")[0] : email) || email;
 }
 
-// assignee/reviewer column → role label, derived across ALL pipelines (for the
-// "you were assigned" notification). Cols are pipeline-specific so they don't clash.
-const ASSIGNEE_COL_ROLE: Record<string, string> = (() => {
-  const m: Record<string, string> = { reviewer_email: "Reviewer" };
-  for (const p of Object.values(PIPELINES)) for (const s of p.stages) {
-    m[colOf(s, "assignee")] = s.role;
-    if (stageHasReviewerSlot(s)) m[colOf(s, "reviewer")] = "Reviewer";
+const teamMap = (team: TeamMember[]) => new Map(team.map((m) => [m.email, m.memberships ?? {}]));
+
+/** Email each assignee whose stage a write just opened (e.g. Script approved -> Recording). */
+async function notifyOpened(env: Env, p: PipelineDef, before: Row, after: Row): Promise<void> {
+  const opened: StageDef[] = p.stages.filter((s) => !isGateOpen(p, s, before) && isGateOpen(p, s, after));
+  for (const s of opened) {
+    const to = String(after[colOf(s, "assignee")] ?? "").trim();
+    if (to) await sendNotification(env, "yourTurn", to, { title: String(after.video_title ?? ""), appUrl: env.APP_URL ?? "", stageLabel: s.label });
   }
-  return m;
-})();
+}
+
+/** Email everyone newly put on a card (create, apply-defaults). */
+async function notifyAssigned(env: Env, p: PipelineDef, title: string, assignments: Record<string, string>): Promise<void> {
+  for (const [col, email] of Object.entries(assignments)) {
+    const slot = assignSlotOf(p, col);
+    if (slot && email.trim()) await sendNotification(env, "assigned", email, { title, appUrl: env.APP_URL ?? "", stageLabel: slot.slot === "reviewer" ? `${slot.stage.label} reviewer` : slot.role });
+  }
+}
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -249,8 +252,17 @@ async function runChainProbe(env: Env, onlySlug?: string, kind: CheckKind = "cha
 async function runCardCheck(env: Env): Promise<void> {
   const store = getStore(env);
   const [rows, team] = await Promise.all([store.readRows(), store.loadTeam()]);
-  const byEmail = new Map(team.map((m) => [m.email, m.memberships ?? {}]));
-  const report = cardIssuesReport(cardIssues(rows, byEmail), env.APP_URL ?? "");
+  const byEmail = teamMap(team);
+  const issues = cardIssues(rows, byEmail);
+  for (const p of Object.values(PIPELINES)) issues.push(...defaultIssues(p, await resolveDefaults(env.TRACKER_DB, p.id), byEmail));
+  // A role renamed in a definition silently drops out of employees on read.
+  const raw = await env.TRACKER_DB.prepare("SELECT email, system_id, role FROM employees").all<{ email: string; system_id: string; role: string }>();
+  for (const r of raw.results ?? []) {
+    const valid = r.system_id === WILDCARD_SYSTEM ? [ADMIN_ROLE] : rolesForSystem(r.system_id);
+    const unknown = (r.role ?? "").split(",").map((x) => x.trim()).filter((x) => x && !valid.includes(x));
+    if (unknown.length) issues.push({ code: "bad_default", row_id: "", title: `Team: ${r.email}`, stage: r.system_id, detail: `Unknown role ${unknown.join(", ")}, so it is ignored.` });
+  }
+  const report = cardIssuesReport(issues, env.APP_URL ?? "");
   if (report) await sendTelegram(env, report);
 }
 async function runUnverifiableDigest(env: Env): Promise<void> {
@@ -345,6 +357,18 @@ app.get("/api/systems", (c) => c.json(pipelineSummaries().map((p) => ({ id: p.id
 // POST /api/team {name, email, memberships} — Admin-only; replace a teammate's
 // FULL per-system membership set. This is the SINGLE place people↔system↔role is
 // assigned. memberships = { systemId: roles[] }; "*" carries cross-system Admin.
+/** Drop default slots that point at someone who no longer holds that role there. */
+async function pruneDefaults(env: Env, email: string, memberships: Memberships): Promise<void> {
+  for (const p of Object.values(PIPELINES)) {
+    const rows = await loadDefaults(env.TRACKER_DB, p.id);
+    const keep = rows.filter((r) => {
+      const slot = assignSlotOf(p, r.col);
+      return r.email.toLowerCase() !== email || (slot && holdsRoleInSystem(memberships, p.id, slot.role));
+    });
+    if (keep.length !== rows.length) await setDefaults(env.TRACKER_DB, p.id, Object.fromEntries(keep.map((r) => [r.col, r.email])));
+  }
+}
+
 app.post("/api/team", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
@@ -354,7 +378,9 @@ app.post("/api/team", async (c) => {
   const name = (body.name ?? "").trim();
   const email = (body.email ?? "").trim().toLowerCase();
   if (!name) return c.json({ error: "name is required" }, 400);
-  const badEmail = emailProblem(email);
+  const before = await getStore(c.env).lookupMemberships(email);
+  // Only new people are checked, so someone saved earlier can still be edited.
+  const badEmail = Object.keys(before).length ? null : emailProblem(email);
   if (badEmail) return c.json({ error: "bad_email", message: badEmail }, 400);
 
   // Sanitize each system's roles against what's valid there; drop unknown systems.
@@ -376,10 +402,9 @@ app.post("/api/team", async (c) => {
 
   // Taking a role (or a whole system) away strands work just as surely as a full
   // removal does — same refusal, scoped to what this save would actually revoke.
-  const before = await getStore(c.env).lookupMemberships(email);
   const gone = rolesRemoved(before, clean);
   if (gone.roles.length) {
-    const holdings = liveHoldingsFor(email, await cachedReadRows(c.env), gone);
+    const holdings = liveHoldingsFor(email, await readAllRows(c.env), gone);
     if (holdings.length) {
       return c.json({
         error: "holds_live_work",
@@ -390,7 +415,7 @@ app.post("/api/team", async (c) => {
   }
 
   const result = await getStore(c.env).saveMemberships(name, email, clean);
-  await bustBoardCache(c.env);
+  await pruneDefaults(c.env, email, clean);
   return c.json({ ok: true, result });
 });
 
@@ -407,7 +432,7 @@ app.post("/api/team/delete", async (c) => {
   // Refuse while they still stand on unfinished work. Deleting the employee row
   // does NOT touch the cards, so their stages would keep a dead email: invisible
   // in everyone's "My work", movable only by an admin, and nothing would say so.
-  const holdings = liveHoldingsFor(email, await cachedReadRows(c.env));
+  const holdings = liveHoldingsFor(email, await readAllRows(c.env));
   if (holdings.length) {
     return c.json({
       error: "holds_live_work",
@@ -417,7 +442,7 @@ app.post("/api/team/delete", async (c) => {
   }
 
   const removed = await getStore(c.env).deleteEmployee(email);
-  await bustBoardCache(c.env);
+  await pruneDefaults(c.env, email.toLowerCase(), {});
   return c.json({ ok: removed });
 });
 
@@ -453,8 +478,10 @@ app.post("/api/defaults", async (c) => {
   const validCols = new Set(assignableColsFor(pipe));
   const assignments: Record<string, string> = {};
   for (const [col, email] of Object.entries(body.assignments ?? {})) {
-    if (validCols.has(col)) assignments[col] = (email ?? "").trim();
+    if (validCols.has(col)) assignments[col] = (email ?? "").trim().toLowerCase();
   }
+  const problems = assignmentProblems(pipe, assignments, teamMap(await getStore(c.env).loadTeam()));
+  if (problems.length) return c.json({ error: "bad_assignment", message: problems.map((x) => `${x.email}: ${x.message}`).join(" ") }, 400);
   await setDefaults(c.env.TRACKER_DB, pipe.id, assignments);
   return c.json({ ok: true });
 });
@@ -479,7 +506,7 @@ app.post("/api/apply-defaults", async (c) => {
   if (!rowId) return c.json({ error: "row_id is required" }, 400);
 
   const store = getStore(c.env);
-  const allRows = await cachedReadRows(c.env);
+  const allRows = await readAllRows(c.env);
   const target = allRows.find((r) => (r.row_id || "").trim() === rowId);
   if (!target) return c.json({ error: "row not found", row_id: rowId }, 404);
 
@@ -490,9 +517,17 @@ app.post("/api/apply-defaults", async (c) => {
   for (const [col, email] of Object.entries(defaults)) {
     if (!cardCols.has(col)) continue;
     if (String(target[col] ?? "").trim()) continue; // fill blanks only
-    updates[col] = email;
+    updates[col] = email.trim().toLowerCase();
   }
-  if (Object.keys(updates).length) { await store.updateCells(rowId, updates); await bustBoardCache(c.env); }
+  const problems = assignmentProblems(targetPipe, { ...target, ...updates }, teamMap(await store.loadTeam()))
+    .filter((x) => x.col in updates);
+  if (problems.length) {
+    return c.json({ error: "bad_assignment", message: `Defaults not applied: ${problems.map((x) => x.message).join(" ")} Fix the defaults in the Team tab.` }, 400);
+  }
+  if (Object.keys(updates).length) {
+    await store.updateCells(rowId, updates);
+    c.executionCtx.waitUntil(notifyAssigned(c.env, targetPipe, String(target.video_title ?? ""), updates).catch((e) => console.warn("[notify] assign failed:", e)));
+  }
   return c.json({ applied: updates });
 });
 
@@ -554,7 +589,7 @@ app.get("/api/board", async (c) => {
   }
 
   const [allRows, team] = await Promise.all([
-    cachedReadRows(c.env),
+    readAllRows(c.env),
     store.loadTeam(),
   ]);
 
@@ -592,9 +627,7 @@ app.get("/api/board", async (c) => {
     readOnly,
     columns: allVisibleColsForMemberships(effMemberships),
     rows,
-    names: buildNamesMap(team),
-    memberRoles: buildRolesMap(team),
-    memberships: buildMembershipsMap(team),
+    ...peopleFor(team, isAdminRoles(unionRoles(effMemberships)), effEmail, rows),
     stages: workerStagesForMemberships(effMemberships),
     pipelines: pipelineSummaries(),
   });
@@ -614,7 +647,7 @@ app.get("/api/review-queue", async (c) => {
     memberships = await store.lookupMemberships(email);
   }
   const [allRows, team, submitNotes] = await Promise.all([
-    cachedReadRows(c.env),
+    readAllRows(c.env),
     store.loadTeam(),
     store.latestSubmitNotes(),
   ]);
@@ -659,7 +692,7 @@ app.post("/api/update", async (c) => {
   }
   const typedCol = col;
 
-  const allRows = await cachedReadRows(c.env);
+  const allRows = await readAllRows(c.env);
   const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
   if (!targetRow) return c.json({ error: "row not found", row_id }, 404);
 
@@ -676,9 +709,15 @@ app.post("/api/update", async (c) => {
   // land in the reviewer's queue with nothing to read. /api/submit is the only
   // door, so the note requirement cannot be bypassed with a hand-rolled call.
   const submitStage = derive(pipe).byStatusCol.get(typedCol);
-  if (submitStage && transitionsForStage(effRoles, email, submitStage, targetRow, pipe)
-    .some((t) => t.to === value && t.requiresNote)) {
+  const move = submitStage
+    ? transitionsForStage(effRoles, email, submitStage, targetRow, pipe).find((t) => t.to === value)
+    : undefined;
+  if (move?.requiresNote) {
     return c.json({ error: "note_required", message: "Submitting for review needs a note. Use /api/submit." }, 400);
+  }
+  // Approve / request changes / reopen need feedback and emails: only /api/review does them.
+  if (move?.by === "reviewer") {
+    return c.json({ error: "use_review", message: "Use the review buttons to approve or request changes." }, 400);
   }
 
   const store = getStore(c.env);
@@ -687,23 +726,29 @@ app.post("/api/update", async (c) => {
   // on a card whose system they belong to (reviewers may span systems). This backs
   // up the system-scoped dropdowns server-side, so an out-of-system assignment is
   // rejected even via a hand-rolled request.
-  if (value.trim() && new Set(assignableColsFor(pipe)).has(typedCol)) {
-    const requiredRole = ASSIGNEE_COL_ROLE[typedCol];
-    const assigneeM = await store.lookupMemberships(value.trim());
-    if (requiredRole && !holdsRoleInSystem(assigneeM, pipe.id, requiredRole)) {
-      return c.json({ error: "not_in_system", message: `That person isn't a ${requiredRole} in ${pipe.name}. Add them to ${pipe.name} in the Team tab first.` }, 400);
-    }
+  const assignSlot = assignSlotOf(pipe, typedCol);
+  const writeValue = assignSlot ? value.trim().toLowerCase() : value;
+  if (assignSlot && writeValue) {
+    const problem = assignmentProblem(pipe, typedCol, writeValue, targetRow, await store.lookupMemberships(writeValue));
+    if (problem) return c.json({ error: "bad_assignment", message: problem }, 400);
   }
+
+  const stage = derive(pipe).byStatusCol.get(typedCol);
+  const fromStatus = stage ? statusOf(stage, targetRow) : "";
+  const oldValue = ((targetRow[typedCol] ?? "") as string).trim().toLowerCase();
 
   try {
     // One read + one batched write (also stamps last_updated). When the column
     // being written is a STATUS column, also stamp status_since so we can show
     // "in <status> since N days" — last_updated changes on any edit, status_since
     // only on a status change.
-    const writeValues: Record<string, string> = { [typedCol]: value };
+    const writeValues: Record<string, string> = { [typedCol]: writeValue };
     if (STATUS_COLS.has(typedCol)) writeValues.status_since = new Date().toISOString();
     await store.updateCells(row_id, writeValues,
-      prev !== undefined ? { col: typedCol, value: prev } : undefined);
+      prev !== undefined ? { col: typedCol, value: prev } : undefined,
+      STATUS_COLS.has(typedCol) && stage
+        ? { card_id: row_id, stage_id: stage.id, type: eventTypeFor(stage.lifecycle, fromStatus, value), actor: email }
+        : undefined);
   } catch (err) {
     if (err instanceof ConflictError) {
       return c.json({ error: "conflict", message: "Someone else changed this just now — reloading.", current: err.current }, 409);
@@ -720,26 +765,8 @@ app.post("/api/update", async (c) => {
         .catch((error) => console.error("ytsync failed", error)),
     );
   }
-  
-  const stage = derive(pipe).byStatusCol.get(typedCol);
-  const oldValue = ((targetRow[typedCol] ?? "") as string).trim().toLowerCase();
-  
-  if (STATUS_COLS.has(typedCol) && stage) {
-    c.executionCtx.waitUntil((async () => {
-      try {
-        await store.logEvent({
-          card_id: row_id,
-          stage_id: stage.id,
-          type: eventTypeFor(stage.lifecycle, oldValue, value),
-          actor: email,
-        });
-      } catch (err) {
-        console.error("Failed to log card event:", err);
-      }
-    })());
-  }
 
-  await bustBoardCache(c.env);
+
 
   // ── Notifications: run AFTER the response so the action feels instant. ──
   c.executionCtx.waitUntil((async () => {
@@ -760,10 +787,10 @@ app.post("/api/update", async (c) => {
       }
 
       // Assignment → notify the newly-assigned person.
-      const assigneeRole = ASSIGNEE_COL_ROLE[typedCol];
-      if (assigneeRole && isAdminRoles(roles) && value.trim() !== "" && value.trim().toLowerCase() !== oldValue) {
-        await sendNotification(c.env, "assigned", value.trim(), { title: videoTitle, appUrl, stageLabel: fieldLabelOf(typedCol) });
+      if (assignSlot && isAdminRoles(roles) && writeValue !== "" && writeValue !== oldValue) {
+        await sendNotification(c.env, "assigned", writeValue, { title: videoTitle, appUrl, stageLabel: fieldLabelOf(typedCol) });
       }
+      if (stage) await notifyOpened(c.env, pipe, targetRow, { ...targetRow, [typedCol]: writeValue });
     } catch (e) { console.warn("[notify] update notifications failed:", e); }
   })());
 
@@ -788,7 +815,7 @@ app.post("/api/review", async (c) => {
     return c.json({ error: "invalid action; must be approve|sendback" }, 400);
   }
   const store = getStore(c.env);
-  const allRows = await cachedReadRows(c.env);
+  const allRows = await readAllRows(c.env);
   const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
   if (!targetRow) return c.json({ error: "row not found", row_id }, 404);
 
@@ -823,25 +850,23 @@ app.post("/api/review", async (c) => {
     status_since: new Date().toISOString(),
   };
   if (action === "sendback" && feedbackCol) updates[feedbackCol] = feedback!.trim();
-  await store.updateCells(row_id, updates);
-  
-  c.executionCtx.waitUntil((async () => {
-    try {
-      const currentStatus = statusOf(stage, targetRow as any);
-      const type = action === "approve" ? "approve" : (currentStatus === "Done" ? "reopen" : "sendback");
-      await store.logEvent({
-        card_id: row_id,
-        stage_id: stage.id,
-        type: type,
-        actor: email,
-        detail: (action === "sendback" || type === "reopen") ? feedback?.trim() : undefined,
-      });
-    } catch (err) {
-      console.error("Failed to log review event:", err);
+  const currentStatus = statusOf(stage, targetRow);
+  const type = action === "approve" ? "approve" : (currentStatus === "Done" ? "reopen" : "sendback");
+  try {
+    await store.updateCells(row_id, updates, { col: colOf(stage, "status"), value: String(targetRow[colOf(stage, "status")] ?? "") }, {
+      card_id: row_id, stage_id: stage.id, type, actor: email,
+      detail: (action === "sendback" || type === "reopen") ? feedback?.trim() : undefined,
+    });
+  } catch (err) {
+    if (err instanceof ConflictError) {
+      return c.json({ error: "conflict", message: "Someone else changed this just now — reloading.", current: err.current }, 409);
     }
-  })());
+    throw err;
+  }
+  if (action === "approve") {
+    c.executionCtx.waitUntil(notifyOpened(c.env, pipe, targetRow, { ...targetRow, ...updates }).catch((e) => console.warn("[notify] your-turn failed:", e)));
+  }
 
-  await bustBoardCache(c.env);
 
   // Notify the submitter (the stage assignee) AFTER the response.
   const assigneeEmail = ((targetRow[colOf(stage, "assignee")] ?? "") as string).trim();
@@ -877,7 +902,7 @@ app.post("/api/submit", async (c) => {
   }
 
   const store = getStore(c.env);
-  const allRows = await cachedReadRows(c.env);
+  const allRows = await readAllRows(c.env);
   const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
   if (!targetRow) return c.json({ error: "row not found", row_id }, 404);
 
@@ -917,7 +942,9 @@ app.post("/api/submit", async (c) => {
     await store.updateCells(row_id, {
       [statusCol]: transition.to,
       status_since: new Date().toISOString(),
-    }, { col: statusCol, value: fromStatus });
+    }, { col: statusCol, value: fromStatus }, {
+      card_id: row_id, stage_id: stage.id, type: eventTypeFor(stage.lifecycle, fromStatus, transition.to), actor: email, detail: trimmed,
+    });
   } catch (err) {
     if (err instanceof ConflictError) {
       return c.json({ error: "conflict", message: "Someone else changed this just now — reloading.", current: err.current }, 409);
@@ -925,21 +952,7 @@ app.post("/api/submit", async (c) => {
     throw err;
   }
 
-  c.executionCtx.waitUntil((async () => {
-    try {
-      await store.logEvent({
-        card_id: row_id,
-        stage_id: stage.id,
-        type: eventTypeFor(stage.lifecycle, fromStatus, transition.to),
-        actor: email,
-        detail: trimmed,
-      });
-    } catch (err) {
-      console.error("Failed to log submit event:", err);
-    }
-  })());
 
-  await bustBoardCache(c.env);
 
   // Notify this stage's reviewer AFTER the response. The queue row carries the
   // note too, so a missed mail never hides it.
@@ -1025,12 +1038,15 @@ app.post("/api/video", async (c) => {
   const defaults = await resolveDefaults(c.env.TRACKER_DB, pipe.id);
   const cardCols = new Set(assignableColsFor(pipe));
   const filteredDefaults = Object.fromEntries(Object.entries(defaults).filter(([col]) => cardCols.has(col)));
-  
+
   // The client also sends explicitly chosen assignees/reviewers in the body.
   const explicitAssignees: Record<string, string> = {};
   for (const col of cardCols) {
-    if (body[col] !== undefined) explicitAssignees[col] = body[col].trim();
+    if (body[col] !== undefined) explicitAssignees[col] = body[col].trim().toLowerCase();
   }
+  const assignments = { ...filteredDefaults, ...explicitAssignees };
+  const problems = assignmentProblems(pipe, assignments, teamMap(await getStore(c.env).loadTeam()));
+  if (problems.length) return c.json({ error: "bad_assignment", message: problems.map((x) => x.message).join(" ") }, 400);
 
   const rowId = await getStore(c.env).appendRow({
     ...filteredDefaults,                          // default assignees/reviewers for the combo
@@ -1042,8 +1058,8 @@ app.post("/api/video", async (c) => {
     topic_date: today,
     [colOf(firstStage, "assignee")]: PROTECTED_ADMIN_EMAIL, // admin owns the brief stage
   });
+  c.executionCtx.waitUntil(notifyAssigned(c.env, pipe, values.video_title ?? "", assignments).catch((e) => console.warn("[notify] assign failed:", e)));
 
-  await bustBoardCache(c.env);
   return c.json({ row_id: rowId });
 });
 
@@ -1062,16 +1078,21 @@ app.post("/api/delete", async (c) => {
     if (msg.includes("not found")) return c.json({ error: "row not found", row_id: rowId }, 404);
     return c.json({ error: msg }, 500);
   }
-  await bustBoardCache(c.env);
   return c.json({ ok: true, row_id: rowId });
 });
 
 app.get("/api/card-events", async (c) => {
-  const { memberships, email } = getUser(c);
+  const user = getUser(c);
+  let { memberships, email } = user;
+  const asUser = c.req.query("asUser");
+  if (asUser && isAdminRoles(user.roles)) {
+    email = asUser.trim().toLowerCase();
+    memberships = await getStore(c.env).lookupMemberships(email);
+  }
   const row_id = c.req.query("row_id")?.trim();
   if (!row_id) return c.json({ error: "missing row_id" }, 400);
 
-  const allRows = await cachedReadRows(c.env);
+  const allRows = await readAllRows(c.env);
   const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
   if (!targetRow) return c.json({ error: "row not found" }, 404);
 
@@ -1086,8 +1107,19 @@ app.get("/api/card-events", async (c) => {
   ]);
 
   const names = buildNamesMap(team);
+  // Notes and feedback stay with the people on that stage (and admins).
+  const pipe = pipeOf(targetRow);
+  const admin = isAdminRoles(effectiveRolesFor(memberships, targetRow));
+  const onStage = (stageId: string) => {
+    const s = stageById(pipe, stageId);
+    if (!s) return false;
+    const me = email.toLowerCase();
+    return String(targetRow[colOf(s, "assignee")] ?? "").toLowerCase() === me
+      || (stageHasReviewerSlot(s) && String(targetRow[colOf(s, "reviewer")] ?? "").toLowerCase() === me);
+  };
   const enrichedEvents = events.map((e) => ({
     ...e,
+    detail: admin || onStage(e.stage_id) ? e.detail : null,
     actorName: displayName(e.actor, names)
   }));
 
@@ -1124,7 +1156,6 @@ app.post("/api/video-tools", async (c) => {
   if (!rowId) return c.json({ error: "row_id is required" }, 400);
   if (!Array.isArray(body.tools)) return c.json({ error: "tools must be an array" }, 400);
   await getStore(c.env).updateCells(rowId, { video_tools: JSON.stringify(body.tools) });
-  await bustBoardCache(c.env);
   return c.json({ ok: true });
 });
 
@@ -1136,11 +1167,11 @@ app.post("/api/link-preview", async (c) => {
   const rowId = (body.row_id ?? "").trim();
   if (!rowId) return c.json({ error: "row_id is required" }, 400);
 
-  const allRows = await cachedReadRows(c.env);
+  const allRows = await readAllRows(c.env);
   const target = allRows.find((r) => ((r.row_id as string) || "").trim() === rowId);
   if (!target) return c.json({ error: "row not found" }, 404);
   const title = ((target.video_title as string) ?? "").trim();
-  
+
   let tools: any[] = [];
   try {
     const toolsStr = target.video_tools as string;
@@ -1152,7 +1183,7 @@ app.post("/api/link-preview", async (c) => {
 
   const affiliates = await cachedAffiliates(c.env);
   const resolved = resolveSelection(tools, affiliates);
-  
+
   const channelId = channelIdOf(target as { channel_id?: string | null });
   let videoCode = (target.video_code as string)?.trim();
   if (!videoCode) {
@@ -1164,7 +1195,6 @@ app.post("/api/link-preview", async (c) => {
     videoCode = generateVideoCode(await clickstore.existingCodes(c.env.DB));
     await clickstore.insertVideo(c.env.DB, videoCode, title, channelId);
     await getStore(c.env).updateCells(rowId, { video_code: videoCode });
-    await bustBoardCache(c.env);
   }
 
   const linkDomain = linkDomainFor(channelId);
@@ -1191,17 +1221,17 @@ app.post("/api/link-confirm", async (c) => {
   const rowId = (body.row_id ?? "").trim();
   const planHashInput = body.plan_hash ?? "";
 
-  const allRows = await cachedReadRows(c.env);
+  const allRows = await readAllRows(c.env);
   const target = allRows.find((r) => ((r.row_id as string) || "").trim() === rowId);
   if (!target) return c.json({ error: "row not found" }, 404);
   const title = ((target.video_title as string) ?? "").trim();
-  
+
   let tools: any[] = [];
   try { tools = JSON.parse((target.video_tools as string) || "[]"); } catch (e) { tools = []; }
-  
+
   const affiliates = await cachedAffiliates(c.env);
   const resolved = resolveSelection(tools, affiliates);
-  
+
   const channelId = channelIdOf(target as { channel_id?: string | null });
   const linkDomain = linkDomainFor(channelId);
 
@@ -1211,7 +1241,7 @@ app.post("/api/link-confirm", async (c) => {
   }
   const previewItems = buildPlan(resolved, previewVideoCode, linkDomain);
   const hash = await planHash(previewVideoCode, previewItems);
-  
+
   if (hash !== planHashInput) {
     return c.json({ error: "stale", message: "The affiliate sheet changed since you previewed. Re-open the review." }, 409);
   }
@@ -1219,7 +1249,7 @@ app.post("/api/link-confirm", async (c) => {
   const db = c.env.DB;
   let finalVideoCode = previewVideoCode;
   const codeUpdates: any = {};
-  
+
   if (finalVideoCode === "(new)") {
     finalVideoCode = generateVideoCode(await clickstore.existingCodes(db));
     await clickstore.insertVideo(db, finalVideoCode, title, channelId);
@@ -1246,7 +1276,6 @@ app.post("/api/link-confirm", async (c) => {
     ...codeUpdates,
     video_description: description,
   });
-  await bustBoardCache(c.env);
 
   return c.json({ ok: true, video_code: finalVideoCode, items: finalItems, description });
 });
@@ -1294,7 +1323,7 @@ app.get("/api/links", async (c) => {
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
   const [links, rows, programs, dbTitles, videoRows, dailyRun, chainRun] = await Promise.all([
     clickstore.allLinks(c.env.DB),
-    cachedReadRows(c.env),
+    readAllRows(c.env),
     listPrograms(c.env.TRACKER_DB),
     clickstore.videoTitles(c.env.DB),
     c.env.DB.prepare("SELECT video_code, yt_video_id, channel_id FROM videos").all<{ video_code: string; yt_video_id: string | null; channel_id: string | null }>(),
@@ -1422,7 +1451,7 @@ app.post("/api/programs/import-from-sheet", async (c) => {
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
   const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const sheet = await readSheetForImport(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
-  const allRows = await cachedReadRows(c.env);
+  const allRows = await readAllRows(c.env);
   const external = harvestExternalTools(allRows as { row_id?: string; video_tools?: unknown }[]);
 
   const updatedBy = email ?? "import";
@@ -1444,10 +1473,10 @@ app.post("/api/programs/import-from-sheet", async (c) => {
 app.get("/api/link-drift", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  
-  const allRows = await cachedReadRows(c.env);
+
+  const allRows = await readAllRows(c.env);
   const affiliates = await cachedAffiliates(c.env);
-  
+
   const drift = [];
   const db = c.env.DB;
   for (const row of allRows) {
@@ -1460,7 +1489,7 @@ app.get("/api/link-drift", async (c) => {
       drift.push({ ...d, row_id: row.row_id, video_title: row.video_title });
     }
   }
-  
+
   return c.json({ drift });
 });
 
@@ -1475,14 +1504,14 @@ app.post("/api/link-resync", async (c) => {
   const db = c.env.DB;
   const linkRow = await db.prepare("SELECT tool FROM links WHERE slug = ?").bind(slug).first<{tool: string}>();
   if (!linkRow) return c.json({ error: "link not found" }, 404);
-  
+
   const affiliates = await cachedAffiliates(c.env);
   const rec = affiliates[linkRow.tool];
   const requestedUrl = body.target_url?.trim();
   if (!requestedUrl && (!rec || !rec.isApproved || !rec.targetUrl.trim())) {
     return c.json({ error: "conflict", message: "Program is not approved or has no URL in the catalogue." }, 409);
   }
-  
+
   // This path writes KV directly, bypassing resolveSelection, so it needs the
   // same validation — otherwise a bad sheet cell can still reach the redirector.
   const norm = normalizeTargetUrl(requestedUrl || rec!.targetUrl);

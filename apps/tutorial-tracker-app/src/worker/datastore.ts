@@ -29,8 +29,9 @@ function parseSystemRoles(cell: string | null | undefined, systemId: string): st
 
 export interface DataStore {
   readRows(): Promise<Row[]>;
-  /** Write cells of one card. `expected` enables optimistic concurrency (throws ConflictError). */
-  updateCells(rowId: string, values: Record<string, string | undefined>, expected?: { col: string; value: string }): Promise<void>;
+  /** Write cells of one card. `expected` enables optimistic concurrency (throws ConflictError);
+   *  `event` is logged in the same transaction as the write. */
+  updateCells(rowId: string, values: Record<string, string | undefined>, expected?: { col: string; value: string }, event?: CardEventInput): Promise<void>;
   /** Append a card; returns the minted row_id. */
   appendRow(values: Record<string, string | undefined>): Promise<string>;
   deleteRowById(rowId: string): Promise<void>;
@@ -42,7 +43,7 @@ export interface DataStore {
   /** Replace a person's FULL membership set (one D1 row per system). */
   saveMemberships(name: string, email: string, memberships: Memberships): Promise<"updated" | "added">;
   deleteEmployee(email: string): Promise<boolean>;
-  logEvent(e: { card_id: string; stage_id: string; type: string; actor: string; detail?: string }): Promise<void>;
+  logEvent(e: CardEventInput): Promise<void>;
   listEvents(cardId: string): Promise<CardEventRecord[]>;
   /** The most recent submit note per card+stage, keyed `${card_id}:${stage_id}`.
    *  One query for the whole review queue — the reviewer must be able to read
@@ -50,6 +51,8 @@ export interface DataStore {
    *  the queue row. */
   latestSubmitNotes(): Promise<Map<string, string>>;
 }
+
+export interface CardEventInput { card_id: string; stage_id: string; type: string; actor: string; detail?: string }
 
 export interface CardEventRecord {
   id: number;
@@ -101,16 +104,25 @@ class D1Store implements DataStore {
   }
 
   // --- write: route each flat-col write to its table/slot ------------------
-  async updateCells(rowId: string, values: Record<string, string | undefined>, expected?: { col: string; value: string }) {
+  async updateCells(rowId: string, values: Record<string, string | undefined>, expected?: { col: string; value: string }, event?: CardEventInput) {
     const card = await this.db.prepare(`SELECT * FROM cards WHERE id = ?`).bind(rowId).first<CardDB>();
     if (!card) throw new Error(`Row with row_id "${rowId}" not found`);
     const p = getPipeline(card.pipeline_id);
     const stageRows = ((await this.db.prepare(`SELECT * FROM card_stages WHERE card_id = ?`).bind(rowId).all<StageDB>()).results ?? []) as StageRecord[];
 
+    const stmts: D1PreparedStatement[] = [];
     if (expected) {
       const current = assembleRow(p, card as CardRecord, stageRows) as Record<string, string | undefined>;
       const cur = String(current[expected.col] ?? "").trim();
       if (cur !== expected.value.trim()) throw new ConflictError(cur, expected.value);
+      // Re-check inside the transaction: abs(min int) raises, which rolls the whole batch back.
+      const t = routeWrite(p, expected.col);
+      if (t?.kind === "stage" && t.slot === "status") {
+        const read = stageRows.find((r) => r.stage_id === t.stageId)?.status ?? null;
+        stmts.push(this.db.prepare(
+          `SELECT CASE WHEN (SELECT status FROM card_stages WHERE card_id = ? AND stage_id = ?) IS ? THEN 1 ELSE abs(-9223372036854775808) END`,
+        ).bind(rowId, t.stageId, read));
+      }
     }
 
     const cardFields: Record<string, string> = { updated_at: new Date().toISOString() };
@@ -137,7 +149,6 @@ class D1Store implements DataStore {
       else if (t.kind === "stage_extra") { const u = su(t.stageId); u.extra[t.fieldId] = value; u.extraDirty = true; }
     }
 
-    const stmts: D1PreparedStatement[] = [];
     if (cardExtraDirty) cardFields.extra_json = JSON.stringify(cardExtra);
     const cardCols = Object.keys(cardFields);
     stmts.push(this.db.prepare(`UPDATE cards SET ${cardCols.map((c) => `"${c}" = ?`).join(", ")} WHERE id = ?`)
@@ -154,12 +165,19 @@ class D1Store implements DataStore {
         `ON CONFLICT(card_id, stage_id) DO UPDATE SET ${cols.map((c) => `"${c}" = excluded."${c}"`).join(", ")}`,
       ).bind(rowId, sid, ...cols.map((c) => f[c])));
     }
-    await this.db.batch(stmts);
+    if (event) stmts.push(this.eventStmt(event));
+    try {
+      await this.db.batch(stmts);
+    } catch (err) {
+      if (expected && /overflow/i.test(String(err))) throw new ConflictError("", expected.value);
+      throw err;
+    }
   }
 
   // --- append: create a fresh card + its stage rows ------------------------
   async appendRow(values: Record<string, string | undefined>): Promise<string> {
-    const { results } = await this.db.prepare(`SELECT id FROM cards`).all<{ id: string }>();
+    // Ids are never reused: a deleted card's id lingers in card_events.
+    const { results } = await this.db.prepare(`SELECT id FROM cards UNION SELECT card_id FROM card_events`).all<{ id: string }>();
     let counter = 1;
     for (const r of results ?? []) {
       const m = String(r.id).match(/^r(\d+)$/);
@@ -174,20 +192,24 @@ class D1Store implements DataStore {
     const cardCols = ["id", "pipeline_id", "channel_id", "title", "slug", "notes", "description", "category", "subcategory", "extra_json", "created_at", "updated_at", "status_since"];
     const stmts: D1PreparedStatement[] = [
       this.db.prepare(`INSERT INTO cards (${cardCols.map((x) => `"${x}"`).join(", ")}) VALUES (${cardCols.map(() => "?").join(", ")})`)
-        .bind(id, p.id, values.channel_id ?? null, card.title ?? "", card.slug || null, card.notes ?? "", card.description ?? "", card.category ?? "", card.subcategory ?? "", card.extra_json ?? null, now, now, card.status_since ?? null),
+        .bind(id, p.id, values.channel_id ?? null, card.title ?? "", card.slug || null, card.notes ?? "", card.description ?? "", card.category ?? "", card.subcategory ?? "", card.extra_json ?? null, now, now, card.status_since ?? now),
     ];
     const stCols = ["card_id", "stage_id", "status", "assignee", "reviewer", "work_link", "instruction", "eta", "feedback", "extra_json", "status_since"];
     for (const s of stages) {
       stmts.push(this.db.prepare(`INSERT INTO card_stages (${stCols.map((x) => `"${x}"`).join(", ")}) VALUES (${stCols.map(() => "?").join(", ")})`)
-        .bind(id, s.stage_id, s.status ?? null, s.assignee ?? null, s.reviewer ?? null, s.work_link ?? null, s.instruction ?? null, s.eta ?? null, s.feedback ?? null, s.extra_json ?? null, s.status_since ?? null));
+        .bind(id, s.stage_id, s.status ?? null, s.assignee ?? null, s.reviewer ?? null, s.work_link ?? null, s.instruction ?? null, s.eta ?? null, s.feedback ?? null, s.extra_json ?? null, s.status_since ?? now));
     }
     await this.db.batch(stmts);
     return id;
   }
 
   async deleteRowById(rowId: string) {
-    const res = await this.db.prepare(`DELETE FROM cards WHERE id = ?`).bind(rowId).run();
-    await this.db.prepare(`DELETE FROM card_stages WHERE card_id = ?`).bind(rowId).run();
+    const [res] = await this.db.batch([
+      this.db.prepare(`DELETE FROM cards WHERE id = ?`).bind(rowId),
+      this.db.prepare(`DELETE FROM card_stages WHERE card_id = ?`).bind(rowId),
+      // Keeps the id reserved: appendRow never hands it out again.
+      this.eventStmt({ card_id: rowId, stage_id: "", type: "deleted", actor: "" }),
+    ]);
     if (res.meta?.changes === 0) throw new Error(`Row with row_id "${rowId}" not found`);
   }
 
@@ -253,10 +275,14 @@ class D1Store implements DataStore {
     return (res.meta?.changes ?? 0) > 0;
   }
 
-  async logEvent(e: { card_id: string; stage_id: string; type: string; actor: string; detail?: string }) {
-    await this.db.prepare(
+  private eventStmt(e: CardEventInput): D1PreparedStatement {
+    return this.db.prepare(
       `INSERT INTO card_events (card_id, stage_id, type, actor, detail, created_at) VALUES (?, ?, ?, ?, ?, ?)`)
-      .bind(e.card_id, e.stage_id, e.type, e.actor, e.detail ?? null, new Date().toISOString()).run();
+      .bind(e.card_id, e.stage_id, e.type, e.actor, e.detail ?? null, new Date().toISOString());
+  }
+
+  async logEvent(e: CardEventInput) {
+    await this.eventStmt(e).run();
   }
 
   async listEvents(cardId: string): Promise<CardEventRecord[]> {

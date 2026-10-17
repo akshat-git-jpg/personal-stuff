@@ -298,17 +298,23 @@ export async function requireSession(
   // Memberships (per-system roles) are the authority; resolved LIVE so Team-tab
   // changes apply with no re-login. `roles` is their union (UI + approver gating).
   let memberships: Memberships = {};
+  let lookupFailed = false;
   try {
     memberships = await getStore(c.env).lookupMemberships(session.email);
   } catch (err) {
+    lookupFailed = true;
     console.warn("[auth] live membership lookup failed; using session roles:", err);
   }
   let roles = unionRoles(memberships);
-  if (roles.length === 0) {
-    // Dev (?roles=) / fallback: rebuild from the session-snapshot roles under the
-    // default system so ad-hoc dev-logins and transient lookup failures still work.
+  // Session roles stand in only when the lookup fails (or for ad-hoc dev logins);
+  // an empty result means the person was removed, and they lose access now.
+  if (roles.length === 0 && (lookupFailed || c.env.DEV_AUTH === "1")) {
     const fallback = session.roles ?? (session.role ? [session.role] : []);
     if (fallback.length) { memberships = membershipsFromRoles(fallback, DEFAULT_PIPELINE_ID); roles = fallback; }
+  }
+  if (roles.length === 0) {
+    await c.env.SESSIONS.delete(`session:${sessionId}`);
+    return c.json({ error: "unauthorized" }, 401);
   }
   c.set("user", { email: session.email, roles, memberships });
   await next();

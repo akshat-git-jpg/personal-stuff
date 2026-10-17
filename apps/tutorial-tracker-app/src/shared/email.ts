@@ -1,9 +1,11 @@
 // Email check shared by the Team form and /api/team. Catches malformed addresses
 // and near-misses of common providers ("gamail.com"), which can never log in.
 
-const COMMON = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com"];
-// Real providers that sit one or two letters from a common one.
-const REAL_LOOKALIKES = new Set(["mail.com", "gmx.com", "ymail.com", "yahoo.co.in", "yahoo.in", "outlook.in", "hotmail.co.uk"]);
+const COMMON = ["gmail", "yahoo", "hotmail", "outlook", "icloud"];
+// Real providers whose name sits one or two letters from a common one.
+const REAL_LOOKALIKES = new Set(["mail.com", "email.com", "gmx.com", "ymail.com", "rocketmail.com"]);
+// What ".com" turns into under a slipped finger.
+const COM_TYPOS = new Set(["con", "cm", "om", "co", "comm", "cpm", "vom", "xom", "c0m"]);
 
 const SHAPE = /^[a-z0-9._%+-]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/;
 
@@ -21,7 +23,11 @@ export function emailProblem(raw: string): string | null {
   const email = (raw ?? "").trim().toLowerCase();
   if (!SHAPE.test(email)) return "That doesn't look like an email address.";
   const domain = email.split("@")[1];
-  if (COMMON.includes(domain) || REAL_LOOKALIKES.has(domain)) return null;
-  const near = COMMON.find((c) => distance(domain, c) <= 2);
-  return near ? `Check the spelling: did you mean @${near}?` : null;
+  if (REAL_LOOKALIKES.has(domain)) return null;
+  const [name, ...rest] = domain.split(".");
+  const tld = rest.join(".");
+  // Only .com is guessed at: yahoo.de, hotmail.fr and co. are real.
+  if (COMMON.includes(name)) return COM_TYPOS.has(tld) ? `Check the spelling: did you mean @${name}.com?` : null;
+  const near = tld === "com" ? COMMON.find((c) => distance(name, c) <= 2) : undefined;
+  return near ? `Check the spelling: did you mean @${near}.com?` : null;
 }
