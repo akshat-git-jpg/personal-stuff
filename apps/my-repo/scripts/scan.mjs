@@ -131,6 +131,41 @@ function scanMcps() {
   return out
 }
 
+// Plugins of both accounts. A mod is a plugin whose hooks.json loads a JS module.
+function scanPlugins() {
+  const accounts = { work: '.claude-work', personal: '.claude-personal' }
+  const found = new Map()
+  for (const [acct, cfg] of Object.entries(accounts)) {
+    const installed = readJson(path.join(HOME, cfg, 'plugins/installed_plugins.json'))?.plugins ?? {}
+    const enabled = readJson(path.join(HOME, cfg, 'settings.json'))?.enabledPlugins ?? {}
+    for (const [key, recs] of Object.entries(installed)) {
+      const name = key.split('@')[0]
+      const rec = (Array.isArray(recs) ? recs : [recs]).find((r) => r.scope === 'user') ?? (Array.isArray(recs) ? recs[0] : recs)
+      const p = found.get(name) ?? { name, key, dir: rec?.installPath, accounts: {} }
+      p.accounts[acct] = rec?.scope === 'local' ? 'local' : enabled[key] === false ? 'off' : 'on'
+      found.set(name, p)
+    }
+  }
+  return [...found.values()].sort((a, b) => a.name.localeCompare(b.name)).map((p) => {
+    const inRepo = isDir(path.join(REPO, 'tooling/mods', p.name)) ? path.join(REPO, 'tooling/mods', p.name) : null
+    const dir = inRepo ?? p.dir
+    const manifest = readJson(path.join(dir ?? '', '.claude-plugin/plugin.json')) ?? {}
+    const modules = readJson(path.join(dir ?? '', 'hooks/hooks.json'))?.modules ?? []
+    const src = modules.map((m) => read(path.join(dir, 'hooks', m)) ?? '').join('\n')
+    const names = (re) => [...new Set([...src.matchAll(re)].map((m) => m[1]))]
+    const commands = names(/command\s*\.register\(\{\s*name:\s*['"`]([^'"`]+)/g)
+    const tools = names(/tool\s*\.register\(\{\s*name:\s*['"`]([^'"`]+)/g)
+    const where = ['work', 'personal'].map((a) => `${a}: ${p.accounts[a] ?? 'not installed'}`).join(', ')
+    const parts = [
+      (manifest.description ?? 'Claude Code plugin').replace(/\s+/g, ' ').slice(0, 220).replace(/[.\s]+$/, ''),
+      commands.length ? `Commands: ${commands.map((c) => `/${c}`).join(' ')}` : '',
+      tools.length ? `Tools: ${tools.join(', ')}` : '',
+      `Source: ${inRepo ? 'this repo' : p.key.split('@')[1]}. ${where}`,
+    ]
+    return { name: p.name, group: modules.length ? 'mod' : 'plugin', path: inRepo ? rel(inRepo) : undefined, desc: parts.filter(Boolean).join('. ') }
+  })
+}
+
 function scanHarness() {
   const out = []
   const hookNames = (file, scope) => {
@@ -142,12 +177,7 @@ function scanHarness() {
   }
   hookNames(path.join(REPO, '.claude/settings.json'), 'repo')
   hookNames(path.join(HOME, '.claude-work/settings.json'), 'user (work)')
-  const plugins = new Set()
-  for (const cfg of ['.claude-work', '.claude-personal']) {
-    const j = readJson(path.join(HOME, cfg, 'plugins/installed_plugins.json'))
-    for (const k of Object.keys(j?.plugins ?? j ?? {})) if (k.includes('@')) plugins.add(k.split('@')[0])
-  }
-  for (const p of plugins) out.push({ name: p, group: 'plugin', desc: 'Claude Code plugin' })
+  out.push(...scanPlugins())
   const claudeMds = git(['ls-files', '*CLAUDE.md', 'CLAUDE.md']).split('\n').filter(Boolean)
   out.push({ name: 'CLAUDE.md', group: 'routing', path: 'CLAUDE.md', desc: `Routing table, always loaded. ${claudeMds.length} CLAUDE.md files in the repo` })
   for (const f of git(['ls-files', '*.plist']).split('\n').filter((f) => /com\.kbtg\./.test(f))) {
