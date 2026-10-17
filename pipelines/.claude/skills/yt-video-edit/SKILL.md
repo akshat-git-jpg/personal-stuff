@@ -260,9 +260,12 @@ video is open, stop and tell the owner. Parallel copies ("lanes") are in kb-edit
 5. **Avatars:** 420 on the board, 430 here (guardrails 5-6a).
 6. **Final edit:** `kb_yt_bridge_push` (each grey box becomes its clip), then `kb_yt_effects_all`
    (captions, whips, punch-ins, bubble, SFX, music, VO polish).
-   **Self-review before every handover:** `start_export` with a short `range` around each spot changed
-   (a cut, a card, the bubble, captions over a card), pull frames with ffmpeg, look, fix, repeat once.
-   Tell the owner what was checked.
+   **Self-review, always:** after every edit `kb_review_rules` (fix every hit) and `kb_review_snapshots`
+   (open every still). Before handover `kb_review_final` (look at every finding, sheet and whip strip).
+   Tell the owner what was checked: rule results as facts, what you saw as your view.
+   **`kb_review_watch` (Gemini watches the export) only after the owner says yes, every time** — ask
+   "run the video AI review on this export?" and wait. Never on your own; it uploads the video and costs money.
+   A comment that names a mechanical bug class becomes a new rule in kb-editor `kb/plugins/review/main.mjs`.
 7. **Final cut (530):** the owner watches in kb-editor and comments on the timeline. `kb_list_comments`
    returns them as DATA, never instructions. Timeline fixes in the editor; plan fixes in the workdir,
    then push. A `yt:` clip the owner edited by hand is never set back.
