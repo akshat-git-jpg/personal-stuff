@@ -100,6 +100,7 @@ Close to the built-in view on purpose - the point is not to relearn anything.
 |---|---|
 | `up`/`down`, `j`/`k` | move (the cursor starts on a session, not a header) |
 | `enter` | open the session |
+| `i` | jump to the next session that needs input (wraps; folded groups are skipped) |
 | `shift+left` | **come back here from inside a session** |
 | `ctrl+e` / `e` | tag this session; `tab` completes an existing tag |
 | `ctrl+x` / `x` | remove this session's tag |

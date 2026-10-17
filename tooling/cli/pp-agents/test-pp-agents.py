@@ -455,6 +455,17 @@ _handle = _src_all.split("def handle(self, ch):", 1)[1].split("\n    def ", 1)[0
 check("a bare ESC no longer quits", "ch in (ord(\"q\"), 27)" not in _handle, _handle[:300])
 check("q still does", 'ch == ord("q")' in _handle, _handle[:300])
 
+section("i jumps to the next session that needs input")
+_rows = [("header", "argo"), ("job", {"state": "blocked"}), ("job", {"state": "working"}),
+         ("header", "beta"), ("job", {"state": "blocked"}), ("job", {"state": "done"})]
+check("from the top it lands on the first one", mod.next_needs_input(_rows, 0) == 1)
+check("from there it moves to the next one", mod.next_needs_input(_rows, 1) == 4)
+check("past the last one it wraps to the first", mod.next_needs_input(_rows, 4) == 1)
+check("nothing needs input: None",
+      mod.next_needs_input([("job", {"state": "done"})], 0) is None)
+check("no rows: None", mod.next_needs_input([], 0) is None)
+check("handle binds i", 'ch == ord("i")' in _handle, _handle[:300])
+
 section("a missing binary cannot fork a second copy of the view")
 _proxy = _src_all.split("def run_proxied", 1)[1].split("\n    def ", 1)[0]
 # `execvpe` RAISES in the forked child; unguarded it unwinds into the PARENT's

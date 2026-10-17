@@ -212,6 +212,17 @@ def session_state(st):
     return state
 
 
+def next_needs_input(rows, cursor):
+    """Index of the next session row that needs you, after the cursor, wrapping; None if none."""
+    n = len(rows)
+    for step in range(1, n + 1):
+        i = (cursor + step) % n
+        kind, payload = rows[i]
+        if kind == "job" and payload.get("state") == "blocked":
+            return i
+    return None
+
+
 def display_name(state):
     """The label for a row.
 
@@ -1273,7 +1284,7 @@ def cmd_doctor():
         return 1
     for sub in ("attach", "logs", "stop", "rm"):
         out = subprocess.run([binp, sub, "--help"], capture_output=True, text=True, timeout=60)
-        good = f"claude {sub} <id>" in (out.stdout + out.stderr)
+        good = f"claude {sub} <id" in (out.stdout + out.stderr)  # `<id>` or `<id|name>`
         print(f"  {sub:<7}{'ok' if good else 'NOT AVAILABLE'}")
         ok = ok and good
     print("\n" + ("all good" if ok else "problems above"))
@@ -1285,6 +1296,7 @@ def cmd_doctor():
 HELP = [
     ("up/down, j/k", "move"),
     ("enter", "open the session"),
+    ("i", "jump to the next session that needs input"),
     ("shift+left", "inside a session: come back here"),
     ("ctrl+e / e", "tag this session (tab completes an existing tag)"),
     ("ctrl+x / x", "remove this session's tag"),
@@ -1549,7 +1561,7 @@ class App:
         elif self.query:
             bar, attr = f" filter: {self.query}   (esc clears)", self.attr["bar"]
         else:
-            bar, attr = (" enter open · shift+left back · e tag · d delete · "
+            bar, attr = (" enter open · shift+left back · i next input · e tag · d delete · "
                          "t pin · s group · / filter · ? help · q quit"), self.attr["bar"]
         self.put(h - 1, 0, bar.ljust(w - 1), attr)
         self.scr.refresh()
@@ -1955,6 +1967,12 @@ class App:
             self.act_delete()
         elif ch == ord("n"):
             self.act_new()
+        elif ch == ord("i"):
+            idx = next_needs_input(self.rows, self.cursor)
+            if idx is None:
+                self.status = "nothing needs input here (folded groups are skipped)"
+            else:
+                self.cursor = idx
         elif ch == ord("g"):
             self.reload()
             self.status = "refreshed"
