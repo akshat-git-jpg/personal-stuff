@@ -4,7 +4,13 @@
 # per-machine config.
 set -euo pipefail
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Follow a ~/.local/bin symlink back to this folder.
+SRC="${BASH_SOURCE[0]}"
+while [[ -L "$SRC" ]]; do
+  LINK="$(readlink "$SRC")"
+  [[ "$LINK" = /* ]] && SRC="$LINK" || SRC="$(dirname "$SRC")/$LINK"
+done
+DIR="$(cd "$(dirname "$SRC")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../.." && pwd)"
 
 # VPS has a shared venv at mcp/.venv (created during cron setup).
