@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
-  appendFinalFeedback, applyFeedback, feedbackContextFromDisk,
+  appendFinalFeedback, applyFeedback, feedbackContextFromDisk, approveFinalCut,
   saveFeedbackImages, dropFeedbackImage, itemImages,
 } from '../../visuals-flow/lib/board.mjs';
 import { appendFinalItem } from '../../animate-flow/lib/feedback.mjs';
@@ -40,6 +40,7 @@ const visualsFlow = {
     const fc = readJson(path.join(workdir, 'final-cut.json'));
     return fc?.approved ? { version: fc.version ?? null } : null;
   },
+  approve: (workdir, label) => approveFinalCut(workdir, label),
   timeline(workdir) {
     const w = words(workdir);
     const cues = readJson(path.join(workdir, 'resolved.json'))?.resolved ?? [];
@@ -74,6 +75,8 @@ const animateFlow = {
   videosDir: process.env.REVIEW_AF_VIDEOS ?? path.join(VIDEO_DIR, 'animate-flow', 'videos'),
   mediaDir: (slug) => path.join(process.env.ANIMATE_MEDIA_ROOT ?? path.join(KB, 'animate-flow'), slug),
   approved: () => null,
+  // animate-flow has no final-cut gate.
+  approve: null,
   moments(workdir, w) {
     const doc = readJson(path.join(workdir, 'moments.json'));
     if (!doc?.moments) return [];

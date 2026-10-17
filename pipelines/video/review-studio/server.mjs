@@ -4,7 +4,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { serveMediaFile } from '../visuals-flow/lib/board.mjs';
-import { listVideos, videoDetail, mediaFile, imageFile, addComment, editComment, deleteComment, saveNotes } from './lib/store.mjs';
+import { listVideos, videoDetail, mediaFile, imageFile, addComment, editComment, deleteComment, saveNotes, approveCut } from './lib/store.mjs';
 import { thumbnail, peaks } from './lib/media.mjs';
 
 export const DEFAULT_PORT = 4340;
@@ -68,6 +68,7 @@ async function route(req, res) {
       if (action === '/comments-edit') return json(res, 200, { ok: true, item: editComment(recipe, slug, body) });
       if (action === '/comments-delete') { deleteComment(recipe, slug, body); return json(res, 200, { ok: true }); }
       if (action === '/notes') { saveNotes(recipe, slug, body); return json(res, 200, { ok: true }); }
+      if (action === '/approve') return json(res, 200, { ok: true, approved: approveCut(recipe, slug, body) });
     }
   }
 

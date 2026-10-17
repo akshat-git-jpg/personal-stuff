@@ -149,6 +149,29 @@ test('media streams with ranges; thumbnails and peaks render', async () => {
   assert.ok(p.data.length >= 25);
 });
 
+test('approving writes exactly what the old board writes', async () => {
+  const read = (f) => JSON.parse(fs.readFileSync(path.join(vfDir, f), 'utf8'));
+  const stamp = (log) => JSON.stringify(log, (k, v) => (/(at|time|updated|started|ended|finished)$/i.test(k) ? undefined : v));
+  assert.equal((await post(B, '/approve-final-cut', { version: 'v1' })).status, 200);
+  const oldCut = read('final-cut.json');
+  const oldLog = stamp(read('run-log.json'));
+  fs.rmSync(path.join(vfDir, 'final-cut.json'));
+  fs.rmSync(path.join(vfDir, 'run-log.json'));
+  const res = await post(S, `/api/videos/visuals-flow/${SLUG}/approve`, { label: 'v1' });
+  assert.equal(res.status, 200);
+  assert.deepEqual((await res.json()).approved, { version: 'v1' });
+  assert.deepEqual(read('final-cut.json'), oldCut);
+  assert.equal(stamp(read('run-log.json')), oldLog);
+  assert.match(oldLog, /approved the final cut \(version v1\)/);
+});
+
+test('approval needs a rendered version and a recipe with the gate', async () => {
+  assert.equal((await post(S, `/api/videos/visuals-flow/${SLUG}/approve`, { label: 'v7' })).status, 400);
+  assert.equal((await post(S, '/api/videos/animate-flow/anim-demo/approve', { label: 'v1' })).status, 400);
+  const d = await (await fetch(`${S}/api/videos/animate-flow/anim-demo`)).json();
+  assert.equal(d.approveEnabled, false);
+});
+
 test('bad input is refused', async () => {
   assert.equal((await fetch(`${S}/api/videos/visuals-flow/..%2F..%2Fetc`)).status, 404);
   assert.equal((await fetch(`${S}/api/media/visuals-flow/${SLUG}/v9`)).status, 404);

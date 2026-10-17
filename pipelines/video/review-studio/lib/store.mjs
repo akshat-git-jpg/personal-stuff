@@ -76,7 +76,17 @@ export function videoDetail(recipeId, slug) {
     items,
     notes: fb.items?._global?.text ?? '',
     notesEnabled: !!r.saveNotes,
+    approveEnabled: !!r.approve,
   };
+}
+
+export function approveCut(recipeId, slug, { label }) {
+  const dir = workdirOf(recipeId, slug) ?? fail(404, 'no such video');
+  const r = RECIPES[recipeId];
+  if (!r.approve) fail(400, 'this recipe has no final-cut approval');
+  if (!versionsOf(r, slug).some((v) => v.label === label)) fail(400, `no rendered version ${label}`);
+  r.approve(dir, label);
+  return r.approved(dir);
 }
 
 export function mediaFile(recipeId, slug, label) {

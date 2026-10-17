@@ -1048,12 +1048,16 @@ async function handleApproveFinalCut(req, res, workdir) {
   let payload;
   try { payload = JSON.parse(body); } catch(e) { res.statusCode = 400; return res.end('{"ok":false}'); }
   if (!payload.version) { res.statusCode = 400; return res.end('{"ok":false,"error":"missing version"}'); }
-  const fcPath = path.join(workdir, 'final-cut.json');
-  const fc = { approved: true, version: payload.version };
-  fs.writeFileSync(fcPath, JSON.stringify(fc, null, 2));
-  recordGate(workdir, gateNumberFor('final-cut.json'), `Owner approved the final cut (version ${payload.version}).`, `final-cut.json approved=true, version ${payload.version}`);
+  approveFinalCut(workdir, payload.version);
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
+}
+
+// Shared with review-studio, so both boards record the gate the same way.
+export function approveFinalCut(workdir, version) {
+  const fc = { approved: true, version };
+  fs.writeFileSync(path.join(workdir, 'final-cut.json'), JSON.stringify(fc, null, 2));
+  recordGate(workdir, gateNumberFor('final-cut.json'), `Owner approved the final cut (version ${version}).`, `final-cut.json approved=true, version ${version}`);
 }
 
 // Gate 028. Approving sets BOTH chosen and approved, in one write — an
