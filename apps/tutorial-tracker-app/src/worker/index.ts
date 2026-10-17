@@ -66,6 +66,7 @@ import { structuralIssues, buildReport, type GuardIssue } from "./linkguard";
 import { descriptionIssues, fetchDescriptions, type DescVideo } from "./descguard";
 import { probeAll, type ProbeOne } from "./linkprobe";
 import { sendTelegram } from "./notify-telegram";
+import { cardIssues, cardIssuesReport } from "../shared/engine/integrity";
 import { syncYouTubeId } from "./ytsync";
 
 // ---------------------------------------------------------------------------
@@ -242,6 +243,14 @@ async function runChainProbe(env: Env, onlySlug?: string, kind: CheckKind = "cha
     if (result.status === "dead") issues.push({ code: "bad_url", slug: result.slug, detail: result.detail }); }
   const unverifiable = results.filter((result) => result.status === "unverifiable").length; const report = buildReport(issues, unverifiable, candidates.length, true);
   const notified = report ? await sendTelegram(env, report) : false; await recordLinkCheck(env, kind, candidates.length, issues, unverifiable, notified); return issues;
+}
+// Cards stuck in a state the UI never makes (e.g. a direct D1 write); see integrity.ts.
+async function runCardCheck(env: Env): Promise<void> {
+  const store = getStore(env);
+  const [rows, team] = await Promise.all([store.readRows(), store.loadTeam()]);
+  const byEmail = new Map(team.map((m) => [m.email, m.memberships ?? {}]));
+  const report = cardIssuesReport(cardIssues(rows, byEmail), env.APP_URL ?? "");
+  if (report) await sendTelegram(env, report);
 }
 async function runUnverifiableDigest(env: Env): Promise<void> {
   const programs = await listPrograms(env.TRACKER_DB); const blocked = programs.filter((program) => program.last_status === "unverifiable");
@@ -1488,11 +1497,12 @@ app.get("*", (c) => c.env.ASSETS.fetch(c.req.raw));
 
 Object.assign(app, {
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    // One cron drives all three passes (Workers Free allows 5 per ACCOUNT and three
+    // One cron drives every pass (Workers Free allows 5 per ACCOUNT and three
     // are already spent). Branch on the scheduled date, never on wall-clock now:
     // a retried or delayed invocation must make the same decision.
     const when = new Date(event.scheduledTime);
     ctx.waitUntil(runStructural(env));
+    ctx.waitUntil(runCardCheck(env));
     if (when.getUTCDay() === 0) ctx.waitUntil(runChainProbe(env));
     if (when.getUTCDate() === 1) ctx.waitUntil(runUnverifiableDigest(env));
   },

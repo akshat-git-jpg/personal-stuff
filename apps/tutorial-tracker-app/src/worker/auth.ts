@@ -56,6 +56,8 @@ export type Env = {
   TELEGRAM_CHAT_ID?: string;
   /** Forum topic id in the KB Alerts group (links topic). */
   TELEGRAM_THREAD_ID?: string;
+  /** Lets scripts call the API as a named teammate (Bearer + X-Act-As). Unset = off. */
+  AGENT_TOKEN?: string;
 };
 
 export type Variables = {
@@ -253,6 +255,21 @@ export async function requireSession(
     }
   }
 
+  // Script door: same rules, events and emails as the UI, acting as that person.
+  const bearer = (c.req.header("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  if (bearer) {
+    const actAs = (c.req.header("X-Act-As") ?? "").trim().toLowerCase();
+    if (!c.env.AGENT_TOKEN || !sameSecret(bearer, c.env.AGENT_TOKEN) || !actAs) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    const memberships = await getStore(c.env).lookupMemberships(actAs);
+    const roles = unionRoles(memberships);
+    if (roles.length === 0) return c.json({ error: "unknown teammate", email: actAs }, 403);
+    c.set("user", { email: actAs, roles, memberships });
+    await next();
+    return;
+  }
+
   const sessionId = getCookie(c, "session");
   if (!sessionId) {
     return c.json({ error: "unauthorized" }, 401);
@@ -295,6 +312,13 @@ export async function requireSession(
   }
   c.set("user", { email: session.email, roles, memberships });
   await next();
+}
+
+function sameSecret(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
 
 // ---------------------------------------------------------------------------

@@ -273,7 +273,10 @@ delivered file. Do not add a board step, a cue pass or an LLM pass to it.
   tracker (`tracker-db`, pipeline `coupon-code`, stage `video`). Its
   instruction holds the raw-footage Drive folder; upload the final into that
   folder's `output/` (`tooling/cli/drive/pp-drive upload … --parent <id>`),
-  then set the `video` stage to `In Review` with `work_link` = the Drive file
-  and bust KV `board:rows`. A direct D1 write sends no reviewer email: say so.
+  then submit through the app as the stage's assignee:
+  `node apps/tutorial-tracker-app/scripts/tracker-act.mjs submit <card> video --as <assignee> --note "<Drive link>"`.
+  **Never write `tracker-db` directly**: a hand-set `In Review` with no reviewer
+  sits in nobody's queue (r0118, r0122, 2026-10-17). If the script says the
+  stage has no reviewer, stop and ask the owner who reviews; do not pass `--complete`.
 - The owner previews in QuickTime (`open -a "QuickTime Player" <file>`):
   VS Code's player has no AAC decoder, so the final is silent there.

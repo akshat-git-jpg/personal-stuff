@@ -50,6 +50,16 @@ The app is now a **generic multi-system pipeline engine**. It is NO LONGER the s
   straight to Done. Doers move To Do→In Progress→In Review; only the stage's
   reviewer (never on their own submission) sets Done / Need Changes, and
   Need Changes always writes feedback atomically.
+- **Scripts and Claude sessions change cards ONLY through the API**, via
+  `scripts/tracker-act.mjs` (`show` / `submit` / `set`, always `--as <email>`).
+  It sends `Authorization: Bearer <AGENT_TOKEN>` + `X-Act-As`, and the Worker then
+  applies that person's exact rules, events and emails. Token: Worker secret
+  `AGENT_TOKEN`; locally `agent.env` (`AGENT_TOKEN=...`, synced by pp-secrets).
+  **Never write `tracker-db` by hand**: on 2026-10-17 two coupon-code cards
+  (r0118, r0122) were hand-set to In Review with no reviewer and sat in nobody's
+  queue. The daily cron now runs `src/shared/engine/integrity.ts` and posts any
+  stuck card (In Review with no reviewer, a reviewer or assignee without the role
+  in that system) to Telegram.
 
 
 ## API (all behind a session except auth/auth-mode)
