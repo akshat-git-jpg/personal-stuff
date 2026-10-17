@@ -10,7 +10,7 @@
  * Lives in the Team tab, following that tab's selected system.
  */
 import { useCallback, useEffect, useState } from "react";
-import { PIPELINES, reviewerColOf, assigneeColOf } from "./stages";
+import { PIPELINES, reviewerColOf, assigneeColOf, getPipeline, isBrief } from "./stages";
 import { holdsRoleInSystem } from "../shared/engine/memberships";
 import {
   getDefaults, getDefaultCols, saveDefaults, deleteDefault, getTeam, personLabel,
@@ -71,9 +71,25 @@ export function AssignmentDefaults({ system, onChanged }: Props) {
     names[m.email.toLowerCase()] = m.name;
     memberRoles[m.email.toLowerCase()] = (m.roles ?? [m.role]).join(", ");
   }
-  /** Only people who hold that role IN this system. */
-  const peopleFor = (role: string) =>
-    team.filter((m) => holdsRoleInSystem(m.memberships ?? {}, pipelineId, role)).map((m) => m.email);
+  /** The other slot of the same stage (doer vs reviewer); brief stages are exempt. */
+  const partnerOf = (col: string): string | undefined => {
+    for (const s of getPipeline(pipelineId).stages) {
+      if (isBrief(s)) continue;
+      const rc = reviewerColOf(s);
+      if (!rc) continue;
+      if (assigneeColOf(s) === col) return rc;
+      if (rc === col) return assigneeColOf(s);
+    }
+    return undefined;
+  };
+  /** Only people who hold that role IN this system, minus the stage's other slot. */
+  const peopleFor = (role: string, col: string) => {
+    const pc = partnerOf(col);
+    const partner = pc ? (assignments[pc] ?? "").trim().toLowerCase() : "";
+    return team.filter((m) => holdsRoleInSystem(m.memberships ?? {}, pipelineId, role))
+      .map((m) => m.email)
+      .filter((e) => !partner || e.toLowerCase() !== partner);
+  };
 
   /** One pick saves the whole set — the server replaces it wholesale. */
   async function pick(col: string, email: string) {
@@ -134,24 +150,28 @@ export function AssignmentDefaults({ system, onChanged }: Props) {
         <div className="divide-y divide-border rounded-[10px] border border-border bg-card">
           {cols.map((col) => {
             const role = colRole(col);
-            const options = peopleFor(role);
+            const options = peopleFor(role, col);
+            const current = assignments[col] ?? "";
+            const invalid = !!current && !options.some((e) => e.toLowerCase() === current.toLowerCase());
             return (
               <div key={col} data-testid={`default-row-${col}`} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0">
                   <div className="text-sm font-medium text-foreground">{fieldLabel(col)}</div>
                   <div className="text-[11px] text-muted-foreground">{role}</div>
+                  {invalid && <div data-testid={`default-invalid-${col}`} className="text-[11px] font-medium text-destructive">{current} can&rsquo;t fill this role here. Pick someone else.</div>}
                 </div>
                 <div className="flex items-center gap-2">
                   {savingCol === col && <span className="text-[11px] text-muted-foreground">Saving&hellip;</span>}
                   {savedCol === col && <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Saved</span>}
                   <select
                     aria-label={`Default ${fieldLabel(col)}`}
-                    className={selectCls}
-                    value={assignments[col] ?? ""}
+                    className={cn(selectCls, invalid && "border-destructive text-destructive")}
+                    value={current}
                     disabled={savingCol !== null}
                     onChange={(e) => void pick(col, e.target.value)}
                   >
                     <option value="">&mdash; nobody &mdash;</option>
+                    {invalid && <option value={current}>{personLabel(current, names, memberRoles)} (not eligible)</option>}
                     {options.map((email) => (
                       <option key={email} value={email}>{personLabel(email, names, memberRoles)}</option>
                     ))}

@@ -60,12 +60,11 @@ export default function App() {
 
   useEffect(() => { void load(); }, [load]);
 
-  // Load team once (for the view-as picker + name resolution) when an admin session is confirmed.
+  const refreshTeam = useCallback(() => { getTeam().then(setTeam).catch(() => { /* keep the last list */ }); }, []);
+  // Load the team for the view-as picker once an admin session is confirmed; the picker refreshes it on open.
   useEffect(() => {
-    if (state.status === "ok" && state.data.roles.includes("Admin") && team.length === 0) {
-      void getTeam().then(setTeam);
-    }
-  }, [state, team.length]);
+    if (state.status === "ok" && state.data.roles.includes("Admin") && team.length === 0) refreshTeam();
+  }, [state, team.length, refreshTeam]);
 
   async function handleLogout() {
     try { await logout(); } catch { /* ignore */ }
@@ -148,7 +147,8 @@ export default function App() {
         <h1 className={isAdmin || viewing ? "sr-only text-base font-semibold tracking-tight sm:not-sr-only sm:whitespace-nowrap" : "truncate text-base font-semibold tracking-tight"}>Tutorials Tracker</h1>
         <div className="min-w-0 flex-1" />
         {(isAdmin || viewing) && (
-          <Select value={viewAsEmail || "__me__"} onValueChange={(v) => handleViewAsChange(v === "__me__" ? "" : v)}>
+          <Select value={viewAsEmail || "__me__"} onValueChange={(v) => handleViewAsChange(v === "__me__" ? "" : v)}
+            onOpenChange={(o) => { if (o) refreshTeam(); }}>
             <SelectTrigger className="h-8 w-auto min-w-0 max-w-[45vw] text-xs sm:w-[230px] sm:max-w-none [&>span]:truncate" aria-label="View as team member"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__me__">Me (full access)</SelectItem>

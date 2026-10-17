@@ -3,7 +3,7 @@ import type { Transition } from "../shared/engine/rbac";
 import { ReviewQueue } from "./ReviewQueue";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { pipeOf, stageByStatusColIn, normalizeStatusIn, holderOf, sinceOf } from "./stages";
+import { pipeOf, stageByStatusColIn, normalizeStatusIn, holderOf, sinceOf, lifecycle, etaColOf } from "./stages";
 import type { StageDef, PipelineDef } from "./stages";
 import { Card } from "./Card";
 import { displayName } from "./api";
@@ -94,11 +94,12 @@ export function MyWork({
     }
 
     const { status } = item;
+    // No reviewer on the stage: the server offers the doer "Complete" instead.
+    const doerCanAct = transitionsForStageCol(item.row, item.statusCol).some((t) => t.by === "doer");
 
-    
-    if (status === "Done") {
+    if (status === lifecycle(item.stage.lifecycle).done) {
       done.push(item);
-    } else if (status === "In Review") {
+    } else if (status === "In Review" && !doerCanAct) {
       waitingOnReview.push(item);
     } else {
       needsAction.push(item);
@@ -117,8 +118,9 @@ export function MyWork({
     const rankA = statusRank(a.status);
     const rankB = statusRank(b.status);
     if (rankA !== rankB) return rankA - rankB;
-    const etaA = String((a.row as Record<string, unknown>)[`${a.stage.id}_eta`] ?? "");
-    const etaB = String((b.row as Record<string, unknown>)[`${b.stage.id}_eta`] ?? "");
+    const etaOf = (i: WorkItem) => { const c = etaColOf(i.stage); return c ? String((i.row as Record<string, unknown>)[c] ?? "") : ""; };
+    const etaA = etaOf(a);
+    const etaB = etaOf(b);
     if (etaA && !etaB) return -1;
     if (!etaA && etaB) return 1;
     return etaA.localeCompare(etaB);
@@ -154,7 +156,8 @@ export function MyWork({
     return labels?.length ? `Then yours: ${labels.join(" · ")}` : undefined;
   };
 
-  const isEmpty = queueItems.length === 0 && allItems.length === 0;
+  // Upcoming items only render as a "then" line, so they alone are still empty.
+  const isEmpty = queueItems.length === 0 && needsAction.length === 0 && waitingOnReview.length === 0 && done.length === 0;
 
   const [showDone, setShowDone] = useState(false);
 
@@ -178,7 +181,7 @@ export function MyWork({
             <h2 className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">Needs your review</h2>
             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{queueItems.length}</span>
           </div>
-          <ReviewQueue items={queueItems} onOpen={onOpenQueueItem} onAction={onQueueAction} multiSystem={multiSystem} />
+          <ReviewQueue items={queueItems} onOpen={onOpenQueueItem} onAction={onQueueAction} multiSystem={multiSystem} readOnly={readOnly} />
         </section>
       )}
 

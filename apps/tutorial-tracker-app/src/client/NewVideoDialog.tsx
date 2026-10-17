@@ -14,6 +14,7 @@ import { colOf, stageHasReviewerSlot, requiredToCreate, stageKind } from "../sha
 import { slugify } from "../shared/slug";
 import { fieldLabelOf } from "../shared/engine/labels";
 import { cn } from "@/lib/utils";
+import { NoReviewerWarning } from "./NoReviewerWarning";
 
 export interface NewVideoDialogProps {
   open: boolean;
@@ -109,11 +110,19 @@ export function NewVideoDialog({
   
   const missingLabels = missingCols.map(fieldLabel);
 
+  const same = (a?: string, b?: string) => !!a?.trim() && a.trim().toLowerCase() === (b ?? "").trim().toLowerCase();
+  // A doer reviewing their own stage leaves the card stuck in nobody's queue.
+  const selfReview = doerStages.filter((s) => stageHasReviewerSlot(s) && same(nv[colOf(s, "assignee")], nv[colOf(s, "reviewer")]));
+  const selfReviewError = selfReview.length ? `${selfReview.map((s) => s.label).join(", ")}: the doer can't also be the reviewer.` : "";
+  const systemReviewers = Object.keys(names).filter((e) => holdsRoleInSystem(memberships[e.toLowerCase()] ?? {}, pDef.id, "Reviewer"));
+  const noReviewer = doerStages.some(stageHasReviewerSlot) && systemReviewers.length === 0;
+
   async function submitNewVideo() {
     if (missingCols.length) { 
       setNvError(`${missingLabels.join(", ")} ${missingCols.length === 1 ? "is" : "are"} required.`); 
       return; 
     }
+    if (selfReviewError) { setNvError(selfReviewError); return; }
     setNvBusy(true); setNvError(null);
     try {
       const payload = { ...nv, pipeline: nvPipeline };
@@ -133,7 +142,8 @@ export function NewVideoDialog({
       const owner = pDef.stages.find((s) => colOf(s, "assignee") === col);
       if (owner && val) for (const s of pDef.stages) {
         const c = colOf(s, "assignee");
-        if (s !== owner && s.role === owner.role && !(next[c] ?? "").trim()) next[c] = val;
+        const rev = stageHasReviewerSlot(s) ? next[colOf(s, "reviewer")] : "";
+        if (s !== owner && s.role === owner.role && !(next[c] ?? "").trim() && !same(val, rev)) next[c] = val;
       }
       if (col === "video_title" && !slugTouched) {
         next.slug = slugify(val);
@@ -212,6 +222,7 @@ export function NewVideoDialog({
               The people
               {prefillNotice && <span className="text-[10px] text-muted-foreground font-normal bg-muted px-2 py-0.5 rounded-full">{prefillNotice}</span>}
             </h3>
+            {noReviewer && <NoReviewerWarning systemName={pDef.name} />}
             <div className="space-y-4 border rounded-md p-4 bg-muted/20">
               {doerStages.map(stage => {
                 const aCol = colOf(stage, "assignee");
@@ -223,11 +234,15 @@ export function NewVideoDialog({
                 
                 const aPeople = Object.keys(names)
                   .filter(email => holdsRoleInSystem(memberships[email.toLowerCase()] ?? {}, pDef.id, stage.role))
+                  .filter(email => !(hasReviewer && same(email, nv[rCol])))
                   .sort((a, b) => names[a].localeCompare(names[b]));
                 
-                const rPeople = hasReviewer ? Object.keys(names)
-                  .filter(email => holdsRoleInSystem(memberships[email.toLowerCase()] ?? {}, pDef.id, "Reviewer"))
+                const rPeople = hasReviewer ? systemReviewers
+                  .filter(email => !same(email, nv[aCol]))
                   .sort((a, b) => names[a].localeCompare(names[b])) : [];
+                // Keep a current pick that is no longer offered visible, flagged.
+                const stray = (val: string | undefined, list: string[]) =>
+                  val && !list.some((e) => same(e, val)) ? <option value={val}>{personLabel(val, names, memberRoles)} (not allowed)</option> : null;
 
                 return (
                   <div key={stage.id} className="space-y-3 pb-4 mb-4 border-b last:border-0 last:mb-0 last:pb-0 border-border/50">
@@ -238,6 +253,7 @@ export function NewVideoDialog({
                           aMissing ? "border-primary/70 ring-2 ring-primary/20" : "border-input")}
                       >
                         <option value="">— Unassigned —</option>
+                        {stray(nv[aCol], aPeople)}
                         {aPeople.map(e => <option key={e} value={e}>{personLabel(e, names, memberRoles)}</option>)}
                       </select>
                     </div>
@@ -249,6 +265,7 @@ export function NewVideoDialog({
                             rMissing ? "border-primary/70 ring-2 ring-primary/20" : "border-input")}
                         >
                           <option value="">— No review (auto-approve) —</option>
+                          {stray(nv[rCol], rPeople)}
                           {rPeople.map(e => <option key={e} value={e}>{personLabel(e, names, memberRoles)}</option>)}
                         </select>
                         <p className="text-[10px] text-muted-foreground mt-1">Leaving the reviewer empty means that stage is approved the moment it is submitted.</p>
@@ -267,13 +284,15 @@ export function NewVideoDialog({
           <div className="text-sm font-medium text-destructive">
             {missingCols.length > 0 ? (
               <span>{missingCols.length} {missingCols.length === 1 ? "thing" : "things"} left: {missingLabels.join(", ")}</span>
+            ) : selfReviewError ? (
+              <span>{selfReviewError}</span>
             ) : nvError ? (
               <span>{nvError}</span>
             ) : null}
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={nvBusy}>Cancel</Button>
-            <Button onClick={() => void submitNewVideo()} disabled={nvBusy || missingCols.length > 0}>{nvBusy ? "Creating…" : "Create video"}</Button>
+            <Button onClick={() => void submitNewVideo()} disabled={nvBusy || missingCols.length > 0 || !!selfReviewError}>{nvBusy ? "Creating…" : "Create video"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

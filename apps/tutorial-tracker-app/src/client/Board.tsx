@@ -103,9 +103,14 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
   const refreshQueue = useCallback(async () => {
     if (!canReview) return;
     // readOnly = admin view-as: load the viewed person's queue, not the admin's.
-    const data = await getReviewQueue(readOnly ? viewerEmail : undefined);
-    setQueueItems(data.items);
-  }, [canReview, readOnly, viewerEmail]);
+    try {
+      const data = await getReviewQueue(readOnly ? viewerEmail : undefined);
+      setQueueItems(data.items);
+    } catch {
+      // Keep the last good queue rather than blanking it.
+      showToast("Couldn't refresh your review queue");
+    }
+  }, [canReview, readOnly, viewerEmail, showToast]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void refreshQueue(); }, [refreshQueue, rows]);

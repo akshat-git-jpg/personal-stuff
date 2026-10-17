@@ -21,6 +21,8 @@ import {
 } from "./api";
 import { AssignmentDefaults } from "./AssignmentDefaults";
 import { rolesForSystem } from "../shared/engine/registry";
+import { holdsRoleInSystem } from "../shared/engine/memberships";
+import { NoReviewerWarning } from "./NoReviewerWarning";
 import { HandoverPanel, type HandoverAction } from "./HandoverPanel";
 import { CheckCircle2, Loader2, Lock, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -53,6 +55,8 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
   const [activeSystem, setActiveSystem] = useState<string>(systems[0]?.id ?? "standard");
   const [roleOptions, setRoleOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  // save() merges from `members`, so saving on a failed load would wipe other systems.
+  const [teamLoaded, setTeamLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -108,7 +112,9 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
     setLoading(true); setError(null);
     try {
       setMembers(await getTeam());
+      setTeamLoaded(true);
     } catch (e) {
+      setTeamLoaded(false);
       setError(e instanceof Error ? e.message : "Couldn't load the team");
     } finally { setLoading(false); }
   }
@@ -145,13 +151,14 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
   }
 
   async function save() {
+    if (!teamLoaded) return setError("The team didn't load, so saving could erase this person's other systems. Reload and try again.");
     if (!draft.name.trim()) return setError("Name is required");
     const badEmail = emailProblem(draft.email);
     if (badEmail) return setError(badEmail);
     if (draft.roles.length === 0) return setError(`Pick at least one role in ${systemName(activeSystem)}`);
     const email = draft.email.trim().toLowerCase();
     // Merge: keep this person's roles in OTHER systems, set their roles here.
-    const existing = members.find((m) => m.email === email);
+    const existing = members.find((m) => m.email.trim().toLowerCase() === email);
     const next: Record<string, string[]> = { ...(existing?.memberships ?? {}) };
     next[activeSystem] = inRoleOrder(activeSystem, draft.roles);
     const dropped = (existing?.memberships?.[activeSystem] ?? []).filter((r) => !draft.roles.includes(r));
@@ -174,6 +181,7 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
   }
 
   async function removeFromSystem(m: TeamMember) {
+    if (!teamLoaded) return setError("The team didn't load. Reload and try again.");
     const sys = systemName(activeSystem);
     await attempt(m, { kind: "remove", systemName: sys }, async () => {
       const next: Record<string, string[]> = { ...(m.memberships ?? {}) };
@@ -282,6 +290,10 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
       )}
 
       {error && <div className="text-sm font-medium text-destructive">{error}</div>}
+
+      {!loading && teamLoaded && !members.some((m) => holdsRoleInSystem(m.memberships ?? {}, activeSystem, "Reviewer")) && (
+        <NoReviewerWarning systemName={systemName(activeSystem)} />
+      )}
 
       {loading ? (
         <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">Loading…</div>

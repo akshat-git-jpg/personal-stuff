@@ -6,7 +6,7 @@ import type { Row, Transition } from "../shared/engine/rbac";
 import { canEditForRoles, isAdminRoles, visibleColsForRoles } from "../shared/engine/rbac";
 import { PROTECTED_ADMIN_EMAIL } from "../shared/engine/registry";
 import { holdsRoleInSystem, effectiveRoles } from "../shared/engine/memberships";
-import { pipeOf, stageByIdIn, statusOf, showColumns, editColumns, requiredToApprove, requiredToSubmitFrom, missingColumns, colOf, isReviewable, feedbackColOf, isBrief, isStageComplete, isGateOpen, holderOf, sinceOf, type RoleKind } from "./stages";
+import { pipeOf, stageByIdIn, statusOf, showColumns, editColumns, requiredToApprove, requiredToSubmitFrom, missingColumns, colOf, isReviewable, feedbackColOf, isBrief, isStageComplete, isGateOpen, holderOf, sinceOf, reviewerColOf, type RoleKind } from "./stages";
 import { applyTransition, updateCell, displayName, personLabel, getCardEvents, getCachedChannels, type BoardRow, type CardEvent } from "./api";
 import { fieldLabel, LINK_HINTS, LINK_COLS, urlsIn } from "./labels";
 import { PROJECT_FOLDER } from "../shared/engine/types";
@@ -197,17 +197,25 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
             const requiredRole = ASSIGNEE_ROLE[col];
 
             const inSystem = (email: string) => !requiredRole || holdsRoleInSystem(memberships[email.toLowerCase()] ?? {}, pipeline.id, requiredRole);
+            // The stage's doer and reviewer must differ (brief stages are admin-owned, exempt).
+            const slotStage = pipeline.stages.find((s) => !isBrief(s) && (colOf(s, "assignee") === col || reviewerColOf(s) === col));
+            const isReviewerSlot = !!slotStage && reviewerColOf(slotStage) === col;
+            const partnerCol = slotStage ? (isReviewerSlot ? colOf(slotStage, "assignee") : reviewerColOf(slotStage)) : undefined;
+            const partner = partnerCol ? String(draft[partnerCol as Column] ?? "").trim().toLowerCase() : "";
             const people = Object.keys(names)
               .filter(inSystem)
+              .filter((email) => !partner || email.toLowerCase() !== partner)
               .sort((a, b) => names[a].localeCompare(names[b]));
             const cur = value.toLowerCase();
+            // Clearing the reviewer mid-review would leave the card in nobody's queue.
+            const inReview = isReviewerSlot && statusOf(slotStage!, row) === "In Review";
             return ( <select
                 id={`f-${col}`}
                 value={value}
                 className={inputCls}
                 onChange={(e) => {
                   handleChange(col, e.target.value);
-                  void autoSaveField(col, e.target.value); }} > <option value="">{REVIEWER_COL_SET.has(col) ? "— No review (auto-approve) —" : "— Unassigned —"}</option> {value && !people.includes(cur) && <option value={value}>{personLabel(value, names, memberRoles)}</option>}
+                  void autoSaveField(col, e.target.value); }} > <option value="" disabled={inReview}>{inReview ? "— Pick a reviewer —" : REVIEWER_COL_SET.has(col) ? "— No review (auto-approve) —" : "— Unassigned —"}</option> {value && !people.includes(cur) && <option value={value}>{personLabel(value, names, memberRoles)}</option>}
                 {people.map((email) => ( <option key={email} value={email}> {personLabel(email, names, memberRoles)} </option>
                 ))} </select>
             ); })()

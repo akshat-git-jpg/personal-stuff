@@ -141,7 +141,7 @@ export async function getMe(): Promise<MeData> {
 
 export async function getTeam(): Promise<TeamMember[]> {
   const res = await fetch("/api/team", { credentials: "same-origin" });
-  if (!res.ok) return [];
+  await throwOnError(res);
   return res.json() as Promise<TeamMember[]>;
 }
 
@@ -240,7 +240,7 @@ export async function applyTransition(
 export async function getReviewQueue(asUser?: string): Promise<ReviewQueueData> {
   const url = asUser ? `/api/review-queue?asUser=${encodeURIComponent(asUser)}` : "/api/review-queue";
   const res = await fetch(url, { credentials: "same-origin" });
-  if (!res.ok) return { count: 0, items: [], names: {} };
+  await throwOnError(res);
   return res.json() as Promise<ReviewQueueData>;
 }
 
