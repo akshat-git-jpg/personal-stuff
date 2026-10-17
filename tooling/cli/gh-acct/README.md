@@ -33,7 +33,7 @@ gh-acct who   -C <dir>
 gh-acct email -C <dir>        # commit email for that account
 gh-acct name  -C <dir>
 gh-acct token -C <dir>        # that account's stored gh token
-eval "$(gh-acct export)"      # pin GH_TOKEN for this shell only
+export GH_TOKEN="$(gh-acct token)"      # pin GH_TOKEN for this shell; not `eval "$(gh-acct export)"`, dcg blocks eval
 gh-acct check -C <dir>        # git user.email matches the remote? exit 1 if not
 ```
 
@@ -48,13 +48,13 @@ Exit codes: `0` ok · `1` identity mismatch · `2` cannot resolve · `3` no stor
 
 ## Rules this enforces
 
-1. **Never `gh auth switch`.** Blocked by the hook. Use `eval "$(gh-acct export)"`.
+1. **Never `gh auth switch`.** Blocked by the hook. Use `export GH_TOKEN="$(gh-acct token)"`.
 2. **Never `git config --global user.email`.** Blocked by the hook. `~/.gitconfig` routes by remote already.
 3. A repo whose remote is unknown gets a question, not a guess.
 
 ## If a push 403s
 
-`gh-acct check` first, then `gh-acct who`. A `403` almost always means `GH_TOKEN` was unset and the call fell through to the global account. Fix: `eval "$(gh-acct export)"`.
+`gh-acct check` first, then `gh-acct who`. A `403` almost always means `GH_TOKEN` was unset and the call fell through to the global account. Fix: `export GH_TOKEN="$(gh-acct token)"`.
 
 If the account has no stored token (exit `3`), log in once — this is interactive and cannot be done from a tool call:
 
