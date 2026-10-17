@@ -244,6 +244,10 @@ Between the gates the session runs unattended: render → avatar renders → cut
 One session, start to export: this one drives the kb-editor app over the `kb-editor` MCP server
 (`.mcp.json`, from `tooling/mcp/kb-editor/`). Never send the owner to a second session.
 
+**One video at a time in kb-editor.** Every session shares the one running app and its one open project.
+Before any `kb_*` write, `read_project` and check `.kb/yt-edit.json`'s slug is this video; if another
+video is open, stop and tell the owner. Parallel copies ("lanes") are in kb-editor `kb/BACKLOG.md`.
+
 1. **App up:** `weftcut_status`; closed → `launch_weftcut` (the Mac dev build can take over 45 s, so
    call `weftcut_status` again). The `kb_*` tools appear once it is up.
 2. **Plan as before:** 010-330 here, intro gates (120/125/150) on the board.
