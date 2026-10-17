@@ -19,6 +19,8 @@ interface ReviewQueueProps {
   /** Run a reviewer transition straight from the row (Approve). */
   onAction?: (item: ReviewItem, t: Transition) => void;
   multiSystem?: boolean;
+  /** Admin view-as mirror: no live review actions. */
+  readOnly?: boolean;
 }
 
 function reviewerTransitions(item: ReviewItem): Transition[] {
@@ -27,7 +29,7 @@ function reviewerTransitions(item: ReviewItem): Transition[] {
   return (group?.transitions ?? []).filter((t) => t.by === "reviewer");
 }
 
-export function ReviewQueue({ items, onOpen, onAction, multiSystem }: ReviewQueueProps) {
+export function ReviewQueue({ items, onOpen, onAction, multiSystem, readOnly }: ReviewQueueProps) {
   if (items.length === 0) {
     return <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">Nothing waiting for your review right now.</div>;
   }
@@ -70,7 +72,7 @@ export function ReviewQueue({ items, onOpen, onAction, multiSystem }: ReviewQueu
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            {!readOnly && <div className="flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
               <Button size="sm" variant="outline" className="h-9 px-3.5 text-[13px]" onClick={() => onOpen(item)}>
                 Open the work
               </Button>
@@ -91,7 +93,7 @@ export function ReviewQueue({ items, onOpen, onAction, multiSystem }: ReviewQueu
               {approve?.disabledReason && (
                 <span className="text-[11px] text-muted-foreground" role="status">{approve.disabledReason}</span>
               )}
-            </div>
+            </div>}
           </article>
         );
       })}
