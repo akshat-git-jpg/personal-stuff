@@ -14,6 +14,7 @@
  */
 
 import { useEffect, useState, useMemo } from "react";
+import { emailProblem } from "../shared/email";
 import {
   getTeam, getRoleOptions, saveTeamMember, deleteTeamMember,
   HoldsLiveWorkError, type Holding, type TeamMember, type PipelineSummary,
@@ -145,7 +146,8 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
 
   async function save() {
     if (!draft.name.trim()) return setError("Name is required");
-    if (!draft.email.includes("@")) return setError("A valid email is required");
+    const badEmail = emailProblem(draft.email);
+    if (badEmail) return setError(badEmail);
     if (draft.roles.length === 0) return setError(`Pick at least one role in ${systemName(activeSystem)}`);
     const email = draft.email.trim().toLowerCase();
     // Merge: keep this person's roles in OTHER systems, set their roles here.
