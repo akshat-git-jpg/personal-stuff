@@ -602,8 +602,15 @@ app.get("/api/board", async (c) => {
 // Cards on a reviewable stage at "In Review" that THIS user is assigned to review
 // (or all, for admins). Each item shows who submitted it + which stage.
 app.get("/api/review-queue", async (c) => {
-  const { email, memberships } = getUser(c);
+  const user = getUser(c);
+  let { email, memberships } = user;
   const store = getStore(c.env);
+  // Admin view-as mirrors the viewed person's queue, same as /api/board.
+  const asUser = c.req.query("asUser");
+  if (asUser && isAdminRoles(user.roles)) {
+    email = asUser.trim().toLowerCase();
+    memberships = await store.lookupMemberships(email);
+  }
   const [allRows, team, submitNotes] = await Promise.all([
     cachedReadRows(c.env),
     store.loadTeam(),

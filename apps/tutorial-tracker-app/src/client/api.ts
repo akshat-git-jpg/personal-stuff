@@ -237,8 +237,9 @@ export async function applyTransition(
   return updateCell(row_id, t.statusCol as Column, t.to, currentStatus);
 }
 
-export async function getReviewQueue(): Promise<ReviewQueueData> {
-  const res = await fetch("/api/review-queue", { credentials: "same-origin" });
+export async function getReviewQueue(asUser?: string): Promise<ReviewQueueData> {
+  const url = asUser ? `/api/review-queue?asUser=${encodeURIComponent(asUser)}` : "/api/review-queue";
+  const res = await fetch(url, { credentials: "same-origin" });
   if (!res.ok) return { count: 0, items: [], names: {} };
   return res.json() as Promise<ReviewQueueData>;
 }
