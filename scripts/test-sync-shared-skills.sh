@@ -23,6 +23,8 @@ new_env() {
     mkdir -p "$TMP/repo/.claude/skills/$n"
     echo "# $n v1" > "$TMP/repo/.claude/skills/$n/SKILL.md"
   done
+  mkdir -p "$TMP/repo/.claude/skills/close-session"
+  echo "# procedure v1" > "$TMP/repo/.claude/skills/close-session/procedure.md"
   # a skill that is NOT shared: it must never be copied
   mkdir -p "$TMP/repo/.claude/skills/commit-now"
   echo "# private" > "$TMP/repo/.claude/skills/commit-now/SKILL.md"
@@ -35,6 +37,9 @@ new_env; run >/dev/null
 n=0; for s in $SHARED; do [ -f "$TMP/plugin/skills/$s/SKILL.md" ] && n=$((n+1)); done
 [ "$n" -eq 4 ] && ok "all four copied" || bad "all four copied (got $n)"
 [ -e "$TMP/plugin/skills/commit-now" ] && bad "an unshared skill leaked" || ok "unshared skills not copied"
+cmp -s "$TMP/repo/.claude/skills/close-session/procedure.md" "$TMP/plugin/skills/zluri-close-session/references/procedure.md" \
+  && ok "shared procedure file copied" || bad "shared procedure file copied"
+[ -e "$TMP/plugin/skills/close-session" ] && bad "close-session skill leaked" || ok "close-session skill itself not copied"
 
 echo "2. --check reports drift and changes nothing"
 new_env

@@ -9,6 +9,8 @@ A Claude Code mod. `/brief` toggles a side pane for the current session:
   Jira create, artifact publish) and from links Claude writes, never from arbitrary output.
 
 When something is pending, one line shows under Claude's answer: `brief · needs you: 1 · 2 new · /brief`.
+Once per session, when the context passes 75%, the line also says `run close-session before it compacts`,
+because compaction drops the detail the `close-session` skill harvests.
 
 Design: [`docs/specs/2026-10-17-session-brief-design.md`](../../../docs/specs/2026-10-17-session-brief-design.md).
 
