@@ -3,7 +3,7 @@
 # work-skills plugin.
 #
 # WHY TWO COPIES AT ALL. Skills are repo-scoped now, so a skill loads only where its
-# files are. These four describe the operator rather than a project, so they are
+# files are. These five describe the operator rather than a project, so they are
 # wanted in both places: here (public, personal-stuff work) and in the private
 # work-skills plugin (loaded local-scope inside a ZluriHQ repo). A symlink cannot
 # span the two: this repo is public and work-skills is private, so a link either way
@@ -23,7 +23,7 @@ REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
 SRC="$REPO_ROOT/.claude/skills"
 DST="${WORK_SKILLS_DIR:-$HOME/codebase/work-skills}/skills"
 
-SHARED=(claude-router github-router humanizer i-have-adhd)
+SHARED=(claude-router github-router humanizer i-have-adhd independent-review)
 # Single files shared into a differently named work skill: "source:dest", both under skills/.
 SHARED_FILES=("close-session/procedure.md:zluri-close-session/references/procedure.md")
 

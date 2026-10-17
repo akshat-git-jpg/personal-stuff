@@ -229,7 +229,7 @@ bash scripts/relink.sh                     # codex mirror + push gate + memory l
    and repo names have leaked this way before.
 3. **Never commit a personal skill to a ZluriHQ repo.** Use the private plugin at local
    scope.
-4. **Edit the real folder, never a symlink target elsewhere.** For the four shared
+4. **Edit the real folder, never a symlink target elsewhere.** For the five shared
    skills, edit the `personal-stuff` copy and sync outward.
 5. **Never commit generated media.** Vendor skill packs ship renders — 48 MB of `.mp4`
    arrived with `loop-studio` and `hyperframes-animation`. `pp-push` refuses any single

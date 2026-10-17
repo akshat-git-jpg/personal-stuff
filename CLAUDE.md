@@ -99,7 +99,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 - `INFRA.md` — canonical Cloudflare + VPS + DNS inventory.
 - `VPS-CRONS.md` — cron architecture (Pattern B). It's a runbook, not auto-loaded; open it only for cron work.
 - `my-hosted-sites.md` — flat index of every live URL across this repo, including `pipelines/`.
-- Skills are **repo-scoped**: Claude Code reads `.claude/skills/` automatically for whoever opens the repo, so nothing depends on which Claude account is logged in. Two exceptions, both machine-local and both handled by `scripts/relink.sh`: Codex has no per-repo skill path (`.claude/codex-skills.txt` lists the few it gets globally), and four person-level skills plus close-session's `procedure.md` are duplicated into the private `work-skills` plugin by `scripts/sync-shared-skills.sh`.
+- Skills are **repo-scoped**: Claude Code reads `.claude/skills/` automatically for whoever opens the repo, so nothing depends on which Claude account is logged in. Two exceptions, both machine-local and both handled by `scripts/relink.sh`: Codex has no per-repo skill path (`.claude/codex-skills.txt` lists the few it gets globally), and five person-level skills plus close-session's `procedure.md` are duplicated into the private `work-skills` plugin by `scripts/sync-shared-skills.sh`.
 - **Shipped a new public surface? ASK about the hub before you call it done.** Any new
   app, dashboard, tool or domain must land in three places, and the third is the one that
   keeps getting forgotten: `my-hosted-sites.md`, `INFRA.md`, and the **kushal-tools hub
