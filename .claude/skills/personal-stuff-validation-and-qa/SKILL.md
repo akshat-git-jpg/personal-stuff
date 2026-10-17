@@ -1,6 +1,8 @@
 ---
 name: personal-stuff-validation-and-qa
 description: Defines what "verified" means in personal-stuff — the four-level ladder (static, guard tests, smoke, deploy probe), the mandatory guard tests for config-driven engines, and how to check an executor's diff. Use before claiming work done, fixed or shippable, when deciding whether code needs tests, when adding a config to a generic engine, or when tempted to skip checks on a tiny change.
+metadata:
+  version: 0.1.0
 ---
 
 # Validation and QA
@@ -27,6 +29,14 @@ The bar here is **"verified working", not "tests pass"** — this repo skips TDD
 - Model: `apps/tutorial-tracker-app/` — `engine.test.ts` + plan 022's round-trip/routing guard over every `PipelineDef`.
 - Hard-won sub-rule (runs ledger LESSONS.md): **the guard's schema must derive from the engine itself**, not a hand-copied schema — a hand copy produced a false-positive BLOCKED in the workflow-audit run.
 - Adding a new system/def and NOT extending/running the guard = incomplete work, full stop.
+
+## UI testing
+
+- UI work is not done until it is rendered in a real browser and the screenshots are looked at; green unit tests cannot see layout. Headless Chrome goes through `scripts/lib/chrome.mjs`.
+- Test widths: 1000x700 and 1280x800 (laptop windows), 1440x900, and a phone (390x844). Testing only 1440 and 390 missed a layout that broke at 1000px.
+- App screens (editors, boards, dashboards meant to fit one window): check every pane is on screen (bottom <= window height), no pane is squeezed, no horizontal overflow. Example: `pipelines/video/review-studio/scripts/layout-check.mjs`. Other patterns: `apps/dayboard/scripts/shot.mjs` (collision/overflow audit), `apps/kushal-salary/scripts/e2e.mjs` (click everything).
+- Click everything the way a person does (clicks, keys, links as page visits) at all widths, against the local build and the live URL after deploy.
+- Start a local app the way the owner does: after it lands, press Start through the local apps dashboard API (`POST localhost:4321/api/start/<id>`) from the main checkout on the default `node`, and read `/api/logs/<id>`. A workspace may have Node 22 while the dashboard runs Node 20, where npm skips Vite 8's native binding.
 
 ## Verifying executor output (orchestrate runs)
 
