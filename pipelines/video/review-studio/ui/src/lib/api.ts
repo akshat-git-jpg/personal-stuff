@@ -15,7 +15,7 @@ export interface VideoDetail {
   recipe: string; recipeLabel: string; slug: string; title: string;
   versions: Version[]; approved: { version: string | null } | null; duration: number;
   parts: Part[]; cards: Card[]; words: Word[]; items: Record<string, Item>;
-  notes: string; notesEnabled: boolean;
+  notes: string; notesEnabled: boolean; approveEnabled: boolean;
 }
 
 async function call<T>(url: string, body?: unknown): Promise<T> {
@@ -36,6 +36,7 @@ export const api = {
     call(`${base(recipe, slug)}/comments-edit`, body),
   deleteComment: (recipe: string, slug: string, key: string) => call(`${base(recipe, slug)}/comments-delete`, { key }),
   saveNotes: (recipe: string, slug: string, text: string) => call(`${base(recipe, slug)}/notes`, { text }),
+  approve: (recipe: string, slug: string, label: string) => call(`${base(recipe, slug)}/approve`, { label }),
   peaks: (recipe: string, slug: string, label: string) =>
     call<{ perSec: number; data: number[] }>(`/api/peaks/${recipe}/${slug}/${label}`),
   mediaUrl: (recipe: string, slug: string, label: string) => `/api/media/${recipe}/${slug}/${label}`,

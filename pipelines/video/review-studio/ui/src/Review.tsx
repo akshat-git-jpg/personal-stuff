@@ -163,6 +163,15 @@ export function Review({ recipe, slug }: { recipe: string; slug: string }) {
           ))}
         </div>
         {data.approved && <span className="chip ok">Approved{data.approved.version ? ` · ${data.approved.version.toUpperCase()}` : ''}</span>}
+        {data.approveEnabled && version && hasVideo && data.approved?.version !== version && (
+          <button className="btn ok" onClick={async () => {
+            const open = list.filter((c) => c.version === version && isOpen(c)).length;
+            const warn = open ? `\n\n${open} comment${open > 1 ? 's are' : ' is'} still open on ${version.toUpperCase()}.` : '';
+            if (!confirm(`Approve ${version.toUpperCase()} as the final cut?${warn}`)) return;
+            try { await api.approve(recipe, slug, version); await reload(); }
+            catch (e) { alert(`Could not approve: ${(e as Error).message}`); }
+          }}>Approve {version.toUpperCase()}</button>
+        )}
         <div className="grow" />
         <span className="dim" style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#5fd38d' }} />Saves to feedback.json
