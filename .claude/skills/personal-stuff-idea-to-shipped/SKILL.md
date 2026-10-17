@@ -11,7 +11,7 @@ Everything live in this repo walked the same path: parked idea → pressure-test
 
 ## Station 1 — park and pressure-test
 
-- Ideas live in `context/ideas.md` (high-potential only; daily tasks belong in `apps/telegram-my-planner/to-do/`, deliberately not in context/).
+- Ideas and open points live in `context/ideas.md`, the single home (open points in section 4). Never write to the owner's lists app.
 - Before building: check **personal-stuff-failure-archaeology** — the idea may be a settled battle. An external tool or service is evaluated against THIS stack per **personal-stuff-research-methodology**.
 - Idea rides an unproven assumption (new engine, tool, migration)? De-risk it FIRST per **personal-stuff-research-methodology** — cheap falsifiable test on the one unproven assumption, verdict recorded in `decisions.md`, then adopt/defer — before any build plan is written.
 - Becomes a real bet → update `context/bets.md` (its own update-cadence rule).

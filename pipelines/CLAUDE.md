@@ -87,7 +87,6 @@ npx ts-node run.ts --niche <slug>
 | [`notes/`](#) | Small business notes and ideas | Markdown |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`notes/channel-ideas/`](notes/channel-ideas/README.md) | Channel niche brainstorming notes | Markdown |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`notes/upwork-hiring/`](notes/upwork-hiring/CLAUDE.md) | Hiring-post markdown generator | Claude workflow |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`notes/to-do/`](notes/to-do/todolist.md) | Running task lists | Markdown |
 | [`archive/`](#) | Superseded work kept for reference | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`archive/hyperframes-vs-remotion/`](archive/hyperframes-vs-remotion/CLAUDE.md) | Superseded Hyperframes vs Remotion rendering tests | HTML/CSS/JS |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`archive/tutorial-pipeline-1/`](archive/tutorial-pipeline-1/PIPELINE.md), [`-2/`](archive/tutorial-pipeline-2/PIPELINE.md), [`-3/`](archive/tutorial-pipeline-3/WORKFLOW.md) | Old tutorial flows, archived 2026-10-09. Replaced by `youtube/yt-script/` + `video/visuals-flow/` | Python + Node |
