@@ -10,18 +10,16 @@ Comments go into the video's own `feedback.json`, the same file the old boards u
 
 ## Start it
 
-Node 22 or newer. The first time:
+Easiest: open the local apps dashboard (`node tooling/cli/local-apps-dashboard/dashboard.mjs`) and press Start on **review studio**.
+
+Or by hand:
 
 ```bash
 cd pipelines/video/review-studio
-npm run setup
-```
-
-Then every time:
-
-```bash
 npm start
 ```
+
+`npm start` builds the page first when it is missing or out of date, so the first start takes a minute. The build needs Node 22; on the Mac it finds Homebrew's `node@22` by itself.
 
 Open http://localhost:4340.
 
