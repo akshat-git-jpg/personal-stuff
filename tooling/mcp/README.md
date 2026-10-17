@@ -10,6 +10,7 @@ only when it runs (see `../cli/README.md`, "How Claude finds a CLI").
 |---|---|---|
 | `cloudflare-mcp-server/` | wired | D1 / KV / DNS for Workers. No CLI replaces it yet |
 | `davinci-resolve-mcp/` | wired (two servers) | Talks to a running Resolve app, and authors `.drp`/`.drt` files offline |
+| `kb-editor/` | wired | Starts the kb-editor app's own MCP shim, so the yt-video-edit session drives the editor; the app is MCP-driven by design (`README.md` there) |
 | `google-task-mcp-server/` | not wired by default | The `apps/telegram-my-planner` "process my tasks" workflow drives it; no Tasks CLI exists. Add it to `.mcp.json` for that session |
 | `gmail-mcp-server/` | not wired | The VPS `gmail-digest` cron runs `server.py` directly (`../../VPS-CRONS.md`). Do not delete |
 | `google-shared/` | not an MCP | One Google OAuth client + per-account tokens, used by every Google CLI in `../cli` |

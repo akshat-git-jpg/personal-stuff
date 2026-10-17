@@ -2,7 +2,7 @@
 # Regenerate .mcp.json at the repo root.
 #
 # .mcp.json is gitignored because it holds machine-absolute paths - each clone
-# generates its own. The three active servers are listed in tooling/mcp/README.md.
+# generates its own. The active servers are listed in tooling/mcp/README.md.
 #
 # Run this after cloning, or after the repo moves/renames, so the paths inside
 # .mcp.json point at this machine's tooling/mcp servers.
@@ -34,6 +34,14 @@ cat > "$REPO/.mcp.json" <<JSON
         "RESOLVE_SCRIPT_LIB": "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so",
         "PYTHONPATH": "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting/Modules"
       }
+    },
+    "kb-editor": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "$MCP/kb-editor/shim.mjs"
+      ],
+      "env": {}
     },
     "davinci-resolve-advanced": {
       "type": "stdio",
