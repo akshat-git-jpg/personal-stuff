@@ -14,7 +14,7 @@ import { getPipeline, PIPELINES, ADMIN_ROLE, REVIEWER_ROLE } from "./registry";
 import { effectiveRoles, unionRoles, type Memberships } from "./memberships";
 import { lifecycle } from "./lifecycle";
 import {
-  derive, statusOf, isGateOpen, stageHasReviewer, type Access,
+  derive, statusOf, isGateOpen, isStageComplete, stageHasReviewer, type Access,
 } from "./derive";
 import {
   requiredToSubmitFrom, requiredToApprove,
@@ -382,8 +382,8 @@ export function authorizeWrite(roles: string[], email: string, col: string, valu
   // 4) Assignees, instructions, reviewer cols — admin always; the card's reviewer
   //    can edit fields their role grants (route work + write instructions).
   if (admin) return { ok: true };
-  const isCardReviewer = roles.includes(REVIEWER_ROLE)
-    && d.reviewerCols.some((rc) => norm(row[rc]) === norm(email));
+  const isCardReviewer = roles.includes(REVIEWER_ROLE) && p.stages.some((s) =>
+    stageHasReviewerSlot(s) && norm(row[colOf(s, "reviewer")]) === norm(email) && !isStageComplete(s, row));
   if (isCardReviewer && canEditForRoles(roles, p, col)) return { ok: true };
   return { ok: false, reason: "Only an admin or the card's reviewer can edit this." };
 }

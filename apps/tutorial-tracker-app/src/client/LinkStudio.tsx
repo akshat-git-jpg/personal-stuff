@@ -28,6 +28,8 @@ export function LinkStudio({ rowId, videoTitle, initialTools, onSaved }: LinkStu
   const [catalogQuery, setCatalogQuery] = useState("");
   const [catalogOpen, setCatalogOpen] = useState(false);
   const catalogBoxRef = useRef<HTMLDivElement>(null);
+  // What we last saved, so a re-save checks against it instead of a blank.
+  const savedDescription = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     // Reset state when rowId changes
@@ -190,7 +192,11 @@ export function LinkStudio({ rowId, videoTitle, initialTools, onSaved }: LinkStu
         <LinkResultModal
           result={previewData}
           onClose={() => { setPreviewData(null); onSaved(); }}
-          onSaveDescription={async (text) => { if (rowId) await updateCell(rowId, "video_description" as Column, text, ""); }}
+          onSaveDescription={async (text) => {
+            if (!rowId) return;
+            await updateCell(rowId, "video_description" as Column, text, savedDescription.current);
+            savedDescription.current = text;
+          }}
         />
       )}
     </div>

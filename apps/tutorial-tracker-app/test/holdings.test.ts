@@ -115,3 +115,11 @@ describe("rolesRemoved", () => {
     expect(rolesRemoved({ "*": ["Admin"] }, {}).roles).toEqual([]);
   });
 });
+
+describe("removing roles in two systems at once", () => {
+  it("only counts work needing a role taken away in THAT system", () => {
+    // RV keeps Reviewer in standard but loses it in tut-2 (and loses Processor in standard).
+    const gone = rolesRemoved({ standard: ["Reviewer", "Processor"], "tut-2": ["Reviewer"] }, { standard: ["Reviewer"] });
+    expect(liveHoldingsFor(RV, [card("r1", "In Review")], gone)).toHaveLength(0);
+  });
+});
