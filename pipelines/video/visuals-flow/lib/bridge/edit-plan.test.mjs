@@ -89,3 +89,40 @@ test('CLI prints the plan as JSON, and the reason on a refusal', async () => {
   assert.equal(bad.status, 1);
   assert.match(bad.stderr, /storyboard is not approved/);
 });
+
+function withSpans(dir, spans) {
+  write(dir, 'shots.resolved.json', { video: 'demo', spans });
+  write(dir, 'transcript.json', [{ text: 'Hello', start: 50.1, end: 50.4 }, { text: 'there.', start: 50.5, end: 50.9 }, { text: 'Later', start: 70, end: 70.3 }]);
+  return dir;
+}
+
+test('a draft pushes an unapproved storyboard; spans with no clip become grey-box drafts', () => {
+  const dir = withSpans(workdir({ shotsApproved: false }), [
+    { id: 's01', mode: 'full', start: 30, end: 36 },
+    { id: 's02', mode: 'side', start: 50, end: 55 },
+  ]);
+  const { plan, drafts, approved, warnings } = bridgeEditPlan(dir, { probe, draft: true });
+  assert.equal(approved, false);
+  assert.deepEqual(plan.clips.filter((c) => c.kind === 'avatar').map((c) => c.id), ['s01']);
+  assert.deepEqual(drafts, [{ id: 's02', mode: 'side', start: 50, end: 55, text: 'Hello there.' }]);
+  assert.match(warnings.join('\n'), /s02: not rendered yet/);
+});
+
+test('a clip rendered for other times than its span is stale and drafted again', () => {
+  const dir = withSpans(workdir(), [{ id: 's01', mode: 'full', start: 33, end: 36 }]);
+  const { plan, drafts, warnings } = bridgeEditPlan(dir, { probe });
+  assert.equal(plan.clips.some((c) => c.kind === 'avatar'), false);
+  assert.deepEqual(drafts.map((d) => d.id), ['s01']);
+  assert.match(warnings.join('\n'), /s01: rendered for an older storyboard/);
+});
+
+test('CLI --approve approves the cues and the shots', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const dir = workdir({ shotsApproved: false });
+  write(dir, 'cues.json', { approved: false, cues: [] });
+  const r = spawnSync(process.execPath, [path.join(import.meta.dirname, 'edit-plan.mjs'), dir, '--approve'], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(dir, 'cues.json'), 'utf8')).approved, true);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(dir, 'shots.json'), 'utf8')).approved, true);
+  assert.equal(bridgeEditPlan(dir, { probe }).approved, true);
+});

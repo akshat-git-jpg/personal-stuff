@@ -1009,6 +1009,18 @@ function recordStoryboardGate(workdir) {
   }
 }
 
+// The board's two storyboard approvals in one call (the kb-editor bridge approves from the editor).
+export function approveStoryboard(workdir) {
+  for (const name of ['cues.json', 'shots.json']) {
+    const p = path.join(workdir, name);
+    if (!fs.existsSync(p)) continue;
+    const file = JSON.parse(fs.readFileSync(p, 'utf8'));
+    file.approved = true;
+    fs.writeFileSync(p, JSON.stringify(file, null, 2));
+  }
+  recordStoryboardGate(workdir);
+}
+
 async function handleApprove(req, res, workdir) {
   await readBody(req);
   const cuesPath = path.join(workdir, 'cues.json');
