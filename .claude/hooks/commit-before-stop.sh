@@ -103,6 +103,9 @@ MAIN_TOP="$(dirname "$GCD")"
 TOP="$(git -C "$CWD" rev-parse --show-toplevel 2>/dev/null)" || exit 0
 
 TRANSCRIPT="$(json_field transcript_path)"
+# A subagent's stop judges the subagent's own edits, not its parent's (a read-only reviewer was told to commit them).
+[ "$(json_field hook_event_name)" = "SubagentStop" ] && [ -n "$(json_field agent_transcript_path)" ] \
+  && TRANSCRIPT="$(json_field agent_transcript_path)"
 if [ -n "$TRANSCRIPT" ] && command -v cygpath >/dev/null 2>&1; then
   TRANSCRIPT="$(cygpath -u "$TRANSCRIPT" 2>/dev/null || printf '%s' "$TRANSCRIPT")"
 fi

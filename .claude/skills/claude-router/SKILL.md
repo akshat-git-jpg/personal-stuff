@@ -26,6 +26,7 @@ References:
 - The launchers are shell functions in `~/.zshrc` that set `CLAUDE_CONFIG_DIR` from `$CLAUDE_WORK_CONFIG_DIR` / `$CLAUDE_PERSONAL_CONFIG_DIR`.
 - Each account has its own plugins, auth, history, MCP and settings. The account decides login, billing and the git identity `github-router` picks. It does **not** decide which skills load.
 - **Plugins are not shared.** Each account runs its own `/plugin install`. Symlinked or path-rewritten plugin state proved unreliable.
+- To read or install the other account's plugins, run `env CLAUDE_CONFIG_DIR=<dir> claude plugin ...` and confirm in `<dir>/plugins/installed_plugins.json`. A bare `CLAUDE_CONFIG_DIR=<dir> claude` prefix hits the alias and shows this account (debugging playbook #5).
 - npm points at AWS CodeArtifact (Zluri). Tokens expire after about 12 hours. Fix: [references/npm-and-plugins.md](references/npm-and-plugins.md).
 
 ## Skills are repo-scoped

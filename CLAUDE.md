@@ -28,6 +28,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Repo hygiene — the maintainer agent, its jobs and how to run one | [`tooling/maintainer/README.md`](tooling/maintainer/README.md) |
 | **Daily check-in** — what needs me today from email, calendar, lists, trips, month-end jobs; learns what matters (`butler`) | [`tooling/butler/README.md`](tooling/butler/README.md) |
 | **Seeing how skills, CLIs, MCPs and hooks connect** — what calls what, which CLI has no skill, the live repo map | `my-repo` skill, then `apps/my-repo/CLAUDE.md`. Page: `my-repo.agrolloo.com` |
+| **Claude Code mods** — the `/brief` side pane (needs you, plan, drafts, links), building or changing a mod | `tooling/mods/session-brief/README.md`; new mods go in `tooling/mods/` and its marketplace |
 | Auditing or restructuring skills (where they live, why, the recurring audit) | [`tooling/maintainer/jobs/skills/runbook.md`](tooling/maintainer/jobs/skills/runbook.md) |
 | Auditing Claude's file-based memory (what it is for, the four-question test, the audit) | [`tooling/maintainer/jobs/memory/runbook.md`](tooling/maintainer/jobs/memory/runbook.md) |
 | CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude, cf-email, drive, heygen-web, local-apps-dashboard, flights, bus, trains, flow-queue, lists, calendar) | `tooling/cli/` |
@@ -98,7 +99,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 - `INFRA.md` — canonical Cloudflare + VPS + DNS inventory.
 - `VPS-CRONS.md` — cron architecture (Pattern B). It's a runbook, not auto-loaded; open it only for cron work.
 - `my-hosted-sites.md` — flat index of every live URL across this repo, including `pipelines/`.
-- Skills are **repo-scoped**: Claude Code reads `.claude/skills/` automatically for whoever opens the repo, so nothing depends on which Claude account is logged in. Two exceptions, both machine-local and both handled by `scripts/relink.sh`: Codex has no per-repo skill path (`.claude/codex-skills.txt` lists the few it gets globally), and five person-level skills are duplicated into the private `work-skills` plugin by `scripts/sync-shared-skills.sh`.
+- Skills are **repo-scoped**: Claude Code reads `.claude/skills/` automatically for whoever opens the repo, so nothing depends on which Claude account is logged in. Two exceptions, both machine-local and both handled by `scripts/relink.sh`: Codex has no per-repo skill path (`.claude/codex-skills.txt` lists the few it gets globally), and four person-level skills plus close-session's `procedure.md` are duplicated into the private `work-skills` plugin by `scripts/sync-shared-skills.sh`.
 - **Shipped a new public surface? ASK about the hub before you call it done.** Any new
   app, dashboard, tool or domain must land in three places, and the third is the one that
   keeps getting forgotten: `my-hosted-sites.md`, `INFRA.md`, and the **kushal-tools hub

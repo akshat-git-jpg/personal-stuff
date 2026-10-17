@@ -60,14 +60,37 @@ A lesson whose key is already there **came back**: propose it one rung higher th
 
 ## 4. Propose, then stop
 
-One numbered list, one line each:
+Render the proposal as **markdown tables grouped by category**, never as a code block or a wall of text.
+Numbers run on across groups, so the owner can drop items by number. Leave out an empty group.
+
+| Group | Holds |
+|---|---|
+| **Fix the cause** | rung 1-2: code, script, hook or config changes |
+| **New to build** | a skill, CLI, MCP, mod or hook that does not exist yet (see below) |
+| **Skills** | trap lines, description fixes |
+| **Docs** | README, CLAUDE.md of a folder, `decisions.md`, routing rows |
+| **Global rules and memory** | the account's global `CLAUDE.md`, memory files |
+
+Each group is one table:
 
 ```
-<n>. <target file> - add|update|delete|fix - <the change in a few words>  [rung N]
+### Fix the cause
+| # | File | Change | Why |
+|---|---|---|---|
+| 1 | `.claude/hooks/x.sh` | Skip read-only subagents | Overwrote a reviewer's report twice |
 ```
 
-Then the net size: `+<lines> / -<lines>`. Wait for the owner. They answer once: "ok", or "drop 2, 5".
-Optional items (a redeploy, a new skill, a new hook) are listed like any other and done only if approved.
+Cells are short: the file name as code, the change in under 12 words, the why in under 12 words naming what
+happened this session. Long detail goes in a line under the table, not in a cell. After the tables: the net size
+`+<lines> / -<lines>`, then one line: `Reply "ok", or "drop 2, 5".` Wait for the owner.
+
+**New to build.** Propose something new when the session shows a gap, not on a whim:
+- a manual multi-step task the owner or Claude did, that will come back: a skill or a CLI;
+- a CLI that no skill calls, or a skill that keeps shelling out to raw commands: the missing half;
+- a rule that kept failing as text: a hook or a mod;
+- an outside service reached by hand more than once: a CLI first, an MCP only where a CLI cannot work.
+Each one says what it would do in one line and what it would replace. It is built only if approved, and a large
+one becomes a plan (`orchestrate` here, a plan note at work) instead of being built inside the close.
 
 ## 5. Apply
 
