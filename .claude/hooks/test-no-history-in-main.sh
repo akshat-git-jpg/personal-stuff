@@ -93,6 +93,14 @@ expect 2 "$MAIN" 'git checkout -b feature/x' \
 expect 2 "$MAIN" 'git switch -c feature/x' \
   'FAIL: wall did not fire on `git switch -c` (new-branch form)'
 
+# 5b. listing tags is read-only; creating one is not
+expect 0 "$MAIN" 'git tag | tail -3' \
+  'FAIL: wall fired on a bare `git tag` listing'
+expect 0 "$MAIN" 'git log --oneline -1 && git tag -l "v*"' \
+  'FAIL: wall fired on `git tag -l`'
+expect 2 "$MAIN" 'git tag v1.0' \
+  'FAIL: wall did not fire on `git tag <name>`'
+
 # 6. flag-with-value form
 expect 2 "$MAIN" 'git -C /some/path commit -m x' \
   'FAIL: wall did not fire on the `git -C <path> commit` flag-with-value form'

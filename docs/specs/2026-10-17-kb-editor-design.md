@@ -1,5 +1,7 @@
 # kb-editor: the owner's own video editor, Claude-driven, forked from WeftCut
 
+**Status:** built 2026-10-17 in `akshat-git-jpg/kb-editor`; real-app smoke test passed 9/9 (`kb/docs/smoke-test-2026-10-17.md`). Open work: `kb/BACKLOG.md`.
+
 Owner-approved decisions from the 2026-10-17 brainstorm. Evidence: `docs/research/kb-editor/`
 (five desk-research reports, two hands-on test reports, the requirements and test protocol).
 

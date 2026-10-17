@@ -79,7 +79,9 @@ fi
 # Allows any number of flags, including flag-with-value pairs like `-C <path>`, which is
 # exactly what branch-guard.sh's `\s+[^-]` failed to handle.
 VERBS='add|commit|stash|rebase|merge|switch|checkout|reset|cherry-pick|am|apply|revert|tag'
-if ! printf '%s' "$CMD" | grep -qE "(^|[;&|(]|[[:space:]])(rtk[[:space:]]+)?git([[:space:]]+-{1,2}[^[:space:]]+([[:space:]]+[^-][^[:space:]]*)?)*[[:space:]]+($VERBS)([[:space:]]|$)"; then
+# A bare `git tag` or `git tag -l|--list [pattern]` only lists tags, so it is blanked before the scan.
+SCAN="$(printf '%s' "$CMD" | sed -E 's/git[[:space:]]+tag([[:space:]]+(-l|--list)([[:space:]]+[^;&|[:space:]]+)?)?[[:space:]]*($|[;&|)])/git-tag-list \4/g')"
+if ! printf '%s' "$SCAN" | grep -qE "(^|[;&|(]|[[:space:]])(rtk[[:space:]]+)?git([[:space:]]+-{1,2}[^[:space:]]+([[:space:]]+[^-][^[:space:]]*)?)*[[:space:]]+($VERBS)([[:space:]]|$)"; then
   exit 0
 fi
 

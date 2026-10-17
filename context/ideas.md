@@ -58,11 +58,13 @@ Raw items, newest at the bottom. Move one up into sections 1-3 once it is worth 
 - Smallest AI (look into it).
 - YT board: all links in one place, hand download/upload jobs to a different person or do them on mobile.
 - Host HTML and videos somewhere.
+- POC kit in `tooling/poc-kit/`: reusable MCP client, CDP frame-time recorder, ffmpeg SSIM frame compare, `mkdir` perf lock. Build it the next time a POC needs it (the kb-editor test scripts were scratch and are gone). 2026-10-17.
 
 ### Tutorial / software videos
 - Tutorial maker: check and use Loom; use an auto-zoom screen recorder.
 - Small problems: more realistic avatar (especially side view), better TTS voice, better avatar face, keyword/topic finder, affiliate program apply automation.
 - Big problems: researcher + scripting automation (whole or helper); video editor helper for motion graphics.
+- kb-editor (own video editor, `/Users/kbtg/codebase/kb-editor`): hands-on Windows test on the sister's PC when she is back; first real Drive-import test; full list in its `kb/BACKLOG.md`. Built 2026-10-17.
 - Update the tutorial tracker; add coupons as a separate system; update for the Kushal system.
 - A knowledge-base workflow per software, used for reviews and for pointers at the start.
 - A reviewer: an architect who knows the niche and tools, reviews work and guides freelancers to raise quality, removing the dependency on us.
