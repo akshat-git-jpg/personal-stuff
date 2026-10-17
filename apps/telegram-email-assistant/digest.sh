@@ -23,11 +23,13 @@
 #   ./digest.sh khushibakliwal@agrolloo.com
 #
 # Optional env vars:
-#   WINDOW         Gmail query for the time window (default: newer_than:2d)
+#   WINDOW         Gmail query for the time window
+#                  (default: newer_than:2d -category:promotions -category:social)
 #                  Examples: newer_than:1d, newer_than:12h, after:2026/05/25
 #                  IMAP accounts honour only the `newer_than:Nd` form (IMAP
 #                  SINCE is date-granular); anything else falls back to 2 days.
 #   MAX_EMAILS     Cap on threads fetched (default: 50)
+#   BODY_CAP       Max chars kept per email body after cleanup (default: 3000)
 #   IMAP_ACCOUNTS  Path to the IMAP credentials JSON
 #                  (default: <this dir>/imap-accounts.json, gitignored)
 #
@@ -59,8 +61,9 @@ if [[ ! -f "$PROMPT_FILE" ]]; then
   exit 1
 fi
 
-WINDOW="${WINDOW:-newer_than:2d}"
+WINDOW="${WINDOW:-newer_than:2d -category:promotions -category:social}"
 MAX_EMAILS="${MAX_EMAILS:-50}"
+BODY_CAP="${BODY_CAP:-3000}"
 
 IMAP_ACCOUNTS="${IMAP_ACCOUNTS:-$ASSISTANT_DIR/imap-accounts.json}"
 FETCH_IMAP="$ASSISTANT_DIR/fetch-imap.py"
@@ -118,6 +121,35 @@ if [[ "$THREAD_COUNT" -eq 0 ]]; then
   echo "ERROR: no emails matched window '$WINDOW' for $EMAIL"
   exit 1
 fi
+
+# Strip URLs and CSS, then cap each message body; 50 raw threads hit "Prompt is too long".
+CLEAN_PY='
+import os, re, sys
+cap = int(os.environ["BODY_CAP"])
+header = re.compile(r"^(===|---) .* (===|---)$")
+def clean(body):
+    body = re.sub(r"(?is)<style.*?</style>", "", body)
+    body = re.sub(r"<?(https?://|www\.)[^\s>]+>?", "", body)
+    body = re.sub(r"[^\s{}]*\{[^{}]*:[^{}]*\}", "", body)
+    lines = [l for l in body.splitlines()
+             if not re.match(r"^\s*([{}]|@media\b|[\w-]+\s*:\s*[^;]*;\s*$)", l)]
+    body = re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+    return body[:cap] + "\n[truncated]" if len(body) > cap else body
+out, buf = [], []
+def flush():
+    if buf:
+        out.append(clean("\n".join(buf)))
+        buf.clear()
+for line in sys.stdin.read().splitlines():
+    if header.match(line):
+        flush()
+        out.append(line)
+    else:
+        buf.append(line)
+flush()
+print("\n".join(x for x in out if x))
+'
+EMAIL_BODIES=$(printf '%s\n' "$EMAIL_BODIES" | BODY_CAP="$BODY_CAP" python3 -c "$CLEAN_PY")
 
 # Phase 3 — read preferences inline.
 PREFS_CONTENT=$(cat "$PREFS_FILE")
