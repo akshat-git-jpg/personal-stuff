@@ -1284,7 +1284,7 @@ def cmd_doctor():
         return 1
     for sub in ("attach", "logs", "stop", "rm"):
         out = subprocess.run([binp, sub, "--help"], capture_output=True, text=True, timeout=60)
-        good = f"claude {sub} <id>" in (out.stdout + out.stderr)
+        good = f"claude {sub} <id" in (out.stdout + out.stderr)  # `<id>` or `<id|name>`
         print(f"  {sub:<7}{'ok' if good else 'NOT AVAILABLE'}")
         ok = ok and good
     print("\n" + ("all good" if ok else "problems above"))
