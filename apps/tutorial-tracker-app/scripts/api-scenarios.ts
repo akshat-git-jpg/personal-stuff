@@ -1,6 +1,7 @@
 // End-to-end scenarios against the real Worker + local D1 (wrangler dev).
 // Each one is a bug that reached prod once. Run: npm run test:api (it seeds, starts and stops the server).
 import { spawn, execSync } from "node:child_process";
+import { mkdirSync } from "node:fs";
 import { getPipeline } from "../src/shared/engine/registry";
 import { colOf, stageHasEta, stageHasInstruction } from "../src/shared/engine/types";
 
@@ -187,15 +188,21 @@ async function main() {
 
 async function waitUp() {
   for (let i = 0; i < 60; i++) {
+    if (server.exitCode !== null) {
+      throw new Error(`wrangler dev exited prematurely with code ${server.exitCode}${serverErr ? `: ${serverErr}` : ""}`);
+    }
     try { if ((await fetch(`${BASE}/api/auth-mode`)).ok) return; } catch { /* not yet */ }
     await new Promise((r) => setTimeout(r, 1000));
   }
-  throw new Error("wrangler dev did not start");
+  throw new Error(`wrangler dev did not start${serverErr ? `: ${serverErr}` : ""}`);
 }
 
+mkdirSync(new URL("../dist", import.meta.url), { recursive: true });
 const skipSeed = process.argv.includes("--no-seed");
 if (!skipSeed) execSync("npm run seed:local", { stdio: "ignore" });
-const server = spawn("npx", ["wrangler", "dev", "--port", String(PORT), "--var", `AGENT_TOKEN:${TOKEN}`, "--var", "DEV_AUTH:0"], { stdio: "ignore", detached: true });
+let serverErr = "";
+const server = spawn("npx", ["wrangler", "dev", "--port", String(PORT), "--var", `AGENT_TOKEN:${TOKEN}`, "--var", "DEV_AUTH:0"], { stdio: ["ignore", "ignore", "pipe"], detached: true });
+server.stderr?.on("data", (chunk) => { serverErr += chunk.toString(); });
 try {
   await waitUp();
   await main();
