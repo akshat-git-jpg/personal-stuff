@@ -106,7 +106,10 @@ export function buildGraph(input) {
     if (m.group === 'parked') note(id, 'info', 'Parked: the code is here but .mcp.json does not load it')
   }
 
-  for (const h of harness) add({ id: `harness:${h.name}`, kind: 'harness', name: h.name, group: h.group, path: h.path, desc: h.desc })
+  for (const h of harness) {
+    add({ id: `harness:${h.name}`, kind: 'harness', name: h.name, group: h.group, path: h.path, desc: h.desc })
+    if (h.unregistered) note(`harness:${h.name}`, 'warn', `${h.path} has a CLAUDE.md but no entry in tooling/harnesses.json (no start command recorded)`)
+  }
 
   // Edges: skill -> CLI / MCP / skill.
   const skillList = [...skills, ...work].filter((s) => !s.broken)

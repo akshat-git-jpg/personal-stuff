@@ -173,6 +173,7 @@ export function pathFor(l: Line): string {
 export const KIND_LABEL: Record<Kind, string> = { skill: 'Skills', cli: 'CLIs', mcp: 'MCPs', harness: 'Harness', service: 'Outside services' }
 
 export const HARNESS_GROUPS: { key: string; title: string }[] = [
+  { key: 'agent', title: 'Folder agents' },
   { key: 'routing', title: 'Routing' },
   { key: 'hook', title: 'Hooks' },
   { key: 'mod', title: 'Mods' },

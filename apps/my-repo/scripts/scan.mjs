@@ -183,6 +183,12 @@ function scanHarness() {
   for (const f of git(['ls-files', '*.plist']).split('\n').filter((f) => /com\.kbtg\./.test(f))) {
     out.push({ name: path.basename(f, '.plist').replace('com.kbtg.', ''), group: 'launchd', path: f, desc: 'Mac launchd job' })
   }
+  // Folder agents: registered in tooling/harnesses.json, or any tooling/ folder with a CLAUDE.md.
+  const agents = Object.entries(readJson(path.join(REPO, 'tooling/harnesses.json')) ?? {}).filter(([n]) => !n.startsWith('_'))
+  const registered = new Set(agents.map(([, a]) => a.dir))
+  const agentDirs = ls(path.join(REPO, 'tooling')).filter((d) => !registered.has(`tooling/${d}`) && fs.existsSync(path.join(REPO, 'tooling', d, 'CLAUDE.md')))
+  for (const [name, a] of agents) out.push({ name, group: 'agent', path: a.dir, desc: `${a.desc} Start: ${a.start}` })
+  for (const d of agentDirs) out.push({ name: d, group: 'agent', path: `tooling/${d}`, desc: 'Folder agent', unregistered: true })
   const crons = read(path.join(REPO, 'VPS-CRONS.md')) ?? ''
   for (const m of crons.matchAll(/^### ([a-z0-9-]+)\s*\n[\s\S]*?\*\*Wrapper:\*\*/gm)) out.push({ name: m[1], group: 'cron', path: 'VPS-CRONS.md', desc: 'VPS cron' })
   return out

@@ -5,8 +5,8 @@
 set -u
 MAIN="$1" OLD="$2" NEW="$3"
 
-# Paths the scanner reads: skills, hooks, CLIs, mods, MCPs, launchd, crons, routing, the app itself.
-MAP='^(\.claude/(skills|hooks)/|\.claude/settings\.json|pipelines/\.claude/skills/|tooling/(cli|mods|mcp|press-clis)/|\.mcp\.json|scripts/regen-mcp-json\.sh|VPS-CRONS\.md|apps/my-repo/)|\.plist$|(^|/)CLAUDE\.md$'
+# Paths the scanner reads: skills, hooks, CLIs, mods, MCPs, folder agents, launchd, crons, routing, the app itself.
+MAP='^(\.claude/(skills|hooks)/|\.claude/settings\.json|pipelines/\.claude/skills/|tooling/(cli|mods|mcp|press-clis)/|tooling/harnesses\.json|\.mcp\.json|scripts/regen-mcp-json\.sh|VPS-CRONS\.md|apps/my-repo/)|\.plist$|(^|/)CLAUDE\.md$'
 
 [ "${MYREPO_AUTODEPLOY:-1}" = 1 ] || exit 0
 git -C "$MAIN" diff --name-only "$OLD" "$NEW" 2>/dev/null | grep -qE "$MAP" || exit 0

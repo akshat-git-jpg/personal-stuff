@@ -9,18 +9,30 @@ edits a list, or runs a month-end skill.
 
 ## Starting it
 
-Add this to `~/.zshrc` (not tracked in the repo):
+```
+butler
+```
+
+`butler` is a zsh function, same shape as `chief` (maintainer). It is defined in
+`~/.zshrc`, which is **not** tracked in this repo, so a fresh machine has to add it back:
 
 ```bash
-butler() {
+butler-work() {
   local ws
   ws="$(pp-work claim --kind subject --slug butler)" || return
   cd "$ws/tooling/butler" || return
   CLAUDE_CONFIG_DIR="$CLAUDE_WORK_CONFIG_DIR" command claude --dangerously-skip-permissions --model opus "$@"
 }
+butler-personal() {
+  local ws
+  ws="$(pp-work claim --kind subject --slug butler)" || return
+  cd "$ws/tooling/butler" || return
+  CLAUDE_CONFIG_DIR="$CLAUDE_PERSONAL_CONFIG_DIR" command claude --dangerously-skip-permissions --model opus "$@"
+}
+butler() { butler-work "$@"; }
 ```
 
-It uses the work account because work Gmail comes through that account's connector. It
+Bare `butler` uses the work account because work Gmail comes through that account's connector. It
 starts inside the `subject/butler` workspace because butler writes its memory files every
 session, and the main checkout refuses edits to tracked files.
 
@@ -69,7 +81,7 @@ job, add an entry to `monthly.json`.
 
 1. `cp infra/secrets/lists-app.env.example infra/secrets/lists-app.env` and fill in the
    lists app password.
-2. Add the `butler` function above to `~/.zshrc`.
+2. Add the three `butler` functions above to `~/.zshrc`.
 
 The Google token for `kushalbakliwal25@gmail.com` already exists in
 `tooling/mcp/google-shared/tokens/`.
