@@ -184,7 +184,7 @@ export function playableIds(workdir, idea) {
     .filter((id) => fs.existsSync(teaserMp4(workdir, id)));
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const slug = process.argv[2];
   if (!slug) {
     console.error('usage: node lib/intro-film/teasers.mjs <slug-or-path> [--lint-only]');

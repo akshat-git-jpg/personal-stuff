@@ -173,7 +173,7 @@ function renderMarkdown(skeleton, total) {
 
 // pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
 // path, so naive string concatenation never matches import.meta.url.
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   const slug = args[0];
   const isJson = args[1] === '--json';

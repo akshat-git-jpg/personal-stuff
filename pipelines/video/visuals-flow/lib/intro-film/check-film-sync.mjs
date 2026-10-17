@@ -155,7 +155,7 @@ export function runFilmSync(slug) {
   return checkFilmSync({ screenplay, html });
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const slug = process.argv[2];
   if (!slug) {
     console.error('usage: node lib/intro-film/check-film-sync.mjs <slug-or-path>');

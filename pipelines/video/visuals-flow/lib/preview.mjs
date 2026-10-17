@@ -11,7 +11,7 @@ export function previewArgs(src, at, pad, out) {
   return ['-v', 'error', '-y', '-ss', String(from), '-i', src, '-t', String(pad * 2), '-c:v', 'libx264', '-crf', '18', '-c:a', 'aac', out];
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [slug, atArg, ...rest] = process.argv.slice(2);
   const at = Number(atArg);
   if (!slug || !Number.isFinite(at)) { console.error('usage: node lib/preview.mjs <slug> <at-seconds> [--pad 6]'); process.exit(1); }
