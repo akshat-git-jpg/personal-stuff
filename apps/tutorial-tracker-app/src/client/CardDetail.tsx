@@ -96,7 +96,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     if (showActivity && !eventsLoaded && !eventsLoading && row.row_id) {
       setEventsLoading(true);
       setEventsError(false);
-      getCardEvents(row.row_id)
+      getCardEvents(row.row_id, readOnly ? viewerEmail : undefined)
         .then((res) => {
           setEvents(res.events || []);
           setEventsLoaded(true); })

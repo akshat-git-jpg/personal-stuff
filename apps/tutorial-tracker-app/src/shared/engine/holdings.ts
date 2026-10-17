@@ -46,6 +46,8 @@ export interface HoldingsQuery {
   systems?: string[];
   /** Only slots needing one of these roles — for taking a single role away. */
   roles?: string[];
+  /** Only these exact "system:role" pairs, so dropping a role in one system never counts another. */
+  pairs?: string[];
 }
 
 /** Every unfinished stage where `email` sits in a doer or reviewer slot. */
@@ -54,6 +56,7 @@ export function liveHoldingsFor(email: string, rows: HoldingRow[], q: HoldingsQu
   if (!who) return [];
   const systems = q.systems ? new Set(q.systems) : null;
   const roles = q.roles ? new Set(q.roles) : null;
+  const pairs = q.pairs ? new Set(q.pairs) : null;
   const out: Holding[] = [];
 
   for (const row of rows) {
@@ -73,6 +76,7 @@ export function liveHoldingsFor(email: string, rows: HoldingRow[], q: HoldingsQu
       for (const s of slots) {
         if (norm(row[s.col]) !== who) continue;
         if (roles && !roles.has(s.role)) continue;
+        if (pairs && !pairs.has(`${pipe.id}:${s.role}`)) continue;
         out.push({
           row_id: (row.row_id ?? "").trim(),
           title: (row.video_title ?? "").trim() || "(no title)",
@@ -96,15 +100,16 @@ export function liveHoldingsFor(email: string, rows: HoldingRow[], q: HoldingsQu
 export function rolesRemoved(
   before: Record<string, string[]>,
   after: Record<string, string[]>,
-): { systems: string[]; roles: string[] } {
+): { systems: string[]; roles: string[]; pairs: string[] } {
   const systems = new Set<string>();
   const roles = new Set<string>();
+  const pairs = new Set<string>();
   for (const [sys, had] of Object.entries(before)) {
     if (sys === "*") continue;
     const keeps = new Set(after[sys] ?? []);
     for (const r of had) {
-      if (!keeps.has(r)) { systems.add(sys); roles.add(r); }
+      if (!keeps.has(r)) { systems.add(sys); roles.add(r); pairs.add(`${sys}:${r}`); }
     }
   }
-  return { systems: [...systems], roles: [...roles] };
+  return { systems: [...systems], roles: [...roles], pairs: [...pairs] };
 }
