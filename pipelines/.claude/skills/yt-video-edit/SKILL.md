@@ -225,6 +225,7 @@ Between the gates the session runs unattended: render → avatar renders → cut
 | "render the graphics" | `bash run.sh <slug> render` | 410 |
 | "propose the avatar", "pick the character" | `bash run.sh <slug> avatar-plan` | **420 spend gate** |
 | "make the avatar videos" | `bash run.sh <slug> avatar` then `avatar-download` | 430, **live HeyGen** (guardrails 5-6a) |
+| "edit it in kb-editor", "push to kb-editor", "bridge" | in the kb-editor project: `kb_yt_bridge_link <slug>`, `kb_yt_bridge_push`, `kb_apply_yt_effects` (MCP tools; plan read by `node lib/bridge/edit-plan.mjs <slug>`) | after 340 + 430; replaces 410/450/460/510 for that video. `kb_yt_bridge_pull` writes `kb-delta.json` (the owner's hand edits) |
 | "re-render the intro with the real avatar" | `bash run.sh <slug> intro-rerender` / `intro-simple-rerender` | 440 (complex) / 445 (simple) |
 | "make the sound plan" | `bash run.sh <slug> sound` | 450 |
 | "mix the audio" | `bash run.sh <slug> mix` | 460 |
