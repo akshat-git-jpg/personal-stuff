@@ -1,0 +1,10 @@
+{
+  "name": "review-studio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "npm --prefix ui ci --no-audit --no-fund && npm --prefix ui run build",
+    "start": "node server.mjs",
+    "test": "node --test lib/compat.test.mjs && npm --prefix ui test"
+  }
+}

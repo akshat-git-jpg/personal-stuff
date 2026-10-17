@@ -42,3 +42,4 @@ tooling/butler/	bash tooling/butler/test-butler.sh
 tooling/cli/lists/	bash tooling/butler/test-butler.sh
 tooling/cli/calendar/	bash tooling/butler/test-butler.sh
 apps/my-repo/	cd apps/my-repo && { [ -d node_modules/typescript ] || PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm ci --no-audit --no-fund; } && npm test && npm run typecheck
+pipelines/video/review-studio/	cd pipelines/video/review-studio && source "$(git rev-parse --show-toplevel)/scripts/node22-path.sh" && { [ -d ui/node_modules ] || npm --prefix ui ci --no-audit --no-fund; } && npm test
