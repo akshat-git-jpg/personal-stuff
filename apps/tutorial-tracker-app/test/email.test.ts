@@ -3,7 +3,8 @@ import { emailProblem } from "../src/shared/email";
 
 describe("emailProblem", () => {
   it("accepts real addresses", () => {
-    for (const e of ["jessicap123k@gmail.com", " Seema@Gmail.com ", "a.b+c@yahoo.co.in", "x@mail.com", "me@agrolloo.com"]) {
+    for (const e of ["jessicap123k@gmail.com", " Seema@Gmail.com ", "a.b+c@yahoo.co.in", "x@mail.com", "me@agrolloo.com",
+      "a@email.com", "a@yahoo.de", "a@yahoo.fr", "a@hotmail.fr", "a@hotmail.it", "a@outlook.fr", "a@outlook.es", "a@hotmail.co.uk"]) {
       expect(emailProblem(e)).toBeNull();
     }
   });

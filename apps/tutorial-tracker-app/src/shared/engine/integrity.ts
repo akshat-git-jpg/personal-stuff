@@ -3,14 +3,16 @@
 // or a stale Team change can. Each one leaves a card nobody can move.
 // Run daily by the Worker cron; findings go to Telegram.
 // ===========================================================================
-import { colOf, stageHasReviewerSlot } from "./types";
+import { colOf, stageHasReviewerSlot, stageKind } from "./types";
+import type { PipelineDef } from "./types";
+import { assignmentProblems } from "./assign";
 import { REVIEWER_ROLE } from "./registry";
 import { holdsRoleInSystem, type Memberships } from "./memberships";
 import { lifecycle } from "./lifecycle";
 import { statusOf, stageHasReviewer } from "./derive";
 import { pipeOf, type Row } from "./rbac";
 
-export type CardIssueCode = "review_without_reviewer" | "reviewer_lacks_role" | "assignee_lacks_role";
+export type CardIssueCode = "review_without_reviewer" | "reviewer_lacks_role" | "assignee_lacks_role" | "self_review" | "bad_default";
 
 export interface CardIssue {
   code: CardIssueCode;
@@ -50,9 +52,22 @@ export function cardIssues(rows: Row[], team: Map<string, Memberships>): CardIss
         out.push({ ...base, stage, code: "assignee_lacks_role",
           detail: `Assignee ${assignee} is not a ${s.role} in ${p.name}, so they cannot work on it.` });
       }
+
+      if (reviewer && reviewer === assignee && stageKind(s) !== "brief") {
+        out.push({ ...base, stage, code: "self_review",
+          detail: `${reviewer} is both doer and reviewer, and nobody may review their own work.` });
+      }
     }
   }
   return out;
+}
+
+/** Default assignments that would put a new card in a stuck state. */
+export function defaultIssues(p: PipelineDef, defaults: Record<string, string>, team: Map<string, Memberships>): CardIssue[] {
+  return assignmentProblems(p, defaults, team).map((x) => ({
+    code: "bad_default" as const, row_id: "", title: `${p.name} defaults`, stage: x.col,
+    detail: `${x.email}: ${x.message}`,
+  }));
 }
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

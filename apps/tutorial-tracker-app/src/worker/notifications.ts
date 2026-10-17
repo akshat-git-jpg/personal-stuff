@@ -16,7 +16,7 @@ export interface NotifyContext {
   feedback?: string;            // send-back note, or the doer's submit note
 }
 
-export type NotificationEvent = "submitted" | "assigned" | "approved" | "sentBack";
+export type NotificationEvent = "submitted" | "assigned" | "approved" | "sentBack" | "yourTurn";
 
 type Template = (c: NotifyContext) => { subject: string; text: string };
 
@@ -30,6 +30,10 @@ export const NOTIFICATIONS: Record<NotificationEvent, Template> = {
   assigned: (c) => ({
     subject: `📋 You've been assigned: ${c.title}`,
     text: `You've been assigned to "${c.title}" as ${c.stageLabel}.\n\nOpen the tracker: ${c.appUrl}`,
+  }),
+  yourTurn: (c) => ({
+    subject: `▶️ Your turn: ${c.stageLabel} for ${c.title}`,
+    text: `The step before yours is done, so the ${c.stageLabel} for "${c.title}" is ready for you.\n\nOpen the tracker: ${c.appUrl}`,
   }),
   approved: (c) => ({
     subject: `✅ Approved: ${c.title}`,

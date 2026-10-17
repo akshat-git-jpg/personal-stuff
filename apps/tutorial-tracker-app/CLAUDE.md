@@ -27,7 +27,7 @@ The app is now a **generic multi-system pipeline engine**. It is NO LONGER the s
 ## Stack & where it runs
 
 - **Frontend:** Vite + React + TypeScript SPA (`dnd-kit` for drag-drop).
-- **Backend:** [Hono](https://hono.dev) app on a **Cloudflare Worker**; `SESSIONS` **KV** namespace for login sessions + a short board-rows cache.
+- **Backend:** [Hono](https://hono.dev) app on a **Cloudflare Worker**; `SESSIONS` **KV** namespace for login sessions only. Board rows are read live from D1 on every request: the old 60s KV cache let permission checks run on stale cards (removed 2026-10-17).
 - **Data backend:** Cloudflare D1 only (`tracker-db`, binding `TRACKER_DB`), via `src/worker/datastore.ts` (one `DataStore`; `getStore` always returns the D1 store). Tables: `pipelines` + `cards` + `card_stages` + `employees` (normalized — see the engine section above). The Sheets fallback was **removed**; `DATA_BACKEND` is vestigial. (`GOOGLE_SA_JSON` is still used elsewhere only for the affiliate-programs sheet read in link-gen.)
 - **Auth:** Google OAuth **Web** client (project `n8n-workflows-454504`); verified email → role looked up in the active backend (D1 `employees` table, or the sheet's `Employes` tab in fallback mode).
 - **Email:** Gmail API using `seankerman25@gmail.com`'s OAuth refresh token (from the shared `mcp/google-shared` setup).
@@ -50,6 +50,13 @@ The app is now a **generic multi-system pipeline engine**. It is NO LONGER the s
   straight to Done. Doers move To Do→In Progress→In Review; only the stage's
   reviewer (never on their own submission) sets Done / Need Changes, and
   Need Changes always writes feedback atomically.
+- **Every path that puts a person on a stage runs `src/shared/engine/assign.ts`**
+  (`/api/update`, `/api/video`, `/api/apply-defaults`, `/api/defaults`): they must hold
+  the role in that card's system, and nobody may review their own work (except
+  the admin brief). A stage opens only when EVERY upstream stage is done, so a
+  reopened stage locks everything after it. Approve / request changes / reopen are
+  refused on `/api/update`; only `/api/review` does them. Removing a teammate
+  ends their access on the next request and prunes defaults that named them.
 - **Scripts and Claude sessions change cards ONLY through the API**, via
   `scripts/tracker-act.mjs` (`show` / `submit` / `set`, always `--as <email>`).
   It sends `Authorization: Bearer <AGENT_TOKEN>` + `X-Act-As`, and the Worker then
@@ -66,7 +73,7 @@ The app is now a **generic multi-system pipeline engine**. It is NO LONGER the s
 
 - `GET /api/board[?asUser=email]` → `{roles, stages, columns, rows, names, viewingAs, readOnly}`. Each row carries `_stages` (lane membership), `_actions` (allowed transitions), `_locks` (col→reason). Admin `asUser` is a **pure read-only mirror** (no edit elevation; `readOnly:true`) → identical to the real user's view.
 - `POST /api/update {row_id, col, value, prev?}` → single check `authorizeWrite`; doer status transitions + content edits; `prev` enables optimistic-concurrency (409 on conflict). Fires submit/assign emails.
-- `POST /api/review {row_id, stage, action, feedback?}` → card's assigned reviewer (or admin) only; `stage` = a reviewable stage id (topic|script|recording|editing|thumbnail); approve→Done, sendback→Need Changes (feedback required, written atomically); emails the submitter.
+- `POST /api/review {row_id, stage, action, feedback?}` → the stage's assigned reviewer only (Admin is NOT a reviewer; to unstick a card, assign a reviewer); `stage` = a reviewable stage id (topic|script|recording|editing|thumbnail); approve→Done, sendback→Need Changes (feedback required, written atomically); emails the submitter.
 - `GET /api/review-queue[?asUser=email]` → cards In-Review that THIS user is the assigned reviewer for (admins too; there is no see-all), with submitter name + stage. Admin `asUser` returns the viewed person's queue; without it, view-as showed the admin's own queue (2026-10-17).
 - `POST /api/video {video_title, video_notes?, category?, subcategory?}` → Admin-only; appends a Master row, returns `{row_id}`.
 - `POST /api/delete {row_id}` → Admin-only; deletes the Master row (`deleteRowById` → Sheets `deleteDimension`), busts the board cache. Surfaced as a per-row 🗑 button in the admin Pipeline matrix.
@@ -101,7 +108,7 @@ npx wrangler dev --port 8787
 
 - **`.dev.vars`** (gitignored) holds all secrets/config: `GOOGLE_CLIENT_ID/SECRET`, `GOOGLE_REDIRECT_URI`, `SHEET_ID`, `SESSION_SECRET`, `GOOGLE_SA_JSON`, `DEV_AUTH=1`, `GMAIL_*`, `NOTIFY_REDIRECT`, `APP_URL`.
 - **`DEV_AUTH=1`** enables the **dev preview login** (per-person buttons on the sign-in screen + an `X-Dev-Roles` header bypass) so you can test any role without real Google login. **Must be OFF in production.**
-- **`npm test`** → `vitest run` (49 tests; includes `test/engine.test.ts` — validation, round-trip, routing).
+- **`npm test`** → `vitest run`, then `scripts/api-scenarios.ts`: it seeds the local D1, starts the real Worker on a random port and replays every workflow bug that once reached prod (self-review, view-as parity, reviewer moves via /api/update, racing approvals, event types, id reuse, reopen gates, bad emails and defaults, removed teammates). `npm run test:api` runs the scenarios alone. **A new workflow bug gets a scenario here before its fix.**
 
 ### ⚠️ Gotchas
 - **`wrangler dev` serves a STALE snapshot of `dist/`.** After ANY client (SPA) rebuild you MUST **restart `wrangler dev`** (`pkill -f "wrangler dev"`; `npm run build`; restart) or the browser shows old UI. Worker-only changes hot-reload fine. (This is why design work uses `npm run dev:local`'s Vite :5173 — see `LOCAL-DEV.md`.)

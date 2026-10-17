@@ -28,10 +28,11 @@ export function isStageComplete(s: StageDef, row: Row): boolean {
   return statusOf(s, row) === lifecycle(s.lifecycle).done;
 }
 
-/** A stage is reachable once its single upstream gate stage is complete. */
+/** A stage is reachable once EVERY stage upstream of it is complete, so a
+ *  reopened stage also closes the stages after its next one. */
 export function isGateOpen(p: PipelineDef, s: StageDef, row: Row): boolean {
   const prev = prevStage(p, s);
-  return prev ? isStageComplete(prev, row) : true;
+  return prev ? isStageComplete(prev, row) && isGateOpen(p, prev, row) : true;
 }
 
 /** Does this card have a reviewer assigned for this stage? Blank ⇒ auto-complete. */
