@@ -38,7 +38,7 @@ Full model and the four-question test: `personal-stuff/tooling/maintainer/jobs/s
 Three machine-local things the repo cannot carry, all handled by `personal-stuff/scripts/relink.sh`:
 
 1. **Codex has no per-repo skill path.** It reads only `$CODEX_HOME/skills`. `.claude/codex-skills.txt` lists the few skills worth loading in every Codex session; `scripts/mirror-codex-skills.sh` symlinks exactly those. Adding a name there is the one "make this global" lever. Use it sparingly.
-2. **The private `work-skills` plugin** (`~/codebase/work-skills`, GitHub `akshat-git-jpg/work-skills`, PRIVATE). It holds the Zluri skills, which must not sit in the PUBLIC personal-stuff repo. It also holds four person-level skills duplicated on purpose: `claude-router`, `github-router`, `humanizer`, `i-have-adhd`. A symlink cannot span a public and a private repo without a dead link in one clone, so there are two real copies. **personal-stuff is the source; `work-skills` is always the copy.** `scripts/sync-shared-skills.sh` copies across (`--check` exits 1 on drift). Drift is also caught by the hygiene gate at commit time and the daily `com.kushal.skills-sync` launchd job, which syncs, commits and pushes the plugin.
+2. **The private `work-skills` plugin** (`~/codebase/work-skills`, GitHub `akshat-git-jpg/work-skills`, PRIVATE). It holds the Zluri skills, which must not sit in the PUBLIC personal-stuff repo. It also holds five person-level skills duplicated on purpose: `claude-router`, `github-router`, `humanizer`, `i-have-adhd`, `independent-review`. A symlink cannot span a public and a private repo without a dead link in one clone, so there are two real copies. **personal-stuff is the source; `work-skills` is always the copy.** `scripts/sync-shared-skills.sh` copies across (`--check` exits 1 on drift). Drift is also caught by the hygiene gate at commit time and the daily `com.kushal.skills-sync` launchd job, which syncs, commits and pushes the plugin.
 3. The push gate and the shared memory store (not skill related; see `relink.sh`).
 
 Install the private plugin **local scope**, inside the work repo you use, so nothing is committed to a shared ZluriHQ repo:
@@ -84,7 +84,7 @@ Push back on vague asks ("a skill to help with code review"): what style, what t
    # only if Codex should carry it in every project:
    echo <name> >> /Users/kbtg/codebase/personal-stuff/.claude/codex-skills.txt
    /Users/kbtg/codebase/personal-stuff/scripts/relink.sh
-   # only if it is one of the four shared skills:
+   # only if it is one of the five shared skills:
    /Users/kbtg/codebase/personal-stuff/scripts/sync-shared-skills.sh
    ```
 4. Check the frontmatter (exact key spelling; no `user-invocable: false` unless intended).
