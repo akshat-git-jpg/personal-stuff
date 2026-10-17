@@ -172,6 +172,14 @@ expect 2 "$MAIN" 'cd "$(pp-work claim --kind code --slug x)" && cd /tmp && git c
 expect 2 "$MAIN" 'git -C /no/such/path/here commit -m x' \
   'FAIL: WALL-RETARGET an unresolvable -C path was allowed instead of falling back'
 
+# 24-26. repeated `-C`: allowed only when every path is the same literal string
+expect 0 "$MAIN" "git -C $WT add a b && git -C $WT status --short" \
+  'FAIL: WALL-RETARGET same -C path twice (workspace) was blocked'
+expect 2 "$MAIN" "git -C $WT add a && git -C $MAIN commit -m x" \
+  'FAIL: WALL-RETARGET two different -C paths were not blocked'
+expect 2 "$WT" "git -C $MAIN add a && git -C $MAIN commit -m x" \
+  'FAIL: WALL-RETARGET same -C path twice (main) was allowed'
+
 if [ "$FAILURES" -ne 0 ]; then
   echo "$FAILURES test(s) failed"
   exit 1

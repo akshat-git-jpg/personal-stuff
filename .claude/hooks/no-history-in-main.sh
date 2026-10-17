@@ -141,8 +141,13 @@ resolve_effective_dir() {  # resolve_effective_dir <cmd> <cwd>
     # Only a LEADING cd is extracted; a `cd` buried mid-command yields nothing and
     # therefore falls back to the session cwd.
     raw=$(printf '%s' "$cmd" | sed -nE 's/^[[:space:]]*cd[[:space:]]+([^;&|]+).*/\1/p' | head -1)
-  elif [ "$N_DASHC" = "1" ] && [ "$N_CD" = "0" ]; then
-    raw=$(printf '%s' "$cmd" | sed -nE 's/.*git[[:space:]]+-C[[:space:]]+([^[:space:];&|]+).*/\1/p' | head -1)
+  elif [ "$N_DASHC" -ge 1 ] && [ "$N_CD" = "0" ]; then
+    # Several `-C` are fine only when every one is the SAME literal string.
+    raw=$(printf '%s' "$cmd" | grep -oE 'git[[:space:]]+-C[[:space:]]+[^[:space:];&|]+' \
+      | sed -E 's/^git[[:space:]]+-C[[:space:]]+//' | sort -u)
+    if [ "$(printf '%s\n' "$raw" | wc -l | tr -d ' ')" != "1" ]; then
+      printf '%s' "$cwd"; return 0
+    fi
   else
     printf '%s' "$cwd"; return 0
   fi
