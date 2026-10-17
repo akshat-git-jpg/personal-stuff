@@ -138,6 +138,10 @@ Measured gaps from the WeftCut test, plus owner requirements:
 
 ## Upstream sync
 
+- GitHub does not allow a private fork of a public repo, so "fork" here means: a new
+  private repo `kb-editor` on the owner's personal account, seeded by pushing a full clone
+  of WeftCut (history kept), with WeftCut added as the `upstream` remote. Git-wise it
+  behaves exactly like a fork.
 - Remote `upstream` → `https://github.com/WeftCut/WeftCut`. The fork tracks upstream `main`
   and its release tags.
 - A sync run (owner-triggered, e.g. "sync kb-editor with WeftCut"):
