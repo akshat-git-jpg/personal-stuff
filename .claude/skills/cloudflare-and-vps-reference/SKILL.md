@@ -35,6 +35,7 @@ Everything public runs in one of three places: **Cloudflare Workers** (public ed
 - **KV:** `CLICKS_KV` (shared: redirector + tutorial-tracker), `SESSIONS` (tutorial-tracker logins), `WATCHDOG_KV` (vps-watchdog).
 - **R2 (1):** bucket `kushal-docs` — real personal documents, **unencrypted**; never delete/overwrite/log contents.
 - Schema pushes: apps keep `schema.sql` + npm scripts like `db:local` / `db:remote` (`wrangler d1 execute <db> --local|--remote --file=schema.sql`). Migrations live with the owning app (`apps/redirector/migrations/`). **`db:remote` mutates production — for any non-additive migration on the load-bearing DBs (`clicks-db`, `tracker-db`), export the data first.**
+- Ad-hoc remote D1 reads: `wrangler d1 execute --remote` fails with code 7403 on the OAuth login. Use the `cloudflare` MCP `d1_query` with the `database_id` from the app's `wrangler.toml`.
 
 ## Secrets on Workers
 
