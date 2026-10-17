@@ -49,7 +49,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
 | Running this repo under Codex (or any non-Claude agent) — path mapping, what doesn't carry over | [`AGENTS.md`](AGENTS.md) + `scripts/mirror-codex-skills.sh` |
 | A specific app | apps/<name>/ — full list in the README map below; each app folder carries its own operate-doc (README and/or CLAUDE.md) |
-| **My own video editor (`kb-editor`)** — Claude-driven editor forked from WeftCut, comments, cards, plugins, upstream sync | Code is NOT in this repo: `/Users/kbtg/codebase/kb-editor` (private `akshat-git-jpg/kb-editor`); start at its `kb/README.md`, `FORK.md`, `kb/BACKLOG.md`. Spec `docs/specs/2026-10-17-kb-editor-design.md` |
+| **My own video editor (`kb-editor`)** — Claude-driven editor forked from WeftCut, comments, cards, plugins, upstream sync | Code is NOT in this repo: `/Users/kbtg/codebase/kb-editor` (private `akshat-git-jpg/kb-editor`); start at its `kb/README.md`, `FORK.md`, `kb/BACKLOG.md`. Any session here drives it over the `kb-editor` MCP (`tooling/mcp/kb-editor/`). Spec `docs/specs/2026-10-17-kb-editor-design.md` |
 | YouTube / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
 | **Secrets sync across machines** — a new secret, "my sister needs this key", a missing `.env`/`.dev.vars` on a fresh clone, deleting a secret (Infisical free plan, `pp-secrets`, syncs itself via hooks + VPS cron) | [`tooling/cli/infisical/README.md`](tooling/cli/infisical/README.md) |
 | Worktree pool for agent runs (wt) | [`tooling/cli/wt/README.md`](tooling/cli/wt/README.md) |
