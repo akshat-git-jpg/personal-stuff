@@ -1,7 +1,9 @@
 # apps/my-repo: operating notes
 
 PIN-gated map of this repo's skills, CLIs, MCPs and harness. Worker (Hono) + Vite/React, no database.
-Live at `my-repo.agrolloo.com`. Redeployed by the `my-repo` skill. Human detail: `README.md`.
+Live at `my-repo.agrolloo.com`. Redeployed by the `my-repo` skill, and by itself after any land that touches what
+the map draws (`scripts/auto-deploy.sh`, run by `pp-land`; Mac only; log in `~/.local/state/pp-land/*/my-repo-deploy.log`;
+`MYREPO_AUTODEPLOY=0` turns it off). Human detail: `README.md`.
 
 ## Guardrails
 
@@ -25,6 +27,12 @@ npm run dev:local                         # scan, then wrangler :8787 + vite :51
 npx wrangler dev --port 8791 --local      # serves dist/ + API; then: node scripts/shoot.mjs
 npm run deploy                            # scan -> build -> deploy
 ```
+
+- Wrangler needs Node 22: `. ../../scripts/node22-path.sh` first (the `npm` scripts do it themselves).
+- An old `workerd` from another workspace can still hold :8791 and serve a stale graph (check `/api/version`).
+  Use another port and pass it: `node scripts/shoot.mjs http://localhost:8792`.
+- A workspace `npm ci` can miss rolldown's native binding ("Cannot find native binding"):
+  `npm_config_registry=https://registry.npmjs.org/ npm i --no-save @rolldown/binding-darwin-arm64@<rolldown version>`.
 
 `node scripts/shoot.mjs [url]` screenshots Map, Table and Loose ends at 1440 and 390 px into
 `.shots/`, clicks a box, searches, and fails on sideways scroll or page errors. Against the live

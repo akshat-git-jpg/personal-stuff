@@ -223,6 +223,20 @@ expect_t 0 "$MAIN" false '{"type":"tool_use","name":"Edit","input":{"file_path":
   'FAIL: STOP-GUARD blocked on a touched non-workspace worktree'
 git -C "$PLAIN" checkout -- README.md >/dev/null 2>&1
 
+# 22-23. SubagentStop judges the subagent's own transcript, not its parent's
+AT="$TMP/agent.jsonl"
+run_sub() {  # run_sub <agent transcript line>
+  printf '%s\n' "$EDIT_WS" > "$T"
+  printf '%s\n' "$1" > "$AT"
+  printf '{"cwd":%s,"stop_hook_active":false,"transcript_path":%s,"agent_transcript_path":%s,"session_id":"t","hook_event_name":"SubagentStop"}' \
+    "$(jstr "$MAIN")" "$(jstr "$T")" "$(jstr "$AT")" | bash "$HOOK" >/dev/null 2>&1
+  echo $?
+}
+printf 'changed\n' >> "$WS/README.md"
+[ "$(run_sub "$READ_WS")" = 0 ] || { echo 'FAIL: STOP-GUARD blamed a read-only subagent for its parent'"'"'s edits'; FAILURES=$((FAILURES + 1)); }
+[ "$(run_sub "$EDIT_WS")" = 2 ] || { echo 'FAIL: STOP-GUARD missed a subagent that edited a dirty workspace'; FAILURES=$((FAILURES + 1)); }
+git -C "$WS" checkout -- README.md >/dev/null 2>&1
+
 if [ "$FAILURES" -ne 0 ]; then
   echo "$FAILURES test(s) failed"
   exit 1

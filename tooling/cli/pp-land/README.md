@@ -66,6 +66,11 @@ its own branch checked out, so no other tree is allowed to check it out. And a c
 mid-land must **not** be swept in invisibly — it has to surface as an explicit coalesced
 re-run that is verified on its own.
 
+**After a land: the repo map.** When the landed range touches skills, hooks, CLIs, mods, MCPs, launchd,
+crons or a `CLAUDE.md`, pp-land starts `apps/my-repo/scripts/auto-deploy.sh` in the background so
+`my-repo.agrolloo.com` never goes stale (owner feedback 2026-10-17: it was only redeployed when someone remembered).
+Mac only; output in `$STATE/my-repo-deploy.log`; `MYREPO_AUTODEPLOY=0` turns it off.
+
 ## Coalescing, not queueing
 
 N commits arriving during one land cost one extra land, not N. Both sides of that are

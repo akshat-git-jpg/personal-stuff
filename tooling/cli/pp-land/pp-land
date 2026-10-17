@@ -315,6 +315,8 @@ do_one_land() {
   land_branch="land/$slug"
 
   git -C "$MAIN" fetch origin main >/dev/null 2>&1 || true
+  local main_before
+  main_before=$(git -C "$MAIN" rev-parse origin/main 2>/dev/null || true)
   if git -C "$MAIN" merge-base --is-ancestor "$sha" origin/main 2>/dev/null; then
     log "already on main, nothing to land: $branch ($sha)"
     rm -f "$LANDS_DIR/land-$slug.blocked" 2>/dev/null || true
@@ -402,6 +404,12 @@ do_one_land() {
     "$PPWORK_BIN" touch "$ws" >/dev/null 2>&1 || true
     log "workspace kept for further commits: $ws"
     git -C "$MAIN" update-ref -d "refs/heads/$land_branch" >/dev/null 2>&1 || true
+    # Keep the repo map live: redeploy my-repo when the land touched what it draws.
+    local auto_deploy="$MAIN/apps/my-repo/scripts/auto-deploy.sh"
+    if [ -n "$main_before" ] && [ -f "$auto_deploy" ]; then
+      ( bash "$auto_deploy" "$MAIN" "$main_before" "$(git -C "$MAIN" rev-parse origin/main)" \
+          >> "$STATE/my-repo-deploy.log" 2>&1 & )
+    fi
   else
     log "land did not complete for $branch: $gl_result — $reason"
     log "run output: $gl_root/greenlight.out"

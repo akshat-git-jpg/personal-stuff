@@ -25,7 +25,7 @@ One fact, one home. Take the first row that fits.
 | A non-obvious decision or a load-bearing "why" | one dated line in `decisions.md` |
 | Routing: a new tool or area Claude must find | the "Find it fast" table in root `CLAUDE.md` |
 | A rule for every session, in every repo | the account's global `$CLAUDE_CONFIG_DIR/CLAUDE.md` (not in git) |
-| Skills, CLIs or MCPs were added, removed or renamed | propose "update my-repo" as an item (redeploy only if approved) |
+| Skills, CLIs, MCPs, mods or hooks changed | nothing: pp-land redeploys my-repo after the land (`apps/my-repo/scripts/auto-deploy.sh`). Changes outside the repo (a plugin install, work-skills): run "update my-repo" |
 | Live work state (open branch, next step) | memory, per the policy in `MEMORY.md`: a scratch cache, promoted to the repo within a month |
 
 ## Rules
