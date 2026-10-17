@@ -82,6 +82,8 @@ LANDING="${PPLAND_LANDING:-$HOME/kb-scratch/landing/$REPO_NAME-$HASH8}"
 STATE="${PPLAND_STATE_ROOT:-$HOME/.local/state/pp-land}/$REPO_NAME-$HASH8"
 LANDS_DIR="${PPLAND_LANDS_DIR:-$MAIN/tooling/boss/state/lands}"
 VERIFY_MAP="${PPLAND_VERIFY_MAP:-$MAIN/tooling/cli/pp-land/verify-map.tsv}"
+# Half the cores per run: a land and a session can test at the same time on 16 GB.
+export PP_TEST_JOBS="${PP_TEST_JOBS:-$(node "$MAIN/scripts/lib/test-jobs.mjs" 2>/dev/null || echo 2)}"
 GREENLIGHT_BIN="${PPLAND_GREENLIGHT:-$MAIN/tooling/cli/greenlight/greenlight}"
 # The floor for an unmapped path. See the note at the fallback below.
 VERIFY_FALLBACK_SCRIPT="scripts/check-repo-hygiene.sh"
@@ -213,7 +215,7 @@ matched_verify_cmds() {
   # Three dots: only the branch's own changes, not what main gained since it forked.
   changed=$(git -C "$MAIN" diff --name-only "origin/main...$ref" 2>/dev/null)
   [ -n "$changed" ] || return 0
-  while IFS="$(printf '\t')" read -r prefix cmd; do
+  while IFS="$(printf '\t')" read -r prefix cmd _fast; do
     [ -n "${prefix:-}" ] || continue
     case "$prefix" in \#*) continue ;; esac
     [ -n "${cmd:-}" ] || continue
