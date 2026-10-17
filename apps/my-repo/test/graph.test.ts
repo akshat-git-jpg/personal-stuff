@@ -75,7 +75,7 @@ describe('buildGraph', () => {
     repo: 'r', sha: 'abc', scannedAt: '2026-10-16T00:00:00Z', workFound: false,
     skills: [skill('drive', 'Drive. "upload to drive"', 'CLI: tooling/cli/drive/pp-drive'), skill('long', 'x'.repeat(520))],
     work: [], clis: [cli('pp-drive'), cli('pp-lonely'), cli('wt', 'wt')], mcps: [{ name: 'gmail', group: 'parked', path: 'tooling/mcp/gmail-mcp-server' }],
-    harness: [{ name: 'CLAUDE.md', group: 'routing' }], routing: '', existingCliDirs: ['drive', 'lonely', 'wt'],
+    harness: [{ name: 'CLAUDE.md', group: 'routing' }, { name: 'butler', group: 'agent', path: 'tooling/butler' }, { name: 'stray', group: 'agent', path: 'tooling/stray', unregistered: true }], routing: '', existingCliDirs: ['drive', 'lonely', 'wt'],
     curated: { services: { 'cli:pp-drive': ['Google Drive'] }, plumbing: ['cli:wt'] },
   })
   it('links skill -> CLI -> service', () => {
@@ -86,6 +86,10 @@ describe('buildGraph', () => {
     const nodes = g.findings.map((f: { node: string }) => f.node)
     expect(nodes).toContain('cli:pp-lonely')
     expect(nodes).not.toContain('cli:wt')
+  })
+  it('flags a folder agent with no start command, not a registered one', () => {
+    expect(g.findings).toContainEqual(expect.objectContaining({ node: 'harness:stray', level: 'warn' }))
+    expect(g.findings.map((f: { node: string }) => f.node)).not.toContain('harness:butler')
   })
   it('flags a description over budget and a parked MCP', () => {
     expect(g.findings).toContainEqual(expect.objectContaining({ node: 'skill:long', level: 'warn' }))

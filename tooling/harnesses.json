@@ -1,0 +1,18 @@
+{
+  "_about": "Folder agents: Claude sessions whose operating script is the folder's CLAUDE.md, started by a zsh function in ~/.zshrc (setup in each folder's README). my-repo lists them; a tooling/ folder with a CLAUDE.md missing here shows as a loose end.",
+  "butler": {
+    "dir": "tooling/butler",
+    "desc": "Daily check-in: reads email, calendar, lists, trips and month-end jobs, then says only what needs you.",
+    "start": "butler (butler-personal for the personal account)"
+  },
+  "boss": {
+    "dir": "tooling/boss",
+    "desc": "PR-driven implementation orchestrator: dispatches a crew on boss:ready plans, verifies, merges, deploys on your say.",
+    "start": "boss-work or boss-personal"
+  },
+  "chief": {
+    "dir": "tooling/maintainer",
+    "desc": "Repo maintainer: runs one hygiene job at a time, proposes fixes, applies only what you approve.",
+    "start": "chief (chief-personal for the personal account)"
+  }
+}

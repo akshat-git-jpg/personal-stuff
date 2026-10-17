@@ -7,12 +7,14 @@ A web page that shows how this repo's skills, CLIs, MCPs and harness connect:
   for work: Ship & review, Zluri systems, …) with counts and a loose-end badge.
 - **One area's map**: four lanes, *what you say → skill → CLI or MCP → outside service*. Click a
   box to light up everything it calls and everything that calls it. Search covers everything.
-- **Harness** (under the map): the parts that run on their own: `CLAUDE.md` routing, hooks,
+- **Harness** (under the map): the parts that run on their own: folder agents (butler, boss, chief,
+  with their start command, from `tooling/harnesses.json`), `CLAUDE.md` routing, hooks,
   mods (plugins with a JS hooks module: their commands, tools, and on/off per account), other
   plugins, Mac launchd jobs, VPS crons.
 - **Table**: every item grouped by area, sortable, with its link counts and last change.
 - **Loose ends**: what the last scan flagged: a CLI no skill calls, a description over budget, a
-  broken symlink, a parked MCP, an abandoned tool.
+  broken symlink, a parked MCP, an abandoned tool, a `tooling/` folder agent missing from
+  `tooling/harnesses.json`.
 
 ## How it stays current
 
