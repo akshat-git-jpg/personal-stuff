@@ -123,9 +123,9 @@ def stat(s, file_id):
 
 
 def list_folder(s, parent):
-    """List immediate children (files+folders) of a folder id. Returns [{id,name,mimeType}]."""
+    """List immediate children (files+folders) of a folder id. Returns [{id,name,mimeType,shortcutDetails?}]."""
     q = f"'{parent}' in parents and trashed = false"
-    r = s.files().list(q=q, fields="files(id,name,mimeType)", pageSize=1000,
+    r = s.files().list(q=q, fields="files(id,name,mimeType,shortcutDetails)", pageSize=1000,
                        supportsAllDrives=True, includeItemsFromAllDrives=True).execute()
     return r.get("files", [])
 
@@ -248,7 +248,9 @@ def main():
         r = stat(s, a.id); print(f"{r['id']}\t{r['name']}\t{r['mimeType']}")
     elif a.cmd == "list-folder":
         for f in list_folder(s, a.id):
-            print(f"{f['id']}\t{f['name']}\t{f['mimeType']}")
+            sc = f.get("shortcutDetails") or {}
+            tail = f"\t{sc.get('targetId', '')}\t{sc.get('targetMimeType', '')}" if sc else ""
+            print(f"{f['id']}\t{f['name']}\t{f['mimeType']}{tail}")
     elif a.cmd == "download":
         download_file(s, a.id, a.out); print(f"saved {a.out}")
     elif a.cmd == "upload":
