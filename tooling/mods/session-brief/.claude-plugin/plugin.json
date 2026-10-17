@@ -1,0 +1,14 @@
+{
+  "name": "session-brief",
+  "version": "0.1.0",
+  "description": "Side pane (/brief): what needs you, the plan, drafts to paste and links to keep",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "linkHosts": {
+      "type": "string",
+      "title": "Extra link hosts",
+      "description": "Comma-separated hosts whose links in replies are kept, e.g. your company domain",
+      "default": ""
+    }
+  }
+}
