@@ -12,7 +12,7 @@ All subcommands take `--account EMAIL`.
 | `upload FILE --parent ID [--name N] [--overwrite]` | Upload a file, print id + link |
 | `mirror LOCALDIR [--parent ID] [--overwrite]` | Recreate the local tree in Drive (dirs→folders, files→uploads) |
 | `stat ID` | Print tab-separated id, name, mimeType |
-| `list-folder ID` | Print tab-separated id, name, mimeType for children |
+| `list-folder ID` | Print tab-separated id, name, mimeType for children; a shortcut adds its target id and target mimeType |
 | `download ID --out PATH` | Download a file (Docs/Sheets/Slides are exported as PDF/CSV/PDF), print saved <path> |
 | `search QUERY [--max N] [--raw]` | Name-contains search, newest first; `--raw` takes a Drive query (`mimeType='application/pdf'`) |
 | `move ID --to FOLDER_ID` | Move into another folder |
