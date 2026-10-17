@@ -175,6 +175,7 @@ export const KIND_LABEL: Record<Kind, string> = { skill: 'Skills', cli: 'CLIs', 
 export const HARNESS_GROUPS: { key: string; title: string }[] = [
   { key: 'routing', title: 'Routing' },
   { key: 'hook', title: 'Hooks' },
+  { key: 'mod', title: 'Mods' },
   { key: 'plugin', title: 'Plugins' },
   { key: 'launchd', title: 'Mac launchd' },
   { key: 'cron', title: 'VPS cron' },

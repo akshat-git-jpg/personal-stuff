@@ -176,7 +176,7 @@
       "scope": "personal",
       "name": "Life & travel",
       "blurb": "Trips, trains, health, phone and Mac helpers",
-      "match": "(health|travel|trip|flights|trains|pp-bus|coffee|inbox|lists|bt-audio|notify)"
+      "match": "(health|travel|trip|flights|trains|pp-bus|coffee|inbox|lists|bt-audio|notify|tg-user)"
     },
     {
       "scope": "personal",
@@ -188,7 +188,7 @@
       "scope": "personal",
       "name": "Cloudflare & hosting",
       "blurb": "Workers, VPS, domains, deploys",
-      "match": "(cloudflare|wrangler|durable|agents-sdk|workers|sandbox|web-perf|hostinger|cf-email|hosting|deploy)"
+      "match": "(cloudflare|wrangler|durable|agents-sdk|workers|sandbox|web-perf|hostinger|cf-email|hosting|deploy|infisical)"
     },
     {
       "scope": "personal",
