@@ -71,6 +71,13 @@ built on.
 | 7 | **HyperFrames stays the graphics engine; cards become WeftCut Motifs through an adapter** | The owner's card library is HyperFrames HTML (GSAP timelines at `window.__timelines[id]`). |
 | 8 | **Signing: none at first** | Owner: no recurring cost unless it becomes a problem. macOS: "Open Anyway" once and no auto-update (WeftCut already disables the macOS updater in code). Windows: SmartScreen "Run anyway"; Smart App Control can block. Pay ($99/yr Apple, ~€50-170/yr Windows cert) only when it hurts. |
 | 9 | **Windows test deferred** until the sister is back; Windows CI (build + tests + a headless export compare against Mac frames) runs on every change meanwhile. | No Windows machine available now. Every Electron option carries the same Windows risk, so it does not change the base. |
+| 10 | **Nothing is sent upstream.** No public PRs to WeftCut; all fixes stay in the private fork, including generic ones (playhead/selection MCP, frame rounding, marker notes, project-local Motifs). | Owner: keep all private. Consequence: every change is a permanent hook point, so `kb/` isolation and `FORK.md` matter more. |
+| 11 | **kb-editor runs side by side with visuals-flow in v1.** It consumes the same inputs (yt-vo voiceover, HeyGen avatar clips via the heygen hub, card-library cards). visuals-flow is retired only after kb-editor has produced a few real videos (a separate, later decision). | Owner: keep the old flow as a backup. |
+| 12 | **Distribution**: installers built by CI go to a private Google Drive folder; people reinstall to update. WeftCut's Windows auto-updater (which points at WeftCut's own release feed) is **disabled** in the fork; the macOS updater is already off upstream. A real update channel is later work. | Builder-check finding: an untouched updater could replace kb-editor with upstream WeftCut. Free, and the repo is private so GitHub release downloads need a login. *Builder call.* |
+| 13 | **One person holds a project folder at a time** (owner: "pass the project folder"). Comments are stored one file per author inside the project, so folders that crossed paths still merge. Proxies are NOT carried in the folder; each machine rebuilds them. | Keeps Drive syncs small; avoids `project.json` conflicts. *Builder call.* |
+| 14 | **Plugins load at runtime from a per-user plugins folder** (no rebuild to add one). A project folder never carries or runs plugin code. Drive import v1 uses the owner's own Google login on his Mac (existing `pp-drive` OAuth); other users import from "anyone with the link" folders. | No code from a sender's folder ever runs; no OAuth app verification needed in v1. *Builder call.* |
+| 15 | **A card is one template with editable fields** (the HyperFrames `--variables-file` variables become Motif parameters); each use on the timeline stores its own field values. | A hired editor can fix a typo on a card by hand without Claude. *Builder call.* |
+| 16 | **v1 export target: 1080p H.264, about real-time speed** (test: 1.13x real time on a 2-min segment, ~17 min estimated for 15 min). 4K output and faster export are later work. | Owner publishes 1080p. *Builder call.* |
 
 ## Architecture
 
@@ -108,7 +115,8 @@ kb-editor (private fork)
 Measured gaps from the WeftCut test, plus owner requirements:
 
 1. **Fork + upstream sync setup**: private fork, `upstream` remote, `FORK.md`, `kb/` folder,
-   build on Mac (Rust + Node 24 toolchains), Windows CI.
+   build on Mac (Rust + Node 24 toolchains), Windows CI, Windows auto-updater disabled,
+   CI installers uploaded to the private Drive folder.
 2. **MCP: playhead + selection read** (missing today; Claude cannot resolve "this clip").
 3. **Proxies on by default.**
 4. **Comments**: threads on a time (extend WeftCut markers/Tacks), resolve, MCP read/reply/
@@ -157,6 +165,11 @@ Measured gaps from the WeftCut test, plus owner requirements:
 - Upstream sync dry run: merge the latest upstream into the fork with all tests green.
 - Windows: CI green now; hands-on playback test on the sister's PC when she is back, before
   any Windows user relies on it.
+
+## Calls made by the builder check (owner may override)
+
+Decisions 12-16 were settled by the spec writer from the conversation, not asked of the
+owner. Each is marked *Builder call* in the table.
 
 ## Left to the builder
 
