@@ -49,7 +49,7 @@ Also per-CLI: the Hostinger API token lives at `tooling/mcp/hostinger/.env` (`AP
 |---|---|
 | gym-app | `GOOGLE_CLIENT_ID/SECRET`, `GOOGLE_REFRESH_TOKEN`, `SHEET_ID` |
 | kushal-docs | `GOOGLE_CLIENT_ID/SECRET`, `ALLOWED_EMAIL` |
-| tutorial-tracker-app | `GEMINI_API_KEY`, `GOOGLE_CLIENT_ID/SECRET`, `GOOGLE_REDIRECT_URI`, `SHEET_ID`, `GOOGLE_SA_JSON`, `GMAIL_*` (dev-only: `DEV_AUTH`, `NOTIFY_REDIRECT` — never in prod) |
+| tutorial-tracker-app | `GEMINI_API_KEY`, `GOOGLE_CLIENT_ID/SECRET`, `GOOGLE_REDIRECT_URI`, `SHEET_ID`, `GOOGLE_SA_JSON`, `GMAIL_*`, `AGENT_TOKEN` (script door for `scripts/tracker-act.mjs`; local copy in the gitignored `agent.env`, synced by pp-secrets) (dev-only: `DEV_AUTH`, `NOTIFY_REDIRECT` — never in prod) |
 | analytics-app | `YT_API_KEY` (required) |
 | redirector, landing pages | none |
 
