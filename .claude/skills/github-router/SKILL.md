@@ -4,7 +4,7 @@ description: Picks the correct GitHub account (work / yt / personal) before any 
 user-invocable: true
 metadata:
   author: kbtg
-  version: 3.0.1
+  version: 3.0.2
 ---
 
 # GitHub Account Router
@@ -72,7 +72,7 @@ gh api user -q .login      # must equal `gh-acct who`
 If it does not match, the shell simply never pinned one (a crew shell, a script, a fresh subprocess):
 
 ```bash
-eval "$(gh-acct export)"
+export GH_TOKEN="$(gh-acct token)"
 ```
 
 That is the whole fix. Never reach for `gh auth switch`.
@@ -97,9 +97,9 @@ A repo with no remote yet falls back to a path rule inside `gh-acct`; a path it 
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `git push` 403s | `GH_TOKEN` unset, so the call fell through to the global account | `eval "$(gh-acct export)"` |
+| `git push` 403s | `GH_TOKEN` unset, so the call fell through to the global account | `export GH_TOKEN="$(gh-acct token)"` |
 | A commit landed under the wrong author | The repo has a stale repo-local `user.email` overriding the remote rule | `gh-acct check` prints the exact fix |
-| `gh pr create` opened the PR as the wrong user | Same as the 403 | `eval "$(gh-acct export)"` |
+| `gh pr create` opened the PR as the wrong user | Same as the 403 | `export GH_TOKEN="$(gh-acct token)"` |
 | Two sessions keep flipping the account | Something still calls `gh auth switch` | Find it: `grep -rn "gh auth switch"`. The hook blocks tool calls, not scripts the owner runs directly |
 | `gh-acct: command not found` | `~/.local/bin` symlink missing after a fresh clone | `scripts/relink.sh` |
 
