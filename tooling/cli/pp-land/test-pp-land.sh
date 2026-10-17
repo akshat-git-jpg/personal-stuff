@@ -463,4 +463,30 @@ origin_has "src/nine.txt" || fail "the src-only land did not reach origin/main"
   || fail "a src-only land ran the slow/ suite because main had changed slow/ since the fork"
 note "only the branch's own suite ran"
 
+# ===========================================================================
+echo "10. a 3-column verify-map row lands on its FULL command"
+# ===========================================================================
+cat > "$SANDBOX/full.sh" <<FULL
+#!/usr/bin/env bash
+# Extra arguments mean the parser glued the fast column on: fail loudly.
+[ \$# -eq 0 ] || exit 3
+echo ran >> "$SANDBOX/full-count"
+FULL
+cat > "$SANDBOX/fast.sh" <<FAST
+#!/usr/bin/env bash
+echo ran >> "$SANDBOX/fast-count"
+FAST
+: > "$SANDBOX/full-count"; : > "$SANDBOX/fast-count"
+printf 'three/\tbash %s\tbash %s\n' "$SANDBOX/full.sh" "$SANDBOX/fast.sh" >> "$SANDBOX/verify-map.tsv"
+
+ws10=$(claim three-col) || fail "pp-work claim failed"
+commit_in "$ws10" "three/a.txt" "ten" "workspace edits three" >/dev/null 2>&1 || fail "commit failed"
+wait_mutex_appear || fail "the commit never started a land"
+wait_land_done || fail "the land never finished"
+
+if ! origin_has "three/a.txt" || [ ! -s "$SANDBOX/full-count" ] || [ -s "$SANDBOX/fast-count" ]; then
+  fail "a 3-column row ran something other than its full command"
+fi
+note "a 3-column row ran only its full command"
+
 echo "ALL TESTS PASSED"

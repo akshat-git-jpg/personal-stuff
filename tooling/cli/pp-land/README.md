@@ -104,6 +104,11 @@ it, the reset becomes data loss.
 A path prefix, a tab, and the command whose exit 0 gates a land touching that prefix. Every
 command whose prefix matches at least one changed path runs, de-duplicated.
 
+An optional third column is the suite's FAST command. Only `scripts/lib/check-changed.mjs`
+(the in-session runner, called by `commit-now`) uses it; a land always runs column 2.
+A fast command must start with plain `node` or `npm` (no `cd`, `&&`, `source`, or bash-only
+syntax) when that folder is used on Windows.
+
 The map is **append-only**: adding a prefix narrows nothing, it only adds coverage. A land
 whose changed paths match no prefix logs `no verify suite matched` and proceeds — that is
 deliberate. There is no repo-wide suite, the owner chose full auto-merge, and refusing here

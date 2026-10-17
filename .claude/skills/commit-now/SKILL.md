@@ -94,7 +94,7 @@ Copy this checklist and tick as you go:
 
 ```
 [ ] 1 In a pp-work workspace; branch, user.name, user.email gathered
-[ ] 2 Mapped checks run (verify-map.tsv) and auto-fixed; all green
+[ ] 2 Fast checks run (check-changed.mjs) and auto-fixed; all green
 [ ] 3 Pre-commit summary printed
 [ ] 4 Message proposed (one line, <=72 chars)
 [ ] 5 Explicit files staged, committed, log + status verified, SHA reported
@@ -144,11 +144,18 @@ git -C <ws> config user.email
 
 ### Step 2 — Run the checks and auto-fix
 
-Find the check command for the area you touched. Do not guess it — the mapping the lander
-itself uses is `tooling/cli/pp-land/verify-map.tsv`, which maps a path prefix to its suite.
-Run the one that covers your change. If your path is not in that map, run the closest
-package's own tests and **say in your summary that the path is unmapped**, because the land
-will not test it either.
+Run the fast tier for what you changed, from the workspace root:
+
+```bash
+node scripts/lib/check-changed.mjs
+```
+
+It reads `tooling/cli/pp-land/verify-map.tsv`, runs each matching suite's fast command
+(its full command when it has no fast one yet), and prints the time each took. The land
+runs the FULL suites afterwards, so a slow-tier failure comes back as a blocked land and
+its fix-up, not as a wait here. Add `--full` when you changed a test runner,
+`verify-map.tsv` itself, or a suite's tiers. Any `unmapped` line is a path the land will
+not test either: say so in your summary.
 
 Max **3 fix iterations** overall. For lint/format: check → fix → re-check once. For
 typecheck/test failures: read the error, fix the code, re-run; after 2 attempts on the same
