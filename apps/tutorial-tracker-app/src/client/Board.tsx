@@ -102,9 +102,10 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
 
   const refreshQueue = useCallback(async () => {
     if (!canReview) return;
-    const data = await getReviewQueue();
+    // readOnly = admin view-as: load the viewed person's queue, not the admin's.
+    const data = await getReviewQueue(readOnly ? viewerEmail : undefined);
     setQueueItems(data.items);
-  }, [canReview]);
+  }, [canReview, readOnly, viewerEmail]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void refreshQueue(); }, [refreshQueue, rows]);
