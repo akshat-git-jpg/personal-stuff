@@ -24,6 +24,8 @@ SRC="$REPO_ROOT/.claude/skills"
 DST="${WORK_SKILLS_DIR:-$HOME/codebase/work-skills}/skills"
 
 SHARED=(claude-router github-router humanizer i-have-adhd)
+# Single files shared into a differently named work skill: "source:dest", both under skills/.
+SHARED_FILES=("close-session/procedure.md:zluri-close-session/references/procedure.md")
 
 CHECK=0
 [ "${1:-}" = "--check" ] && CHECK=1
@@ -59,8 +61,28 @@ for name in "${SHARED[@]}"; do
   copied=$((copied + 1))
 done
 
+for pair in "${SHARED_FILES[@]}"; do
+  s="$SRC/${pair%%:*}"
+  d="$DST/${pair#*:}"
+  if [ ! -f "$s" ]; then
+    echo "sync-shared-skills: MISSING source $s" >&2
+    drift=1
+    continue
+  fi
+  cmp -s "$s" "$d" && continue
+  drift=1
+  if [ "$CHECK" -eq 1 ]; then
+    echo "  differs: ${pair#*:}"
+    continue
+  fi
+  mkdir -p "$(dirname "$d")"
+  cp "$s" "$d"
+  echo "  synced: ${pair#*:}"
+  copied=$((copied + 1))
+done
+
 if [ "$CHECK" -eq 1 ]; then
-  [ "$drift" -eq 0 ] && { echo "shared skills: in sync (${#SHARED[@]})"; exit 0; }
+  [ "$drift" -eq 0 ] && { echo "shared skills: in sync (${#SHARED[@]} skills, ${#SHARED_FILES[@]} files)"; exit 0; }
   echo "shared skills: OUT OF SYNC — run scripts/sync-shared-skills.sh" >&2
   exit 1
 fi

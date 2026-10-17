@@ -9,6 +9,7 @@ import {
 const PANE = 'session-brief'
 const PRESENT_MS = 2 * 60 * 1000
 const KEEP_SESSIONS = 40
+const NUDGE_PCT = 75
 const brief = atom({ plugin: 'session-brief', key: 'brief' } as const, EMPTY)
 
 const BRIEF_TOOL = `Keep the session brief current. The owner leaves sessions running for hours and reads this brief (a side pane, /brief) when he returns, instead of scrolling.
@@ -195,10 +196,19 @@ export const register: Register = (on, options) => {
     if (urls.some(u => !b.links.some(l => l.url === u))) {
       b = await save($, cur => ({ ...cur, links: addLinks(cur.links, urls, Date.now()), changes: cur.changes + 1 }))
     }
+    // once per session: compaction would wipe what close-session needs
+    let nudge = ''
+    if (!b.nudged) {
+      const pct = (await $.session.usage().catch(() => null))?.context.percent ?? 0
+      if (pct >= NUDGE_PCT) {
+        nudge = `context ${Math.round(pct)}%: run close-session before it compacts`
+        b = await save($, cur => ({ ...cur, nudged: true }))
+      }
+    }
     const fresh = b.changes - b.seen
-    if (b.needs.length === 0 && fresh <= 0) return res
     const parts = [b.needs.length ? `needs you: ${b.needs.length}` : '', fresh > 0 ? `${fresh} new` : ''].filter(Boolean)
-    return { ...res, text: `brief · ${parts.join(' · ')} · /brief` }
+    const lines = [parts.length ? `brief · ${parts.join(' · ')} · /brief` : '', nudge].filter(Boolean)
+    return lines.length ? { ...res, text: lines.join(' · ') } : res
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {

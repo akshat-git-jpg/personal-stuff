@@ -1,6 +1,6 @@
 {
   "name": "session-brief",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Side pane (/brief): what needs you, the plan, drafts to paste and links to keep",
   "types": "./types/index.d.ts",
   "userConfig": {

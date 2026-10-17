@@ -42,6 +42,15 @@ test('collects a created PR, files an expired login, shows the pending line', as
   expect((await pane.find({ text: /AWS login expired/ }))).toBeTruthy()
 })
 
+test('nudges close-session once when context is high', async ($, on) => {
+  base(on)
+  on('session.usage', () => ({ value: { startedAt: 0, context: { window: 200000, percent: 80 }, rateLimits: [] } }))
+  await $.session.start({ source: 'startup' } as never)
+  const turn = { answer: 'ok', durationMs: 1, isAborted: false, turnId: 't', reason: 'answer' } as never
+  expect((await $.turn.complete(turn)).text).toBe('context 80%: run close-session before it compacts')
+  expect((await $.turn.complete(turn)).text).toBe('ok')
+})
+
 test('brief tool moves the plan', async ($, on) => {
   base(on)
   await $.session.start({ source: 'startup' } as never)
