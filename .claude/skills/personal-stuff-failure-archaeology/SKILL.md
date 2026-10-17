@@ -56,6 +56,7 @@ Hunches that went through **personal-stuff-research-methodology**'s lifecycle. A
 | Devsplainers PoC | Can thin-kit + Antigravity produce graphics at quality? | PoC scored on four quality axes | Failed all four → "keep Antigravity out of the graphics path"; later explicitly overridden for one step with mitigation (plan 047, above) | decisions.md 2026-07-05 + 2026-07-07 |
 | yt-dlp 429s | Why is YouTube blocking transcript fetches? | Root-cause hunt until one mechanism explained every observation | Self-update pre-flight + PO-token plugin; proxy named as agreed next escalation | decisions.md 2026-07-06 |
 | kunchenguid stack | Adopt his agentic-workflow binaries? | Studied the working tools **in source** | **Adapt, don't adopt** — native `wt`/`greenlight`/`overnight`/`captain` builds (overnight and captain since deleted, 2026-08-23); exactly one external piece adopted (lavish-axi transport for `/plan-review`) | plans/README.md 033–038 batch note, decisions.md 2026-07-06 |
+| kb-editor base | Which open-source editor should the owner's own Claude-driven video editor build on? | 5 parallel desk-research reports (21 options scored), then hands-on tests of WeftCut and Diffusion Studio on the owner's real media (11 numbered checks, perf lock) | **Fork WeftCut** (0 dropped frames on proxies, 20/20 HyperFrames cards live, export matched preview); Diffusion failed every export; Velorn, Remotion, OpenCut, HyperFrames Studio, Kdenlive, Tauri ruled out | decisions.md 2026-10-17, `docs/research/kb-editor/` |
 
 ## Stale-reference decoder
 

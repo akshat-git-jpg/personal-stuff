@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-research-methodology
-description: Sets how a hunch (new tool, engine, migration, approach) earns its way into personal-stuff: check the record, run a cheap falsifiable test, record the verdict, then adopt, defer or archive. Holds measurement recipes (bake-offs, budget spikes, fixture re-checks) and the evidence bar a claim must clear. Use when tempted to build first and validate later; triggers on "should we switch", "de-risk this", "run a PoC", "benchmark this".
+description: How a hunch or an open-ended choice earns its way in: check the record, research in parallel, hands-on POC of 2+ candidates on real data, record the verdict, then adopt, defer or archive. Holds the open-ended decision playbook with templates, measurement recipes and the evidence bar. Triggers on "which tool should we use", "build or buy", "build on an existing", "do proper research", "should we switch", "de-risk this", "run a PoC", "benchmark this".
 ---
 
 # Research methodology — from hunch to accepted change
@@ -8,6 +8,15 @@ description: Sets how a hunch (new tool, engine, migration, approach) earns its 
 ## Overview
 
 How an idea earns its way into this repo. The through-line: **cheap falsifiable test first, verdict on record, adoption is a separate owner decision.** A validated finding sitting in "deferred" is the system working, not failing.
+
+## Open-ended decisions: read the playbook first
+
+Choosing a tool, a base to build on, build vs buy, or an architecture? Follow
+[open-ended-decisions.md](open-ended-decisions.md): brainstorm, requirements file, parallel desk
+research, verify the decisive facts yourself, hands-on test of at least two candidates on the
+owner's real data, decide, design doc + builder check, parallel build, real-app smoke test.
+Templates (real files from the kb-editor run) are in `templates/`. The owner asked for this flow
+by name (2026-10-17): **no assumption, proper research and proper testing before any decision.**
 
 ## The lifecycle
 

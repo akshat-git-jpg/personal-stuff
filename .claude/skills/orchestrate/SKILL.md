@@ -88,6 +88,8 @@ A new build in a repo you have not read yet is fuzzy until proven otherwise.
   **Invoke `superpowers:brainstorming`** and work through intent, requirements, constraints,
   and acceptance criteria. Stop when you can name the scope, the tech, and what "done" means.
   Do not start planning mid-brainstorm.
+  If the build hinges on an open-ended choice (which tool, which base, build vs buy), run
+  **personal-stuff-research-methodology**'s `open-ended-decisions.md` playbook before Step 2.
 - **Already specific** — the user handed you scope, acceptance criteria, AND the approach, in a
   repo whose conventions answer the rest. Skip brainstorming; go to Step 2.
 
