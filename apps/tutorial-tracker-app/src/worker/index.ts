@@ -54,6 +54,7 @@ import {
   rolesForSystem, WILDCARD_SYSTEM, ADMIN_ROLE,
 } from "../shared/engine/registry";
 import { mintSlug } from "../shared/slug";
+import { emailProblem } from "../shared/email";
 import { derive, statusOf } from "../shared/engine/derive";
 import { colOf, stageHasReviewerSlot, createFieldsOf, requiredToCreate } from "../shared/engine/types";
 import { lifecycle, eventTypeFor } from "../shared/engine/lifecycle";
@@ -353,7 +354,8 @@ app.post("/api/team", async (c) => {
   const name = (body.name ?? "").trim();
   const email = (body.email ?? "").trim().toLowerCase();
   if (!name) return c.json({ error: "name is required" }, 400);
-  if (!email || !email.includes("@")) return c.json({ error: "a valid email is required" }, 400);
+  const badEmail = emailProblem(email);
+  if (badEmail) return c.json({ error: "bad_email", message: badEmail }, 400);
 
   // Sanitize each system's roles against what's valid there; drop unknown systems.
   const clean: Memberships = {};
