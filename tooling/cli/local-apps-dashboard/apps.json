@@ -108,6 +108,15 @@
       "url": "http://localhost:4322"
     },
     {
+      "id": "review-studio",
+      "name": "review studio",
+      "cwd": "pipelines/video/review-studio",
+      "start": "npm start",
+      "port": 4340,
+      "ports": [4340],
+      "url": "http://localhost:4340"
+    },
+    {
       "id": "word-check",
       "name": "word pronunciation check",
       "cwd": "pipelines/video/tts/word-check",
