@@ -2054,6 +2054,6 @@ async function main() {
 // pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
 // path (C:\…) and never equals import.meta.url's file:///C:/… form, so the
 // naive compare silently no-ops and the board exits 0 without listening.
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

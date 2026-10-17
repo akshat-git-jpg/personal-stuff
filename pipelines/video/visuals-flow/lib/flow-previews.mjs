@@ -124,7 +124,7 @@ Build the prompt body from the template in card-library/DESIGN.md
 
 Then re-run this verb. The ZAPI FLOW extension picks them up by itself.`;
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [slugArg] = process.argv.slice(2);
   if (!slugArg) {
     console.error('usage: node lib/flow-previews.mjs <slug>');

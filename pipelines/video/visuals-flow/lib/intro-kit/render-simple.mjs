@@ -307,7 +307,7 @@ export async function renderSimple(slugOrWorkdir, { jobs = DEFAULT_JOBS, noCache
 
 // pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
 // path, so naive string concatenation never matches import.meta.url.
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const slug = process.argv[2];
   if (!slug) {
     console.error('usage: node lib/intro-kit/render-simple.mjs <slug-or-path> [--no-cache]');
