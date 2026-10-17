@@ -139,7 +139,7 @@ export function TeamPanel({ pipelines, onChanged }: TeamPanelProps) {
 
   function startAdd(role?: string) {
     setDraft({ ...EMPTY, roles: role ? [role] : [] }); setEditing("__new__"); setError(null);
-    requestAnimationFrame(() => document.getElementById("team-add-form")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    requestAnimationFrame(() => document.getElementById("team-add-form")?.scrollIntoView?.({ behavior: "smooth", block: "center" }));
   }
   function startEdit(m: TeamMember) {
     setDraft({ name: m.name, email: m.email, roles: rolesIn(m, activeSystem) });
