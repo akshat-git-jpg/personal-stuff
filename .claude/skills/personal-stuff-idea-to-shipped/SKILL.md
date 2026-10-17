@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-idea-to-shipped
-description: Walks anything new in personal-stuff from idea to live and back out: parking and pressure-testing an idea, placing it, scaffolding with the house stack and auth model, shipping through orchestrate → secretary → boss, first deploy, registering in the inventories, and clean decommissioning. Use when starting something new or when an idea arrives mid-session and needs parking.
+description: Walks anything new in personal-stuff from idea to live and back out: parking and pressure-testing an idea, placing it, scaffolding with the house stack and auth model, shipping through orchestrate → secretary → boss, first deploy, registering in the inventories, and clean decommissioning. Use when starting something new, or when an idea arrives mid-session and needs parking ("keep it as an idea", "open point", "continue later").
 ---
 
 # Idea → shipped (and cleanly retired)
